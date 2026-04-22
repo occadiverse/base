@@ -6,46 +6,47 @@
     <title>Oppmøte Protokoll</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; color: #333; }
-        .top-header { background: white; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .top-header { background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px; }
+        .container { max-width: 100%; margin: 20px auto; padding: 0 20px; }
         
-        .controls { display: flex; gap: 10px; align-items: center; }
+        .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         select, input, button { padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; }
         .btn-add { background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
         .month-picker { border: 2px solid #1a73e8; font-weight: bold; color: #1a73e8; }
 
         .scroll-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #eee; padding: 8px; text-align: center; min-width: 45px; }
+        th, td { border: 1px solid #eee; padding: 6px; text-align: center; min-width: 40px; }
         
-        /* Overskrifter */
-        .name-col { text-align: left; min-width: 180px; position: sticky; left: 0; background: white; z-index: 10; font-weight: bold; border-right: 2px solid #ddd; }
-        .date-header { font-size: 10px; cursor: pointer; transition: 0.2s; }
-        .date-header:hover { background: #eef; }
-        .type-tag { font-size: 9px; display: block; margin-top: 4px; padding: 2px; border-radius: 4px; color: white; }
-        .tag-t { background: #1a73e8; } /* Trening */
-        .tag-k { background: #9c27b0; } /* Kamp */
-
-        /* Oppmøte-status */
-        .status-cell { cursor: pointer; font-size: 18px; user-select: none; transition: 0.1s; }
-        .status-cell:hover { background: #f0f0f0; }
-        .stat-col { font-weight: bold; color: #666; background: #f9f9f9; width: 60px; }
-
-        .delete-btn { color: #ff4444; cursor: pointer; margin-right: 8px; font-size: 12px; }
+        .name-col { text-align: left; min-width: 160px; position: sticky; left: 0; background: white; z-index: 10; font-weight: bold; border-right: 2px solid #ddd; }
+        .date-header { font-size: 10px; cursor: pointer; min-width: 60px; }
+        .date-header:hover { background: #f0f4ff; }
         
-        @media print { .top-header, .delete-btn { display: none; } }
+        .type-tag { font-size: 9px; display: block; margin-top: 4px; padding: 2px; border-radius: 4px; color: white; font-weight: bold; }
+        .tag-t { background: #1a73e8; } /* Trening: Blå */
+        .tag-k { background: #9c27b0; } /* Kamp: Lilla */
+        .tag-none { color: #ccc; font-weight: normal; }
+
+        .status-cell { cursor: pointer; font-size: 18px; user-select: none; }
+        .status-cell:hover { background: #f8f9fa; }
+        .stat-col { font-weight: bold; color: #1a73e8; background: #f0f7ff; width: 50px; }
+        .sat-col-label { font-size: 10px; color: #666; }
+
+        .delete-btn { color: #ff4444; cursor: pointer; margin-right: 8px; font-size: 14px; font-weight: bold; }
+        
+        @media print { .top-header, .delete-btn { display: none; } .scroll-container { box-shadow: none; } }
     </style>
 </head>
 <body>
 
 <div class="top-header">
     <div class="controls">
-        <h2 style="margin:0; color:#1a73e8; margin-right:20px;">Oppmøte</h2>
-        <select id="monthSelect" class="month-picker" onchange="renderAll()"></select>
+        <h2 style="margin:0; color:#1a73e8; margin-right:15px;">⚽ Oppmøte</h2>
+        <select id="monthSelect" class="month-picker" onchange="initMonth()"></select>
         <input type="text" id="playerName" placeholder="Navn på spiller">
-        <button class="btn-add" onclick="addPlayer()">+ Legg til</button>
+        <button class="btn-add" onclick="addPlayer()">Legg til</button>
     </div>
-    <button onclick="window.print()">🖨️ Print</button>
+    <button onclick="window.print()" style="background:#64748b; color:white; border:none; cursor:pointer; font-weight:bold; border-radius:6px; padding:8px 15px;">🖨️ PDF / Print</button>
 </div>
 
 <div class="container">
@@ -58,17 +59,16 @@
 </div>
 
 <script>
-    let players = JSON.parse(localStorage.getItem('base-players')) || ["Eksempel Spiller"];
+    let players = JSON.parse(localStorage.getItem('base-players')) || ["Spiller 1"];
     const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
     const currentYear = 2026;
 
-    // Oppsett av måned-velger
     const monthSelect = document.getElementById('monthSelect');
     months.forEach((m, i) => {
         let opt = document.createElement('option');
         opt.value = i;
         opt.innerText = m + " " + currentYear;
-        if(i === new Date().getMonth()) opt.selected = true;
+        if(i === 3) opt.selected = true; // April som standard
         monthSelect.appendChild(opt);
     });
 
@@ -91,18 +91,42 @@
         }
     }
 
+    // Automatisk oppsett av faste dager når man bytter måned
+    function initMonth() {
+        const monthIdx = parseInt(monthSelect.value);
+        const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
+        
+        for(let i=1; i<=daysInMonth; i++) {
+            let d = new Date(currentYear, monthIdx, i);
+            let dayOfWeek = d.getDay(); 
+            let key = `type-${currentYear}-${monthIdx}-${i}`;
+            
+            // Bare sett automatisk hvis det ikke finnes noe fra før
+            if (!localStorage.getItem(key)) {
+                if (dayOfWeek === 1 || dayOfWeek === 6) { // Man og Lør
+                    localStorage.setItem(key, "T");
+                } else if (dayOfWeek === 3) { // Ons
+                    localStorage.setItem(key, "K");
+                } else {
+                    localStorage.setItem(key, "X");
+                }
+            }
+        }
+        renderAll();
+    }
+
     function toggleDayType(dayNr) {
         const month = monthSelect.value;
         const key = `type-${currentYear}-${month}-${dayNr}`;
-        const currentType = localStorage.getItem(key) || "T";
-        const nextType = currentType === "T" ? "K" : (currentType === "K" ? "X" : "T");
-        localStorage.setItem(key, nextType);
+        const current = localStorage.getItem(key) || "X";
+        const next = current === "X" ? "T" : (current === "T" ? "K" : "X");
+        localStorage.setItem(key, next);
         renderAll();
     }
 
     function cycleStatus(playerName, dayNr) {
         const month = monthSelect.value;
-        const key = `att-${currentYear}-${month}-${playerName}-${dayNr}`;
+        const key = `att-base-${currentYear}-${month}-${playerName}-${dayNr}`;
         const current = localStorage.getItem(key) || "?";
         const states = ["?", "✅", "❌", "🤕"];
         let next = states[(states.indexOf(current) + 1) % states.length];
@@ -114,14 +138,14 @@
         const monthIdx = parseInt(monthSelect.value);
         const head = document.getElementById('tableHead');
         const body = document.getElementById('tableBody');
-        
-        // Finn dager i måneden
         const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
+        
         let days = [];
         for(let i=1; i<=daysInMonth; i++) {
             let d = new Date(currentYear, monthIdx, i);
-            if(d.getDay() !== 0 && d.getDay() !== 6) { // Vis kun hverdager (valgfritt)
-                days.push({nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][d.getDay()]});
+            let dayOfWeek = d.getDay();
+            if(dayOfWeek !== 0 && dayOfWeek !== 2 && dayOfWeek !== 4 && dayOfWeek !== 5) { // Vis Man, Ons, Lør (og de du har valgt manuelt)
+                days.push({nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][dayOfWeek]});
             }
         }
 
@@ -130,15 +154,15 @@
         days.forEach(d => {
             const typeKey = `type-${currentYear}-${monthIdx}-${d.nr}`;
             const type = localStorage.getItem(typeKey) || "X";
-            let typeLabel = type === "T" ? "Trening" : (type === "K" ? "Kamp" : "-");
-            let typeClass = type === "T" ? "tag-t" : (type === "K" ? "tag-k" : "");
+            let label = type === "T" ? "TRENING" : (type === "K" ? "KAMP" : "-");
+            let tagClass = type === "T" ? "tag-t" : (type === "K" ? "tag-k" : "tag-none");
             
             headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})">
-                ${d.navn}<br>${d.nr}.
-                ${type !== "X" ? `<span class="type-tag ${typeClass}">${typeLabel}</span>` : `<span style="color:#ccc; font-size:8px;"><br>Klikk for type</span>`}
+                ${d.navn} ${d.nr}.
+                <span class="type-tag ${tagClass}">${label}</span>
             </th>`;
         });
-        headHtml += `<th class="stat-col">%</th></tr>`;
+        headHtml += `<th class="stat-col">SNH<br><span class="sat-col-label">%</span></th></tr>`;
         head.innerHTML = headHtml;
 
         // Tegn rader
@@ -149,32 +173,32 @@
             </td>`;
             
             let attended = 0;
-            let totalActive = 0;
+            let totalPossible = 0;
 
             days.forEach(d => {
                 const typeKey = `type-${currentYear}-${monthIdx}-${d.nr}`;
-                const isActive = localStorage.getItem(typeKey) && localStorage.getItem(typeKey) !== "X";
+                const type = localStorage.getItem(typeKey);
+                const isActivity = (type === "T" || type === "K");
                 
-                const key = `att-${currentYear}-${monthIdx}-${player}-${d.nr}`;
+                const key = `att-base-${currentYear}-${monthIdx}-${player}-${d.nr}`;
                 const status = localStorage.getItem(key) || "?";
                 
-                if(isActive) {
-                    totalActive++;
+                if(isActivity) {
+                    totalPossible++;
                     if(status === "✅") attended++;
                 }
 
-                bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player}', ${d.nr})">
-                    ${status}
-                </td>`;
+                bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player}', ${d.nr})">${status}</td>`;
             });
 
-            const percent = totalActive > 0 ? Math.round((attended / totalActive) * 100) : 0;
+            const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
             bodyHtml += `<td class="stat-col">${percent}%</td></tr>`;
         });
         body.innerHTML = bodyHtml;
     }
 
-    renderAll();
+    // Kjør init ved start
+    initMonth();
 </script>
 
 </body>
