@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spillerregistrering</title>
+    <title>Spilleradministrasjon</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; color: #333; }
-        .header { background: #1a73e8; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .header { background: #1a73e8; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         
-        /* Skjema-styling */
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         .form-group { display: flex; flex-direction: column; }
         label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #666; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
         
-        .btn-save { background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; transition: background 0.2s; }
-        .btn-save:hover { background: #218838; }
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-save { background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 2; }
+        .btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; flex: 1; display: none; }
 
-        /* Tabell-styling */
         .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: #1a73e8; font-size: 13px; text-transform: uppercase; }
+        th { background: #f8f9fa; color: #1a73e8; font-size: 12px; }
         
         .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
         .status-aktiv { background: #d4edda; color: #155724; }
         .status-passiv { background: #e2e3e5; color: #383d41; }
         
-        .delete-btn { color: #dc3545; cursor: pointer; font-size: 18px; border: none; background: none; }
+        .action-btns { display: flex; gap: 10px; }
+        .edit-btn { color: #1a73e8; cursor: pointer; background: none; border: 1px solid #1a73e8; padding: 5px 10px; border-radius: 4px; }
+        .delete-btn { color: #dc3545; cursor: pointer; background: none; border: 1px solid #dc3545; padding: 5px 10px; border-radius: 4px; }
         
         .nav-links { margin-bottom: 20px; }
-        .nav-links a { text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 14px; }
+        .nav-links a { text-decoration: none; color: #1a73e8; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>Spillerregistrering</h1>
+    <h1>Spillerstall</h1>
 </div>
 
 <div class="container">
@@ -47,20 +48,21 @@
     </div>
 
     <div class="card">
-        <h3>Ny spiller</h3>
+        <h3 id="formTitle">Registrer ny spiller</h3>
         <form id="playerForm">
+            <input type="hidden" id="editId">
             <div class="form-grid">
                 <div class="form-group">
-                    <label>Fullt navn</label>
+                    <label>Fullt navn *</label>
                     <input type="text" id="navn" required>
                 </div>
                 <div class="form-group">
-                    <label>Fødselsdato</label>
-                    <input type="date" id="fodselsdato" required>
+                    <label>Fødselsdato (valgfritt)</label>
+                    <input type="date" id="fodselsdato">
                 </div>
                 <div class="form-group">
-                    <label>Registreringsdato</label>
-                    <input type="date" id="regdato" required>
+                    <label>Reg. dato</label>
+                    <input type="date" id="regdato">
                 </div>
                 <div class="form-group">
                     <label>Status</label>
@@ -71,7 +73,7 @@
                 </div>
                 <div class="form-group">
                     <label>Mobil</label>
-                    <input type="tel" id="mobil" placeholder="8 siffer">
+                    <input type="tel" id="mobil">
                 </div>
                 <div class="form-group">
                     <label>E-post</label>
@@ -79,10 +81,13 @@
                 </div>
                 <div class="form-group">
                     <label>Draktnummer</label>
-                    <input type="number" id="draktnummer" min="1" max="99">
+                    <input type="number" id="draktnummer">
                 </div>
             </div>
-            <button type="submit" class="btn-save">Registrer Spiller</button>
+            <div class="button-group">
+                <button type="submit" id="submitBtn" class="btn-save">Registrer Spiller</button>
+                <button type="button" id="cancelBtn" class="btn-cancel" onclick="resetForm()">Avbryt</button>
+            </div>
         </form>
     </div>
 
@@ -93,39 +98,32 @@
                     <th>#</th>
                     <th>Navn</th>
                     <th>Født</th>
-                    <th>Reg. dato</th>
                     <th>Status</th>
                     <th>Mobil</th>
                     <th>E-post</th>
-                    <th>Slett</th>
+                    <th>Handlinger</th>
                 </tr>
             </thead>
-            <tbody id="playerTableBody">
-                </tbody>
+            <tbody id="playerTableBody"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const playerForm = document.getElementById('playerForm');
-    const tableBody = document.getElementById('playerTableBody');
-
-    // Sett dagens dato som standard i regdato
-    document.getElementById('regdato').valueAsDate = new Date();
-
-    // Hent data fra localStorage
     let spillerliste = JSON.parse(localStorage.getItem('full-spillerliste')) || [];
+    const playerForm = document.getElementById('playerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const formTitle = document.getElementById('formTitle');
 
-    function lagreOgVis() {
-        localStorage.setItem('full-spillerliste', JSON.stringify(spillerliste));
-        visSpillere();
-    }
+    document.getElementById('regdato').valueAsDate = new Date();
 
     playerForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const editId = document.getElementById('editId').value;
         
-        const nySpiller = {
-            id: Date.now(),
+        const spillerData = {
+            id: editId ? parseInt(editId) : Date.now(),
             navn: document.getElementById('navn').value,
             fodselsdato: document.getElementById('fodselsdato').value,
             regdato: document.getElementById('regdato').value,
@@ -135,43 +133,83 @@
             draktnummer: document.getElementById('draktnummer').value
         };
 
-        spillerliste.push(nySpiller);
-        playerForm.reset();
-        document.getElementById('regdato').valueAsDate = new Date();
-        lagreOgVis();
+        if (editId) {
+            const index = spillerliste.findIndex(s => s.id === parseInt(editId));
+            spillerliste[index] = spillerData;
+        } else {
+            spillerliste.push(spillerData);
+        }
+
+        saveAndRender();
+        resetForm();
     });
 
-    function slettSpiller(id) {
-        if(confirm("Vil du slette denne spilleren?")) {
+    function editPlayer(id) {
+        const spiller = spillerliste.find(s => s.id === id);
+        if (!spiller) return;
+
+        document.getElementById('editId').value = spiller.id;
+        document.getElementById('navn').value = spiller.navn;
+        document.getElementById('fodselsdato').value = spiller.fodselsdato;
+        document.getElementById('regdato').value = spiller.regdato;
+        document.getElementById('status').value = spiller.status;
+        document.getElementById('mobil').value = spiller.mobil;
+        document.getElementById('epost').value = spiller.epost;
+        document.getElementById('draktnummer').value = spiller.draktnummer;
+
+        formTitle.innerText = "Rediger spiller";
+        submitBtn.innerText = "Oppdater Spiller";
+        cancelBtn.style.display = "block";
+        window.scrollTo(0, 0);
+    }
+
+    function resetForm() {
+        playerForm.reset();
+        document.getElementById('editId').value = "";
+        document.getElementById('regdato').valueAsDate = new Date();
+        formTitle.innerText = "Registrer ny spiller";
+        submitBtn.innerText = "Registrer Spiller";
+        cancelBtn.style.display = "none";
+    }
+
+    function deletePlayer(id) {
+        if(confirm("Vil du slette spilleren permanent?")) {
             spillerliste = spillerliste.filter(s => s.id !== id);
-            lagreOgVis();
+            saveAndRender();
         }
     }
 
-    function visSpillere() {
+    function saveAndRender() {
+        localStorage.setItem('full-spillerliste', JSON.stringify(spillerliste));
+        renderPlayers();
+    }
+
+    function renderPlayers() {
+        const tableBody = document.getElementById('playerTableBody');
         tableBody.innerHTML = "";
         
-        // Sorter etter draktnummer
-        spillerliste.sort((a, b) => a.draktnummer - b.draktnummer);
+        // Sorterer etter draktnummer (tomme nummer sist)
+        const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer) || 999) - (parseInt(b.draktnummer) || 999));
 
-        spillerliste.forEach(s => {
+        sorted.forEach(s => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><strong>${s.draktnummer || '-'}</strong></td>
                 <td>${s.navn}</td>
-                <td>${s.fodselsdato}</td>
-                <td>${s.regdato}</td>
+                <td>${s.fodselsdato || '<span style="color:#ccc">Ikke satt</span>'}</td>
                 <td><span class="status-pill ${s.status === 'Aktiv' ? 'status-aktiv' : 'status-passiv'}">${s.status}</span></td>
-                <td>${s.mobil}</td>
-                <td><small>${s.epost}</small></td>
-                <td><button class="delete-btn" onclick="slettSpiller(${s.id})">🗑️</button></td>
+                <td>${s.mobil || '-'}</td>
+                <td><small>${s.epost || '-'}</small></td>
+                <td class="action-btns">
+                    <button class="edit-btn" onclick="editPlayer(${s.id})">Rediger</button>
+                    <button class="delete-btn" onclick="deletePlayer(${s.id})">Slett</button>
+                </td>
             `;
             tableBody.appendChild(row);
         });
     }
 
-    // Initial visning
-    visSpillere();
+    renderPlayers();
 </script>
 
 </body>
