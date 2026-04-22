@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spillerregistrering</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; color: #333; }
+        .header { background: #1a73e8; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        
+        /* Skjema-styling */
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #666; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        
+        .btn-save { background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; transition: background 0.2s; }
+        .btn-save:hover { background: #218838; }
+
+        /* Tabell-styling */
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #1a73e8; font-size: 13px; text-transform: uppercase; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .status-aktiv { background: #d4edda; color: #155724; }
+        .status-passiv { background: #e2e3e5; color: #383d41; }
+        
+        .delete-btn { color: #dc3545; cursor: pointer; font-size: 18px; border: none; background: none; }
+        
+        .nav-links { margin-bottom: 20px; }
+        .nav-links a { text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Spillerregistrering</h1>
+</div>
+
+<div class="container">
+    <div class="nav-links">
+        <a href="index.html">← Tilbake til Oppmøte</a>
+    </div>
+
+    <div class="card">
+        <h3>Ny spiller</h3>
+        <form id="playerForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fullt navn</label>
+                    <input type="text" id="navn" required>
+                </div>
+                <div class="form-group">
+                    <label>Fødselsdato</label>
+                    <input type="date" id="fodselsdato" required>
+                </div>
+                <div class="form-group">
+                    <label>Registreringsdato</label>
+                    <input type="date" id="regdato" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status">
+                        <option value="Aktiv">Aktiv</option>
+                        <option value="Passiv">Passiv</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mobil</label>
+                    <input type="tel" id="mobil" placeholder="8 siffer">
+                </div>
+                <div class="form-group">
+                    <label>E-post</label>
+                    <input type="email" id="epost">
+                </div>
+                <div class="form-group">
+                    <label>Draktnummer</label>
+                    <input type="number" id="draktnummer" min="1" max="99">
+                </div>
+            </div>
+            <button type="submit" class="btn-save">Registrer Spiller</button>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Navn</th>
+                    <th>Født</th>
+                    <th>Reg. dato</th>
+                    <th>Status</th>
+                    <th>Mobil</th>
+                    <th>E-post</th>
+                    <th>Slett</th>
+                </tr>
+            </thead>
+            <tbody id="playerTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const playerForm = document.getElementById('playerForm');
+    const tableBody = document.getElementById('playerTableBody');
+
+    // Sett dagens dato som standard i regdato
+    document.getElementById('regdato').valueAsDate = new Date();
+
+    // Hent data fra localStorage
+    let spillerliste = JSON.parse(localStorage.getItem('full-spillerliste')) || [];
+
+    function lagreOgVis() {
+        localStorage.setItem('full-spillerliste', JSON.stringify(spillerliste));
+        visSpillere();
+    }
+
+    playerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const nySpiller = {
+            id: Date.now(),
+            navn: document.getElementById('navn').value,
+            fodselsdato: document.getElementById('fodselsdato').value,
+            regdato: document.getElementById('regdato').value,
+            status: document.getElementById('status').value,
+            mobil: document.getElementById('mobil').value,
+            epost: document.getElementById('epost').value,
+            draktnummer: document.getElementById('draktnummer').value
+        };
+
+        spillerliste.push(nySpiller);
+        playerForm.reset();
+        document.getElementById('regdato').valueAsDate = new Date();
+        lagreOgVis();
+    });
+
+    function slettSpiller(id) {
+        if(confirm("Vil du slette denne spilleren?")) {
+            spillerliste = spillerliste.filter(s => s.id !== id);
+            lagreOgVis();
+        }
+    }
+
+    function visSpillere() {
+        tableBody.innerHTML = "";
+        
+        // Sorter etter draktnummer
+        spillerliste.sort((a, b) => a.draktnummer - b.draktnummer);
+
+        spillerliste.forEach(s => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${s.draktnummer || '-'}</strong></td>
+                <td>${s.navn}</td>
+                <td>${s.fodselsdato}</td>
+                <td>${s.regdato}</td>
+                <td><span class="status-pill ${s.status === 'Aktiv' ? 'status-aktiv' : 'status-passiv'}">${s.status}</span></td>
+                <td>${s.mobil}</td>
+                <td><small>${s.epost}</small></td>
+                <td><button class="delete-btn" onclick="slettSpiller(${s.id})">🗑️</button></td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Initial visning
+    visSpillere();
+</script>
+
+</body>
+</html>
