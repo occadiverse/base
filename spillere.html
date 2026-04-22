@@ -20,7 +20,7 @@
         .btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; flex: 1; display: none; }
 
         .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: #1a73e8; font-size: 12px; }
         
@@ -28,9 +28,9 @@
         .status-aktiv { background: #d4edda; color: #155724; }
         .status-passiv { background: #e2e3e5; color: #383d41; }
         
-        .action-btns { display: flex; gap: 10px; }
-        .edit-btn { color: #1a73e8; cursor: pointer; background: none; border: 1px solid #1a73e8; padding: 5px 10px; border-radius: 4px; }
-        .delete-btn { color: #dc3545; cursor: pointer; background: none; border: 1px solid #dc3545; padding: 5px 10px; border-radius: 4px; }
+        .action-btns { display: flex; gap: 8px; }
+        .edit-btn { color: #1a73e8; cursor: pointer; background: none; border: 1px solid #1a73e8; padding: 5px 8px; border-radius: 4px; font-size: 12px; }
+        .delete-btn { color: #dc3545; cursor: pointer; background: none; border: 1px solid #dc3545; padding: 5px 8px; border-radius: 4px; font-size: 12px; }
         
         .nav-links { margin-bottom: 20px; }
         .nav-links a { text-decoration: none; color: #1a73e8; font-weight: bold; }
@@ -57,12 +57,8 @@
                     <input type="text" id="navn" required>
                 </div>
                 <div class="form-group">
-                    <label>Fødselsdato (valgfritt)</label>
+                    <label>Fødselsdato</label>
                     <input type="date" id="fodselsdato">
-                </div>
-                <div class="form-group">
-                    <label>Reg. dato</label>
-                    <input type="date" id="regdato">
                 </div>
                 <div class="form-group">
                     <label>Status</label>
@@ -85,7 +81,7 @@
                 </div>
             </div>
             <div class="button-group">
-                <button type="submit" id="submitBtn" class="btn-save">Registrer Spiller</button>
+                <button type="submit" id="submitBtn" class="btn-save">Lagre Spiller</button>
                 <button type="button" id="cancelBtn" class="btn-cancel" onclick="resetForm()">Avbryt</button>
             </div>
         </form>
@@ -116,8 +112,6 @@
     const cancelBtn = document.getElementById('cancelBtn');
     const formTitle = document.getElementById('formTitle');
 
-    document.getElementById('regdato').valueAsDate = new Date();
-
     playerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const editId = document.getElementById('editId').value;
@@ -126,7 +120,6 @@
             id: editId ? parseInt(editId) : Date.now(),
             navn: document.getElementById('navn').value,
             fodselsdato: document.getElementById('fodselsdato').value,
-            regdato: document.getElementById('regdato').value,
             status: document.getElementById('status').value,
             mobil: document.getElementById('mobil').value,
             epost: document.getElementById('epost').value,
@@ -151,7 +144,6 @@
         document.getElementById('editId').value = spiller.id;
         document.getElementById('navn').value = spiller.navn;
         document.getElementById('fodselsdato').value = spiller.fodselsdato;
-        document.getElementById('regdato').value = spiller.regdato;
         document.getElementById('status').value = spiller.status;
         document.getElementById('mobil').value = spiller.mobil;
         document.getElementById('epost').value = spiller.epost;
@@ -166,14 +158,13 @@
     function resetForm() {
         playerForm.reset();
         document.getElementById('editId').value = "";
-        document.getElementById('regdato').valueAsDate = new Date();
         formTitle.innerText = "Registrer ny spiller";
-        submitBtn.innerText = "Registrer Spiller";
+        submitBtn.innerText = "Lagre Spiller";
         cancelBtn.style.display = "none";
     }
 
     function deletePlayer(id) {
-        if(confirm("Vil du slette spilleren permanent?")) {
+        if(confirm("Vil du slette spilleren?")) {
             spillerliste = spillerliste.filter(s => s.id !== id);
             saveAndRender();
         }
@@ -188,7 +179,6 @@
         const tableBody = document.getElementById('playerTableBody');
         tableBody.innerHTML = "";
         
-        // Sorterer etter draktnummer (tomme nummer sist)
         const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer) || 999) - (parseInt(b.draktnummer) || 999));
 
         sorted.forEach(s => {
@@ -196,7 +186,7 @@
             row.innerHTML = `
                 <td><strong>${s.draktnummer || '-'}</strong></td>
                 <td>${s.navn}</td>
-                <td>${s.fodselsdato || '<span style="color:#ccc">Ikke satt</span>'}</td>
+                <td>${s.fodselsdato || '-'}</td>
                 <td><span class="status-pill ${s.status === 'Aktiv' ? 'status-aktiv' : 'status-passiv'}">${s.status}</span></td>
                 <td>${s.mobil || '-'}</td>
                 <td><small>${s.epost || '-'}</small></td>
