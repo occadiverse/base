@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistikk - Bækkelaget SK</title>
+    <title>Statistikk - BSK Fotball</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Lokale stiler for statistikk-tabellen */
         .stats-card {
             background: var(--card-bg);
             padding: 20px;
             border-radius: var(--border-radius);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-top: 20px;
         }
-        .rank-1 { background-color: #ffd70044; } /* Gull */
-        .rank-2 { background-color: #c0c0c044; } /* Sølv */
-        .rank-3 { background-color: #cd7f3244; } /* Bronse */
-        .medal { font-size: 1.2em; margin-right: 5px; }
+        .rank-1 { background-color: #ffd70022; }
+        .rank-2 { background-color: #c0c0c022; }
+        .rank-3 { background-color: #cd7f3222; }
+        
         .progress-bar-bg {
             background: #eee;
             border-radius: 10px;
-            height: 10px;
+            height: 8px;
             width: 100%;
             margin-top: 5px;
         }
@@ -27,7 +29,7 @@
             background: var(--primary-color);
             height: 100%;
             border-radius: 10px;
-            transition: width 0.5s ease-out;
+            transition: width 0.8s ease-in-out;
         }
     </style>
 </head>
@@ -38,24 +40,19 @@
     <div class="nav-links-container">
         <a href="oppmote.html" class="nav-item">📅 Oppmøte</a>
         <a href="spillere.html" class="nav-item">👥 Spillere</a>
-        <a href="statistikk.html" class="nav-item">📊 Stats</a>
+        <a href="statistikk.html" class="nav-item active">📊 Stats</a>
     </div>
 </nav>
-
-<div class="header">
-    <h1>📊 Statistikk 2026</h1>
-    <a href="index.html" class="nav-link">🏠 Meny</a>
-</div>
 
 <div class="container">
     <div class="stats-card">
         <table id="statsTable">
             <thead>
                 <tr>
-                    <th>Plass</th>
+                    <th>#</th>
                     <th style="text-align: left;">Spiller</th>
                     <th>Oppmøte</th>
-                    <th>%</th>
+                    <th>Prosent</th>
                 </tr>
             </thead>
             <tbody id="statsBody"></tbody>
@@ -74,21 +71,16 @@
             let attended = 0;
             let totalPossible = 0;
 
-            // Vi går gjennom alle måneder (0-11)
             for (let m = 0; m < 12; m++) {
                 const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
-                
                 for (let d = 1; d <= daysInMonth; d++) {
                     const typeKey = `type-${currentYear}-${m}-${d}`;
                     const type = localStorage.getItem(typeKey);
                     
-                    // Sjekker om det var en aktivitet (Trening eller Kamp)
                     if (type === "T" || type === "K") {
                         totalPossible++;
                         const status = DB.getAttendance(currentYear, m, player.id, d);
-                        if (status === "✅") {
-                            attended++;
-                        }
+                        if (status === "✅") attended++;
                     }
                 }
             }
@@ -102,7 +94,6 @@
             });
         });
 
-        // Sorterer fra høyest til lavest prosent
         stats.sort((a, b) => b.percent - a.percent || b.attended - a.attended);
         renderStats(stats);
     }
