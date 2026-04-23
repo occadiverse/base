@@ -1,12 +1,21 @@
 /* Oppdatert Moderne Stilark */
 :root {
+    /* --- Dine eksisterende farger --- */
+    --primary-color: #1a73e8;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --border-radius: 12px;
+
+    /* --- DE NYE MODERNE VARIABLENE (Legg til disse) --- */
     --primary-gradient: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
     --success-gradient: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
     --danger-gradient: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
     --card-shadow: 0 10px 20px rgba(0,0,0,0.08);
     --hover-shadow: 0 15px 30px rgba(0,0,0,0.15);
 }
-
 /* Navbaren - mer "floaty" og moderne */
 .navbar {
     background: var(--primary-gradient);
