@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bækkelaget SK Fotball 2026</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Ekstra stil for meny-kortene */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .menu-card {
+            background: var(--card-bg);
+            padding: 40px 20px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #eee;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+
+        .menu-card i {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .menu-card h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+
+        .menu-card p {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Bækkelaget SK Fotball 2026</h1>
+</div>
+
+<div class="container">
+    <div class="dashboard-grid">
+        
+        <a href="oppmote.html" class="menu-card">
+            <i>📅</i>
+            <h3>Oppmøte</h3>
+            <p>Registrer trening, kamp og se statistikk for måneden.</p>
+        </a>
+
+        <a href="spillere.html" class="menu-card">
+            <i>👥</i>
+            <h3>Spillerstall</h3>
+            <p>Legg til nye spillere, endre info eller draktnummer.</p>
+        </a>
+
+        <a href="#" class="menu-card" style="opacity: 0.6; cursor: not-allowed;">
+            <i>📊</i>
+            <h3>Statistikk</h3>
+            <p>Kommer snart: Langtidsstatistikk for hele sesongen.</p>
+        </a>
+
+    </div>
+</div>
+
+</body>
+</html>
