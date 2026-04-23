@@ -1,116 +1,89 @@
-/* style.css */
-
+/* Oppdatert Moderne Stilark */
 :root {
-    --primary-color: #1a73e8;    /* Blå hovedfarge */
-    --success-color: #28a745;    /* Grønn for ✅ og lagring */
-    --danger-color: #dc3545;     /* Rød for ❌ og sletting */
-    --bg-color: #f0f2f5;         /* Grå bakgrunnsfarge */
-    --card-bg: #ffffff;          /* Hvit bakgrunn for kort/tabell */
-    --text-color: #333;
-    --border-radius: 12px;
+    --primary-gradient: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    --success-gradient: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    --danger-gradient: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
+    --card-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    --hover-shadow: 0 15px 30px rgba(0,0,0,0.15);
 }
 
-body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-}
-
-/* Felles Header ⚽ */
-.header, .top-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.header h1, .top-header h2 { margin: 0; color: white; }
-
-/* Tabeller 📊 */
-.scroll-container, .table-container {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    margin: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    border: 1px solid #eee;
-    padding: 12px;
-    text-align: center;
-}
-
-/* Status-merker og knapper 🏷️ */
-.status-pill, .type-tag {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: bold;
-    color: white;
-}
-
-.status-aktiv, .tag-t { background-color: var(--primary-color); }
-.status-passiv, .tag-none { background-color: #6c757d; }
-
-.btn-save { background-color: var(--success-color); color: white; }
-.delete-btn { border: 1px solid var(--danger-color); color: var(--danger-color); }
-
-/* Ny lekker navigasjonsmeny */
+/* Navbaren - mer "floaty" og moderne */
 .navbar {
-    background-color: var(--primary-color);
-    padding: 0 20px;
+    background: var(--primary-gradient);
+    padding: 0 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 60px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: 70px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     position: sticky;
     top: 0;
     z-index: 1000;
 }
 
 .nav-brand {
-    color: white;
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-decoration: none;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-.nav-links-container {
-    display: flex;
-    gap: 10px;
-}
-
+/* Knappene (Nav-items) */
 .nav-item {
-    color: white;
-    text-decoration: none;
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    transition: background 0.3s;
+    background: rgba(255, 255, 255, 0.1);
+    margin-left: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .nav-item.active {
-    background: rgba(255, 255, 255, 0.25);
-    font-weight: bold;
+    background: white;
+    color: #1a73e8 !important;
+    font-weight: 800;
+    border: none;
 }
 
-/* Fjern den gamle header-stilen hvis den krasjer */
-.header, .top-header {
-    display: none; /* Vi erstatter disse med den nye navbaren */
+/* "Action"-knapper på sidene (Lagre, Slett etc) */
+button, .btn-save, .btn-print {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px; /* Mer avrundet for moderne look */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(26, 115, 232, 0.4);
+}
+
+.btn-save {
+    background: var(--success-gradient);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+.delete-btn {
+    background: white;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+    padding: 8px 16px;
+}
+
+.delete-btn:hover {
+    background: var(--danger-gradient);
+    color: white;
+    border-color: transparent;
 }
