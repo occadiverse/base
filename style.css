@@ -1,98 +1,70 @@
-/* Oppdatert Moderne Stilark */
 :root {
-    /* --- Dine eksisterende farger --- */
     --primary-color: #1a73e8;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-    --bg-color: #f0f2f5;
-    --card-bg: #ffffff;
-    --text-color: #333;
-    --border-radius: 12px;
-
-    /* --- DE NYE MODERNE VARIABLENE (Legg til disse) --- */
     --primary-gradient: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
     --success-gradient: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
     --danger-gradient: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
-    --card-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    --hover-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --border-radius: 16px;
+    --card-shadow: 0 10px 20px rgba(0,0,0,0.05);
 }
-/* Navbaren - mer "floaty" og moderne */
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Felles Navigasjon */
 .navbar {
     background: var(--primary-gradient);
-    padding: 0 25px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 70px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
 }
 
-.nav-brand {
-    font-size: 1.4rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+.nav-brand { color: white; font-weight: 800; text-decoration: none; font-size: 1.2rem; }
+.nav-links-container { display: flex; gap: 10px; }
+.nav-item { 
+    color: white; text-decoration: none; padding: 8px 16px; 
+    border-radius: 50px; font-size: 0.9rem; transition: 0.3s;
+    background: rgba(255,255,255,0.1);
+}
+.nav-item:hover { background: rgba(255,255,255,0.2); }
+.nav-item.active { background: white; color: var(--primary-color); font-weight: bold; }
+
+/* Felles Container og Kort */
+.container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+.card { 
+    background: var(--card-bg); padding: 25px; 
+    border-radius: var(--border-radius); box-shadow: var(--card-shadow);
+    margin-bottom: 20px;
 }
 
-/* Knappene (Nav-items) */
-.nav-item {
-    background: rgba(255, 255, 255, 0.1);
-    margin-left: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Tabell-design */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 0.8rem; text-transform: uppercase; color: #666; }
+td { padding: 15px; border-bottom: 1px solid #eee; text-align: center; }
+.name-col { text-align: left; font-weight: 600; }
 
-.nav-item:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+/* Knapper */
+button, .btn {
+    padding: 12px 25px; border-radius: 50px; border: none;
+    font-weight: 600; cursor: pointer; transition: 0.3s;
 }
+.btn-save { background: var(--success-gradient); color: white; }
+.btn-print { background: white; color: var(--primary-color); border: 1px solid var(--primary-color); }
 
-.nav-item.active {
-    background: white;
-    color: #1a73e8 !important;
-    font-weight: 800;
-    border: none;
-}
-
-/* "Action"-knapper på sidene (Lagre, Slett etc) */
-button, .btn-save, .btn-print {
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 50px; /* Mer avrundet for moderne look */
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
-}
-
-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(26, 115, 232, 0.4);
-}
-
-.btn-save {
-    background: var(--success-gradient);
-    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-}
-
-.delete-btn {
-    background: white;
-    color: #dc3545;
-    border: 2px solid #dc3545;
-    padding: 8px 16px;
-}
-
-.delete-btn:hover {
-    background: var(--danger-gradient);
-    color: white;
-    border-color: transparent;
-}
+/* Status Tags */
+.type-tag { padding: 2px 8px; border-radius: 4px; font-size: 10px; color: white; }
+.tag-t { background: var(--primary-color); }
+.tag-k { background: #f39c12; }
