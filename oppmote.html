@@ -4,39 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oppmøte Protokoll</title>
-    <style>
-        <link rel="stylesheet" href="style.css">
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; color: #333; }
-        .top-header { background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px; }
-        .container { max-width: 100%; margin: 20px auto; padding: 0 20px; }
-        .controls { display: flex; gap: 15px; align-items: center; }
-        .nav-link { color: #1a73e8; text-decoration: none; font-weight: bold; font-size: 14px; border: 1px solid #1a73e8; padding: 8px 15px; border-radius: 6px; }
-        .nav-link:hover { background: #f0f7ff; }
-        select.month-picker { padding: 8px 12px; border-radius: 6px; border: 2px solid #1a73e8; font-weight: bold; color: #1a73e8; cursor: pointer; }
-        .scroll-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #eee; padding: 6px; text-align: center; min-width: 45px; }
-        .name-col { text-align: left; min-width: 180px; position: sticky; left: 0; background: white; z-index: 10; font-weight: bold; border-right: 2px solid #ddd; }
-        .date-header { font-size: 10px; cursor: pointer; min-width: 65px; }
-        .type-tag { font-size: 9px; display: block; margin-top: 4px; padding: 2px; border-radius: 4px; color: white; font-weight: bold; text-transform: uppercase; }
-        .tag-t { background: #1a73e8; } 
-        .tag-k { background: #9c27b0; } 
-        .tag-none { color: #ccc; font-weight: normal; }
-        .status-cell { cursor: pointer; font-size: 18px; user-select: none; transition: background 0.2s; }
-        .status-cell:hover { background: #f0f7ff; }
-        .stat-col { font-weight: bold; color: #1a73e8; background: #f0f7ff; width: 50px; font-size: 14px; }
-        @media print { .top-header { display: none; } .scroll-container { box-shadow: none; } .name-col { position: static; } }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="top-header">
     <div class="controls">
-        <h2 style="margin:0; color:#1a73e8; margin-right:15px;">⚽ Oppmøte</h2>
+        <h2 style="margin:0; color:var(--primary-color); margin-right:15px;">⚽ Oppmøte</h2>
         <select id="monthSelect" class="month-picker" onchange="initMonth()"></select>
         <a href="spillere.html" class="nav-link">Rediger Spillerstall</a>
     </div>
-    <button onclick="window.print()" style="background:#64748b; color:white; border:none; cursor:pointer; font-weight:bold; border-radius:6px; padding:8px 15px;">🖨️ Print PDF</button>
+    <button onclick="window.print()" class="btn-print">🖨️ Print PDF</button>
 </div>
 
 <div class="container">
@@ -48,12 +26,13 @@
     </div>
 </div>
 
+<script src="database.js"></script>
 <script>
     const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
     const currentYear = 2026;
     const monthSelect = document.getElementById('monthSelect');
 
-    // Initialiser nedtrekksmeny for måneder
+    // Fyller månedvelgeren
     months.forEach((m, i) => {
         let opt = document.createElement('option');
         opt.value = i;
@@ -62,24 +41,17 @@
         monthSelect.appendChild(opt);
     });
 
-    function getPlayers() {
-        const fullList = JSON.parse(localStorage.getItem('full-spillerliste')) || [];
-        return fullList.filter(s => s.status === "Aktiv").sort((a, b) => a.navn.localeCompare(b.navn));
-    }
-
     function initMonth() {
         const monthIdx = parseInt(monthSelect.value);
         const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
         
         for(let i=1; i<=daysInMonth; i++) {
-            let d = new Date(currentYear, monthIdx, i);
-            let dayOfWeek = d.getDay(); 
             let key = `type-${currentYear}-${monthIdx}-${i}`;
-            
             if (!localStorage.getItem(key)) {
-                if (dayOfWeek === 1 || dayOfWeek === 6) localStorage.setItem(key, "T");
-                else if (dayOfWeek === 3) localStorage.setItem(key, "K");
-                else localStorage.setItem(key, "X");
+                let day = new Date(currentYear, monthIdx, i).getDay();
+                // Standard: Mandag/Lørdag = Trening, Onsdag = Kamp
+                let type = (day === 1 || day === 6) ? "T" : (day === 3 ? "K" : "X");
+                localStorage.setItem(key, type);
             }
         }
         renderAll();
@@ -89,74 +61,70 @@
         const month = monthSelect.value;
         const key = `type-${currentYear}-${month}-${dayNr}`;
         const current = localStorage.getItem(key) || "X";
-        const next = current === "X" ? "T" : (current === "T" ? "K" : "X");
-        localStorage.setItem(key, next);
+        localStorage.setItem(key, current === "X" ? "T" : (current === "T" ? "K" : "X"));
         renderAll();
     }
 
     function cycleStatus(playerId, dayNr) {
         const month = monthSelect.value;
-        const key = `att-base-${currentYear}-${month}-${playerId}-${dayNr}`;
-        const current = localStorage.getItem(key) || "?";
+        const current = DB.getAttendance(currentYear, month, playerId, dayNr);
         const states = ["?", "✅", "❌", "🤕"];
         let next = states[(states.indexOf(current) + 1) % states.length];
-        localStorage.setItem(key, next);
+        DB.setAttendance(currentYear, month, playerId, dayNr, next);
         renderAll();
     }
 
     function renderAll() {
         const monthIdx = parseInt(monthSelect.value);
-        const head = document.getElementById('tableHead');
-        const body = document.getElementById('tableBody');
-        const players = getPlayers();
+        const players = DB.getActivePlayers();
         const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
         
         let days = [];
         for(let i=1; i<=daysInMonth; i++) {
             let d = new Date(currentYear, monthIdx, i);
             let dayOfWeek = d.getDay();
-            const typeKey = `type-${currentYear}-${monthIdx}-${i}`;
-            const type = localStorage.getItem(typeKey);
+            let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${i}`);
+            // Viser dager som er markert som aktivitet eller faste dager
             if(dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6 || (type && type !== "X")) {
                 days.push({nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][dayOfWeek]});
             }
         }
 
+        // Lager tabelloverskrift
         let headHtml = `<tr><th class="name-col">Spiller</th>`;
         days.forEach(d => {
-            const typeKey = `type-${currentYear}-${monthIdx}-${d.nr}`;
-            const type = localStorage.getItem(typeKey) || "X";
-            let label = type === "T" ? "TRENING" : (type === "K" ? "KAMP" : "-");
+            let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`) || "X";
+            let label = type === "T" ? "T" : (type === "K" ? "K" : "-");
             let tagClass = type === "T" ? "tag-t" : (type === "K" ? "tag-k" : "tag-none");
-            headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})">${d.navn} ${d.nr}.<span class="type-tag ${tagClass}">${label}</span></th>`;
+            headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})">
+                            ${d.navn} ${d.nr}.
+                            <span class="type-tag ${tagClass}">${label}</span>
+                         </th>`;
         });
         headHtml += `<th class="stat-col">%</th></tr>`;
-        head.innerHTML = headHtml;
+        document.getElementById('tableHead').innerHTML = headHtml;
 
+        // Lager tabellrader
         let bodyHtml = "";
         players.forEach(player => {
             bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
-            let attended = 0;
-            let totalPossible = 0;
-
+            let attended = 0, totalPossible = 0;
+            
             days.forEach(d => {
-                const typeKey = `type-${currentYear}-${monthIdx}-${d.nr}`;
-                const type = localStorage.getItem(typeKey);
-                const isActivity = (type === "T" || type === "K");
-                const key = `att-base-${currentYear}-${monthIdx}-${player.id}-${d.nr}`;
-                const status = localStorage.getItem(key) || "?";
+                let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`);
+                let status = DB.getAttendance(currentYear, monthIdx, player.id, d.nr);
                 
-                if(isActivity) {
+                if(type === "T" || type === "K") {
                     totalPossible++;
                     if(status === "✅") attended++;
                 }
                 bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})">${status}</td>`;
             });
-
-            const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
+            
+            let percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
             bodyHtml += `<td class="stat-col">${percent}%</td></tr>`;
         });
-        body.innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere funnet.</td></tr>";
+        document.getElementById('tableBody').innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere funnet.</td></tr>";
     }
 
     initMonth();
