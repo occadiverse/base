@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spilleradministrasjon</title>
     <style>
+        /* Samme CSS som før */
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; color: #333; }
         .header { background: #1a73e8; color: white; padding: 20px; text-align: center; }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
@@ -32,47 +33,20 @@
 </head>
 <body>
 
-<div class="header">
-    <h1>Spillerstall</h1>
-</div>
-
+<div class="header"><h1>Spillerstall</h1></div>
 <div class="container">
-    <div class="nav-links">
-        <a href="index.html">← Tilbake til Oppmøte</a>
-    </div>
-
+    <div class="nav-links"><a href="index.html">← Tilbake til Oppmøte</a></div>
     <div class="card">
         <h3 id="formTitle">Registrer ny spiller</h3>
         <form id="playerForm">
             <input type="hidden" id="editId">
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Fullt navn *</label>
-                    <input type="text" id="navn" required>
-                </div>
-                <div class="form-group">
-                    <label>Fødselsdato</label>
-                    <input type="date" id="fodselsdato">
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="status">
-                        <option value="Aktiv">Aktiv</option>
-                        <option value="Passiv">Passiv</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Mobil</label>
-                    <input type="tel" id="mobil">
-                </div>
-                <div class="form-group">
-                    <label>E-post</label>
-                    <input type="email" id="epost">
-                </div>
-                <div class="form-group">
-                    <label>Draktnummer</label>
-                    <input type="number" id="draktnummer">
-                </div>
+                <div class="form-group"><label>Fullt navn *</label><input type="text" id="navn" required></div>
+                <div class="form-group"><label>Fødselsdato</label><input type="date" id="fodselsdato"></div>
+                <div class="form-group"><label>Status</label><select id="status"><option value="Aktiv">Aktiv</option><option value="Passiv">Passiv</option></select></div>
+                <div class="form-group"><label>Mobil</label><input type="tel" id="mobil"></div>
+                <div class="form-group"><label>E-post</label><input type="email" id="epost"></div>
+                <div class="form-group"><label>Draktnummer</label><input type="number" id="draktnummer"></div>
             </div>
             <div class="button-group">
                 <button type="submit" id="submitBtn" class="btn-save">Lagre Spiller</button>
@@ -83,36 +57,21 @@
 
     <div class="table-container">
         <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Navn</th>
-                    <th>Født</th>
-                    <th>Status</th>
-                    <th>Mobil</th>
-                    <th>E-post</th>
-                    <th>Handlinger</th>
-                </tr>
-            </thead>
+            <thead><tr><th>#</th><th>Navn</th><th>Født</th><th>Status</th><th>Mobil</th><th>E-post</th><th>Handlinger</th></tr></thead>
             <tbody id="playerTableBody"></tbody>
         </table>
     </div>
 </div>
 
+<script src="database.js"></script>
 <script>
-    let spillerliste = JSON.parse(localStorage.getItem('full-spillerliste')) || [];
-    const playerForm = document.getElementById('playerForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const formTitle = document.getElementById('formTitle');
+    let spillerliste = DB.getPlayers();
 
-    playerForm.addEventListener('submit', (e) => {
+    document.getElementById('playerForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const editId = document.getElementById('editId').value;
-        
-        // Vi bruker streng-IDer for konsistens
         const spillerData = {
-            id: editId ? editId : "id-" + Date.now(), 
+            id: editId || DB.generateId(),
             navn: document.getElementById('navn').value,
             fodselsdato: document.getElementById('fodselsdato').value,
             status: document.getElementById('status').value,
@@ -123,19 +82,19 @@
 
         if (editId) {
             const index = spillerliste.findIndex(s => s.id === editId);
-            if(index !== -1) spillerliste[index] = spillerData;
+            spillerliste[index] = spillerData;
         } else {
             spillerliste.push(spillerData);
         }
 
-        saveAndRender();
+        DB.savePlayers(spillerliste);
+        renderPlayers();
         resetForm();
     });
 
     function editPlayer(id) {
-        const spiller = spillerliste.find(s => s.id === id.toString());
+        const spiller = spillerliste.find(s => s.id === id);
         if (!spiller) return;
-
         document.getElementById('editId').value = spiller.id;
         document.getElementById('navn').value = spiller.navn;
         document.getElementById('fodselsdato').value = spiller.fodselsdato;
@@ -143,42 +102,32 @@
         document.getElementById('mobil').value = spiller.mobil;
         document.getElementById('epost').value = spiller.epost;
         document.getElementById('draktnummer').value = spiller.draktnummer;
-
-        formTitle.innerText = "Rediger spiller";
-        submitBtn.innerText = "Oppdater Spiller";
-        cancelBtn.style.display = "block";
+        document.getElementById('formTitle').innerText = "Rediger spiller";
+        document.getElementById('submitBtn').innerText = "Oppdater Spiller";
+        document.getElementById('cancelBtn').style.display = "block";
         window.scrollTo(0, 0);
     }
 
     function deletePlayer(id) {
-        if(confirm("Er du sikker? Historikk knyttet til denne spilleren vil miste navnereferansen.")) {
-            spillerliste = spillerliste.filter(s => s.id !== id.toString());
-            saveAndRender();
+        if(confirm("Slette spiller?")) {
+            spillerliste = spillerliste.filter(s => s.id !== id);
+            DB.savePlayers(spillerliste);
+            renderPlayers();
         }
     }
 
     function resetForm() {
-        playerForm.reset();
+        document.getElementById('playerForm').reset();
         document.getElementById('editId').value = "";
-        formTitle.innerText = "Registrer ny spiller";
-        submitBtn.innerText = "Lagre Spiller";
-        cancelBtn.style.display = "none";
-    }
-
-    function saveAndRender() {
-        localStorage.setItem('full-spillerliste', JSON.stringify(spillerliste));
-        renderPlayers();
+        document.getElementById('formTitle').innerText = "Registrer ny spiller";
+        document.getElementById('submitBtn').innerText = "Lagre Spiller";
+        document.getElementById('cancelBtn').style.display = "none";
     }
 
     function renderPlayers() {
-        const tableBody = document.getElementById('playerTableBody');
-        tableBody.innerHTML = "";
-        
         const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer) || 999) - (parseInt(b.draktnummer) || 999));
-
-        sorted.forEach(s => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
+        document.getElementById('playerTableBody').innerHTML = sorted.map(s => `
+            <tr>
                 <td><strong>${s.draktnummer || '-'}</strong></td>
                 <td>${s.navn}</td>
                 <td>${s.fodselsdato || '-'}</td>
@@ -189,3 +138,10 @@
                     <button class="edit-btn" onclick="editPlayer('${s.id}')">Rediger</button>
                     <button class="delete-btn" onclick="deletePlayer('${s.id}')">Slett</button>
                 </td>
+            </tr>`).join('');
+    }
+
+    renderPlayers();
+</script>
+</body>
+</html>
