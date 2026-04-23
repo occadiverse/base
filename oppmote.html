@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oppmøte Protokoll</title>
+    <title>Oppmøte Protokoll - BSK</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,23 +11,22 @@
 <nav class="navbar">
     <a href="index.html" class="nav-brand">BSK Fotball 2026</a>
     <div class="nav-links-container">
-        <a href="oppmote.html" class="nav-item">📅 Oppmøte</a>
+        <a href="oppmote.html" class="nav-item active">📅 Oppmøte</a>
         <a href="spillere.html" class="nav-item">👥 Spillere</a>
         <a href="statistikk.html" class="nav-item">📊 Stats</a>
     </div>
 </nav>
-    
-<div class="top-header">
-    <div class="controls">
-        <h2 style="margin:0; color:var(--primary-color); margin-right:15px;">⚽ Oppmøte</h2>
-        <select id="monthSelect" class="month-picker" onchange="initMonth()"></select>
-        <a href="spillere.html" class="nav-link">Rediger Spillerstall</a>
-    </div>
-    <button onclick="window.print()" class="btn-print">🖨️ Print PDF</button>
-</div>
 
 <div class="container">
-    <div class="scroll-container">
+    <div class="top-header" style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: var(--card-shadow);">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h2 style="margin:0; color: var(--primary-color); font-size: 1.2rem;">⚽ Registrering</h2>
+            <select id="monthSelect" class="month-picker" onchange="initMonth()" style="padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit;"></select>
+        </div>
+        <button onclick="window.print()" class="btn-print" style="margin:0;">🖨️ PDF Rapport</button>
+    </div>
+
+    <div class="scroll-container" style="background: white; border-radius: var(--border-radius); box-shadow: var(--card-shadow); padding: 10px;">
         <table id="attendanceTable">
             <thead id="tableHead"></thead>
             <tbody id="tableBody"></tbody>
@@ -58,7 +57,6 @@
             let key = `type-${currentYear}-${monthIdx}-${i}`;
             if (!localStorage.getItem(key)) {
                 let day = new Date(currentYear, monthIdx, i).getDay();
-                // Standard: Mandag/Lørdag = Trening, Onsdag = Kamp
                 let type = (day === 1 || day === 6) ? "T" : (day === 3 ? "K" : "X");
                 localStorage.setItem(key, type);
             }
@@ -93,30 +91,27 @@
             let d = new Date(currentYear, monthIdx, i);
             let dayOfWeek = d.getDay();
             let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${i}`);
-            // Viser dager som er markert som aktivitet eller faste dager
             if(dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6 || (type && type !== "X")) {
                 days.push({nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][dayOfWeek]});
             }
         }
 
-        // Lager tabelloverskrift
         let headHtml = `<tr><th class="name-col">Spiller</th>`;
         days.forEach(d => {
             let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`) || "X";
             let label = type === "T" ? "T" : (type === "K" ? "K" : "-");
             let tagClass = type === "T" ? "tag-t" : (type === "K" ? "tag-k" : "tag-none");
-            headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})">
-                            ${d.navn} ${d.nr}.
-                            <span class="type-tag ${tagClass}">${label}</span>
+            headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})" style="cursor:pointer">
+                            ${d.navn} ${d.nr}.<br>
+                            <span class="type-tag ${tagClass}" style="font-size:10px; padding:2px 6px;">${label}</span>
                          </th>`;
         });
         headHtml += `<th class="stat-col">%</th></tr>`;
         document.getElementById('tableHead').innerHTML = headHtml;
 
-        // Lager tabellrader
         let bodyHtml = "";
         players.forEach(player => {
-            bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
+            bodyHtml += `<tr><td class="name-col" style="font-weight:bold; text-align:left; padding-left:15px;">${player.navn}</td>`;
             let attended = 0, totalPossible = 0;
             
             days.forEach(d => {
@@ -127,11 +122,12 @@
                     totalPossible++;
                     if(status === "✅") attended++;
                 }
-                bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})">${status}</td>`;
+                bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})" style="cursor:pointer; font-size:1.2rem;">${status}</td>`;
             });
             
             let percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
-            bodyHtml += `<td class="stat-col">${percent}%</td></tr>`;
+            let color = percent >= 80 ? '#28a745' : (percent >= 50 ? '#f39c12' : '#dc3545');
+            bodyHtml += `<td class="stat-col" style="font-weight:bold; color:${color}">${percent}%</td></tr>`;
         });
         document.getElementById('tableBody').innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere funnet.</td></tr>";
     }
