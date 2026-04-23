@@ -6,7 +6,7 @@
     <title>Bækkelaget SK Fotball 2026</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Ekstra stil for meny-kortene */
+        /* Dashbord-spesifikk stil som passer med style.css */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -24,6 +24,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             transition: transform 0.2s, box-shadow 0.2s;
             border: 1px solid #eee;
+            display: block;
         }
 
         .menu-card:hover {
@@ -36,18 +37,20 @@
             font-size: 40px;
             display: block;
             margin-bottom: 15px;
+            font-style: normal;
         }
 
         .menu-card h3 {
             margin: 0;
             color: var(--primary-color);
-            font-size: 20px;
+            font-size: 22px;
         }
 
         .menu-card p {
             margin-top: 10px;
             color: #666;
             font-size: 14px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -63,19 +66,19 @@
         <a href="oppmote.html" class="menu-card">
             <i>📅</i>
             <h3>Oppmøte</h3>
-            <p>Registrer trening, kamp og se statistikk for måneden.</p>
+            <p>Registrer trening og kamp. Se hvem som er her i dag.</p>
         </a>
 
         <a href="spillere.html" class="menu-card">
             <i>👥</i>
             <h3>Spillerstall</h3>
-            <p>Legg til nye spillere, endre info eller draktnummer.</p>
+            <p>Administrer spillere, draktnummer og kontaktinfo.</p>
         </a>
 
-        <a href="#" class="menu-card" style="opacity: 0.6; cursor: not-allowed;">
+        <a href="statistikk.html" class="menu-card">
             <i>📊</i>
             <h3>Statistikk</h3>
-            <p>Kommer snart: Langtidsstatistikk for hele sesongen.</p>
+            <p>Se hvem som er treningskongen og har høyest oppmøte i 2026.</p>
         </a>
 
     </div>
