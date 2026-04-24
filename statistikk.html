@@ -4,37 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistikk - BSK Fotball</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Spesifikk stil for fremdriftsmålere som ikke ligger i hovedfilen ennå */
+        .progress-bar-bg {
+            background: #eee;
+            height: 8px;
+            border-radius: 4px;
+            width: 100%;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--bsk-gul); /* BSK-gult for fremgang */
+            transition: width 0.5s ease-in-out;
+        }
+        tr.rank-1 { background-color: rgba(255, 222, 0, 0.1); } /* Svak gul farge for lederen */
+    </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="index.html" class="nav-brand">BSK Fotball 2026</a>
-    <div class="nav-links-container">
-        <a href="oppmote.html" class="nav-item">📅 Oppmøte</a>
-        <a href="spillere.html" class="nav-item">👥 Spillere</a>
-        <a href="statistikk.html" class="nav-item active">📊 Stats</a>
-    </div>
-</nav>
+<div class="sidebar" id="sidebar"></div>
 
-<div class="container">
-    <div class="stats-card">
-        <table id="statsTable">
-            <thead>
+<div class="main-content">
+    <div class="top-bar">
+        <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 style="margin:0; font-size: 1.1rem;">Oppmøtestatistikk 2026</h2>
+    </div>
+
+    <div class="table-container">
+        <div class="card" style="margin-bottom: 20px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px;">
+            <p style="margin:0; color: var(--text-main); font-size: 0.9rem;">
+                Dette er den totale oversikten over alle treninger (T) og kamper (K) markert i systemet.
+            </p>
+        </div>
+
+        <table id="attendanceTable"> <thead>
                 <tr>
-                    <th>#</th>
+                    <th style="width: 60px;">Rang</th>
                     <th style="text-align: left;">Spiller</th>
-                    <th>Oppmøte</th>
-                    <th>Prosent</th>
+                    <th>Antall Økter</th>
+                    <th style="width: 250px;">Oppmøte %</th>
                 </tr>
             </thead>
-            <tbody id="statsBody"></tbody>
+            <tbody id="statsBody">
+                </tbody>
         </table>
     </div>
 </div>
 
 <script src="database.js"></script>
-<script>
+<script src="navigation.js"></script> <script>
     function calculateStats() {
         const players = DB.getActivePlayers();
         const currentYear = 2026;
@@ -44,6 +68,7 @@
             let attended = 0;
             let totalPossible = 0;
 
+            // Går gjennom alle 12 måneder
             for (let m = 0; m < 12; m++) {
                 const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -67,6 +92,7 @@
             });
         });
 
+        // Sorterer: Høyest prosent først, deretter flest antall økter
         stats.sort((a, b) => b.percent - a.percent || b.attended - a.attended);
         renderStats(stats);
     }
@@ -74,16 +100,18 @@
     function renderStats(stats) {
         const body = document.getElementById('statsBody');
         body.innerHTML = stats.map((s, index) => {
-            let rankClass = index < 3 ? `rank-${index + 1}` : '';
-            let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+            let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1;
+            let rankClass = index === 0 ? 'rank-1' : '';
             
             return `
                 <tr class="${rankClass}">
-                    <td>${medal || index + 1}</td>
+                    <td style="font-weight: bold; font-size: 1.1rem;">${medal}</td>
                     <td style="text-align: left;"><strong>${s.navn}</strong></td>
-                    <td>${s.attended} / ${s.total}</td>
+                    <td><span style="color: var(--primary); font-weight: bold;">${s.attended}</span> / ${s.total}</td>
                     <td>
-                        ${s.percent}%
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: bold;">${s.percent}%</span>
+                        </div>
                         <div class="progress-bar-bg">
                             <div class="progress-bar-fill" style="width: ${s.percent}%"></div>
                         </div>
@@ -93,6 +121,7 @@
         }).join('');
     }
 
+    // Kjører beregningen når siden lastes
     calculateStats();
 </script>
 </body>
