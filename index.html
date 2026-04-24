@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oppmøteregistrering</title>
+    <title>Hjem - Oversikt</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,22 +11,16 @@
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3><i class="fa-solid fa-calendar-check"></i> Meny</h3>
+            <h3><i class="fa-solid fa-house"></i> Navigasjon</h3>
             <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
         <div class="sidebar-content">
             <div class="menu-group">
-                <label>Person</label>
-                <input type="text" id="nameInput" placeholder="Navn...">
-                <button class="btn" onclick="addName()">Legg til person</button>
+                <label>Sider</label>
+                <button class="btn" onclick="location.href='index.html'">Hjem</button>
+                <button class="btn" onclick="location.href='oppmote.html'" style="background: #2ecc71;">Gå til Oppmøte</button>
             </div>
-            <div class="menu-group">
-                <label>Dato</label>
-                <input type="date" id="dateInput">
-                <button class="btn" onclick="addDate()">Legg til dato</button>
-            </div>
-            <button class="btn btn-danger" onclick="clearData()">Tøm oversikt</button>
         </div>
     </div>
 
@@ -35,13 +29,17 @@
             <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h2 style="margin:0;">Oppmøteregistrering</h2>
+            <h2 style="margin:0;">Velkommen</h2>
         </div>
-        <div class="table-container">
-            <table id="attendanceTable">
-                <thead><tr id="tableHeader"><th>Navn / Dato</th></tr></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+
+        <div class="table-container" style="max-width: 800px;">
+            <h1>Velkommen til ditt administrasjonspanel</h1>
+            <p>Her kan du holde styr på dine prosjekter og registreringer.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 5px solid #3498db; margin-top: 30px;">
+                <h3><i class="fa-solid fa-circle-info"></i> Hurtiginfo</h3>
+                <p>Bruk menyen til venstre for å navigere. For å registrere hvem som er tilstede i dag, trykk på knappen <strong>"Gå til Oppmøte"</strong>.</p>
+            </div>
         </div>
     </div>
 
