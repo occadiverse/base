@@ -4,150 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oppmøte Protokoll - BSK</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="sidebar-content">
-    <nav class="nav-links">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house-chimney"></i> Hjem</a>
-        <a href="oppmote.html" class="nav-item active"><i class="fa-solid fa-calendar-check"></i> Oppmøte</a>
-        <a href="spillere.html" class="nav-item"><i class="fa-solid fa-users"></i> Spillere</a>
-        <a href="statistikk.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Stats</a>
-    </nav>
-
-    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
-
-    <div class="menu-group">
-        <label>Administrasjon</label>
-        <input type="text" id="nameInput" placeholder="Navn på spiller...">
-        <button class="btn" onclick="addName()">Legg til spiller</button>
-        
-        <input type="date" id="dateInput">
-        <button class="btn" onclick="addDate()">Legg til dato</button>
-    </div>
-
-    <button class="btn btn-danger" onclick="clearData()">
-        <i class="fa-solid fa-trash"></i> Slett all data
-    </button>
-</div>
-
-<div class="container">
-    <div class="top-header" style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: var(--card-shadow);">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <h2 style="margin:0; color: var(--primary-color); font-size: 1.2rem;">⚽ Registrering</h2>
-            <select id="monthSelect" class="month-picker" onchange="initMonth()" style="padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit;"></select>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-house" style="font-size: 1.2rem; color: var(--primary);"></i>
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-        <button onclick="window.print()" class="btn-print" style="margin:0;">🖨️ PDF Rapport</button>
-    </div>
-
-    <div class="scroll-container" style="background: white; border-radius: var(--border-radius); box-shadow: var(--card-shadow); padding: 10px;">
-        <table id="attendanceTable">
-            <thead id="tableHead"></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-</div>
-
-<script src="database.js"></script>
-<script>
-    const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
-    const currentYear = 2026;
-    const monthSelect = document.getElementById('monthSelect');
-
-    // Fyller månedvelgeren
-    months.forEach((m, i) => {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = m + " " + currentYear;
-        if(i === new Date().getMonth()) opt.selected = true; 
-        monthSelect.appendChild(opt);
-    });
-
-    function initMonth() {
-        const monthIdx = parseInt(monthSelect.value);
-        const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
         
-        for(let i=1; i<=daysInMonth; i++) {
-            let key = `type-${currentYear}-${monthIdx}-${i}`;
-            if (!localStorage.getItem(key)) {
-                let day = new Date(currentYear, monthIdx, i).getDay();
-                let type = (day === 1 || day === 6) ? "T" : (day === 3 ? "K" : "X");
-                localStorage.setItem(key, type);
-            }
-        }
-        renderAll();
-    }
+        <div class="sidebar-content">
+            <nav class="nav-links">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-house-chimney"></i> Hjem</a>
+                <a href="oppmote.html" class="nav-item active"><i class="fa-solid fa-calendar-check"></i> Oppmøte</a>
+                <a href="spillere.html" class="nav-item"><i class="fa-solid fa-users"></i> Spillere</a>
+                <a href="statistikk.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Stats</a>
+            </nav>
 
-    function toggleDayType(dayNr) {
-        const month = monthSelect.value;
-        const key = `type-${currentYear}-${month}-${dayNr}`;
-        const current = localStorage.getItem(key) || "X";
-        localStorage.setItem(key, current === "X" ? "T" : (current === "T" ? "K" : "X"));
-        renderAll();
-    }
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
 
-    function cycleStatus(playerId, dayNr) {
-        const month = monthSelect.value;
-        const current = DB.getAttendance(currentYear, month, playerId, dayNr);
-        const states = ["?", "✅", "❌", "🤕"];
-        let next = states[(states.indexOf(current) + 1) % states.length];
-        DB.setAttendance(currentYear, month, playerId, dayNr, next);
-        renderAll();
-    }
-
-    function renderAll() {
-        const monthIdx = parseInt(monthSelect.value);
-        const players = DB.getActivePlayers();
-        const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
-        
-        let days = [];
-        for(let i=1; i<=daysInMonth; i++) {
-            let d = new Date(currentYear, monthIdx, i);
-            let dayOfWeek = d.getDay();
-            let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${i}`);
-            if(dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6 || (type && type !== "X")) {
-                days.push({nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][dayOfWeek]});
-            }
-        }
-
-        let headHtml = `<tr><th class="name-col">Spiller</th>`;
-        days.forEach(d => {
-            let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`) || "X";
-            let label = type === "T" ? "T" : (type === "K" ? "K" : "-");
-            let tagClass = type === "T" ? "tag-t" : (type === "K" ? "tag-k" : "tag-none");
-            headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})" style="cursor:pointer">
-                            ${d.navn} ${d.nr}.<br>
-                            <span class="type-tag ${tagClass}" style="font-size:10px; padding:2px 6px;">${label}</span>
-                         </th>`;
-        });
-        headHtml += `<th class="stat-col">%</th></tr>`;
-        document.getElementById('tableHead').innerHTML = headHtml;
-
-        let bodyHtml = "";
-        players.forEach(player => {
-            bodyHtml += `<tr><td class="name-col" style="font-weight:bold; text-align:left; padding-left:15px;">${player.navn}</td>`;
-            let attended = 0, totalPossible = 0;
-            
-            days.forEach(d => {
-                let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`);
-                let status = DB.getAttendance(currentYear, monthIdx, player.id, d.nr);
+            <div class="menu-group">
+                <label>Administrasjon</label>
+                <input type="text" id="nameInput" placeholder="Navn på spiller...">
+                <button class="btn" onclick="addName()">Legg til spiller</button>
                 
-                if(type === "T" || type === "K") {
-                    totalPossible++;
-                    if(status === "✅") attended++;
-                }
-                bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})" style="cursor:pointer; font-size:1.2rem;">${status}</td>`;
-            });
-            
-            let percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
-            let color = percent >= 80 ? '#28a745' : (percent >= 50 ? '#f39c12' : '#dc3545');
-            bodyHtml += `<td class="stat-col" style="font-weight:bold; color:${color}">${percent}%</td></tr>`;
-        });
-        document.getElementById('tableBody').innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere funnet.</td></tr>";
-    }
+                <input type="date" id="dateInput">
+                <button class="btn" onclick="addDate()">Legg til dato</button>
+            </div>
 
-    initMonth();
-</script>
+            <button class="btn btn-danger" onclick="clearData()">
+                <i class="fa-solid fa-trash"></i> Slett all data
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div style="display: flex; align-items: center; gap: 15px; width: 100%; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h2 style="margin:0; font-size: 1.1rem;">⚽ Registrering</h2>
+                    <select id="monthSelect" class="month-picker" onchange="initMonth()" style="padding: 5px; border-radius: 6px; border: 1px solid #ddd;"></select>
+                </div>
+                <button onclick="window.print()" class="btn" style="background: #6c757d; font-size: 13px;">
+                    <i class="fa-solid fa-file-pdf"></i> PDF Rapport
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="attendanceTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script>
+        // Funksjon for å styre menyen (må være med i hver fil eller i en felles js)
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const openBtn = document.getElementById('openBtn');
+            sidebar.classList.toggle('collapsed');
+            openBtn.style.display = sidebar.classList.contains('collapsed') ? 'block' : 'none';
+        }
+
+        const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
+        const currentYear = 2026;
+        const monthSelect = document.getElementById('monthSelect');
+
+        // Fyller månedvelgeren
+        months.forEach((m, i) => {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = m + " " + currentYear;
+            if(i === new Date().getMonth()) opt.selected = true; 
+            monthSelect.appendChild(opt);
+        });
+
+        function initMonth() {
+            const monthIdx = parseInt(monthSelect.value);
+            const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
+            
+            for(let i=1; i<=daysInMonth; i++) {
+                let key = `type-${currentYear}-${monthIdx}-${i}`;
+                if (!localStorage.getItem(key)) {
+                    let day = new Date(currentYear, monthIdx, i).getDay();
+                    let type = (day === 1 || day === 6) ? "T" : (day === 3 ? "K" : "X");
+                    localStorage.setItem(key, type);
+                }
+            }
+            renderAll();
+        }
+
+        function toggleDayType(dayNr) {
+            const month = monthSelect.value;
+            const key = `type-${currentYear}-${month}-${dayNr}`;
+            const current = localStorage.getItem(key) || "X";
+            localStorage.setItem(key, current === "X" ? "T" : (current === "T" ? "K" : "X"));
+            renderAll();
+        }
+
+        function cycleStatus(playerId, dayNr) {
+            const month = monthSelect.value;
+            const current = DB.getAttendance(currentYear, month, playerId, dayNr);
+            const states = ["?", "✅", "❌", "🤕"];
+            let next = states[(states.indexOf(current) + 1) % states.length];
+            DB.setAttendance(currentYear, month, playerId, dayNr, next);
+            renderAll();
+        }
+
+        function renderAll() {
+            const monthIdx = parseInt(monthSelect.value);
+            const players = DB.getActivePlayers();
+            const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
+            
+            let days = [];
+            for(let i=1; i<=daysInMonth; i++) {
+                let d = new Date(currentYear, monthIdx, i);
+                let dayOfWeek = d.getDay();
+                let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${i}`);
+                if(dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6 || (type && type !== "X")) {
+                    days.push({nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][dayOfWeek]});
+                }
+            }
+
+            let headHtml = `<tr><th class="name-col">Spiller</th>`;
+            days.forEach(d => {
+                let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`) || "X";
+                let label = type === "T" ? "T" : (type === "K" ? "K" : "-");
+                let color = type === "T" ? "var(--bsk-blaa)" : (type === "K" ? "var(--bsk-gul)" : "#ccc");
+                let textColor = type === "K" ? "#000" : "#fff";
+
+                headHtml += `<th class="date-header" onclick="toggleDayType(${d.nr})" style="cursor:pointer; min-width: 45px;">
+                                <span style="font-size: 11px;">${d.navn}</span><br>${d.nr}.<br>
+                                <span style="background:${color}; color:${textColor}; font-size:10px; padding:2px 5px; border-radius:4px;">${label}</span>
+                             </th>`;
+            });
+            headHtml += `<th class="stat-col">%</th></tr>`;
+            document.getElementById('tableHead').innerHTML = headHtml;
+
+            let bodyHtml = "";
+            players.forEach(player => {
+                bodyHtml += `<tr><td class="name-col" style="text-align:left; padding-left:15px;">${player.navn}</td>`;
+                let attended = 0, totalPossible = 0;
+                
+                days.forEach(d => {
+                    let type = localStorage.getItem(`type-${currentYear}-${monthIdx}-${d.nr}`);
+                    let status = DB.getAttendance(currentYear, monthIdx, player.id, d.nr);
+                    
+                    if(type === "T" || type === "K") {
+                        totalPossible++;
+                        if(status === "✅") attended++;
+                    }
+                    bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})" style="cursor:pointer; font-size:1rem;">${status}</td>`;
+                });
+                
+                let percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
+                let statColor = percent >= 80 ? '#28a745' : (percent >= 50 ? '#f39c12' : '#dc3545');
+                bodyHtml += `<td class="stat-col" style="font-weight:bold; color:${statColor}">${percent}%</td></tr>`;
+            });
+            document.getElementById('tableBody').innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere.</td></tr>";
+        }
+
+        initMonth();
+    </script>
 </body>
 </html>
