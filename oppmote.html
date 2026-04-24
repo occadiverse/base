@@ -8,14 +8,29 @@
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="index.html" class="nav-brand">BSK Fotball 2026</a>
-    <div class="nav-links-container">
-        <a href="oppmote.html" class="nav-item active">📅 Oppmøte</a>
-        <a href="spillere.html" class="nav-item">👥 Spillere</a>
-        <a href="statistikk.html" class="nav-item">📊 Stats</a>
+<div class="sidebar-content">
+    <nav class="nav-links">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house-chimney"></i> Hjem</a>
+        <a href="oppmote.html" class="nav-item active"><i class="fa-solid fa-calendar-check"></i> Oppmøte</a>
+        <a href="spillere.html" class="nav-item"><i class="fa-solid fa-users"></i> Spillere</a>
+        <a href="statistikk.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Stats</a>
+    </nav>
+
+    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+
+    <div class="menu-group">
+        <label>Administrasjon</label>
+        <input type="text" id="nameInput" placeholder="Navn på spiller...">
+        <button class="btn" onclick="addName()">Legg til spiller</button>
+        
+        <input type="date" id="dateInput">
+        <button class="btn" onclick="addDate()">Legg til dato</button>
     </div>
-</nav>
+
+    <button class="btn btn-danger" onclick="clearData()">
+        <i class="fa-solid fa-trash"></i> Slett all data
+    </button>
+</div>
 
 <div class="container">
     <div class="top-header" style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: var(--card-shadow);">
