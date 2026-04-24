@@ -21,25 +21,6 @@ function saveData() {
     localStorage.setItem('oppmoteData', JSON.stringify(state));
 }
 
-
-// --- 2. MENY-STYRING ---
-
-function toggleMenu() {
-    const sidebar = document.getElementById('sidebar');
-    const openBtn = document.getElementById('openBtn');
-    
-    // Legger til eller fjerner "collapsed" klassen i CSS
-    sidebar.classList.toggle('collapsed');
-    
-    // Viser eller skjuler hamburger-knappen i topplinjen
-    if (sidebar.classList.contains('collapsed')) {
-        openBtn.style.display = 'block';
-    } else {
-        openBtn.style.display = 'none';
-    }
-}
-
-
 // --- 3. LOGIKK FOR Å LEGGE TIL DATA ---
 
 function addName() {
