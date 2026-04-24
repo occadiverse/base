@@ -10,61 +10,68 @@
 <body>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <i class="fa-solid fa-house" style="font-size: 1.2rem; color: var(--primary);"></i>
-            <button class="menu-toggle" onclick="toggleMenu()">
-                <i class="fa-solid fa-xmark"></i>
+    <div class="sidebar-header">
+        <i class="fa-solid fa-house" style="font-size: 1.2rem; color: var(--primary);"></i>
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    
+    <div class="sidebar-content">
+        <nav class="nav-links">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-house-chimney"></i> Hjem</a>
+            <a href="oppmote.html" class="nav-item active"><i class="fa-solid fa-calendar-check"></i> Oppmøte</a>
+            <a href="spillere.html" class="nav-item"><i class="fa-solid fa-users"></i> Spillere</a>
+            <a href="statistikk.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Stats</a>
+        </nav>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="top-bar">
+        <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <div style="display: flex; align-items: center; gap: 15px; width: 100%; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="margin:0; font-size: 1.1rem;">⚽ Registrering</h2>
+                <select id="monthSelect" class="month-picker" onchange="initMonth()" style="padding: 5px; border-radius: 6px; border: 1px solid #ddd;"></select>
+            </div>
+            <button onclick="window.print()" class="btn" style="background: #6c757d; font-size: 13px;">
+                <i class="fa-solid fa-file-pdf"></i> PDF Rapport
             </button>
         </div>
-        
-        <div class="sidebar-content">
-            <nav class="nav-links">
-                <a href="index.html" class="nav-item"><i class="fa-solid fa-house-chimney"></i> Hjem</a>
-                <a href="oppmote.html" class="nav-item active"><i class="fa-solid fa-calendar-check"></i> Oppmøte</a>
-                <a href="spillere.html" class="nav-item"><i class="fa-solid fa-users"></i> Spillere</a>
-                <a href="statistikk.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Stats</a>
-            </nav>
+    </div>
 
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+    <div class="table-container">
+        <table id="attendanceTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
 
-            <div class="menu-group">
-                <label>Administrasjon</label>
-                <input type="text" id="nameInput" placeholder="Navn på spiller...">
-                <button class="btn" onclick="addName()">Legg til spiller</button>
-                
-                <input type="date" id="dateInput">
-                <button class="btn" onclick="addDate()">Legg til dato</button>
+        <div class="admin-footer" style="margin-top: 40px; padding: 20px; border-top: 2px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <div class="menu-group" style="flex: 1; min-width: 200px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; color: var(--text-main);">Legg til spiller</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="nameInput" placeholder="Navn..." style="flex: 1;">
+                    <button class="btn" onclick="addName()">Legg til</button>
+                </div>
             </div>
 
-            <button class="btn btn-danger" onclick="clearData()">
+            <div class="menu-group" style="flex: 1; min-width: 200px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; color: var(--text-main);">Legg til dato</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="date" id="dateInput" style="flex: 1;">
+                    <button class="btn" onclick="addDate()">Legg til</button>
+                </div>
+            </div>
+
+            <button class="btn btn-danger" onclick="clearData()" style="height: 40px;">
                 <i class="fa-solid fa-trash"></i> Slett all data
             </button>
         </div>
     </div>
-
-    <div class="main-content">
-        <div class="top-bar">
-            <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <div style="display: flex; align-items: center; gap: 15px; width: 100%; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <h2 style="margin:0; font-size: 1.1rem;">⚽ Registrering</h2>
-                    <select id="monthSelect" class="month-picker" onchange="initMonth()" style="padding: 5px; border-radius: 6px; border: 1px solid #ddd;"></select>
-                </div>
-                <button onclick="window.print()" class="btn" style="background: #6c757d; font-size: 13px;">
-                    <i class="fa-solid fa-file-pdf"></i> PDF Rapport
-                </button>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <table id="attendanceTable">
-                <thead id="tableHead"></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </div>
+</div>
 
     <script src="database.js"></script>
     <script>
