@@ -1,13 +1,26 @@
 /* --- 1. VARIABLER OG BASE --- */
 :root {
-    --sidebar-width: 260px; /* Litt smalere for et lettere utseende */
-    --primary: #3498db;
-    --primary-hover: #2980b9;
+    /* --- BSK Profilfarger --- */
+    --bsk-gul: #ffde00;
+    --bsk-blaa: #004595;
+    --bsk-blaa-mork: #003366;
+
+    /* --- Struktur og Layout --- */
+    --sidebar-width: 260px;
+    
+    /* --- Tema-variabler (Nå med BSK-farger) --- */
+    --primary: var(--bsk-blaa);
+    --primary-hover: var(--bsk-blaa-mork);
+    --accent: var(--bsk-gul); /* Kan brukes til detaljer eller varsler */
+    
+    /* --- Bakgrunner og Tekst --- */
     --bg-light: #f8f9fa;
     --text-main: #4a5568;
     --text-dark: #2c3e50;
     --border-color: #eee;
-    --hover-bg: #edf2f7;
+    
+    /* --- Interaksjon --- */
+    --hover-bg: #f0f4f8; /* En veldig lys blåtone for hover */
     --active-bg: #e2e8f0;
 }
 
