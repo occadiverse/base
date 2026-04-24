@@ -56,7 +56,8 @@
             </form>
         </div>
 
-        <table id="attendanceTable"> <thead>
+        <table id="attendanceTable"> 
+            <thead>
                 <tr>
                     <th>#</th>
                     <th style="text-align: left;">Navn</th>
@@ -72,15 +73,17 @@
 </div>
 
 <script src="database.js"></script>
-<script src="navigation.js"></script> <script>
+<script src="navigation.js"></script> 
+<script>
+    // Hent listen fra databasen med en gang siden lastes
     let spillerliste = DB.getPlayers();
 
-    // Logikken din beholdes, men vi bruker DB-funksjonene konsekvent
+    // HÅNDTERING AV SKJEMA (LAGRE/OPPDATERE)
     document.getElementById('playerForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const editId = document.getElementById('editId').value;
         const spillerData = {
-            id: editId || (Date.now().toString()), // Enkel ID-generator
+            id: editId || (Date.now().toString()), 
             navn: document.getElementById('navn').value,
             fodselsdato: document.getElementById('fodselsdato').value,
             status: document.getElementById('status').value,
@@ -90,7 +93,7 @@
 
         if (editId) {
             const index = spillerliste.findIndex(s => s.id === editId);
-            spillerliste[index] = spillerData;
+            if (index !== -1) spillerliste[index] = spillerData;
         } else {
             spillerliste.push(spillerData);
         }
@@ -100,8 +103,46 @@
         resetForm();
     });
 
-    // ... behold resten av funksjonene dine (editPlayer, deletePlayer, resetForm) ...
+    // REDIGER SPILLER
+    function editPlayer(id) {
+        const spiller = spillerliste.find(s => s.id === id);
+        if (!spiller) return;
 
+        document.getElementById('editId').value = spiller.id;
+        document.getElementById('navn').value = spiller.navn;
+        document.getElementById('fodselsdato').value = spiller.fodselsdato;
+        document.getElementById('status').value = spiller.status;
+        document.getElementById('mobil').value = spiller.mobil;
+        document.getElementById('draktnummer').value = spiller.draktnummer;
+        
+        document.getElementById('formTitle').innerText = "Rediger spiller";
+        document.getElementById('submitBtn').innerText = "Oppdater Spiller";
+        document.getElementById('cancelBtn').style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // SLETT SPILLER (Denne du trengte!)
+    function deletePlayer(id) {
+        if (confirm("Er du sikker på at du vil slette denne spilleren?")) {
+            // Filtrer ut spilleren som skal slettes
+            spillerliste = spillerliste.filter(s => s.id !== id);
+            // Lagre den nye listen til localStorage via database.js
+            DB.savePlayers(spillerliste);
+            // Tegn tabellen på nytt
+            renderPlayers();
+        }
+    }
+
+    // NULLSTILL SKJEMA
+    function resetForm() {
+        document.getElementById('playerForm').reset();
+        document.getElementById('editId').value = "";
+        document.getElementById('formTitle').innerText = "Registrer ny spiller";
+        document.getElementById('submitBtn').innerText = "Lagre Spiller";
+        document.getElementById('cancelBtn').style.display = "none";
+    }
+
+    // TEGN TABELLEN
     function renderPlayers() {
         const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer) || 999) - (parseInt(b.draktnummer) || 999));
         
@@ -119,6 +160,7 @@
             </tr>`).join('');
     }
 
+    // Kjør tegning av tabell ved oppstart
     renderPlayers();
 </script>
 </body>
