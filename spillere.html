@@ -17,51 +17,13 @@
             <i class="fa-solid fa-bars"></i>
         </button>
         <h2 style="margin:0; font-size: 1.1rem;">Spillere</h2>
+        
+        <button class="btn" onclick="openModal()" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-user-plus"></i> Ny spiller
+        </button>
     </div>
 
     <div class="table-container">
-        <div class="card" style="margin-bottom: 30px; padding: 25px; border: 1px solid var(--border-color); border-radius: 8px; max-width: 500px;">
-            <h3 id="formTitle" style="margin-top:0; color: var(--primary); margin-bottom: 20px;">Registrer ny spiller</h3>
-            <form id="playerForm">
-            <input type="hidden" id="editId">
-        
-            <div class="form-stack" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-            <div class="form-group">
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Fullt navn *</label>
-                <input type="text" id="navn" required placeholder="F.eks. Ola Nordmann" style="width: 100%; box-sizing: border-box;">
-            </div>
-
-            <div class="form-group">
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Fødselsdato</label>
-                <input type="date" id="fodselsdato" style="width: 100%; box-sizing: border-box;">
-            </div>
-
-            <div class="form-group">
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Status</label>
-                <select id="status" style="width: 100%; box-sizing: border-box;">
-                    <option value="Aktiv">Aktiv</option>
-                    <option value="Passiv">Passiv</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Mobil</label>
-                <input type="tel" id="mobil" placeholder="8 siffer" style="width: 100%; box-sizing: border-box;">
-            </div>
-
-            <div class="form-group">
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Draktnummer</label>
-                <input type="number" id="draktnummer" placeholder="F.eks. 10" style="width: 100%; box-sizing: border-box;">
-            </div>
-        </div>
-
-        <div class="button-group" style="display: flex; gap: 10px;">
-            <button type="submit" id="submitBtn" class="btn" style="flex: 1;">Lagre Spiller</button>
-            <button type="button" id="cancelBtn" class="btn btn-danger" onclick="resetForm()" style="display:none; flex: 1;">Avbryt</button>
-        </div>
-    </form>
-</div>
-
         <table id="attendanceTable"> 
             <thead>
                 <tr>
@@ -78,13 +40,69 @@
     </div>
 </div>
 
+<div id="playerModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="formTitle" style="margin:0; color: var(--primary);">Registrer ny spiller</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="playerForm">
+            <input type="hidden" id="editId">
+            <div class="form-stack" style="display: flex; flex-direction: column; gap: 15px; padding: 20px 0;">
+                <div class="form-group">
+                    <label>Fullt navn *</label>
+                    <input type="text" id="navn" required placeholder="Navn på spiller">
+                </div>
+                <div class="form-group">
+                    <label>Fødselsdato</label>
+                    <input type="date" id="fodselsdato">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status">
+                        <option value="Aktiv">Aktiv</option>
+                        <option value="Passiv">Passiv</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mobil</label>
+                    <input type="tel" id="mobil" placeholder="Mobilnummer">
+                </div>
+                <div class="form-group">
+                    <label>Draktnummer</label>
+                    <input type="number" id="draktnummer" placeholder="Nr">
+                </div>
+            </div>
+            <div class="button-group" style="display: flex; gap: 10px;">
+                <button type="submit" id="submitBtn" class="btn" style="flex: 2;">Lagre Spiller</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal()" style="flex: 1;">Avbryt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="database.js"></script>
 <script src="navigation.js"></script> 
 <script>
-    // Hent listen fra databasen med en gang siden lastes
     let spillerliste = DB.getPlayers();
 
-    // HÅNDTERING AV SKJEMA (LAGRE/OPPDATERE)
+    // MODAL LOGIKK
+    function openModal() {
+        document.getElementById('playerModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('playerModal').style.display = 'none';
+        resetForm();
+    }
+
+    // Lukk modal hvis man klikker utenfor boksen
+    window.onclick = function(event) {
+        const modal = document.getElementById('playerModal');
+        if (event.target == modal) { closeModal(); }
+    }
+
+    // HÅNDTERING AV SKJEMA
     document.getElementById('playerForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const editId = document.getElementById('editId').value;
@@ -106,10 +124,9 @@
 
         DB.savePlayers(spillerliste);
         renderPlayers();
-        resetForm();
+        closeModal(); // Lukker vinduet etter lagring
     });
 
-    // REDIGER SPILLER
     function editPlayer(id) {
         const spiller = spillerliste.find(s => s.id === id);
         if (!spiller) return;
@@ -123,35 +140,27 @@
         
         document.getElementById('formTitle').innerText = "Rediger spiller";
         document.getElementById('submitBtn').innerText = "Oppdater Spiller";
-        document.getElementById('cancelBtn').style.display = "block";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        openModal(); // Åpner popupen
     }
 
-    // SLETT SPILLER (Denne du trengte!)
     function deletePlayer(id) {
         if (confirm("Er du sikker på at du vil slette denne spilleren?")) {
-            // Filtrer ut spilleren som skal slettes
             spillerliste = spillerliste.filter(s => s.id !== id);
-            // Lagre den nye listen til localStorage via database.js
             DB.savePlayers(spillerliste);
-            // Tegn tabellen på nytt
             renderPlayers();
         }
     }
 
-    // NULLSTILL SKJEMA
     function resetForm() {
         document.getElementById('playerForm').reset();
         document.getElementById('editId').value = "";
         document.getElementById('formTitle').innerText = "Registrer ny spiller";
         document.getElementById('submitBtn').innerText = "Lagre Spiller";
-        document.getElementById('cancelBtn').style.display = "none";
     }
 
-    // TEGN TABELLEN
     function renderPlayers() {
         const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer) || 999) - (parseInt(b.draktnummer) || 999));
-        
         document.getElementById('playerTableBody').innerHTML = sorted.map(s => `
             <tr>
                 <td><strong>${s.draktnummer || '-'}</strong></td>
@@ -166,7 +175,6 @@
             </tr>`).join('');
     }
 
-    // Kjør tegning av tabell ved oppstart
     renderPlayers();
 </script>
 </body>
