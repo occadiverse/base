@@ -11,7 +11,7 @@
     /* --- Tema-variabler (Nå med BSK-farger) --- */
     --primary: var(--bsk-blaa);
     --primary-hover: var(--bsk-blaa-mork);
-    --accent: var(--bsk-gul); /* Kan brukes til detaljer eller varsler */
+    --accent: var(--bsk-gul); 
     
     /* --- Bakgrunner og Tekst --- */
     --bg-light: #f8f9fa;
@@ -20,7 +20,7 @@
     --border-color: #eee;
     
     /* --- Interaksjon --- */
-    --hover-bg: #f0f4f8; /* En veldig lys blåtone for hover */
+    --hover-bg: #f0f4f8; 
     --active-bg: #e2e8f0;
 }
 
@@ -51,7 +51,7 @@ body {
 
 .sidebar-header {
     padding: 15px 20px;
-    height: 60px; /* Fast høyde for å matche top-bar */
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -63,11 +63,11 @@ body {
     padding: 15px;
     display: flex;
     flex-direction: column;
-    gap: 25px; /* God luft mellom navigasjon og eventuelle andre grupper */
+    gap: 25px;
     overflow-y: auto;
 }
 
-/* --- 3. NY NAVIGASJON (NAV-ITEM) --- */
+/* --- 3. NAVIGASJON (NAV-ITEM) --- */
 .nav-links {
     display: flex;
     flex-direction: column;
@@ -108,13 +108,46 @@ body {
     background-color: var(--active-bg);
     color: var(--text-dark);
     font-weight: 600;
+    border-left: 4px solid var(--bsk-gul); /* BSK-gul markør */
 }
 
 .nav-item.active i {
     color: var(--primary);
 }
 
-/* --- 4. KNAPPER OG INPUTS (BRUKES I MENY-GRUPPER) --- */
+/* --- 4. KNAPPER OG INPUTS --- */
+
+/* Felles stil for alle inndatafelt */
+input[type="text"],
+input[type="date"],
+input[type="tel"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background-color: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    display: block;
+    box-sizing: border-box; /* Viktig for at padding ikke øker bredden */
+}
+
+/* Blå ramme ved fokus */
+input:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 69, 149, 0.1);
+}
+
+/* Spesifikk høyde for select så den matcher inputs */
+select {
+    height: 45px;
+    cursor: pointer;
+}
+
 .menu-group {
     display: flex;
     flex-direction: column;
@@ -130,17 +163,9 @@ body {
     margin-bottom: -5px;
 }
 
-input[type="text"], 
-input[type="date"] {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
 .btn {
-    padding: 10px;
-    border-radius: 6px;
+    padding: 12px;
+    border-radius: 8px;
     border: none;
     background: var(--primary);
     color: white;
@@ -158,7 +183,6 @@ input[type="date"] {
     background: #fff;
     color: #e74c3c;
     border: 1px solid #e74c3c;
-    margin-top: 10px;
 }
 
 .btn-danger:hover {
@@ -172,7 +196,7 @@ input[type="date"] {
     display: flex;
     flex-direction: column;
     background: white;
-    min-width: 0; /* Viktig for at tabellen skal kunne krympe */
+    min-width: 0;
 }
 
 .top-bar {
