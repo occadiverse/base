@@ -1,26 +1,35 @@
+/* --- 1. VARIABLER OG BASE --- */
 :root {
-    --sidebar-width: 280px;
+    --sidebar-width: 260px; /* Litt smalere for et lettere utseende */
     --primary: #3498db;
+    --primary-hover: #2980b9;
     --bg-light: #f8f9fa;
+    --text-main: #4a5568;
     --text-dark: #2c3e50;
+    --border-color: #eee;
+    --hover-bg: #edf2f7;
+    --active-bg: #e2e8f0;
 }
 
 body { 
-    font-family: 'Segoe UI', sans-serif; 
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
     margin: 0; 
     display: flex; 
     height: 100vh;
     overflow: hidden;
+    color: var(--text-dark);
 }
 
+/* --- 2. SIDEBAR STRUKTUR --- */
 .sidebar {
     width: var(--sidebar-width);
     background: var(--bg-light);
     border-right: 1px solid #ddd;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
+    transition: margin-left 0.3s ease;
     z-index: 1000;
+    flex-shrink: 0;
 }
 
 .sidebar.collapsed {
@@ -28,106 +37,187 @@ body {
 }
 
 .sidebar-header {
-    padding: 20px;
-    background: white;
+    padding: 15px 20px;
+    height: 60px; /* Fast høyde for å matche top-bar */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
+    background: white;
 }
 
 .sidebar-content {
-    padding: 20px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px; /* God luft mellom navigasjon og eventuelle andre grupper */
+    overflow-y: auto;
 }
 
-.menu-toggle {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
+/* --- 3. NY NAVIGASJON (NAV-ITEM) --- */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #a0aec0;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary);
+}
+
+.nav-item:hover i {
+    color: var(--primary);
+}
+
+.nav-item.active {
+    background-color: var(--active-bg);
     color: var(--text-dark);
+    font-weight: 600;
+}
+
+.nav-item.active i {
+    color: var(--primary);
+}
+
+/* --- 4. KNAPPER OG INPUTS (BRUKES I MENY-GRUPPER) --- */
+.menu-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-group label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #a0aec0;
+    letter-spacing: 0.05em;
+    margin-bottom: -5px;
+}
+
+input[type="text"], 
+input[type="date"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
 }
 
 .btn {
-    padding: 12px;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 6px;
     border: none;
     background: var(--primary);
     color: white;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
+.btn:hover {
+    background: var(--primary-hover);
+}
+
+.btn-danger {
+    background: #fff;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    margin-top: 10px;
+}
+
+.btn-danger:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+/* --- 5. HOVEDINNHOLD OG TABELL --- */
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     background: white;
-    width: 100%;
+    min-width: 0; /* Viktig for at tabellen skal kunne krympe */
 }
 
 .top-bar {
-    padding: 15px 20px;
+    height: 60px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
     gap: 15px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.menu-toggle:hover {
+    background: var(--hover-bg);
 }
 
 .table-container {
     padding: 20px;
     overflow: auto;
+    flex-grow: 1;
 }
 
-table { width: 100%; border-collapse: collapse; }
-th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
-td:first-child { position: sticky; left: 0; background: white; font-weight: bold; }
-
-/* Container for navigasjon */
-.nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 5px; /* Litt luft mellom lenkene */
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 14px;
 }
 
-/* Selve lenken */
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Luft mellom ikon og tekst */
-    padding: 10px 15px;
-    text-decoration: none; /* Fjerner understreking */
-    color: #4a5568; /* En behagelig gråfarge */
-    font-weight: 500;
-    font-size: 15px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+th, td { 
+    border: 1px solid var(--border-color); 
+    padding: 12px; 
+    text-align: center; 
 }
 
-/* Stil når du holder musen over lenken */
-.nav-item:hover {
-    background-color: #edf2f7; /* Lys grå bakgrunn ved hover */
-    color: #2b6cb0; /* Blåfarge på teksten ved hover */
-}
-
-/* Valgfritt: Stil for den siden du er på akkurat nå */
-.nav-item.active {
-    background-color: #e2e8f0;
-    color: #1a202c;
+th {
+    background: #fcfcfc;
     font-weight: 600;
+    color: var(--text-main);
 }
 
-/* Gjør ikonene i menyen litt mer diskré */
-.nav-item i {
-    width: 20px; /* Sørger for at teksten starter på samme linje */
-    text-align: center;
-    font-size: 1.1rem;
-    color: #a0aec0;
-}
-
-.nav-item:hover i {
-    color: #2b6cb0;
+td:first-child { 
+    position: sticky; 
+    left: 0; 
+    background: white; 
+    font-weight: bold; 
+    z-index: 2;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
 }
