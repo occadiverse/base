@@ -20,41 +20,47 @@
     </div>
 
     <div class="table-container">
-        <div class="card" style="margin-bottom: 30px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px;">
-            <h3 id="formTitle" style="margin-top:0; color: var(--primary);">Registrer ny spiller</h3>
+        <div class="card" style="margin-bottom: 30px; padding: 25px; border: 1px solid var(--border-color); border-radius: 8px; max-width: 500px;">
+            <h3 id="formTitle" style="margin-top:0; color: var(--primary); margin-bottom: 20px;">Registrer ny spiller</h3>
             <form id="playerForm">
-                <input type="hidden" id="editId">
-                <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label>Fullt navn *</label>
-                        <input type="text" id="navn" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Fødselsdato</label>
-                        <input type="date" id="fodselsdato">
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="status">
-                            <option value="Aktiv">Aktiv</option>
-                            <option value="Passiv">Passiv</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Mobil</label>
-                        <input type="tel" id="mobil">
-                    </div>
-                    <div class="form-group">
-                        <label>Draktnummer</label>
-                        <input type="number" id="draktnummer">
-                    </div>
-                </div>
-                <div class="button-group" style="display: flex; gap: 10px;">
-                    <button type="submit" id="submitBtn" class="btn">Lagre Spiller</button>
-                    <button type="button" id="cancelBtn" class="btn btn-danger" onclick="resetForm()" style="display:none;">Avbryt</button>
-                </div>
-            </form>
+            <input type="hidden" id="editId">
+        
+            <div class="form-stack" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+            <div class="form-group">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Fullt navn *</label>
+                <input type="text" id="navn" required placeholder="F.eks. Ola Nordmann" style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Fødselsdato</label>
+                <input type="date" id="fodselsdato" style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Status</label>
+                <select id="status" style="width: 100%; box-sizing: border-box;">
+                    <option value="Aktiv">Aktiv</option>
+                    <option value="Passiv">Passiv</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Mobil</label>
+                <input type="tel" id="mobil" placeholder="8 siffer" style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main);">Draktnummer</label>
+                <input type="number" id="draktnummer" placeholder="F.eks. 10" style="width: 100%; box-sizing: border-box;">
+            </div>
         </div>
+
+        <div class="button-group" style="display: flex; gap: 10px;">
+            <button type="submit" id="submitBtn" class="btn" style="flex: 1;">Lagre Spiller</button>
+            <button type="button" id="cancelBtn" class="btn btn-danger" onclick="resetForm()" style="display:none; flex: 1;">Avbryt</button>
+        </div>
+    </form>
+</div>
 
         <table id="attendanceTable"> 
             <thead>
