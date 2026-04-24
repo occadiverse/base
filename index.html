@@ -3,45 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bækkelaget SK Fotball</title>
+    <title>Oppmøteregistrering</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="index.html" class="nav-brand">Herrer A-lag</a>
-    <div class="nav-links-container">
-        <a href="oppmote.html" class="nav-item">Oppmøte</a>
-        <a href="spillere.html" class="nav-item">Spillere</a>
-        <a href="statistikk.html" class="nav-item">Stats</a>
-    </div>
-</nav>
-
-<div class="container">
-    <h1>Bækkelaget SK Fotball 2026</h1>
-
-    <div class="dashboard-grid">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fa-solid fa-calendar-check"></i> Meny</h3>
+            <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
         
-        <a href="oppmote.html" class="menu-card">
-            <i>📅</i>
-            <h3>Oppmøte</h3>
-            <p>Registrer trening og kamp. Se hvem som er på feltet i dag.</p>
-        </a>
-
-        <a href="spillere.html" class="menu-card">
-            <i>👥</i>
-            <h3>Spillerstall</h3>
-            <p>Administrer spillertroppen, draktnummer og kontaktinfo.</p>
-        </a>
-
-        <a href="statistikk.html" class="menu-card">
-            <i>📊</i>
-            <h3>Statistikk</h3>
-            <p>Hvem er treningskongen? Se full oversikt over sesongen.</p>
-        </a>
-
+        <div class="sidebar-content">
+            <div class="menu-group">
+                <label>Person</label>
+                <input type="text" id="nameInput" placeholder="Navn...">
+                <button class="btn" onclick="addName()">Legg til person</button>
+            </div>
+            <div class="menu-group">
+                <label>Dato</label>
+                <input type="date" id="dateInput">
+                <button class="btn" onclick="addDate()">Legg til dato</button>
+            </div>
+            <button class="btn btn-danger" onclick="clearData()">Tøm oversikt</button>
+        </div>
     </div>
-</div>
 
+    <div class="main-content">
+        <div class="top-bar">
+            <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h2 style="margin:0;">Oppmøteregistrering</h2>
+        </div>
+        <div class="table-container">
+            <table id="attendanceTable">
+                <thead><tr id="tableHeader"><th>Navn / Dato</th></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
