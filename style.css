@@ -6,7 +6,7 @@
     --bsk-blaa-mork: #003366;
 
     /* --- Struktur og Layout --- */
-    --sidebar-width: 260px;
+    --sidebar-width: 210px;
     
     /* --- Tema-variabler (Nå med BSK-farger) --- */
     --primary: var(--bsk-blaa);
