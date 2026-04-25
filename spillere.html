@@ -13,22 +13,22 @@
 
 <div class="main-content">
     <div class="top-bar">
-        <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
+        <button class="menu-toggle is-hidden" id="openBtn" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 style="margin:0; font-size: 1.1rem;">Spillere</h2>
-        
-        <button class="btn" onclick="openModal()" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <h2 class="section-title">Spillere</h2>
+
+        <button class="btn btn-inline-icon push-right" onclick="openModal()">
             <i class="fa-solid fa-user-plus"></i> Ny spiller
         </button>
     </div>
 
     <div class="table-container">
-        <table id="attendanceTable"> 
+        <table id="attendanceTable">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th style="text-align: left;">Navn</th>
+                    <th class="text-left">Navn</th>
                     <th>Født</th>
                     <th>Status</th>
                     <th>Mobil</th>
@@ -43,12 +43,12 @@
 <div id="playerModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 id="formTitle" style="margin:0; color: var(--primary);">Registrer ny spiller</h3>
+            <h3 id="formTitle" class="modal-title">Registrer ny spiller</h3>
             <button class="close-btn" onclick="closeModal()">&times;</button>
         </div>
         <form id="playerForm">
             <input type="hidden" id="editId">
-            <div class="form-stack" style="display: flex; flex-direction: column; gap: 15px; padding: 20px 0;">
+            <div class="form-stack">
                 <div class="form-group">
                     <label>Fullt navn *</label>
                     <input type="text" id="navn" required placeholder="Navn på spiller">
@@ -73,20 +73,19 @@
                     <input type="number" id="draktnummer" placeholder="Nr">
                 </div>
             </div>
-            <div class="button-group" style="display: flex; gap: 10px;">
-                <button type="submit" id="submitBtn" class="btn" style="flex: 2;">Lagre Spiller</button>
-                <button type="button" class="btn btn-danger" onclick="closeModal()" style="flex: 1;">Avbryt</button>
+            <div class="button-group">
+                <button type="submit" id="submitBtn" class="btn btn-grow-2">Lagre Spiller</button>
+                <button type="button" class="btn btn-danger btn-grow-1" onclick="closeModal()">Avbryt</button>
             </div>
         </form>
     </div>
 </div>
 
 <script src="database.js"></script>
-<script src="navigation.js"></script> 
+<script src="navigation.js"></script>
 <script>
     let spillerliste = DB.getPlayers();
 
-    // MODAL LOGIKK
     function openModal() {
         document.getElementById('playerModal').style.display = 'block';
     }
@@ -96,18 +95,18 @@
         resetForm();
     }
 
-    // Lukk modal hvis man klikker utenfor boksen
     window.onclick = function(event) {
         const modal = document.getElementById('playerModal');
-        if (event.target == modal) { closeModal(); }
-    }
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
 
-    // HÅNDTERING AV SKJEMA
     document.getElementById('playerForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const editId = document.getElementById('editId').value;
         const spillerData = {
-            id: editId || (Date.now().toString()), 
+            id: editId || Date.now().toString(),
             navn: document.getElementById('navn').value,
             fodselsdato: document.getElementById('fodselsdato').value,
             status: document.getElementById('status').value,
@@ -116,19 +115,21 @@
         };
 
         if (editId) {
-            const index = spillerliste.findIndex(s => s.id === editId);
-            if (index !== -1) spillerliste[index] = spillerData;
+            const index = spillerliste.findIndex((s) => s.id === editId);
+            if (index !== -1) {
+                spillerliste[index] = spillerData;
+            }
         } else {
             spillerliste.push(spillerData);
         }
 
         DB.savePlayers(spillerliste);
         renderPlayers();
-        closeModal(); // Lukker vinduet etter lagring
+        closeModal();
     });
 
     function editPlayer(id) {
-        const spiller = spillerliste.find(s => s.id === id);
+        const spiller = spillerliste.find((s) => s.id === id);
         if (!spiller) return;
 
         document.getElementById('editId').value = spiller.id;
@@ -137,16 +138,16 @@
         document.getElementById('status').value = spiller.status;
         document.getElementById('mobil').value = spiller.mobil;
         document.getElementById('draktnummer').value = spiller.draktnummer;
-        
-        document.getElementById('formTitle').innerText = "Rediger spiller";
-        document.getElementById('submitBtn').innerText = "Oppdater Spiller";
-        
-        openModal(); // Åpner popupen
+
+        document.getElementById('formTitle').innerText = 'Rediger spiller';
+        document.getElementById('submitBtn').innerText = 'Oppdater Spiller';
+
+        openModal();
     }
 
     function deletePlayer(id) {
-        if (confirm("Er du sikker på at du vil slette denne spilleren?")) {
-            spillerliste = spillerliste.filter(s => s.id !== id);
+        if (confirm('Er du sikker på at du vil slette denne spilleren?')) {
+            spillerliste = spillerliste.filter((s) => s.id !== id);
             DB.savePlayers(spillerliste);
             renderPlayers();
         }
@@ -154,23 +155,23 @@
 
     function resetForm() {
         document.getElementById('playerForm').reset();
-        document.getElementById('editId').value = "";
-        document.getElementById('formTitle').innerText = "Registrer ny spiller";
-        document.getElementById('submitBtn').innerText = "Lagre Spiller";
+        document.getElementById('editId').value = '';
+        document.getElementById('formTitle').innerText = 'Registrer ny spiller';
+        document.getElementById('submitBtn').innerText = 'Lagre Spiller';
     }
 
     function renderPlayers() {
-        const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer) || 999) - (parseInt(b.draktnummer) || 999));
-        document.getElementById('playerTableBody').innerHTML = sorted.map(s => `
+        const sorted = [...spillerliste].sort((a, b) => (parseInt(a.draktnummer, 10) || 999) - (parseInt(b.draktnummer, 10) || 999));
+        document.getElementById('playerTableBody').innerHTML = sorted.map((s) => `
             <tr>
                 <td><strong>${s.draktnummer || '-'}</strong></td>
-                <td style="text-align: left;">${s.navn}</td>
+                <td class="text-left">${s.navn}</td>
                 <td>${s.fodselsdato || '-'}</td>
-                <td><span style="background: ${s.status === 'Aktiv' ? 'var(--bsk-gul)' : '#eee'}; padding: 4px 8px; border-radius: 4px; font-size: 11px;">${s.status}</span></td>
+                <td><span class="status-pill ${s.status === 'Aktiv' ? 'status-active' : 'status-passive'}">${s.status}</span></td>
                 <td>${s.mobil || '-'}</td>
                 <td>
-                    <button class="btn" style="padding: 5px 10px; font-size: 11px; background: var(--hover-bg); color: var(--text-dark);" onclick="editPlayer('${s.id}')">Endre</button>
-                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 11px;" onclick="deletePlayer('${s.id}')">Slett</button>
+                    <button class="btn btn-small btn-muted-light" onclick="editPlayer('${s.id}')">Endre</button>
+                    <button class="btn btn-danger btn-small" onclick="deletePlayer('${s.id}')">Slett</button>
                 </td>
             </tr>`).join('');
     }
