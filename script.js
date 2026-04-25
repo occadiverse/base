@@ -154,35 +154,6 @@
         });
     }
 
-    function addName() {
-        const input = document.getElementById('nameInput');
-        const name = input.value.trim();
-
-        if (!name) {
-            return;
-        }
-
-        const players = DB.getPlayers();
-        const duplicate = players.some((player) => player.navn.toLowerCase() === name.toLowerCase());
-        if (duplicate) {
-            alert('Denne spilleren finnes allerede.');
-            return;
-        }
-
-        players.push({
-            id: DB.generateId(),
-            navn: name,
-            fodselsdato: '',
-            status: 'Aktiv',
-            mobil: '',
-            draktnummer: ''
-        });
-
-        DB.savePlayers(players);
-        input.value = '';
-        renderAttendanceTable();
-    }
-
     function addDate() {
         const input = document.getElementById('dateInput');
         const selectedDate = input.value;
@@ -233,7 +204,6 @@
         initMonth();
     }
 
-    window.addName = addName;
     window.addDate = addDate;
     window.clearData = clearData;
 
