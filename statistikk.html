@@ -6,23 +6,6 @@
     <title>Statistikk - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Spesifikk stil for fremdriftsmålere som ikke ligger i hovedfilen ennå */
-        .progress-bar-bg {
-            background: #eee;
-            height: 8px;
-            border-radius: 4px;
-            width: 100%;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--bsk-gul); /* BSK-gult for fremgang */
-            transition: width 0.5s ease-in-out;
-        }
-        tr.rank-1 { background-color: rgba(255, 222, 0, 0.1); } /* Svak gul farge for lederen */
-    </style>
 </head>
 <body>
 
@@ -30,55 +13,62 @@
 
 <div class="main-content">
     <div class="top-bar">
-        <button class="menu-toggle" id="openBtn" onclick="toggleMenu()" style="display:none;">
+        <button class="menu-toggle is-hidden" id="openBtn" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 style="margin:0; font-size: 1.1rem;">Oppmøtestatistikk 2026</h2>
+        <h2 class="section-title">Oppmøtestatistikk <span id="statsYearLabel"></span></h2>
     </div>
 
     <div class="table-container">
-        <div class="card" style="margin-bottom: 20px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px;">
-            <p style="margin:0; color: var(--text-main); font-size: 0.9rem;">
+        <div class="card stats-card">
+            <p class="card-text-small">
                 Dette er den totale oversikten over alle treninger (T) og kamper (K) markert i systemet.
             </p>
         </div>
 
-        <table id="attendanceTable"> <thead>
+        <table id="attendanceTable">
+            <thead>
                 <tr>
-                    <th style="width: 60px;">Rang</th>
-                    <th style="text-align: left;">Spiller</th>
+                    <th class="rank-col">Rang</th>
+                    <th class="text-left">Spiller</th>
                     <th>Antall Økter</th>
-                    <th style="width: 250px;">Oppmøte %</th>
+                    <th class="percent-col">Oppmøte %</th>
                 </tr>
             </thead>
-            <tbody id="statsBody">
-                </tbody>
+            <tbody id="statsBody"></tbody>
         </table>
     </div>
 </div>
 
 <script src="database.js"></script>
-<script src="navigation.js"></script> <script>
+<script src="navigation.js"></script>
+<script>
+    const currentYear = new Date().getFullYear();
+    const statsYearLabel = document.getElementById('statsYearLabel');
+    if (statsYearLabel) {
+        statsYearLabel.textContent = currentYear;
+    }
+
     function calculateStats() {
         const players = DB.getActivePlayers();
-        const currentYear = 2026;
         let stats = [];
 
         players.forEach(player => {
             let attended = 0;
             let totalPossible = 0;
 
-            // Går gjennom alle 12 måneder
             for (let m = 0; m < 12; m++) {
                 const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
                 for (let d = 1; d <= daysInMonth; d++) {
                     const typeKey = `type-${currentYear}-${m}-${d}`;
                     const type = localStorage.getItem(typeKey);
-                    
-                    if (type === "T" || type === "K") {
+
+                    if (type === 'T' || type === 'K') {
                         totalPossible++;
                         const status = DB.getAttendance(currentYear, m, player.id, d);
-                        if (status === "✅") attended++;
+                        if (status === '✅') {
+                            attended++;
+                        }
                     }
                 }
             }
@@ -86,13 +76,12 @@
             const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
             stats.push({
                 navn: player.navn,
-                attended: attended,
+                attended,
                 total: totalPossible,
-                percent: percent
+                percent
             });
         });
 
-        // Sorterer: Høyest prosent først, deretter flest antall økter
         stats.sort((a, b) => b.percent - a.percent || b.attended - a.attended);
         renderStats(stats);
     }
@@ -100,17 +89,17 @@
     function renderStats(stats) {
         const body = document.getElementById('statsBody');
         body.innerHTML = stats.map((s, index) => {
-            let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1;
-            let rankClass = index === 0 ? 'rank-1' : '';
-            
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1;
+            const rankClass = index === 0 ? 'rank-1' : '';
+
             return `
                 <tr class="${rankClass}">
-                    <td style="font-weight: bold; font-size: 1.1rem;">${medal}</td>
-                    <td style="text-align: left;"><strong>${s.navn}</strong></td>
-                    <td><span style="color: var(--primary); font-weight: bold;">${s.attended}</span> / ${s.total}</td>
+                    <td class="rank-cell">${medal}</td>
+                    <td class="text-left"><strong>${s.navn}</strong></td>
+                    <td><span class="stat-attended">${s.attended}</span> / ${s.total}</td>
                     <td>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: bold;">${s.percent}%</span>
+                        <div class="stats-percent-row">
+                            <span class="percent-strong">${s.percent}%</span>
                         </div>
                         <div class="progress-bar-bg">
                             <div class="progress-bar-fill" style="width: ${s.percent}%"></div>
@@ -121,7 +110,6 @@
         }).join('');
     }
 
-    // Kjører beregningen når siden lastes
     calculateStats();
 </script>
 </body>
