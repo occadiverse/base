@@ -637,3 +637,60 @@ tr.rank-1 {
         font-size: 1.5rem;
     }
 }
+/* --- 10. OPPMØTE FINJUSTERING --- */
+.top-bar-spread {
+    gap: 12px;
+}
+
+.top-title-group {
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+#attendanceTable th,
+#attendanceTable td {
+    vertical-align: middle;
+}
+
+#attendanceTable .status-cell {
+    font-size: 1.05rem;
+    transition: background-color 0.15s ease;
+}
+
+#attendanceTable .status-cell:hover {
+    background-color: #f7f9fc;
+}
+
+#attendanceTable .date-header {
+    transition: background-color 0.15s ease;
+}
+
+#attendanceTable .date-header:hover {
+    background-color: #f3f6fb;
+}
+
+.admin-footer {
+    border-radius: 10px;
+    background: #fcfdff;
+}
+
+/* Litt bedre mobilvisning for oppmøte */
+@media (max-width: 900px) {
+    .top-title-group {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .month-picker {
+        min-width: 140px;
+    }
+
+    .admin-footer {
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .admin-field {
+        min-width: 100%;
+    }
+}
