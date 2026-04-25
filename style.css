@@ -1,3 +1,286 @@
+/* --- 1. VARIABLER OG BASE --- */
+:root {
+    /* --- BSK Profilfarger --- */
+    --bsk-gul: #ffde00;
+    --bsk-blaa: #004595;
+    --bsk-blaa-mork: #003366;
+
+    /* --- Struktur og Layout --- */
+    --sidebar-width: 210px;
+    
+    /* --- Tema-variabler (Nå med BSK-farger) --- */
+    --primary: var(--bsk-blaa);
+    --primary-hover: var(--bsk-blaa-mork);
+    --accent: var(--bsk-gul); 
+    
+    /* --- Bakgrunner og Tekst --- */
+    --bg-light: #f8f9fa;
+    --text-main: #4a5568;
+    --text-dark: #2c3e50;
+    --border-color: #eee;
+    
+    /* --- Interaksjon --- */
+    --hover-bg: #f0f4f8; 
+    --active-bg: #e2e8f0;
+}
+
+body { 
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+    margin: 0; 
+    display: flex; 
+    height: 100vh;
+    overflow: hidden;
+    color: var(--text-dark);
+}
+
+/* --- 2. SIDEBAR STRUKTUR --- */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-light);
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+    margin-left: calc(var(--sidebar-width) * -1);
+}
+
+.sidebar-header {
+    padding: 15px 20px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    background: white;
+}
+
+.sidebar-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    overflow-y: auto;
+}
+
+/* --- 3. NAVIGASJON (NAV-ITEM) --- */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #a0aec0;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary);
+}
+
+.nav-item:hover i {
+    color: var(--primary);
+}
+
+.nav-item.active {
+    background-color: var(--active-bg);
+    color: var(--text-dark);
+    font-weight: 600;
+    border-left: 4px solid var(--bsk-gul); /* BSK-gul markør */
+}
+
+.nav-item.active i {
+    color: var(--primary);
+}
+
+/* --- 4. KNAPPER OG INPUTS --- */
+
+/* Felles stil for alle inndatafelt */
+input[type="text"],
+input[type="date"],
+input[type="tel"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background-color: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    display: block;
+    box-sizing: border-box; /* Viktig for at padding ikke øker bredden */
+}
+
+/* Blå ramme ved fokus */
+input:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 69, 149, 0.1);
+}
+
+/* Spesifikk høyde for select så den matcher inputs */
+select {
+    height: 45px;
+    cursor: pointer;
+}
+
+.menu-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-group label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #a0aec0;
+    letter-spacing: 0.05em;
+    margin-bottom: -5px;
+}
+
+.btn {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: var(--primary-hover);
+}
+
+.btn-danger {
+    background: #fff;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.btn-danger:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+/* --- 5. HOVEDINNHOLD OG TABELL --- */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    min-width: 0;
+}
+
+.top-bar {
+    height: 60px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.menu-toggle:hover {
+    background: var(--hover-bg);
+}
+
+.table-container {
+    padding: 20px;
+    overflow: auto;
+    flex-grow: 1;
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 14px;
+}
+
+th, td { 
+    border: 1px solid var(--border-color); 
+    padding: 12px; 
+    text-align: center; 
+}
+
+th {
+    background: #fcfcfc;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+td:first-child { 
+    position: sticky; 
+    left: 0; 
+    background: white; 
+    font-weight: bold; 
+    z-index: 2;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+}
+
+/* --- 6. MODAL (POPUP) STILER --- */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); 
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    animation: slideDown 0.3s ease-out;
 }
 
 @keyframes slideDown {
