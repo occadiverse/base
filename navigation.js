@@ -45,4 +45,3 @@ function toggleMenu() {
 }
 
 document.addEventListener('DOMContentLoaded', loadNavigation);
-oppmote.html
