@@ -13,18 +13,14 @@
 
 <div class="main-content">
     <div class="top-bar top-bar-spread">
-        <button class="menu-toggle is-hidden" id="openBtn" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
+        <button class="menu-toggle is-hidden menu-text-btn" id="openBtn" onclick="toggleMenu()">Meny</button>
 
         <div class="top-title-group">
             <h2 class="section-title">Oppmøte <span id="currentYearLabel"></span></h2>
             <select id="monthSelect" class="month-picker"></select>
         </div>
 
-        <a href="spillere.html" class="btn btn-compact btn-inline-icon">
-            <i class="fa-solid fa-users"></i> Gå til Spillere
-        </a>
+        <a href="spillere.html" class="btn btn-compact">Spillere</a>
     </div>
 
     <div class="table-container">
@@ -42,9 +38,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-danger btn-compact" onclick="clearData()">
-                <i class="fa-solid fa-trash"></i> Nullstill år
-            </button>
+            <button class="btn btn-danger btn-compact" onclick="clearData()">Nullstill år</button>
         </div>
     </div>
 </div>
