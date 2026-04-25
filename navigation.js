@@ -2,17 +2,16 @@ function loadNavigation() {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
 
-    // Finn ut hvilken side vi er på nå for å sette "active"-klassen
-    const currentPage = window.location.pathname.split("/").pop() || "index.html";
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     sidebar.innerHTML = `
         <div class="sidebar-header">
-            <i class="fa-solid fa-house" style="font-size: 1.2rem; color: var(--primary);"></i>
+            <i class="fa-solid fa-house nav-home-icon"></i>
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        
+
         <div class="sidebar-content">
             <nav class="nav-links">
                 <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">
@@ -28,23 +27,22 @@ function loadNavigation() {
                     <i class="fa-solid fa-chart-line"></i> Stats
                 </a>
             </nav>
-            <div style="margin-top: auto; padding-top: 20px; font-size: 10px; color: #a0aec0; text-align: center;">
-                <p>BSK Fotball © 2026</p>
+            <div class="nav-footer">
+                <p>BSK Fotball © ${new Date().getFullYear()}</p>
             </div>
         </div>
     `;
 }
 
-// Funksjon for å styre åpning/lukking (felles for alle sider)
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar');
     const openBtn = document.getElementById('openBtn');
     sidebar.classList.toggle('collapsed');
-    
+
     if (openBtn) {
         openBtn.style.display = sidebar.classList.contains('collapsed') ? 'block' : 'none';
     }
 }
 
-// Kjør funksjonen når siden lastes
 document.addEventListener('DOMContentLoaded', loadNavigation);
+oppmote.html
