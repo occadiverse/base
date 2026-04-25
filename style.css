@@ -1,286 +1,3 @@
-/* --- 1. VARIABLER OG BASE --- */
-:root {
-    /* --- BSK Profilfarger --- */
-    --bsk-gul: #ffde00;
-    --bsk-blaa: #004595;
-    --bsk-blaa-mork: #003366;
-
-    /* --- Struktur og Layout --- */
-    --sidebar-width: 210px;
-    
-    /* --- Tema-variabler (Nå med BSK-farger) --- */
-    --primary: var(--bsk-blaa);
-    --primary-hover: var(--bsk-blaa-mork);
-    --accent: var(--bsk-gul); 
-    
-    /* --- Bakgrunner og Tekst --- */
-    --bg-light: #f8f9fa;
-    --text-main: #4a5568;
-    --text-dark: #2c3e50;
-    --border-color: #eee;
-    
-    /* --- Interaksjon --- */
-    --hover-bg: #f0f4f8; 
-    --active-bg: #e2e8f0;
-}
-
-body { 
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
-    margin: 0; 
-    display: flex; 
-    height: 100vh;
-    overflow: hidden;
-    color: var(--text-dark);
-}
-
-/* --- 2. SIDEBAR STRUKTUR --- */
-.sidebar {
-    width: var(--sidebar-width);
-    background: var(--bg-light);
-    border-right: 1px solid #ddd;
-    display: flex;
-    flex-direction: column;
-    transition: margin-left 0.3s ease;
-    z-index: 1000;
-    flex-shrink: 0;
-}
-
-.sidebar.collapsed {
-    margin-left: calc(var(--sidebar-width) * -1);
-}
-
-.sidebar-header {
-    padding: 15px 20px;
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    background: white;
-}
-
-.sidebar-content {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    overflow-y: auto;
-}
-
-/* --- 3. NAVIGASJON (NAV-ITEM) --- */
-.nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    text-decoration: none;
-    color: var(--text-main);
-    font-weight: 500;
-    font-size: 14px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.nav-item i {
-    width: 20px;
-    text-align: center;
-    font-size: 1.1rem;
-    color: #a0aec0;
-    transition: color 0.2s ease;
-}
-
-.nav-item:hover {
-    background-color: var(--hover-bg);
-    color: var(--primary);
-}
-
-.nav-item:hover i {
-    color: var(--primary);
-}
-
-.nav-item.active {
-    background-color: var(--active-bg);
-    color: var(--text-dark);
-    font-weight: 600;
-    border-left: 4px solid var(--bsk-gul); /* BSK-gul markør */
-}
-
-.nav-item.active i {
-    color: var(--primary);
-}
-
-/* --- 4. KNAPPER OG INPUTS --- */
-
-/* Felles stil for alle inndatafelt */
-input[type="text"],
-input[type="date"],
-input[type="tel"],
-input[type="number"],
-select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    background-color: white;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-    display: block;
-    box-sizing: border-box; /* Viktig for at padding ikke øker bredden */
-}
-
-/* Blå ramme ved fokus */
-input:focus, select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(0, 69, 149, 0.1);
-}
-
-/* Spesifikk høyde for select så den matcher inputs */
-select {
-    height: 45px;
-    cursor: pointer;
-}
-
-.menu-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.menu-group label {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #a0aec0;
-    letter-spacing: 0.05em;
-    margin-bottom: -5px;
-}
-
-.btn {
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    background: var(--primary);
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn:hover {
-    background: var(--primary-hover);
-}
-
-.btn-danger {
-    background: #fff;
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
-}
-
-.btn-danger:hover {
-    background: #e74c3c;
-    color: white;
-}
-
-/* --- 5. HOVEDINNHOLD OG TABELL --- */
-.main-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    background: white;
-    min-width: 0;
-}
-
-.top-bar {
-    height: 60px;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-}
-
-.menu-toggle {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border-radius: 6px;
-}
-
-.menu-toggle:hover {
-    background: var(--hover-bg);
-}
-
-.table-container {
-    padding: 20px;
-    overflow: auto;
-    flex-grow: 1;
-}
-
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    font-size: 14px;
-}
-
-th, td { 
-    border: 1px solid var(--border-color); 
-    padding: 12px; 
-    text-align: center; 
-}
-
-th {
-    background: #fcfcfc;
-    font-weight: 600;
-    color: var(--text-main);
-}
-
-td:first-child { 
-    position: sticky; 
-    left: 0; 
-    background: white; 
-    font-weight: bold; 
-    z-index: 2;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
-}
-
-/* --- 6. MODAL (POPUP) STILER --- */
-.modal {
-    display: none; 
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); 
-    backdrop-filter: blur(4px);
-}
-
-.modal-content {
-    background-color: white;
-    margin: 5% auto;
-    padding: 25px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-    animation: slideDown 0.3s ease-out;
 }
 
 @keyframes slideDown {
@@ -306,3 +23,269 @@ td:first-child {
 }
 
 .close-btn:hover { color: var(--bsk-blaa); }
+
+/* --- 7. OPPMØTE / STATISTIKK KLASSESTILER --- */
+.top-bar-spread {
+    justify-content: space-between;
+}
+
+.top-title-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.month-picker {
+    padding: 5px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    min-width: 150px;
+    max-width: 220px;
+}
+
+.btn-muted {
+    background: #6c757d;
+}
+
+.btn-muted:hover {
+    background: #5a6268;
+}
+
+.btn-compact {
+    height: 40px;
+    font-size: 13px;
+}
+
+.admin-footer {
+    margin-top: 40px;
+    padding: 20px;
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.admin-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.inline-input-row {
+    display: flex;
+    gap: 5px;
+}
+
+.date-header,
+.status-cell {
+    cursor: pointer;
+}
+
+.date-header {
+    min-width: 45px;
+}
+
+.date-weekday {
+    font-size: 11px;
+}
+
+.day-type {
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.day-type-training {
+    background: var(--bsk-blaa);
+    color: #fff;
+}
+
+.day-type-match {
+    background: var(--bsk-gul);
+    color: #000;
+}
+
+.day-type-none {
+    background: #ccc;
+    color: #fff;
+}
+
+.name-cell {
+    text-align: left;
+    padding-left: 15px;
+}
+
+.stat-good {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.stat-mid {
+    font-weight: bold;
+    color: #f39c12;
+}
+
+.stat-low {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.stats-card {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.card-text-small {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.rank-col {
+    width: 60px;
+}
+
+.percent-col {
+    width: 250px;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.rank-cell {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.stat-attended {
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.stats-percent-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.percent-strong {
+    font-weight: bold;
+}
+
+.progress-bar-bg {
+    background: #eee;
+    height: 8px;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--bsk-gul);
+    transition: width 0.5s ease-in-out;
+}
+
+tr.rank-1 {
+    background-color: rgba(255, 222, 0, 0.1);
+}
+
+/* --- 8. FELLES HJELPEKLASSER --- */
+.is-hidden {
+    display: none;
+}
+
+.push-right {
+    margin-left: auto;
+}
+
+.btn-inline-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 11px;
+}
+
+.btn-muted-light {
+    background: var(--hover-bg);
+    color: var(--text-dark);
+}
+
+.home-container {
+    max-width: 800px;
+}
+
+.quick-info-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 5px solid #3498db;
+    margin-top: 30px;
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px 0;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-grow-2 {
+    flex: 2;
+}
+
+.btn-grow-1 {
+    flex: 1;
+}
+
+.modal-title {
+    margin: 0;
+    color: var(--primary);
+}
+
+.status-pill {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.status-active {
+    background: var(--bsk-gul);
+}
+
+.status-passive {
+    background: #eee;
+}
+
+.nav-home-icon {
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.nav-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 10px;
+    color: #a0aec0;
+    text-align: center;
+}
