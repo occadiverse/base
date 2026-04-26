@@ -41,9 +41,7 @@ body {
     box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
-.sidebar.collapsed {
-    transform: translateX(-260px);
-}
+.sidebar.collapsed { transform: translateX(-260px); }
 
 .nav-links {
     padding-top: 80px;
@@ -79,9 +77,7 @@ body {
     min-width: 0;
 }
 
-.sidebar.collapsed + .main-content {
-    margin-left: 0;
-}
+.sidebar.collapsed + .main-content { margin-left: 0; }
 
 .top-bar {
     height: 70px;
@@ -106,10 +102,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
 }
 
-/* --- FILTER BAR (Verktøylinje) --- */
+/* --- FILTER BAR --- */
 .filter-bar {
     display: flex;
     justify-content: center;
@@ -126,7 +121,7 @@ body {
     width: 100%;
 }
 
-/* --- DYNAMISK MÅNEDSVELGER (Ikon følger tekst) --- */
+/* --- SENTRERT MÅNEDSVELGER (Flex-metoden) --- */
 .custom-select-wrapper {
     position: relative;
     display: inline-flex;
@@ -201,6 +196,7 @@ body {
     font-weight: 600;
     outline: none;
     cursor: pointer;
+    color: var(--text-main);
 }
 
 .btn-add-inline {
@@ -223,7 +219,7 @@ body {
 
 .hidden { display: none !important; }
 
-/* --- TABELL-DESIGN (Viktig for "sticky" og rutenett) --- */
+/* --- TABELL-DESIGN --- */
 .table-container {
     background: var(--white);
     margin: 20px;
@@ -269,30 +265,60 @@ th {
 
 thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
 
-/* Status-ikoner */
-.status-cell { cursor: pointer; font-size: 1.3rem; }
 .status-present { color: var(--success); }
 .status-absent  { color: var(--danger); opacity: 0.3; }
 .status-injured { color: var(--warning); }
 .status-none    { color: #dcdde1; }
 
-.day-type {
-    font-size: 0.6rem;
-    padding: 2px 5px;
-    border-radius: 4px;
-    margin-top: 5px;
-    display: inline-block;
-}
-.day-type-training { background: var(--primary); color: white; }
-.day-type-match    { background: #9b59b6; color: white; }
-
-/* --- MOBIL --- */
+/* --- MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
-    .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
+    
+    .sidebar { 
+        top: 70px; 
+        height: calc(100vh - 70px); 
+        transform: translateX(-260px); 
+    }
+    
     .sidebar:not(.collapsed) { transform: translateX(0); }
-    .centered-tools { flex-direction: column; width: 100%; padding: 0 10px; }
-    .tool-item, .custom-select-wrapper, .btn-outline, .unified-input-group { width: 100%; }
+
+    .centered-tools { 
+        flex-direction: column; 
+        width: 100%; 
+        padding: 0 10px; 
+        gap: 10px;
+    }
+    
+    .tool-item, .custom-select-wrapper, .btn-outline { 
+        width: 100%; 
+    }
+
+    /* Spesifikk fiks for datovelger på mobil */
+    .unified-input-group { 
+        width: 100%; 
+        height: 55px; /* Litt høyere for bedre touch */
+        padding: 5px 8px 5px 12px;
+        background: #f1f2f6;
+    }
+
+    .date-picker-minimal {
+        flex: 1;
+        background: #ffffff !important; /* Hvit boks gjør den synlig */
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        height: 40px;
+        padding: 0 10px;
+        display: block !important;
+        -webkit-appearance: listbox;
+    }
+
+    .btn-add-inline, .btn-cancel {
+        width: 45px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+    
+    .name-col { min-width: 120px; font-size: 0.85rem; }
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
