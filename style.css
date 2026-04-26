@@ -103,6 +103,9 @@ body {
     border-radius: 10px;
     cursor: pointer;
     margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .section-title {
@@ -111,12 +114,11 @@ body {
     letter-spacing: -0.02em;
 }
 
-/* --- ZEN FILTER BAR (Sentrert med luft) --- */
+/* --- FILTER BAR (Sentrert og identisk stil) --- */
 .filter-bar {
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 20px;
+    padding: 25px;
     background: var(--white);
     border-bottom: 1px solid var(--border-color);
 }
@@ -124,46 +126,62 @@ body {
 .centered-tools {
     display: flex;
     align-items: center;
-    gap: 20px; /* Luft mellom månedvelger og Ny økt */
+    justify-content: center;
+    gap: 30px; /* Luft mellom verktøyene på PC */
+    width: 100%;
 }
 
-/* Månedvelger */
-.select-input-clean {
-    padding: 10px 18px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background: #f9f9fb;
-    font-weight: 700;
-    color: var(--text-main);
-    cursor: pointer;
-    outline: none;
+/* Felles stil for månedsvelger-wrapper og knapper */
+.custom-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-/* Ny økt knapp */
-.btn-outline {
+.custom-select-wrapper i {
+    position: absolute;
+    left: 15px;
+    color: var(--primary);
+    pointer-events: none;
+    font-size: 0.9rem;
+}
+
+/* Månedsvelger og Ny økt-knapp skal se like ut */
+.select-input-clean, .btn-outline {
     background: transparent;
     border: 2px solid var(--primary);
     color: var(--primary);
-    padding: 8px 18px;
-    border-radius: 10px;
+    padding: 10px 20px;
+    border-radius: 12px;
     font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: 0.2s;
+    gap: 10px;
 }
 
-.btn-outline:hover { background: var(--primary); color: white; }
+.select-input-clean {
+    padding-left: 40px; /* Plass til ikonet */
+    -webkit-appearance: none;
+    appearance: none;
+}
 
-/* Sammenslått dato-input (når åpen) */
+.select-input-clean:hover, .btn-outline:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Når man trykker Ny økt, dukker denne opp */
 .unified-input-group {
     display: flex;
     align-items: center;
     background: #f1f2f6;
     border: 2px solid var(--primary);
-    border-radius: 12px;
-    padding: 3px;
+    border-radius: 14px;
+    padding: 4px;
     animation: fadeIn 0.2s ease;
 }
 
@@ -180,15 +198,16 @@ body {
     padding: 5px 10px;
     font-weight: 600;
     outline: none;
+    color: var(--text-main);
 }
 
 .btn-add-inline {
     background: var(--primary);
     color: white;
     border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     cursor: pointer;
 }
 
@@ -196,7 +215,7 @@ body {
     background: transparent;
     border: none;
     color: var(--text-muted);
-    padding: 0 8px;
+    padding: 0 10px;
     cursor: pointer;
 }
 
@@ -207,6 +226,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     overflow-x: auto;
+    position: relative;
 }
 
 table {
@@ -266,8 +286,24 @@ thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
 /* --- MOBIL --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
-    .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
+    
+    .sidebar { 
+        top: 70px; 
+        height: calc(100vh - 70px); 
+        transform: translateX(-260px); 
+    }
+    
     .sidebar:not(.collapsed) { transform: translateX(0); }
-    .centered-tools { flex-direction: column; gap: 15px; }
+
+    .centered-tools { 
+        flex-direction: column; 
+        gap: 15px; 
+    }
+
+    .tool-item, .custom-select-wrapper, .select-input-clean, .btn-outline {
+        width: 100%;
+        justify-content: center;
+    }
+
     .name-col { min-width: 130px; font-size: 0.85rem; }
 }
