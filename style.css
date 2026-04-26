@@ -1,22 +1,22 @@
-/* --- DESIGNVARIABLER --- */
+/* --- DESIGNVARIABLER (BSK-Inspirert) --- */
 :root {
-    --primary: #3498db;        /* BSK Blå-tone */
+    --primary: #3498db;        /* Hovedblå */
     --primary-dark: #2980b9;
-    --secondary: #f1c40f;     /* BSK Gul-tone */
-    --bg-light: #f8f9fa;
+    --secondary: #f1c40f;     /* BSK Gul */
+    --bg-light: #f4f7f6;      /* Myk bakgrunnsfarge */
     --text-main: #2d3436;
     --text-muted: #636e72;
     --border-color: #dfe6e9;
     --white: #ffffff;
     --hover-bg: #f1f2f6;
     
-    /* Statusfarger */
+    /* Statusfarger for ikoner */
     --success: #2ecc71;
     --danger: #e74c3c;
     --warning: #f1c40f;
 }
 
-/* --- GENERELT --- */
+/* --- GRUNNLEGGENDE --- */
 * {
     margin: 0;
     padding: 0;
@@ -38,8 +38,10 @@ body {
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
+    position: fixed;
+    height: 100vh;
 }
 
 .sidebar.collapsed {
@@ -52,7 +54,7 @@ body {
     height: 70px;
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 25px;
 }
 
 .nav-links {
@@ -101,10 +103,17 @@ body {
 /* --- HOVEDINNHOLD --- */
 .main-content {
     flex: 1;
+    margin-left: 260px; /* Samme som sidebar-bredde */
+    transition: margin-left 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
+.sidebar.collapsed + .main-content {
+    margin-left: 0;
+}
+
+/* --- TOP BAR --- */
 .top-bar {
     height: 70px;
     background: var(--white);
@@ -126,6 +135,7 @@ body {
     color: var(--text-main);
     display: flex;
     align-items: center;
+    padding: 5px;
 }
 
 .section-title {
@@ -133,42 +143,44 @@ body {
     font-weight: 700;
 }
 
-.content-inner {
-    padding: 30px;
+.top-bar-actions {
+    display: flex;
+    gap: 10px;
 }
 
-/* --- DASHBOARD CARDS --- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.stat-card {
+/* --- FILTER & INFO BAR --- */
+.filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
     background: var(--white);
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    text-align: center;
-    border-bottom: 4px solid var(--border-color);
-    transition: transform 0.2s;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.stat-card:hover { transform: translateY(-3px); }
+.select-input, .date-picker {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: white;
+}
 
-.stat-card i { font-size: 1.8rem; color: var(--primary); margin-bottom: 15px; }
-.stat-value { font-size: 2.2rem; font-weight: 800; color: var(--text-main); }
-.stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; }
+.info-badge {
+    background: var(--hover-bg);
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+}
 
-/* --- TABELLER --- */
+/* --- TABELLER (Oppmøte & Spillere) --- */
 .table-container {
     background: var(--white);
     border-radius: 12px;
-    padding: 20px;
+    margin: 20px 30px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     overflow-x: auto;
-    margin-top: 20px;
 }
 
 table {
@@ -184,47 +196,63 @@ th, td {
 
 th {
     background: #fcfcfc;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.name-col { text-align: left; font-weight: 600; min-width: 150px; }
+.name-col { 
+    text-align: left; 
+    font-weight: 600; 
+    min-width: 160px; 
+    position: sticky; 
+    left: 0; 
+    background: white;
+}
 
-/* --- STATUS IKONER (ELEGANTE) --- */
-.status-cell { cursor: pointer; transition: 0.2s; font-size: 1.2rem; }
+/* --- STATUS IKONER --- */
+.status-cell {
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+}
+
 .status-cell:hover { background: var(--hover-bg); }
 
 .status-present { color: var(--success); }
-.status-absent  { color: var(--danger); opacity: 0.4; }
+.status-absent  { color: var(--danger); opacity: 0.5; }
 .status-injured { color: var(--warning); }
-.status-none    { color: var(--border-color); }
+.status-none    { color: #dcdde1; }
 
-/* --- KNAPPER --- */
-.btn {
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.2s;
-    background: var(--primary);
-    color: white;
+/* --- DASHBOARD GRIDS --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 30px;
 }
 
-.btn:hover { background: var(--primary-dark); }
-.btn-muted { background: var(--hover-bg); color: var(--text-main); }
-.btn-danger { background: var(--danger); color: white; }
+.stat-card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    text-align: center;
+    border-bottom: 4px solid var(--primary);
+}
 
-.push-right { margin-left: auto; }
+.stat-card i { font-size: 2rem; color: var(--primary); margin-bottom: 15px; }
+.stat-value { font-size: 2.2rem; font-weight: 800; }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
 
-/* --- MODAL (SPILLERE) --- */
+/* --- MODAL (SPILLER REGISTRERING) --- */
 .modal {
     display: none;
     position: fixed;
     z-index: 2000;
     left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.5);
     backdrop-filter: blur(4px);
 }
 
@@ -234,15 +262,26 @@ th {
     padding: 30px;
     border-radius: 15px;
     max-width: 450px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
-.form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
-.form-group label { font-size: 0.8rem; font-weight: 600; }
-.form-group input, .form-group select {
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+/* --- KNAPPER --- */
+.btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    background: var(--primary);
+    color: white;
 }
+
+.btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-danger { background: var(--danger); }
+.btn-muted { background: var(--hover-bg); color: var(--text-main); }
+
+.push-right { margin-left: auto; }
 
 /* --- HJELPEKLASSER --- */
 .stat-good { color: var(--success); }
@@ -250,20 +289,29 @@ th {
 .stat-low  { color: var(--danger); }
 
 .day-type {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     padding: 2px 6px;
     border-radius: 4px;
     background: #eee;
-    color: #888;
+    color: #666;
 }
 .day-type-training { background: var(--primary); color: white; }
 .day-type-match    { background: #9b59b6; color: white; }
 
 .status-pill {
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
 }
 .status-active { background: #e6fffa; color: #2ecc71; }
 .status-passive { background: #f7fafc; color: #a0aec0; }
+
+.action-footer {
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.help-text { font-size: 0.8rem; color: var(--text-muted); }
