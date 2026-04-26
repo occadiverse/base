@@ -1,4 +1,4 @@
-/* --- MODERNE VARIABLER --- */
+/* --- DESIGNVARIABLER --- */
 :root {
     --primary: #3498db;
     --primary-dark: #2980b9;
@@ -17,7 +17,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
 }
 
 body {
@@ -27,25 +27,28 @@ body {
     min-height: 100vh;
 }
 
-/* --- SIDEBAR (Starter under top-bar på mobil) --- */
+/* --- SIDEBAR --- */
 .sidebar {
     width: 260px;
-    background-color: #ffffff !important;
+    background-color: var(--white) !important;
     border-right: 1px solid var(--border-color);
     position: fixed;
-    top: 0; /* Starter helt øverst på PC */
+    top: 0;
     left: 0;
     height: 100vh;
-    z-index: 2000; /* Lavere enn top-bar */
+    z-index: 2000;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
-/* Skjuler menyen til venstre når den er collapsed */
+
 .sidebar.collapsed {
     transform: translateX(-260px);
 }
 
 .nav-links {
-    padding-top: 80px; /* Gir plass til top-baren på PC */
+    padding-top: 80px; /* Plass til top-bar på PC */
+    display: flex;
+    flex-direction: column;
 }
 
 .nav-item {
@@ -56,9 +59,12 @@ body {
     text-decoration: none;
     color: var(--text-muted);
     font-weight: 500;
+    font-size: 0.95rem;
     border-left: 4px solid transparent;
+    transition: all 0.2s;
 }
 
+.nav-item:hover { background: var(--hover-bg); color: var(--primary); }
 .nav-item.active {
     background: rgba(52, 152, 219, 0.08);
     color: var(--primary);
@@ -69,32 +75,30 @@ body {
 /* --- HOVEDINNHOLD --- */
 .main-content {
     flex: 1;
-    margin-left: 260px; /* PC-standard */
+    margin-left: 260px;
     transition: margin-left 0.3s ease;
     min-width: 0;
     background-color: var(--bg-light);
 }
 
-/* Når menyen er borte, skal innholdet fylle hele skjermen */
 .sidebar.collapsed + .main-content {
     margin-left: 0;
 }
 
-/* --- TOP BAR (Alltid på topp) --- */
+/* --- TOP BAR --- */
 .top-bar {
     height: 70px;
     background: var(--white);
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 25px;
     gap: 15px;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
-    z-index: 3000; /* Høyest av alt */
+    z-index: 3000; /* Alltid over sidebaren */
 }
 
-/* HAMBURGER KNAPP */
 .menu-toggle {
     background: #f1f2f6;
     border: none;
@@ -106,7 +110,10 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
+    transition: all 0.2s;
 }
+
+.menu-toggle:hover { background: var(--primary); color: white; }
 
 .section-title {
     font-size: 1.4rem;
@@ -114,7 +121,75 @@ body {
     letter-spacing: -0.02em;
 }
 
-/* --- TABELL OG STICKY MAGI --- */
+/* --- FILTER & ACTION BAR (NYTT DESIGN) --- */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px 25px;
+    gap: 20px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-group, .action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label, .action-group label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+
+/* Felt-styling */
+.select-input, .date-picker {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: #f9f9fb;
+    font-size: 0.9rem;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.select-input:focus, .date-picker:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Ikon inni dato-feltet */
+.action-group { flex-direction: row; align-items: center; }
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.input-wrapper i { position: absolute; left: 12px; color: var(--text-muted); pointer-events: none; }
+.input-wrapper .date-picker { padding-left: 35px; }
+
+/* Legg til dato-knapp */
+.btn-add {
+    background: var(--primary);
+    color: white;
+    padding: 11px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.15);
+    transition: all 0.2s;
+}
+
+.btn-add:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+/* --- TABELL-STYLING --- */
 .table-container {
     background: var(--white);
     border-radius: 12px;
@@ -126,8 +201,8 @@ body {
 
 table {
     width: 100%;
-    border-collapse: separate; /* Nødvendig for sticky */
-    border-spacing: 0;         /* Fjerner mellomrom mellom celler */
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 th, td {
@@ -149,7 +224,7 @@ th {
     z-index: 2;
 }
 
-/* DENNE FIXER STICKY NAVN */
+/* STICKY NAVN */
 .name-col {
     position: sticky;
     left: 0;
@@ -158,22 +233,18 @@ th {
     min-width: 160px;
     text-align: left;
     font-weight: 600;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.02); /* Gir en diskret skygge når man ruller */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
 }
 
-thead th.name-col {
-    z-index: 11;
-    background-color: #f8f9fa !important;
-}
+thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
 
-/* STATUS IKONER */
+/* STATUS-IKONER */
 .status-cell { cursor: pointer; font-size: 1.3rem; }
 .status-present { color: var(--success); }
 .status-absent { color: var(--danger); opacity: 0.4; }
 .status-injured { color: var(--warning); }
 .status-none { color: #dcdde1; }
 
-/* DAY TYPES */
 .day-type {
     font-size: 0.65rem;
     padding: 2px 6px;
@@ -184,29 +255,24 @@ thead th.name-col {
 .day-type-training { background: var(--primary); color: white; }
 .day-type-match { background: #9b59b6; color: white; }
 
-/* MOBIL TILPASNING */
+/* --- MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
-    .main-content {
-        margin-left: 0 !important; /* På mobil skal innholdet alltid starte helt til venstre */
-        width: 100%;
-    }
-
+    .main-content { margin-left: 0 !important; width: 100%; }
+    
     .sidebar {
-        top: 70px; /* På mobil starter menyen UNDER top-baren */
+        top: 70px;
         height: calc(100vh - 70px);
-        z-index: 2000;
-    }
-
-    .nav-links {
-        padding-top: 20px; /* Trenger ikke 80px padding når den starter under bar */
-    }
-
-    .sidebar.collapsed {
         transform: translateX(-260px);
     }
-
-    /* Når vi fjerner .collapsed på mobil, skal den gli inn OVER innholdet */
-    .sidebar:not(.collapsed) {
-        transform: translateX(0);
-    }
+    
+    .sidebar:not(.collapsed) { transform: translateX(0); }
+    
+    .nav-links { padding-top: 20px; }
+    
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .action-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-add span { display: none; } /* Viser kun + på mobil */
+    .btn-add { justify-content: center; }
+    
+    .name-col { min-width: 130px; font-size: 0.85rem; }
 }
