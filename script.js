@@ -23,19 +23,22 @@
         months.forEach((monthName, index) => {
             const option = document.createElement('option');
             option.value = index;
-            option.textContent = `${monthName} ${currentYear}`;
+            // Vi fjerner "2026" fra teksten her hvis du vil ha den helt ren, 
+            // men beholder den hvis du liker det.
+            option.textContent = `${monthName}`; 
             if (index === now.getMonth()) option.selected = true;
             monthSelect.appendChild(option);
         });
     }
 
-    // --- NYE FUNKSJONER FOR VISNING AV DATOVELGER ---
+    // --- VISNING AV DATOVELGER (Oppdatert for ny stil) ---
     window.showDatePicker = function() {
         const btn = document.getElementById('toggleDateBtn');
         const container = document.getElementById('datePickerContainer');
         if (btn && container) {
             btn.classList.add('hidden');
             container.classList.remove('hidden');
+            container.style.display = 'flex'; // Sikrer flex-layout
         }
     };
 
@@ -45,12 +48,12 @@
         const input = document.getElementById('dateInput');
         if (btn && container) {
             container.classList.add('hidden');
+            container.style.display = 'none';
             btn.classList.remove('hidden');
-            if (input) input.value = ''; // Nullstiller datoen
+            if (input) input.value = ''; 
         }
     };
 
-    // Endrer økttype (Trening, Kamp eller Ingen)
     window.toggleDayType = function(dayNr) {
         const monthIdx = getMonthIndex();
         const key = getDayTypeKey(monthIdx, dayNr);
@@ -61,14 +64,13 @@
         renderAttendanceTable();
     };
 
-    // Endrer spillerstatus (Tilstede, Fravær, Skadet, Ingen)
     window.cycleStatus = function(playerId, dayNr) {
         const monthIdx = getMonthIndex();
+        // Sørg for at DB-objektet ditt er lastet inn i HTML før dette scriptet
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
         
         const states = ['?', 'present', 'absent', 'injured'];
         let currentIndex = states.indexOf(currentStatus);
-        
         if (currentIndex === -1) currentIndex = 0;
         
         const nextStatus = states[(currentIndex + 1) % states.length];
@@ -86,6 +88,8 @@
             const dayOfWeek = date.getDay();
             const type = localStorage.getItem(getDayTypeKey(monthIdx, dayNr));
 
+            // Viser dager som er manuelt satt til Trening/Kamp, 
+            // eller faste dager (Man, Ons, Lør)
             if (type === 'T' || type === 'K' || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6) {
                 days.push({ nr: dayNr, navn: dayNames[dayOfWeek], type: type || 'X' });
             }
@@ -106,7 +110,7 @@
             const label = type === 'X' ? '-' : type;
             
             headHtml += `
-                <th class="date-header" onclick="toggleDayType(${d.nr})">
+                <th class="date-header" onclick="toggleDayType(${d.nr})" style="cursor:pointer">
                     <span class="date-weekday">${d.navn}</span><br>${d.nr}.<br>
                     <span class="${badgeClass}">${label}</span>
                 </th>`;
@@ -136,6 +140,7 @@
                 } else if (status === 'absent') {
                     iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
                 } else if (status === 'injured') {
+                    // Vi bruker din original-ikon her: fa-crutch
                     iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
                 }
 
@@ -147,10 +152,9 @@
             bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
         });
 
-        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Ingen aktive spillere funnet. Legg til spillere i menyen.</td></tr>';
-    }
+        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Ingen aktive spillere funnet.</td></tr>';
+    };
 
-    // Oppdatert addDate som skjuler velgeren etter lagring
     window.addDate = function() {
         const input = document.getElementById('dateInput');
         if (!input || !input.value) return;
@@ -160,18 +164,14 @@
         const d = date.getDate();
         
         localStorage.setItem(getDayTypeKey(m, d), 'T');
-        
-        // Bytter måned automatisk hvis man la til dato i en annen måned
         monthSelect.value = m;
         
         renderAttendanceTable();
-        hideDatePicker(); // Skjuler "verktøyet" og viser knappen igjen
+        hideDatePicker(); 
     };
 
-    // Event listeners
     monthSelect.addEventListener('change', renderAttendanceTable);
     
-    // Start siden
     populateMonthSelect();
     renderAttendanceTable();
 
