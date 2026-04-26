@@ -6,11 +6,8 @@
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
 
-    // Sikkerhet: Avbryt hvis vi ikke er på riktig side
+    // Sikkerhet: Avbryt hvis vi ikke er på oppmøte-siden
     if (!monthSelect || !tableHead || !tableBody) return;
-
-    const yearLabel = document.getElementById('currentYearLabel');
-    if (yearLabel) yearLabel.textContent = String(currentYear);
 
     function getMonthIndex() {
         return parseInt(monthSelect.value, 10);
@@ -32,11 +29,8 @@
         });
     }
 
-    function initMonth() {
-        renderAttendanceTable();
-    }
-
-    function toggleDayType(dayNr) {
+    // Endrer økttype (Trening, Kamp eller Ingen)
+    window.toggleDayType = function(dayNr) {
         const monthIdx = getMonthIndex();
         const key = getDayTypeKey(monthIdx, dayNr);
         const currentType = localStorage.getItem(key) || 'X';
@@ -44,24 +38,24 @@
 
         localStorage.setItem(key, nextType);
         renderAttendanceTable();
-    }
+    };
 
-    // OPPGRADERT: Bruker nå de nye tekst-kodene
+    // Endrer spillerstatus (Tilstede, Fravær, Skadet, Ingen)
     window.cycleStatus = function(playerId, dayNr) {
         const monthIdx = getMonthIndex();
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
         
-        // Definerer rekkefølgen: Ingen -> Tilstede -> Fravær -> Skade
+        // Rekkefølge: Ingen -> Tilstede -> Fravær -> Skade
         const states = ['?', 'present', 'absent', 'injured'];
         let currentIndex = states.indexOf(currentStatus);
         
-        // Hvis gammel emoji-data finnes, start på nytt
+        // Sikkerhet hvis gammel emoji-data ligger i databasen
         if (currentIndex === -1) currentIndex = 0;
         
         const nextStatus = states[(currentIndex + 1) % states.length];
         DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
         renderAttendanceTable();
-    }
+    };
 
     function getTrainingDays(monthIdx) {
         const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
@@ -73,7 +67,7 @@
             const dayOfWeek = date.getDay();
             const type = localStorage.getItem(getDayTypeKey(monthIdx, dayNr));
 
-            // Vis dager som er manuelt satt til T/K, eller faste dager (Man, Ons, Lør)
+            // Viser dager som er manuelt satt til T/K, eller faste dager (Man, Ons, Lør)
             if (type === 'T' || type === 'K' || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6) {
                 days.push({ nr: dayNr, navn: dayNames[dayOfWeek], type: type || 'X' });
             }
@@ -86,7 +80,7 @@
         const players = DB.getActivePlayers();
         const days = getTrainingDays(monthIdx);
 
-        // 1. Overskrifter
+        // 1. GENERER TABELLHODE
         let headHtml = '<tr><th class="name-col">Spiller</th>';
         days.forEach(d => {
             const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr)) || 'X';
@@ -102,7 +96,7 @@
         headHtml += '<th class="stat-col">%</th></tr>';
         tableHead.innerHTML = headHtml;
 
-        // 2. Rader for hver spiller
+        // 2. GENERER TABELLRADER
         let bodyHtml = '';
         players.forEach(player => {
             bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
@@ -118,10 +112,15 @@
                     if (status === 'present') attended++;
                 }
 
+                // Ikon-logikk basert på den nye style.css
                 let iconHtml = '<i class="fa-solid fa-minus status-none"></i>';
-                if (status === 'present') iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
-                else if (status === 'absent') iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
-                else if (status === 'injured') iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
+                if (status === 'present') {
+                    iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
+                } else if (status === 'absent') {
+                    iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
+                } else if (status === 'injured') {
+                    iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
+                }
 
                 bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})">${iconHtml}</td>`;
             });
@@ -131,13 +130,14 @@
             bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
         });
 
-        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Legg til spillere først.</td></tr>';
+        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Ingen aktive spillere funnet. Legg til spillere i menyen.</td></tr>';
     }
 
-    // For å kunne legge til dager manuelt fra input-feltet
+    // Legger til en dato manuelt fra top-bar
     window.addDate = function() {
         const input = document.getElementById('dateInput');
-        if (!input.value) return;
+        if (!input || !input.value) return;
+        
         const date = new Date(input.value);
         const m = date.getMonth();
         const d = date.getDate();
@@ -145,23 +145,14 @@
         localStorage.setItem(getDayTypeKey(m, d), 'T');
         monthSelect.value = m;
         renderAttendanceTable();
-    }
+        input.value = ''; // Tøm feltet etter bruk
+    };
 
-    window.clearData = function() {
-        if (confirm("Vil du slette ALT oppmøte for i år?")) {
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('att-base-') || key.startsWith('type-')) {
-                    localStorage.removeItem(key);
-                }
-            });
-            renderAttendanceTable();
-        }
-    }
-
+    // Event listeners
     monthSelect.addEventListener('change', renderAttendanceTable);
+    
+    // Start siden
     populateMonthSelect();
     renderAttendanceTable();
 
-    // Eksporter funksjoner til globalt scope
-    window.toggleDayType = toggleDayType;
 })();
