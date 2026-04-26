@@ -79,7 +79,7 @@
 
                 possible++;
                 const status = DB.getAttendance(year, month, player.id, day);
-                if (status === '✅') attended++;
+                if (status === 'present') attended++;
             }
         }
 
