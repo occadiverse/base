@@ -175,12 +175,13 @@ body {
 }
 
 /* --- TABELLER (Oppmøte & Spillere) --- */
+/* Containeren må ha overflow-x for at sticky skal virke */
 .table-container {
-    background: var(--white);
-    border-radius: 12px;
-    margin: 20px 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     overflow-x: auto;
+    max-width: 100%;
+    border-radius: 12px;
+    background: var(--white);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 
 table {
@@ -202,13 +203,33 @@ th {
     letter-spacing: 0.5px;
 }
 
-.name-col { 
-    text-align: left; 
-    font-weight: 600; 
-    min-width: 160px; 
-    position: sticky; 
-    left: 0; 
-    background: white;
+/* Gjør navnekolonnen sticky */
+.name-col {
+    position: sticky;
+    left: 0;
+    z-index: 10; /* Ligger over status-cellene */
+    background-color: var(--white); /* Viktig: må ha bakgrunn for å ikke være gjennomsiktig */
+    border-right: 2px solid var(--border-color);
+    text-align: left;
+    min-width: 160px;
+}
+
+/* Sørg for at hjørne-cellen (øverst til venstre) også er låst */
+thead th.name-col {
+    z-index: 20; /* Enda høyere for å ligge over dato-overskriftene */
+    background-color: #fcfcfc;
+}
+
+/* Valgfritt: legg til en liten skygge når man scroller */
+.name-col::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -5px;
+    bottom: 0;
+    width: 5px;
+    pointer-events: none;
+    background: linear-gradient(to right, rgba(0,0,0,0.05), transparent);
 }
 
 /* --- STATUS IKONER --- */
