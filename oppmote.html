@@ -20,17 +20,28 @@
         </div>
 
         <div class="filter-bar">
-            <div class="filter-group">
-                <select id="monthSelect" class="select-input-clean"></select>
-            </div>
+            <div class="centered-tools">
+                <div class="tool-item">
+                    <select id="monthSelect" class="select-input-clean" onchange="renderAttendanceTable()"></select>
+                </div>
 
-            <div class="action-group">
-                <div class="unified-input-group">
-                    <input type="date" id="dateInput" class="date-picker-minimal">
-                    <button class="btn-add-inline" onclick="addDate()">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Ny dato</span>
+                <div class="tool-spacer"></div>
+
+                <div class="tool-item">
+                    <button id="toggleDateBtn" class="btn-outline" onclick="showDatePicker()">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <span>Ny økt</span>
                     </button>
+
+                    <div id="datePickerContainer" class="unified-input-group hidden">
+                        <input type="date" id="dateInput" class="date-picker-minimal">
+                        <button class="btn-add-inline" onclick="addDate()">
+                        <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button class="btn-cancel" onclick="hideDatePicker()">
+                        <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
