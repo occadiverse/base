@@ -24,7 +24,7 @@
                 if (isSession(type)) {
                     possible++;
                     const status = DB.getAttendance(year, month, player.id, day);
-                    if (status === '✅') {
+                    if (status === 'present') {
                         attended++;
                     }
                 }
