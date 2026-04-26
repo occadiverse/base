@@ -17,21 +17,24 @@
                 <i class="fa-solid fa-bars"></i>
             </button>
             <h2 class="section-title">Oppmøteregistrering</h2>
-            
-            <div class="top-bar-actions push-right">
-                <input type="date" id="dateInput" class="date-picker">
-                <button class="btn" onclick="addDate()">
-                    <i class="fa-solid fa-plus"></i> Legg til dato
-                </button>
-            </div>
         </div>
 
         <div class="filter-bar">
             <div class="filter-group">
-                <label for="monthSelect" style="font-size: 0.9rem; font-weight: 600;">Velg måned:</label>
+                <label for="monthSelect">Måned</label>
                 <select id="monthSelect" class="select-input"></select>
             </div>
-        </div>
+
+            <div class="action-group">
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <input type="date" id="dateInput" class="date-picker">
+                </div>
+                <button class="btn btn-add" onclick="addDate()">
+                    <i class="fa-solid fa-plus"></i> <span>Legg til dato</span>
+                </button>
+            </div>
+    </div>
 
         <div class="table-container">
             <table id="attendanceTable">
