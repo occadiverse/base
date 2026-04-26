@@ -113,7 +113,7 @@ body {
 .filter-bar {
     display: flex;
     justify-content: center;
-    padding: 30px 25px;
+    padding: 20px;
     background: var(--white);
     border-bottom: 1px solid var(--border-color);
 }
@@ -122,25 +122,25 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 30px;
+    gap: 15px; /* Litt mindre luft gjør det mer kompakt */
     width: 100%;
 }
 
 .select-input-clean, .btn-outline {
-    height: 48px;
-    background: transparent;
-    border: 2px solid var(--primary);
-    color: var(--primary);
-    padding: 0 35px;
-    border-radius: 24px; /* Pill-form */
-    font-weight: 700;
-    font-size: 0.95rem;
+    height: 42px; /* Litt lavere høyde føles mindre voldsomt */
+    background: #f1f2f6; /* Lys nøytral grå bakgrunn */
+    border: 1px solid var(--border-color); /* Tynn, lys ramme i stedet for blå */
+    color: var(--text-main); /* Mørk tekst i stedet for blå */
+    padding: 0 25px;
+    border-radius: 10px; /* Litt mindre runde hjørner for et strammere look */
+    font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: all 0.2s;
-    outline: none;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
 }
 
 .custom-select-wrapper { 
@@ -149,16 +149,9 @@ body {
     align-items: center; 
 }
 
-.custom-select-wrapper i { 
-    position: absolute; 
-    left: 18px; 
-    top: 50%; /* Flytter ikonet ned til midten */
-    transform: translateY(-50%); /* Sentrerer det perfekt basert på ikonets egen høyde */
-    color: var(--primary); 
-    pointer-events: none; 
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
+.custom-select-wrapper i, .btn-outline i {
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
 
 .select-input-clean { 
@@ -167,17 +160,22 @@ body {
     appearance: none; 
 }
 
-.select-input-clean:hover, .btn-outline:hover { background: var(--primary); color: white; }
+.select-input-clean:hover, .btn-outline:hover {
+    background: #e8eaef;
+    border-color: #ced4da;
+    color: var(--primary);
+}
+
+.select-input-clean:hover i, .btn-outline:hover i {
+    color: var(--primary);
+}
 
 .unified-input-group {
-    height: 48px;
-    display: flex;
-    align-items: center;
-    background: #f1f2f6;
-    border: 2px solid var(--primary);
-    border-radius: 24px;
-    padding: 4px 6px 4px 15px;
-    animation: fadeIn 0.2s ease;
+    height: 42px;
+    background: #ffffff;
+    border: 1px solid var(--primary); /* Beholder blå her for å vise aktiv handling */
+    border-radius: 10px;
+    padding: 2px 2px 2px 12px;
 }
 
 .hidden { display: none !important; }
