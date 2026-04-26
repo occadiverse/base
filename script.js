@@ -69,90 +69,94 @@
     function cycleStatus(playerId, dayNr) {
         const monthIdx = getMonthIndex();
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
-        const states = ['?', '✅', '❌', '🤕'];
+    
+        // Vi bytter ut emojier med enkle bokstavkoder
+        const states = ['?', 'present', 'absent', 'injured']; 
         const nextStatus = states[(states.indexOf(currentStatus) + 1) % states.length];
 
         DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
         renderAttendanceTable();
     }
 
-    function getTrainingDays(monthIdx) {
-        const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
-        const dayNames = ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
-        const days = [];
+function renderAttendanceTable() {
+    const monthIdx = getMonthIndex();
+    const players = DB.getActivePlayers();
+    const days = getTrainingDays(monthIdx);
 
-        for (let dayNr = 1; dayNr <= daysInMonth; dayNr++) {
-            const date = new Date(currentYear, monthIdx, dayNr);
-            const dayOfWeek = date.getDay();
-            const type = localStorage.getItem(getDayTypeKey(monthIdx, dayNr));
+    // 1. GENERER TABELLHODE (Datoer og Typer)
+    let headHtml = '<tr><th class="name-col">Spiller</th>';
+    days.forEach((dayInfo) => {
+        const type = localStorage.getItem(getDayTypeKey(monthIdx, dayInfo.nr)) || 'X';
+        const label = type === 'T' ? 'T' : (type === 'K' ? 'K' : '-');
+        const badgeClass = type === 'T' ? 'day-type day-type-training' : (type === 'K' ? 'day-type day-type-match' : 'day-type day-type-none');
 
-            if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6 || (type && type !== 'X')) {
-                days.push({ nr: dayNr, navn: dayNames[dayOfWeek] });
-            }
-        }
+        headHtml += `
+            <th class="date-header" data-daynr="${dayInfo.nr}">
+                <span class="date-weekday">${dayInfo.navn}</span><br>${dayInfo.nr}.<br>
+                <span class="${badgeClass}">${label}</span>
+            </th>`;
+    });
+    headHtml += '<th class="stat-col">%</th></tr>';
+    tableHead.innerHTML = headHtml;
 
-        return days;
-    }
+    // 2. GENERER TABELLKROPP (Spillere og Ikoner)
+    let bodyHtml = '';
+    players.forEach((player) => {
+        bodyHtml += `<tr><td class="name-col name-cell">${player.navn}</td>`;
+        let attended = 0;
+        let totalPossible = 0;
 
-    function renderAttendanceTable() {
-        const monthIdx = getMonthIndex();
-        const players = DB.getActivePlayers();
-        const days = getTrainingDays(monthIdx);
-
-        let headHtml = '<tr><th class="name-col">Spiller</th>';
         days.forEach((dayInfo) => {
-            const type = localStorage.getItem(getDayTypeKey(monthIdx, dayInfo.nr)) || 'X';
-            const label = type === 'T' ? 'T' : (type === 'K' ? 'K' : '-');
-            const badgeClass = type === 'T' ? 'day-type day-type-training' : (type === 'K' ? 'day-type day-type-match' : 'day-type day-type-none');
+            const type = localStorage.getItem(getDayTypeKey(monthIdx, dayInfo.nr));
+            const status = DB.getAttendance(currentYear, monthIdx, player.id, dayInfo.nr);
 
-            headHtml += `
-                <th class="date-header" data-daynr="${dayInfo.nr}">
-                    <span class="date-weekday">${dayInfo.navn}</span><br>${dayInfo.nr}.<br>
-                    <span class="${badgeClass}">${label}</span>
-                </th>`;
-        });
-        headHtml += '<th class="stat-col">%</th></tr>';
-        tableHead.innerHTML = headHtml;
-
-        let bodyHtml = '';
-        players.forEach((player) => {
-            bodyHtml += `<tr><td class="name-col name-cell">${player.navn}</td>`;
-            let attended = 0;
-            let totalPossible = 0;
-
-            days.forEach((dayInfo) => {
-                const type = localStorage.getItem(getDayTypeKey(monthIdx, dayInfo.nr));
-                const status = DB.getAttendance(currentYear, monthIdx, player.id, dayInfo.nr);
-
-                if (type === 'T' || type === 'K') {
-                    totalPossible++;
-                    if (status === '✅') {
-                        attended++;
-                    }
+            // Tell kun med økter som er merket T (Trening) eller K (Kamp)
+            if (type === 'T' || type === 'K') {
+                totalPossible++;
+                if (status === 'present') {
+                    attended++;
                 }
+            }
 
-                bodyHtml += `<td class="status-cell" data-playerid="${player.id}" data-daynr="${dayInfo.nr}">${status}</td>`;
-            });
+            // Velg riktig ikon basert på status
+            let iconHtml = '';
+            if (status === 'present') {
+                iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
+            } else if (status === 'absent') {
+                iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
+            } else if (status === 'injured') {
+                iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
+            } else {
+                iconHtml = '<i class="fa-solid fa-minus status-none"></i>';
+            }
 
-            const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
-            const statClass = percent >= 80 ? 'stat-good' : (percent >= 50 ? 'stat-mid' : 'stat-low');
-            bodyHtml += `<td class="stat-col ${statClass}">${percent}%</td></tr>`;
+            bodyHtml += `<td class="status-cell" data-playerid="${player.id}" data-daynr="${dayInfo.nr}">${iconHtml}</td>`;
         });
 
-        tableBody.innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere.</td></tr>";
+        // Beregn prosent for raden
+        const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
+        const statClass = percent >= 80 ? 'stat-good' : (percent >= 50 ? 'stat-mid' : 'stat-low');
+        bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
+    });
 
-        document.querySelectorAll('.date-header').forEach((header) => {
-            header.addEventListener('click', () => {
-                toggleDayType(parseInt(header.dataset.daynr, 10));
-            });
-        });
+    tableBody.innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere funnet.</td></tr>";
 
-        document.querySelectorAll('.status-cell').forEach((cell) => {
-            cell.addEventListener('click', () => {
-                cycleStatus(cell.dataset.playerid, parseInt(cell.dataset.daynr, 10));
-            });
+    // 3. LEGG TIL EVENT LISTENERS (Klikk-funksjonalitet)
+    
+    // Klikk på dato-overskrift (Endre type: T, K, -)
+    document.querySelectorAll('.date-header').forEach((header) => {
+        header.addEventListener('click', () => {
+            toggleDayType(parseInt(header.dataset.daynr, 10));
         });
-    }
+    });
+
+    // Klikk på status-celle (Endre status: Present, Absent, Injured, ?)
+    document.querySelectorAll('.status-cell').forEach((cell) => {
+        cell.addEventListener('click', () => {
+            cycleStatus(cell.dataset.playerid, parseInt(cell.dataset.daynr, 10));
+        });
+    });
+}
 
     function addDate() {
         const input = document.getElementById('dateInput');
