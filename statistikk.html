@@ -13,104 +13,46 @@
 
 <div class="main-content">
     <div class="top-bar">
-        <button class="menu-toggle is-hidden" id="openBtn" onclick="toggleMenu()">
+        <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 class="section-title">Oppmøtestatistikk <span id="statsYearLabel"></span></h2>
+        <h2 class="section-title">Treningsstatistikk</h2>
     </div>
 
-    <div class="table-container">
-        <div class="card stats-card">
-            <p class="card-text-small">
-                Dette er den totale oversikten over alle treninger (T) og kamper (K) markert i systemet.
-            </p>
+    <div class="content-inner">
+        <div class="stats-header-box">
+            <h3>Sesongoversikt <span id="currentYear"></span></h3>
+            <p>Rangering basert på prosentvis oppmøte på trening og kamp.</p>
         </div>
 
-        <table id="attendanceTable">
-            <thead>
-                <tr>
-                    <th class="rank-col">Rang</th>
-                    <th class="text-left">Spiller</th>
-                    <th>Antall Økter</th>
-                    <th class="percent-col">Oppmøte %</th>
-                </tr>
-            </thead>
-            <tbody id="statsBody"></tbody>
-        </table>
+        <div class="table-container">
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th class="text-left">Spiller</th>
+                        <th>Økter</th>
+                        <th>Oppmøte</th>
+                        <th>Prosent</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTableBody">
+                    </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script src="database.js"></script>
 <script src="navigation.js"></script>
+<script src="statistikk.js"></script>
+
 <script>
-    const currentYear = new Date().getFullYear();
-    const statsYearLabel = document.getElementById('statsYearLabel');
-    if (statsYearLabel) {
-        statsYearLabel.textContent = currentYear;
-    }
-
-    function calculateStats() {
-        const players = DB.getActivePlayers();
-        let stats = [];
-
-        players.forEach(player => {
-            let attended = 0;
-            let totalPossible = 0;
-
-            for (let m = 0; m < 12; m++) {
-                const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const typeKey = `type-${currentYear}-${m}-${d}`;
-                    const type = localStorage.getItem(typeKey);
-
-                    if (type === 'T' || type === 'K') {
-                        totalPossible++;
-                        const status = DB.getAttendance(currentYear, m, player.id, d);
-                        if (status === '✅') {
-                            attended++;
-                        }
-                    }
-                }
-            }
-
-            const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
-            stats.push({
-                navn: player.navn,
-                attended,
-                total: totalPossible,
-                percent
-            });
-        });
-
-        stats.sort((a, b) => b.percent - a.percent || b.attended - a.attended);
-        renderStats(stats);
-    }
-
-    function renderStats(stats) {
-        const body = document.getElementById('statsBody');
-        body.innerHTML = stats.map((s, index) => {
-            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1;
-            const rankClass = index === 0 ? 'rank-1' : '';
-
-            return `
-                <tr class="${rankClass}">
-                    <td class="rank-cell">${medal}</td>
-                    <td class="text-left"><strong>${s.navn}</strong></td>
-                    <td><span class="stat-attended">${s.attended}</span> / ${s.total}</td>
-                    <td>
-                        <div class="stats-percent-row">
-                            <span class="percent-strong">${s.percent}%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: ${s.percent}%"></div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    calculateStats();
+    // Sikrer at menyen lastes
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof loadNavigation === 'function') loadNavigation();
+    });
 </script>
+
 </body>
 </html>
