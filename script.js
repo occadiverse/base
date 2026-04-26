@@ -29,6 +29,27 @@
         });
     }
 
+    // --- NYE FUNKSJONER FOR VISNING AV DATOVELGER ---
+    window.showDatePicker = function() {
+        const btn = document.getElementById('toggleDateBtn');
+        const container = document.getElementById('datePickerContainer');
+        if (btn && container) {
+            btn.classList.add('hidden');
+            container.classList.remove('hidden');
+        }
+    };
+
+    window.hideDatePicker = function() {
+        const btn = document.getElementById('toggleDateBtn');
+        const container = document.getElementById('datePickerContainer');
+        const input = document.getElementById('dateInput');
+        if (btn && container) {
+            container.classList.add('hidden');
+            btn.classList.remove('hidden');
+            if (input) input.value = ''; // Nullstiller datoen
+        }
+    };
+
     // Endrer økttype (Trening, Kamp eller Ingen)
     window.toggleDayType = function(dayNr) {
         const monthIdx = getMonthIndex();
@@ -45,11 +66,9 @@
         const monthIdx = getMonthIndex();
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
         
-        // Rekkefølge: Ingen -> Tilstede -> Fravær -> Skade
         const states = ['?', 'present', 'absent', 'injured'];
         let currentIndex = states.indexOf(currentStatus);
         
-        // Sikkerhet hvis gammel emoji-data ligger i databasen
         if (currentIndex === -1) currentIndex = 0;
         
         const nextStatus = states[(currentIndex + 1) % states.length];
@@ -67,7 +86,6 @@
             const dayOfWeek = date.getDay();
             const type = localStorage.getItem(getDayTypeKey(monthIdx, dayNr));
 
-            // Viser dager som er manuelt satt til T/K, eller faste dager (Man, Ons, Lør)
             if (type === 'T' || type === 'K' || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6) {
                 days.push({ nr: dayNr, navn: dayNames[dayOfWeek], type: type || 'X' });
             }
@@ -112,7 +130,6 @@
                     if (status === 'present') attended++;
                 }
 
-                // Ikon-logikk basert på den nye style.css
                 let iconHtml = '<i class="fa-solid fa-minus status-none"></i>';
                 if (status === 'present') {
                     iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
@@ -133,7 +150,7 @@
         tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Ingen aktive spillere funnet. Legg til spillere i menyen.</td></tr>';
     }
 
-    // Legger til en dato manuelt fra top-bar
+    // Oppdatert addDate som skjuler velgeren etter lagring
     window.addDate = function() {
         const input = document.getElementById('dateInput');
         if (!input || !input.value) return;
@@ -143,9 +160,12 @@
         const d = date.getDate();
         
         localStorage.setItem(getDayTypeKey(m, d), 'T');
+        
+        // Bytter måned automatisk hvis man la til dato i en annen måned
         monthSelect.value = m;
+        
         renderAttendanceTable();
-        input.value = ''; // Tøm feltet etter bruk
+        hideDatePicker(); // Skjuler "verktøyet" og viser knappen igjen
     };
 
     // Event listeners
