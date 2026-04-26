@@ -143,9 +143,29 @@ body {
     outline: none;
 }
 
-.custom-select-wrapper { position: relative; }
-.custom-select-wrapper i { position: absolute; left: 18px; color: var(--primary); pointer-events: none; }
-.select-input-clean { padding-left: 45px; -webkit-appearance: none; appearance: none; }
+.custom-select-wrapper { 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+}
+
+.custom-select-wrapper i { 
+    position: absolute; 
+    left: 18px; 
+    top: 50%; /* Flytter ikonet ned til midten */
+    transform: translateY(-50%); /* Sentrerer det perfekt basert på ikonets egen høyde */
+    color: var(--primary); 
+    pointer-events: none; 
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.select-input-clean { 
+    padding-left: 45px; 
+    -webkit-appearance: none; 
+    appearance: none; 
+}
 
 .select-input-clean:hover, .btn-outline:hover { background: var(--primary); color: white; }
 
