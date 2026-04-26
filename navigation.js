@@ -1,12 +1,16 @@
 function loadNavigation() {
     const sidebar = document.getElementById('sidebar');
-    if (!sidebar) return;
+    if (!sidebar) {
+        console.error("Fant ikke sidebar-elementet!");
+        return;
+    }
 
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    // Finn ut hvilken side vi er på for å markere aktiv knapp
+    const path = window.location.pathname;
+    const currentPage = path.split("/").pop() || 'index.html';
 
     sidebar.innerHTML = `
-        <div class="sidebar-header" style="height: 60px; border: none;"></div>
-
+        <div class="sidebar-header" style="height: 60px;"></div>
         <div class="sidebar-content">
             <nav class="nav-links">
                 <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">
@@ -29,8 +33,17 @@ function loadNavigation() {
     `;
 }
 
-// Oppdatert toggle-funksjon som er mer stabil
+// Funksjonen som åpner og lukker menyen
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('collapsed');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+    }
+}
+
+// KJØR funksjonen når siden er ferdig lastet
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadNavigation);
+} else {
+    loadNavigation();
 }
