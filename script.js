@@ -1,4 +1,3 @@
-// script.js - Oppmøtelogikk (samlet ett sted)
 (function () {
     const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
     const currentYear = new Date().getFullYear();
@@ -7,15 +6,11 @@
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
 
-    // Ikke kjør logikken på sider som ikke er oppmøte-siden
-    if (!monthSelect || !tableHead || !tableBody) {
-        return;
-    }
+    // Sikkerhet: Avbryt hvis vi ikke er på riktig side
+    if (!monthSelect || !tableHead || !tableBody) return;
 
     const yearLabel = document.getElementById('currentYearLabel');
-    if (yearLabel) {
-        yearLabel.textContent = String(currentYear);
-    }
+    if (yearLabel) yearLabel.textContent = String(currentYear);
 
     function getMonthIndex() {
         return parseInt(monthSelect.value, 10);
@@ -27,32 +22,17 @@
 
     function populateMonthSelect() {
         monthSelect.innerHTML = '';
-
+        const now = new Date();
         months.forEach((monthName, index) => {
             const option = document.createElement('option');
             option.value = index;
             option.textContent = `${monthName} ${currentYear}`;
-            if (index === new Date().getMonth()) {
-                option.selected = true;
-            }
+            if (index === now.getMonth()) option.selected = true;
             monthSelect.appendChild(option);
         });
     }
 
     function initMonth() {
-        const monthIdx = getMonthIndex();
-        const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
-
-        for (let day = 1; day <= daysInMonth; day++) {
-            const key = getDayTypeKey(monthIdx, day);
-
-            if (!localStorage.getItem(key)) {
-                const dayOfWeek = new Date(currentYear, monthIdx, day).getDay();
-                const defaultType = (dayOfWeek === 1 || dayOfWeek === 6) ? 'T' : (dayOfWeek === 3 ? 'K' : 'X');
-                localStorage.setItem(key, defaultType);
-            }
-        }
-
         renderAttendanceTable();
     }
 
@@ -66,152 +46,122 @@
         renderAttendanceTable();
     }
 
-    function cycleStatus(playerId, dayNr) {
+    // OPPGRADERT: Bruker nå de nye tekst-kodene
+    window.cycleStatus = function(playerId, dayNr) {
         const monthIdx = getMonthIndex();
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
-    
-        // Vi bytter ut emojier med enkle bokstavkoder
-        const states = ['?', 'present', 'absent', 'injured']; 
-        const nextStatus = states[(states.indexOf(currentStatus) + 1) % states.length];
-
+        
+        // Definerer rekkefølgen: Ingen -> Tilstede -> Fravær -> Skade
+        const states = ['?', 'present', 'absent', 'injured'];
+        let currentIndex = states.indexOf(currentStatus);
+        
+        // Hvis gammel emoji-data finnes, start på nytt
+        if (currentIndex === -1) currentIndex = 0;
+        
+        const nextStatus = states[(currentIndex + 1) % states.length];
         DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
         renderAttendanceTable();
     }
 
-function renderAttendanceTable() {
-    const monthIdx = getMonthIndex();
-    const players = DB.getActivePlayers();
-    const days = getTrainingDays(monthIdx);
+    function getTrainingDays(monthIdx) {
+        const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
+        const dayNames = ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
+        const days = [];
 
-    // 1. GENERER TABELLHODE (Datoer og Typer)
-    let headHtml = '<tr><th class="name-col">Spiller</th>';
-    days.forEach((dayInfo) => {
-        const type = localStorage.getItem(getDayTypeKey(monthIdx, dayInfo.nr)) || 'X';
-        const label = type === 'T' ? 'T' : (type === 'K' ? 'K' : '-');
-        const badgeClass = type === 'T' ? 'day-type day-type-training' : (type === 'K' ? 'day-type day-type-match' : 'day-type day-type-none');
+        for (let dayNr = 1; dayNr <= daysInMonth; dayNr++) {
+            const date = new Date(currentYear, monthIdx, dayNr);
+            const dayOfWeek = date.getDay();
+            const type = localStorage.getItem(getDayTypeKey(monthIdx, dayNr));
 
-        headHtml += `
-            <th class="date-header" data-daynr="${dayInfo.nr}">
-                <span class="date-weekday">${dayInfo.navn}</span><br>${dayInfo.nr}.<br>
-                <span class="${badgeClass}">${label}</span>
-            </th>`;
-    });
-    headHtml += '<th class="stat-col">%</th></tr>';
-    tableHead.innerHTML = headHtml;
+            // Vis dager som er manuelt satt til T/K, eller faste dager (Man, Ons, Lør)
+            if (type === 'T' || type === 'K' || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6) {
+                days.push({ nr: dayNr, navn: dayNames[dayOfWeek], type: type || 'X' });
+            }
+        }
+        return days;
+    }
 
-    // 2. GENERER TABELLKROPP (Spillere og Ikoner)
-    let bodyHtml = '';
-    players.forEach((player) => {
-        bodyHtml += `<tr><td class="name-col name-cell">${player.navn}</td>`;
-        let attended = 0;
-        let totalPossible = 0;
+    window.renderAttendanceTable = function() {
+        const monthIdx = getMonthIndex();
+        const players = DB.getActivePlayers();
+        const days = getTrainingDays(monthIdx);
 
-        days.forEach((dayInfo) => {
-            const type = localStorage.getItem(getDayTypeKey(monthIdx, dayInfo.nr));
-            const status = DB.getAttendance(currentYear, monthIdx, player.id, dayInfo.nr);
+        // 1. Overskrifter
+        let headHtml = '<tr><th class="name-col">Spiller</th>';
+        days.forEach(d => {
+            const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr)) || 'X';
+            const badgeClass = type === 'T' ? 'day-type day-type-training' : (type === 'K' ? 'day-type day-type-match' : 'day-type');
+            const label = type === 'X' ? '-' : type;
+            
+            headHtml += `
+                <th class="date-header" onclick="toggleDayType(${d.nr})">
+                    <span class="date-weekday">${d.navn}</span><br>${d.nr}.<br>
+                    <span class="${badgeClass}">${label}</span>
+                </th>`;
+        });
+        headHtml += '<th class="stat-col">%</th></tr>';
+        tableHead.innerHTML = headHtml;
 
-            // Tell kun med økter som er merket T (Trening) eller K (Kamp)
-            if (type === 'T' || type === 'K') {
-                totalPossible++;
-                if (status === 'present') {
-                    attended++;
+        // 2. Rader for hver spiller
+        let bodyHtml = '';
+        players.forEach(player => {
+            bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
+            let attended = 0;
+            let possible = 0;
+
+            days.forEach(d => {
+                const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr));
+                const status = DB.getAttendance(currentYear, monthIdx, player.id, d.nr);
+
+                if (type === 'T' || type === 'K') {
+                    possible++;
+                    if (status === 'present') attended++;
                 }
-            }
 
-            // Velg riktig ikon basert på status
-            let iconHtml = '';
-            if (status === 'present') {
-                iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
-            } else if (status === 'absent') {
-                iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
-            } else if (status === 'injured') {
-                iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
-            } else {
-                iconHtml = '<i class="fa-solid fa-minus status-none"></i>';
-            }
+                let iconHtml = '<i class="fa-solid fa-minus status-none"></i>';
+                if (status === 'present') iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
+                else if (status === 'absent') iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
+                else if (status === 'injured') iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
 
-            bodyHtml += `<td class="status-cell" data-playerid="${player.id}" data-daynr="${dayInfo.nr}">${iconHtml}</td>`;
+                bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})">${iconHtml}</td>`;
+            });
+
+            const percent = possible > 0 ? Math.round((attended / possible) * 100) : 0;
+            const statClass = percent >= 80 ? 'stat-good' : (percent >= 50 ? 'stat-mid' : 'stat-low');
+            bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
         });
 
-        // Beregn prosent for raden
-        const percent = totalPossible > 0 ? Math.round((attended / totalPossible) * 100) : 0;
-        const statClass = percent >= 80 ? 'stat-good' : (percent >= 50 ? 'stat-mid' : 'stat-low');
-        bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
-    });
+        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Legg til spillere først.</td></tr>';
+    }
 
-    tableBody.innerHTML = bodyHtml || "<tr><td colspan='100%'>Ingen aktive spillere funnet.</td></tr>";
-
-    // 3. LEGG TIL EVENT LISTENERS (Klikk-funksjonalitet)
-    
-    // Klikk på dato-overskrift (Endre type: T, K, -)
-    document.querySelectorAll('.date-header').forEach((header) => {
-        header.addEventListener('click', () => {
-            toggleDayType(parseInt(header.dataset.daynr, 10));
-        });
-    });
-
-    // Klikk på status-celle (Endre status: Present, Absent, Injured, ?)
-    document.querySelectorAll('.status-cell').forEach((cell) => {
-        cell.addEventListener('click', () => {
-            cycleStatus(cell.dataset.playerid, parseInt(cell.dataset.daynr, 10));
-        });
-    });
-}
-
-    function addDate() {
+    // For å kunne legge til dager manuelt fra input-feltet
+    window.addDate = function() {
         const input = document.getElementById('dateInput');
-        const selectedDate = input.value;
-        if (!selectedDate) {
-            return;
-        }
-
-        const [year, month, day] = selectedDate.split('-').map((v) => parseInt(v, 10));
-        const localDate = new Date(year, month - 1, day);
-
-        if (localDate.getFullYear() !== currentYear) {
-            alert(`Datoen må være i ${currentYear}.`);
-            return;
-        }
-
-        const monthIdx = localDate.getMonth();
-        const dayNr = localDate.getDate();
-
-        monthSelect.value = String(monthIdx);
-        localStorage.setItem(getDayTypeKey(monthIdx, dayNr), 'T');
-
+        if (!input.value) return;
+        const date = new Date(input.value);
+        const m = date.getMonth();
+        const d = date.getDate();
+        
+        localStorage.setItem(getDayTypeKey(m, d), 'T');
+        monthSelect.value = m;
         renderAttendanceTable();
-        input.value = '';
     }
 
-    function clearData() {
-        const confirmed = confirm('Er du sikker på at du vil nullstille oppmøtestatus og økttyper for hele året?');
-        if (!confirmed) {
-            return;
+    window.clearData = function() {
+        if (confirm("Vil du slette ALT oppmøte for i år?")) {
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('att-base-') || key.startsWith('type-')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            renderAttendanceTable();
         }
-
-        for (let monthIdx = 0; monthIdx < 12; monthIdx++) {
-            const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
-            for (let day = 1; day <= daysInMonth; day++) {
-                localStorage.removeItem(getDayTypeKey(monthIdx, day));
-            }
-        }
-
-        const keysToDelete = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith(`att-base-${currentYear}-`)) {
-                keysToDelete.push(key);
-            }
-        }
-        keysToDelete.forEach((key) => localStorage.removeItem(key));
-
-        initMonth();
     }
 
-    window.addDate = addDate;
-    window.clearData = clearData;
-
-    monthSelect.addEventListener('change', initMonth);
+    monthSelect.addEventListener('change', renderAttendanceTable);
     populateMonthSelect();
-    initMonth();
+    renderAttendanceTable();
+
+    // Eksporter funksjoner til globalt scope
+    window.toggleDayType = toggleDayType;
 })();
