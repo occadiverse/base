@@ -1,79 +1,70 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hjem - Oversikt</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BSK Fotball</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="sidebar" id="sidebar"></div>
 
 <div class="main-content">
-<div class="top-bar">
-<button class="menu-toggle is-hidden" id="openBtn" onclick="toggleMenu()">
-<i class="fa-solid fa-bars"></i>
-</button>
-<h2 class="section-title">Bækkelaget SK Fotball</h2>
-</div>
+    <div class="top-bar">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 class="section-title">Dashboard</h2>
+    </div>
 
-<div class="table-container home-container">
-<h1>Velkommen til ditt administrasjonspanel</h1>
-<p>Her er en rask oversikt over laget akkurat nå.</p>
+    <div class="table-container">
+        <div class="welcome-header">
+            <h1>Velkommen til BSK Oppmøte</h1>
+            <p>Her er en rask oversikt over status for troppen.</p>
+        </div>
 
-<!-- DASHBOARD KORT -->
-<section class="dashboard-grid" aria-label="Nøkkeltall">
-<article class="dashboard-card">
-<div class="dashboard-card-header">
-<span>Aktive spillere</span>
-<i class="fa-solid fa-users"></i>
-</div>
-<div class="dashboard-card-value" id="statActivePlayers">--</div>
-<p class="dashboard-card-subtext">Antall med status “Aktiv”</p>
-</article>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <i class="fa-solid fa-users"></i>
+                <div class="stat-value" id="statActivePlayers">0</div>
+                <div class="stat-label">Aktive spillere</div>
+            </div>
 
-<article class="dashboard-card">
-<div class="dashboard-card-header">
-<span>Oppmøte denne måneden</span>
-<i class="fa-solid fa-chart-line"></i>
-</div>
-<div class="dashboard-card-value" id="statMonthlyAttendance">--%</div>
-<p class="dashboard-card-subtext">Basert på trening/kamp i valgt måned</p>
-</article>
+            <div class="stat-card">
+                <i class="fa-solid fa-calendar-day"></i>
+                <div class="stat-value" id="statMonthlyAttendance">0%</div>
+                <div class="stat-label">Oppmøte denne mnd</div>
+            </div>
 
-<article class="dashboard-card">
-<div class="dashboard-card-header">
-<span>Registrerte økter</span>
-<i class="fa-solid fa-calendar-check"></i>
-</div>
-<div class="dashboard-card-value" id="statSessions">--</div>
-<p class="dashboard-card-subtext">Totalt antall T/K-markeringer i år</p>
-</article>
+            <div class="stat-card">
+                <i class="fa-solid fa-dumbbell"></i>
+                <div class="stat-value" id="statSessions">0</div>
+                <div class="stat-label">Økter registrert i år</div>
+            </div>
 
-<article class="dashboard-card">
-<div class="dashboard-card-header">
-<span>Toppspiller</span>
-<i class="fa-solid fa-trophy"></i>
-</div>
-<div class="dashboard-card-value" id="statTopPlayer">--</div>
-<p class="dashboard-card-subtext">Høyest oppmøteprosent hittil</p>
-</article>
-</section>
+            <div class="stat-card">
+                <i class="fa-solid fa-trophy"></i>
+                <div class="stat-value" id="statTopPlayer" style="font-size: 1.2rem; margin-top: 10px;">Laster...</div>
+                <div class="stat-label">Treningskonge (i år)</div>
+            </div>
+        </div>
 
-<div class="quick-info-box">
-<h3><i class="fa-solid fa-circle-info"></i> Hurtiginfo</h3>
-<p>
-Bruk menyen til venstre for å navigere.
-For registrering av oppmøte, gå til <strong>Oppmøte</strong>.
-</p>
-</div>
-</div>
+        <div style="margin-top: 40px; display: flex; gap: 15px;">
+            <button class="btn" onclick="location.href='oppmote.html'">
+                <i class="fa-solid fa-clipboard-user"></i> Gå til registrering
+            </button>
+            <button class="btn btn-muted" onclick="location.href='spillere.html'">
+                <i class="fa-solid fa-user-gear"></i> Administrer spillere
+            </button>
+        </div>
+    </div>
 </div>
 
 <script src="database.js"></script>
 <script src="navigation.js"></script>
-    <script src="dashboard.js"></script>
-<!-- Steg 2 kommer her: dashboard.js / inline script -->
+<script src="dashboard.js"></script>
+
 </body>
 </html>
