@@ -9,53 +9,59 @@
 </head>
 <body>
 
-<div class="sidebar" id="sidebar"></div>
+    <div class="sidebar" id="sidebar"></div>
 
-<div class="main-content">
-    <div class="top-bar">
-        <button class="menu-toggle" id="menuBtn" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <h2 class="section-title">Oppmøteregistrering</h2>
-        
-        <div class="top-bar-actions push-right">
-            <input type="date" id="dateInput" class="date-picker">
-            <button class="btn btn-inline-icon" onclick="addDate()">
-                <i class="fa-solid fa-plus"></i> Legg til dato
+    <div class="main-content">
+        <div class="top-bar">
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
             </button>
+            <h2 class="section-title">Oppmøteregistrering</h2>
+            
+            <div class="top-bar-actions push-right">
+                <input type="date" id="dateInput" class="date-picker">
+                <button class="btn" onclick="addDate()">
+                    <i class="fa-solid fa-plus"></i> Legg til dato
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="monthSelect" style="font-size: 0.9rem; font-weight: 600;">Velg måned:</label>
+                <select id="monthSelect" class="select-input"></select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="attendanceTable">
+                <thead id="tableHead">
+                    </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div style="padding: 0 30px 40px 30px;">
+            <p class="help-text">
+                <i class="fa-solid fa-circle-info"></i> 
+                Klikk på dato-etiketten (T/K) for å endre økttype. Klikk på cellene for å endre status.
+            </p>
         </div>
     </div>
 
-    <div class="filter-bar">
-        <div class="filter-group">
-            <label for="monthSelect">Velg måned:</label>
-            <select id="monthSelect" class="select-input"></select>
-        </div>
-        <div class="info-badge">
-            Sesongen <span id="currentYearLabel"></span>
-        </div>
-    </div>
+    <script src="database.js"></script>
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
 
-    <div class="table-container">
-        <table id="attendanceTable">
-            <thead id="tableHead">
-                </thead>
-            <tbody id="tableBody">
-                </tbody>
-        </table>
-    </div>
-
-    <div class="action-footer">
-        <button class="btn btn-danger btn-small" onclick="clearData()">
-            <i class="fa-solid fa-trash-can"></i> Nullstill data
-        </button>
-        <p class="help-text">Klikk på dato-overskriften for å endre type (T=Trening, K=Kamp, -=Ingen). Klikk på status i tabellen for å endre oppmøte.</p>
-    </div>
-</div>
-
-<script src="database.js"></script>
-<script src="navigation.js"></script>
-<script src="script.js"></script>
+    <script>
+        // Sikrer at menyen tegnes opp når siden lastes
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadNavigation === 'function') {
+                loadNavigation();
+            }
+        });
+    </script>
 
 </body>
 </html>
