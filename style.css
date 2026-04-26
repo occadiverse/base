@@ -9,7 +9,6 @@
     --white: #ffffff;
     --success: #2ecc71;
     --danger: #e74c3c;
-    --warning: #f1c40f;
 }
 
 /* --- GRUNNLEGGENDE --- */
@@ -22,55 +21,23 @@
 
 body {
     background-color: var(--bg-light);
-    color: var(--text-main);
     display: flex;
     min-height: 100vh;
 }
 
-/* --- SIDEBAR --- */
+/* --- SIDEBAR & NAVIGASJON --- */
 .sidebar {
     width: 260px;
     background-color: var(--white) !important;
     border-right: 1px solid var(--border-color);
     position: fixed;
-    top: 0;
-    left: 0;
     height: 100vh;
     z-index: 2000;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
 }
 
-.sidebar.collapsed {
-    transform: translateX(-260px);
-}
+.sidebar.collapsed { transform: translateX(-260px); }
 
-.nav-links {
-    padding-top: 80px;
-    display: flex;
-    flex-direction: column;
-}
-
-.nav-item {
-    padding: 14px 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    text-decoration: none;
-    color: var(--text-muted);
-    font-weight: 500;
-    border-left: 4px solid transparent;
-    transition: all 0.2s;
-}
-
-.nav-item.active {
-    background: rgba(52, 152, 219, 0.08);
-    color: var(--primary);
-    border-left-color: var(--primary);
-    font-weight: 600;
-}
-
-/* --- HOVEDINNHOLD --- */
 .main-content {
     flex: 1;
     margin-left: 260px;
@@ -78,11 +45,8 @@ body {
     min-width: 0;
 }
 
-.sidebar.collapsed + .main-content {
-    margin-left: 0;
-}
+.sidebar.collapsed + .main-content { margin-left: 0; }
 
-/* --- TOP BAR --- */
 .top-bar {
     height: 70px;
     background: var(--white);
@@ -100,25 +64,16 @@ body {
     border: none;
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: 12px; /* Matchende hjørner */
     cursor: pointer;
     margin-right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.section-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-/* --- FILTER BAR (Sentrert og identisk stil) --- */
+/* --- ZEN FILTER BAR (Runde hjørner & balansert bredde) --- */
 .filter-bar {
     display: flex;
     justify-content: center;
-    padding: 25px;
+    padding: 30px 25px;
     background: var(--white);
     border-bottom: 1px solid var(--border-color);
 }
@@ -127,88 +82,91 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 30px; /* Luft mellom verktøyene på PC */
+    gap: 25px;
     width: 100%;
 }
 
-/* Felles stil for månedsvelger-wrapper og knapper */
-.custom-select-wrapper {
-    position: relative;
+/* FELLES STIL FOR KNAPPER OG SELECT */
+.select-input-clean, .btn-outline {
+    height: 48px;
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 0 35px; /* Mye luft på sidene gjør dem bredere enn teksten */
+    border-radius: 25px; /* Skikkelig avrundete "pill"-formede hjørner */
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    white-space: nowrap;
+}
+
+.custom-select-wrapper {
+    position: relative;
 }
 
 .custom-select-wrapper i {
     position: absolute;
-    left: 15px;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--primary);
     pointer-events: none;
-    font-size: 0.9rem;
-}
-
-/* Månedsvelger og Ny økt-knapp skal se like ut */
-.select-input-clean, .btn-outline {
-    background: transparent;
-    border: 2px solid var(--primary);
-    color: var(--primary);
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 .select-input-clean {
-    padding-left: 40px; /* Plass til ikonet */
-    -webkit-appearance: none;
+    padding-left: 45px;
+    padding-right: 25px;
     appearance: none;
+    -webkit-appearance: none;
 }
 
 .select-input-clean:hover, .btn-outline:hover {
     background: var(--primary);
     color: white;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 }
 
-/* Når man trykker Ny økt, dukker denne opp */
+/* DATOVELGER (Når den åpnes) */
 .unified-input-group {
+    height: 48px;
     display: flex;
     align-items: center;
     background: #f1f2f6;
     border: 2px solid var(--primary);
-    border-radius: 14px;
-    padding: 4px;
+    border-radius: 25px; /* Matcher hjørnene */
+    padding: 4px 6px 4px 15px;
     animation: fadeIn 0.2s ease;
 }
 
 .hidden { display: none !important; }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1); }
-}
-
 .date-picker-minimal {
     border: none;
     background: transparent;
-    padding: 5px 10px;
     font-weight: 600;
+    font-size: 0.9rem;
     outline: none;
     color: var(--text-main);
+    margin-right: 10px;
 }
 
 .btn-add-inline {
     background: var(--primary);
     color: white;
     border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%; /* Helt rund knapp inni */
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-cancel {
@@ -219,39 +177,19 @@ body {
     cursor: pointer;
 }
 
-/* --- TABELL OG STICKY MAGI --- */
+/* --- TABELL OG STICKY --- */
 .table-container {
     background: var(--white);
     margin: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border-radius: 15px;
     overflow-x: auto;
-    position: relative;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
 }
 
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
+table { width: 100%; border-collapse: separate; border-spacing: 0; }
+th, td { padding: 15px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); text-align: center; }
 
-th, td {
-    padding: 14px;
-    border-bottom: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    text-align: center;
-}
-
-th {
-    background: #f8f9fa;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
+th { background: #f8f9fa; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); position: sticky; top: 0; z-index: 2; }
 
 .name-col {
     position: sticky;
@@ -261,49 +199,31 @@ th {
     min-width: 160px;
     text-align: left;
     font-weight: 600;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+    box-shadow: 3px 0 6px rgba(0,0,0,0.02);
 }
 
 thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
 
 /* --- STATUS IKONER --- */
-.status-cell { cursor: pointer; font-size: 1.2rem; }
+.status-cell { cursor: pointer; font-size: 1.3rem; }
 .status-present { color: var(--success); }
 .status-absent  { color: var(--danger); opacity: 0.3; }
 .status-injured { color: var(--warning); }
 .status-none    { color: #dcdde1; }
 
-.day-type {
-    font-size: 0.6rem;
-    padding: 2px 5px;
-    border-radius: 4px;
-    margin-top: 4px;
-    display: inline-block;
-}
-.day-type-training { background: var(--primary); color: white; }
-.day-type-match    { background: #9b59b6; color: white; }
-
 /* --- MOBIL --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
-    
-    .sidebar { 
-        top: 70px; 
-        height: calc(100vh - 70px); 
-        transform: translateX(-260px); 
-    }
-    
+    .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
     .sidebar:not(.collapsed) { transform: translateX(0); }
-
-    .centered-tools { 
-        flex-direction: column; 
-        gap: 15px; 
-    }
-
-    .tool-item, .custom-select-wrapper, .select-input-clean, .btn-outline {
+    
+    .centered-tools {
+        flex-direction: column;
         width: 100%;
-        justify-content: center;
+        padding: 0 20px;
     }
-
-    .name-col { min-width: 130px; font-size: 0.85rem; }
+    
+    .tool-item, .custom-select-wrapper, .select-input-clean, .btn-outline, .unified-input-group {
+        width: 100%;
+    }
 }
