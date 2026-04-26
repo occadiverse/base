@@ -124,7 +124,7 @@ body {
 .centered-tools {
     display: flex;
     align-items: center;
-    gap: 60px; /* Luft mellom månedvelger og Ny økt */
+    gap: 20px; /* Luft mellom månedvelger og Ny økt */
 }
 
 /* Månedvelger */
