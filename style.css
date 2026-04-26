@@ -109,11 +109,11 @@ body {
     font-size: 1.2rem;
 }
 
-/* --- FILTER BAR (Knapper & Verktøy) --- */
+/* --- FILTER BAR (Subtil & Profesjonell) --- */
 .filter-bar {
     display: flex;
     justify-content: center;
-    padding: 20px;
+    padding: 25px;
     background: var(--white);
     border-bottom: 1px solid var(--border-color);
 }
@@ -122,17 +122,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px; /* Litt mindre luft gjør det mer kompakt */
+    gap: 20px;
     width: 100%;
 }
 
 .select-input-clean, .btn-outline {
-    height: 42px; /* Litt lavere høyde føles mindre voldsomt */
-    background: #f1f2f6; /* Lys nøytral grå bakgrunn */
-    border: 1px solid var(--border-color); /* Tynn, lys ramme i stedet for blå */
-    color: var(--text-main); /* Mørk tekst i stedet for blå */
-    padding: 0 25px;
-    border-radius: 10px; /* Litt mindre runde hjørner for et strammere look */
+    height: 42px;
+    background: #f1f2f6;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0 30px; /* God luft på sidene */
+    border-radius: 20px; /* Avrundete hjørner */
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -141,21 +141,30 @@ body {
     justify-content: center;
     gap: 10px;
     transition: all 0.2s ease;
+    outline: none;
 }
 
-.custom-select-wrapper { 
-    position: relative; 
-    display: flex; 
-    align-items: center; 
+.custom-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
 }
 
-.custom-select-wrapper i, .btn-outline i {
+/* FIKSET: Sentrering av ikonet */
+.custom-select-wrapper i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--text-muted);
+    pointer-events: none;
     font-size: 0.85rem;
+    z-index: 5;
 }
 
 .select-input-clean { 
-    padding-left: 45px; 
+    padding-left: 42px; 
+    padding-right: 20px;
     -webkit-appearance: none; 
     appearance: none; 
 }
@@ -166,16 +175,19 @@ body {
     color: var(--primary);
 }
 
-.select-input-clean:hover i, .btn-outline:hover i {
+/* Gjør at ikonet også blir blått ved hover */
+.select-input-clean:hover + i {
     color: var(--primary);
 }
 
 .unified-input-group {
     height: 42px;
     background: #ffffff;
-    border: 1px solid var(--primary); /* Beholder blå her for å vise aktiv handling */
-    border-radius: 10px;
-    padding: 2px 2px 2px 12px;
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 2px 2px 2px 15px;
+    display: flex;
+    align-items: center;
 }
 
 .hidden { display: none !important; }
@@ -185,19 +197,23 @@ body {
     background: transparent;
     font-weight: 600;
     outline: none;
+    font-size: 0.9rem;
 }
 
 .btn-add-inline {
     background: var(--primary);
     color: white;
     border: none;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* --- TABELL-DESIGN (Fikset rutenett og sticky) --- */
+/* --- TABELL-DESIGN --- */
 .table-container {
     background: var(--white);
     margin: 20px;
@@ -209,7 +225,7 @@ body {
 
 table {
     width: 100%;
-    border-collapse: separate; /* Nødvendig for sticky */
+    border-collapse: separate;
     border-spacing: 0;
 }
 
@@ -261,7 +277,7 @@ thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
 .day-type-training { background: var(--primary); color: white; }
 .day-type-match    { background: #9b59b6; color: white; }
 
-/* --- MOBIL (Alt samlet her) --- */
+/* --- MOBIL --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
     .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
