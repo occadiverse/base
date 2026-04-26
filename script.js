@@ -25,7 +25,7 @@
             option.value = index;
             // Vi fjerner "2026" fra teksten her hvis du vil ha den helt ren, 
             // men beholder den hvis du liker det.
-            option.textContent = `${monthName}`; 
+            option.textContent = `${monthName} ${currentYear}`;
             if (index === now.getMonth()) option.selected = true;
             monthSelect.appendChild(option);
         });
