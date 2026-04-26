@@ -1,16 +1,14 @@
-/* --- DESIGNVARIABLER (BSK-Inspirert) --- */
+/* --- DESIGNVARIABLER --- */
 :root {
-    --primary: #3498db;        /* Hovedblå */
+    --primary: #3498db;
     --primary-dark: #2980b9;
-    --secondary: #f1c40f;     /* BSK Gul */
-    --bg-light: #f4f7f6;      /* Myk bakgrunnsfarge */
+    --secondary: #f1c40f;
+    --bg-light: #f4f7f6;
     --text-main: #2d3436;
     --text-muted: #636e72;
     --border-color: #dfe6e9;
     --white: #ffffff;
     --hover-bg: #f1f2f6;
-    
-    /* Statusfarger for ikoner */
     --success: #2ecc71;
     --danger: #e74c3c;
     --warning: #f1c40f;
@@ -31,14 +29,14 @@ body {
     min-height: 100vh;
 }
 
-/* --- SIDEBAR (MENY) --- */
+/* --- SIDEBAR --- */
 .sidebar {
     width: 260px;
     background: var(--white);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.3s ease;
     z-index: 1000;
     position: fixed;
     height: 100vh;
@@ -50,17 +48,10 @@ body {
     border: none;
 }
 
-.sidebar-header {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-}
-
 .nav-links {
     display: flex;
     flex-direction: column;
-    padding-top: 10px;
+    padding-top: 70px;
 }
 
 .nav-item {
@@ -71,281 +62,137 @@ body {
     text-decoration: none;
     color: var(--text-muted);
     font-weight: 500;
-    transition: all 0.2s;
     border-left: 4px solid transparent;
-}
-
-.nav-item:hover {
-    background: var(--hover-bg);
-    color: var(--primary);
 }
 
 .nav-item.active {
     background: rgba(52, 152, 219, 0.08);
     color: var(--primary);
     border-left-color: var(--primary);
-    font-weight: 600;
-}
-
-.nav-item i {
-    width: 20px;
-    font-size: 1.1rem;
-}
-
-.nav-footer {
-    margin-top: auto;
-    padding: 20px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-align: center;
 }
 
 /* --- HOVEDINNHOLD --- */
 .main-content {
-    overflow: visible !important;
+    flex: 1;
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Viktig for at tabellen ikke skal dytte innholdet ut */
 }
 
-@media (max-width: 600px) {
-    th, td {
-        padding: 10px 5px;
-        font-size: 0.8rem;
-    }
-
-.date-header {
-        min-width: 45px;
-    }
-    
 .sidebar.collapsed + .main-content {
     margin-left: 0;
 }
 
-/* --- TOP BAR --- */
 .top-bar {
     height: 70px;
     background: var(--white);
     display: flex;
     align-items: center;
-    padding: 0 30px;
-    gap: 20px;
+    padding: 0 20px;
+    gap: 15px;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
-    z-index: 900;
+    z-index: 100;
 }
 
-.menu-toggle {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    cursor: pointer;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    padding: 5px;
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.top-bar-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* --- FILTER & INFO BAR --- */
-.filter-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    background: var(--white);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.select-input, .date-picker {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background: white;
-}
-
-.info-badge {
-    background: var(--hover-bg);
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--primary);
-}
-
-/* --- TABELLER (Oppmøte & Spillere) --- */
-/* Containeren må ha overflow-x for at sticky skal virke */
+/* --- TABELL-OPPSETTET (HER LÅ FEILEN) --- */
 .table-container {
-    position: relative; /* Viktig for sticky */
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch; /* Gjør rullingen silkemyk på iPhone */
     background: var(--white);
     border-radius: 12px;
-    margin: 10px 15px; /* Litt mindre margin på mobil */
+    margin: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    overflow-x: auto; /* Aktiverer rulling sidelengs */
+    position: relative;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
-    border-collapse: separate; /* VIKTIG: Sticky fungerer best med 'separate' enn 'collapse' */
-    border-spacing: 0;
     width: 100%;
+    border-collapse: separate; /* Nødvendig for sticky */
+    border-spacing: 0;
 }
 
 th, td {
-    padding: 15px;
-    text-align: center;
+    padding: 12px 15px;
     border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    background: white;
 }
 
 th {
-    background: #fcfcfc;
-    font-size: 0.8rem;
+    background: #f8f9fa;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0; /* Gjør også overskriften sticky når man scroller ned */
+    z-index: 2;
 }
 
-/* Gjør navnekolonnen sticky */
+/* STICKY NAVNEKOLONNE */
 .name-col {
-    position: -webkit-sticky; /* For Safari (iPhone) */
+    position: -webkit-sticky;
     position: sticky;
     left: 0;
-    z-index: 5;
-    background-color: var(--white) !important; /* Må ha solid farge */
-    border-right: 2px solid var(--border-color);
-    min-width: 140px; /* Litt smalere på mobil for å spare plass */
-    max-width: 160px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    z-index: 10; /* Ligger over alt annet i tabellen */
+    background-color: white !important;
+    min-width: 150px;
+    text-align: left;
+    font-weight: 600;
 }
 
-/* Sørg for at hjørne-cellen (øverst til venstre) også er låst */
+/* Gjør øverste venstre hjørne (der det står "Spiller") ekstra viktig */
 thead th.name-col {
-    z-index: 10;
+    z-index: 11;
     background-color: #f8f9fa !important;
-}
-
-/* Valgfritt: legg til en liten skygge når man scroller */
-.name-col::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: -5px;
-    bottom: 0;
-    width: 5px;
-    pointer-events: none;
-    background: linear-gradient(to right, rgba(0,0,0,0.05), transparent);
 }
 
 /* --- STATUS IKONER --- */
 .status-cell {
     cursor: pointer;
     font-size: 1.2rem;
-    transition: background 0.2s;
+    min-width: 45px;
 }
 
-.status-cell:hover { background: var(--hover-bg); }
-
 .status-present { color: var(--success); }
-.status-absent  { color: var(--danger); opacity: 0.5; }
+.status-absent  { color: var(--danger); opacity: 0.4; }
 .status-injured { color: var(--warning); }
 .status-none    { color: #dcdde1; }
 
-/* --- DASHBOARD GRIDS --- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 30px;
-}
-
-.stat-card {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    text-align: center;
-    border-bottom: 4px solid var(--primary);
-}
-
-.stat-card i { font-size: 2rem; color: var(--primary); margin-bottom: 15px; }
-.stat-value { font-size: 2.2rem; font-weight: 800; }
-.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-
-/* --- MODAL (SPILLER REGISTRERING) --- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 2000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-}
-
-.modal-content {
-    background: white;
-    margin: 5% auto;
-    padding: 30px;
-    border-radius: 15px;
-    max-width: 450px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-
 /* --- KNAPPER --- */
 .btn {
-    padding: 10px 18px;
+    padding: 8px 16px;
     border-radius: 8px;
     border: none;
     cursor: pointer;
     font-weight: 600;
-    transition: 0.2s;
     background: var(--primary);
     color: white;
+    white-space: nowrap;
 }
-
-.btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
-.btn-danger { background: var(--danger); }
-.btn-muted { background: var(--hover-bg); color: var(--text-main); }
 
 .push-right { margin-left: auto; }
 
-/* --- HJELPEKLASSER --- */
-.stat-good { color: var(--success); }
-.stat-mid  { color: var(--warning); }
-.stat-low  { color: var(--danger); }
-
 .day-type {
     font-size: 0.65rem;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 4px;
-    background: #eee;
-    color: #666;
 }
 .day-type-training { background: var(--primary); color: white; }
 .day-type-match    { background: #9b59b6; color: white; }
 
-.status-pill {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-.status-active { background: #e6fffa; color: #2ecc71; }
-.status-passive { background: #f7fafc; color: #a0aec0; }
+.help-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
 
-.action-footer {
-    padding: 20px 30px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+/* MOBIL-TILPASNING */
+@media (max-width: 768px) {
+    .main-content { margin-left: 0; }
+    .sidebar { width: 0; }
+    .sidebar.active { width: 260px; } /* Hvis du bruker en .active klasse for mobil */
+    
+    .name-col { min-width: 120px; font-size: 0.85rem; }
+    .top-bar { padding: 0 10px; }
+    .section-title { font-size: 1rem; }
 }
-
-.help-text { font-size: 0.8rem; color: var(--text-muted); }
