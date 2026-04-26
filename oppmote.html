@@ -22,10 +22,11 @@
         <div class="filter-bar">
             <div class="centered-tools">
                 <div class="tool-item">
-                    <select id="monthSelect" class="select-input-clean" onchange="renderAttendanceTable()"></select>
+                    <div class="custom-select-wrapper">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <select id="monthSelect" class="select-input-clean"></select>
+                    </div>
                 </div>
-
-                <div class="tool-spacer"></div>
 
                 <div class="tool-item">
                     <button id="toggleDateBtn" class="btn-outline" onclick="showDatePicker()">
@@ -45,7 +46,6 @@
                 </div>
             </div>
         </div>
-
         <div class="table-container">
             <table id="attendanceTable">
                 <thead id="tableHead">
