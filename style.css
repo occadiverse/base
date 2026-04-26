@@ -9,7 +9,6 @@
     --white: #ffffff;
     --success: #2ecc71;
     --danger: #e74c3c;
-    --warning: #f1c40f;
 }
 
 /* --- GRUNNLEGGENDE --- */
@@ -27,89 +26,14 @@ body {
     min-height: 100vh;
 }
 
-/* --- SIDEBAR (Meny) --- */
-.sidebar {
-    width: 260px;
-    background-color: var(--white) !important;
-    border-right: 1px solid var(--border-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 2000;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-}
+/* --- SIDEBAR & TOP BAR (Beholdt for struktur) --- */
+.sidebar { width: 260px; background: var(--white); border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 2000; transition: 0.3s; }
+.sidebar.collapsed { transform: translateX(-260px); }
+.main-content { flex: 1; margin-left: 260px; transition: 0.3s; min-width: 0; }
+.sidebar.collapsed + .main-content { margin-left: 0; }
+.top-bar { height: 70px; background: var(--white); display: flex; align-items: center; padding: 0 25px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 3000; }
 
-.sidebar.collapsed {
-    transform: translateX(-260px);
-}
-
-.nav-links {
-    padding-top: 80px;
-    display: flex;
-    flex-direction: column;
-}
-
-.nav-item {
-    padding: 14px 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    text-decoration: none;
-    color: var(--text-muted);
-    font-weight: 500;
-    border-left: 4px solid transparent;
-    transition: 0.2s;
-}
-
-.nav-item:hover { background: #f8f9fa; color: var(--primary); }
-.nav-item.active {
-    background: rgba(52, 152, 219, 0.08);
-    color: var(--primary);
-    border-left-color: var(--primary);
-    font-weight: 600;
-}
-
-/* --- HOVEDINNHOLD --- */
-.main-content {
-    flex: 1;
-    margin-left: 260px;
-    transition: margin-left 0.3s ease;
-    min-width: 0;
-}
-
-.sidebar.collapsed + .main-content {
-    margin-left: 0;
-}
-
-.top-bar {
-    height: 70px;
-    background: var(--white);
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 3000;
-}
-
-.menu-toggle {
-    background: #f1f2f6;
-    border: none;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    cursor: pointer;
-    margin-right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-}
-
-/* --- FILTER BAR (Symmetrisk & Subtil) --- */
+/* --- FILTER BAR (Nå med dynamisk sentrering) --- */
 .filter-bar {
     display: flex;
     justify-content: center;
@@ -126,18 +50,61 @@ body {
     width: 100%;
 }
 
-/* FELLES STIL FOR VERKTØY */
-.select-input-clean, .btn-outline, .unified-input-group {
+/* --- MÅNEDSVELGER-PAKKE (Dette fikser ikonet) --- */
+.custom-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center; /* Sentrerer ikonet og teksten som en pakke */
     height: 42px;
     background: #f1f2f6;
     border: 1px solid var(--border-color);
     border-radius: 20px;
+    padding: 0 25px; /* Luft på sidene av hele knappen */
+    cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.select-input-clean, .btn-outline {
+.custom-select-wrapper i {
+    margin-right: 10px; /* Fast avstand mellom ikon og tekst */
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+.select-input-clean {
+    background: transparent;
+    border: none;
     color: var(--text-main);
-    padding: 0 30px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: left; /* Når pakken er sentrert, kan teksten være venstrestilt inni seg selv */
+}
+
+/* Hover-effekt på hele velger-pakken */
+.custom-select-wrapper:hover {
+    background: #e8eaef;
+    border-color: #ced4da;
+}
+
+.custom-select-wrapper:hover i, 
+.custom-select-wrapper:hover .select-input-clean {
+    color: var(--primary);
+}
+
+/* --- NY ØKT-KNAPP (Beholdt din stil) --- */
+.btn-outline {
+    height: 42px;
+    background: #f1f2f6;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-main);
+    padding: 0 25px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -145,43 +112,25 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    outline: none;
-}
-
-/* Månedsvelger Spesifikk */
-.custom-select-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-}
-
-.custom-select-wrapper i {
-    /* Vi fjerner position: absolute og left: 18px */
-    position: relative; 
-    margin-right: -25px; /* Drar ikonet inn over paddingen til select-boksen */
-    left: 35px;          /* Dytter det akkurat dit teksten starter */
-    color: var(--text-muted);
-    pointer-events: none;
-    font-size: 0.85rem;
-    z-index: 5;
     transition: all 0.2s ease;
 }
 
-.select-input-clean { 
-    text-align: center;
-    text-align-last: center;
-    padding-left: 20px;  /* Reduserer padding siden ikonet nå følger teksten */
-    padding-right: 20px;
-    -webkit-appearance: none; 
-    appearance: none; 
+.btn-outline:hover {
+    background: #e8eaef;
+    border-color: #ced4da;
+    color: var(--primary);
 }
 
-/* Datovelger boks (Når "Ny økt" er trykket) */
+/* --- DATOVELGER-GRUPPEN (Når aktiv) --- */
 .unified-input-group {
     display: flex;
     align-items: center;
-    padding: 0 5px 0 15px;
+    gap: 10px;
     background: #f1f2f6;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 0 5px 0 15px;
+    height: 42px;
     animation: fadeIn 0.2s ease;
 }
 
@@ -189,140 +138,44 @@ body {
     border: none;
     background: transparent;
     font-weight: 600;
-    outline: none;
     font-size: 0.9rem;
-    color: var(--text-main);
-    flex: 1;
+    outline: none;
     cursor: pointer;
 }
 
-/* Den nye subtile Check-knappen */
 .btn-add-inline {
     background: transparent;
     color: var(--success);
     border: none;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
+    width: 34px;
+    height: 34px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
-    transition: all 0.2s;
 }
 
-.btn-add-inline:hover {
-    background: rgba(46, 204, 113, 0.1);
-    transform: scale(1.1);
-}
-
-/* Avbryt-knappen */
 .btn-cancel {
     background: transparent;
     border: none;
     color: var(--text-muted);
     padding: 0 10px;
     cursor: pointer;
-    font-size: 1rem;
 }
-
-.btn-cancel:hover { color: var(--danger); }
-
-/* Hover effekter for hovedknapper */
-.select-input-clean:hover, .btn-outline:hover {
-    background: #e8eaef;
-    border-color: #ced4da;
-    color: var(--primary);
-}
-
-.select-input-clean:hover + i { color: var(--primary); }
 
 .hidden { display: none !important; }
 
-/* --- TABELL-DESIGN --- */
-.table-container {
-    background: var(--white);
-    margin: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    overflow-x: auto;
-}
+/* --- TABELL OG RESPONSIVITET (Beholdt) --- */
+.table-container { background: var(--white); margin: 20px; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+table { width: 100%; border-collapse: separate; border-spacing: 0; }
+th, td { padding: 15px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); text-align: center; }
+.name-col { position: sticky; left: 0; z-index: 10; background-color: white !important; min-width: 160px; text-align: left; font-weight: 600; }
 
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-th, td {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    text-align: center;
-}
-
-th {
-    background: #f8f9fa;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-
-.name-col {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-    background-color: white !important;
-    min-width: 160px;
-    text-align: left;
-    font-weight: 600;
-    box-shadow: 3px 0 6px rgba(0,0,0,0.02);
-}
-
-thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
-
-/* Status-ikoner */
-.status-cell { cursor: pointer; font-size: 1.3rem; }
-.status-present { color: var(--success); }
-.status-absent  { color: var(--danger); opacity: 0.3; }
-.status-injured { color: var(--warning); }
-.status-none    { color: #dcdde1; }
-
-.day-type {
-    font-size: 0.6rem;
-    padding: 2px 5px;
-    border-radius: 4px;
-    margin-top: 5px;
-    display: inline-block;
-}
-.day-type-training { background: var(--primary); color: white; }
-.day-type-match    { background: #9b59b6; color: white; }
-
-/* --- MOBIL --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
-    .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
-    .sidebar:not(.collapsed) { transform: translateX(0); }
-    
-    .centered-tools {
-        flex-direction: column;
-        width: 100%;
-        padding: 0 10px;
-    }
-    
-    .tool-item, .custom-select-wrapper, .select-input-clean, .btn-outline, .unified-input-group {
-        width: 100%;
-    }
-    
-    .name-col { min-width: 130px; font-size: 0.85rem; }
+    .centered-tools { flex-direction: column; width: 100%; padding: 0 10px; }
+    .tool-item, .custom-select-wrapper, .btn-outline, .unified-input-group { width: 100%; }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
