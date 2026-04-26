@@ -1,14 +1,12 @@
-/* --- DESIGNVARIABLER --- */
+/* --- MODERNE VARIABLER --- */
 :root {
     --primary: #3498db;
     --primary-dark: #2980b9;
-    --secondary: #f1c40f;
     --bg-light: #f4f7f6;
     --text-main: #2d3436;
     --text-muted: #636e72;
     --border-color: #dfe6e9;
     --white: #ffffff;
-    --hover-bg: #f1f2f6;
     --success: #2ecc71;
     --danger: #e74c3c;
     --warning: #f1c40f;
@@ -19,7 +17,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 body {
@@ -34,31 +32,27 @@ body {
     width: 260px;
     background: var(--white);
     border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease;
-    z-index: 1000;
     position: fixed;
     height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s ease;
 }
 
 .sidebar.collapsed {
-    width: 0;
-    overflow: hidden;
-    border: none;
+    transform: translateX(-260px);
 }
 
 .nav-links {
+    padding-top: 80px;
     display: flex;
     flex-direction: column;
-    padding-top: 70px;
 }
 
 .nav-item {
+    padding: 14px 25px;
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 14px 25px;
     text-decoration: none;
     color: var(--text-muted);
     font-weight: 500;
@@ -69,6 +63,7 @@ body {
     background: rgba(52, 152, 219, 0.08);
     color: var(--primary);
     border-left-color: var(--primary);
+    font-weight: 600;
 }
 
 /* --- HOVEDINNHOLD --- */
@@ -76,9 +71,7 @@ body {
     flex: 1;
     margin-left: 260px;
     transition: margin-left 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    min-width: 0; /* Viktig for at tabellen ikke skal dytte innholdet ut */
+    min-width: 0;
 }
 
 .sidebar.collapsed + .main-content {
@@ -90,7 +83,7 @@ body {
     background: var(--white);
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 25px;
     gap: 15px;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
@@ -98,101 +91,100 @@ body {
     z-index: 100;
 }
 
-/* --- TABELL-OPPSETTET (HER LÅ FEILEN) --- */
+/* HAMBURGER KNAPP */
+.menu-toggle {
+    background: #f1f2f6;
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* --- TABELL OG STICKY MAGI --- */
 .table-container {
     background: var(--white);
     border-radius: 12px;
     margin: 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    overflow-x: auto; /* Aktiverer rulling sidelengs */
+    overflow-x: auto;
     position: relative;
-    -webkit-overflow-scrolling: touch;
 }
 
 table {
     width: 100%;
     border-collapse: separate; /* Nødvendig for sticky */
-    border-spacing: 0;
+    border-spacing: 0;         /* Fjerner mellomrom mellom celler */
 }
 
 th, td {
-    padding: 12px 15px;
+    padding: 15px;
     border-bottom: 1px solid var(--border-color);
     border-right: 1px solid var(--border-color);
+    text-align: center;
     background: white;
 }
 
 th {
     background: #f8f9fa;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
     color: var(--text-muted);
     position: sticky;
-    top: 0; /* Gjør også overskriften sticky når man scroller ned */
+    top: 0;
     z-index: 2;
 }
 
-/* STICKY NAVNEKOLONNE */
+/* DENNE FIXER STICKY NAVN */
 .name-col {
-    position: -webkit-sticky;
     position: sticky;
     left: 0;
-    z-index: 10; /* Ligger over alt annet i tabellen */
+    z-index: 10;
     background-color: white !important;
-    min-width: 150px;
+    min-width: 160px;
     text-align: left;
     font-weight: 600;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.02); /* Gir en diskret skygge når man ruller */
 }
 
-/* Gjør øverste venstre hjørne (der det står "Spiller") ekstra viktig */
 thead th.name-col {
     z-index: 11;
     background-color: #f8f9fa !important;
 }
 
-/* --- STATUS IKONER --- */
-.status-cell {
-    cursor: pointer;
-    font-size: 1.2rem;
-    min-width: 45px;
-}
-
+/* STATUS IKONER */
+.status-cell { cursor: pointer; font-size: 1.3rem; }
 .status-present { color: var(--success); }
 .status-absent  { color: var(--danger); opacity: 0.4; }
 .status-injured { color: var(--warning); }
 .status-none    { color: #dcdde1; }
 
-/* --- KNAPPER --- */
-.btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    background: var(--primary);
-    color: white;
-    white-space: nowrap;
-}
-
-.push-right { margin-left: auto; }
-
+/* DAY TYPES */
 .day-type {
     font-size: 0.65rem;
-    padding: 2px 5px;
+    padding: 2px 6px;
     border-radius: 4px;
+    margin-top: 5px;
+    display: inline-block;
 }
 .day-type-training { background: var(--primary); color: white; }
 .day-type-match    { background: #9b59b6; color: white; }
 
-.help-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
-
-/* MOBIL-TILPASNING */
+/* MOBIL TILPASNING */
 @media (max-width: 768px) {
     .main-content { margin-left: 0; }
-    .sidebar { width: 0; }
-    .sidebar.active { width: 260px; } /* Hvis du bruker en .active klasse for mobil */
-    
-    .name-col { min-width: 120px; font-size: 0.85rem; }
-    .top-bar { padding: 0 10px; }
-    .section-title { font-size: 1rem; }
+    .sidebar { transform: translateX(-260px); }
+    .sidebar.active { transform: translateX(0); } /* Valgfritt for mobil-meny */
+    .name-col { min-width: 130px; font-size: 0.85rem; }
 }
