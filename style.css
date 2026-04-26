@@ -27,17 +27,21 @@ body {
     min-height: 100vh;
 }
 
-/* --- SIDEBAR --- */
+/* --- SIDEBAR (Oppdatert for mobil) --- */
 .sidebar {
     width: 260px;
-    background: var(--white);
+    background-color: #ffffff !important; /* Tvinger den til å være hvit */
     border-right: 1px solid var(--border-color);
     position: fixed;
+    top: 0;
+    left: 0;
     height: 100vh;
-    z-index: 1000;
-    transition: transform 0.3s ease;
+    z-index: 2000; /* Må være høyere enn alt annet */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
+/* Skjuler menyen til venstre når den er collapsed */
 .sidebar.collapsed {
     transform: translateX(-260px);
 }
@@ -69,11 +73,13 @@ body {
 /* --- HOVEDINNHOLD --- */
 .main-content {
     flex: 1;
-    margin-left: 260px;
+    margin-left: 260px; /* PC-standard */
     transition: margin-left 0.3s ease;
     min-width: 0;
+    background-color: var(--bg-light);
 }
 
+/* Når menyen er borte, skal innholdet fylle hele skjermen */
 .sidebar.collapsed + .main-content {
     margin-left: 0;
 }
@@ -183,8 +189,18 @@ thead th.name-col {
 
 /* MOBIL TILPASNING */
 @media (max-width: 768px) {
-    .main-content { margin-left: 0; }
-    .sidebar { transform: translateX(-260px); }
-    .sidebar.active { transform: translateX(0); } /* Valgfritt for mobil-meny */
-    .name-col { min-width: 130px; font-size: 0.85rem; }
+    .main-content {
+        margin-left: 0 !important; /* På mobil skal innholdet alltid starte helt til venstre */
+        width: 100%;
+    }
+
+    .sidebar {
+        /* På mobil starter menyen alltid som skjult (collapsed) */
+        transform: translateX(-260px);
+    }
+
+    /* Når vi fjerner .collapsed på mobil, skal den gli inn OVER innholdet */
+    .sidebar:not(.collapsed) {
+        transform: translateX(0);
+    }
 }
