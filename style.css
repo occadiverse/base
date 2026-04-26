@@ -156,22 +156,22 @@ body {
 }
 
 .custom-select-wrapper i {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
+    /* Vi fjerner position: absolute og left: 18px */
+    position: relative; 
+    margin-right: -25px; /* Drar ikonet inn over paddingen til select-boksen */
+    left: 35px;          /* Dytter det akkurat dit teksten starter */
     color: var(--text-muted);
     pointer-events: none;
     font-size: 0.85rem;
     z-index: 5;
+    transition: all 0.2s ease;
 }
 
 .select-input-clean { 
-    /* Padding må være lik på begge sider for perfekt sentrering */
-    padding-left: 42px; 
-    padding-right: 42px;
     text-align: center;
-    text-align-last: center; /* Viktig for select-bokser i mange nettlesere */
+    text-align-last: center;
+    padding-left: 20px;  /* Reduserer padding siden ikonet nå følger teksten */
+    padding-right: 20px;
     -webkit-appearance: none; 
     appearance: none; 
 }
