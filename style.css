@@ -63,7 +63,7 @@ body {
     transition: 0.2s;
 }
 
-.nav-item:hover { background: var(--hover-bg); color: var(--primary); }
+.nav-item:hover { background: #f8f9fa; color: var(--primary); }
 .nav-item.active {
     background: rgba(52, 152, 219, 0.08);
     color: var(--primary);
@@ -109,7 +109,7 @@ body {
     font-size: 1.2rem;
 }
 
-/* --- FILTER BAR (Subtil & Profesjonell) --- */
+/* --- FILTER BAR (Verktøyene dine) --- */
 .filter-bar {
     display: flex;
     justify-content: center;
@@ -122,17 +122,22 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 15px;
     width: 100%;
 }
 
-.select-input-clean, .btn-outline {
+/* FELLES STIL FOR ALLE VERKTØY (Måned, Ny økt-knapp, og Datovelger-boks) */
+.select-input-clean, .btn-outline, .unified-input-group {
     height: 42px;
     background: #f1f2f6;
     border: 1px solid var(--border-color);
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.select-input-clean, .btn-outline {
     color: var(--text-main);
-    padding: 0 30px; /* God luft på sidene */
-    border-radius: 20px; /* Avrundete hjørner */
+    padding: 0 30px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -140,17 +145,16 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: all 0.2s ease;
     outline: none;
 }
 
+/* Månedsvelger spesifikk */
 .custom-select-wrapper {
     position: relative;
     display: inline-flex;
     align-items: center;
 }
 
-/* FIKSET: Sentrering av ikonet */
 .custom-select-wrapper i {
     position: absolute;
     left: 18px;
@@ -169,28 +173,14 @@ body {
     appearance: none; 
 }
 
-.select-input-clean:hover, .btn-outline:hover {
-    background: #e8eaef;
-    border-color: #ced4da;
-    color: var(--primary);
-}
-
-/* Gjør at ikonet også blir blått ved hover */
-.select-input-clean:hover + i {
-    color: var(--primary);
-}
-
+/* Datovelger boks (når aktiv) */
 .unified-input-group {
-    height: 42px;
-    background: #ffffff;
-    border: 1px solid var(--primary);
-    border-radius: 20px;
-    padding: 2px 2px 2px 15px;
     display: flex;
     align-items: center;
+    padding: 2px 2px 2px 15px;
+    background: #f1f2f6;
+    animation: fadeIn 0.2s ease;
 }
-
-.hidden { display: none !important; }
 
 .date-picker-minimal {
     border: none;
@@ -198,8 +188,12 @@ body {
     font-weight: 600;
     outline: none;
     font-size: 0.9rem;
+    color: var(--text-main);
+    flex: 1;
+    cursor: pointer;
 }
 
+/* Knapper inni datovelgeren */
 .btn-add-inline {
     background: var(--primary);
     color: white;
@@ -213,6 +207,25 @@ body {
     justify-content: center;
 }
 
+.btn-cancel {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+/* Hover effekter */
+.select-input-clean:hover, .btn-outline:hover {
+    background: #e8eaef;
+    border-color: #ced4da;
+    color: var(--primary);
+}
+
+.select-input-clean:hover + i { color: var(--primary); }
+
+.hidden { display: none !important; }
+
 /* --- TABELL-DESIGN --- */
 .table-container {
     background: var(--white);
@@ -220,7 +233,6 @@ body {
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     overflow-x: auto;
-    position: relative;
 }
 
 table {
@@ -294,4 +306,9 @@ thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
     }
     
     .name-col { min-width: 130px; font-size: 0.85rem; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
