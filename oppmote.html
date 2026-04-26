@@ -13,14 +13,18 @@
 
 <div class="main-content">
     <div class="top-bar top-bar-spread">
-        <button class="menu-toggle is-hidden menu-text-btn" id="openBtn" onclick="toggleMenu()">Meny</button>
+        <button class="menu-toggle is-hidden" id="openBtn" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
 
         <div class="top-title-group">
-            <h2 class="section-title">Oppmøte <span id="currentYearLabel"></span></h2>
+            <h2 class="section-title">Oppmøte</h2>
             <select id="monthSelect" class="month-picker"></select>
         </div>
 
-        <a href="spillere.html" class="btn btn-compact">Spillere</a>
+        <button onclick="window.print()" class="btn btn-muted btn-compact">
+            <i class="fa-solid fa-file-pdf"></i> PDF Rapport
+        </button>
     </div>
 
     <div class="table-container">
@@ -31,6 +35,14 @@
 
         <div class="admin-footer">
             <div class="menu-group admin-field">
+                <label>Legg til spiller</label>
+                <div class="inline-input-row">
+                    <input type="text" id="nameInput" placeholder="Navn...">
+                    <button class="btn" onclick="addName()">Legg til</button>
+                </div>
+            </div>
+
+            <div class="menu-group admin-field">
                 <label>Legg til dato</label>
                 <div class="inline-input-row">
                     <input type="date" id="dateInput">
@@ -38,7 +50,9 @@
                 </div>
             </div>
 
-            <button class="btn btn-danger btn-compact" onclick="clearData()">Nullstill år</button>
+            <button class="btn btn-danger btn-compact" onclick="clearData()">
+                <i class="fa-solid fa-trash"></i> Nullstill år
+            </button>
         </div>
     </div>
 </div>
