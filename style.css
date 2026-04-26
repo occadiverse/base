@@ -265,6 +265,26 @@ th {
 
 thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
 
+/* --- HER ER DE MANGLENDE FARGENE --- */
+.day-type {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 5px;
+    display: inline-block;
+    font-weight: 800;
+    background: #dcdde1; /* Standard grå hvis ingen type */
+    color: white;
+}
+
+.day-type-training { 
+    background: var(--success) !important; 
+}
+
+.day-type-match { 
+    background: #9b59b6 !important; 
+}
+
 .status-present { color: var(--success); }
 .status-absent  { color: var(--danger); opacity: 0.3; }
 .status-injured { color: var(--warning); }
@@ -293,17 +313,16 @@ thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
         width: 100%; 
     }
 
-    /* Spesifikk fiks for datovelger på mobil */
     .unified-input-group { 
         width: 100%; 
-        height: 55px; /* Litt høyere for bedre touch */
+        height: 55px; 
         padding: 5px 8px 5px 12px;
         background: #f1f2f6;
     }
 
     .date-picker-minimal {
         flex: 1;
-        background: #ffffff !important; /* Hvit boks gjør den synlig */
+        background: #ffffff !important; 
         border: 1px solid var(--border-color);
         border-radius: 10px;
         height: 40px;
