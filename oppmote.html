@@ -21,20 +21,19 @@
 
         <div class="filter-bar">
             <div class="filter-group">
-                <label for="monthSelect">Måned</label>
-                <select id="monthSelect" class="select-input"></select>
+                <select id="monthSelect" class="select-input-clean"></select>
             </div>
 
             <div class="action-group">
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-calendar-plus"></i>
-                    <input type="date" id="dateInput" class="date-picker">
+                <div class="unified-input-group">
+                    <input type="date" id="dateInput" class="date-picker-minimal">
+                    <button class="btn-add-inline" onclick="addDate()">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Ny dato</span>
+                    </button>
                 </div>
-                <button class="btn btn-add" onclick="addDate()">
-                    <i class="fa-solid fa-plus"></i> <span>Legg til dato</span>
-                </button>
             </div>
-    </div>
+        </div>
 
         <div class="table-container">
             <table id="attendanceTable">
