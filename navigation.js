@@ -5,11 +5,16 @@ function loadNavigation() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     sidebar.innerHTML = `
-        <div class="sidebar-header">
-            <i class="fa-solid fa-house nav-home-icon"></i>
-            <button class="menu-toggle" onclick="toggleMenu()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <div class="sidebar-header" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 15px; height: auto; border-bottom: 1px solid var(--border-color);">
+            <img src="https://upload.wikimedia.org/wikipedia/no/thumb/0/00/B%C3%A6kkelagets_Sportsklubb_logo.svg/1200px-B%C3%A6kkelagets_Sportsklubb_logo.svg.png" 
+                 alt="BSK Logo" 
+                 style="width: 70px; height: auto; margin-bottom: 5px;">
+            <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                <i class="fa-solid fa-house nav-home-icon" style="color: var(--text-dark);"></i>
+                <button class="menu-toggle" onclick="toggleMenu()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
 
         <div class="sidebar-content">
