@@ -694,3 +694,27 @@ tr.rank-1 {
         min-width: 100%;
     }
 }
+/* --- 12. STATUSIKONER I OPPMØTE --- */
+.status-cell {
+    font-size: 0.95rem;
+}
+
+.status-icon i {
+    font-size: 0.95rem;
+}
+
+.status-unknown .status-icon i {
+    color: #9aa5b1;
+}
+
+.status-present .status-icon i {
+    color: #1f9d55;
+}
+
+.status-absent .status-icon i {
+    color: #d64545;
+}
+
+.status-injured .status-icon i {
+    color: #c28a00;
+}
