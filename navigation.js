@@ -36,9 +36,8 @@ function loadNavigation() {
 // Funksjonen som åpner og lukker menyen
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-    }
+    // Denne linjen skrur av og på "collapsed"-klassen
+    sidebar.classList.toggle('collapsed');
 }
 
 // KJØR funksjonen når siden er ferdig lastet
