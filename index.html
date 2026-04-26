@@ -3,88 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spillerstall - BSK Fotball</title>
+    <title>Dashboard - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="sidebar" id="sidebar"></div>
+    <div class="sidebar" id="sidebar"></div>
 
-<div class="main-content">
-    <div class="top-bar">
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <h2 class="section-title">Spillerstall</h2>
-
-        <button class="btn btn-inline-icon push-right" onclick="openModal()">
-            <i class="fa-solid fa-user-plus"></i> Ny spiller
-        </button>
-    </div>
-
-    <div class="table-container">
-        <table id="playerTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th class="text-left">Navn</th>
-                    <th>Født</th>
-                    <th>Status</th>
-                    <th>Mobil</th>
-                    <th>Handling</th>
-                </tr>
-            </thead>
-            <tbody id="playerTableBody">
-                </tbody>
-        </table>
-    </div>
-</div>
-
-<div id="playerModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="formTitle">Registrer ny spiller</h3>
-            <button class="close-btn" onclick="closeModal()">&times;</button>
+    <div class="main-content">
+        <div class="top-bar">
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h2 class="section-title">Dashboard</h2>
         </div>
-        <form id="playerForm">
-            <input type="hidden" id="editId">
-            <div class="form-stack">
-                <div class="form-group">
-                    <label>Fullt navn *</label>
-                    <input type="text" id="navn" required placeholder="Navn på spiller">
+
+        <div class="content-inner">
+            <div class="welcome-header">
+                <h1>Bækkelagets Sportsklubb</h1>
+                <p>Oppmøteoversikt og spillerstall</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <i class="fa-solid fa-users"></i>
+                    <div class="stat-value" id="statActivePlayers">0</div>
+                    <div class="stat-label">Aktive spillere</div>
                 </div>
-                <div class="form-group">
-                    <label>Fødselsdato</label>
-                    <input type="date" id="fodselsdato">
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <div class="stat-value" id="statMonthlyAttendance">0%</div>
+                    <div class="stat-label">Oppmøte denne mnd</div>
                 </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="status">
-                        <option value="Aktiv">Aktiv</option>
-                        <option value="Passiv">Passiv</option>
-                    </select>
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-stopwatch"></i>
+                    <div class="stat-value" id="statSessions">0</div>
+                    <div class="stat-label">Økter i år</div>
                 </div>
-                <div class="form-group">
-                    <label>Mobil</label>
-                    <input type="tel" id="mobil" placeholder="Mobilnummer">
-                </div>
-                <div class="form-group">
-                    <label>Draktnummer</label>
-                    <input type="number" id="draktnummer" placeholder="Nr">
+
+                <div class="stat-card">
+                    <i class="fa-solid fa-crown"></i>
+                    <div class="stat-value" id="statTopPlayer" style="font-size: 1.1rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center;">-</div>
+                    <div class="stat-label">Treningskonge</div>
                 </div>
             </div>
-            <div class="button-group">
-                <button type="submit" id="submitBtn" class="btn btn-grow-2">Lagre Spiller</button>
-                <button type="button" class="btn btn-danger btn-grow-1" onclick="closeModal()">Avbryt</button>
+
+            <div class="quick-actions" style="margin-top: 30px; display: flex; gap: 10px;">
+                <a href="oppmote.html" class="btn btn-grow-1" style="text-decoration: none; text-align: center;">
+                    <i class="fa-solid fa-clipboard-list"></i> Registrer oppmøte
+                </a>
+                <a href="spillere.html" class="btn btn-muted btn-grow-1" style="text-decoration: none; text-align: center;">
+                    <i class="fa-solid fa-user-plus"></i> Administrer stall
+                </a>
             </div>
-        </form>
+        </div>
     </div>
-</div>
 
-<script src="database.js"></script>
-<script src="navigation.js"></script>
-<script src="spillere.js"></script>
+    <script src="database.js"></script>
+    <script src="navigation.js"></script>
+    <script src="dashboard.js"></script>
 
+    <script>
+        // En ekstra sikkerhet for å tvinge menyen til å laste hvis navigation.js er treg
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadNavigation === 'function') {
+                loadNavigation();
+            }
+        });
+    </script>
 </body>
 </html>
