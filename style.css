@@ -9,278 +9,133 @@
     --white: #ffffff;
     --success: #2ecc71;
     --danger: #e74c3c;
-    --warning: #f1c40f;
 }
 
-/* --- GENERELT --- */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', -apple-system, sans-serif;
-}
-
-body {
-    background-color: var(--bg-light);
-    color: var(--text-main);
+/* --- FILTER BAR (Sentret layout) --- */
+.filter-bar {
     display: flex;
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-
-/* --- SIDEBAR --- */
-.sidebar {
-    width: 260px;
-    background-color: var(--white) !important;
-    border-right: 1px solid var(--border-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 2000;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-}
-
-.sidebar.collapsed {
-    transform: translateX(-260px);
-}
-
-.nav-links {
-    padding-top: 80px; /* Plass til top-bar på PC */
-    display: flex;
-    flex-direction: column;
-}
-
-.nav-item {
-    padding: 14px 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    text-decoration: none;
-    color: var(--text-muted);
-    font-weight: 500;
-    font-size: 0.95rem;
-    border-left: 4px solid transparent;
-    transition: all 0.2s;
-}
-
-.nav-item:hover { background: var(--hover-bg); color: var(--primary); }
-.nav-item.active {
-    background: rgba(52, 152, 219, 0.08);
-    color: var(--primary);
-    border-left-color: var(--primary);
-    font-weight: 600;
-}
-
-/* --- HOVEDINNHOLD --- */
-.main-content {
-    flex: 1;
-    margin-left: 260px;
-    transition: margin-left 0.3s ease;
-    min-width: 0;
-    background-color: var(--bg-light);
-}
-
-.sidebar.collapsed + .main-content {
-    margin-left: 0;
-}
-
-/* --- TOP BAR --- */
-.top-bar {
-    height: 70px;
+    justify-content: center; /* Sentrerer alt horisontalt */
+    padding: 25px;
     background: var(--white);
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-    gap: 15px;
     border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 3000;
 }
 
-.menu-toggle {
-    background: #f1f2f6;
-    border: none;
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    cursor: pointer;
+.centered-tools {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    transition: all 0.2s;
+    gap: 40px; /* Her styrer du mengden luft mellom måned og knapp */
+    width: 100%;
+    max-width: 800px;
 }
 
-.menu-toggle:hover { background: var(--primary); color: white; }
-
-.section-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-/* --- FILTER BAR (Minimalistisk verktøylinje) --- */
-.filter-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 25px;
-    background: var(--white);
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* Renere månedvelger */
+/* Månedvelger */
 .select-input-clean {
-    padding: 10px 15px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
     background: #f9f9fb;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-main);
     cursor: pointer;
     outline: none;
     transition: all 0.2s;
 }
 
-.select-input-clean:hover { border-color: var(--primary); }
+.select-input-clean:hover { border-color: var(--primary); background: #fff; }
 
-/* SAMMENSLÅTT GRUPPE (Dato + Knapp) */
+/* "Ny økt" Knapp */
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 9px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Expandable Date Picker */
 .unified-input-group {
     display: flex;
     align-items: center;
-    background: #f9f9fb;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 3px;
-    transition: focus-within 0.2s;
+    background: #f1f2f6;
+    border: 2px solid var(--primary);
+    border-radius: 14px;
+    padding: 4px;
+    animation: fadeIn 0.3s ease;
 }
 
-.unified-input-group:focus-within {
-    border-color: var(--primary);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+.hidden { display: none !important; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .date-picker-minimal {
     border: none;
     background: transparent;
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    font-weight: 500;
+    padding: 5px 10px;
+    font-weight: 600;
     outline: none;
-    color: var(--text-main);
 }
 
 .btn-add-inline {
     background: var(--primary);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.2s;
 }
 
-.btn-add-inline:hover { background: var(--primary-dark); }
+.btn-cancel {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0 10px;
+    cursor: pointer;
+}
 
-/* --- TABELL OG STICKY --- */
+/* --- MOBIL --- */
+@media (max-width: 600px) {
+    .centered-tools {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .tool-spacer { display: none; }
+}
+
+/* --- TABELL-STYLING (Sticky-fix inkludert) --- */
 .table-container {
     background: var(--white);
-    border-radius: 12px;
     margin: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border-radius: 12px;
     overflow-x: auto;
-    position: relative;
-    -webkit-overflow-scrolling: touch;
 }
 
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-th, td {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    text-align: center;
-    background: white;
-}
-
-th {
-    background: #f8f9fa;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
+table { width: 100%; border-collapse: separate; border-spacing: 0; }
+th, td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: center; }
 
 .name-col {
     position: sticky;
     left: 0;
     z-index: 10;
-    background-color: white !important;
-    min-width: 160px;
-    text-align: left;
+    background: white !important;
     font-weight: 600;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
-}
-
-thead th.name-col { z-index: 11; background-color: #f8f9fa !important; }
-
-/* STATUS-IKONER */
-.status-cell { cursor: pointer; font-size: 1.3rem; transition: background 0.2s; }
-.status-cell:hover { background: var(--hover-bg); }
-.status-present { color: var(--success); }
-.status-absent { color: var(--danger); opacity: 0.4; }
-.status-injured { color: var(--warning); }
-.status-none { color: #dcdde1; }
-
-.day-type {
-    font-size: 0.65rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-top: 5px;
-    display: inline-block;
-}
-.day-type-training { background: var(--primary); color: white; }
-.day-type-match { background: #9b59b6; color: white; }
-
-/* --- MOBIL-TILPASNING --- */
-@media (max-width: 768px) {
-    .main-content { margin-left: 0 !important; width: 100%; }
-    
-    .sidebar {
-        top: 70px;
-        height: calc(100vh - 70px);
-        transform: translateX(-260px);
-    }
-    
-    .sidebar:not(.collapsed) { transform: translateX(0); }
-    
-    .nav-links { padding-top: 20px; }
-    
-    .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        padding: 15px;
-    }
-    
-    .unified-input-group { justify-content: space-between; }
-    
-    .btn-add-inline span { display: none; } /* Viser kun + på mobil for å spare plass */
-    
-    .name-col { min-width: 130px; font-size: 0.85rem; }
+    min-width: 150px;
+    text-align: left;
+    border-right: 2px solid var(--border-color);
 }
