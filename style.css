@@ -102,13 +102,19 @@ body {
 
 /* --- HOVEDINNHOLD --- */
 .main-content {
-    flex: 1;
-    margin-left: 260px; /* Samme som sidebar-bredde */
-    transition: margin-left 0.3s ease;
-    display: flex;
-    flex-direction: column;
+    overflow: visible !important;
 }
 
+@media (max-width: 600px) {
+    th, td {
+        padding: 10px 5px;
+        font-size: 0.8rem;
+    }
+
+.date-header {
+        min-width: 45px;
+    }
+    
 .sidebar.collapsed + .main-content {
     margin-left: 0;
 }
@@ -177,16 +183,19 @@ body {
 /* --- TABELLER (Oppmøte & Spillere) --- */
 /* Containeren må ha overflow-x for at sticky skal virke */
 .table-container {
+    position: relative; /* Viktig for sticky */
     overflow-x: auto;
-    max-width: 100%;
-    border-radius: 12px;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; /* Gjør rullingen silkemyk på iPhone */
     background: var(--white);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border-radius: 12px;
+    margin: 10px 15px; /* Litt mindre margin på mobil */
 }
 
 table {
+    border-collapse: separate; /* VIKTIG: Sticky fungerer best med 'separate' enn 'collapse' */
+    border-spacing: 0;
     width: 100%;
-    border-collapse: collapse;
 }
 
 th, td {
@@ -205,19 +214,23 @@ th {
 
 /* Gjør navnekolonnen sticky */
 .name-col {
+    position: -webkit-sticky; /* For Safari (iPhone) */
     position: sticky;
     left: 0;
-    z-index: 10; /* Ligger over status-cellene */
-    background-color: var(--white); /* Viktig: må ha bakgrunn for å ikke være gjennomsiktig */
+    z-index: 5;
+    background-color: var(--white) !important; /* Må ha solid farge */
     border-right: 2px solid var(--border-color);
-    text-align: left;
-    min-width: 160px;
+    min-width: 140px; /* Litt smalere på mobil for å spare plass */
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Sørg for at hjørne-cellen (øverst til venstre) også er låst */
 thead th.name-col {
-    z-index: 20; /* Enda høyere for å ligge over dato-overskriftene */
-    background-color: #fcfcfc;
+    z-index: 10;
+    background-color: #f8f9fa !important;
 }
 
 /* Valgfritt: legg til en liten skygge når man scroller */
