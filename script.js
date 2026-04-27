@@ -6,6 +6,7 @@
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
 
+    // Sikkerhet: Avbryt hvis vi ikke er på oppmøte-siden
     if (!monthSelect || !tableHead || !tableBody) return;
 
     function getMonthIndex() {
@@ -149,7 +150,7 @@
             bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
         });
 
-        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Ingen aktive spillere funnet.</td></tr>';
+        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Venter på spillere fra skyen...</td></tr>';
     };
 
     window.addDate = function() {
@@ -159,8 +160,7 @@
         const m = date.getMonth();
         const d = date.getDate();
         
-        const key = getDayTypeKey(m, d);
-        localStorage.setItem(key, 'T');
+        localStorage.setItem(getDayTypeKey(m, d), 'T');
         
         if (window.dbSet && window.db) {
             const path = `dayTypes/${currentYear}/${m}/${d}`;
@@ -173,13 +173,23 @@
 
     monthSelect.addEventListener('change', () => window.renderAttendanceTable());
     
-    // Initial oppstart
+    // Start opp siden
     populateMonthSelect();
     window.renderAttendanceTable();
 
-    // --- FORBEDRET SKY-SYNKRONISERING ---
+    // --- SKY-SYNKRONISERING (Firebase lyttere) ---
     if (window.dbOnValue && window.dbRef && window.db) {
-        // 1. Lytt på oppmøte
+        
+        // A. Lytt på spillere (Sørger for at rader dukker opp)
+        window.dbOnValue(window.dbRef(window.db, 'players/'), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                localStorage.setItem('full-spillerliste', JSON.stringify(data));
+                window.renderAttendanceTable();
+            }
+        });
+
+        // B. Lytt på oppmøte-status
         const attRef = window.dbRef(window.db, 'attendance/');
         window.dbOnValue(attRef, (snapshot) => {
             const data = snapshot.val();
@@ -197,7 +207,7 @@
             }
         });
 
-        // 2. Lytt på dagstyper (T/K)
+        // C. Lytt på dagstyper (T/K)
         const typeRef = window.dbRef(window.db, 'dayTypes/');
         window.dbOnValue(typeRef, (snapshot) => {
             const data = snapshot.val();
