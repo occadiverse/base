@@ -20,60 +20,66 @@ document.addEventListener('DOMContentLoaded', () => {
         const countBadge = document.getElementById('playerCountBadge');
         const detailsDiv = document.getElementById('matchInfoDetails');
         
-        // Konverter 2026-04-29 til DD.MM.YYYY
-        // Vi bruker parseInt på dag/måned for å fjerne ledende nuller (04 blir 4)
-        // Dette må matche formatet du bruker i script.js
+        // Konverter 2026-04-29 (fra input) til 29-04-2026 (for Firebase)
         const parts = date.split('-');
-        const day = parseInt(parts[2]);
-        const month = parseInt(parts[1]);
-        const year = parts[0];
-        const formattedDate = `${day}.${month}.${year}`;
+        const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
         
         document.getElementById('infoTitle').innerText = `Kamp: ${opponent}`;
-        detailsDiv.innerHTML = `<strong>Dato:</strong> ${formattedDate}<br><strong>Tid:</strong> ${time}<br><strong>Bane:</strong> ${pitch}`;
+        detailsDiv.innerHTML = `
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formattedDate.replace(/-/g, '.')}</div>
+            <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
+            <div><strong>Bane:</strong> ${pitch}</div>
+        `;
 
-        playerListUl.innerHTML = '<li style="padding: 15px;">Henter tropp...</li>';
+        playerListUl.innerHTML = '<li style="padding: 15px; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Henter tropp...</li>';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // Vi henter både oppmøte og spillere for å være sikker på synkronisering
-        window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-            const rootData = snapshot.val();
-            const enrolled = rootData.attendance ? rootData.attendance[formattedDate] : null;
-            const allPlayers = rootData.players;
+        // Hent data fra den lovlige mappen (med bindestrek)
+        const attendanceRef = window.dbRef(window.db, `attendance/${formattedDate}`);
+        const playersRef = window.dbRef(window.db, 'players');
 
-            playerListUl.innerHTML = '';
-            let count = 0;
+        // Vi henter data én gang (dbGet) for å være raske og effektive
+        window.dbOnValue(attendanceRef, (snap) => {
+            const enrolled = snap.val(); 
+            
+            window.dbOnValue(playersRef, (pSnap) => {
+                const allPlayers = pSnap.val();
+                playerListUl.innerHTML = '';
+                let count = 0;
 
-            if (enrolled && allPlayers) {
-                // Lag en liste over navn for de som har status "K"
-                const list = [];
-                Object.entries(enrolled).forEach(([pId, status]) => {
-                    if (status === 'K' && allPlayers[pId]) {
-                        list.push(allPlayers[pId].name);
-                    }
-                });
+                if (enrolled && allPlayers) {
+                    // Finn alle som har status "K"
+                    const list = [];
+                    Object.entries(enrolled).forEach(([pId, status]) => {
+                        if (status === 'K' && allPlayers[pId]) {
+                            list.push(allPlayers[pId].name);
+                        }
+                    });
 
-                // Sorter listen alfabetisk
-                list.sort((a, b) => a.localeCompare(b, 'nb'));
+                    // Sorter navnene
+                    list.sort((a, b) => a.localeCompare(b, 'nb'));
 
-                list.forEach(name => {
-                    count++;
-                    const li = document.createElement('li');
-                    li.style.padding = '10px';
-                    li.style.borderBottom = '1px solid #eee';
-                    li.innerHTML = `<i class="fa-solid fa-check" style="color:green"></i> ${name}`;
-                    playerListUl.appendChild(li);
-                });
-            }
+                    list.forEach(name => {
+                        count++;
+                        const li = document.createElement('li');
+                        li.style.padding = '12px 15px';
+                        li.style.borderBottom = '1px solid #eee';
+                        li.style.display = 'flex';
+                        li.style.alignItems = 'center';
+                        li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${name}`;
+                        playerListUl.appendChild(li);
+                    });
+                }
 
-            countBadge.innerText = count;
-            if (count === 0) {
-                playerListUl.innerHTML = '<li style="padding:20px; text-align:center; color:#888;">Ingen spillere er markert som klare i oppmøte-fanen.</li>';
-            }
+                countBadge.innerText = count;
+                if (count === 0) {
+                    playerListUl.innerHTML = '<li style="padding:25px; text-align:center; color:#888;">Ingen spillere er markert som klare (K) i oppmøte-fanen ennå.</li>';
+                }
+            }, { onlyOnce: true });
         }, { onlyOnce: true });
     };
 
-    // Funksjon for å fylle modalen med eksisterende data for redigering
+    // --- REDIGERING OG SLETTING (Standard funksjonalitet) ---
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
         document.getElementById('editMatchId').value = id;
@@ -83,14 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('pitch').value = pitch === 'Ikke satt' ? '' : pitch;
         document.getElementById('matchType').value = type;
         document.getElementById('result').value = result === '-' ? '' : result;
-        
         document.getElementById('matchModal').style.display = 'flex';
     };
 
-    // Lagre eller Oppdatere kamp
     matchForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
         const matchId = document.getElementById('editMatchId').value;
         const matchData = {
             date: document.getElementById('matchDate').value,
@@ -102,60 +105,33 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (matchId) {
-            window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData)
-                .then(() => { closeMatchModal(); })
-                .catch(error => console.error("Feil ved oppdatering:", error));
+            window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData).then(() => closeMatchModal());
         } else {
             const matchRef = window.dbPush(window.dbRef(window.db, 'matches'));
-            window.dbSet(matchRef, matchData)
-                .then(() => { closeMatchModal(); })
-                .catch(error => console.error("Feil ved lagring:", error));
+            window.dbSet(matchRef, matchData).then(() => closeMatchModal());
         }
     });
 
-    // Lese kamper fra Firebase og tegne tabell
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         matchTableBody.innerHTML = '';
-        
         if (data) {
             const sortedMatches = Object.entries(data).sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
-            
             sortedMatches.forEach(([id, match]) => {
                 const d = new Date(match.date);
                 const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-
                 const row = `
                     <tr>
+                        <td><div style="font-weight:600;">${shortDate}</div><div style="font-size:0.8em; color:#666;">kl. ${match.time}</div></td>
+                        <td class="text-left"><span style="font-weight:700; color:var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="showMatchInfo('${id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">${match.opponent}</span></td>
+                        <td><div style="background:#f0f2f5; padding:3px 8px; border-radius:4px; font-weight:800;">${match.result}</div></td>
+                        <td style="font-size:0.9em; opacity:0.8;">${match.pitch}</td>
+                        <td style="font-size:0.9em; opacity:0.8;">${match.type}</td>
                         <td>
-                            <div style="font-weight: 600; text-transform: capitalize;">${shortDate}</div>
-                            <div style="font-size: 0.85em; color: #666;">kl. ${match.time}</div>
+                            <button onclick="openEditMatch('${id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" style="background:none; border:none; color:var(--primary-color); cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteMatch('${id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                         </td>
-                        <td class="text-left">
-                            <span style="font-weight: 700; color: var(--primary-color); cursor: pointer; text-decoration: underline;" 
-                                  onclick="showMatchInfo('${id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
-                                ${match.opponent}
-                            </span>
-                        </td>
-                        <td>
-                            <div style="display: inline-block; min-width: 60px; text-align: center; background: #f0f2f5; padding: 3px 6px; border-radius: 4px; font-weight: 800; color: var(--primary-color); font-family: 'Courier New', Courier, monospace; font-size: 0.9em;">
-                                ${match.result}
-                            </div>
-                        </td>
-                        <td style="font-size: 0.9em; opacity: 0.8;">${match.pitch}</td>
-                        <td style="font-size: 0.9em; opacity: 0.8;">${match.type}</td>
-                        <td>
-                            <div style="display: flex; gap: 10px; justify-content: center;">
-                                <button onclick="openEditMatch('${id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" style="background:none; border:none; color:var(--primary-color); cursor:pointer;">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <button onclick="deleteMatch('${id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                    </tr>`;
                 matchTableBody.innerHTML += row;
             });
         } else {
