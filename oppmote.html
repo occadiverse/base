@@ -145,7 +145,7 @@
             // 2. NYTT format for kampsiden (DD.MM.YYYY)
             const d = dayNr.toString().padStart(2, '0');
             const m = (monthIdx + 1).toString().padStart(2, '0');
-            const dateKey = `${d}.${m}.${currentYear}`;
+            const dateKey = `${d}-${m}-${currentYear}`;
             const matchStatus = nextStatus === 'present' ? 'K' : null;
             
             window.dbSet(window.dbRef(window.db, `attendance/${dateKey}/${playerId}`), matchStatus);
