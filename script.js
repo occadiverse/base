@@ -6,9 +6,9 @@
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
 
-    // Sikkerhet: Avbryt hvis vi ikke er på oppmøte-siden
     if (!monthSelect || !tableHead || !tableBody) return;
 
+    // --- 1. HJELPEFUNKSJONER ---
     function getMonthIndex() {
         return parseInt(monthSelect.value, 10);
     }
@@ -29,6 +29,7 @@
         });
     }
 
+    // --- 2. UI KONTROLLERE (Globalt tilgjengelige) ---
     window.showDatePicker = function() {
         const btn = document.getElementById('toggleDateBtn');
         const container = document.getElementById('datePickerContainer');
@@ -69,12 +70,10 @@
     window.cycleStatus = function(playerId, dayNr) {
         const monthIdx = getMonthIndex();
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
-        
         const states = ['?', 'present', 'absent', 'injured'];
         let currentIndex = states.indexOf(currentStatus);
-        if (currentIndex === -1) currentIndex = 0;
-        
         const nextStatus = states[(currentIndex + 1) % states.length];
+        
         DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
         window.renderAttendanceTable();
     };
@@ -96,18 +95,18 @@
         return days;
     }
 
+    // --- 3. RENDERING AV TABELL ---
     window.renderAttendanceTable = function() {
         const monthIdx = getMonthIndex();
         const players = DB.getActivePlayers();
         const days = getTrainingDays(monthIdx);
 
-        // 1. GENERER TABELLHODE
+        // Header
         let headHtml = '<tr><th class="name-col">Spiller</th>';
         days.forEach(d => {
             const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr)) || 'X';
             const badgeClass = type === 'T' ? 'day-type day-type-training' : (type === 'K' ? 'day-type day-type-match' : 'day-type');
             const label = type === 'X' ? '-' : type;
-            
             headHtml += `
                 <th class="date-header" onclick="toggleDayType(${d.nr})" style="cursor:pointer">
                     <span class="date-weekday">${d.navn}</span><br>${d.nr}.<br>
@@ -117,7 +116,7 @@
         headHtml += '<th class="stat-col">%</th></tr>';
         tableHead.innerHTML = headHtml;
 
-        // 2. GENERER TABELLRADER
+        // Rader
         let bodyHtml = '';
         players.forEach(player => {
             bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
@@ -134,13 +133,9 @@
                 }
 
                 let iconHtml = '<i class="fa-solid fa-minus status-none"></i>';
-                if (status === 'present') {
-                    iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
-                } else if (status === 'absent') {
-                    iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
-                } else if (status === 'injured') {
-                    iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
-                }
+                if (status === 'present') iconHtml = '<i class="fa-solid fa-circle-check status-present"></i>';
+                else if (status === 'absent') iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
+                else if (status === 'injured') iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
 
                 bodyHtml += `<td class="status-cell" onclick="cycleStatus('${player.id}', ${d.nr})">${iconHtml}</td>`;
             });
@@ -150,7 +145,7 @@
             bodyHtml += `<td class="stat-col ${statClass}"><strong>${percent}%</strong></td></tr>`;
         });
 
-        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Venter på spillere fra skyen...</td></tr>';
+        tableBody.innerHTML = bodyHtml || '<tr><td colspan="100%">Laster spillere fra skyen...</td></tr>';
     };
 
     window.addDate = function() {
@@ -159,69 +154,67 @@
         const date = new Date(input.value);
         const m = date.getMonth();
         const d = date.getDate();
-        
         localStorage.setItem(getDayTypeKey(m, d), 'T');
-        
         if (window.dbSet && window.db) {
-            const path = `dayTypes/${currentYear}/${m}/${d}`;
-            window.dbSet(window.dbRef(window.db, path), 'T');
+            window.dbSet(window.dbRef(window.db, `dayTypes/${currentYear}/${m}/${d}`), 'T');
         }
         monthSelect.value = m;
         window.renderAttendanceTable();
         hideDatePicker(); 
     };
 
-    monthSelect.addEventListener('change', () => window.renderAttendanceTable());
-    
-    // Start opp siden
-    populateMonthSelect();
-    window.renderAttendanceTable();
+    // --- 4. MASTER SYNKRONISERING (Firebase Lytter) ---
+    function setupCloudListeners() {
+        if (!window.dbOnValue || !window.dbRef || !window.db) {
+            console.log("Venter på Firebase...");
+            setTimeout(setupCloudListeners, 500);
+            return;
+        }
 
-    // --- SKY-SYNKRONISERING (Firebase lyttere) ---
-    if (window.dbOnValue && window.dbRef && window.db) {
-        
-        // A. Lytt på spillere (Sørger for at rader dukker opp)
-        window.dbOnValue(window.dbRef(window.db, 'players/'), (snapshot) => {
+        // Lytter på HELE databasen for å holde alt i synk
+        window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                localStorage.setItem('full-spillerliste', JSON.stringify(data));
-                window.renderAttendanceTable();
+            if (!data) return;
+
+            console.log("Sky-data mottatt, oppdaterer mobil...");
+
+            // A. Synk spillere
+            if (data.players) {
+                localStorage.setItem('full-spillerliste', JSON.stringify(data.players));
             }
-        });
 
-        // B. Lytt på oppmøte-status
-        const attRef = window.dbRef(window.db, 'attendance/');
-        window.dbOnValue(attRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                for (let y in data) {
-                    for (let m in data[y]) {
-                        for (let pId in data[y][m]) {
-                            for (let d in data[y][m][pId]) {
+            // B. Synk oppmøte-statuser
+            if (data.attendance) {
+                for (let y in data.attendance) {
+                    for (let m in data.attendance[y]) {
+                        for (let pId in data.attendance[y][m]) {
+                            for (let d in data.attendance[y][m][pId]) {
                                 localStorage.setItem(`att-base-${y}-${m}-${pId}-${d}`, data[y][m][pId][d]);
                             }
                         }
                     }
                 }
-                window.renderAttendanceTable();
             }
-        });
 
-        // C. Lytt på dagstyper (T/K)
-        const typeRef = window.dbRef(window.db, 'dayTypes/');
-        window.dbOnValue(typeRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                for (let y in data) {
-                    for (let m in data[y]) {
-                        for (let d in data[y][m]) {
+            // C. Synk dagstyper (T/K)
+            if (data.dayTypes) {
+                for (let y in data.dayTypes) {
+                    for (let m in data.dayTypes[y]) {
+                        for (let d in data.dayTypes[y][m]) {
                             localStorage.setItem(`type-${y}-${m}-${d}`, data[y][m][d]);
                         }
                     }
                 }
-                window.renderAttendanceTable();
             }
+
+            window.renderAttendanceTable();
         });
     }
+
+    // --- 5. OPPSTART ---
+    monthSelect.addEventListener('change', () => window.renderAttendanceTable());
+    populateMonthSelect();
+    window.renderAttendanceTable();
+    setupCloudListeners();
 
 })();
