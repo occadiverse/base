@@ -77,8 +77,8 @@
         document.getElementById('submitBtn').innerText = 'Lagre Spiller';
     }
 
-    function renderPlayers() {
-        // Sorterer alfabetisk eller etter nummer hvis ønskelig
+    window.renderPlayers = function() {
+        // Sorterer alfabetisk
         const sorted = [...spillerliste].sort((a, b) => a.navn.localeCompare(b.navn));
         
         tableBody.innerHTML = sorted.map(s => `
@@ -97,4 +97,21 @@
     }
 
     renderPlayers();
+
+    // --- LIVE SYNKRONISERING AV SPILLERLISTE FRA FIREBASE ---
+    if (window.dbOnValue && window.dbRef && window.db) {
+        const playersRef = window.dbRef(window.db, 'players/');
+        window.dbOnValue(playersRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                console.log("Spillerliste oppdatert fra skyen...");
+                // Oppdaterer den lokale variabelen og localStorage
+                spillerliste = data;
+                localStorage.setItem('full-spillerliste', JSON.stringify(data));
+                // Tegner tabellen på nytt
+                renderPlayers();
+            }
+        });
+    }
+
 })();
