@@ -153,6 +153,10 @@ body {
     border: 1px solid transparent;
 }
 
+.custom-select-wrapper i {
+    margin-right: 8px; /* Gir luft mellom ikonet og tekst/select-boks */
+}
+
 .btn-outline:hover, .custom-select-wrapper:hover {
     background: #e8eaef;
     border-color: #ced4da;
