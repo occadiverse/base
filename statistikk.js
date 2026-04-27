@@ -8,19 +8,16 @@
         const currentYear = new Date().getFullYear();
         const showTotal = periodSelect.value === 'total';
 
-        let html = '';
+        let playerStats = [];
 
+        // 1. Beregn statistikk for alle spillere
         players.forEach(player => {
             let tCount = 0; // Treninger
             let kCount = 0; // Kamper
-            let sCount = 0; // Skader
             let possible = 0;
             let attended = 0;
 
-            // Her går vi gjennom dataene i localStorage (som synkes fra Firebase)
-            // Vi looper gjennom dagene 1-31
             for (let m = 0; m <= 11; m++) {
-                // Hvis vi bare skal vise denne måneden, hopp over andre måneder
                 if (!showTotal && m !== currentMonth) continue;
 
                 for (let d = 1; d <= 31; d++) {
@@ -31,8 +28,6 @@
                         attended++;
                         if (type === 'K') kCount++;
                         else tCount++;
-                    } else if (status === 'injured') {
-                        sCount++;
                     }
 
                     if (type === 'T' || type === 'K') {
@@ -42,31 +37,46 @@
             }
 
             const percent = possible > 0 ? Math.round((attended / possible) * 100) : 0;
-            const statClass = percent >= 80 ? 'stat-good' : (percent >= 50 ? 'stat-mid' : 'stat-low');
+            
+            playerStats.push({
+                navn: player.navn,
+                tCount: tCount,
+                kCount: kCount,
+                percent: percent
+            });
+        });
+
+        // 2. SORTERING: Høyest prosent øverst
+        playerStats.sort((a, b) => b.percent - a.percent);
+
+        // 3. GENERER HTML
+        let html = '';
+        playerStats.forEach(p => {
+            const statClass = p.percent >= 80 ? 'stat-good' : (p.percent >= 50 ? 'stat-mid' : 'stat-low');
 
             html += `
                 <tr>
-                    <td class="name-col">${player.navn}</td>
-                    <td>${tCount}</td>
-                    <td>${kCount}</td>
-                    <td>${sCount}</td>
-                    <td class="stat-col ${statClass}"><strong>${percent}%</strong></td>
+                    <td class="name-col">${p.navn}</td>
+                    <td>${p.tCount}</td>
+                    <td>${p.kCount}</td>
+                    <td class="stat-col ${statClass}"><strong>${p.percent}%</strong></td>
                 </tr>
             `;
         });
 
-        statsBody.innerHTML = html || '<tr><td colspan="5">Ingen data funnet.</td></tr>';
+        statsBody.innerHTML = html || '<tr><td colspan="4">Ingen data funnet.</td></tr>';
     }
 
-    // Lytt på endringer i dropdown
-    periodSelect.addEventListener('change', renderStats);
+    // Event listeners
+    if (periodSelect) {
+        periodSelect.addEventListener('change', renderStats);
+    }
 
-    // Initial kjøring - vent litt på Firebase hvis nødvendig
+    // Kjør ved oppstart
     setTimeout(renderStats, 500);
 
-    // Live-oppdatering hvis noen endrer noe mens du ser på
+    // Live-oppdatering fra Firebase
     if (window.dbOnValue && window.dbRef && window.db) {
         window.dbOnValue(window.dbRef(window.db, 'attendance/'), renderStats);
     }
-
 })();
