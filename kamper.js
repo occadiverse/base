@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const matchTableBody = document.getElementById('matchTableBody');
     const matchForm = document.getElementById('matchForm');
 
-    // Åpne/Lukke modal
+    // Åpne/Lukke modal for registrering
     window.openMatchModal = () => {
         document.getElementById('modalTitle').innerText = 'Registrer kamp';
         document.getElementById('matchModal').style.display = 'flex';
@@ -12,6 +12,59 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('matchModal').style.display = 'none';
         matchForm.reset();
         document.getElementById('editMatchId').value = ''; 
+    };
+
+    // --- NY FUNKSJON: VIS KAMP-INFO OG SPILLERE ---
+    window.showMatchInfo = (id, date, opponent, time, pitch) => {
+        const detailsDiv = document.getElementById('matchInfoDetails');
+        const playerListUl = document.getElementById('matchPlayerList');
+        const countBadge = document.getElementById('playerCountBadge');
+        
+        document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
+        detailsDiv.innerHTML = `
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${date}</div>
+            <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
+            <div><strong>Bane:</strong> ${pitch}</div>
+        `;
+
+        playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
+        document.getElementById('matchInfoModal').style.display = 'flex';
+
+        // 1. Hent oppmøte-data for denne datoen
+        window.dbOnValue(window.dbRef(window.db, `attendance/${date}`), (snapshot) => {
+            const attendanceData = snapshot.val();
+            
+            // 2. Hent spiller-navn for å matche ID-ene
+            window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
+                const players = playerSnapshot.val();
+                playerListUl.innerHTML = '';
+                let count = 0;
+
+                if (attendanceData && players) {
+                    // Sorter spillere alfabetisk
+                    const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                    
+                    playerEntries.forEach(([playerId, playerInfo]) => {
+                        // Sjekk om spilleren er markert med "K" (Kamp) for denne datoen
+                        if (attendanceData[playerId] === 'K') {
+                            count++;
+                            const li = document.createElement('li');
+                            li.style.padding = '10px 15px';
+                            li.style.borderBottom = '1px solid #eee';
+                            li.style.display = 'flex';
+                            li.style.alignItems = 'center';
+                            li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${playerInfo.name}`;
+                            playerListUl.appendChild(li);
+                        }
+                    });
+                }
+
+                countBadge.innerText = count;
+                if (count === 0) {
+                    playerListUl.innerHTML = '<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er påmeldt (status K) i oppmøteskjemaet for denne datoen.</li>';
+                }
+            }, { onlyOnce: true });
+        }, { onlyOnce: true });
     };
 
     // Funksjon for å fylle modalen med eksisterende data for redigering
@@ -73,7 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div style="font-size: 0.85em; color: #666;">kl. ${match.time}</div>
                         </td>
                         <td class="text-left">
-                            <span style="font-weight: 700;">${match.opponent}</span>
+                            <span style="font-weight: 700; color: var(--primary-color); cursor: pointer; text-decoration: underline;" 
+                                  onclick="showMatchInfo('${id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
+                                ${match.opponent}
+                            </span>
                         </td>
                         <td>
                             <div style="
