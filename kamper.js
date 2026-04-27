@@ -16,66 +16,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VIS KAMP-INFO OG SPILLERE ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
-        const detailsDiv = document.getElementById('matchInfoDetails');
         const playerListUl = document.getElementById('matchPlayerList');
         const countBadge = document.getElementById('playerCountBadge');
+        const detailsDiv = document.getElementById('matchInfoDetails');
         
-        // Formater datoen nøyaktig slik script.js nå lagrer den: DD.MM.YYYY
-        const parts = date.split('-'); // Fra 2026-04-29
-        const day = parts[2].padStart(2, '0');
-        const month = parts[1].padStart(2, '0');
-        const year = parts[0];
+        // Formater dato til DD.MM.YYYY
+        const [year, month, day] = date.split('-');
         const formattedDate = `${day}.${month}.${year}`;
         
         document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
         detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formattedDate}</div>
-            <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
+            <div><strong>Dato:</strong> ${formattedDate}</div>
+            <div><strong>Tid:</strong> kl. ${time}</div>
             <div><strong>Bane:</strong> ${pitch}</div>
         `;
 
-        playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
+        // Start tilstand
+        playerListUl.innerHTML = '<li style="padding: 10px;">Henter spillere...</li>';
+        countBadge.innerText = '0';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // 1. Hent oppmøte-data fra den flate strukturen (attendance/DD.MM.YYYY)
-        window.dbOnValue(window.dbRef(window.db, `attendance/${formattedDate}`), (snapshot) => {
-            const attendanceData = snapshot.val();
+        // Bruk dbGet (henter én gang) i stedet for dbOnValue (lytter hele tiden)
+        const attendanceRef = window.dbRef(window.db, `attendance/${formattedDate}`);
+        const playersRef = window.dbRef(window.db, 'players');
+
+        // Hent begge deler samtidig
+        Promise.all([
+            window.dbGet(attendanceRef),
+            window.dbGet(playersRef)
+        ]).then((snapshots) => {
+            const attendanceData = snapshots[0].val();
+            const players = snapshots[1].val();
             
-            // 2. Hent spillernavn for å koble ID til navn
-            window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
-                const players = playerSnapshot.val();
-                playerListUl.innerHTML = '';
-                let count = 0;
+            playerListUl.innerHTML = '';
+            let count = 0;
 
-                if (attendanceData && players) {
-                    // Hent alle spiller-IDer som har status "K" i denne mappen
-                    const activePlayerIds = Object.keys(attendanceData).filter(pId => attendanceData[pId] === 'K');
-                    
-                    // Lag en liste med spillernavn for de som er påmeldt
-                    const enrolledPlayers = activePlayerIds
-                        .map(pId => ({ id: pId, name: players[pId] ? players[pId].name : "Ukjent spiller" }))
-                        .sort((a, b) => a.name.localeCompare(b.name));
+            if (attendanceData && players) {
+                // Lag liste over spillere som har status "K"
+                const list = Object.entries(attendanceData)
+                    .filter(([pId, status]) => status === 'K' && players[pId])
+                    .map(([pId, status]) => players[pId].name)
+                    .sort((a, b) => a.localeCompare(b, 'nb'));
 
-                    enrolledPlayers.forEach(player => {
-                        count++;
-                        const li = document.createElement('li');
-                        li.style.padding = '10px 15px';
-                        li.style.borderBottom = '1px solid #eee';
-                        li.style.display = 'flex';
-                        li.style.alignItems = 'center';
-                        li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${player.name}`;
-                        playerListUl.appendChild(li);
-                    });
-                }
+                list.forEach(name => {
+                    count++;
+                    const li = document.createElement('li');
+                    li.style.padding = '10px 15px';
+                    li.style.borderBottom = '1px solid #eee';
+                    li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${name}`;
+                    playerListUl.appendChild(li);
+                });
+            }
 
-                countBadge.innerText = count;
-                if (count === 0) {
-                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er markert som klare for kamp (K) på denne datoen.</li>`;
-                }
-            }, { onlyOnce: true });
-        }, { onlyOnce: true });
+            countBadge.innerText = count;
+            if (count === 0) {
+                playerListUl.innerHTML = '<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere markert som klare (K).</li>';
+            }
+        }).catch((error) => {
+            console.error("Feil ved henting av data:", error);
+            playerListUl.innerHTML = '<li style="padding: 20px; color: red;">Kunne ikke koble til databasen.</li>';
+        });
     };
-
+    
     // Funksjon for å fylle modalen med eksisterende data for redigering
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
