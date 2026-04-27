@@ -23,38 +23,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const parts = date.split('-'); 
     const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
     
-    // 1. Overskrift (Motstander)
+    // 1. Overskrift - Vi legger på 20px padding her også for å være helt sikre
     infoTitle.innerText = opponent;
+    infoTitle.style.padding = '0 20px'; 
     infoTitle.style.fontSize = '1.8em';
     infoTitle.style.fontWeight = '800';
-    infoTitle.style.textAlign = 'left';
-    infoTitle.style.marginBottom = '10px';
 
-    // 2. Info-felt med mer luft og venstrestilt innhold
+    // 2. Info-felt med padding på 20px på sidene
+    detailsDiv.style.padding = '0 20px'; // Dette gir luften du savner til venstre
     detailsDiv.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; color: #666; font-size: 1em; border-bottom: 1px solid #eee; padding-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fa-regular fa-calendar" style="width: 20px;"></i> 
+                <i class="fa-regular fa-calendar" style="width: 20px; color: #007bff;"></i> 
                 <span>${formattedDate} kl. ${time}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-location-dot" style="width: 20px;"></i> 
+                <i class="fa-solid fa-location-dot" style="width: 20px; color: #007bff;"></i> 
                 <span>${pitch}</span>
             </div>
         </div>
         
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
             <span style="font-weight: 700; font-size: 1.15em; color: #222;">Påmeldte spillere</span>
-            <span id="pilleAntall" style="background: #007bff; color: white; padding: 2px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85em; box-shadow: 0 2px 4px rgba(0,123,255,0.2);">0</span>
+            <span id="pilleAntall" style="background: #007bff; color: white; padding: 2px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85em;">0</span>
         </div>
     `;
 
-    // 3. Spillerlisten (Grid) - Venstrestilt
+    // 3. Spillerlisten (Grid) med padding på 20px på sidene
+    playerListUl.style.padding = '0 20px 20px 20px'; 
     playerListUl.style.display = 'grid';
     playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
     playerListUl.style.gap = '10px';
-    playerListUl.style.padding = '0';
-    playerListUl.innerHTML = '<div style="grid-column: 1/-1; padding:20px; color:#999;">Henter tropp...</div>';
+    playerListUl.innerHTML = '<div style="grid-column: 1/-1; color:#999;">Henter tropp...</div>';
 
     document.getElementById('matchInfoModal').style.display = 'flex';
 
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement('div');
                 item.style.background = '#fcfcfc';
                 item.style.border = '1px solid #efefef';
-                item.style.padding = '12px 10px';
+                item.style.padding = '12px 5px';
                 item.style.borderRadius = '6px';
                 item.style.textAlign = 'center';
                 item.style.fontWeight = '600';
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerListUl.appendChild(item);
             });
         } else {
-            playerListUl.innerHTML = '<div style="grid-column: 1/-1; padding:20px; color:#999; font-style:italic;">Ingen spillere er påmeldt ennå.</div>';
+            playerListUl.innerHTML = '<div style="grid-column: 1/-1; color:#999; font-style:italic;">Ingen spillere er påmeldt.</div>';
         }
     }, { onlyOnce: true });
 };
