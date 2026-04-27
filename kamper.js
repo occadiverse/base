@@ -18,15 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
     const playerListUl = document.getElementById('matchPlayerList');
     const countBadge = document.getElementById('playerCountBadge');
+    const detailsDiv = document.getElementById('matchInfoDetails');
+    const infoTitle = document.getElementById('infoTitle');
     
-    // 1. Konverter dato
     const parts = date.split('-'); 
     const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
     
-    playerListUl.innerHTML = '<li style="padding: 15px;">Henter tropp...</li>';
+    // Vi setter en midlertidig tittel mens vi henter data
+    infoTitle.innerText = `Kamp: ${opponent}`;
+    detailsDiv.innerHTML = `<strong>Dato:</strong> ${formattedDate.replace(/-/g, '.')} | <strong>Tid:</strong> ${time}`;
+
+    playerListUl.innerHTML = '<li style="padding: 20px; text-align:center; color:#666;">Henter spillere...</li>';
     document.getElementById('matchInfoModal').style.display = 'flex';
 
-    // 2. Hent attendance og spillere samtidig
     window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
         const root = snapshot.val();
         if (!root) return;
@@ -38,41 +42,38 @@ document.addEventListener('DOMContentLoaded', () => {
         let count = 0;
 
         if (enrolled && allPlayers) {
-            // Vi går gjennom alle ID-ene som er i kampspesifikk mappe
+            const list = [];
             Object.entries(enrolled).forEach(([pId, status]) => {
                 if (status === 'K') {
-                    // VIKTIG: Vi leter etter spilleren uavhengig av om ID-en er lang eller kort
-                    // Først sjekker vi om ID-en matcher direkte
-                    let player = allPlayers[pId];
-
-                    // Hvis ikke, leter vi i hele spillerlista etter en spiller som har 
-                    // denne lange ID-en lagret inni seg (hvis de har det)
-                    if (!player) {
-                        player = Object.values(allPlayers).find(p => p.id === pId);
-                    }
-
+                    let player = allPlayers[pId] || Object.values(allPlayers).find(p => p.id === pId);
                     if (player) {
-                        count++;
-                        const li = document.createElement('li');
-                        li.style.padding = '10px';
-                        li.style.borderBottom = '1px solid #eee';
-                        li.innerHTML = `<i class="fa-solid fa-check" style="color:green"></i> ${player.name || player.navn}`;
-                        playerListUl.appendChild(li);
-                    } else {
-                        // NØDLØSNING: Hvis vi fortsatt ikke finner navnet, viser vi at noen er klare
-                        count++;
-                        const li = document.createElement('li');
-                        li.style.padding = '10px';
-                        li.innerHTML = `✅ Spiller (ID: ${pId})`;
-                        playerListUl.appendChild(li);
+                        list.push(player.name || player.navn);
                     }
                 }
             });
+
+            list.sort((a, b) => a.localeCompare(b, 'nb'));
+            count = list.length;
+
+            list.forEach(name => {
+                const li = document.createElement('li');
+                li.style.padding = '12px 20px';
+                li.style.borderBottom = '1px solid #f0f0f0';
+                li.style.fontSize = '1.05em';
+                li.style.color = '#333';
+                li.innerText = name; // Ingen ikon, bare rent navn
+                playerListUl.appendChild(li);
+            });
         }
 
-        countBadge.innerText = count;
+        // Oppdaterer overskriften med antall påmeldte
+        infoTitle.innerText = `Påmeldte spillere (${count})`;
+        
+        // Skjuler den gamle badgen hvis du ikke vil ha den i tillegg
+        if(countBadge) countBadge.style.display = 'none';
+
         if (count === 0) {
-            playerListUl.innerHTML = '<li style="padding:20px; text-align:center;">Ingen spillere markert som klare for denne datoen.</li>';
+            playerListUl.innerHTML = '<li style="padding:30px; text-align:center; color:#999; font-style:italic;">Ingen påmeldte spillere funnet</li>';
         }
     }, { onlyOnce: true });
 };
