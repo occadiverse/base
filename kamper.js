@@ -20,13 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerListUl = document.getElementById('matchPlayerList');
         const countBadge = document.getElementById('playerCountBadge');
         
-        // Konvertering til DD.MM.YYYY
-        const parts = date.split('-');
-        const formattedDateForAttendance = `${parts[2]}.${parts[1]}.${parts[0]}`;
+        // Lag de to mest sannsynlige dato-formatene fra databasen
+        const parts = date.split('-'); // [2026, 04, 29]
+        const formatStandard = `${parts[2]}.${parts[1]}.${parts[0]}`; // 29.04.2026
+        const formatKort = `${parseInt(parts[2])}.${parseInt(parts[1])}.${parts[0]}`; // 29.4.2026
         
         document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
         detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formattedDateForAttendance}</div>
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formatStandard}</div>
             <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
             <div><strong>Bane:</strong> ${pitch}</div>
         `;
@@ -34,10 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // 1. Hent oppmøte-data
-        window.dbOnValue(window.dbRef(window.db, `attendance/${formattedDateForAttendance}`), (snapshot) => {
-            const attendanceData = snapshot.val();
+        // 1. Hent hele attendance-noden for å sjekke begge formater
+        window.dbOnValue(window.dbRef(window.db, 'attendance'), (snapshot) => {
+            const allAttendance = snapshot.val();
             
+            // Finn dataen ved å sjekke begge format-nøklene
+            const attendanceData = allAttendance ? (allAttendance[formatStandard] || allAttendance[formatKort]) : null;
+
             // 2. Hent spiller-navn
             window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
                 const players = playerSnapshot.val();
@@ -48,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
                     
                     playerEntries.forEach(([playerId, playerInfo]) => {
+                        // Sjekk om status er "K"
                         if (attendanceData[playerId] === 'K') {
                             count++;
                             const li = document.createElement('li');
@@ -63,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 countBadge.innerText = count;
                 if (count === 0) {
-                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er markert med "K" for datoen ${formattedDateForAttendance}.</li>`;
+                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er markert med "K" for datoen ${formatStandard}.</li>`;
                 }
             }, { onlyOnce: true });
         }, { onlyOnce: true });
