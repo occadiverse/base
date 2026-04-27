@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard - BSK Fotball</title>
+    <title>BSK Fotball - Hjem</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -16,62 +16,43 @@
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h2 class="section-title">Dashboard</h2>
+            <h2 class="section-title">BSK Herrer A-lag</h2>
         </div>
 
-        <div class="content-inner">
-            <div class="welcome-header">
-                <h1>Bækkelagets Sportsklubb</h1>
-                <p>Oppmøteoversikt og spillerstall</p>
-            </div>
-
-            <div class="dashboard-grid">
-                <div class="stat-card">
-                    <i class="fa-solid fa-users"></i>
-                    <div class="stat-value" id="statActivePlayers">0</div>
-                    <div class="stat-label">Aktive spillere</div>
+        <div class="dashboard-grid">
+            <a href="oppmote.html" class="dash-card">
+                <div class="dash-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="dash-info">
+                    <h3>Oppmøte</h3>
+                    <p>Registrer dagens trening eller kamp</p>
                 </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </a>
 
-                <div class="stat-card">
-                    <i class="fa-solid fa-calendar-check"></i>
-                    <div class="stat-value" id="statMonthlyAttendance">0%</div>
-                    <div class="stat-label">Oppmøte denne mnd</div>
+            <a href="statistikk.html" class="dash-card">
+                <div class="dash-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="dash-info">
+                    <h3>Statistikk</h3>
+                    <p>Se hvem som topper lista denne måneden</p>
                 </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </a>
 
-                <div class="stat-card">
-                    <i class="fa-solid fa-stopwatch"></i>
-                    <div class="stat-value" id="statSessions">0</div>
-                    <div class="stat-label">Økter i år</div>
+            <a href="spillere.html" class="dash-card">
+                <div class="dash-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="dash-info">
+                    <h3>Spillerstall</h3>
+                    <p>Administrer spillere og informasjon</p>
                 </div>
-
-                <div class="stat-card">
-                    <i class="fa-solid fa-crown"></i>
-                    <div class="stat-value" id="statTopPlayer" style="font-size: 1.1rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center;">-</div>
-                    <div class="stat-label">Treningskonge</div>
-                </div>
-            </div>
-
-            <div class="quick-actions" style="margin-top: 30px; display: flex; gap: 10px;">
-                <a href="oppmote.html" class="btn btn-grow-1" style="text-decoration: none; text-align: center;">
-                    <i class="fa-solid fa-clipboard-list"></i> Registrer oppmøte
-                </a>
-                <a href="spillere.html" class="btn btn-muted btn-grow-1" style="text-decoration: none; text-align: center;">
-                    <i class="fa-solid fa-user-plus"></i> Administrer stall
-                </a>
-            </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </a>
         </div>
     </div>
 
-    <script src="database.js"></script>
     <script src="navigation.js"></script>
-    <script src="dashboard.js"></script>
-
     <script>
-        // En ekstra sikkerhet for å tvinge menyen til å laste hvis navigation.js er treg
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof loadNavigation === 'function') {
-                loadNavigation();
-            }
+            if (typeof loadNavigation === 'function') loadNavigation();
         });
     </script>
 </body>
