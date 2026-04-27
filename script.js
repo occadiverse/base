@@ -6,7 +6,6 @@
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
 
-    // Sikkerhet: Avbryt hvis vi ikke er på oppmøte-siden
     if (!monthSelect || !tableHead || !tableBody) return;
 
     function getMonthIndex() {
@@ -23,22 +22,19 @@
         months.forEach((monthName, index) => {
             const option = document.createElement('option');
             option.value = index;
-            // Vi fjerner "2026" fra teksten her hvis du vil ha den helt ren, 
-            // men beholder den hvis du liker det.
             option.textContent = `${monthName} ${currentYear}`;
             if (index === now.getMonth()) option.selected = true;
             monthSelect.appendChild(option);
         });
     }
 
-    // --- VISNING AV DATOVELGER (Oppdatert for ny stil) ---
     window.showDatePicker = function() {
         const btn = document.getElementById('toggleDateBtn');
         const container = document.getElementById('datePickerContainer');
         if (btn && container) {
             btn.classList.add('hidden');
             container.classList.remove('hidden');
-            container.style.display = 'flex'; // Sikrer flex-layout
+            container.style.display = 'flex';
         }
     };
 
@@ -61,12 +57,18 @@
         const nextType = currentType === 'X' ? 'T' : (currentType === 'T' ? 'K' : 'X');
 
         localStorage.setItem(key, nextType);
+        
+        // Lagre økttype i Firebase slik at den synkroniseres til andre enheter
+        if (window.dbSet && window.db) {
+            const path = `dayTypes/${currentYear}/${monthIdx}/${dayNr}`;
+            window.dbSet(window.dbRef(window.db, path), nextType);
+        }
+        
         renderAttendanceTable();
     };
 
     window.cycleStatus = function(playerId, dayNr) {
         const monthIdx = getMonthIndex();
-        // Sørg for at DB-objektet ditt er lastet inn i HTML før dette scriptet
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
         
         const states = ['?', 'present', 'absent', 'injured'];
@@ -88,8 +90,6 @@
             const dayOfWeek = date.getDay();
             const type = localStorage.getItem(getDayTypeKey(monthIdx, dayNr));
 
-            // Viser dager som er manuelt satt til Trening/Kamp, 
-            // eller faste dager (Man, Ons, Lør)
             if (type === 'T' || type === 'K' || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 6) {
                 days.push({ nr: dayNr, navn: dayNames[dayOfWeek], type: type || 'X' });
             }
@@ -102,7 +102,6 @@
         const players = DB.getActivePlayers();
         const days = getTrainingDays(monthIdx);
 
-        // 1. GENERER TABELLHODE
         let headHtml = '<tr><th class="name-col">Spiller</th>';
         days.forEach(d => {
             const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr)) || 'X';
@@ -118,7 +117,6 @@
         headHtml += '<th class="stat-col">%</th></tr>';
         tableHead.innerHTML = headHtml;
 
-        // 2. GENERER TABELLRADER
         let bodyHtml = '';
         players.forEach(player => {
             bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
@@ -140,7 +138,6 @@
                 } else if (status === 'absent') {
                     iconHtml = '<i class="fa-solid fa-circle-xmark status-absent"></i>';
                 } else if (status === 'injured') {
-                    // Vi bruker din original-ikon her: fa-crutch
                     iconHtml = '<i class="fa-solid fa-crutch status-injured"></i>';
                 }
 
@@ -164,8 +161,14 @@
         const d = date.getDate();
         
         localStorage.setItem(getDayTypeKey(m, d), 'T');
-        monthSelect.value = m;
         
+        // Lagre også den nye datoen i Firebase
+        if (window.dbSet && window.db) {
+            const path = `dayTypes/${currentYear}/${m}/${d}`;
+            window.dbSet(window.dbRef(window.db, path), 'T');
+        }
+
+        monthSelect.value = m;
         renderAttendanceTable();
         hideDatePicker(); 
     };
@@ -174,5 +177,47 @@
     
     populateMonthSelect();
     renderAttendanceTable();
+
+    // --- LIVE SYNKRONISERING FRA FIREBASE ---
+    if (window.dbOnValue && window.dbRef && window.db) {
+        
+        // 1. Lytt på oppmøte-endringer
+        window.dbOnValue(window.dbRef(window.db, 'attendance/'), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                console.log("Sky-data (oppmøte) mottatt...");
+                for (let year in data) {
+                    for (let month in data[year]) {
+                        for (let playerId in data[year][month]) {
+                            for (let day in data[year][month][playerId]) {
+                                const status = data[year][month][playerId][day];
+                                const key = `att-base-${year}-${month}-${playerId}-${day}`;
+                                localStorage.setItem(key, status);
+                            }
+                        }
+                    }
+                }
+                renderAttendanceTable();
+            }
+        });
+
+        // 2. Lytt på endringer i økttyper (T/K)
+        window.dbOnValue(window.dbRef(window.db, 'dayTypes/'), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                console.log("Sky-data (dagstyper) mottatt...");
+                for (let year in data) {
+                    for (let month in data[year]) {
+                        for (let day in data[year][month]) {
+                            const type = data[year][month][day];
+                            const key = `type-${year}-${month}-${day}`;
+                            localStorage.setItem(key, type);
+                        }
+                    }
+                }
+                renderAttendanceTable();
+            }
+        });
+    }
 
 })();
