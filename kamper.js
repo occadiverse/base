@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.closeMatchModal = () => {
         document.getElementById('matchModal').style.display = 'none';
         matchForm.reset();
-        document.getElementById('editMatchId').value = ''; // Tømmer ID-feltet
+        document.getElementById('editMatchId').value = ''; 
     };
 
     // Funksjon for å fylle modalen med eksisterende data for redigering
@@ -43,19 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (matchId) {
-            // OPPDATER eksisterende kamp
             window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData)
-                .then(() => {
-                    closeMatchModal();
-                })
+                .then(() => { closeMatchModal(); })
                 .catch(error => console.error("Feil ved oppdatering:", error));
         } else {
-            // LAGRE NY kamp
             const matchRef = window.dbPush(window.dbRef(window.db, 'matches'));
             window.dbSet(matchRef, matchData)
-                .then(() => {
-                    closeMatchModal();
-                })
+                .then(() => { closeMatchModal(); })
                 .catch(error => console.error("Feil ved lagring:", error));
         }
     });
@@ -66,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         matchTableBody.innerHTML = '';
         
         if (data) {
-            // Sorterer etter dato
             const sortedMatches = Object.entries(data).sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
             
             sortedMatches.forEach(([id, match]) => {
@@ -85,21 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>
                             <div style="
                                 display: inline-block;
-                                min-width: 65px; 
+                                min-width: 60px; 
                                 text-align: center; 
                                 background: #f0f2f5; 
-                                padding: 4px 8px; 
-                                border-radius: 6px; 
+                                padding: 3px 6px; 
+                                border-radius: 4px; 
                                 font-weight: 800; 
                                 color: var(--primary-color);
                                 font-family: 'Courier New', Courier, monospace;
-                                font-size: 1.1em;
+                                font-size: 0.9em; 
                             ">
                                 ${match.result}
                             </div>
                         </td>
-                        <td style="font-size: 0.9em;">${match.pitch}</td>
-                        <td><span style="font-size: 0.8em; opacity: 0.8;">${match.type}</span></td>
+                        <td style="font-size: 0.9em; opacity: 0.8;">${match.pitch}</td>
+                        <td style="font-size: 0.9em; opacity: 0.8;">${match.type}</td>
                         <td>
                             <div style="display: flex; gap: 10px; justify-content: center;">
                                 <button onclick="openEditMatch('${id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
