@@ -14,20 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editMatchId').value = ''; 
     };
 
-    // --- VIS KAMP-INFO OG SPILLERE ---
+    // --- VIS KAMP-INFO OG SPILLERE (MED DETEKTIV-LOGIKK) ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
         const detailsDiv = document.getElementById('matchInfoDetails');
         const playerListUl = document.getElementById('matchPlayerList');
         const countBadge = document.getElementById('playerCountBadge');
         
-        // Lag de to mest sannsynlige dato-formatene fra databasen
-        const parts = date.split('-'); // [2026, 04, 29]
-        const formatStandard = `${parts[2]}.${parts[1]}.${parts[0]}`; // 29.04.2026
-        const formatKort = `${parseInt(parts[2])}.${parseInt(parts[1])}.${parts[0]}`; // 29.4.2026
+        // Definer de tre vanligste datoformatene
+        const parts = date.split('-'); // Fra 2026-04-29
+        const format1 = `${parts[2]}.${parts[1]}.${parts[0]}`;         // 29.04.2026
+        const format2 = `${parseInt(parts[2])}.${parseInt(parts[1])}.${parts[0]}`; // 29.4.2026
+        const format3 = date;                                          // 2026-04-29
         
         document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
         detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formatStandard}</div>
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${format1}</div>
             <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
             <div><strong>Bane:</strong> ${pitch}</div>
         `;
@@ -35,25 +36,38 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // 1. Hent hele attendance-noden for å sjekke begge formater
+        // 1. Hent hele attendance-mappen for å feilsøke
         window.dbOnValue(window.dbRef(window.db, 'attendance'), (snapshot) => {
             const allAttendance = snapshot.val();
             
-            // Finn dataen ved å sjekke begge format-nøklene
-            const attendanceData = allAttendance ? (allAttendance[formatStandard] || allAttendance[formatKort]) : null;
+            console.log("--- DATABASE-DETEKTIV ---");
+            console.log("Datoer som finnes i databasen din:", allAttendance ? Object.keys(allAttendance) : "Ingen data");
+            console.log("Vi leter etter ett av disse formatene:", [format1, format2, format3]);
 
-            // 2. Hent spiller-navn
+            // Finn dataen ved å sjekke alle tre formater
+            const attendanceData = allAttendance ? (allAttendance[format1] || allAttendance[format2] || allAttendance[format3]) : null;
+
+            if (attendanceData) {
+                console.log("SUKSESS: Fant data for datoen!", attendanceData);
+            } else {
+                console.log("FEIL: Fant ingen match i databasen.");
+            }
+
+            // 2. Hent spiller-navn for å koble ID til navn
             window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
                 const players = playerSnapshot.val();
                 playerListUl.innerHTML = '';
                 let count = 0;
 
                 if (attendanceData && players) {
+                    // Sorter spillere alfabetisk
                     const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
                     
                     playerEntries.forEach(([playerId, playerInfo]) => {
-                        // Sjekk om status er "K"
-                        if (attendanceData[playerId] === 'K') {
+                        const status = attendanceData[playerId];
+                        
+                        // Sjekker om status er "K" (uavhengig av store/små bokstaver)
+                        if (status && status.toString().toUpperCase() === 'K') {
                             count++;
                             const li = document.createElement('li');
                             li.style.padding = '10px 15px';
@@ -68,8 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 countBadge.innerText = count;
                 if (count === 0) {
-                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er markert med "K" for datoen ${formatStandard}.</li>`;
+                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere funnet med status 'K' på denne datoen.</li>`;
                 }
+                console.log("Antall spillere med 'K' funnet:", count);
+                console.log("--- DETEKTIV FERDIG ---");
             }, { onlyOnce: true });
         }, { onlyOnce: true });
     };
