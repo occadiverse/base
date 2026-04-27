@@ -3,38 +3,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const matchForm = document.getElementById('matchForm');
 
     // Åpne/Lukke modal
-    window.openMatchModal = () => document.getElementById('matchModal').style.display = 'flex';
-    window.closeMatchModal = () => document.getElementById('matchModal').style.display = 'none';
+    window.openMatchModal = () => {
+        document.getElementById('modalTitle').innerText = 'Registrer kamp';
+        document.getElementById('matchModal').style.display = 'flex';
+    };
 
-    // Lagre kamp
+    window.closeMatchModal = () => {
+        document.getElementById('matchModal').style.display = 'none';
+        matchForm.reset();
+        document.getElementById('editMatchId').value = ''; // Tømmer ID-feltet
+    };
+
+    // Funksjon for å fylle modalen med eksisterende data for redigering
+    window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
+        document.getElementById('modalTitle').innerText = 'Rediger kamp';
+        document.getElementById('editMatchId').value = id;
+        document.getElementById('matchDate').value = date;
+        document.getElementById('matchTime').value = time === '--:--' ? '' : time;
+        document.getElementById('opponent').value = opponent;
+        document.getElementById('pitch').value = pitch === 'Ikke satt' ? '' : pitch;
+        document.getElementById('matchType').value = type;
+        document.getElementById('result').value = result === '-' ? '' : result;
+        
+        document.getElementById('matchModal').style.display = 'flex';
+    };
+
+    // Lagre eller Oppdatere kamp
     matchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        const newMatch = {
+        const matchId = document.getElementById('editMatchId').value;
+        const matchData = {
             date: document.getElementById('matchDate').value,
-            time: document.getElementById('matchTime').value || '--:--', // Nytt felt
+            time: document.getElementById('matchTime').value || '--:--',
             opponent: document.getElementById('opponent').value,
-            pitch: document.getElementById('pitch').value || 'Ikke satt', // Nytt felt
+            pitch: document.getElementById('pitch').value || 'Ikke satt',
             type: document.getElementById('matchType').value,
             result: document.getElementById('result').value || '-'
         };
 
-        const matchRef = window.dbPush(window.dbRef(window.db, 'matches'));
-        window.dbSet(matchRef, newMatch).then(() => {
-            closeMatchModal();
-            matchForm.reset();
-        }).catch(error => {
-            console.error("Feil ved lagring av kamp:", error);
-            alert("Kunne ikke lagre kampen.");
-        });
+        if (matchId) {
+            // OPPDATER eksisterende kamp
+            window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData)
+                .then(() => {
+                    closeMatchModal();
+                })
+                .catch(error => console.error("Feil ved oppdatering:", error));
+        } else {
+            // LAGRE NY kamp
+            const matchRef = window.dbPush(window.dbRef(window.db, 'matches'));
+            window.dbSet(matchRef, matchData)
+                .then(() => {
+                    closeMatchModal();
+                })
+                .catch(error => console.error("Feil ved lagring:", error));
+        }
     });
 
-    // Lese kamper
+    // Lese kamper fra Firebase
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         matchTableBody.innerHTML = '';
         
         if (data) {
+            // Sorterer etter dato
             const sortedMatches = Object.entries(data).sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
             
             sortedMatches.forEach(([id, match]) => {
@@ -58,9 +90,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="font-size: 0.9em;">${match.pitch}</td>
                         <td><span style="font-size: 0.8em; opacity: 0.8;">${match.type}</span></td>
                         <td>
-                            <button onclick="deleteMatch('${id}')" class="btn-cancel">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                <button onclick="openEditMatch('${id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
+                                        style="background:none; border:none; color:var(--primary-color); cursor:pointer;">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteMatch('${id}')" 
+                                        style="background:none; border:none; color:#e74c3c; cursor:pointer;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
