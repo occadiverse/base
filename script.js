@@ -62,7 +62,7 @@
             const path = `dayTypes/${currentYear}/${monthIdx}/${dayNr}`;
             window.dbSet(window.dbRef(window.db, path), nextType);
         }
-        renderAttendanceTable();
+        window.renderAttendanceTable();
     };
 
     window.cycleStatus = function(playerId, dayNr) {
@@ -75,7 +75,7 @@
         
         const nextStatus = states[(currentIndex + 1) % states.length];
         DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
-        renderAttendanceTable();
+        window.renderAttendanceTable();
     };
 
     function getTrainingDays(monthIdx) {
@@ -100,6 +100,7 @@
         const players = DB.getActivePlayers();
         const days = getTrainingDays(monthIdx);
 
+        // 1. GENERER TABELLHODE
         let headHtml = '<tr><th class="name-col">Spiller</th>';
         days.forEach(d => {
             const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr)) || 'X';
@@ -115,6 +116,7 @@
         headHtml += '<th class="stat-col">%</th></tr>';
         tableHead.innerHTML = headHtml;
 
+        // 2. GENERER TABELLRADER
         let bodyHtml = '';
         players.forEach(player => {
             bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
@@ -156,54 +158,60 @@
         const date = new Date(input.value);
         const m = date.getMonth();
         const d = date.getDate();
-        localStorage.setItem(getDayTypeKey(m, d), 'T');
+        
+        const key = getDayTypeKey(m, d);
+        localStorage.setItem(key, 'T');
+        
         if (window.dbSet && window.db) {
             const path = `dayTypes/${currentYear}/${m}/${d}`;
             window.dbSet(window.dbRef(window.db, path), 'T');
         }
         monthSelect.value = m;
-        renderAttendanceTable();
+        window.renderAttendanceTable();
         hideDatePicker(); 
     };
 
-    monthSelect.addEventListener('change', renderAttendanceTable);
+    monthSelect.addEventListener('change', () => window.renderAttendanceTable());
+    
+    // Initial oppstart
     populateMonthSelect();
-    renderAttendanceTable();
+    window.renderAttendanceTable();
 
     // --- FORBEDRET SKY-SYNKRONISERING ---
     if (window.dbOnValue && window.dbRef && window.db) {
+        // 1. Lytt på oppmøte
         const attRef = window.dbRef(window.db, 'attendance/');
         window.dbOnValue(attRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                Object.keys(data).forEach(year => {
-                    Object.keys(data[year]).forEach(month => {
-                        Object.keys(data[year][month]).forEach(pId => {
-                            Object.keys(data[year][month][pId]).forEach(day => {
-                                const status = data[year][month][pId][day];
-                                localStorage.setItem(`att-base-${year}-${month}-${pId}-${day}`, status);
-                            });
-                        });
-                    });
-                });
-                renderAttendanceTable();
+                for (let y in data) {
+                    for (let m in data[y]) {
+                        for (let pId in data[y][m]) {
+                            for (let d in data[y][m][pId]) {
+                                localStorage.setItem(`att-base-${y}-${m}-${pId}-${d}`, data[y][m][pId][d]);
+                            }
+                        }
+                    }
+                }
+                window.renderAttendanceTable();
             }
         });
 
-        // Synk dagstyper (T/K)
-        window.dbOnValue(window.dbRef(window.db, 'dayTypes/'), (snapshot) => {
+        // 2. Lytt på dagstyper (T/K)
+        const typeRef = window.dbRef(window.db, 'dayTypes/');
+        window.dbOnValue(typeRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                Object.keys(data).forEach(year => {
-                    Object.keys(data[year]).forEach(month => {
-                        Object.keys(data[year][month]).forEach(day => {
-                            localStorage.setItem(`type-${year}-${month}-${day}`, data[year][month][day]);
-                        });
-                    });
-                });
-                renderAttendanceTable();
+                for (let y in data) {
+                    for (let m in data[y]) {
+                        for (let d in data[y][m]) {
+                            localStorage.setItem(`type-${y}-${m}-${d}`, data[y][m][d]);
+                        }
+                    }
+                }
+                window.renderAttendanceTable();
             }
         });
     }
 
-})(); // Slutt på hele fila
+})();
