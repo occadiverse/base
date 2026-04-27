@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const sortedMatches = Object.entries(data).sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
             
             sortedMatches.forEach(([id, match]) => {
-                // LAG KORTERE DATOFORMAT (f.eks. 27. apr)
                 const d = new Date(match.date);
                 const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
 
@@ -48,10 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div style="font-weight: 600; text-transform: capitalize;">${shortDate}</div>
                             <div style="font-size: 0.85em; color: #666;">kl. ${match.time}</div>
                         </td>
-                        <td class="text-left"><strong>${match.opponent}</strong></td>
+                        <td class="text-left">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-weight: 700;">${match.opponent}</span>
+                                <span style="background: #f0f2f5; padding: 2px 8px; border-radius: 4px; font-weight: 800; color: var(--primary-color);">
+                                    ${match.result}
+                                </span>
+                            </div>
+                        </td>
                         <td style="font-size: 0.9em;">${match.pitch}</td>
                         <td><span style="font-size: 0.8em; opacity: 0.8;">${match.type}</span></td>
-                        <td><strong>${match.result}</strong></td>
                         <td>
                             <button onclick="deleteMatch('${id}')" class="btn-cancel">
                                 <i class="fa-solid fa-trash"></i>
@@ -62,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchTableBody.innerHTML += row;
             });
         } else {
-            matchTableBody.innerHTML = '<tr><td colspan="6">Ingen kamper registrert</td></tr>';
+            matchTableBody.innerHTML = '<tr><td colspan="5">Ingen kamper registrert</td></tr>';
         }
     });
 
