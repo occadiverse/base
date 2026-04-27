@@ -2,6 +2,9 @@ function loadNavigation() {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
 
+    // Tving menyen til å være lukket når vi laster en ny side
+    sidebar.classList.add('collapsed');
+
     const path = window.location.pathname;
     const currentPage = path.split("/").pop() || 'index.html';
 
@@ -26,7 +29,9 @@ function loadNavigation() {
 // Funksjonen som åpner og lukker menyen
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('collapsed');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+    }
 }
 
 // KJØR funksjonen når siden er ferdig lastet
