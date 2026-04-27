@@ -20,35 +20,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const countBadge = document.getElementById('playerCountBadge');
         const detailsDiv = document.getElementById('matchInfoDetails');
         
-        // Konverter 2026-04-29 (fra input) til 29-04-2026 (for Firebase)
-        const parts = date.split('-');
-        const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        // Vi lager to varianter av datoen for å være helt sikre
+        const parts = date.split('-'); // Fra 2026-04-29
+        const day = parts[2];
+        const month = parts[1];
+        const year = parts[0];
+        
+        const dayInt = parseInt(day);
+        const monthInt = parseInt(month);
+
+        const formatMedNull = `${day}-${month}-${year}`;        // f.eks. 29-04-2026
+        const formatUtenNull = `${dayInt}-${monthInt}-${year}`; // f.eks. 29-4-2026
         
         document.getElementById('infoTitle').innerText = `Kamp: ${opponent}`;
-        detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formattedDate.replace(/-/g, '.')}</div>
-            <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
-            <div><strong>Bane:</strong> ${pitch}</div>
-        `;
+        detailsDiv.innerHTML = `<strong>Dato:</strong> ${formatMedNull.replace(/-/g, '.')} / ${formatUtenNull.replace(/-/g, '.')}`;
 
-        playerListUl.innerHTML = '<li style="padding: 15px; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Henter tropp...</li>';
+        playerListUl.innerHTML = '<li style="padding: 15px;">Henter tropp...</li>';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // Hent data fra den lovlige mappen (med bindestrek)
-        const attendanceRef = window.dbRef(window.db, `attendance/${formattedDate}`);
-        const playersRef = window.dbRef(window.db, 'players');
-
-        // Vi henter data én gang (dbGet) for å være raske og effektive
-        window.dbOnValue(attendanceRef, (snap) => {
-            const enrolled = snap.val(); 
+        // Hent hele attendance-mappen for å sjekke begge formater
+        window.dbOnValue(window.dbRef(window.db, 'attendance'), (snap) => {
+            const allAttendance = snap.val();
+            // Sjekk om mappen finnes i ett av de to formatene
+            const enrolled = allAttendance ? (allAttendance[formatMedNull] || allAttendance[formatUtenNull]) : null;
             
-            window.dbOnValue(playersRef, (pSnap) => {
+            window.dbOnValue(window.dbRef(window.db, 'players'), (pSnap) => {
                 const allPlayers = pSnap.val();
                 playerListUl.innerHTML = '';
                 let count = 0;
 
                 if (enrolled && allPlayers) {
-                    // Finn alle som har status "K"
                     const list = [];
                     Object.entries(enrolled).forEach(([pId, status]) => {
                         if (status === 'K' && allPlayers[pId]) {
@@ -56,29 +57,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
 
-                    // Sorter navnene
                     list.sort((a, b) => a.localeCompare(b, 'nb'));
-
                     list.forEach(name => {
                         count++;
                         const li = document.createElement('li');
-                        li.style.padding = '12px 15px';
+                        li.style.padding = '10px';
                         li.style.borderBottom = '1px solid #eee';
-                        li.style.display = 'flex';
-                        li.style.alignItems = 'center';
-                        li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${name}`;
+                        li.innerHTML = `<i class="fa-solid fa-check" style="color:green"></i> ${name}`;
                         playerListUl.appendChild(li);
                     });
                 }
 
                 countBadge.innerText = count;
                 if (count === 0) {
-                    playerListUl.innerHTML = '<li style="padding:25px; text-align:center; color:#888;">Ingen spillere er markert som klare (K) i oppmøte-fanen ennå.</li>';
+                    playerListUl.innerHTML = '<li style="padding:20px; text-align:center; color:#888;">Ingen spillere funnet i mappen.</li>';
                 }
             }, { onlyOnce: true });
         }, { onlyOnce: true });
     };
-
     // --- REDIGERING OG SLETTING (Standard funksjonalitet) ---
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
