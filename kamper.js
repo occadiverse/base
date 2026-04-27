@@ -35,23 +35,25 @@ document.addEventListener('DOMContentLoaded', () => {
         matchTableBody.innerHTML = '';
         
         if (data) {
-            // Sorterer kamper etter dato
             const sortedMatches = Object.entries(data).sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
             
             sortedMatches.forEach(([id, match]) => {
-                // Formaterer datoen litt penere (valgfritt)
+                // LAG KORTERE DATOFORMAT (f.eks. 27. apr)
+                const d = new Date(match.date);
+                const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+
                 const row = `
                     <tr>
                         <td>
-                            <div style="font-weight: 600;">${match.date}</div>
+                            <div style="font-weight: 600; text-transform: capitalize;">${shortDate}</div>
                             <div style="font-size: 0.85em; color: #666;">kl. ${match.time}</div>
                         </td>
                         <td class="text-left"><strong>${match.opponent}</strong></td>
-                        <td>${match.pitch}</td>
-                        <td>${match.type}</td>
+                        <td style="font-size: 0.9em;">${match.pitch}</td>
+                        <td><span style="font-size: 0.8em; opacity: 0.8;">${match.type}</span></td>
                         <td><strong>${match.result}</strong></td>
                         <td>
-                            <button onclick="deleteMatch('${id}')" class="btn-cancel" title="Slett kamp">
+                            <button onclick="deleteMatch('${id}')" class="btn-cancel">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
