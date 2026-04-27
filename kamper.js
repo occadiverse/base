@@ -19,37 +19,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerListUl = document.getElementById('matchPlayerList');
     const infoTitle = document.getElementById('infoTitle');
     const detailsDiv = document.getElementById('matchInfoDetails');
+    const countBadge = document.getElementById('playerCountBadge'); // Den gamle badgen
     
+    // Skjul den gamle badgen helt så den ikke forstyrrer
+    if (countBadge) countBadge.style.display = 'none';
+
     const parts = date.split('-'); 
     const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
     
-    // 1. Sett hovedtittel til motstanderen
+    // 1. Overskrift: Motstander
     infoTitle.innerText = opponent;
-    infoTitle.style.fontSize = '1.5em';
+    infoTitle.style.fontSize = '1.6em';
     infoTitle.style.fontWeight = '800';
+    infoTitle.style.marginBottom = '5px';
 
-    // 2. Lag et pent info-felt under tittelen
+    // 2. Info-felt og Pille-overskrift
     detailsDiv.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 20px; color: #555; font-size: 0.95em; border-bottom: 2px solid #eee; padding-bottom: 15px;">
-            <div><i class="fa-regular fa-calendar"></i> ${formattedDate} kl. ${time}</div>
-            <div><i class="fa-solid fa-location-dot"></i> ${pitch}</div>
+        <div style="color: #666; font-size: 0.95em; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+            <i class="fa-regular fa-calendar"></i> ${formattedDate} kl. ${time} <br>
+            <i class="fa-solid fa-location-dot"></i> ${pitch}
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; font-size: 1.1em; color: var(--primary-color);">Påmeldte spillere</h3>
-            <span id="playerCountBadgeNew" style="background: var(--primary-color); color: white; padding: 3px 12px; border-radius: 12px; font-weight: 700; font-size: 0.9em;">0</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <span style="font-weight: 700; font-size: 1.1em; color: #333;">Påmeldte spillere</span>
+            <span id="pilleAntall" style="background: #007bff; color: white; padding: 4px 14px; border-radius: 20px; font-weight: 800; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,123,255,0.3);">0</span>
         </div>
     `;
 
-    // 3. Klargjør spillerlisten (Grid-oppsett)
+    // 3. Spillerlisten (Grid)
     playerListUl.style.display = 'grid';
-    playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)'; // To kolonner
-    playerListUl.style.gap = '8px';
+    playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    playerListUl.style.gap = '10px';
     playerListUl.style.padding = '0';
-    playerListUl.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px;">Henter tropp...</div>';
+    playerListUl.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:#666;">Henter tropp...</div>';
 
     document.getElementById('matchInfoModal').style.display = 'flex';
 
-    // 4. Hent data fra Firebase
     window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
         const root = snapshot.val();
         const enrolled = root.attendance ? root.attendance[`${parts[2]}-${parts[1]}-${parts[0]}`] : null;
@@ -68,31 +72,29 @@ document.addEventListener('DOMContentLoaded', () => {
             list.sort((a, b) => a.localeCompare(b, 'nb'));
         }
 
-        // Oppdater antall-merket
-        const badge = document.getElementById('playerCountBadgeNew');
-        if (badge) badge.innerText = list.length;
+        // Oppdater pille-tallet
+        const pille = document.getElementById('pilleAntall');
+        if (pille) pille.innerText = list.length;
 
-        // 5. Tegn spillerkortene
         if (list.length > 0) {
             list.forEach(name => {
                 const item = document.createElement('div');
-                item.style.background = '#f9f9f9';
-                item.style.border = '1px solid #e0e0e0';
-                item.style.padding = '10px 5px';
-                item.style.borderRadius = '4px';
+                item.style.background = '#fcfcfc';
+                item.style.border = '1px solid #efefef';
+                item.style.padding = '12px 5px';
+                item.style.borderRadius = '6px';
                 item.style.textAlign = 'center';
-                item.style.fontSize = '0.95em';
-                item.style.fontWeight = '500';
-                item.style.color = '#222';
+                item.style.fontWeight = '600';
+                item.style.color = '#333';
+                item.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)';
                 item.innerText = name;
                 playerListUl.appendChild(item);
             });
         } else {
-            playerListUl.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:30px; color:#999; font-style:italic;">Ingen spillere er påmeldt ennå.</div>';
+            playerListUl.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:30px; color:#999; font-style:italic;">Ingen spillere er påmeldt.</div>';
         }
     }, { onlyOnce: true });
-};
-    
+};    
     // --- REDIGERING OG SLETTING (Standard funksjonalitet) ---
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
