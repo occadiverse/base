@@ -97,18 +97,15 @@
 <div id="matchInfoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 id="infoTitle">Kampdetaljer</h3>
+            <h3 id="infoTitle">Laster...</h3>
             <button class="close-btn" onclick="closeMatchInfo()">&times;</button>
         </div>
-        <div id="matchInfoDetails" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; line-height: 1.6;">
-            </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h4 style="margin: 0;">Påmeldte spillere</h4>
-            <span id="playerCountBadge" style="background: var(--primary-color); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">0</span>
-        </div>
-        <ul id="matchPlayerList" style="list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
-            </ul>
-        <div class="button-group" style="margin-top: 20px;">
+        
+        <div id="matchInfoDetails"></div>
+
+        <div id="matchPlayerList" style="margin-top: 10px;"></div>
+
+        <div class="button-group" style="margin-top: 25px;">
             <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
         </div>
     </div>
@@ -158,6 +155,14 @@
     window.closeMatchInfo = () => {
         document.getElementById('matchInfoModal').style.display = 'none';
     };
+
+    // Lukker modal hvis man klikker utenfor boksen
+    window.onclick = function(event) {
+        const modal1 = document.getElementById('matchModal');
+        const modal2 = document.getElementById('matchInfoModal');
+        if (event.target == modal1) closeMatchModal();
+        if (event.target == modal2) closeMatchInfo();
+    }
 </script>
 
 </body>
