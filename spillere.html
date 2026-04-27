@@ -35,8 +35,7 @@
                     <th>Handling</th>
                 </tr>
             </thead>
-            <tbody id="playerTableBody">
-                </tbody>
+            <tbody id="playerTableBody"></tbody>
         </table>
     </div>
 </div>
@@ -82,9 +81,44 @@
     </div>
 </div>
 
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDyULE6HGOINM6D8bqBZGbVMaGHAF3RkJg",
+        authDomain: "base-49ce3.firebaseapp.com",
+        databaseURL: "https://base-49ce3-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "base-49ce3",
+        storageBucket: "base-49ce3.firebasestorage.app",
+        messagingSenderId: "4752321901",
+        appId: "1:4752321901:web:089814e4faefbdeff9be64",
+        measurementId: "G-YZE1RSW4CN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.db = db;
+    window.dbRef = ref;
+    window.dbSet = set;
+    window.dbOnValue = onValue;
+    window.dbGet = get;
+
+    console.log("Firebase Sky-database er aktiv på spillersiden!");
+</script>
+
 <script src="database.js"></script>
 <script src="navigation.js"></script>
 <script src="spillere.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof loadNavigation === 'function') {
+            loadNavigation();
+        }
+    });
+</script>
 
 </body>
 </html>
