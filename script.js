@@ -69,35 +69,38 @@
 
     // --- OPPDATERT cycleStatus: LAGRER NÅ OGSÅ TIL KAMP-MAPPE ---
     window.cycleStatus = function(playerId, dayNr) {
-        const monthIdx = getMonthIndex();
-        const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
-        const states = ['?', 'present', 'absent', 'injured'];
-        let currentIndex = states.indexOf(currentStatus);
-        const nextStatus = states[(currentIndex + 1) % states.length];
+    const monthIdx = getMonthIndex();
+    const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
+    const states = ['?', 'present', 'absent', 'injured'];
+    let currentIndex = states.indexOf(currentStatus);
+    const nextStatus = states[(currentIndex + 1) % states.length];
+    
+    // 1. Oppdater lokal lagring (for at tabellen skal oppdatere seg i nettleseren)
+    DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
+
+    // 2. Oppdater Firebase
+    if (window.dbSet && window.db) {
+        // A: Gammelt format (for statistikk-visning i tabellen)
+        const oldPath = `attendance/${currentYear}/${monthIdx}/${playerId}/${dayNr}`;
+        window.dbSet(window.dbRef(window.db, oldPath), nextStatus);
+
+        // B: Nytt flatt format (for kampsiden/modalen)
+        // Vi lager dato-strengen manuelt: f.eks. "29.04.2026"
+        const d = dayNr.toString().padStart(2, '0');
+        const m = (monthIdx + 1).toString().padStart(2, '0');
+        const dateKey = `${d}.${m}.${currentYear}`;
         
-        // 1. Lagre til den vanlige oppmøte-strukturen
-        DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
+        // Vi lagrer status "K" hvis spilleren er grønn (present)
+        const matchStatus = nextStatus === 'present' ? 'K' : null;
+        const matchPath = `attendance/${dateKey}/${playerId}`;
+        
+        window.dbSet(window.dbRef(window.db, matchPath), matchStatus)
+            .then(() => console.log("Lagret til kampformat:", dateKey))
+            .catch(err => console.error("Firebase-feil:", err));
+    }
 
-        // 2. SYNKRONISERING TIL KAMP-MODAL:
-        // Vi lager en dato-nøkkel i formatet DD.MM.YYYY (f.eks 29.04.2026)
-        const dStr = dayNr.toString().padStart(2, '0');
-        const mStr = (monthIdx + 1).toString().padStart(2, '0');
-        const dateKey = `${dStr}.${mStr}.${currentYear}`;
-
-        if (window.dbSet && window.db) {
-            // Hvis status er 'present', lagrer vi en "K" i kamp-mappen
-            // Hvis ikke, fjerner vi den (null) så listen i modalen er oppdatert
-            const matchStatus = nextStatus === 'present' ? 'K' : null;
-            const matchPath = `attendance/${dateKey}/${playerId}`;
-            
-            window.dbSet(window.dbRef(window.db, matchPath), matchStatus)
-                .then(() => console.log(`Synket ${playerId} til kamp-dato ${dateKey}`))
-                .catch(err => console.error("Synk-feil:", err));
-        }
-
-        window.renderAttendanceTable();
-    };
-
+    window.renderAttendanceTable();
+};
     function getTrainingDays(monthIdx) {
         const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
         const dayNames = ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
