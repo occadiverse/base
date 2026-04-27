@@ -171,45 +171,57 @@
             return;
         }
 
-        // Lytter på HELE databasen for å holde alt i synk
-        window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
+        // --- SIKKER SKY-SYNKRONISERING ---
+window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
 
-            console.log("Sky-data mottatt, oppdaterer mobil...");
+    console.log("Sky-data mottatt, synkroniserer...");
 
-            // A. Synk spillere
-            if (data.players) {
-                localStorage.setItem('full-spillerliste', JSON.stringify(data.players));
-            }
+    // A. Synk spillere
+    if (data.players) {
+        localStorage.setItem('full-spillerliste', JSON.stringify(data.players));
+    }
 
-            // B. Synk oppmøte-statuser
-            if (data.attendance) {
-                for (let y in data.attendance) {
-                    for (let m in data.attendance[y]) {
-                        for (let pId in data.attendance[y][m]) {
-                            for (let d in data.attendance[y][m][pId]) {
-                                localStorage.setItem(`att-base-${y}-${m}-${pId}-${d}`, data[y][m][pId][d]);
+    // B. Synk oppmøte-statuser (Med sikkerhetssjekk!)
+    if (data.attendance) {
+        Object.keys(data.attendance).forEach(y => {
+            if (data.attendance[y]) {
+                Object.keys(data.attendance[y]).forEach(m => {
+                    if (data.attendance[y][m]) {
+                        Object.keys(data.attendance[y][m]).forEach(pId => {
+                            if (data.attendance[y][m][pId]) {
+                                Object.keys(data.attendance[y][m][pId]).forEach(d => {
+                                    const val = data.attendance[y][m][pId][d];
+                                    localStorage.setItem(`att-base-${y}-${m}-${pId}-${d}`, val);
+                                });
                             }
-                        }
+                        });
                     }
-                }
+                });
             }
-
-            // C. Synk dagstyper (T/K)
-            if (data.dayTypes) {
-                for (let y in data.dayTypes) {
-                    for (let m in data.dayTypes[y]) {
-                        for (let d in data.dayTypes[y][m]) {
-                            localStorage.setItem(`type-${y}-${m}-${d}`, data[y][m][d]);
-                        }
-                    }
-                }
-            }
-
-            window.renderAttendanceTable();
         });
     }
+
+    // C. Synk dagstyper (T/K) (Med sikkerhetssjekk!)
+    if (data.dayTypes) {
+        Object.keys(data.dayTypes).forEach(y => {
+            if (data.dayTypes[y]) {
+                Object.keys(data.dayTypes[y]).forEach(m => {
+                    if (data.dayTypes[y][m]) {
+                        Object.keys(data.dayTypes[y][m]).forEach(d => {
+                            const val = data.dayTypes[y][m][d];
+                            localStorage.setItem(`type-${y}-${m}-${d}`, val);
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    window.renderAttendanceTable();
+});
+        }
 
     // --- 5. OPPSTART ---
     monthSelect.addEventListener('change', () => window.renderAttendanceTable());
