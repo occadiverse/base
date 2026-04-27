@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kamper - BSK Fotball</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar" id="sidebar"></div>
+
+<div class="main-content">
+    <div class="top-bar">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 class="section-title">Terminliste & Resultater</h2>
+    </div>
+
+    <div class="filter-bar">
+        <div class="centered-tools">
+            <div class="tool-item">
+                <button class="btn-outline" onclick="openMatchModal()">
+                    <i class="fa-solid fa-circle-plus"></i>
+                    <span>Ny kamp</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="matchTable">
+            <thead>
+                <tr>
+                    <th>Dato</th>
+                    <th class="text-left">Motstander</th>
+                    <th>Type</th>
+                    <th>Resultat</th>
+                    <th>Handling</th>
+                </tr>
+            </thead>
+            <tbody id="matchTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="matchModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Registrer kamp</h3>
+            <button class="close-btn" onclick="closeMatchModal()">&times;</button>
+        </div>
+        <form id="matchForm">
+            <div class="form-stack">
+                <div class="form-group">
+                    <label>Dato</label>
+                    <input type="date" id="matchDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Motstander</label>
+                    <input type="text" id="opponent" placeholder="F.eks. KFUM" required>
+                </div>
+                <div class="form-group">
+                    <label>Kamp-type</label>
+                    <select id="matchType">
+                        <option value="Serie">Seriekamp</option>
+                        <option value="Cup">Cupkamp</option>
+                        <option value="Treningskamp">Treningskamp</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resultat (valgfritt)</label>
+                    <input type="text" id="result" placeholder="f.eks. 3-1">
+                </div>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-grow-2">Lagre kamp</button>
+                <button type="button" class="btn btn-danger" onclick="closeMatchModal()">Avbryt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    // Bruk samme Firebase-config som i de andre filene dine
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDyULE6HGOINM6D8bqBZGbVMaGHAF3RkJg",
+        authDomain: "base-49ce3.firebaseapp.com",
+        databaseURL: "https://base-49ce3-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "base-49ce3",
+        storageBucket: "base-49ce3.firebasestorage.app",
+        messagingSenderId: "4752321901",
+        appId: "1:4752321901:web:089814e4faefbdeff9be64"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    window.db = db; window.dbRef = ref; window.dbSet = set; window.dbPush = push; window.dbRemove = remove; window.dbOnValue = onValue;
+</script>
+<script src="navigation.js"></script>
+<script src="kamper.js"></script>
+</body>
+</html>
