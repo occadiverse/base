@@ -80,11 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div style="font-size: 0.85em; color: #666;">kl. ${match.time}</div>
                         </td>
                         <td class="text-left">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-weight: 700;">${match.opponent}</span>
-                                <span style="background: #f0f2f5; padding: 2px 8px; border-radius: 4px; font-weight: 800; color: var(--primary-color);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="
+                                    min-width: 60px; 
+                                    text-align: center; 
+                                    background: #f0f2f5; 
+                                    padding: 4px 6px; 
+                                    border-radius: 6px; 
+                                    font-weight: 800; 
+                                    color: var(--primary-color);
+                                    font-family: 'Courier New', Courier, monospace;
+                                    font-size: 1.1em;
+                                    flex-shrink: 0;
+                                ">
                                     ${match.result}
-                                </span>
+                                </div>
+                                <span style="font-weight: 700;">${match.opponent}</span>
                             </div>
                         </td>
                         <td style="font-size: 0.9em;">${match.pitch}</td>
