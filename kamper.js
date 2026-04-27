@@ -14,68 +14,73 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editMatchId').value = ''; 
     };
 
-    // --- NY FUNKSJON: VIS KAMP-INFO OG SPILLERE ---
+    // --- VIS KAMP-INFO OG SPILLERE ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
-    const detailsDiv = document.getElementById('matchInfoDetails');
-    const playerListUl = document.getElementById('matchPlayerList');
-    const countBadge = document.getElementById('playerCountBadge');
-    
-    document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
-    detailsDiv.innerHTML = `
-        <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${date}</div>
-        <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
-        <div><strong>Bane:</strong> ${pitch}</div>
-    `;
-
-    playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
-    document.getElementById('matchInfoModal').style.display = 'flex';
-
-    // 1. Hent oppmøte-data for denne datoen
-    window.dbOnValue(window.dbRef(window.db, `attendance/${date}`), (snapshot) => {
-        const attendanceData = snapshot.val();
-        console.log("Oppmøte-data funnet for " + date + ":", attendanceData); // Debug-logg
+        const detailsDiv = document.getElementById('matchInfoDetails');
+        const playerListUl = document.getElementById('matchPlayerList');
+        const countBadge = document.getElementById('playerCountBadge');
         
-        // 2. Hent spiller-navn
-        window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
-            const players = playerSnapshot.val();
-            playerListUl.innerHTML = '';
-            let count = 0;
+        document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
+        detailsDiv.innerHTML = `
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${date}</div>
+            <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
+            <div><strong>Bane:</strong> ${pitch}</div>
+        `;
 
-            if (attendanceData && players) {
-                // Sorter alle spiller-IDer som finnes i oppmøte-dataen
-                Object.keys(attendanceData).forEach(playerId => {
-                    const status = attendanceData[playerId];
-                    const playerInfo = players[playerId];
+        playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
+        document.getElementById('matchInfoModal').style.display = 'flex';
 
-                    // Sjekk om status er "K" (uavhengig av store/små bokstaver)
-                    if (status && status.toUpperCase() === 'K') {
-                        count++;
-                        const li = document.createElement('li');
-                        li.style.padding = '10px 15px';
-                        li.style.borderBottom = '1px solid #eee';
-                        li.style.display = 'flex';
-                        li.style.alignItems = 'center';
-                        
-                        // Bruk navnet hvis det finnes, ellers vis ID
-                        const playerName = playerInfo ? playerInfo.name : "Ukjent spiller (" + playerId + ")";
-                        
-                        li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${playerName}`;
-                        playerListUl.appendChild(li);
-                    }
-                });
-            }
+        console.log("--- DEBUG START ---");
+        console.log("Leter etter dato i attendance:", date);
 
-            countBadge.innerText = count;
-            if (count === 0) {
-                playerListUl.innerHTML = `
-                    <li style="padding: 20px; color: #666; text-align: center;">
-                        Ingen spillere er markert med "K" for datoen ${date}.<br>
-                        <small>(Husk å lagre oppmøte med "K" på denne datoen)</small>
-                    </li>`;
-            }
+        // 1. Sjekk ALL attendance først for å se formatet
+        window.dbOnValue(window.dbRef(window.db, 'attendance'), (snapshot) => {
+            const allAttendance = snapshot.val();
+            console.log("Eksisterende datoer i databasen:", allAttendance ? Object.keys(allAttendance) : "Ingen data i attendance");
+
+            const attendanceForDate = allAttendance ? allAttendance[date] : null;
+            
+            // 2. Hent spiller-navn
+            window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
+                const players = playerSnapshot.val();
+                playerListUl.innerHTML = '';
+                let count = 0;
+
+                if (attendanceForDate && players) {
+                    console.log("Fant data for datoen! Behandler spillere...");
+                    
+                    // Sorter spillere alfabetisk
+                    const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                    
+                    playerEntries.forEach(([playerId, playerInfo]) => {
+                        const status = attendanceForDate[playerId];
+                        // Sjekker for både 'K' og 'k'
+                        if (status && status.toUpperCase() === 'K') {
+                            count++;
+                            const li = document.createElement('li');
+                            li.style.padding = '10px 15px';
+                            li.style.borderBottom = '1px solid #eee';
+                            li.style.display = 'flex';
+                            li.style.alignItems = 'center';
+                            li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${playerInfo.name}`;
+                            playerListUl.appendChild(li);
+                        }
+                    });
+                }
+
+                countBadge.innerText = count;
+                if (count === 0) {
+                    playerListUl.innerHTML = `
+                        <li style="padding: 20px; color: #666; text-align: center;">
+                            Ingen spillere er markert med "K" for datoen ${date}.<br>
+                            <small>(Sjekk at datoen i Oppmøte er lagret korrekt)</small>
+                        </li>`;
+                }
+                console.log("Antall spillere funnet med status K:", count);
+                console.log("--- DEBUG SLUTT ---");
+            }, { onlyOnce: true });
         }, { onlyOnce: true });
-    }, { onlyOnce: true });
-};
+    };
 
     // Funksjon for å fylle modalen med eksisterende data for redigering
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
