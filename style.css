@@ -174,16 +174,21 @@ body {
 
 /* --- TABELL-DESIGN --- */
 .table-container {
-    background: var(--white);
-    margin: 20px;
+    width: 100%;
+    overflow-x: auto; /* Tvinger frem sidelengs scroll */
+    overflow-y: visible;
+    position: relative;
+    -webkit-overflow-scrolling: touch; /* Gjør scroll silkemyk på iPhone */
+    background: white;
     border-radius: 12px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    margin-bottom: 2rem;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 600px; /* Tvinger tabellen til å være bredere enn skjermen */
+    border-collapse: separate; 
+    border-spacing: 0;
 }
 
 th, td {
@@ -207,12 +212,18 @@ th {
 .name-col {
     position: sticky;
     left: 0;
-    z-index: 10;
-    background-color: white !important;
-    min-width: 160px;
-    text-align: left;
-    font-weight: 600;
-    box-shadow: 3px 0 6px rgba(0,0,0,0.02);
+    background-color: white; /* Må ha bakgrunn for å ikke bli gjennomsiktig */
+    z-index: 10; /* Ligger over de andre cellene når du scroller */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* En liten skygge som viser skille */
+    padding: 12px 15px;
+    min-width: 140px;
+    white-space: nowrap; /* Hindrer navnet i å hoppe til neste linje */
+}
+
+/* Sørg for at headeren også sitter fast */
+thead th.name-col {
+    z-index: 11;
+    background-color: #f8f9fa;
 }
 
 /* --- SPILLERSTALL STATUS OG HANDLINGER --- */
