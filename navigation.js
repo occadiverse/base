@@ -13,6 +13,9 @@ function loadNavigation() {
             <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">
                 <i class="fa-solid fa-house"></i> Hjem
             </a>
+            <a href="kamper.html" class="nav-item ${currentPage === 'kamper.html' ? 'active' : ''}">
+                <i class="fa-solid fa-trophy"></i> Kamper
+            </a>
             <a href="oppmote.html" class="nav-item ${currentPage === 'oppmote.html' ? 'active' : ''}">
                 <i class="fa-solid fa-calendar-check"></i> Oppmøte
             </a>
