@@ -80,22 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div style="font-size: 0.85em; color: #666;">kl. ${match.time}</div>
                         </td>
                         <td class="text-left">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="
-                                    min-width: 60px; 
-                                    text-align: center; 
-                                    background: #f0f2f5; 
-                                    padding: 4px 6px; 
-                                    border-radius: 6px; 
-                                    font-weight: 800; 
-                                    color: var(--primary-color);
-                                    font-family: 'Courier New', Courier, monospace;
-                                    font-size: 1.1em;
-                                    flex-shrink: 0;
-                                ">
-                                    ${match.result}
-                                </div>
-                                <span style="font-weight: 700;">${match.opponent}</span>
+                            <span style="font-weight: 700;">${match.opponent}</span>
+                        </td>
+                        <td>
+                            <div style="
+                                display: inline-block;
+                                min-width: 65px; 
+                                text-align: center; 
+                                background: #f0f2f5; 
+                                padding: 4px 8px; 
+                                border-radius: 6px; 
+                                font-weight: 800; 
+                                color: var(--primary-color);
+                                font-family: 'Courier New', Courier, monospace;
+                                font-size: 1.1em;
+                            ">
+                                ${match.result}
                             </div>
                         </td>
                         <td style="font-size: 0.9em;">${match.pitch}</td>
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchTableBody.innerHTML += row;
             });
         } else {
-            matchTableBody.innerHTML = '<tr><td colspan="5">Ingen kamper registrert</td></tr>';
+            matchTableBody.innerHTML = '<tr><td colspan="6">Ingen kamper registrert</td></tr>';
         }
     });
 
