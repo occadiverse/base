@@ -93,7 +93,47 @@
 
     <script src="database.js"></script>
     <script src="navigation.js"></script>
-    <script src="script.js"></script>
+    <script>
+(function () {
+    const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
+    const currentYear = new Date().getFullYear();
+    const monthSelect = document.getElementById('monthSelect');
+    const tableHead = document.getElementById('tableHead');
+    const tableBody = document.getElementById('tableBody');
+
+    if (!monthSelect || !tableHead || !tableBody) return;
+
+    function getMonthIndex() { return parseInt(monthSelect.value, 10); }
+    function getDayTypeKey(monthIdx, dayNr) { return `type-${currentYear}-${monthIdx}-${dayNr}`; }
+
+    window.cycleStatus = function(playerId, dayNr) {
+        const monthIdx = getMonthIndex();
+        const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
+        const states = ['?', 'present', 'absent', 'injured'];
+        let currentIndex = states.indexOf(currentStatus);
+        const nextStatus = states[(currentIndex + 1) % states.length];
+        
+        DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
+
+        if (window.dbSet && window.db) {
+            // Gammelt format
+            window.dbSet(window.dbRef(window.db, `attendance/${currentYear}/${monthIdx}/${playerId}/${dayNr}`), nextStatus);
+
+            // NYTT FORMAT (for kamper)
+            const d = dayNr.toString().padStart(2, '0');
+            const m = (monthIdx + 1).toString().padStart(2, '0');
+            const dateKey = `${d}.${m}.${currentYear}`;
+            const matchStatus = nextStatus === 'present' ? 'K' : null;
+            
+            window.dbSet(window.dbRef(window.db, `attendance/${dateKey}/${playerId}`), matchStatus);
+        }
+        window.renderAttendanceTable();
+    };
+
+    // Resten av funksjonene dine (renderAttendanceTable, addDate, osv.) må også ligge her
+    // Jeg anbefaler å lime inn HELE innholdet fra script.js mellom disse <script>-taggene.
+})();
+</script>
 
     <script>
         // Sikrer at menyen tegnes opp og at Firebase-logikken får tid til å koble seg til
