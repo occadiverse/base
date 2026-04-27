@@ -17,7 +17,7 @@ function loadNavigation() {
                 <i class="fa-solid fa-users"></i> Spillere
             </a>
             <a href="statistikk.html" class="nav-item ${currentPage === 'statistikk.html' ? 'active' : ''}">
-                <i class="fa-solid fa-chart-line"></i> Stats
+                <i class="fa-solid fa-chart-line"></i> Statistikk
             </a>
         </nav>
     `;
