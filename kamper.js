@@ -14,21 +14,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editMatchId').value = ''; 
     };
 
-    // --- VIS KAMP-INFO OG SPILLERE (MED DETEKTIV-LOGIKK) ---
+    // --- VIS KAMP-INFO OG SPILLERE ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
         const detailsDiv = document.getElementById('matchInfoDetails');
         const playerListUl = document.getElementById('matchPlayerList');
         const countBadge = document.getElementById('playerCountBadge');
         
-        // Definer de tre vanligste datoformatene
+        // Formater datoen nøyaktig slik script.js nå lagrer den: DD.MM.YYYY
         const parts = date.split('-'); // Fra 2026-04-29
-        const format1 = `${parts[2]}.${parts[1]}.${parts[0]}`;         // 29.04.2026
-        const format2 = `${parseInt(parts[2])}.${parseInt(parts[1])}.${parts[0]}`; // 29.4.2026
-        const format3 = date;                                          // 2026-04-29
+        const day = parts[2].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        const year = parts[0];
+        const formattedDate = `${day}.${month}.${year}`;
         
         document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
         detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${format1}</div>
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formattedDate}</div>
             <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
             <div><strong>Bane:</strong> ${pitch}</div>
         `;
@@ -36,56 +37,41 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // 1. Hent hele attendance-mappen for å feilsøke
-        window.dbOnValue(window.dbRef(window.db, 'attendance'), (snapshot) => {
-            const allAttendance = snapshot.val();
+        // 1. Hent oppmøte-data fra den flate strukturen (attendance/DD.MM.YYYY)
+        window.dbOnValue(window.dbRef(window.db, `attendance/${formattedDate}`), (snapshot) => {
+            const attendanceData = snapshot.val();
             
-            console.log("--- DATABASE-DETEKTIV ---");
-            console.log("Datoer som finnes i databasen din:", allAttendance ? Object.keys(allAttendance) : "Ingen data");
-            console.log("Vi leter etter ett av disse formatene:", [format1, format2, format3]);
-
-            // Finn dataen ved å sjekke alle tre formater
-            const attendanceData = allAttendance ? (allAttendance[format1] || allAttendance[format2] || allAttendance[format3]) : null;
-
-            if (attendanceData) {
-                console.log("SUKSESS: Fant data for datoen!", attendanceData);
-            } else {
-                console.log("FEIL: Fant ingen match i databasen.");
-            }
-
-            // 2. Hent spiller-navn for å koble ID til navn
+            // 2. Hent spillernavn for å koble ID til navn
             window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
                 const players = playerSnapshot.val();
                 playerListUl.innerHTML = '';
                 let count = 0;
 
                 if (attendanceData && players) {
-                    // Sorter spillere alfabetisk
-                    const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                    // Hent alle spiller-IDer som har status "K" i denne mappen
+                    const activePlayerIds = Object.keys(attendanceData).filter(pId => attendanceData[pId] === 'K');
                     
-                    playerEntries.forEach(([playerId, playerInfo]) => {
-                        const status = attendanceData[playerId];
-                        
-                        // Sjekker om status er "K" (uavhengig av store/små bokstaver)
-                        if (status && status.toString().toUpperCase() === 'K') {
-                            count++;
-                            const li = document.createElement('li');
-                            li.style.padding = '10px 15px';
-                            li.style.borderBottom = '1px solid #eee';
-                            li.style.display = 'flex';
-                            li.style.alignItems = 'center';
-                            li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${playerInfo.name}`;
-                            playerListUl.appendChild(li);
-                        }
+                    // Lag en liste med spillernavn for de som er påmeldt
+                    const enrolledPlayers = activePlayerIds
+                        .map(pId => ({ id: pId, name: players[pId] ? players[pId].name : "Ukjent spiller" }))
+                        .sort((a, b) => a.name.localeCompare(b.name));
+
+                    enrolledPlayers.forEach(player => {
+                        count++;
+                        const li = document.createElement('li');
+                        li.style.padding = '10px 15px';
+                        li.style.borderBottom = '1px solid #eee';
+                        li.style.display = 'flex';
+                        li.style.alignItems = 'center';
+                        li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${player.name}`;
+                        playerListUl.appendChild(li);
                     });
                 }
 
                 countBadge.innerText = count;
                 if (count === 0) {
-                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere funnet med status 'K' på denne datoen.</li>`;
+                    playerListUl.innerHTML = `<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er markert som klare for kamp (K) på denne datoen.</li>`;
                 }
-                console.log("Antall spillere med 'K' funnet:", count);
-                console.log("--- DETEKTIV FERDIG ---");
             }, { onlyOnce: true });
         }, { onlyOnce: true });
     };
