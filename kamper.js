@@ -20,66 +20,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const countBadge = document.getElementById('playerCountBadge');
     const detailsDiv = document.getElementById('matchInfoDetails');
     
-    // 1. Formater dato til DD.MM.YYYY
-    const parts = date.split('-');
-    const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+    // Konverter 2026-04-29 til 29.04.2026
+    const [y, m, d] = date.split('-');
+    const formattedDate = `${d}.${m}.${y}`;
     
-    document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
-    detailsDiv.innerHTML = `
-        <div style="margin-bottom:5px;"><strong>Dato:</strong> ${formattedDate}</div>
-        <div style="margin-bottom:5px;"><strong>Tid:</strong> kl. ${time}</div>
-        <div><strong>Bane:</strong> ${pitch}</div>
-    `;
+    document.getElementById('infoTitle').innerText = `Kamp: ${opponent}`;
+    detailsDiv.innerHTML = `<strong>Dato:</strong> ${formattedDate}<br><strong>Tid:</strong> ${time}<br><strong>Bane:</strong> ${pitch}`;
 
-    // Vis laste-status
-    playerListUl.innerHTML = '<li style="padding: 15px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Sjekker database...</li>';
-    countBadge.innerText = '0';
+    playerListUl.innerHTML = '<li style="padding: 15px;">Henter tropp...</li>';
     document.getElementById('matchInfoModal').style.display = 'flex';
 
-    // 2. Hent ALL attendance (vi henter hele for å være sikre på at vi får svar kjapt)
-    const attendanceRef = window.dbRef(window.db, 'attendance');
-    
-    window.dbOnValue(attendanceRef, (snapshot) => {
-        const allAttendance = snapshot.val();
-        const attendanceForDate = allAttendance ? allAttendance[formattedDate] : null;
+    // Hent data fra den nye flate mappen
+    const attendanceRef = window.dbRef(window.db, `attendance/${formattedDate}`);
+    const playersRef = window.dbRef(window.db, 'players');
 
-        // 3. Hent spillere
-        const playersRef = window.dbRef(window.db, 'players');
-        window.dbOnValue(playersRef, (playerSnapshot) => {
-            const players = playerSnapshot.val();
+    window.dbOnValue(attendanceRef, (snap) => {
+        const enrolled = snap.val(); // Dette er nå en liste over spillerIDer med status "K"
+        
+        window.dbOnValue(playersRef, (pSnap) => {
+            const allPlayers = pSnap.val();
             playerListUl.innerHTML = '';
             let count = 0;
 
-            if (attendanceForDate && players) {
-                // Lag en sortert liste over navn som har status "K"
-                const enrolledNames = [];
-                
-                Object.entries(attendanceForDate).forEach(([pId, status]) => {
-                    if (status === 'K' && players[pId]) {
-                        enrolledNames.push(players[pId].name);
+            if (enrolled && allPlayers) {
+                Object.entries(enrolled).forEach(([pId, status]) => {
+                    if (status === 'K' && allPlayers[pId]) {
+                        count++;
+                        const li = document.createElement('li');
+                        li.style.padding = '10px';
+                        li.style.borderBottom = '1px solid #eee';
+                        li.innerHTML = `<i class="fa-solid fa-check" style="color:green"></i> ${allPlayers[pId].name}`;
+                        playerListUl.appendChild(li);
                     }
-                });
-
-                enrolledNames.sort((a, b) => a.localeCompare(b, 'nb'));
-
-                enrolledNames.forEach(name => {
-                    count++;
-                    const li = document.createElement('li');
-                    li.style.padding = '10px 15px';
-                    li.style.borderBottom = '1px solid #eee';
-                    li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${name}`;
-                    playerListUl.appendChild(li);
                 });
             }
 
             countBadge.innerText = count;
             if (count === 0) {
-                playerListUl.innerHTML = '<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er markert som klare (K) i oppmøte-fanen for denne datoen.</li>';
+                playerListUl.innerHTML = '<li style="padding:20px; text-align:center; color:#888;">Ingen spillere er markert som klare i oppmøte-fanen.</li>';
             }
         }, { onlyOnce: true });
     }, { onlyOnce: true });
-};    
-    // Funksjon for å fylle modalen med eksisterende data for redigering
+};    // Funksjon for å fylle modalen med eksisterende data for redigering
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
         document.getElementById('editMatchId').value = id;
