@@ -35,7 +35,8 @@
             <thead>
                 <tr>
                     <th>Dato & Kl.</th>
-                    <th class="text-left">Kamp</th> <th>Bane</th>
+                    <th class="text-left">Kamp</th> 
+                    <th>Bane</th>
                     <th>Type</th>
                     <th>Handling</th>
                 </tr>
@@ -48,10 +49,12 @@
 <div id="matchModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Registrer kamp</h3>
+            <h3 id="modalTitle">Registrer kamp</h3>
             <button class="close-btn" onclick="closeMatchModal()">&times;</button>
         </div>
         <form id="matchForm">
+            <input type="hidden" id="editMatchId">
+            
             <div class="form-stack">
                 <div class="form-group">
                     <label>Dato</label>
@@ -59,29 +62,31 @@
                 </div>
                 <div class="form-group">
                     <label>Klokkeslett</label>
-                    <input type="time" id="matchTime"> </div>
+                    <input type="time" id="matchTime"> 
+                </div>
                 <div class="form-group">
                     <label>Motstander</label>
                     <input type="text" id="opponent" placeholder="F.eks. KFUM" required>
                 </div>
                 <div class="form-group">
                     <label>Bane / Sted</label>
-                    <input type="text" id="pitch" placeholder="F.eks. BSK Kunstgress"> </div>
-                    <div class="form-group">
-                        <label>Kamp-type</label>
-                        <select id="matchType">
-                            <option value="Serie">Seriekamp</option>
-                            <option value="Cup">Cupkamp</option>
-                            <option value="Treningskamp">Treningskamp</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Resultat (valgfritt)</label>
-                        <input type="text" id="result" placeholder="f.eks. 3-1">
-                    </div>
+                    <input type="text" id="pitch" placeholder="F.eks. BSK Kunstgress"> 
+                </div>
+                <div class="form-group">
+                    <label>Kamp-type</label>
+                    <select id="matchType">
+                        <option value="Serie">Seriekamp</option>
+                        <option value="Cup">Cupkamp</option>
+                        <option value="Treningskamp">Treningskamp</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resultat (valgfritt)</label>
+                    <input type="text" id="result" placeholder="f.eks. 3-1">
+                </div>
             </div>
             <div class="button-group">
-                <button type="submit" class="btn btn-grow-2">Lagre kamp</button>
+                <button type="submit" id="saveBtn" class="btn btn-grow-2">Lagre kamp</button>
                 <button type="button" class="btn btn-danger" onclick="closeMatchModal()">Avbryt</button>
             </div>
         </form>
@@ -89,7 +94,6 @@
 </div>
 
 <script type="module">
-    // Bruk samme Firebase-config som i de andre filene dine
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -105,9 +109,33 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    window.db = db; window.dbRef = ref; window.dbSet = set; window.dbPush = push; window.dbRemove = remove; window.dbOnValue = onValue;
+    
+    // Globale variabler for kamper.js
+    window.db = db; 
+    window.dbRef = ref; 
+    window.dbSet = set; 
+    window.dbPush = push; 
+    window.dbRemove = remove; 
+    window.dbOnValue = onValue;
 </script>
+
 <script src="navigation.js"></script>
 <script src="kamper.js"></script>
+
+<script>
+    // Enkel hjelpefunksjon for å tømme ID ved lukking
+    window.closeMatchModal = () => {
+        document.getElementById('matchModal').style.display = 'none';
+        document.getElementById('matchForm').reset();
+        document.getElementById('editMatchId').value = '';
+        document.getElementById('modalTitle').innerText = 'Registrer kamp';
+    };
+    
+    window.openMatchModal = () => {
+        document.getElementById('modalTitle').innerText = 'Registrer kamp';
+        document.getElementById('matchModal').style.display = 'flex';
+    };
+</script>
+
 </body>
 </html>
