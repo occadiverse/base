@@ -15,14 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- VIS KAMP-INFO OG SPILLERE ---
-    window.showMatchInfo = (id, date, opponent, time, pitch) => {
+   window.showMatchInfo = (id, date, opponent, time, pitch) => {
         const detailsDiv = document.getElementById('matchInfoDetails');
         const playerListUl = document.getElementById('matchPlayerList');
         const countBadge = document.getElementById('playerCountBadge');
         
+        // --- KONVERTERING AV DATO ---
+        // Gjør om "2026-04-29" til "29.4.2026"
+        const dateParts = date.split('-');
+        const day = parseInt(dateParts[2]);
+        const month = parseInt(dateParts[1]);
+        const year = dateParts[0];
+        const formattedDateForAttendance = `${day}.${month}.${year}`;
+        
+        console.log("Søker i oppmøte med dato:", formattedDateForAttendance);
+
         document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
         detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${date}</div>
+            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${formattedDateForAttendance}</div>
             <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
             <div><strong>Bane:</strong> ${pitch}</div>
         `;
@@ -30,15 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        console.log("--- DEBUG START ---");
-        console.log("Leter etter dato i attendance:", date);
-
-        // 1. Sjekk ALL attendance først for å se formatet
-        window.dbOnValue(window.dbRef(window.db, 'attendance'), (snapshot) => {
-            const allAttendance = snapshot.val();
-            console.log("Eksisterende datoer i databasen:", allAttendance ? Object.keys(allAttendance) : "Ingen data i attendance");
-
-            const attendanceForDate = allAttendance ? allAttendance[date] : null;
+        // 1. Hent oppmøte-data ved hjelp av den formaterte datoen
+        window.dbOnValue(window.dbRef(window.db, `attendance/${formattedDateForAttendance}`), (snapshot) => {
+            const attendanceData = snapshot.val();
             
             // 2. Hent spiller-navn
             window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
@@ -46,16 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerListUl.innerHTML = '';
                 let count = 0;
 
-                if (attendanceForDate && players) {
-                    console.log("Fant data for datoen! Behandler spillere...");
-                    
-                    // Sorter spillere alfabetisk
+                if (attendanceData && players) {
                     const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
                     
                     playerEntries.forEach(([playerId, playerInfo]) => {
-                        const status = attendanceForDate[playerId];
-                        // Sjekker for både 'K' og 'k'
-                        if (status && status.toUpperCase() === 'K') {
+                        // Sjekker om status er "K"
+                        if (attendanceData[playerId] === 'K') {
                             count++;
                             const li = document.createElement('li');
                             li.style.padding = '10px 15px';
@@ -72,16 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (count === 0) {
                     playerListUl.innerHTML = `
                         <li style="padding: 20px; color: #666; text-align: center;">
-                            Ingen spillere er markert med "K" for datoen ${date}.<br>
-                            <small>(Sjekk at datoen i Oppmøte er lagret korrekt)</small>
+                            Ingen spillere er markert med "K" for datoen ${formattedDateForAttendance}.
                         </li>`;
                 }
-                console.log("Antall spillere funnet med status K:", count);
-                console.log("--- DEBUG SLUTT ---");
             }, { onlyOnce: true });
         }, { onlyOnce: true });
     };
-
+    
     // Funksjon for å fylle modalen med eksisterende data for redigering
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
