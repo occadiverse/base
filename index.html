@@ -29,6 +29,15 @@
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
+            <a href="kamper.html" class="dash-card">
+                <div class="dash-icon"><i class="fa-solid fa-trophy"></i></div>
+                <div class="dash-info">
+                    <h3>Kamper</h3>
+                    <p id="nextMatchPreview">Laster neste kamp...</p> 
+                </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </a>
+            
             <a href="statistikk.html" class="dash-card">
                 <div class="dash-icon"><i class="fa-solid fa-chart-line"></i></div>
                 <div class="dash-info">
@@ -48,6 +57,52 @@
             </a>
         </div>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDyULE6HGOINM6D8bqBZGbVMaGHAF3RkJg",
+            authDomain: "base-49ce3.firebaseapp.com",
+            databaseURL: "https://base-49ce3-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "base-49ce3",
+            storageBucket: "base-49ce3.firebasestorage.app",
+            messagingSenderId: "4752321901",
+            appId: "1:4752321901:web:089814e4faefbdeff9be64"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Funksjon for å finne neste kamp
+        onValue(ref(db, 'matches'), (snapshot) => {
+            const data = snapshot.val();
+            const previewElement = document.getElementById('nextMatchPreview');
+            
+            if (data) {
+                const nå = new Date();
+                const matches = Object.values(data);
+                
+                // Finn kamper som er i dag eller frem i tid, sorter dem
+                const kommendeKamper = matches
+                    .filter(m => new Date(m.date + "T23:59:59") >= nå)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                if (kommendeKamper.length > 0) {
+                    const neste = kommendeKamper[0];
+                    const d = new Date(neste.date);
+                    const datoFormatert = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+                    
+                    previewElement.innerHTML = `Neste: <strong>${neste.opponent}</strong> (${datoFormatert} kl. ${neste.time})`;
+                } else {
+                    previewElement.innerText = "Ingen kommende kamper";
+                }
+            } else {
+                previewElement.innerText = "Ingen kamper lagt inn";
+            }
+        });
+    </script>
 
     <script src="navigation.js"></script>
     <script>
