@@ -2,57 +2,64 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistikk - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="sidebar" id="sidebar"></div>
+    <div class="sidebar" id="sidebar"></div>
 
-<div class="main-content">
-    <div class="top-bar">
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <h2 class="section-title">Treningsstatistikk</h2>
-    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h2 class="section-title">Oppmøtestatistikk</h2>
+        </div>
 
-    <div class="content-inner">
-        <div class="stats-header-box">
-            <h3>Sesongoversikt <span id="currentYear"></span></h3>
-            <p>Rangering basert på prosentvis oppmøte på trening og kamp.</p>
+        <div class="filter-bar">
+            <div class="centered-tools">
+                <div class="tool-item">
+                    <div class="custom-select-wrapper">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <select id="statPeriodSelect" class="select-input-clean">
+                            <option value="current">Denne måneden</option>
+                            <option value="total">Total sesong</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="table-container">
             <table id="statsTable">
                 <thead>
                     <tr>
-                        <th>Rank</th>
-                        <th class="text-left">Spiller</th>
-                        <th>Økter</th>
-                        <th>Oppmøte</th>
-                        <th>Prosent</th>
+                        <th class="name-col">Spiller</th>
+                        <th>Treninger</th>
+                        <th>Kamper</th>
+                        <th>Skader</th>
+                        <th class="stat-col">Total %</th>
                     </tr>
                 </thead>
-                <tbody id="statsTableBody">
+                <tbody id="statsBody">
                     </tbody>
             </table>
         </div>
     </div>
-</div>
 
-<script src="database.js"></script>
-<script src="navigation.js"></script>
-<script src="statistikk.js"></script>
+    <script type="module">
+        // ... (Lim inn samme Firebase-config blokk som du har i oppmote.html her)
+    </script>
 
-<script>
-    // Sikrer at menyen lastes
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof loadNavigation === 'function') loadNavigation();
-    });
-</script>
-
+    <script src="database.js"></script>
+    <script src="navigation.js"></script>
+    <script src="statistikk.js"></script> <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadNavigation === 'function') loadNavigation();
+        });
+    </script>
 </body>
 </html>
