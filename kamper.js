@@ -16,56 +16,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NY FUNKSJON: VIS KAMP-INFO OG SPILLERE ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
-        const detailsDiv = document.getElementById('matchInfoDetails');
-        const playerListUl = document.getElementById('matchPlayerList');
-        const countBadge = document.getElementById('playerCountBadge');
+    const detailsDiv = document.getElementById('matchInfoDetails');
+    const playerListUl = document.getElementById('matchPlayerList');
+    const countBadge = document.getElementById('playerCountBadge');
+    
+    document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
+    detailsDiv.innerHTML = `
+        <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${date}</div>
+        <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
+        <div><strong>Bane:</strong> ${pitch}</div>
+    `;
+
+    playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
+    document.getElementById('matchInfoModal').style.display = 'flex';
+
+    // 1. Hent oppmøte-data for denne datoen
+    window.dbOnValue(window.dbRef(window.db, `attendance/${date}`), (snapshot) => {
+        const attendanceData = snapshot.val();
+        console.log("Oppmøte-data funnet for " + date + ":", attendanceData); // Debug-logg
         
-        document.getElementById('infoTitle').innerText = `Kampdetaljer: ${opponent}`;
-        detailsDiv.innerHTML = `
-            <div style="margin-bottom: 5px;"><strong>Dato:</strong> ${date}</div>
-            <div style="margin-bottom: 5px;"><strong>Tid:</strong> kl. ${time}</div>
-            <div><strong>Bane:</strong> ${pitch}</div>
-        `;
+        // 2. Hent spiller-navn
+        window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
+            const players = playerSnapshot.val();
+            playerListUl.innerHTML = '';
+            let count = 0;
 
-        playerListUl.innerHTML = '<li style="padding: 10px;">Laster spillerliste...</li>';
-        document.getElementById('matchInfoModal').style.display = 'flex';
+            if (attendanceData && players) {
+                // Sorter alle spiller-IDer som finnes i oppmøte-dataen
+                Object.keys(attendanceData).forEach(playerId => {
+                    const status = attendanceData[playerId];
+                    const playerInfo = players[playerId];
 
-        // 1. Hent oppmøte-data for denne datoen
-        window.dbOnValue(window.dbRef(window.db, `attendance/${date}`), (snapshot) => {
-            const attendanceData = snapshot.val();
-            
-            // 2. Hent spiller-navn for å matche ID-ene
-            window.dbOnValue(window.dbRef(window.db, 'players'), (playerSnapshot) => {
-                const players = playerSnapshot.val();
-                playerListUl.innerHTML = '';
-                let count = 0;
+                    // Sjekk om status er "K" (uavhengig av store/små bokstaver)
+                    if (status && status.toUpperCase() === 'K') {
+                        count++;
+                        const li = document.createElement('li');
+                        li.style.padding = '10px 15px';
+                        li.style.borderBottom = '1px solid #eee';
+                        li.style.display = 'flex';
+                        li.style.alignItems = 'center';
+                        
+                        // Bruk navnet hvis det finnes, ellers vis ID
+                        const playerName = playerInfo ? playerInfo.name : "Ukjent spiller (" + playerId + ")";
+                        
+                        li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${playerName}`;
+                        playerListUl.appendChild(li);
+                    }
+                });
+            }
 
-                if (attendanceData && players) {
-                    // Sorter spillere alfabetisk
-                    const playerEntries = Object.entries(players).sort((a, b) => a[1].name.localeCompare(b[1].name));
-                    
-                    playerEntries.forEach(([playerId, playerInfo]) => {
-                        // Sjekk om spilleren er markert med "K" (Kamp) for denne datoen
-                        if (attendanceData[playerId] === 'K') {
-                            count++;
-                            const li = document.createElement('li');
-                            li.style.padding = '10px 15px';
-                            li.style.borderBottom = '1px solid #eee';
-                            li.style.display = 'flex';
-                            li.style.alignItems = 'center';
-                            li.innerHTML = `<i class="fa-solid fa-user-check" style="color: #27ae60; margin-right: 12px;"></i> ${playerInfo.name}`;
-                            playerListUl.appendChild(li);
-                        }
-                    });
-                }
-
-                countBadge.innerText = count;
-                if (count === 0) {
-                    playerListUl.innerHTML = '<li style="padding: 20px; color: #666; text-align: center;">Ingen spillere er påmeldt (status K) i oppmøteskjemaet for denne datoen.</li>';
-                }
-            }, { onlyOnce: true });
+            countBadge.innerText = count;
+            if (count === 0) {
+                playerListUl.innerHTML = `
+                    <li style="padding: 20px; color: #666; text-align: center;">
+                        Ingen spillere er markert med "K" for datoen ${date}.<br>
+                        <small>(Husk å lagre oppmøte med "K" på denne datoen)</small>
+                    </li>`;
+            }
         }, { onlyOnce: true });
-    };
+    }, { onlyOnce: true });
+};
 
     // Funksjon for å fylle modalen med eksisterende data for redigering
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
