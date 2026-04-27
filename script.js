@@ -29,7 +29,7 @@
         });
     }
 
-    // --- 2. UI KONTROLLERE (Globalt tilgjengelige) ---
+    // --- 2. UI KONTROLLERE ---
     window.showDatePicker = function() {
         const btn = document.getElementById('toggleDateBtn');
         const container = document.getElementById('datePickerContainer');
@@ -67,6 +67,7 @@
         window.renderAttendanceTable();
     };
 
+    // --- OPPDATERT cycleStatus: LAGRER NÅ OGSÅ TIL KAMP-MAPPE ---
     window.cycleStatus = function(playerId, dayNr) {
         const monthIdx = getMonthIndex();
         const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
@@ -74,7 +75,26 @@
         let currentIndex = states.indexOf(currentStatus);
         const nextStatus = states[(currentIndex + 1) % states.length];
         
+        // 1. Lagre til den vanlige oppmøte-strukturen
         DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
+
+        // 2. SYNKRONISERING TIL KAMP-MODAL:
+        // Vi lager en dato-nøkkel i formatet DD.MM.YYYY (f.eks 29.04.2026)
+        const dStr = dayNr.toString().padStart(2, '0');
+        const mStr = (monthIdx + 1).toString().padStart(2, '0');
+        const dateKey = `${dStr}.${mStr}.${currentYear}`;
+
+        if (window.dbSet && window.db) {
+            // Hvis status er 'present', lagrer vi en "K" i kamp-mappen
+            // Hvis ikke, fjerner vi den (null) så listen i modalen er oppdatert
+            const matchStatus = nextStatus === 'present' ? 'K' : null;
+            const matchPath = `attendance/${dateKey}/${playerId}`;
+            
+            window.dbSet(window.dbRef(window.db, matchPath), matchStatus)
+                .then(() => console.log(`Synket ${playerId} til kamp-dato ${dateKey}`))
+                .catch(err => console.error("Synk-feil:", err));
+        }
+
         window.renderAttendanceTable();
     };
 
@@ -101,7 +121,6 @@
         const players = DB.getActivePlayers();
         const days = getTrainingDays(monthIdx);
 
-        // Header
         let headHtml = '<tr><th class="name-col">Spiller</th>';
         days.forEach(d => {
             const type = localStorage.getItem(getDayTypeKey(monthIdx, d.nr)) || 'X';
@@ -116,7 +135,6 @@
         headHtml += '<th class="stat-col">%</th></tr>';
         tableHead.innerHTML = headHtml;
 
-        // Rader
         let bodyHtml = '';
         players.forEach(player => {
             bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
@@ -163,67 +181,44 @@
         hideDatePicker(); 
     };
 
-    // --- 4. MASTER SYNKRONISERING (Firebase Lytter) ---
+    // --- 4. MASTER SYNKRONISERING ---
     function setupCloudListeners() {
         if (!window.dbOnValue || !window.dbRef || !window.db) {
-            console.log("Venter på Firebase...");
             setTimeout(setupCloudListeners, 500);
             return;
         }
 
-        // --- SIKKER SKY-SYNKRONISERING ---
-window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
+        window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
 
-    console.log("Sky-data mottatt, synkroniserer...");
+            if (data.players) {
+                localStorage.setItem('full-spillerliste', JSON.stringify(data.players));
+            }
 
-    // A. Synk spillere
-    if (data.players) {
-        localStorage.setItem('full-spillerliste', JSON.stringify(data.players));
-    }
-
-    // B. Synk oppmøte-statuser (Med sikkerhetssjekk!)
-    if (data.attendance) {
-        Object.keys(data.attendance).forEach(y => {
-            if (data.attendance[y]) {
-                Object.keys(data.attendance[y]).forEach(m => {
-                    if (data.attendance[y][m]) {
-                        Object.keys(data.attendance[y][m]).forEach(pId => {
-                            if (data.attendance[y][m][pId]) {
-                                Object.keys(data.attendance[y][m][pId]).forEach(d => {
-                                    const val = data.attendance[y][m][pId][d];
-                                    localStorage.setItem(`att-base-${y}-${m}-${pId}-${d}`, val);
-                                });
-                            }
+            if (data.attendance && data.attendance[currentYear]) {
+                const yearData = data.attendance[currentYear];
+                Object.keys(yearData).forEach(m => {
+                    Object.keys(yearData[m]).forEach(pId => {
+                        Object.keys(yearData[m][pId]).forEach(d => {
+                            localStorage.setItem(`att-base-${currentYear}-${m}-${pId}-${d}`, yearData[m][pId][d]);
                         });
-                    }
+                    });
                 });
             }
+
+            if (data.dayTypes && data.dayTypes[currentYear]) {
+                const yearTypes = data.dayTypes[currentYear];
+                Object.keys(yearTypes).forEach(m => {
+                    Object.keys(yearTypes[m]).forEach(d => {
+                        localStorage.setItem(`type-${currentYear}-${m}-${d}`, yearTypes[m][d]);
+                    });
+                });
+            }
+            window.renderAttendanceTable();
         });
     }
 
-    // C. Synk dagstyper (T/K) (Med sikkerhetssjekk!)
-    if (data.dayTypes) {
-        Object.keys(data.dayTypes).forEach(y => {
-            if (data.dayTypes[y]) {
-                Object.keys(data.dayTypes[y]).forEach(m => {
-                    if (data.dayTypes[y][m]) {
-                        Object.keys(data.dayTypes[y][m]).forEach(d => {
-                            const val = data.dayTypes[y][m][d];
-                            localStorage.setItem(`type-${y}-${m}-${d}`, val);
-                        });
-                    }
-                });
-            }
-        });
-    }
-
-    window.renderAttendanceTable();
-});
-        }
-
-    // --- 5. OPPSTART ---
     monthSelect.addEventListener('change', () => window.renderAttendanceTable());
     populateMonthSelect();
     window.renderAttendanceTable();
