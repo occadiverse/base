@@ -18,57 +18,62 @@ document.addEventListener('DOMContentLoaded', () => {
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
     const playerListUl = document.getElementById('matchPlayerList');
     const countBadge = document.getElementById('playerCountBadge');
-    const detailsDiv = document.getElementById('matchInfoDetails');
     
-    // 1. VIKTIG: Konverter YYYY-MM-DD til DD-MM-YYYY
-    // Hvis date er "2026-04-29", blir dette "29-04-2026"
+    // 1. Konverter dato
     const parts = date.split('-'); 
     const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
     
-    console.log("Prøver å hente tropp for dato:", formattedDate);
-
-    document.getElementById('infoTitle').innerText = `Kamp: ${opponent}`;
-    detailsDiv.innerHTML = `<strong>Dato:</strong> ${formattedDate.replace(/-/g, '.')}<br><strong>Tid:</strong> ${time}`;
-
-    playerListUl.innerHTML = '<li style="padding: 15px;">Leter etter spillere i mappen ' + formattedDate + '...</li>';
+    playerListUl.innerHTML = '<li style="padding: 15px;">Henter tropp...</li>';
     document.getElementById('matchInfoModal').style.display = 'flex';
 
-    // 2. Hent data fra Firebase
-    const attendanceRef = window.dbRef(window.db, `attendance/${formattedDate}`);
-    const playersRef = window.dbRef(window.db, 'players');
+    // 2. Hent attendance og spillere samtidig
+    window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+        const root = snapshot.val();
+        if (!root) return;
 
-    window.dbOnValue(attendanceRef, (snap) => {
-        const enrolled = snap.val();
-        console.log("Firebase svarte med disse dataene:", enrolled);
+        const enrolled = root.attendance ? root.attendance[formattedDate] : null;
+        const allPlayers = root.players;
 
-        window.dbOnValue(playersRef, (pSnap) => {
-            const allPlayers = pSnap.val();
-            playerListUl.innerHTML = '';
-            let count = 0;
+        playerListUl.innerHTML = '';
+        let count = 0;
 
-            if (enrolled && allPlayers) {
-                Object.entries(enrolled).forEach(([pId, status]) => {
-                    if (status === 'K') {
-                        // Sjekker om spilleren finnes i players-lista
-                        const player = allPlayers[pId];
-                        // Noen ganger heter feltet 'name', andre ganger 'navn'
-                        const playerName = player ? (player.name || player.navn) : "Ukjent spiller";
-                        
+        if (enrolled && allPlayers) {
+            // Vi går gjennom alle ID-ene som er i kampspesifikk mappe
+            Object.entries(enrolled).forEach(([pId, status]) => {
+                if (status === 'K') {
+                    // VIKTIG: Vi leter etter spilleren uavhengig av om ID-en er lang eller kort
+                    // Først sjekker vi om ID-en matcher direkte
+                    let player = allPlayers[pId];
+
+                    // Hvis ikke, leter vi i hele spillerlista etter en spiller som har 
+                    // denne lange ID-en lagret inni seg (hvis de har det)
+                    if (!player) {
+                        player = Object.values(allPlayers).find(p => p.id === pId);
+                    }
+
+                    if (player) {
                         count++;
                         const li = document.createElement('li');
                         li.style.padding = '10px';
                         li.style.borderBottom = '1px solid #eee';
-                        li.innerHTML = `<i class="fa-solid fa-check" style="color:green"></i> ${playerName}`;
+                        li.innerHTML = `<i class="fa-solid fa-check" style="color:green"></i> ${player.name || player.navn}`;
+                        playerListUl.appendChild(li);
+                    } else {
+                        // NØDLØSNING: Hvis vi fortsatt ikke finner navnet, viser vi at noen er klare
+                        count++;
+                        const li = document.createElement('li');
+                        li.style.padding = '10px';
+                        li.innerHTML = `✅ Spiller (ID: ${pId})`;
                         playerListUl.appendChild(li);
                     }
-                });
-            }
+                }
+            });
+        }
 
-            countBadge.innerText = count;
-            if (count === 0) {
-                playerListUl.innerHTML = `<li style="padding:20px; text-align:center; color:#888;">Ingen spillere markert med "K" ble funnet for ${formattedDate}.</li>`;
-            }
-        }, { onlyOnce: true });
+        countBadge.innerText = count;
+        if (count === 0) {
+            playerListUl.innerHTML = '<li style="padding:20px; text-align:center;">Ingen spillere markert som klare for denne datoen.</li>';
+        }
     }, { onlyOnce: true });
 };
     
