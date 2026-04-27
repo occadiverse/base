@@ -85,17 +85,31 @@
             <tr>
                 <td><strong>${s.draktnummer || '-'}</strong></td>
                 <td class="text-left">${s.navn}</td>
-                <td>${s.fodselsdato || '-'}</td>
-                <td><span class="status-pill ${s.status === 'Aktiv' ? 'status-active' : 'status-passive'}">${s.status}</span></td>
-                <td>${s.mobil || '-'}</td>
                 <td>
-                    <button class="btn btn-small btn-muted" onclick="editPlayer('${s.id}')">Endre</button>
-                    <button class="btn btn-danger btn-small" onclick="deletePlayer('${s.id}')">Slett</button>
+                    <span class="status-pill ${s.status === 'Aktiv' ? 'status-active' : 'status-passive'}">
+                        ${s.status}
+                    </span>
+                </td>
+                <td>
+                    <a href="tel:${s.mobil}" style="text-decoration:none; color:inherit;">
+                        ${s.mobil || '-'}
+                    </a>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="action-btn" onclick="editPlayer('${s.id}')" title="Rediger">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deletePlayer('${s.id}')" title="Slett">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
     }
 
+    // Første opptegning
     renderPlayers();
 
     // --- LIVE SYNKRONISERING AV SPILLERLISTE FRA FIREBASE ---
@@ -105,10 +119,11 @@
             const data = snapshot.val();
             if (data) {
                 console.log("Spillerliste oppdatert fra skyen...");
-                // Oppdaterer den lokale variabelen og localStorage
-                spillerliste = data;
-                localStorage.setItem('full-spillerliste', JSON.stringify(data));
-                // Tegner tabellen på nytt
+                // Firebase lagrer ofte lister som objekter eller arrays, 
+                // vi sikrer at vi håndterer begge deler.
+                spillerliste = Array.isArray(data) ? data : Object.values(data);
+                
+                localStorage.setItem('full-spillerliste', JSON.stringify(spillerliste));
                 renderPlayers();
             }
         });
