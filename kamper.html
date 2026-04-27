@@ -34,9 +34,8 @@
         <table id="matchTable">
             <thead>
                 <tr>
-                    <th>Dato</th>
-                    <th class="text-left">Motstander</th>
-                    <th>Type</th>
+                    <th>Dato & Kl.</th> <th class="text-left">Motstander</th>
+                    <th>Bane</th> <th>Type</th>
                     <th>Resultat</th>
                     <th>Handling</th>
                 </tr>
@@ -59,21 +58,27 @@
                     <input type="date" id="matchDate" required>
                 </div>
                 <div class="form-group">
+                    <label>Klokkeslett</label>
+                    <input type="time" id="matchTime"> </div>
+                <div class="form-group">
                     <label>Motstander</label>
                     <input type="text" id="opponent" placeholder="F.eks. KFUM" required>
                 </div>
                 <div class="form-group">
-                    <label>Kamp-type</label>
-                    <select id="matchType">
-                        <option value="Serie">Seriekamp</option>
-                        <option value="Cup">Cupkamp</option>
-                        <option value="Treningskamp">Treningskamp</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Resultat (valgfritt)</label>
-                    <input type="text" id="result" placeholder="f.eks. 3-1">
-                </div>
+                    <label>Bane / Sted</label>
+                    <input type="text" id="pitch" placeholder="F.eks. BSK Kunstgress"> </div>
+                    <div class="form-group">
+                        <label>Kamp-type</label>
+                        <select id="matchType">
+                            <option value="Serie">Seriekamp</option>
+                            <option value="Cup">Cupkamp</option>
+                            <option value="Treningskamp">Treningskamp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Resultat (valgfritt)</label>
+                        <input type="text" id="result" placeholder="f.eks. 3-1">
+                    </div>
             </div>
             <div class="button-group">
                 <button type="submit" class="btn btn-grow-2">Lagre kamp</button>
