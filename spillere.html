@@ -17,15 +17,13 @@
             <i class="fa-solid fa-bars"></i>
         </button>
         <h2 class="section-title">Spillerstall</h2>
-
-        <button class="btn-outline" onclick="openModal()">
-            <i class="fa-solid fa-user-plus"></i> <span>Ny spiller</span>
-        </button>
     </div>
 
     <div class="filter-bar">
         <div class="centered-tools">
-            <p class="help-text">Administrer spillerstallen i skyen</p>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fa-solid fa-user-plus"></i> Legg til ny spiller
+            </button>
         </div>
     </div>
 
@@ -119,7 +117,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Sjekker om navigation.js er lastet riktig
         if (typeof window.loadNavigation === 'function') {
             window.loadNavigation();
         }
