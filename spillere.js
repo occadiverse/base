@@ -3,88 +3,131 @@ import { ref, set, onValue, push, remove } from "https://www.gstatic.com/firebas
 
 const tableBody = document.getElementById('playerTableBody');
 const playerForm = document.getElementById('playerForm');
-let spillerliste = [];
 
-// --- HENT DATA FRA FIREBASE (Live lytter) ---
+let spillerliste = [];
+let currentFilter = 'Alle';
+
+// --- OVERSETTER FOR POSISJONSNUMRE ---
+const posMap = {
+    'Keeper': '1',
+    'Høyre bekk': '2',
+    'Venstre bekk': '3',
+    'Høyre stopper': '4',
+    'Venstre stopper': '5',
+    'Defensiv midtbane': '6',
+    'Høyre kant': '7',
+    'Offensiv midtbane': '8',
+    'Spiss': '9',
+    'Playmaker': '10',
+    'Venstre kant': '11',
+    '-': '-'
+};
+
+// --- HENT DATA FRA FIREBASE ---
 onValue(ref(db, 'players'), (snapshot) => {
-    const data = snapshot.val();
-    console.log("Data mottatt fra Firebase:", data); // Sjekk i konsollen om dataene kommer
-    renderPlayers(data);
+    const data = snapshot.val() || {};
+    // Konverterer objekt til liste med ID
+    spillerliste = Object.entries(data).map(([id, values]) => ({
+        id: id,
+        ...values
+    })).sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
+    
+    renderPlayers();
 });
 
+// --- BYTT VISNING (Filtrering) ---
+window.switchPlayerView = (filter) => {
+    currentFilter = filter;
+    
+    // Oppdater aktive knapper i filter-linjen
+    const allButtons = document.querySelectorAll('.tab-btn');
+    allButtons.forEach(btn => {
+        const mappedValue = posMap[filter] || filter;
+        // Sjekker om knappens tekst matcher nummeret eller "ALLE"
+        if (btn.innerText === mappedValue || (filter === 'Alle' && btn.innerText === 'ALLE')) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    renderPlayers();
+};
+
 // --- TEGN OPP TABELLEN ---
-function renderPlayers(data) {
-    if (!data) {
-        tableBody.innerHTML = '<tr><td colspan="5" style="padding:20px;">Ingen spillere funnet i databasen.</td></tr>';
+function renderPlayers() {
+    if (spillerliste.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" style="padding:20px;">Ingen spillere funnet.</td></tr>';
         return;
     }
 
-    // Konverterer objekt til liste og sorterer alfabetisk
-    spillerliste = Object.entries(data).map(([id, values]) => ({
-        id: id, // Dette er den unike Firebase-nøkkelen
-        ...values
-    })).sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
+    // Filtrering: Vis alle, eller de som har valgt posisjon som Pos 1 eller Pos 2
+    let filtrertListe = spillerliste;
+    if (currentFilter !== 'Alle') {
+        filtrertListe = spillerliste.filter(s => 
+            s.pos1 === currentFilter || s.pos2 === currentFilter
+        );
+    }
 
-    tableBody.innerHTML = spillerliste.map(s => `
-        <tr>
-            <td><strong style="color: var(--primary);">${s.draktnummer || s.draknummer || '-'}</strong></td>
-            <td class="text-left" style="font-weight: 600;">${s.navn}</td>
-            <td>
-                <span class="status-pill ${s.status === 'Aktiv' ? 'status-active' : 'status-passive'}">
-                    ${s.status}
-                </span>
-            </td>
-            <td>
-                <a href="tel:${s.mobil}" style="text-decoration:none; color:var(--primary); font-weight: 500;">
-                    <i class="fa-solid fa-phone" style="font-size: 0.8em; margin-right: 5px;"></i>${s.mobil || '-'}
-                </a>
-            </td>
-            <td>
-                <div style="display: flex; gap: 8px; justify-content: center;">
-                    <button class="action-btn btn-edit" onclick="window.editPlayer('${s.id}')" title="Rediger">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button class="action-btn btn-delete" onclick="window.deletePlayer('${s.id}')" title="Slett">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    const currentYear = new Date().getFullYear();
+
+    tableBody.innerHTML = filtrertListe.map(s => {
+        const alder = s.fodselsaar ? (currentYear - s.fodselsaar) : '-';
+        const n1 = posMap[s.pos1] || '?';
+        const n2 = posMap[s.pos2] || '-';
+        
+        // Forkortelse for fot
+        const fotVisning = s.fot === 'Begge' ? 'B' : (s.fot === 'Venstre' ? 'V' : 'H');
+
+        return `
+            <tr>
+                <td><strong style="color: var(--primary);">${s.draktnummer || '-'}</strong></td>
+                <td class="name-col"><strong>${s.navn}</strong></td>
+                <td>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <span style="display:inline-block; width:26px; height:26px; line-height:26px; background:var(--text-main); color:white; border-radius:50%; font-weight:800; font-size:0.8rem;">${n1}</span>
+                        ${n2 !== '-' ? `<span style="color:var(--text-muted); font-size:0.75rem;">/ ${n2}</span>` : ''}
+                    </div>
+                </td>
+                <td><span class="status-pill" style="background:#f1f2f6; min-width:30px; font-weight:700;">${fotVisning}</span></td>
+                <td>${alder}</td>
+                <td>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button class="action-btn btn-edit" onclick="window.editPlayer('${s.id}')">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick="window.deletePlayer('${s.id}')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
-// --- GLOBALE FUNKSJONER (Tvinges ut på window) ---
-
+// --- REDIGER SPILLER ---
 window.editPlayer = function(id) {
-    console.log("Prøver å redigere ID:", id);
     const spiller = spillerliste.find(s => s.id === id);
     if (!spiller) return;
 
     document.getElementById('editId').value = id;
     document.getElementById('navn').value = spiller.navn || '';
-    document.getElementById('fodselsdato').value = spiller.fodselsdato || '';
-    document.getElementById('status').value = spiller.status || 'Aktiv';
-    document.getElementById('mobil').value = spiller.mobil || '';
-    document.getElementById('draktnummer').value = spiller.draktnummer || spiller.draknummer || '';
+    document.getElementById('fodselsaar').value = spiller.fodselsaar || '';
+    document.getElementById('pos1').value = spiller.pos1 || 'Keeper';
+    document.getElementById('pos2').value = spiller.pos2 || '-';
+    document.getElementById('fot').value = spiller.fot || 'Høyre';
+    document.getElementById('draktnummer').value = spiller.draktnummer || '';
 
     document.getElementById('formTitle').innerText = 'Rediger spiller';
     document.getElementById('submitBtn').innerText = 'Oppdater spiller';
     document.getElementById('playerModal').style.display = 'flex';
 };
 
+// --- SLETT SPILLER ---
 window.deletePlayer = function(id) {
-    console.log("Slette-forespørsel sendt for ID:", id);
-    if (confirm('Er du sikker på at du vil slette denne spilleren?')) {
-        const playerRef = ref(db, `players/${id}`);
-        remove(playerRef)
-            .then(() => {
-                console.log("Sletting vellykket for ID:", id);
-                // Tabellen vil oppdatere seg selv automatisk pga onValue over
-            })
-            .catch((error) => {
-                console.error("Feil ved sletting:", error);
-                alert("Kunne ikke slette spilleren: " + error.message);
-            });
+    if (confirm('Vil du slette denne spilleren fra stallen?')) {
+        remove(ref(db, `players/${id}`));
     }
 };
 
@@ -95,9 +138,10 @@ playerForm.addEventListener('submit', (e) => {
     
     const spillerData = {
         navn: document.getElementById('navn').value,
-        fodselsdato: document.getElementById('fodselsdato').value,
-        status: document.getElementById('status').value,
-        mobil: document.getElementById('mobil').value,
+        fodselsaar: parseInt(document.getElementById('fodselsaar').value) || '',
+        pos1: document.getElementById('pos1').value,
+        pos2: document.getElementById('pos2').value,
+        fot: document.getElementById('fot').value,
         draktnummer: document.getElementById('draktnummer').value || '-'
     };
 
