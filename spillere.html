@@ -16,20 +16,36 @@
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 class="section-title">Spillere</h2>
+        <h2 class="section-title">Spillerstall</h2>
     </div>
 
-    <div class="filter-bar"></div>
+    <div class="filter-bar">
+        <div style="display: flex; gap: 6px; width: 100%; overflow-x: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch;">
+            <button id="btnAlle" class="tab-btn active" onclick="window.switchPlayerView('Alle')">ALLE</button>
+            <button id="btn1" class="tab-btn" onclick="window.switchPlayerView('Keeper')">1</button>
+            <button id="btn2" class="tab-btn" onclick="window.switchPlayerView('Høyre bekk')">2</button>
+            <button id="btn3" class="tab-btn" onclick="window.switchPlayerView('Venstre bekk')">3</button>
+            <button id="btn4" class="tab-btn" onclick="window.switchPlayerView('Høyre stopper')">4</button>
+            <button id="btn5" class="tab-btn" onclick="window.switchPlayerView('Venstre stopper')">5</button>
+            <button id="btn6" class="tab-btn" onclick="window.switchPlayerView('Defensiv midtbane')">6</button>
+            <button id="btn7" class="tab-btn" onclick="window.switchPlayerView('Høyre kant')">7</button>
+            <button id="btn8" class="tab-btn" onclick="window.switchPlayerView('Offensiv midtbane')">8</button>
+            <button id="btn9" class="tab-btn" onclick="window.switchPlayerView('Spiss')">9</button>
+            <button id="btn10" class="tab-btn" onclick="window.switchPlayerView('Playmaker')">10</button>
+            <button id="btn11" class="tab-btn" onclick="window.switchPlayerView('Venstre kant')">11</button>
+        </div>
+    </div>
 
     <div class="table-container">
         <table id="playerTable">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th class="text-left">Navn</th>
-                    <th>Status</th>
-                    <th>Mobil</th>
-                    <th>Handling</th>
+                    <th style="width: 50px;">#</th>
+                    <th class="name-col">Navn</th>
+                    <th>Pos</th>
+                    <th>Fot</th>
+                    <th>Alder</th>
+                    <th style="width: 100px;"></th>
                 </tr>
             </thead>
             <tbody id="playerTableBody"></tbody>
@@ -37,7 +53,7 @@
     </div>
 </div>
 
-<button class="fab-btn" onclick="openModal()" title="Registrer ny spiller" style="position: fixed !important; right: 20px !important; bottom: 20px !important; z-index: 9999 !important; display: flex !important;">
+<button class="fab-btn" onclick="openModal()" title="Registrer ny spiller">
     <i class="fa-solid fa-user-plus"></i>
     <span class="fab-text">Ny spiller</span>
 </button>
@@ -55,28 +71,65 @@
                     <label>Fullt navn *</label>
                     <input type="text" id="navn" required>
                 </div>
-                <div class="form-group">
-                    <label>Fødselsdato</label>
-                    <input type="date" id="fodselsdato">
+                
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Fødselsår</label>
+                        <input type="number" id="fodselsaar" placeholder="f.eks. 1998">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Draktnummer</label>
+                        <input type="number" id="draktnummer">
+                    </div>
                 </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Posisjon 1</label>
+                        <select id="pos1">
+                            <option value="Keeper">1 - Keeper</option>
+                            <option value="Høyre bekk">2 - Høyre bekk</option>
+                            <option value="Venstre bekk">3 - Venstre bekk</option>
+                            <option value="Høyre stopper">4 - Høyre stopper</option>
+                            <option value="Venstre stopper">5 - Venstre stopper</option>
+                            <option value="Defensiv midtbane">6 - Defensiv midtbane</option>
+                            <option value="Høyre kant">7 - Høyre kant</option>
+                            <option value="Offensiv midtbane">8 - Offensiv midtbane</option>
+                            <option value="Spiss">9 - Spiss</option>
+                            <option value="Playmaker">10 - Playmaker</option>
+                            <option value="Venstre kant">11 - Venstre kant</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Posisjon 2</label>
+                        <select id="pos2">
+                            <option value="-">- Ingen -</option>
+                            <option value="Keeper">1 - Keeper</option>
+                            <option value="Høyre bekk">2 - Høyre bekk</option>
+                            <option value="Venstre bekk">3 - Venstre bekk</option>
+                            <option value="Høyre stopper">4 - Høyre stopper</option>
+                            <option value="Venstre stopper">5 - Venstre stopper</option>
+                            <option value="Defensiv midtbane">6 - Defensiv midtbane</option>
+                            <option value="Høyre kant">7 - Høyre kant</option>
+                            <option value="Offensiv midtbane">8 - Offensiv midtbane</option>
+                            <option value="Spiss">9 - Spiss</option>
+                            <option value="Playmaker">10 - Playmaker</option>
+                            <option value="Venstre kant">11 - Venstre kant</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="status">
-                        <option value="Aktiv">Aktiv</option>
-                        <option value="Passiv">Passiv</option>
+                    <label>Foretrukket fot</label>
+                    <select id="fot">
+                        <option value="Høyre">Høyre</option>
+                        <option value="Venstre">Venstre</option>
+                        <option value="Begge">Begge</option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label>Mobil</label>
-                    <input type="tel" id="mobil">
-                </div>
-                <div class="form-group">
-                    <label>Draktnummer</label>
-                    <input type="number" id="draktnummer">
                 </div>
             </div>
             <div class="button-group">
-                <button type="submit" id="submitBtn" class="btn btn-grow-2">Lagre</button>
+                <button type="submit" id="submitBtn" class="btn btn-grow-2">Lagre spiller</button>
                 <button type="button" class="btn btn-danger" onclick="closeModal()">Avbryt</button>
             </div>
         </form>
