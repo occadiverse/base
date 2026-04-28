@@ -154,7 +154,7 @@ body {
 }
 
 .custom-select-wrapper i {
-    margin-right: 8px; /* Gir luft mellom ikonet og tekst/select-boks */
+    margin-right: 8px;
 }
 
 .btn-outline:hover, .custom-select-wrapper:hover {
@@ -176,13 +176,36 @@ body {
     appearance: none;
 }
 
+/* --- FANE-KNAPPER (Tabs) --- */
+.tab-btn {
+    flex: 1; 
+    height: 42px;
+    background-color: transparent; 
+    color: var(--primary);          
+    border: 1px solid var(--primary);
+    border-radius: 8px; 
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-btn.active {
+    background-color: var(--primary); 
+    color: var(--white);            
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: rgba(52, 152, 219, 0.1); 
+}
+
 /* --- TABELL-DESIGN --- */
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Tvinger frem sidelengs scroll */
+    overflow-x: auto; 
     overflow-y: visible;
     position: relative;
-    -webkit-overflow-scrolling: touch; /* Gjør scroll silkemyk på iPhone */
+    -webkit-overflow-scrolling: touch; 
     background: white;
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -190,7 +213,7 @@ body {
 
 table {
     width: 100%;
-    min-width: 600px; /* Tvinger tabellen til å være bredere enn skjermen */
+    min-width: 600px; 
     border-collapse: separate; 
     border-spacing: 0;
 }
@@ -216,15 +239,14 @@ th {
 .name-col {
     position: sticky;
     left: 0;
-    background-color: white; /* Må ha bakgrunn for å ikke bli gjennomsiktig */
-    z-index: 10; /* Ligger over de andre cellene når du scroller */
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* En liten skygge som viser skille */
+    background-color: white; 
+    z-index: 10; 
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
     padding: 12px 15px;
     min-width: 140px;
-    white-space: nowrap; /* Hindrer navnet i å hoppe til neste linje */
+    white-space: nowrap; 
 }
 
-/* Sørg for at headeren også sitter fast */
 thead th.name-col {
     z-index: 11;
     background-color: #f8f9fa;
