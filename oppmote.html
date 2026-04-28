@@ -1,233 +1,117 @@
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Oppmøte - BSK Fotball</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+document.addEventListener('DOMContentLoaded', () => {
+    const attendanceHeader = document.getElementById('attendanceHeader');
+    const attendanceBody = document.getElementById('attendanceBody');
+    const attendanceForm = document.getElementById('attendanceForm');
 
-    <div class="sidebar" id="sidebar"></div>
+    let players = {};
+    let attendanceData = {};
+    let dates = [];
 
-    <div class="main-content">
-        <div class="top-bar">
-            <button class="menu-toggle" onclick="toggleMenu()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <h2 class="section-title">Oppmøte</h2>
-        </div>
+    // --- HENT DATA FRA FIREBASE ---
+    // Vi henter både spillere og oppmøte-data
+    window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+        const root = snapshot.val() || {};
+        players = root.players || {};
+        attendanceData = root.attendance || {};
+        
+        // Lag en sortert liste over datoer (de nyeste først er ofte best for oversikt)
+        dates = Object.keys(attendanceData).sort((a, b) => new Date(b.split('-').reverse().join('-')) - new Date(a.split('-').reverse().join('-')));
+        
+        renderMatrix();
+    });
 
-        <div class="filter-bar">
-            <div class="centered-tools">
-                <div class="tool-item">
-                    <div class="custom-select-wrapper">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        <select id="monthSelect" class="select-input-clean"></select>
-                    </div>
-                </div>
+    // --- BYGG MATRISEN ---
+    function renderMatrix() {
+        if (!attendanceHeader || !attendanceBody) return;
 
-                <div class="tool-item">
-                    <button id="toggleDateBtn" class="btn-outline" onclick="showDatePicker()">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                        <span>Ny økt</span>
-                    </button>
-
-                    <div id="datePickerContainer" class="unified-input-group hidden">
-                        <input type="date" id="dateInput" class="date-picker-minimal">
-                        <button class="btn-add-inline" onclick="addDate()">
-                            <i class="fa-solid fa-check"></i>
-                        </button>
-                        <button class="btn-cancel" onclick="hideDatePicker()">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <table id="attendanceTable">
-                <thead id="tableHead"></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-
-        <div style="padding: 0 30px 40px 30px;">
-            <p class="help-text">
-                <i class="fa-solid fa-circle-info"></i> 
-                Klikk på dato-etiketten (T/K) for å endre økttype. Klikk på cellene for å endre status.
-            </p>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDyULE6HGOINM6D8bqBZGbVMaGHAF3RkJg",
-            authDomain: "base-49ce3.firebaseapp.com",
-            databaseURL: "https://base-49ce3-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "base-49ce3",
-            storageBucket: "base-49ce3.firebasestorage.app",
-            messagingSenderId: "4752321901",
-            appId: "1:4752321901:web:089814e4faefbdeff9be64",
-            measurementId: "G-YZE1RSW4CN"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        window.db = db;
-        window.dbRef = ref;
-        window.dbSet = set;
-        window.dbOnValue = onValue;
-        window.dbGet = get;
-        window.dbRemove = remove;
-
-        console.log("Firebase Sky-database er aktiv!");
-    </script>
-
-    <script src="database.js"></script>
-    <script src="navigation.js"></script>
-
-    <script>
-    (function () {
-        const months = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
-        const currentYear = new Date().getFullYear();
-
-        const monthSelect = document.getElementById('monthSelect');
-        const tableHead = document.getElementById('tableHead');
-        const tableBody = document.getElementById('tableBody');
-
-        if (!monthSelect || !tableHead || !tableBody) return;
-
-        function getMonthIndex() { return parseInt(monthSelect.value, 10); }
-        function getDayTypeKey(monthIdx, dayNr) { return `type-${currentYear}-${monthIdx}-${dayNr}`; }
-
-        function populateMonthSelect() {
-            monthSelect.innerHTML = '';
-            const now = new Date();
-            months.forEach((monthName, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = `${monthName} ${currentYear}`;
-                if (index === now.getMonth()) option.selected = true;
-                monthSelect.appendChild(option);
-            });
-        }
-
-        window.showDatePicker = function() {
-            const container = document.getElementById('datePickerContainer');
-            if (container) container.style.display = 'flex';
-        };
-
-        window.hideDatePicker = function() {
-            const container = document.getElementById('datePickerContainer');
-            if (container) container.style.display = 'none';
-        };
-
-        // --- OPPDATERT CYCLE STATUS ---
-        window.cycleStatus = function(playerId, dayNr) {
-            const monthIdx = getMonthIndex();
-            const currentStatus = DB.getAttendance(currentYear, monthIdx, playerId, dayNr);
-            const states = ['?', 'present', 'absent', 'injured'];
-            let currentIndex = states.indexOf(currentStatus);
-            const nextStatus = states[(currentIndex + 1) % states.length];
+        // 1. Lag Headere (Datoer)
+        let headerRow = `<tr><th class="name-col">Spiller</th>`;
+        dates.forEach(date => {
+            const type = attendanceData[date].info?.type || 'Trening';
+            const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
             
-            // 1. Lagre lokalt
-            DB.setAttendance(currentYear, monthIdx, playerId, dayNr, nextStatus);
-
-            // 2. Lagre til Firebase
-            if (window.dbSet && window.db) {
-                // A: Gammelt format for statistikk (bruker korte IDer)
-                const oldPath = `attendance/${currentYear}/${monthIdx}/${playerId}/${dayNr}`;
-                window.dbSet(window.dbRef(window.db, oldPath), nextStatus);
-
-                // B: Nytt format for kamp-modal (DD-MM-YYYY)
-                const d = dayNr.toString().padStart(2, '0');
-                const m = (monthIdx + 1).toString().padStart(2, '0');
-                const dateKey = `${d}-${m}-${currentYear}`;
-                
-                const matchStatus = nextStatus === 'present' ? 'K' : null;
-                const matchPath = `attendance/${dateKey}/${playerId}`;
-                
-                console.log("Lagrer til kamp-liste:", matchPath, "Status:", matchStatus);
-                window.dbSet(window.dbRef(window.db, matchPath), matchStatus);
-            }
-            window.renderAttendanceTable();
-        };
-
-        window.renderAttendanceTable = function() {
-            const monthIdx = getMonthIndex();
-            const players = DB.getActivePlayers();
-            const days = getTrainingDays(monthIdx);
-
-            let headHtml = '<tr><th class="name-col">Spiller</th>';
-            days.forEach(d => {
-                headHtml += `<th class="date-header">${d.navn}<br>${d.nr}.</th>`;
-            });
-            headHtml += '<th>%</th></tr>';
-            tableHead.innerHTML = headHtml;
-
-            let bodyHtml = '';
-            players.forEach(player => {
-                bodyHtml += `<tr><td class="name-col">${player.navn}</td>`;
-                days.forEach(d => {
-                    const status = DB.getAttendance(currentYear, monthIdx, player.id, d.nr);
-                    let icon = '<i class="fa-solid fa-minus" style="opacity:0.2"></i>';
-                    if (status === 'present') icon = '<i class="fa-solid fa-circle-check" style="color:green"></i>';
-                    if (status === 'absent') icon = '<i class="fa-solid fa-circle-xmark" style="color:red"></i>';
-                    if (status === 'injured') icon = '<i class="fa-solid fa-crutch" style="color:orange"></i>';
-                    
-                    bodyHtml += `<td style="cursor:pointer" onclick="cycleStatus('${player.id}', ${d.nr})">${icon}</td>`;
-                });
-                bodyHtml += `<td>-</td></tr>`;
-            });
-            tableBody.innerHTML = bodyHtml;
-        };
-
-        function getTrainingDays(monthIdx) {
-            const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
-            const days = [];
-            for (let i = 1; i <= daysInMonth; i++) {
-                const date = new Date(currentYear, monthIdx, i);
-                if ([1, 3, 6].includes(date.getDay())) { // Man, Ons, Lør
-                    days.push({ nr: i, navn: ["Søn","Man","Tir","Ons","Tor","Fre","Lør"][date.getDay()] });
-                }
-            }
-            return days;
-        }
-
-        function setupCloudListeners() {
-            if (!window.dbOnValue || !window.db) {
-                setTimeout(setupCloudListeners, 500);
-                return;
-            }
-            window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.players) {
-                    localStorage.setItem('full-spillerliste', JSON.stringify(data.players));
-                    window.renderAttendanceTable();
-                }
-            });
-        }
-
-        monthSelect.addEventListener('change', () => window.renderAttendanceTable());
-        populateMonthSelect();
-        setupCloudListeners();
-    })();
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof loadNavigation === 'function') {
-                loadNavigation();
-            }
+            headerRow += `
+                <th>
+                    <div style="font-size: 0.9rem;">${date.substring(0, 5)}</div>
+                    <div class="day-type ${typeClass}">${type.charAt(0)}</div>
+                    <div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center;">
+                        <button class="action-btn btn-delete" style="width: 24px; height: 24px; font-size: 0.7rem;" onclick="deleteDate('${date}')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </th>`;
         });
-    </script>
+        headerRow += `</tr>`;
+        attendanceHeader.innerHTML = headerRow;
 
-</body>
-</html>
+        // 2. Lag Rader (Spillere)
+        const sortedPlayers = Object.entries(players)
+            .filter(([id, p]) => p.status !== 'Passiv') // Vis kun aktive spillere som standard
+            .sort((a, b) => a[1].navn.localeCompare(b[1].navn, 'nb'));
+
+        let bodyHTML = '';
+        sortedPlayers.forEach(([pId, pData]) => {
+            let row = `<tr><td class="name-col text-left"><strong>${pData.navn}</strong></td>`;
+            
+            dates.forEach(date => {
+                const status = attendanceData[date][pId] || '';
+                row += `<td onclick="toggleStatus('${date}', '${pId}', '${status}')" style="cursor:pointer; font-size: 1.2rem;">
+                            ${getStatusIcon(status)}
+                        </td>`;
+            });
+            
+            row += `</tr>`;
+            bodyHTML += row;
+        });
+        attendanceBody.innerHTML = bodyHTML;
+    }
+
+    // Hjelpefunksjon for ikoner
+    function getStatusIcon(status) {
+        switch(status) {
+            case 'K': return '<i class="fa-solid fa-circle-check status-present"></i>';
+            case 'F': return '<i class="fa-solid fa-circle-xmark status-absent"></i>';
+            case 'S': return '<i class="fa-solid fa-circle-minus status-injured"></i>';
+            default: return '<i class="fa-regular fa-circle status-none"></i>';
+        }
+    }
+
+    // --- ENDRE STATUS (Toggle-logikk) ---
+    window.toggleStatus = (date, pId, currentStatus) => {
+        let nextStatus = '';
+        if (currentStatus === '') nextStatus = 'K';
+        else if (currentStatus === 'K') nextStatus = 'F';
+        else if (currentStatus === 'F') nextStatus = 'S';
+        else if (currentStatus === 'S') nextStatus = '';
+
+        window.dbUpdate(window.dbRef(window.db, `attendance/${date}`), {
+            [pId]: nextStatus
+        });
+    };
+
+    // --- OPPRETT NY DATO ---
+    attendanceForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const rawDate = document.getElementById('eventDate').value; // YYYY-MM-DD
+        const type = document.getElementById('eventType').value;
+        
+        // Konverter til DD-MM-YYYY formatet vi bruker som nøkkel
+        const parts = rawDate.split('-');
+        const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+
+        // Opprett dagen med litt info-metadata
+        window.dbSet(window.dbRef(window.db, `attendance/${formattedDate}/info`), {
+            type: type,
+            timestamp: Date.now()
+        }).then(() => {
+            closeAttendanceModal();
+        });
+    });
+
+    // --- SLETT DATO ---
+    window.deleteDate = (date) => {
+        if (confirm(`Er du sikker på at du vil slette hele dagen ${date}?`)) {
+            window.dbRemove(window.dbRef(window.db, `attendance/${date}`));
+        }
+    };
+});
