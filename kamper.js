@@ -63,8 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="font-size:0.9em; opacity:0.8;">${match.pitch}</td>
                         <td style="font-size:0.9em; opacity:0.8;">${match.type}</td>
                         <td>
-                            <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteMatch('${match.id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                            <div style="display: flex; justify-content: center; gap: 8px;">
+                                <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit" title="Rediger kamp">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteMatch('${match.id}')" class="action-btn btn-delete" title="Slett kamp">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>`;
                 matchTableBody.innerHTML += row;
