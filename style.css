@@ -120,70 +120,14 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-.centered-tools {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    width: 100%;
-}
-
-.help-text {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-/* --- KNAPPER OG VELGERE --- */
-.custom-select-wrapper, .btn-outline {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 42px;
-    background: #f1f2f6;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 0 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    color: var(--text-main);
-    font-weight: 600;
-    font-size: 0.9rem;
-    border: 1px solid transparent;
-}
-
-.custom-select-wrapper i {
-    margin-right: 8px;
-}
-
-.btn-outline:hover, .custom-select-wrapper:hover {
-    background: #e8eaef;
-    border-color: #ced4da;
-}
-
-.btn-outline i { margin-right: 8px; }
-
-.select-input-clean {
-    background: transparent;
-    border: none;
-    color: var(--text-main);
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-/* --- FANE-KNAPPER (Tabs) --- */
+/* --- TAB-KNAPPER --- */
 .tab-btn {
-    flex: 1; 
+    flex: 1;
     height: 42px;
-    background-color: transparent; 
-    color: var(--primary);          
+    background-color: transparent;
+    color: var(--primary);
     border: 1px solid var(--primary);
-    border-radius: 8px; 
+    border-radius: 8px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -191,30 +135,25 @@ body {
 }
 
 .tab-btn.active {
-    background-color: var(--primary); 
-    color: var(--white);            
-}
-
-.tab-btn:hover:not(.active) {
-    background-color: rgba(52, 152, 219, 0.1); 
+    background-color: var(--primary);
+    color: var(--white);
 }
 
 /* --- TABELL-DESIGN --- */
 .table-container {
     width: 100%;
-    overflow-x: auto; 
-    overflow-y: visible;
+    overflow-x: auto;
     position: relative;
-    -webkit-overflow-scrolling: touch; 
     background: white;
     border-radius: 12px;
     margin-bottom: 2rem;
+    box-shadow: var(--shadow);
 }
 
 table {
-    width: 100%;
-    min-width: 600px; 
-    border-collapse: separate; 
+    width: auto; /* Lar tabellen krympe rundt innholdet */
+    min-width: 100%; /* Men fyller minst hele bredden */
+    border-collapse: separate;
     border-spacing: 0;
 }
 
@@ -230,28 +169,28 @@ th {
     font-weight: 700;
     text-transform: uppercase;
     color: var(--text-muted);
-    letter-spacing: 0.5px;
 }
 
-.text-left { text-align: left; }
-
-/* Oppmøte spesifikke kolonner */
+/* --- DEN INTELLIGENTE NAVNEKOLONNEN --- */
 .name-col {
     position: sticky;
     left: 0;
-    background-color: white; 
-    z-index: 10; 
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+    background-color: white;
+    z-index: 10;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
     padding: 12px 15px;
+    text-align: left;
     
-    /* NY TILPASSET BREDDE FOR NAVN */
-    width: 140px;
-    min-width: 140px;
-    max-width: 140px;
+    /* "Shrink-wrap" effekt */
+    width: 1%; 
+    white-space: nowrap;
     
-    white-space: nowrap; 
+    /* Grenseverdier for PC */
+    min-width: 140px; 
+    max-width: 220px;
+    
     overflow: hidden;
-    text-overflow: ellipsis; /* Legger til ... ved lange navn */
+    text-overflow: ellipsis;
 }
 
 thead th.name-col {
@@ -259,14 +198,15 @@ thead th.name-col {
     background-color: #f8f9fa;
 }
 
-/* Sørg for at dato-kolonner i oppmøte ikke strekker seg unødvendig */
+/* Kompakte dato-kolonner */
 #attendanceTable th:not(.name-col), 
 #attendanceTable td:not(.name-col) {
-    width: 80px;
-    min-width: 80px;
+    width: 65px;
+    min-width: 65px;
+    max-width: 65px;
 }
 
-/* --- SPILLERSTALL STATUS OG HANDLINGER --- */
+/* --- STATUS-ELEMENTER --- */
 .status-pill {
     padding: 5px 12px;
     border-radius: 20px;
@@ -274,47 +214,27 @@ thead th.name-col {
     font-weight: 700;
     display: inline-block;
 }
-
 .status-active { background: #e3f9e5; color: #1f7a1f; }
 .status-passive { background: #f1f3f5; color: #636e72; }
 
-/* --- HANDLINGSKNAPPER (Rediger / Slett) --- */
+/* Handling-knapper */
 .action-btn {
-    background: #f1f2f6; 
+    background: #f1f2f6;
     border: none;
-    color: var(--text-muted);
     cursor: pointer;
-    font-size: 1.1rem;
     width: 38px;
     height: 38px;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: 0.2s;
 }
+.btn-edit { color: var(--primary); background: rgba(52, 152, 219, 0.1); }
+.btn-delete { color: var(--danger); background: rgba(231, 76, 60, 0.1); }
+.btn-edit:hover, .btn-delete:hover { transform: translateY(-2px); filter: brightness(0.95); }
 
-.btn-edit {
-    color: var(--primary);
-    background: rgba(52, 152, 219, 0.1);
-}
-.btn-edit:hover {
-    background: var(--primary);
-    color: var(--white);
-    transform: translateY(-2px);
-}
-
-.btn-delete {
-    color: var(--danger);
-    background: rgba(231, 76, 60, 0.1);
-}
-.btn-delete:hover {
-    background: var(--danger);
-    color: var(--white);
-    transform: translateY(-2px);
-}
-
-/* --- MODAL / SKJEMA --- */
+/* --- MODAL --- */
 .modal {
     display: none;
     position: fixed;
@@ -325,18 +245,18 @@ thead th.name-col {
     height: 100%;
     background-color: rgba(0,0,0,0.5);
     backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
     background-color: var(--white);
-    margin: 5% auto;
     padding: 0;
     border-radius: 16px;
     width: 90%;
     max-width: 500px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     overflow: hidden;
-    animation: fadeIn 0.3s ease;
 }
 
 .modal-header {
@@ -345,135 +265,40 @@ thead th.name-col {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
-    align-items: center;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-muted);
 }
 
 .form-stack { padding: 25px; }
-
 .form-group { margin-bottom: 15px; }
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
 .form-group input, .form-group select {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    font-size: 1rem;
-    outline: none;
 }
 
-.form-group input:focus { border-color: var(--primary); }
-
-.button-group {
-    padding: 0 25px 25px;
-    display: flex;
-    gap: 10px;
-}
-
-.btn {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
+.button-group { padding: 0 25px 25px; display: flex; gap: 10px; }
+.btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 .btn-grow-2 { background: var(--primary); color: white; }
-.btn-grow-2:hover { background: var(--primary-dark); }
-.btn-danger { background: #f8f9fa; color: var(--danger); }
-.btn-danger:hover { background: #fee2e2; }
+.btn-danger { background: #f1f2f6; color: var(--danger); }
 
-/* --- OPPMØTE FARGER --- */
+/* --- OPPMØTE TYPER --- */
 .day-type {
-    font-size: 0.6rem;
-    padding: 2px 6px;
+    font-size: 0.65rem;
+    padding: 2px 8px;
     border-radius: 4px;
     margin-top: 5px;
     display: inline-block;
     font-weight: 800;
-    background: #dcdde1;
     color: white;
 }
+.day-type-training { background: var(--success); }
+.day-type-match { background: #9b59b6; }
 
-.day-type-training { background: var(--success) !important; }
-.day-type-match { background: #9b59b6 !important; }
+.status-present { color: var(--success); font-size: 1.4rem; }
+.status-none { color: #dcdde1; font-size: 1.4rem; opacity: 0.6; }
 
-.status-present { color: var(--success); }
-.status-absent  { color: var(--danger); opacity: 0.3; }
-.status-injured { color: var(--warning); }
-.status-none    { color: #dcdde1; }
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.dash-card {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-dark);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #eee;
-}
-
-.dash-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-
-.dash-icon {
-    width: 60px;
-    height: 60px;
-    background: #f0f7ff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: var(--primary-color);
-    margin-right: 20px;
-}
-
-.dash-info h3 {
-    margin: 0 0 5px 0;
-    font-size: 18px;
-}
-
-.dash-info p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
-}
-
-.dash-card .arrow {
-    margin-left: auto;
-    color: #ccc;
-}
-
-/* --- FLYTENDE KNAPP (Extended FAB) --- */
+/* --- FLYTENDE KNAPP (FAB) --- */
 .fab-btn {
     position: fixed;
     bottom: 30px;
@@ -481,76 +306,37 @@ thead th.name-col {
     background-color: var(--primary);
     color: var(--white);
     height: 60px;
-    border-radius: 30px; 
-    padding: 0 24px; 
+    border-radius: 30px;
+    padding: 0 24px;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 10px;
     font-weight: 600;
-    font-size: 1.1rem;
     box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
     border: none;
     cursor: pointer;
-    z-index: 1000;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.fab-btn i {
-    font-size: 22px;
-}
-
-.fab-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+    z-index: 3000;
 }
 
 /* --- MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
-    
-    .sidebar { 
-        top: 70px; 
-        height: calc(100vh - 70px); 
-        transform: translateX(-260px); 
-    }
-    
+    .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
     .sidebar:not(.collapsed) { transform: translateX(0); }
 
-    .centered-tools { 
-        flex-direction: column; 
-        width: 100%; 
-        padding: 0 10px; 
-        gap: 10px;
-    }
-    
-    .tool-item, .custom-select-wrapper, .btn-outline { 
-        width: 100%; 
-    }
-
     .name-col { 
-        width: 130px; /* Litt smalere på mobil */
-        min-width: 130px;
-        max-width: 130px;
-        font-size: 0.85rem; 
+        min-width: 110px; 
+        max-width: 140px; 
+        font-size: 0.85rem;
+        padding: 12px 10px;
     }
-    
-    .modal-content { margin: 15% auto; width: 95%; }
 
-    .fab-btn {
-        bottom: 20px;
-        right: 20px;
-        width: 60px; 
-        padding: 0;  
-        border-radius: 50%; 
+    #attendanceTable th:not(.name-col), 
+    #attendanceTable td:not(.name-col) {
+        width: 55px;
+        min-width: 55px;
     }
-    
-    .fab-text {
-        display: none; 
-    }
-}
 
-@keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(-10px); } 
-    to { opacity: 1; transform: translateY(0); } 
+    .fab-btn { width: 60px; padding: 0; border-radius: 50%; justify-content: center; }
+    .fab-text { display: none; }
 }
