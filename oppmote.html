@@ -1,117 +1,85 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const attendanceHeader = document.getElementById('attendanceHeader');
-    const attendanceBody = document.getElementById('attendanceBody');
-    const attendanceForm = document.getElementById('attendanceForm');
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oppmøte - BSK Fotball</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
 
-    let players = {};
-    let attendanceData = {};
-    let dates = [];
+<div class="sidebar" id="sidebar"></div>
 
-    // --- HENT DATA FRA FIREBASE ---
-    // Vi henter både spillere og oppmøte-data
-    window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-        const root = snapshot.val() || {};
-        players = root.players || {};
-        attendanceData = root.attendance || {};
-        
-        // Lag en sortert liste over datoer (de nyeste først er ofte best for oversikt)
-        dates = Object.keys(attendanceData).sort((a, b) => new Date(b.split('-').reverse().join('-')) - new Date(a.split('-').reverse().join('-')));
-        
-        renderMatrix();
-    });
+<div class="main-content">
+    <div class="top-bar">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 class="section-title">Oppmøteoversikt</h2>
+    </div>
 
-    // --- BYGG MATRISEN ---
-    function renderMatrix() {
-        if (!attendanceHeader || !attendanceBody) return;
+    <div class="filter-bar">
+        <span class="help-text"><i class="fa-solid fa-info-circle"></i> Trykk på sirkler for å endre status</span>
+    </div>
 
-        // 1. Lag Headere (Datoer)
-        let headerRow = `<tr><th class="name-col">Spiller</th>`;
-        dates.forEach(date => {
-            const type = attendanceData[date].info?.type || 'Trening';
-            const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
-            
-            headerRow += `
-                <th>
-                    <div style="font-size: 0.9rem;">${date.substring(0, 5)}</div>
-                    <div class="day-type ${typeClass}">${type.charAt(0)}</div>
-                    <div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center;">
-                        <button class="action-btn btn-delete" style="width: 24px; height: 24px; font-size: 0.7rem;" onclick="deleteDate('${date}')">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </th>`;
-        });
-        headerRow += `</tr>`;
-        attendanceHeader.innerHTML = headerRow;
+    <div class="table-container">
+        <table id="attendanceTable">
+            <thead id="attendanceHeader"></thead>
+            <tbody id="attendanceBody"></tbody>
+        </table>
+    </div>
+</div>
 
-        // 2. Lag Rader (Spillere)
-        const sortedPlayers = Object.entries(players)
-            .filter(([id, p]) => p.status !== 'Passiv') // Vis kun aktive spillere som standard
-            .sort((a, b) => a[1].navn.localeCompare(b[1].navn, 'nb'));
+<button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny dag" style="position: fixed !important; right: 20px !important; bottom: 20px !important; z-index: 9999 !important; display: flex !important;">
+    <i class="fa-solid fa-calendar-plus"></i>
+    <span class="fab-text">Ny dag</span>
+</button>
 
-        let bodyHTML = '';
-        sortedPlayers.forEach(([pId, pData]) => {
-            let row = `<tr><td class="name-col text-left"><strong>${pData.navn}</strong></td>`;
-            
-            dates.forEach(date => {
-                const status = attendanceData[date][pId] || '';
-                row += `<td onclick="toggleStatus('${date}', '${pId}', '${status}')" style="cursor:pointer; font-size: 1.2rem;">
-                            ${getStatusIcon(status)}
-                        </td>`;
-            });
-            
-            row += `</tr>`;
-            bodyHTML += row;
-        });
-        attendanceBody.innerHTML = bodyHTML;
-    }
+<div id="attendanceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Legg til ny dag</h3>
+            <button class="close-btn" onclick="closeAttendanceModal()">&times;</button>
+        </div>
+        <form id="attendanceForm">
+            <div class="form-stack">
+                <div class="form-group">
+                    <label>Dato</label>
+                    <input type="date" id="eventDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="eventType">
+                        <option value="Trening">Trening</option>
+                        <option value="Kamp">Kamp</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-grow-2">Opprett dag</button>
+                <button type="button" class="btn btn-danger" onclick="closeAttendanceModal()">Avbryt</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-    // Hjelpefunksjon for ikoner
-    function getStatusIcon(status) {
-        switch(status) {
-            case 'K': return '<i class="fa-solid fa-circle-check status-present"></i>';
-            case 'F': return '<i class="fa-solid fa-circle-xmark status-absent"></i>';
-            case 'S': return '<i class="fa-solid fa-circle-minus status-injured"></i>';
-            default: return '<i class="fa-regular fa-circle status-none"></i>';
-        }
-    }
+<script src="navigation.js"></script>
+<script type="module" src="oppmote.js"></script>
 
-    // --- ENDRE STATUS (Toggle-logikk) ---
-    window.toggleStatus = (date, pId, currentStatus) => {
-        let nextStatus = '';
-        if (currentStatus === '') nextStatus = 'K';
-        else if (currentStatus === 'K') nextStatus = 'F';
-        else if (currentStatus === 'F') nextStatus = 'S';
-        else if (currentStatus === 'S') nextStatus = '';
-
-        window.dbUpdate(window.dbRef(window.db, `attendance/${date}`), {
-            [pId]: nextStatus
-        });
+<script>
+    window.openAttendanceModal = () => {
+        document.getElementById('attendanceModal').style.display = 'flex';
+        document.getElementById('eventDate').valueAsDate = new Date();
     };
-
-    // --- OPPRETT NY DATO ---
-    attendanceForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const rawDate = document.getElementById('eventDate').value; // YYYY-MM-DD
-        const type = document.getElementById('eventType').value;
-        
-        // Konverter til DD-MM-YYYY formatet vi bruker som nøkkel
-        const parts = rawDate.split('-');
-        const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-
-        // Opprett dagen med litt info-metadata
-        window.dbSet(window.dbRef(window.db, `attendance/${formattedDate}/info`), {
-            type: type,
-            timestamp: Date.now()
-        }).then(() => {
-            closeAttendanceModal();
-        });
-    });
-
-    // --- SLETT DATO ---
-    window.deleteDate = (date) => {
-        if (confirm(`Er du sikker på at du vil slette hele dagen ${date}?`)) {
-            window.dbRemove(window.dbRef(window.db, `attendance/${date}`));
-        }
+    window.closeAttendanceModal = () => {
+        document.getElementById('attendanceModal').style.display = 'none';
+        document.getElementById('attendanceForm').reset();
     };
-});
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('attendanceModal')) closeAttendanceModal();
+    }
+</script>
+
+</body>
+</html>
