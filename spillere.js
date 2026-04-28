@@ -1,107 +1,105 @@
-(function () {
-    let spillerliste = DB.getPlayers();
+document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('playerTableBody');
     const playerForm = document.getElementById('playerForm');
+    let spillerliste = [];
 
-    if (!tableBody || !playerForm) return;
-
-    window.openModal = function() {
-        document.getElementById('playerModal').style.display = 'block';
-    }
-
-    window.closeModal = function() {
-        document.getElementById('playerModal').style.display = 'none';
-        resetForm();
-    }
-
-    // Lukk modal hvis man klikker utenfor boksen
-    window.onclick = function(event) {
-        const modal = document.getElementById('playerModal');
-        if (event.target === modal) closeModal();
+    // --- MODAL HÅNDTERING ---
+    window.openModal = () => {
+        document.getElementById('formTitle').innerText = 'Registrer ny spiller';
+        document.getElementById('submitBtn').innerText = 'Lagre spiller';
+        document.getElementById('playerModal').style.display = 'flex';
     };
 
+    window.closeModal = () => {
+        document.getElementById('playerModal').style.display = 'none';
+        playerForm.reset();
+        document.getElementById('editId').value = '';
+    };
+
+    // --- LAGRE / OPPDATERE SPILLER ---
     playerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const editId = document.getElementById('editId').value;
         
         const spillerData = {
-            id: editId || DB.generateId(),
             navn: document.getElementById('navn').value,
             fodselsdato: document.getElementById('fodselsdato').value,
             status: document.getElementById('status').value,
             mobil: document.getElementById('mobil').value,
-            draktnummer: document.getElementById('draktnummer').value
+            draknummer: document.getElementById('draktnummer').value || '-'
         };
 
         if (editId) {
-            const index = spillerliste.findIndex(s => s.id === editId);
-            if (index !== -1) spillerliste[index] = spillerData;
+            // Oppdater eksisterende
+            window.dbSet(window.dbRef(window.db, `players/${editId}`), spillerData)
+                .then(() => closeModal());
         } else {
-            spillerliste.push(spillerData);
+            // Lag ny
+            const newPlayerRef = window.dbPush(window.dbRef(window.db, 'players'));
+            window.dbSet(newPlayerRef, spillerData)
+                .then(() => closeModal());
         }
-
-        DB.savePlayers(spillerliste);
-        renderPlayers();
-        closeModal();
     });
 
+    // --- REDIGER SPILLER ---
     window.editPlayer = function(id) {
         const spiller = spillerliste.find(s => s.id === id);
         if (!spiller) return;
 
-        document.getElementById('editId').value = spiller.id;
-        document.getElementById('navn').value = spiller.navn;
-        document.getElementById('fodselsdato').value = spiller.fodselsdato;
-        document.getElementById('status').value = spiller.status;
-        document.getElementById('mobil').value = spiller.mobil;
-        document.getElementById('draktnummer').value = spiller.draktnummer;
+        document.getElementById('editId').value = id;
+        document.getElementById('navn').value = spiller.navn || '';
+        document.getElementById('fodselsdato').value = spiller.fodselsdato || '';
+        document.getElementById('status').value = spiller.status || 'Aktiv';
+        document.getElementById('mobil').value = spiller.mobil || '';
+        document.getElementById('draktnummer').value = spiller.draknummer || '';
 
         document.getElementById('formTitle').innerText = 'Rediger spiller';
-        document.getElementById('submitBtn').innerText = 'Oppdater Spiller';
+        document.getElementById('submitBtn').innerText = 'Oppdater spiller';
 
-        openModal();
-    }
+        document.getElementById('playerModal').style.display = 'flex';
+    };
 
+    // --- SLETTE SPILLER ---
     window.deletePlayer = function(id) {
         if (confirm('Er du sikker på at du vil slette denne spilleren?')) {
-            spillerliste = spillerliste.filter(s => s.id !== id);
-            DB.savePlayers(spillerliste);
-            renderPlayers();
+            window.dbRemove(window.dbRef(window.db, `players/${id}`));
         }
-    }
+    };
 
-    function resetForm() {
-        playerForm.reset();
-        document.getElementById('editId').value = '';
-        document.getElementById('formTitle').innerText = 'Registrer ny spiller';
-        document.getElementById('submitBtn').innerText = 'Lagre Spiller';
-    }
+    // --- TEGN OPP TABELLEN ---
+    function renderPlayers(data) {
+        if (!data) {
+            tableBody.innerHTML = '<tr><td colspan="5">Ingen spillere funnet</td></tr>';
+            return;
+        }
 
-    window.renderPlayers = function() {
-        // Sorterer alfabetisk
-        const sorted = [...spillerliste].sort((a, b) => a.navn.localeCompare(b.navn));
-        
-        tableBody.innerHTML = sorted.map(s => `
+        // Konverterer objekt til liste og sorterer alfabetisk
+        spillerliste = Object.entries(data).map(([id, values]) => ({
+            id,
+            ...values
+        })).sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
+
+        tableBody.innerHTML = spillerliste.map(s => `
             <tr>
-                <td><strong>${s.draktnummer || '-'}</strong></td>
-                <td class="text-left">${s.navn}</td>
+                <td><strong style="color: var(--primary);">${s.draknummer || '-'}</strong></td>
+                <td class="text-left" style="font-weight: 600;">${s.navn}</td>
                 <td>
                     <span class="status-pill ${s.status === 'Aktiv' ? 'status-active' : 'status-passive'}">
                         ${s.status}
                     </span>
                 </td>
                 <td>
-                    <a href="tel:${s.mobil}" style="text-decoration:none; color:inherit;">
-                        ${s.mobil || '-'}
+                    <a href="tel:${s.mobil}" style="text-decoration:none; color:var(--primary); font-weight: 500;">
+                        <i class="fa-solid fa-phone" style="font-size: 0.8em; margin-right: 5px;"></i>${s.mobil || '-'}
                     </a>
                 </td>
                 <td>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button class="action-btn" onclick="editPlayer('${s.id}')" title="Rediger">
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button class="action-btn btn-edit" onclick="editPlayer('${s.id}')" title="Rediger">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                         <button class="action-btn btn-delete" onclick="deletePlayer('${s.id}')" title="Slett">
-                            <i class="fa-solid fa-trash-can"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -109,24 +107,11 @@
         `).join('');
     }
 
-    // Første opptegning
-    renderPlayers();
-
-    // --- LIVE SYNKRONISERING AV SPILLERLISTE FRA FIREBASE ---
+    // --- HENT DATA FRA FIREBASE (Live) ---
     if (window.dbOnValue && window.dbRef && window.db) {
-        const playersRef = window.dbRef(window.db, 'players/');
+        const playersRef = window.dbRef(window.db, 'players');
         window.dbOnValue(playersRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                console.log("Spillerliste oppdatert fra skyen...");
-                // Firebase lagrer ofte lister som objekter eller arrays, 
-                // vi sikrer at vi håndterer begge deler.
-                spillerliste = Array.isArray(data) ? data : Object.values(data);
-                
-                localStorage.setItem('full-spillerliste', JSON.stringify(spillerliste));
-                renderPlayers();
-            }
+            renderPlayers(snapshot.val());
         });
     }
-
-})();
+});
