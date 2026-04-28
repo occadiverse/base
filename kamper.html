@@ -24,15 +24,6 @@
             <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">Kommende</button>
             <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')">Tidligere</button>
         </div>
-
-        <div class="centered-tools">
-            <div class="tool-item">
-                <button class="btn-outline" onclick="openMatchModal()">
-                    <i class="fa-solid fa-circle-plus"></i>
-                    <span>Ny kamp</span>
-                </button>
-            </div>
-        </div>
     </div>
 
     <div class="table-container">
@@ -50,7 +41,10 @@
             <tbody id="matchTableBody"></tbody>
         </table>
     </div>
-</div>
+</div> <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
+    <i class="fa-solid fa-plus"></i>
+    <span class="fab-text">Ny kamp</span>
+</button>
 
 <div id="matchModal" class="modal">
     <div class="modal-content">
