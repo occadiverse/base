@@ -244,10 +244,10 @@ th {
     box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
     padding: 12px 15px;
     
-    /* FAST BREDDE FOR NAVN */
-    width: 180px;
-    min-width: 180px;
-    max-width: 180px;
+    /* NY TILPASSET BREDDE FOR NAVN */
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
     
     white-space: nowrap; 
     overflow: hidden;
@@ -529,7 +529,9 @@ thead th.name-col {
     }
 
     .name-col { 
-        min-width: 140px; /* Beholder bredden også på mobil for lesbarhet */
+        width: 130px; /* Litt smalere på mobil */
+        min-width: 130px;
+        max-width: 130px;
         font-size: 0.85rem; 
     }
     
