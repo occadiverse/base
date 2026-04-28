@@ -41,7 +41,7 @@
             <tbody id="matchTableBody"></tbody>
         </table>
     </div>
-</div> <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
+</div> <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp" style="position: fixed !important; right: 20px !important; bottom: 20px !important; z-index: 9999 !important; display: flex !important;">
     <i class="fa-solid fa-plus"></i>
     <span class="fab-text">Ny kamp</span>
 </button>
@@ -99,11 +99,8 @@
             <h3 id="infoTitle">Laster...</h3>
             <button class="close-btn" onclick="closeMatchInfo()">&times;</button>
         </div>
-        
         <div id="matchInfoDetails"></div>
-
         <div id="matchPlayerList" style="margin-top: 10px;"></div>
-
         <div class="button-group" style="margin-top: 25px;">
             <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
         </div>
@@ -111,13 +108,9 @@
 </div>
 
 <script type="module">
-    // 1. Importerer databasen fra vår nye felles konfigurasjonsfil
     import { db } from './firebase-config.js';
-    
-    // 2. Importerer kun funksjonene vi trenger fra Firebase
     import { ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // 3. Kobler funksjonene til window-objektet slik at 'kamper.js' kan bruke dem
     window.db = db; 
     window.dbRef = ref; 
     window.dbSet = set; 
@@ -146,7 +139,6 @@
         document.getElementById('matchInfoModal').style.display = 'none';
     };
 
-    // Lukker modal hvis man klikker utenfor boksen
     window.onclick = function(event) {
         const modal1 = document.getElementById('matchModal');
         const modal2 = document.getElementById('matchInfoModal');
