@@ -243,13 +243,27 @@ th {
     z-index: 10; 
     box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
     padding: 12px 15px;
-    min-width: 140px;
+    
+    /* FAST BREDDE FOR NAVN */
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
+    
     white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; /* Legger til ... ved lange navn */
 }
 
 thead th.name-col {
     z-index: 11;
     background-color: #f8f9fa;
+}
+
+/* Sørg for at dato-kolonner i oppmøte ikke strekker seg unødvendig */
+#attendanceTable th:not(.name-col), 
+#attendanceTable td:not(.name-col) {
+    width: 80px;
+    min-width: 80px;
 }
 
 /* --- SPILLERSTALL STATUS OG HANDLINGER --- */
@@ -280,7 +294,6 @@ thead th.name-col {
     transition: all 0.2s ease;
 }
 
-/* Rediger-knapp */
 .btn-edit {
     color: var(--primary);
     background: rgba(52, 152, 219, 0.1);
@@ -291,7 +304,6 @@ thead th.name-col {
     transform: translateY(-2px);
 }
 
-/* Slett-knapp */
 .btn-delete {
     color: var(--danger);
     background: rgba(231, 76, 60, 0.1);
@@ -516,7 +528,10 @@ thead th.name-col {
         width: 100%; 
     }
 
-    .name-col { min-width: 120px; font-size: 0.85rem; }
+    .name-col { 
+        min-width: 140px; /* Beholder bredden også på mobil for lesbarhet */
+        font-size: 0.85rem; 
+    }
     
     .modal-content { margin: 15% auto; width: 95%; }
 
