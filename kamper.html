@@ -112,22 +112,13 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDyULE6HGOINM6D8bqBZGbVMaGHAF3RkJg",
-        authDomain: "base-49ce3.firebaseapp.com",
-        databaseURL: "https://base-49ce3-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "base-49ce3",
-        storageBucket: "base-49ce3.firebasestorage.app",
-        messagingSenderId: "4752321901",
-        appId: "1:4752321901:web:089814e4faefbdeff9be64"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    // 1. Importerer databasen fra vår nye felles konfigurasjonsfil
+    import { db } from './firebase-config.js';
     
+    // 2. Importerer kun funksjonene vi trenger fra Firebase
+    import { ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // 3. Kobler funksjonene til window-objektet slik at 'kamper.js' kan bruke dem
     window.db = db; 
     window.dbRef = ref; 
     window.dbSet = set; 
