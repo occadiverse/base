@@ -19,8 +19,7 @@
         <h2 class="section-title">Spillere</h2>
     </div>
 
-    <div class="filter-bar">
-    </div>
+    <div class="filter-bar"></div>
 
     <div class="table-container">
         <table id="playerTable">
@@ -84,28 +83,13 @@
     </div>
 </div>
 
-<script type="module">
-    import { db } from './firebase-config.js';
-    import { ref, set, onValue, get, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    window.db = db;
-    window.dbRef = ref;
-    window.dbSet = set;
-    window.dbPush = push;
-    window.dbRemove = remove;
-    window.dbOnValue = onValue;
-    window.dbGet = get;
-
-    console.log("Firebase tilkoblet spillerstall");
-</script>
-
 <script src="navigation.js"></script>
-<script src="spillere.js"></script>
+<script type="module" src="spillere.js"></script>
 
 <script>
-    // Global modal-håndtering (lik som på kamper.html)
     window.openModal = () => {
         document.getElementById('formTitle').innerText = 'Registrer ny spiller';
+        document.getElementById('submitBtn').innerText = 'Lagre spiller';
         document.getElementById('playerModal').style.display = 'flex';
     };
 
@@ -116,8 +100,7 @@
     };
 
     window.onclick = function(event) {
-        const modal = document.getElementById('playerModal');
-        if (event.target == modal) closeModal();
+        if (event.target == document.getElementById('playerModal')) closeModal();
     }
 </script>
 
