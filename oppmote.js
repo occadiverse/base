@@ -29,7 +29,7 @@ onValue(ref(db, '/'), (snapshot) => {
 function renderMatrix() {
     if (!attendanceHeader || !attendanceBody) return;
 
-    // Headere
+    // 1. Headere (Datoer)
     let headerRow = `<tr><th class="name-col">Spiller</th>`;
     dates.forEach(date => {
         const info = attendanceData[date]?.info || {};
@@ -50,17 +50,26 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // Rader
+    // 2. Rader (Spillere)
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .sort((a, b) => a[1].navn.localeCompare(b[1].navn, 'nb'));
 
     let bodyHTML = '';
     sortedPlayers.forEach(([pId, pData]) => {
-        let row = `<tr><td class="name-col text-left"><strong>${pData.navn}</strong></td>`;
+        // Navnet er nå mørkt og ikke-klikkbart
+        let row = `<tr>
+            <td class="name-col text-left">
+                <span style="color: var(--text-main); font-weight: 600;">${pData.navn}</span>
+            </td>`;
+        
         dates.forEach(date => {
             const status = attendanceData[date][pId] || '';
-            row += `<td onclick="window.toggleStatus('${date}', '${pId}', '${status}')" style="cursor:pointer;">
+            // Laget rutene mer responsive med hover-effekt
+            row += `<td onclick="window.toggleStatus('${date}', '${pId}', '${status}')" 
+                        style="cursor:pointer; transition: background 0.1s;"
+                        onmouseover="this.style.background='#f8f9fa'" 
+                        onmouseout="this.style.background='transparent'">
                         ${getStatusIcon(status)}
                     </td>`;
         });
@@ -70,22 +79,19 @@ function renderMatrix() {
     attendanceBody.innerHTML = bodyHTML;
 }
 
+// --- FORENKLET STATUS (Kun "På" eller "Av") ---
 function getStatusIcon(status) {
-    switch(status) {
-        case 'K': return '<i class="fa-solid fa-circle-check status-present"></i>';
-        case 'F': return '<i class="fa-solid fa-circle-xmark status-absent"></i>';
-        case 'S': return '<i class="fa-solid fa-circle-minus status-injured"></i>';
-        default: return '<i class="fa-regular fa-circle status-none"></i>';
+    if (status === 'K') {
+        return '<i class="fa-solid fa-circle-check status-present"></i>';
+    } else {
+        return '<i class="fa-regular fa-circle status-none"></i>';
     }
 }
 
-// --- FUNKSJONER PÅ WINDOW (så HTML kan nå dem) ---
+// --- FUNKSJONER PÅ WINDOW ---
 window.toggleStatus = (date, pId, currentStatus) => {
-    let nextStatus = '';
-    if (currentStatus === '') nextStatus = 'K';
-    else if (currentStatus === 'K') nextStatus = 'F';
-    else if (currentStatus === 'F') nextStatus = 'S';
-    else if (currentStatus === 'S') nextStatus = '';
+    // Hvis status er 'K', fjern den. Hvis tom, sett til 'K'.
+    const nextStatus = currentStatus === 'K' ? '' : 'K';
 
     update(ref(db, `attendance/${date}`), { [pId]: nextStatus });
 };
@@ -96,6 +102,7 @@ window.deleteDate = (date) => {
     }
 };
 
+// --- OPPRETT NY DAG ---
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawDate = document.getElementById('eventDate').value;
