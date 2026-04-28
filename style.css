@@ -436,6 +436,39 @@ thead th.name-col {
     color: #ccc;
 }
 
+/* --- FLYTENDE KNAPP (Extended FAB) --- */
+.fab-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--primary);
+    color: var(--white);
+    height: 60px;
+    /* Pille-form og justerbar bredde for PC */
+    border-radius: 30px; 
+    padding: 0 24px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Avstand mellom ikon og tekst */
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fab-btn i {
+    font-size: 22px;
+}
+
+.fab-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+}
+
 /* --- MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
@@ -462,6 +495,19 @@ thead th.name-col {
     .name-col { min-width: 120px; font-size: 0.85rem; }
     
     .modal-content { margin: 15% auto; width: 95%; }
+
+    /* Flytende knapp mobil (rund og uten tekst) */
+    .fab-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 60px; 
+        padding: 0;  
+        border-radius: 50%; 
+    }
+    
+    .fab-text {
+        display: none; 
+    }
 }
 
 @keyframes fadeIn { 
