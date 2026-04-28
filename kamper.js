@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editMatchId').value = ''; 
     };
 
-    // --- NYTT: Logikk for Kommende og Tidligere kamper ---
+    // --- LOGIKK FOR FANER (Kommende/Tidligere) ---
     let allMatches = []; 
     let currentView = 'kommende';
 
@@ -23,19 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnKommende = document.getElementById('btnKommende');
         const btnTidligere = document.getElementById('btnTidligere');
         
-        // Oppdaterer utseendet på knappene hvis de finnes
         if (btnKommende && btnTidligere) {
             if (view === 'kommende') {
-                btnKommende.className = 'btn btn-grow-2';
-                btnTidligere.className = 'btn-outline';
+                btnKommende.classList.add('active');
+                btnTidligere.classList.remove('active');
             } else {
-                btnTidligere.className = 'btn btn-grow-2';
-                btnKommende.className = 'btn-outline';
+                btnTidligere.classList.add('active');
+                btnKommende.classList.remove('active');
             }
         }
         renderTable();
     };
 
+    // --- TEGN TABELLEN ---
     function renderTable() {
         matchTableBody.innerHTML = '';
         const nå = new Date();
@@ -58,12 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = `
                     <tr>
                         <td><div style="font-weight:600;">${shortDate}</div><div style="font-size:0.8em; color:#666;">kl. ${match.time}</div></td>
-                        <td class="text-left"><span style="font-weight:700; color:var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">${match.opponent}</span></td>
+                        <td class="text-left"><span style="font-weight:700; color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">${match.opponent}</span></td>
                         <td><div style="background:#f0f2f5; padding:3px 8px; border-radius:4px; font-weight:800;">${match.result}</div></td>
                         <td style="font-size:0.9em; opacity:0.8;">${match.pitch}</td>
                         <td style="font-size:0.9em; opacity:0.8;">${match.type}</td>
                         <td>
-                            <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" style="background:none; border:none; color:var(--primary-color); cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="deleteMatch('${match.id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
@@ -195,12 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         if (data) {
-            // Konverterer dataen til en liste (array) for enklere filtrering
             allMatches = Object.entries(data).map(([id, match]) => ({ id, ...match }));
         } else {
             allMatches = [];
         }
-        renderTable(); // Kaller funksjonen for å tegne tabellen
+        renderTable(); 
     });
 
     window.deleteMatch = (id) => {
