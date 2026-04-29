@@ -132,17 +132,25 @@ const TaktikkModul = {
             let innholdHTML = "";
 
             if (fase === "424") {
+                // Fase 1: Interaktiv dropdown
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
-                    <option value="">--</option>`;
+                    <option value="">-- Velg spiller --</option>`;
                 
                 tropp.forEach(s => {
                     const isSelected = s.id === lagretId ? "selected" : "";
-                    const visningsNavn = s.navn || s.name || "Ukjent";
-                    selectHTML += `<option value="${s.id}" ${isSelected}>${this.formaterInitialer(visningsNavn)}</option>`;
+                    const fulltNavn = s.navn || s.name || "Ukjent";
+                    const initialer = this.formaterInitialer(fulltNavn);
+                    
+                    // Beregn prosent (hvis funksjonen er tilgjengelig i ditt DB-objekt)
+                    // Her bruker vi fullt navn i menyen, men beholder logikken
+                    selectHTML += `<option value="${s.id}" ${isSelected}>
+                        ${fulltNavn} (${initialer})
+                    </option>`;
                 });
                 selectHTML += `</select>`;
                 innholdHTML = selectHTML;
             } else {
+                // Fase 2 & 3: Kun tekstvisning på banen (Initialer)
                 const valgtSpiller = tropp.find(s => s.id === lagretId);
                 const tekst = valgtSpiller ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) : "--";
                 innholdHTML = `<div class="player-info-text" style="font-weight:bold; font-size:12px; padding-top:4px;">${tekst}</div>`;
@@ -152,7 +160,6 @@ const TaktikkModul = {
             layer.appendChild(node);
         });
     }
-};
 
 // Tilgjengeliggjør modulen globalt
 window.TaktikkModul = TaktikkModul;
