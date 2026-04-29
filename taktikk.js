@@ -41,7 +41,6 @@ const TaktikkModul = {
             const data = snapshot.val();
             this.databaseKopi = data;
 
-            // Last inn lagret taktikk hvis den finnes
             if (this.matchId && data.tactics && data.tactics[this.matchId]) {
                 this.valgtLag = data.tactics[this.matchId];
             }
@@ -58,7 +57,7 @@ const TaktikkModul = {
     },
 
     formaterInitialer: function(navn) {
-        if (!navn) return "";
+        if (!navn) return "--";
         return navn.split(' ').map(n => n[0]).join('').toUpperCase();
     },
 
@@ -105,43 +104,44 @@ const TaktikkModul = {
         const tropp = this.hentAktuellTropp();
         const posisjoner = this.konfigurasjon[fase];
 
-        console.log(`Tegner ${fase}. Spillere funnet: ${tropp.length}`);
-
         layer.innerHTML = ''; 
 
         posisjoner.forEach((p, index) => {
             const node = document.createElement('div');
-            node.className = 'player-node';
+            node.className = 'player-node'; // Bruker CSS-en for blå sirkel
             node.style.top = `${p.top}%`;
             node.style.left = `${p.left}%`;
 
             const lagretId = this.valgtLag[index] || "";
-            let innholdHTML = "";
+            const valgtSpiller = tropp.find(s => s.id === lagretId);
+            const tekstInitialer = this.formaterInitialer(valgtSpiller ? (valgtSpiller.navn || valgtSpiller.name) : "");
 
+            // Bygger innholdet i sirkelen: Posisjonsetikett og Initialer
+            let innholdHTML = `
+                <div class="pos-label">${p.id}</div>
+                <div class="player-initials">${tekstInitialer}</div>
+            `;
+
+            // I fase 424 legger vi til en usynlig select over hele sirkelen
             if (fase === "424") {
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
-                    <option value="">-- Velg spiller --</option>`;
+                    <option value="">-- Velg --</option>`;
                 
                 tropp.forEach(s => {
                     const isSelected = s.id === lagretId ? "selected" : "";
                     const fulltNavn = s.navn || s.name || "Ukjent";
-                    const initialer = this.formaterInitialer(fulltNavn);
-                    selectHTML += `<option value="${s.id}" ${isSelected}>${fulltNavn} (${initialer})</option>`;
+                    // Her viser vi kun navnet i dropdown, ingen initialer
+                    selectHTML += `<option value="${s.id}" ${isSelected}>${fulltNavn}</option>`;
                 });
                 selectHTML += `</select>`;
-                innholdHTML = selectHTML;
-            } else {
-                const valgtSpiller = tropp.find(s => s.id === lagretId);
-                const tekst = valgtSpiller ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) : "--";
-                innholdHTML = `<div class="player-info-text" style="font-weight:bold; font-size:12px; padding-top:4px;">${tekst}</div>`;
+                innholdHTML += selectHTML;
             }
 
-            node.innerHTML = `<div class="pos-label" style="font-size:9px; opacity:0.7;">${p.id}</div>${innholdHTML}`;
+            node.innerHTML = innholdHTML;
             layer.appendChild(node);
         });
     }
-}; // Her var feilen i forrige versjon - objektet ble ikke lukket korrekt!
+};
 
-// Tilgjengeliggjør modulen globalt
 window.TaktikkModul = TaktikkModul;
 TaktikkModul.init();
