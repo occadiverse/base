@@ -12,7 +12,7 @@ const TaktikkModul = {
 
     konfigurasjon: {
         "424": [
-            { id: "GK", top: 88, left: 50 },
+            { id: "GK", top: 98, left: 50 },
             { id: "B1", top: 75, left: 15 }, { id: "B2", top: 78, left: 38 },
             { id: "B3", top: 78, left: 62 }, { id: "B4", top: 75, left: 85 },
             { id: "M1", top: 50, left: 35 }, { id: "M2", top: 50, left: 65 },
