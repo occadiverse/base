@@ -1,11 +1,10 @@
 /**
- * BSK Taktikk-motor 
- * Versjon: Spillersynkronisering (Låst til Fase 1)
+ * BSK Taktikk-modul 
+ * Oppdatert: Spillerutvalg kun i Fase 1. Fase 2/3 er rene visninger.
  */
 
 const TaktikkModul = {
-    // Sannhetens kilde: Holder på spiller-ID for indeks 0-10
-    valgtLag: {},
+    valgtLag: {}, // Lagrer valgene fra Fase 1
 
     konfigurasjon: {
         "424": [
@@ -66,6 +65,7 @@ const TaktikkModul = {
 
     lagreValg: function(posIndex, spillerID) {
         this.valgtLag[posIndex] = spillerID;
+        this.oppdaterKjemi();
     },
 
     renderBane: function(fase) {
@@ -74,9 +74,6 @@ const TaktikkModul = {
 
         const posisjoner = this.konfigurasjon[fase];
         const tropp = this.hentDagensTropp();
-        
-        // Sjekk om vi skal låse dropdowns (Alt som ikke er Fase 1)
-        const isLocked = fase !== "424" ? "disabled" : "";
 
         layer.innerHTML = ''; 
 
@@ -88,22 +85,47 @@ const TaktikkModul = {
 
             const lagretID = this.valgtLag[index] || "";
 
-            // Vi legger til ${isLocked} i select-taggen
-            let selectHTML = `<select id="pos-${index}" ${isLocked} onchange="TaktikkModul.lagreValg(${index}, this.value)">
-                <option value="">--</option>`;
-            
-            tropp.forEach(s => {
-                const pcent = this.beregnProsent(s.id);
-                const isSelected = s.id === lagretID ? "selected" : "";
-                selectHTML += `<option value="${s.id}" ${isSelected}>
-                    ${this.formaterInitialer(s.navn)} (${pcent}%)
-                </option>`;
-            });
-            selectHTML += `</select>`;
+            // LOGIKK: Velg mellom dropdown (Fase 1) eller tekst (Fase 2/3)
+            let innholdHTML = "";
 
-            node.innerHTML = `<div class="pos-label">${p.id}</div>${selectHTML}`;
+            if (fase === "424") {
+                // Dropdown for Fase 1
+                let selectHTML = `<select id="pos-${index}" onchange="TaktikkModul.lagreValg(${index}, this.value)">
+                    <option value="">--</option>`;
+                
+                tropp.forEach(s => {
+                    const pcent = this.beregnProsent(s.id);
+                    const isSelected = s.id === lagretID ? "selected" : "";
+                    selectHTML += `<option value="${s.id}" ${isSelected}>
+                        ${this.formaterInitialer(s.navn)} (${pcent}%)
+                    </option>`;
+                });
+                selectHTML += `</select>`;
+                innholdHTML = selectHTML;
+            } else {
+                // Ren tekstvisning for Fase 2 og 3
+                if (lagretID) {
+                    const spiller = tropp.find(s => s.id === lagretID);
+                    if (spiller) {
+                        const pcent = this.beregnProsent(lagretID);
+                        const initials = this.formaterInitialer(spiller.navn);
+                        innholdHTML = `<div class="player-info-text">${initials} (${pcent}%)</div>`;
+                    } else {
+                        innholdHTML = `<div class="player-info-text">--</div>`;
+                    }
+                } else {
+                    innholdHTML = `<div class="player-info-text">--</div>`;
+                }
+            }
+
+            node.innerHTML = `<div class="pos-label">${p.id}</div>${innholdHTML}`;
             layer.appendChild(node);
         });
+    },
+
+    oppdaterKjemi: function() {
+        console.log("Oppdaterer kjemi basert på valgt lag...");
+        // Her kan vi senere legge inn tegning av linjer
     }
 };
 
