@@ -1,10 +1,10 @@
 /**
  * BSK Taktikk-modul 
- * Oppdatert: Integrert med kampspesifikk tropp via URL-parametre.
+ * Oppdatert for å sikre at spillere med status 'K' hentes korrekt.
  */
 
 const TaktikkModul = {
-    valgtLag: {}, // Lagrer valgene fra Fase 1
+    valgtLag: {}, 
 
     konfigurasjon: {
         "424": [
@@ -31,42 +31,50 @@ const TaktikkModul = {
         ]
     },
 
-    // Formaterer navn til initialer (f.eks. Petter Moi -> PM)
     formaterInitialer: function(navn) {
         if (!navn) return "";
         return navn.split(' ').map(n => n[0]).join('').toUpperCase();
     },
 
     /**
-     * Henter troppen for den valgte kampen.
-     * Sjekker URL for 'date'. Hvis den mangler, brukes dagens dato.
+     * Henter troppen basert på påmeldinger ('K') for valgt dato.
      */
     hentDagensTropp: function() {
         const params = new URLSearchParams(window.location.search);
-        const urlDate = params.get('date'); // Format: DD-MM-YYYY fra kamper.js
-        
-        let targetDate;
-        if (urlDate) {
-            targetDate = urlDate;
-        } else {
+        let targetDate = params.get('date'); // DD-MM-YYYY
+
+        if (!targetDate) {
             const iDag = new Date();
             targetDate = `${String(iDag.getDate()).padStart(2, '0')}-${String(iDag.getMonth() + 1).padStart(2, '0')}-${iDag.getFullYear()}`;
         }
 
-        console.log("Henter påmeldte til dato:", targetDate);
-
         if (typeof DB === 'undefined') return [];
 
-        // Filtrerer spillere som har status 'K' (Kamp) eller 'present' (Trening)
-        return DB.getActivePlayers().filter(s => {
-            // Vi splitter targetDate for å bruke din standard DB.getAttendance funksjon
-            const p = targetDate.split('-');
-            const status = DB.getAttendance(parseInt(p[2]), parseInt(p[1]) - 1, s.id, parseInt(p[0]));
+        // Henter rådata fra DB for å matche logikken i kamper.js
+        const alleSpillere = DB.getActivePlayers();
+        
+        // Vi må få tak i det flate attendance-objektet fra DB
+        // Hvis DB.getAttendance ikke støtter DD-MM-YYYY nøkler direkte,
+        // henter vi det fra den interne cachen i DB-objektet ditt.
+        return alleSpillere.filter(s => {
+            // Sjekker status via den flate nøkkelen DD-MM-YYYY
+            // Dette er samme logikk som: enrolled = root.attendance[targetDate]
+            const attendanceRecord = DB.getRawAttendance ? DB.getRawAttendance() : null;
+            const status = (attendanceRecord && attendanceRecord[targetDate]) 
+                           ? attendanceRecord[targetDate][s.id] 
+                           : DB.getAttendanceByDateKey ? DB.getAttendanceByDateKey(targetDate, s.id) : null;
+
+            // Hvis ovennevnte feiler, prøver vi din standard funksjon som backup
+            if (!status) {
+                const p = targetDate.split('-');
+                const backupStatus = DB.getAttendance(parseInt(p[2]), parseInt(p[1]) - 1, s.id, parseInt(p[0]));
+                return backupStatus === 'K' || backupStatus === 'present';
+            }
+
             return status === 'K' || status === 'present';
         });
     },
 
-    // Beregner oppmøteprosent for sesongen
     beregnProsent: function(playerID) {
         const currentYear = new Date().getFullYear();
         let attended = 0, possible = 0;
@@ -101,6 +109,10 @@ const TaktikkModul = {
 
         layer.innerHTML = ''; 
 
+        if (tropp.length === 0) {
+            console.warn("Ingen spillere funnet for denne datoen.");
+        }
+
         posisjoner.forEach((p, index) => {
             const node = document.createElement('div');
             node.className = 'player-node';
@@ -117,8 +129,9 @@ const TaktikkModul = {
                 tropp.forEach(s => {
                     const pcent = this.beregnProsent(s.id);
                     const isSelected = s.id === lagretID ? "selected" : "";
+                    const navn = s.navn || s.name || "Ukjent";
                     selectHTML += `<option value="${s.id}" ${isSelected}>
-                        ${this.formaterInitialer(s.navn || s.name)} (${pcent}%)
+                        ${this.formaterInitialer(navn)} (${pcent}%)
                     </option>`;
                 });
                 selectHTML += `</select>`;
@@ -149,12 +162,15 @@ const TaktikkModul = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Viser hvilken dato vi ser på i tittelen hvis tilgjengelig
     const params = new URLSearchParams(window.location.search);
-    if (params.get('date')) {
+    const dateParam = params.get('date');
+    if (dateParam) {
         const tittel = document.querySelector('.section-title');
-        if (tittel) tittel.innerText = `Taktikk: ${params.get('date')}`;
+        if (tittel) tittel.innerText = `Taktikk: ${dateParam}`;
     }
 
-    setTimeout(() => TaktikkModul.renderBane("424"), 500);
+    // Vi venter litt ekstra for å sikre at DB-objektet har hentet Firebase-data
+    setTimeout(() => {
+        TaktikkModul.renderBane("424");
+    }, 800); 
 });
