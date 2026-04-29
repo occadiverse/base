@@ -12,12 +12,12 @@ const TaktikkModul = {
 
     konfigurasjon: {
         "424": [
-            { id: "GK", top: 98, left: 50 },
-            { id: "B1", top: 75, left: 15 }, { id: "B2", top: 78, left: 38 },
-            { id: "B3", top: 78, left: 62 }, { id: "B4", top: 75, left: 85 },
-            { id: "M1", top: 50, left: 35 }, { id: "M2", top: 50, left: 65 },
-            { id: "A1", top: 22, left: 15 }, { id: "A2", top: 15, left: 40 },
-            { id: "A3", top: 15, left: 60 }, { id: "A4", top: 22, left: 85 }
+            { id: "GK", top: 95, left: 50 },
+            { id: "VB", top: 75, left: 15 }, { id: "VS", top: 78, left: 38 },
+            { id: "HS", top: 78, left: 62 }, { id: "HB", top: 75, left: 85 },
+            { id: "DM", top: 50, left: 35 }, { id: "OM", top: 50, left: 65 },
+            { id: "VK", top: 22, left: 15 }, { id: "SP", top: 15, left: 40 },
+            { id: "PM", top: 15, left: 60 }, { id: "HK", top: 22, left: 85 }
         ],
         "2323": [
             { id: "GK", top: 88, left: 50 },
