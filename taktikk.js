@@ -1,13 +1,15 @@
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { db } from './firebase-config.js';
 
 /**
  * BSK Taktikk-modul
- * Håndterer formasjoner, spillerutvalg og kampspesifikk tropp.
+ * Håndterer formasjoner, spillerutvalg og synkronisering via Firebase.
  */
 const TaktikkModul = {
     valgtLag: {}, // Beholder valgene (index -> spillerId)
     databaseKopi: null,
+    // Henter matchId fra URL-en én gang ved oppstart
+    matchId: new URLSearchParams(window.location.search).get('matchId'),
 
     konfigurasjon: {
         "424": [
@@ -34,35 +36,46 @@ const TaktikkModul = {
         ]
     },
 
-    // 1. Initialisering: Kobler til Firebase og lytter på data
+    /**
+     * 1. Initialisering
+     * Kobler til Firebase og lytter på både spillertropp og lagret taktikk.
+     */
     init: function() {
         const rootRef = ref(db, '/');
         onValue(rootRef, (snapshot) => {
-            this.databaseKopi = snapshot.val();
-            console.log("Data lastet:", this.databaseKopi);
+            const data = snapshot.val();
+            this.databaseKopi = data;
+
+            // Hvis det finnes en lagret taktikk for denne kampen, hent den
+            if (this.matchId && data.tactics && data.tactics[this.matchId]) {
+                this.valgtLag = data.tactics[this.matchId];
+            }
             
-            // Finn nåværende aktiv fase fra UI
-            const activeBtn = document.querySelector('.phase-btn.active');
-            const currentPhase = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : "424";
-            
-            this.renderBane(currentPhase);
+            console.log("Data synkronisert fra Firebase.");
+            this.oppdaterVisning();
         });
     },
 
-    // 2. Hjelper: Formaterer navn (Petter Moi -> PM)
+    /**
+     * 2. Oppdaterer visningen basert på aktiv knapp
+     */
+    oppdaterVisning: function() {
+        const activeBtn = document.querySelector('.phase-btn.active');
+        const currentPhase = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : "424";
+        this.renderBane(currentPhase);
+    },
+
     formaterInitialer: function(navn) {
         if (!navn) return "";
         return navn.split(' ').map(n => n[0]).join('').toUpperCase();
     },
 
-    // 3. Henter troppen basert på URL-dato og status 'K'
     hentAktuellTropp: function() {
         if (!this.databaseKopi) return [];
 
         const params = new URLSearchParams(window.location.search);
         let targetDate = params.get('date');
 
-        // Fallback til i dag hvis ingen dato er i URL
         if (!targetDate) {
             const nå = new Date();
             targetDate = `${String(nå.getDate()).padStart(2, '0')}-${String(nå.getMonth() + 1).padStart(2, '0')}-${nå.getFullYear()}`;
@@ -72,26 +85,34 @@ const TaktikkModul = {
         const attendance = this.databaseKopi.attendance || {};
         const dailyAttendance = attendance[targetDate] || {};
 
-        // Returner kun spillere som er påmeldt ('K') til denne kampen
         return Object.entries(players)
             .map(([id, data]) => ({ id, ...data }))
             .filter(player => dailyAttendance[player.id] === 'K');
     },
 
-    // 4. Bytte mellom faser
     byttFase: function(fase, btn) {
         document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.renderBane(fase);
     },
 
-    // 5. Lagre valg fra dropdown
+    /**
+     * 3. Lagring
+     * Sender det oppdaterte valgtLag-objektet til Firebase.
+     */
     lagreValg: function(index, playerId) {
+        // Oppdaterer lokalt objekt først
         this.valgtLag[index] = playerId;
-        console.log(`Posisjon ${index} satt til ${playerId}`);
+        
+        // Sender til Firebase under tactics/[matchId]
+        if (this.matchId) {
+            const tacticRef = ref(db, `tactics/${this.matchId}`);
+            set(tacticRef, this.valgtLag)
+                .then(() => console.log("Taktikk lagret."))
+                .catch((error) => console.error("Feil ved lagring:", error));
+        }
     },
 
-    // 6. Tegne banen dynamisk
     renderBane: function(fase) {
         const layer = document.getElementById('playerLayer');
         if (!layer) return;
@@ -111,7 +132,6 @@ const TaktikkModul = {
             let innholdHTML = "";
 
             if (fase === "424") {
-                // Fase 1: Interaktiv dropdown
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
                     <option value="">--</option>`;
                 
@@ -123,7 +143,6 @@ const TaktikkModul = {
                 selectHTML += `</select>`;
                 innholdHTML = selectHTML;
             } else {
-                // Fase 2 & 3: Kun tekstvisning
                 const valgtSpiller = tropp.find(s => s.id === lagretId);
                 const tekst = valgtSpiller ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) : "--";
                 innholdHTML = `<div class="player-info-text" style="font-weight:bold; font-size:12px; padding-top:4px;">${tekst}</div>`;
@@ -135,8 +154,6 @@ const TaktikkModul = {
     }
 };
 
-// Gjør modulen tilgjengelig globalt slik at onclick-funksjonene i HTML fungerer
+// Tilgjengeliggjør modulen globalt
 window.TaktikkModul = TaktikkModul;
-
-// Start modulen
 TaktikkModul.init();
