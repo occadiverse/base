@@ -39,11 +39,9 @@ onValue(ref(db, 'players'), (snapshot) => {
 window.switchPlayerView = (filter) => {
     currentFilter = filter;
     
-    // Oppdater aktive knapper i filter-linjen
     const allButtons = document.querySelectorAll('.tab-btn');
     allButtons.forEach(btn => {
         const mappedValue = posMap[filter] || filter;
-        // Sjekker om knappens tekst matcher nummeret eller "ALLE"
         if (btn.innerText === mappedValue || (filter === 'Alle' && btn.innerText === 'ALLE')) {
             btn.classList.add('active');
         } else {
@@ -61,7 +59,6 @@ function renderPlayers() {
         return;
     }
 
-    // Filtrering: Vis alle, eller de som har valgt posisjon som Pos 1 eller Pos 2
     let filtrertListe = spillerliste;
     if (currentFilter !== 'Alle') {
         filtrertListe = spillerliste.filter(s => 
@@ -76,17 +73,18 @@ function renderPlayers() {
         const n1 = posMap[s.pos1] || '?';
         const n2 = posMap[s.pos2] || '-';
         
-        // Forkortelse for fot
         const fotVisning = s.fot === 'Begge' ? 'B' : (s.fot === 'Venstre' ? 'V' : 'H');
 
         return `
             <tr>
-                <td><strong style="color: var(--primary);">${s.draktnummer || '-'}</strong></td>
+                <!-- Endret farge på draktnummer til var(--text-main) -->
+                <td><strong style="color: var(--text-main);">${s.draktnummer || '-'}</strong></td>
                 <td class="name-col"><strong>${s.navn}</strong></td>
                 <td>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                        <span style="display:inline-block; width:26px; height:26px; line-height:26px; background:var(--text-main); color:white; border-radius:50%; font-weight:800; font-size:0.8rem;">${n1}</span>
-                        ${n2 !== '-' ? `<span style="color:var(--text-muted); font-size:0.75rem;">/ ${n2}</span>` : ''}
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span style="display:inline-block; width:28px; height:28px; line-height:28px; background:var(--text-main); color:white; border-radius:50%; font-weight:800; font-size:0.8rem;">${n1}</span>
+                        <!-- Fjernet skråtegnet mellom n1 og n2 -->
+                        ${n2 !== '-' ? `<span style="color:var(--text-muted); font-size:0.75rem; font-weight: 500;">${n2}</span>` : ''}
                     </div>
                 </td>
                 <td><span class="status-pill" style="background:#f1f2f6; min-width:30px; font-weight:700;">${fotVisning}</span></td>
