@@ -2,40 +2,85 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BSK Fotball - Taktikk</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Taktikk-spesifikk CSS */
+        /* Taktikk-spesifikke stiler */
+        .taktikk-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 0 10px;
+        }
+
+        .phase-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .phase-btn.active {
+            background-color: #2d5a27;
+            color: white;
+        }
+
         .pitch-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
+            width: 95%;
+            max-width: 500px;
+            margin: 0 auto;
             background-color: #a8d5ba;
             position: relative;
             aspect-ratio: 3/4;
             border: 2px solid #fff;
-            border-radius: 5px;
-            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Tegner midtbanestrek */
+        .pitch-container::after {
+            content: '';
+            position: absolute;
+            top: 50%; width: 100%; height: 2px;
+            background: rgba(255,255,255,0.5);
         }
 
         .player-node {
             position: absolute;
-            width: 80px;
+            width: 70px; /* Litt smalere for å få plass til flere */
             background-color: #93c47d;
-            border: 1px solid #555;
-            padding: 4px;
+            border: 1px solid #444;
+            padding: 2px;
             text-align: center;
-            font-size: 12px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
             z-index: 2;
+            transform: translate(-50%, -50%); /* Sentrerer noden på koordinaten */
+            transition: all 0.5s ease-in-out; /* Myk animasjon ved fasebytte */
         }
 
-        .player-node .name { font-weight: bold; border-bottom: 1px solid rgba(0,0,0,0.1); }
-        .player-node .stat { text-align: left; font-size: 10px; color: #333; }
+        .player-node select {
+            width: 100%;
+            font-size: 10px;
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
 
-        /* Stiplede linjer (SVG) */
+        .pos-label {
+            font-size: 9px;
+            color: #222;
+            display: block;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            margin-bottom: 2px;
+        }
+
         .lines-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -46,40 +91,39 @@
 </head>
 <body>
     <div class="sidebar" id="sidebar"></div>
+
     <div class="main-content">
         <div class="top-bar">
             <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-            <h2 class="section-title">Formasjon</h2>
+            <h2 class="section-title">Kamptaktikk</h2>
+        </div>
+
+        <!-- Fase-velger -->
+        <div class="taktikk-controls">
+            <button class="phase-btn active" onclick="TaktikkModul.byttFase('424', this)">Fase 1 (4-2-4)</button>
+            <button class="phase-btn" onclick="TaktikkModul.byttFase('2323', this)">Fase 2 (2-3-2-3)</button>
+            <button class="phase-btn" onclick="TaktikkModul.byttFase('325', this)">Fase 3 (3-2-5)</button>
         </div>
 
         <div class="pitch-container" id="pitch">
-            <svg class="lines-overlay">
-                <!-- Linje mellom spisser som i image.png -->
-                <line x1="40%" y1="15%" x2="60%" y2="15%" stroke="#444" stroke-width="2" stroke-dasharray="4"/>
+            <svg class="lines-overlay" id="chemistryLines">
+                <!-- Linjer tegnes dynamisk av taktikk.js -->
             </svg>
-
-            <!-- Eksempel på spillere plassert som i bildet ditt -->
-            <div class="player-node" style="top: 10%; left: 10%;">
-                <div class="name">J. Salomon</div>
-                <div class="stat">78%</div>
+            <div id="playerLayer">
+                <!-- Spillere tegnes dynamisk av taktikk.js -->
             </div>
-
-            <div class="player-node" style="top: 10%; left: 40%;">
-                <div class="name">P. Moi</div>
-                <div class="stat">78%</div>
-            </div>
-            
-            <!-- Flere spillere legges til her -->
         </div>
     </div>
 
+    <!-- Firebase & Logikk -->
     <script src="navigation.js"></script>
     <script type="module">
         import { db } from './firebase-config.js';
-        import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        
-        // Her kan vi senere legge inn logikk for å hente 
-        // faktiske spillere fra Firebase og plassere dem
+        // Vi gjør db tilgjengelig globalt slik at taktikk.js kan bruke den
+        window.firebaseDB = db;
     </script>
+    
+    <!-- Den nye taktikk-filen vi snakket om -->
+    <script src="taktikk.js"></script>
 </body>
 </html>
