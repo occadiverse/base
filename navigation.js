@@ -19,7 +19,7 @@ function loadNavigation() {
             <a href="kamper.html" class="nav-item ${currentPage === 'kamper.html' ? 'active' : ''}">
                 <i class="fa-solid fa-soccer-ball"></i> Kamper
             </a>
-            <a href="taktikk.html" class="nav-item ${currentPage === 'kamper.html' ? 'active' : ''}">
+            <a href="taktikk.html" class="nav-item ${currentPage === 'kamptaktikk.html' ? 'active' : ''}">
                 <i class="fa-solid fa-trophy"></i> Kamptaktikk
             </a>
             <a href="spillere.html" class="nav-item ${currentPage === 'spillere.html' ? 'active' : ''}">
