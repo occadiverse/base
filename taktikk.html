@@ -31,6 +31,7 @@
             color: white;
         }
 
+        /* BANEN */
         .pitch-container {
             width: 95%;
             max-width: 500px;
@@ -41,26 +42,102 @@
             border: 2px solid #fff;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            overflow: hidden; /* Holder markeringene innenfor banen */
         }
 
-        /* Tegner midtbanestrek */
-        .pitch-container::after {
-            content: '';
+        /* FELLES FOR ALLE MARKERINGER */
+        .pitch-line {
             position: absolute;
-            top: 50%; width: 100%; height: 2px;
-            background: rgba(255,255,255,0.5);
+            pointer-events: none;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            z-index: 1;
         }
 
+        /* MIDTEN */
+        .mid-line {
+            top: 50%;
+            width: 100%;
+            height: 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .center-circle {
+            top: 50%;
+            left: 50%;
+            width: 26%; /* Basert på 18.3m diameter på en 70m bane */
+            aspect-ratio: 1;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .center-spot {
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* BOKSER (16m og 5m) */
+        .penalty-area {
+            left: 15%;
+            width: 70%;
+            height: 16%;
+            background-color: #a8d5ba; /* Skjuler buen inni boksen */
+        }
+
+        .goal-area {
+            left: 35%;
+            width: 30%;
+            height: 6%;
+        }
+
+        /* BUEN (The D) */
+        .penalty-arc {
+            left: 50%;
+            width: 26%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 0; /* Ligger bak penalty-area for "klipping" */
+        }
+
+        /* STRAFFEMERKE */
+        .penalty-spot {
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        /* TOPP-MARKERINGER */
+        .top-zone .penalty-area { top: 0; border-top: none; }
+        .top-zone .goal-area { top: 0; border-top: none; }
+        .top-zone .penalty-arc { top: 7%; }
+        .top-zone .penalty-spot { top: 11%; }
+
+        /* BUNN-MARKERINGER */
+        .bottom-zone .penalty-area { bottom: 0; border-bottom: none; }
+        .bottom-zone .goal-area { bottom: 0; border-bottom: none; }
+        .bottom-zone .penalty-arc { bottom: 7%; }
+        .bottom-zone .penalty-spot { bottom: 11%; }
+
+        /* SPILLER-NODER */
         .player-node {
             position: absolute;
-            width: 70px; /* Litt smalere for å få plass til flere */
+            width: 70px;
             background-color: #93c47d;
             border: 1px solid #444;
             padding: 2px;
             text-align: center;
-            z-index: 2;
-            transform: translate(-50%, -50%); /* Sentrerer noden på koordinaten */
-            transition: all 0.5s ease-in-out; /* Myk animasjon ved fasebytte */
+            z-index: 5; /* Ligger over banemarkeringene */
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease-in-out;
         }
 
         .player-node select {
@@ -85,7 +162,7 @@
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: 3;
         }
     </style>
 </head>
@@ -98,7 +175,6 @@
             <h2 class="section-title">Kamptaktikk</h2>
         </div>
 
-        <!-- Fase-velger -->
         <div class="taktikk-controls">
             <button class="phase-btn active" onclick="TaktikkModul.byttFase('424', this)">Fase 1 (4-2-4)</button>
             <button class="phase-btn" onclick="TaktikkModul.byttFase('2323', this)">Fase 2 (2-3-2-3)</button>
@@ -106,24 +182,37 @@
         </div>
 
         <div class="pitch-container" id="pitch">
-            <svg class="lines-overlay" id="chemistryLines">
-                <!-- Linjer tegnes dynamisk av taktikk.js -->
-            </svg>
-            <div id="playerLayer">
-                <!-- Spillere tegnes dynamisk av taktikk.js -->
+            <!-- Markeringer Topp -->
+            <div class="top-zone">
+                <div class="pitch-line penalty-arc"></div>
+                <div class="pitch-line penalty-area"></div>
+                <div class="pitch-line goal-area"></div>
+                <div class="pitch-line penalty-spot"></div>
             </div>
+
+            <!-- Markeringer Midten -->
+            <div class="pitch-line mid-line"></div>
+            <div class="pitch-line center-circle"></div>
+            <div class="pitch-line center-spot"></div>
+
+            <!-- Markeringer Bunn -->
+            <div class="bottom-zone">
+                <div class="pitch-line penalty-arc"></div>
+                <div class="pitch-line penalty-area"></div>
+                <div class="pitch-line goal-area"></div>
+                <div class="pitch-line penalty-spot"></div>
+            </div>
+
+            <svg class="lines-overlay" id="chemistryLines"></svg>
+            <div id="playerLayer"></div>
         </div>
     </div>
 
-    <!-- Firebase & Logikk -->
     <script src="navigation.js"></script>
     <script type="module">
         import { db } from './firebase-config.js';
-        // Vi gjør db tilgjengelig globalt slik at taktikk.js kan bruke den
         window.firebaseDB = db;
     </script>
-    
-    <!-- Den nye taktikk-filen vi snakket om -->
     <script src="taktikk.js"></script>
 </body>
 </html>
