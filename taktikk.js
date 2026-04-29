@@ -3,12 +3,11 @@ import { db } from './firebase-config.js';
 
 /**
  * BSK Taktikk-modul
- * Håndterer formasjoner, spillerutvalg og synkronisering via Firebase.
+ * Håndterer formasjoner, spillerutvalg og sanntidssynkronisering.
  */
 const TaktikkModul = {
-    valgtLag: {}, // Beholder valgene (index -> spillerId)
+    valgtLag: {}, 
     databaseKopi: null,
-    // Henter matchId fra URL-en én gang ved oppstart
     matchId: new URLSearchParams(window.location.search).get('matchId'),
 
     konfigurasjon: {
@@ -36,29 +35,22 @@ const TaktikkModul = {
         ]
     },
 
-    /**
-     * 1. Initialisering
-     * Kobler til Firebase og lytter på både spillertropp og lagret taktikk.
-     */
     init: function() {
         const rootRef = ref(db, '/');
         onValue(rootRef, (snapshot) => {
             const data = snapshot.val();
             this.databaseKopi = data;
 
-            // Hvis det finnes en lagret taktikk for denne kampen, hent den
+            // Last inn lagret taktikk hvis den finnes
             if (this.matchId && data.tactics && data.tactics[this.matchId]) {
                 this.valgtLag = data.tactics[this.matchId];
             }
             
-            console.log("Data synkronisert fra Firebase.");
+            console.log("Firebase-data synkronisert.");
             this.oppdaterVisning();
         });
     },
 
-    /**
-     * 2. Oppdaterer visningen basert på aktiv knapp
-     */
     oppdaterVisning: function() {
         const activeBtn = document.querySelector('.phase-btn.active');
         const currentPhase = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : "424";
@@ -96,20 +88,13 @@ const TaktikkModul = {
         this.renderBane(fase);
     },
 
-    /**
-     * 3. Lagring
-     * Sender det oppdaterte valgtLag-objektet til Firebase.
-     */
     lagreValg: function(index, playerId) {
-        // Oppdaterer lokalt objekt først
         this.valgtLag[index] = playerId;
-        
-        // Sender til Firebase under tactics/[matchId]
         if (this.matchId) {
             const tacticRef = ref(db, `tactics/${this.matchId}`);
             set(tacticRef, this.valgtLag)
-                .then(() => console.log("Taktikk lagret."))
-                .catch((error) => console.error("Feil ved lagring:", error));
+                .then(() => console.log("Posisjon lagret."))
+                .catch((err) => console.error("Lagringsfeil:", err));
         }
     },
 
@@ -117,8 +102,10 @@ const TaktikkModul = {
         const layer = document.getElementById('playerLayer');
         if (!layer) return;
 
-        const posisjoner = this.konfigurasjon[fase];
         const tropp = this.hentAktuellTropp();
+        const posisjoner = this.konfigurasjon[fase];
+
+        console.log(`Tegner ${fase}. Spillere funnet: ${tropp.length}`);
 
         layer.innerHTML = ''; 
 
@@ -132,7 +119,6 @@ const TaktikkModul = {
             let innholdHTML = "";
 
             if (fase === "424") {
-                // Fase 1: Interaktiv dropdown
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
                     <option value="">-- Velg spiller --</option>`;
                 
@@ -140,17 +126,11 @@ const TaktikkModul = {
                     const isSelected = s.id === lagretId ? "selected" : "";
                     const fulltNavn = s.navn || s.name || "Ukjent";
                     const initialer = this.formaterInitialer(fulltNavn);
-                    
-                    // Beregn prosent (hvis funksjonen er tilgjengelig i ditt DB-objekt)
-                    // Her bruker vi fullt navn i menyen, men beholder logikken
-                    selectHTML += `<option value="${s.id}" ${isSelected}>
-                        ${fulltNavn} (${initialer})
-                    </option>`;
+                    selectHTML += `<option value="${s.id}" ${isSelected}>${fulltNavn} (${initialer})</option>`;
                 });
                 selectHTML += `</select>`;
                 innholdHTML = selectHTML;
             } else {
-                // Fase 2 & 3: Kun tekstvisning på banen (Initialer)
                 const valgtSpiller = tropp.find(s => s.id === lagretId);
                 const tekst = valgtSpiller ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) : "--";
                 innholdHTML = `<div class="player-info-text" style="font-weight:bold; font-size:12px; padding-top:4px;">${tekst}</div>`;
@@ -160,6 +140,7 @@ const TaktikkModul = {
             layer.appendChild(node);
         });
     }
+}; // Her var feilen i forrige versjon - objektet ble ikke lukket korrekt!
 
 // Tilgjengeliggjør modulen globalt
 window.TaktikkModul = TaktikkModul;
