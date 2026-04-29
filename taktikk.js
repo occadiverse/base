@@ -7,7 +7,7 @@ const TaktikkModul = {
     // 1. Formasjonsdata (Fase 1, 2 og 3)
     konfigurasjon: {
         "424": [
-            { id: "GK", top: 88, left: 50 },
+            { id: "GK", top: 95, left: 50 },
             { id: "B1", top: 75, left: 20 }, { id: "B2", top: 78, left: 40 },
             { id: "B3", top: 78, left: 60 }, { id: "B4", top: 75, left: 80 },
             { id: "M1", top: 50, left: 35 }, { id: "M2", top: 50, left: 65 },
@@ -22,7 +22,7 @@ const TaktikkModul = {
             { id: "V", top: 15, left: 15 }, { id: "S", top: 10, left: 50 }, { id: "H", top: 15, left: 85 }
         ],
         "325": [
-            { id: "GK", top: 88, left: 50 },
+            { id: "GK", top: 75, left: 50 },
             { id: "F1", top: 78, left: 25 }, { id: "F2", top: 82, left: 50 }, { id: "F3", top: 78, left: 75 },
             { id: "M1", top: 58, left: 40 }, { id: "M2", top: 58, left: 60 },
             { id: "V", top: 18, left: 10 }, { id: "IM1", top: 22, left: 32 }, 
