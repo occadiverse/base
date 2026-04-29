@@ -17,10 +17,10 @@ function loadNavigation() {
                 <i class="fa-solid fa-calendar-check"></i> Oppmøte
             </a>
             <a href="kamper.html" class="nav-item ${currentPage === 'kamper.html' ? 'active' : ''}">
-                <i class="fa-solid fa-trophy"></i> Kamper
+                <i class="fa-solid fa-soccer-ball"></i> Kamper
             </a>
             <a href="taktikk.html" class="nav-item ${currentPage === 'kamper.html' ? 'active' : ''}">
-                <i class="fa-solid fa-soccer-ball"></i> Kamptaktikk
+                <i class="fa-solid fa-trophy"></i> Kamptaktikk
             </a>
             <a href="spillere.html" class="nav-item ${currentPage === 'spillere.html' ? 'active' : ''}">
                 <i class="fa-solid fa-users"></i> Spillere
