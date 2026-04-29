@@ -1,6 +1,6 @@
 /**
  * BSK Taktikk-modul 
- * Oppdatert: Spillerutvalg kun i Fase 1. Fase 2/3 er rene visninger.
+ * Oppdatert: Integrert med kampspesifikk tropp via URL-parametre.
  */
 
 const TaktikkModul = {
@@ -31,18 +31,42 @@ const TaktikkModul = {
         ]
     },
 
+    // Formaterer navn til initialer (f.eks. Petter Moi -> PM)
     formaterInitialer: function(navn) {
         if (!navn) return "";
         return navn.split(' ').map(n => n[0]).join('').toUpperCase();
     },
 
+    /**
+     * Henter troppen for den valgte kampen.
+     * Sjekker URL for 'date'. Hvis den mangler, brukes dagens dato.
+     */
     hentDagensTropp: function() {
-        const iDag = new Date();
-        const y = iDag.getFullYear(), m = iDag.getMonth(), d = iDag.getDate();
+        const params = new URLSearchParams(window.location.search);
+        const urlDate = params.get('date'); // Format: DD-MM-YYYY fra kamper.js
+        
+        let targetDate;
+        if (urlDate) {
+            targetDate = urlDate;
+        } else {
+            const iDag = new Date();
+            targetDate = `${String(iDag.getDate()).padStart(2, '0')}-${String(iDag.getMonth() + 1).padStart(2, '0')}-${iDag.getFullYear()}`;
+        }
+
+        console.log("Henter påmeldte til dato:", targetDate);
+
         if (typeof DB === 'undefined') return [];
-        return DB.getActivePlayers().filter(s => DB.getAttendance(y, m, s.id, d) === 'present');
+
+        // Filtrerer spillere som har status 'K' (Kamp) eller 'present' (Trening)
+        return DB.getActivePlayers().filter(s => {
+            // Vi splitter targetDate for å bruke din standard DB.getAttendance funksjon
+            const p = targetDate.split('-');
+            const status = DB.getAttendance(parseInt(p[2]), parseInt(p[1]) - 1, s.id, parseInt(p[0]));
+            return status === 'K' || status === 'present';
+        });
     },
 
+    // Beregner oppmøteprosent for sesongen
     beregnProsent: function(playerID) {
         const currentYear = new Date().getFullYear();
         let attended = 0, possible = 0;
@@ -84,12 +108,9 @@ const TaktikkModul = {
             node.style.left = `${p.left}%`;
 
             const lagretID = this.valgtLag[index] || "";
-
-            // LOGIKK: Velg mellom dropdown (Fase 1) eller tekst (Fase 2/3)
             let innholdHTML = "";
 
             if (fase === "424") {
-                // Dropdown for Fase 1
                 let selectHTML = `<select id="pos-${index}" onchange="TaktikkModul.lagreValg(${index}, this.value)">
                     <option value="">--</option>`;
                 
@@ -97,18 +118,17 @@ const TaktikkModul = {
                     const pcent = this.beregnProsent(s.id);
                     const isSelected = s.id === lagretID ? "selected" : "";
                     selectHTML += `<option value="${s.id}" ${isSelected}>
-                        ${this.formaterInitialer(s.navn)} (${pcent}%)
+                        ${this.formaterInitialer(s.navn || s.name)} (${pcent}%)
                     </option>`;
                 });
                 selectHTML += `</select>`;
                 innholdHTML = selectHTML;
             } else {
-                // Ren tekstvisning for Fase 2 og 3
                 if (lagretID) {
                     const spiller = tropp.find(s => s.id === lagretID);
                     if (spiller) {
                         const pcent = this.beregnProsent(lagretID);
-                        const initials = this.formaterInitialer(spiller.navn);
+                        const initials = this.formaterInitialer(spiller.navn || spiller.name);
                         innholdHTML = `<div class="player-info-text">${initials} (${pcent}%)</div>`;
                     } else {
                         innholdHTML = `<div class="player-info-text">--</div>`;
@@ -124,11 +144,17 @@ const TaktikkModul = {
     },
 
     oppdaterKjemi: function() {
-        console.log("Oppdaterer kjemi basert på valgt lag...");
-        // Her kan vi senere legge inn tegning av linjer
+        console.log("Kjemi-oppdatering klar.");
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Viser hvilken dato vi ser på i tittelen hvis tilgjengelig
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('date')) {
+        const tittel = document.querySelector('.section-title');
+        if (tittel) tittel.innerText = `Taktikk: ${params.get('date')}`;
+    }
+
     setTimeout(() => TaktikkModul.renderBane("424"), 500);
 });
