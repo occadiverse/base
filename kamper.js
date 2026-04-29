@@ -121,6 +121,29 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.style.gap = '10px';
         playerListUl.innerHTML = '<div style="grid-column: 1/-1; color:#999;">Henter tropp...</div>';
 
+        // --- OPPSTART: LEGG TIL TAKTIKK-KNAPP I MODAL ---
+        const modalFooter = document.querySelector('#matchInfoModal .button-group');
+        
+        // Rydd opp: Fjern gammel knapp hvis den finnes fra forrige gang modalen var åpen
+        const existingBtn = document.getElementById('tacticJumpBtn');
+        if (existingBtn) existingBtn.remove();
+
+        const tacticBtn = document.createElement('button');
+        tacticBtn.id = 'tacticJumpBtn';
+        tacticBtn.className = 'btn btn-grow-2';
+        tacticBtn.style.background = '#28a745'; // Grønn farge for taktikk
+        tacticBtn.style.color = 'white';
+        tacticBtn.innerHTML = '<i class="fa-solid fa-clipboard-list"></i> Lag Kamptaktikk';
+
+        // Funksjonalitet: Hopp til taktikk.html med kamp-info i URL
+        tacticBtn.onclick = () => {
+            const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
+            window.location.href = `taktikk.html?matchId=${id}&date=${dateKey}`;
+        };
+
+        // Legg knappen først i knapperaden (før "Lukk"-knappen)
+        if (modalFooter) modalFooter.prepend(tacticBtn);
+
         document.getElementById('matchInfoModal').style.display = 'flex';
 
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
