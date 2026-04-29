@@ -57,7 +57,7 @@ const TaktikkModul = {
     },
 
     formaterInitialer: function(navn) {
-        if (!navn) return "--";
+        if (!navn) return "";
         return navn.split(' ').map(n => n[0]).join('').toUpperCase();
     },
 
@@ -108,21 +108,24 @@ const TaktikkModul = {
 
         posisjoner.forEach((p, index) => {
             const node = document.createElement('div');
-            node.className = 'player-node'; // Bruker CSS-en for blå sirkel
+            node.className = 'player-node'; 
             node.style.top = `${p.top}%`;
             node.style.left = `${p.left}%`;
 
             const lagretId = this.valgtLag[index] || "";
             const valgtSpiller = tropp.find(s => s.id === lagretId);
-            const tekstInitialer = this.formaterInitialer(valgtSpiller ? (valgtSpiller.navn || valgtSpiller.name) : "");
+            
+            // LOGIKK FOR VISNINGSTEKST:
+            // Hvis spiller er valgt -> Vis initialer
+            // Hvis ingen spiller er valgt -> Vis posisjons-ID (GK, VB osv)
+            const tekstSomSkalVises = valgtSpiller 
+                ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) 
+                : p.id;
 
-            // Bygger innholdet i sirkelen: Posisjonsetikett og Initialer
-            let innholdHTML = `
-                <div class="pos-label">${p.id}</div>
-                <div class="player-initials">${tekstInitialer}</div>
-            `;
+            // Vi bruker en egen klasse for teksten slik at vi kan style den i CSS
+            let innholdHTML = `<div class="player-initials">${tekstSomSkalVises}</div>`;
 
-            // I fase 424 legger vi til en usynlig select over hele sirkelen
+            // Legg til den usynlige select-menyen kun i fase "424"
             if (fase === "424") {
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
                     <option value="">-- Velg --</option>`;
@@ -130,7 +133,6 @@ const TaktikkModul = {
                 tropp.forEach(s => {
                     const isSelected = s.id === lagretId ? "selected" : "";
                     const fulltNavn = s.navn || s.name || "Ukjent";
-                    // Her viser vi kun navnet i dropdown, ingen initialer
                     selectHTML += `<option value="${s.id}" ${isSelected}>${fulltNavn}</option>`;
                 });
                 selectHTML += `</select>`;
