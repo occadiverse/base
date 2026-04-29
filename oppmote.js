@@ -4,7 +4,8 @@ import { ref, set, onValue, remove, update } from "https://www.gstatic.com/fireb
 const attendanceHeader = document.getElementById('attendanceHeader');
 const attendanceBody = document.getElementById('attendanceBody');
 const attendanceForm = document.getElementById('attendanceForm');
-const monthFilter = document.getElementById('monthFilter'); // Husk å ha denne ID-en i HTML
+const monthFilter = document.getElementById('monthFilter');
+const scrollContainer = document.querySelector('.table-container');
 
 let players = {};
 let attendanceData = {};
@@ -17,15 +18,18 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
-    // Hent alle unike datoer og sorter dem (nyeste først)
+    // Hent alle unike datoer og sorter dem kronologisk (Eldst til nyest for oversikt)
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
-        return new Date(dateB) - new Date(dateA);
+        return new Date(dateA) - new Date(dateB);
     });
     
     updateMonthDropdown();
     renderMatrix();
+    
+    // Rull til dagens dato etter første innlasting
+    setTimeout(scrollToCurrentDate, 300);
 });
 
 // --- LAG MÅNEDSVELGER ---
@@ -36,21 +40,20 @@ function updateMonthDropdown() {
     dates.forEach(date => {
         const parts = date.split('-');
         if (parts.length === 3) {
-            monthsFound.add(`${parts[1]}-${parts[2]}`); // Lagrer "MM-YYYY"
+            monthsFound.add(`${parts[1]}-${parts[2]}`); // "MM-YYYY"
         }
     });
 
-    // Sorter månedene kronologisk (nyeste øverst)
     const sortedMonths = Array.from(monthsFound).sort((a, b) => {
         const [mA, yA] = a.split('-');
         const [mB, yB] = b.split('-');
-        return new Date(yB, mB - 1) - new Date(yA, mA - 1);
+        return new Date(yA, mA - 1) - new Date(yB, mB - 1);
     });
 
-    // Lagre nåværende valg hvis det finnes
-    const currentSelection = monthFilter.value;
+    const currentMonthYear = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
+    const previousSelection = monthFilter.value;
 
-    let filterHTML = '';
+    let filterHTML = '<option value="Alle">Hele sesongen</option>';
     sortedMonths.forEach(mY => {
         const [m, y] = mY.split('-');
         filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1]} ${y}</option>`;
@@ -58,9 +61,39 @@ function updateMonthDropdown() {
     
     monthFilter.innerHTML = filterHTML;
 
-    // Prøv å behold valget, eller velg den nyeste måneden som standard
-    if (currentSelection && monthsFound.has(currentSelection)) {
-        monthFilter.value = currentSelection;
+    // Logikk for standardvalg:
+    // 1. Behold gammelt valg hvis det fortsatt finnes
+    // 2. Hvis ikke, velg inneværende måned hvis den finnes
+    // 3. Fallback til siste måned i lista
+    if (previousSelection && Array.from(monthFilter.options).some(opt => opt.value === previousSelection)) {
+        monthFilter.value = previousSelection;
+    } else if (monthsFound.has(currentMonthYear)) {
+        monthFilter.value = currentMonthYear;
+    }
+}
+
+// --- AUTO-FOKUS (SCROLL) ---
+function scrollToCurrentDate() {
+    if (!scrollContainer) return;
+
+    const todayISO = new Date().toISOString().split('T')[0];
+    const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
+    let target = null;
+
+    // Finn kolonnen som er i dag eller nærmest fram i tid
+    for (let th of headers) {
+        if (th.dataset.date >= todayISO) {
+            target = th;
+            break;
+        }
+    }
+
+    if (target) {
+        target.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'center',
+            block: 'nearest'
+        });
     }
 }
 
@@ -68,11 +101,10 @@ function updateMonthDropdown() {
 function renderMatrix() {
     if (!attendanceHeader || !attendanceBody || !monthFilter) return;
 
-    // Finn valgt måned fra dropdown (format MM-YYYY)
     const selectedMonthYear = monthFilter.value;
 
-    // Filtrer datoene slik at vi bare viser de som tilhører valgt måned
     const filteredDates = dates.filter(date => {
+        if (selectedMonthYear === 'Alle') return true;
         const parts = date.split('-');
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
@@ -84,8 +116,11 @@ function renderMatrix() {
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         
+        // Konverter DD-MM-YYYY til ISO for data-attributt
+        const isoDate = date.split('-').reverse().join('-');
+        
         headerRow += `
-            <th>
+            <th data-date="${isoDate}">
                 <div style="font-size: 0.85rem; white-space: nowrap;">${date.substring(0, 5)}</div>
                 <div class="day-type ${typeClass}">${type.charAt(0)}</div>
                 <div style="margin-top: 8px;">
@@ -128,14 +163,14 @@ function renderMatrix() {
 // --- GLOBALE FUNKSJONER ---
 window.filterByMonth = () => {
     renderMatrix();
+    // Ved manuelt bytte av måned ruller vi til starten av tabellen eller dagens dato
+    setTimeout(scrollToCurrentDate, 100);
 };
 
 function getStatusIcon(status) {
-    if (status === 'K') {
-        return '<i class="fa-solid fa-circle-check status-present"></i>';
-    } else {
-        return '<i class="fa-regular fa-circle status-none"></i>';
-    }
+    return status === 'K' 
+        ? '<i class="fa-solid fa-circle-check status-present"></i>' 
+        : '<i class="fa-regular fa-circle status-none"></i>';
 }
 
 window.toggleStatus = (date, pId, currentStatus) => {
@@ -151,12 +186,12 @@ window.deleteDate = (date) => {
 
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const rawDate = document.getElementById('eventDate').value;
+    const rawDate = document.getElementById('eventDate').value; // YYYY-MM-DD
     const type = document.getElementById('eventType').value;
     if (!rawDate) return;
 
     const parts = rawDate.split('-');
-    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
 
     set(ref(db, `attendance/${formattedDate}/info`), {
         type: type,
