@@ -3,20 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taktikk og Statistikk - Dashbord</title>
+    <title>BSK Fotball Herrer - Dashbord</title>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome for ikoner -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Ditt robuste stilark -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Sidebar-container (Fylles av navigation.js) -->
     <div id="sidebar" class="sidebar collapsed"></div>
 
     <main class="main-content">
@@ -25,64 +19,57 @@
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h1 class="section-title">Hovedmeny</h1>
+            <h1 class="section-title">BSK Fotball Herrer</h1>
         </header>
+
+        <!-- HERO SEKSJON (Nytt innhold for å fylle siden) -->
+        <section class="welcome-hero">
+            <div class="hero-content">
+                <h2>Velkommen, Trener</h2>
+                <p>Her er oversikten for BSK Fotball Herrer. Administrer taktikk, følg oppmøte og analyser spillerdata.</p>
+            </div>
+        </section>
 
         <!-- DASHBOARD GRID -->
         <section class="dashboard-grid">
-            
-            <!-- KORT 1: TAKTIKK -->
             <a href="index.html" class="dash-card">
-                <div class="dash-icon">
-                    <i class="fa-solid fa-layer-group"></i>
-                </div>
+                <div class="dash-icon"><i class="fa-solid fa-layer-group"></i></div>
                 <div class="dash-info">
                     <h3>Taktikkbrett</h3>
-                    <p>Konfigurer formasjon og spillere på banen.</p>
+                    <p>Planlegg formasjoner og spillestil.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-            <!-- KORT 2: OPPMØTE -->
             <a href="oppmote.html" class="dash-card">
-                <div class="dash-icon">
-                    <i class="fa-solid fa-clipboard-user"></i>
-                </div>
+                <div class="dash-icon"><i class="fa-solid fa-calendar-check"></i></div>
                 <div class="dash-info">
                     <h3>Oppmøte</h3>
-                    <p>Registrer fravær og se hvem som er klare.</p>
+                    <p>Registrer trening og kamp.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-            <!-- KORT 3: SPILLERE -->
             <a href="spillere.html" class="dash-card">
-                <div class="dash-icon">
-                    <i class="fa-solid fa-users"></i>
-                </div>
+                <div class="dash-icon"><i class="fa-solid fa-users"></i></div>
                 <div class="dash-info">
                     <h3>Spillerstall</h3>
-                    <p>Administrer spillerinformasjon og posisjoner.</p>
+                    <p>Oversikt over alle spillere.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-            <!-- KORT 4: STATISTIKK -->
             <a href="statistikk.html" class="dash-card">
-                <div class="dash-icon">
-                    <i class="fa-solid fa-chart-simple"></i>
-                </div>
+                <div class="dash-icon"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="dash-info">
                     <h3>Statistikk</h3>
-                    <p>Analyser resultater og spillerprestasjoner.</p>
+                    <p>Analyser lagets prestasjoner.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
-
         </section>
     </main>
 
-    <!-- Scripts -->
     <script src="navigation.js"></script>
 </body>
 </html>
