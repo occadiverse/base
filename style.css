@@ -14,7 +14,7 @@
     --success: #2ecc71;
     --danger: #e74c3c;
     --warning: #f1c40f;
-    --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    --shadow: 0 4px 15px rgba(0,0,0,0.08);
     
     /* Layout variabler */
     --sidebar-width: 260px;
@@ -43,7 +43,7 @@ body {
 
 /* 
 ================================================================
-3. SIDEBAR (NAVIGASJON) - Basert på navigation.js
+3. SIDEBAR (NAVIGASJON)
 ================================================================
 */
 .sidebar {
@@ -122,7 +122,7 @@ body {
     align-items: center;
     padding: 0 25px;
     border-bottom: 1px solid var(--border-color);
-    margin: -20px -20px 20px -20px; /* Trekker inn padding fra main-content */
+    margin: -20px -20px 20px -20px;
 }
 
 .menu-toggle {
@@ -140,7 +140,102 @@ body {
 
 /* 
 ================================================================
-5. TAKTIKK-BRETT (Den moderne 6.5% stilen din)
+5. HERO SEKSJON STIL
+================================================================
+*/
+.welcome-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #2c3e50 100%);
+    border-radius: 20px;
+    padding: 50px;
+    color: white;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);
+}
+
+.hero-content h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    line-height: 1.5;
+}
+
+/* 
+================================================================
+6. DASHBORD KORT (GRID SYSTEM)
+================================================================
+*/
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.dash-card {
+    display: flex !important;
+    align-items: center;
+    background: var(--white);
+    padding: 30px;
+    border-radius: 18px;
+    text-decoration: none !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dash-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.dash-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.dash-info h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.dash-info p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.dash-card .arrow {
+    margin-left: auto;
+    opacity: 0.3;
+    transition: 0.3s;
+}
+
+.dash-card:hover .arrow {
+    opacity: 1;
+    transform: translateX(5px);
+    color: var(--primary);
+}
+
+/* 
+================================================================
+7. TAKTIKK-BRETT (6.5% stilen)
 ================================================================
 */
 .tactic-container {
@@ -204,7 +299,7 @@ body {
 
 /* 
 ================================================================
-6. TABELLER OG STATISTIKK
+8. TABELLER OG STATISTIKK
 ================================================================
 */
 .table-container {
@@ -239,45 +334,7 @@ th, td {
 
 /* 
 ================================================================
-HERO SEKSJON STIL 
-================================================================
-*/
-.welcome-hero {
-    background: linear-gradient(135deg, var(--primary) 0%, #2c3e50 100%);
-    border-radius: 16px;
-    padding: 40px;
-    color: white;
-    margin-bottom: 30px;
-    box-shadow: var(--shadow);
-}
-
-.hero-content h2 {
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 10px;
-}
-
-.hero-content p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    max-width: 600px;
-    line-height: 1.5;
-}
-
-.dash-card .arrow {
-    margin-left: auto;
-    color: var(--border-color);
-    transition: transform 0.2s;
-}
-
-.dash-card:hover .arrow {
-    transform: translateX(5px);
-    color: var(--primary);
-}
-
-/* 
-================================================================
-7. MOBIL-TILPASNING (Media Queries)
+9. MOBIL-TILPASNING (Media Queries)
 ================================================================
 */
 @media (max-width: 768px) {
@@ -294,6 +351,14 @@ HERO SEKSJON STIL
     }
     
     .player-node {
-        width: 9% !important; /* Litt større på mobil for tommel-vennlighet */
+        width: 9% !important;
+    }
+
+    .welcome-hero {
+        padding: 30px;
+    }
+
+    .hero-content h2 {
+        font-size: 1.6rem;
     }
 }
