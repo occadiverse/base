@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSK Fotball Herrer - Dashbord</title>
+    <title>BSK Fotball Herrer - Oversikt</title>
     
+    <!-- Fonts og Ikoner -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- Sidebar fylles av navigation.js -->
     <div id="sidebar" class="sidebar collapsed"></div>
 
     <main class="main-content">
@@ -22,21 +24,22 @@
             <h1 class="section-title">BSK Fotball Herrer</h1>
         </header>
 
-        <!-- HERO SEKSJON (Nytt innhold for å fylle siden) -->
+        <!-- HERO SEKSJON -->
         <section class="welcome-hero">
             <div class="hero-content">
                 <h2>Velkommen, Trener</h2>
-                <p>Her er oversikten for BSK Fotball Herrer. Administrer taktikk, følg oppmøte og analyser spillerdata.</p>
+                <p>Her er kontrollsenteret for BSK Fotball Herrer. Administrer taktikk, oppmøte og se lagets prestasjoner.</p>
             </div>
         </section>
 
-        <!-- DASHBOARD GRID -->
-        <section class="dashboard-grid">
+        <!-- DASHBOARD GRID - Dette forvandler lenker til kort -->
+        <div class="dashboard-grid">
+            
             <a href="index.html" class="dash-card">
                 <div class="dash-icon"><i class="fa-solid fa-layer-group"></i></div>
                 <div class="dash-info">
                     <h3>Taktikkbrett</h3>
-                    <p>Planlegg formasjoner og spillestil.</p>
+                    <p>Konfigurer formasjon og spillere.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
@@ -45,7 +48,7 @@
                 <div class="dash-icon"><i class="fa-solid fa-calendar-check"></i></div>
                 <div class="dash-info">
                     <h3>Oppmøte</h3>
-                    <p>Registrer trening og kamp.</p>
+                    <p>Registrer fravær og trening.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
@@ -54,7 +57,7 @@
                 <div class="dash-icon"><i class="fa-solid fa-users"></i></div>
                 <div class="dash-info">
                     <h3>Spillerstall</h3>
-                    <p>Oversikt over alle spillere.</p>
+                    <p>Oversikt over alle spillerne.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
@@ -63,11 +66,12 @@
                 <div class="dash-icon"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="dash-info">
                     <h3>Statistikk</h3>
-                    <p>Analyser lagets prestasjoner.</p>
+                    <p>Se mål, assist og prestasjoner.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
-        </section>
+
+        </div>
     </main>
 
     <script src="navigation.js"></script>
