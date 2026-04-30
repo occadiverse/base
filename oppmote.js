@@ -32,6 +32,13 @@ onValue(ref(db, '/'), (snapshot) => {
     setTimeout(scrollToCurrentDate, 300);
 });
 
+// --- LYTT SPESIFIKT TIL OPPMØTE-ENDRINGER FOR SANNTIDS-SYNC ---
+onValue(ref(db, 'attendance'), (snapshot) => {
+    const attendanceUpdated = snapshot.val() || {};
+    attendanceData = attendanceUpdated;
+    renderMatrix();
+});
+
 // --- LAG MÅNEDSVELGER ---
 function updateMonthDropdown() {
     if (!monthFilter) return;
@@ -148,7 +155,7 @@ function renderMatrix() {
         filteredDates.forEach(date => {
             const dateData = attendanceData[date] || {};
             const status = dateData[pId] || '';
-            row += `<td onclick="window.toggleStatus('${date}', '${pId}', '${status}')" 
+            row += `<td class="attendance-cell" data-date="${date}" data-player="${pId}" onclick="window.toggleStatus('${date}', '${pId}', '${status}')" 
                         style="cursor:pointer; transition: background 0.1s;"
                         onmouseover="this.style.background='#f8f9fa'" 
                         onmouseout="this.style.background='transparent'">
@@ -176,7 +183,29 @@ function getStatusIcon(status) {
 
 window.toggleStatus = (date, pId, currentStatus) => {
     const nextStatus = currentStatus === 'K' ? '' : 'K';
-    update(ref(db, `attendance/${date}`), { [pId]: nextStatus });
+    
+    // Legg til visual feedback
+    const cell = document.querySelector(`[data-date="${date}"][data-player="${pId}"]`);
+    if (cell) {
+        cell.style.opacity = '0.6';
+        cell.style.transform = 'scale(0.95)';
+    }
+    
+    // Oppdater Firebase
+    update(ref(db, `attendance/${date}`), { [pId]: nextStatus }).then(() => {
+        // Fjern visual feedback etter oppdatering
+        if (cell) {
+            cell.style.opacity = '1';
+            cell.style.transform = 'scale(1)';
+        }
+    }).catch((error) => {
+        console.error('Feil ved oppdatering:', error);
+        // Reverter visual feedback ved feil
+        if (cell) {
+            cell.style.opacity = '1';
+            cell.style.transform = 'scale(1)';
+        }
+    });
 };
 
 window.deleteDate = (date) => {
