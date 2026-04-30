@@ -1,4 +1,4 @@
-/* --- DESIGNVARIABLER --- */
+/* --- 1. DESIGNVARIABLER --- */
 :root {
     --primary: #3498db;
     --primary-dark: #2980b9;
@@ -13,7 +13,7 @@
     --shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* --- GRUNNLEGGENDE --- */
+/* --- 2. GRUNNLEGGENDE --- */
 * {
     margin: 0;
     padding: 0;
@@ -28,7 +28,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- SIDEBAR (Meny) --- */
+/* --- 3. SIDEBAR (Meny) --- */
 .sidebar {
     width: 260px;
     background-color: var(--white) !important;
@@ -70,7 +70,7 @@ body {
     font-weight: 600;
 }
 
-/* --- HOVEDINNHOLD --- */
+/* --- 4. HOVEDINNHOLD --- */
 .main-content {
     flex: 1;
     margin-left: 260px;
@@ -111,16 +111,7 @@ body {
     justify-content: center;
 }
 
-/* --- FILTER / VERKTØYLINJE --- */
-.filter-bar {
-    display: flex;
-    justify-content: center;
-    padding: 15px 25px;
-    background: var(--white);
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* --- TAKTIKK-BRETT (Nye brikker) --- */
+/* --- 5. TAKTIKK-BRETT (RESPONSIVT) --- */
 .tactic-container {
     position: relative;
     width: 100%;
@@ -131,11 +122,15 @@ body {
     border: 5px solid white;
     border-radius: 10px;
     overflow: hidden;
+    /* Aktiverer container-spørringer for brikkene inni */
+    container-type: inline-size;
 }
 
 .player-node {
-    width: 48px;
-    height: 48px;
+    /* Bredde i prosent av banens bredde */
+    width: 10%; 
+    /* Garanterer sirkelform uansett skalering */
+    aspect-ratio: 1 / 1;
     background-color: var(--primary);
     color: white;
     border-radius: 50%;
@@ -144,113 +139,54 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transform: translate(-50%, -50%); /* Sentrerer sirkelen på punktet */
+    transform: translate(-50%, -50%);
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    border: 2px solid white;
-    transition: all 0.2s ease;
+    box-shadow: 0 0.5cqw 1cqw rgba(0,0,0,0.3);
+    border: 0.4cqw solid white;
+    transition: transform 0.2s ease;
     z-index: 100;
 }
 
 .player-node:hover {
     transform: translate(-50%, -50%) scale(1.1);
-    background-color: var(--primary-dark);
 }
 
+/* Tekst som skalerer basert på banens bredde (cqw) */
 .player-node .pos-label {
-    font-size: 8px;
+    font-size: 1.8cqw;
     font-weight: 800;
     text-transform: uppercase;
     opacity: 0.9;
-    margin-bottom: -2px;
+    margin-bottom: -0.2cqw;
 }
 
 .player-node .player-initials {
-    font-size: 13px;
+    font-size: 2.8cqw;
     font-weight: 700;
-    letter-spacing: -0.5px;
 }
 
-/* Gjør select-menyen usynlig, men klikkbar over hele sirkelen */
 .player-node select {
     position: absolute;
     width: 100%;
     height: 100%;
     opacity: 0;
     cursor: pointer;
-    left: 0;
-    top: 0;
-    appearance: none;
+    border-radius: 50%;
 }
 
-/* --- DROPDOWN / SELECT STYLING --- */
-.custom-select-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--primary);
-}
-
-.select-input-clean {
-    flex: 1;
-    padding: 12px 40px 12px 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    background-color: var(--white);
-    color: var(--text-main);
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    transition: all 0.2s ease;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    background-size: 14px;
-}
-
-.select-input-clean:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-/* --- TAB-KNAPPER --- */
-.tab-btn {
-    flex: 1;
-    height: 42px;
-    background-color: transparent;
-    color: var(--primary);
-    border: 1px solid var(--primary);
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    max-width: 200px;
-}
-
-.tab-btn.active {
-    background-color: var(--primary);
-    color: var(--white);
-}
-
-/* --- TABELL-DESIGN --- */
+/* --- 6. TABELLER OG STATISTIKK --- */
 .table-container {
     width: 100%;
     overflow-x: auto;
-    position: relative;
     background: white;
     border-radius: 12px;
     margin-bottom: 2rem;
+    box-shadow: var(--shadow);
 }
 
 table {
-    width: auto;
-    min-width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 th, td {
@@ -267,229 +203,61 @@ th {
     color: var(--text-muted);
 }
 
-.text-left { text-align: left; }
-
 .name-col {
     position: sticky;
     left: 0;
     background-color: white;
     z-index: 10;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-    padding: 12px 15px;
     text-align: left;
-    width: 1%; 
-    white-space: nowrap;
-    min-width: 130px; 
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 140px;
+    font-weight: 600;
 }
 
-thead th.name-col {
-    z-index: 11;
-    background-color: #f8f9fa;
-}
-
-#attendanceTable th:not(.name-col), 
-#attendanceTable td:not(.name-col) {
-    width: 65px;
-    min-width: 65px;
-}
-
-/* --- STATUS-ELEMENTER --- */
+/* Oppmøte-piller i tabellen (Sirkulære) */
 .status-pill {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    display: inline-block;
-}
-.status-active { background: #e3f9e5; color: #1f7a1f; }
-.status-passive { background: #f1f3f5; color: #636e72; }
-
-.action-btn {
-    background: #f1f2f6;
-    border: none;
-    cursor: pointer;
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: 0.2s;
-}
-.btn-edit { color: var(--primary); background: rgba(52, 152, 219, 0.1); }
-.btn-delete { color: var(--danger); background: rgba(231, 76, 60, 0.1); }
-.btn-edit:hover, .btn-delete:hover { transform: translateY(-2px); filter: brightness(0.95); }
-
-/* --- DASHBOARD GRID --- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 25px;
-}
-
-.dash-card {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-main);
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
-}
-
-.dash-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    border-color: var(--primary);
-}
-
-.dash-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(52, 152, 219, 0.1);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: var(--primary);
-    margin-right: 20px;
-}
-
-.dash-info h3 {
-    margin: 0 0 5px 0;
-    font-size: 1.1rem;
+    font-size: 0.8rem;
     font-weight: 700;
-}
-
-.dash-info p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.dash-card .arrow {
-    margin-left: auto;
-    color: var(--border-color);
-}
-
-/* --- MODAL --- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 4000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background-color: var(--white);
-    border-radius: 16px;
-    width: 95%;
-    max-width: 500px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    overflow: hidden;
-}
-
-.modal-header {
-    padding: 20px 25px;
-    background: #f8f9fa;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-}
-
-.form-stack { padding: 25px; }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-.form-group input, .form-group select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-}
-
-.button-group { padding: 0 25px 25px; display: flex; gap: 10px; }
-.btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-.btn-grow-2 { background: var(--primary); color: white; }
-.btn-danger { background: #f1f2f6; color: var(--danger); }
-
-/* --- OPPMØTE TYPER --- */
-.day-type {
-    font-size: 0.65rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-top: 5px;
-    display: inline-block;
-    font-weight: 800;
     color: white;
+    flex-shrink: 0;
 }
-.day-type-training { background: var(--success); }
-.day-type-match { background: #9b59b6; }
 
-.status-present { color: var(--success); font-size: 1.4rem; }
-.status-none { color: #dcdde1; font-size: 1.4rem; opacity: 0.6; }
+/* --- 7. DASHBOARD OG FILTER --- */
+.filter-bar {
+    display: flex;
+    justify-content: center;
+    padding: 15px 25px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-color);
+}
 
-/* --- FLYTENDE KNAPP (FAB) --- */
-.fab-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background-color: var(--primary);
-    color: var(--white);
-    height: 60px;
-    border-radius: 30px;
-    padding: 0 24px;
+.custom-select-wrapper {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
-    border: none;
-    cursor: pointer;
-    z-index: 3000;
+    gap: 12px;
+    color: var(--primary);
 }
 
-/* --- MOBIL-TILPASNING --- */
+.select-input-clean {
+    padding: 10px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+    font-weight: 600;
+}
+
+/* --- 8. MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
-    .sidebar { top: 70px; height: calc(100vh - 70px); transform: translateX(-260px); }
+    .sidebar { transform: translateX(-260px); }
     .sidebar:not(.collapsed) { transform: translateX(0); }
-
-    .name-col { 
-        min-width: 110px; 
-        max-width: 140px; 
-        font-size: 0.85rem;
-        padding: 12px 10px;
-    }
-
-    #attendanceTable th:not(.name-col), 
-    #attendanceTable td:not(.name-col) {
-        width: 55px;
-        min-width: 55px;
-    }
-
-    .fab-btn { width: 60px; padding: 0; border-radius: 50%; justify-content: center; }
-    .fab-text { display: none; }
     
-    .dashboard-grid { padding: 15px; }
-}
-
-@keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(-10px); } 
-    to { opacity: 1; transform: translateY(0); } 
+    .name-col { min-width: 110px; font-size: 0.85rem; }
+    
+    .player-node { width: 12%; } /* Litt større brikker på mobil */
 }
