@@ -1,6 +1,7 @@
 /* --- 1. DESIGNVARIABLER --- */
 :root {
-    --primary: #3498db;
+    /* Vi definerer blåfargen her på nytt for sikkerhets skyld */
+    --primary: #3498db; 
     --primary-dark: #2980b9;
     --bg-light: #f4f7f6;
     --text-main: #2d3436;
@@ -9,7 +10,6 @@
     --white: #ffffff;
     --success: #2ecc71;
     --danger: #e74c3c;
-    --warning: #f1c40f;
     --shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
@@ -23,12 +23,11 @@
 
 body {
     background-color: var(--bg-light);
-    color: var(--text-main);
     display: flex;
     min-height: 100vh;
 }
 
-/* --- 3. LAYOUT (Sidebar og Main) --- */
+/* --- 3. LAYOUT --- */
 .sidebar {
     width: 260px;
     background-color: var(--white);
@@ -41,41 +40,33 @@ body {
 .main-content {
     flex: 1;
     margin-left: 260px;
-    transition: margin-left 0.3s ease;
 }
 
-.top-bar {
-    height: 70px;
-    background: var(--white);
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* --- 4. TAKTIKK-BRETT (DEN ENDELIGE VERSJONEN) --- */
+/* --- 4. TAKTIKK-BRETT --- */
 .tactic-container {
     position: relative;
     width: 95%;
     max-width: 600px;
     margin: 20px auto;
     aspect-ratio: 2 / 3;
-    background-color: #27ae60;
+    background-color: #27ae60; /* Dette er banens grønnfarge */
     border: 5px solid white;
     border-radius: 10px;
     overflow: hidden;
-    container-type: inline-size; /* Nødvendig for cqw-skalering */
+    container-type: inline-size;
 }
 
 .player-node {
-    /* Vi lander på 6% for en perfekt balanse */
-    width: 6%; 
-    aspect-ratio: 1 / 1;
+    /* STØRRELSE: Vi prøver 5% for å ligge mellom 'for stor' og 'bitteliten' */
+    width: 5% !important; 
+    aspect-ratio: 1 / 1 !important;
     height: auto !important;
     
-    background-color: var(--primary);
-    color: white;
-    border-radius: 50%;
+    /* FARGE: Vi tvinger den til å være blå (#3498db) */
+    background-color: #3498db !important; 
+    
+    color: white !important;
+    border-radius: 50% !important;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -85,34 +76,32 @@ body {
     cursor: pointer;
     z-index: 100;
     
-    /* Skalerbar hvit kantlinje */
-    border: 0.25cqw solid white;
-    box-shadow: 0 0.3cqw 0.6cqw rgba(0,0,0,0.2);
-    transition: transform 0.2s ease;
+    /* Hvit kant rundt brikken for å skille den fra banen */
+    border: 0.2cqw solid white !important;
+    box-shadow: 0 0.3cqw 0.6cqw rgba(0,0,0,0.3);
 }
 
 .player-node:hover {
-    transform: translate(-50%, -50%) scale(1.1);
+    background-color: #2980b9 !important;
 }
 
-/* Tekst som tilpasser seg sirkelen */
+/* Tekstbehandling */
 .player-node .pos-label {
-    font-size: clamp(5px, 1.3cqw, 9px);
+    font-size: clamp(4px, 1.3cqw, 9px);
     font-weight: 800;
     text-transform: uppercase;
     line-height: 1;
-    margin-bottom: 1px;
     pointer-events: none;
 }
 
 .player-node .player-initials {
-    font-size: clamp(8px, 2.4cqw, 13px);
+    font-size: clamp(7px, 2.4cqw, 13px);
     font-weight: 700;
     line-height: 1;
     pointer-events: none;
 }
 
-/* Gjør det enkelt å trykke på de små brikkene */
+/* Usynlig select-felt for å bytte spiller */
 .player-node select {
     position: absolute;
     width: 140%;
@@ -123,7 +112,7 @@ body {
     top: -20%;
 }
 
-/* --- 5. TABELLER OG STATISTIKK --- */
+/* --- 5. STATISTIKK (TABELL) --- */
 .table-container {
     margin: 25px;
     background: white;
@@ -140,10 +129,8 @@ table {
 th, td {
     padding: 12px;
     border-bottom: 1px solid var(--border-color);
-    text-align: center;
 }
 
-/* De runde statistikk-pillene */
 .status-pill {
     width: 42px;
     height: 42px;
@@ -151,15 +138,14 @@ th, td {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--primary);
+    background: #3498db;
     color: white;
     font-weight: 700;
-    font-size: 0.8rem;
 }
 
-/* --- 6. RESPONSIVITET --- */
+/* --- 6. MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0; }
     .sidebar { display: none; }
-    .player-node { width: 9%; } /* Litt større på mobil for tommelfinger-vennlighet */
+    .player-node { width: 8% !important; }
 }
