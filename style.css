@@ -326,13 +326,13 @@ th {
     color: var(--text-main);
 }
 
-/* Sticky navn-kolonne for oppmøte-tabell */
+/* Sticky navn-kolonne - ALLTID sticky */
 .name-col {
     position: sticky;
     left: 0;
     background-color: #f8f9fa;
     z-index: 10;
-    min-width: 180px;
+    min-width: 150px;
     text-align: left;
     font-weight: 600;
 }
@@ -384,6 +384,6 @@ th {
     }
 
     .name-col {
-        min-width: 140px;
+        min-width: 130px;
     }
 }
