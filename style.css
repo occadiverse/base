@@ -1,4 +1,8 @@
-/* --- 1. DESIGNVARIABLER --- */
+/* 
+================================================================
+1. DESIGNVARIABLER (Sentralstyring)
+================================================================
+*/
 :root {
     --primary: #3498db;
     --primary-dark: #2980b9;
@@ -7,15 +11,26 @@
     --text-muted: #636e72;
     --border-color: #dfe6e9;
     --white: #ffffff;
+    --success: #2ecc71;
+    --danger: #e74c3c;
+    --warning: #f1c40f;
     --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    
+    /* Layout variabler */
+    --sidebar-width: 260px;
+    --topbar-height: 70px;
 }
 
-/* --- 2. GRUNNLEGGENDE RESET --- */
+/* 
+================================================================
+2. GRUNNLEGGENDE RESET & GLOBAL STIL
+================================================================
+*/
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
 }
 
 body {
@@ -26,9 +41,13 @@ body {
     overflow-x: hidden;
 }
 
-/* --- 3. SIDEBAR (NAVIGASJON) --- */
+/* 
+================================================================
+3. SIDEBAR (NAVIGASJON) - Basert på navigation.js
+================================================================
+*/
 .sidebar {
-    width: 260px;
+    width: var(--sidebar-width);
     background-color: var(--white);
     border-right: 1px solid var(--border-color);
     position: fixed;
@@ -40,13 +59,12 @@ body {
     box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
-/* Når menyen er lukket, flyttes den 260px til venstre */
 .sidebar.collapsed {
-    transform: translateX(-260px);
+    transform: translateX(calc(-1 * var(--sidebar-width)));
 }
 
 .nav-links {
-    padding-top: 80px; /* Plass til meny-knapp på toppen */
+    padding-top: 80px;
     display: flex;
     flex-direction: column;
 }
@@ -59,7 +77,6 @@ body {
     text-decoration: none;
     color: var(--text-muted);
     font-weight: 500;
-    font-size: 0.95rem;
     border-left: 4px solid transparent;
     transition: 0.2s;
 }
@@ -67,7 +84,6 @@ body {
 .nav-item i {
     width: 20px;
     text-align: center;
-    font-size: 1.1rem;
 }
 
 .nav-item:hover {
@@ -75,7 +91,6 @@ body {
     color: var(--primary);
 }
 
-/* Stil for aktiv side */
 .nav-item.active {
     background: rgba(52, 152, 219, 0.08);
     color: var(--primary);
@@ -83,28 +98,31 @@ body {
     font-weight: 600;
 }
 
-/* --- 4. HOVEDINNHOLD --- */
+/* 
+================================================================
+4. HOVEDLAYOUT (MAIN CONTENT)
+================================================================
+*/
 .main-content {
     flex: 1;
-    margin-left: 260px; /* Matcher sidebar-bredde */
+    margin-left: var(--sidebar-width);
     transition: margin-left 0.3s ease;
     min-width: 0;
     padding: 20px;
 }
 
-/* Når sidebar er lukket, tar innholdet hele plassen */
 .sidebar.collapsed + .main-content {
     margin-left: 0;
 }
 
 .top-bar {
-    height: 70px;
+    height: var(--topbar-height);
     background: var(--white);
     display: flex;
     align-items: center;
     padding: 0 25px;
     border-bottom: 1px solid var(--border-color);
-    margin: -20px -20px 20px -20px; /* Går helt ut til kantene */
+    margin: -20px -20px 20px -20px; /* Trekker inn padding fra main-content */
 }
 
 .menu-toggle {
@@ -118,10 +136,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-main);
 }
 
-/* --- 5. TAKTIKK-BRETT (6.5% + MODERNE STIL) --- */
+/* 
+================================================================
+5. TAKTIKK-BRETT (Den moderne 6.5% stilen din)
+================================================================
+*/
 .tactic-container {
     position: relative;
     width: 100%;
@@ -136,7 +157,7 @@ body {
 }
 
 .player-node {
-    width: 6.5% !important; 
+    width: 6.5% !important;
     aspect-ratio: 1 / 1 !important;
     height: auto !important;
     background-color: var(--primary) !important;
@@ -155,31 +176,39 @@ body {
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.player-node:hover {
-    transform: translate(-50%, -50%) scale(1.1);
-}
-
 .player-node .pos-label {
-    font-size: clamp(4px, 1.2cqw, 8px); 
+    font-size: clamp(4px, 1.2cqw, 8px);
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.05em; 
+    letter-spacing: 0.05em;
     line-height: 1;
     margin-bottom: 1px;
     opacity: 0.85;
 }
 
 .player-node .player-initials {
-    font-size: clamp(8px, 2.6cqw, 14px); 
+    font-size: clamp(8px, 2.6cqw, 14px);
     font-weight: 700;
-    letter-spacing: -0.03em; 
+    letter-spacing: -0.03em;
     line-height: 0.9;
-    white-space: nowrap;
 }
 
-/* --- 6. TABELLER OG STATISTIKK --- */
+.player-node select {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+/* 
+================================================================
+6. TABELLER OG STATISTIKK
+================================================================
+*/
 .table-container {
-    background: white;
+    background: var(--white);
     border-radius: 12px;
     box-shadow: var(--shadow);
     overflow-x: auto;
@@ -203,18 +232,19 @@ th, td {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    background: var(--primary);
+    color: var(--white);
     font-weight: 700;
-    color: white;
-    background-color: var(--primary);
 }
 
-/* --- 7. MOBIL-TILPASNING --- */
+/* 
+================================================================
+7. MOBIL-TILPASNING (Media Queries)
+================================================================
+*/
 @media (max-width: 768px) {
     .sidebar {
-        top: 0;
-        height: 100vh;
-        transform: translateX(-260px); /* Skjult som standard på mobil */
+        transform: translateX(calc(-1 * var(--sidebar-width)));
     }
     
     .sidebar:not(.collapsed) {
@@ -223,5 +253,9 @@ th, td {
 
     .main-content {
         margin-left: 0 !important;
+    }
+    
+    .player-node {
+        width: 9% !important; /* Litt større på mobil for tommel-vennlighet */
     }
 }
