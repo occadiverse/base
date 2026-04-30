@@ -146,7 +146,8 @@ function renderMatrix() {
             </td>`;
         
         filteredDates.forEach(date => {
-            const status = attendanceData[date][pId] || '';
+            const dateData = attendanceData[date] || {};
+            const status = dateData[pId] || '';
             row += `<td onclick="window.toggleStatus('${date}', '${pId}', '${status}')" 
                         style="cursor:pointer; transition: background 0.1s;"
                         onmouseover="this.style.background='#f8f9fa'" 
@@ -161,7 +162,7 @@ function renderMatrix() {
 }
 
 // --- GLOBALE FUNKSJONER ---
-window.filterByMonth = () => {
+window.filterByMonth = (monthValue) => {
     renderMatrix();
     // Ved manuelt bytte av måned ruller vi til starten av tabellen eller dagens dato
     setTimeout(scrollToCurrentDate, 100);
