@@ -56,15 +56,15 @@ body {
     container-type: inline-size;
 }
 
-/* --- TAKTIKK-BRIKKER (FINJUSTERT STØRRELSE) --- */
+/* --- TAKTIKK-BRIKKER (FINJUSTERT: 5.8% OG TYNNERE KANT) --- */
 
 .player-node {
-    /* Vi bruker desimaler for å finne mellomtingen mellom 5% og 6% */
-    width: 5.5% !important; 
+    /* STØRRELSE: Økt fra 5.5% til 5.8% for å nærme seg 6% uten å bli "for stor" */
+    width: 5.8% !important; 
     aspect-ratio: 1 / 1 !important;
     height: auto !important;
     
-    /* Tvinger fargen til å være blå, uavhengig av arv fra banen */
+    /* FARGE: Solid blåfarge */
     background-color: #3498db !important; 
     color: white !important;
     
@@ -78,20 +78,29 @@ body {
     cursor: pointer;
     z-index: 100;
     
-    /* Kantlinje og skygge */
-    border: 0.2cqw solid white !important;
-    box-shadow: 0 0.3cqw 0.6cqw rgba(0,0,0,0.3);
+    /* KANTLINJE: Redusert fra 0.25cqw til 0.15cqw for et tynnere uttrykk */
+    border: 0.15cqw solid white !important;
     
-    /* Sikrer at ingenting skjules selv om brikken er mindre */
+    /* SKYGGE: Gjort litt mer diskret for å matche den tynnere kanten */
+    box-shadow: 0 0.2cqw 0.5cqw rgba(0,0,0,0.25);
+    
+    transition: transform 0.2s ease, background-color 0.2s;
+    padding: 0;
     overflow: visible; 
 }
 
-/* Teksten inni brikken (Beholder din foretrukne tekststørrelse) */
+.player-node:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    background-color: #2980b9 !important;
+}
+
+/* Tekststørrelsene beholdes som de var (fungerte bra) */
 .player-node .pos-label {
     font-size: clamp(4px, 1.3cqw, 9px);
     font-weight: 800;
     text-transform: uppercase;
     line-height: 1;
+    margin-bottom: 1px;
     pointer-events: none;
 }
 
@@ -102,15 +111,15 @@ body {
     pointer-events: none;
 }
 
-/* Interaksjonsområde (Gjør det lett å trykke på små brikker) */
+/* Klikksone */
 .player-node select {
     position: absolute;
-    width: 150%; /* Gjør det klikkbare området større enn selve brikken */
-    height: 150%;
+    width: 140%;
+    height: 140%;
     opacity: 0;
     cursor: pointer;
-    left: -25%;
-    top: -25%;
+    left: -20%;
+    top: -20%;
     border-radius: 50%;
 }
 
