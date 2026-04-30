@@ -23,11 +23,12 @@
 
 body {
     background-color: var(--bg-light);
+    color: var(--text-main);
     display: flex;
     min-height: 100vh;
 }
 
-/* --- 3. SIDEBAR --- */
+/* --- 3. LAYOUT (Sidebar og Main) --- */
 .sidebar {
     width: 260px;
     background-color: var(--white);
@@ -40,9 +41,19 @@ body {
 .main-content {
     flex: 1;
     margin-left: 260px;
+    transition: margin-left 0.3s ease;
 }
 
-/* --- 4. TAKTIKK-BRETT (DIAGNOSTISK VERSJON) --- */
+.top-bar {
+    height: 70px;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* --- 4. TAKTIKK-BRETT (DEN ENDELIGE VERSJONEN) --- */
 .tactic-container {
     position: relative;
     width: 95%;
@@ -53,21 +64,18 @@ body {
     border: 5px solid white;
     border-radius: 10px;
     overflow: hidden;
-    /* Tvinger banen til å være en container */
-    container-type: inline-size !important;
+    container-type: inline-size; /* Nødvendig for cqw-skalering */
 }
 
 .player-node {
-    /* VIKTIG: Vi setter bredden til 4% og bruker !important for å overstyre alt */
-    width: 4% !important; 
-    aspect-ratio: 1 / 1 !important;
+    /* Vi lander på 6% for en perfekt balanse */
+    width: 6%; 
+    aspect-ratio: 1 / 1;
     height: auto !important;
     
-    /* Bruker en midlertidig lilla farge for å BEKREFTE at koden lastes */
-    background-color: #9b59b6 !important; 
-    
+    background-color: var(--primary);
     color: white;
-    border-radius: 50% !important;
+    border-radius: 50%;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -77,33 +85,42 @@ body {
     cursor: pointer;
     z-index: 100;
     
-    /* Kantlinje som bruker banens bredde */
-    border: 0.2cqw solid white;
+    /* Skalerbar hvit kantlinje */
+    border: 0.25cqw solid white;
+    box-shadow: 0 0.3cqw 0.6cqw rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
 }
 
+.player-node:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Tekst som tilpasser seg sirkelen */
 .player-node .pos-label {
-    font-size: clamp(4px, 1.2cqw, 8px);
+    font-size: clamp(5px, 1.3cqw, 9px);
     font-weight: 800;
     text-transform: uppercase;
     line-height: 1;
+    margin-bottom: 1px;
     pointer-events: none;
 }
 
 .player-node .player-initials {
-    font-size: clamp(7px, 2.2cqw, 11px);
+    font-size: clamp(8px, 2.4cqw, 13px);
     font-weight: 700;
     line-height: 1;
     pointer-events: none;
 }
 
+/* Gjør det enkelt å trykke på de små brikkene */
 .player-node select {
     position: absolute;
-    width: 150%;
-    height: 150%;
+    width: 140%;
+    height: 140%;
     opacity: 0;
     cursor: pointer;
-    left: -25%;
-    top: -25%;
+    left: -20%;
+    top: -20%;
 }
 
 /* --- 5. TABELLER OG STATISTIKK --- */
@@ -126,9 +143,10 @@ th, td {
     text-align: center;
 }
 
+/* De runde statistikk-pillene */
 .status-pill {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -136,12 +154,12 @@ th, td {
     background: var(--primary);
     color: white;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
 }
 
-/* --- 6. MOBIL --- */
+/* --- 6. RESPONSIVITET --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0; }
     .sidebar { display: none; }
-    .player-node { width: 6% !important; } /* Litt større på mobil for trykkbarhet */
+    .player-node { width: 9%; } /* Litt større på mobil for tommelfinger-vennlighet */
 }
