@@ -56,16 +56,18 @@ body {
     container-type: inline-size;
 }
 
+/* --- TAKTIKK-BRIKKER (FINJUSTERT STØRRELSE) --- */
+
 .player-node {
-    /* STØRRELSE: Vi prøver 5% for å ligge mellom 'for stor' og 'bitteliten' */
-    width: 5% !important; 
+    /* Vi bruker desimaler for å finne mellomtingen mellom 5% og 6% */
+    width: 5.5% !important; 
     aspect-ratio: 1 / 1 !important;
     height: auto !important;
     
-    /* FARGE: Vi tvinger den til å være blå (#3498db) */
+    /* Tvinger fargen til å være blå, uavhengig av arv fra banen */
     background-color: #3498db !important; 
-    
     color: white !important;
+    
     border-radius: 50% !important;
     position: absolute;
     display: flex;
@@ -76,16 +78,15 @@ body {
     cursor: pointer;
     z-index: 100;
     
-    /* Hvit kant rundt brikken for å skille den fra banen */
+    /* Kantlinje og skygge */
     border: 0.2cqw solid white !important;
     box-shadow: 0 0.3cqw 0.6cqw rgba(0,0,0,0.3);
+    
+    /* Sikrer at ingenting skjules selv om brikken er mindre */
+    overflow: visible; 
 }
 
-.player-node:hover {
-    background-color: #2980b9 !important;
-}
-
-/* Tekstbehandling */
+/* Teksten inni brikken (Beholder din foretrukne tekststørrelse) */
 .player-node .pos-label {
     font-size: clamp(4px, 1.3cqw, 9px);
     font-weight: 800;
@@ -101,15 +102,16 @@ body {
     pointer-events: none;
 }
 
-/* Usynlig select-felt for å bytte spiller */
+/* Interaksjonsområde (Gjør det lett å trykke på små brikker) */
 .player-node select {
     position: absolute;
-    width: 140%;
-    height: 140%;
+    width: 150%; /* Gjør det klikkbare området større enn selve brikken */
+    height: 150%;
     opacity: 0;
     cursor: pointer;
-    left: -20%;
-    top: -20%;
+    left: -25%;
+    top: -25%;
+    border-radius: 50%;
 }
 
 /* --- 5. STATISTIKK (TABELL) --- */
