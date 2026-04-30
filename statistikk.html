@@ -44,20 +44,25 @@
                     </tr>
                 </thead>
                 <tbody id="statsBody">
-                    </tbody>
+                    <!-- Data injiseres her av statistikk.js -->
+                </tbody>
             </table>
         </div>
     </div>
 
-    <script type="module">
-        // ... (Lim inn samme Firebase-config blokk som du har i oppmote.html her)
-    </script>
-
-    <script src="database.js"></script>
+    <!-- 1. Navigasjon lastes først -->
     <script src="navigation.js"></script>
-    <script src="statistikk.js"></script> <script>
+
+    <!-- 2. Statistikk-logikken lastes som MODUL (løser SyntaxError) -->
+    <script type="module" src="statistikk.js"></script>
+
+    <!-- 3. Initialisering av UI-komponenter -->
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof loadNavigation === 'function') loadNavigation();
+            // Sjekker om navigasjonsfunksjonen eksisterer før kjøring
+            if (typeof window.loadNavigation === 'function') {
+                window.loadNavigation();
+            }
         });
     </script>
 </body>
