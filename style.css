@@ -125,10 +125,15 @@ body {
     container-type: inline-size; /* Muliggjør cqw-enheter */
 }
 
+/* --- TAKTIKK-BRIKKER (Oppdatert til 7% størrelse) --- */
+
 .player-node {
-    width: 9%; /* Brikkens bredde relativt til banen */
+    /* Vi setter bredden til nøyaktig 7% av banens bredde */
+    width: 7%; 
+    
+    /* Garanterer en perfekt sirkel uansett skjermstørrelse */
     aspect-ratio: 1 / 1;
-    height: auto !important; /* Hindrer vertikal strekking */
+    height: auto !important; 
     
     background-color: var(--primary);
     color: white;
@@ -140,32 +145,39 @@ body {
     justify-content: center;
     transform: translate(-50%, -50%);
     cursor: pointer;
-    box-shadow: 0 0.4cqw 0.8cqw rgba(0,0,0,0.3);
-    border: 0.3cqw solid white;
-    transition: all 0.2s ease;
+    
+    /* Skalerbar kantlinje og skygge basert på banens størrelse */
+    border: 0.25cqw solid white;
+    box-shadow: 0 0.3cqw 0.6cqw rgba(0,0,0,0.3);
+    
+    transition: transform 0.2s ease, background-color 0.2s;
     z-index: 100;
     padding: 0;
 }
 
 .player-node:hover {
     transform: translate(-50%, -50%) scale(1.1);
+    background-color: var(--primary-dark);
 }
 
-/* Tekstkontroll med clamp() for å hindre ekstrem størrelse */
+/* Finjustert tekst for å passe i en 7% sirkel */
 .player-node .pos-label {
-    font-size: clamp(6px, 1.5cqw, 10px);
+    /* clamp(minimum, foretrukket, maksimum) */
+    font-size: clamp(5px, 1.2cqw, 8px); 
     font-weight: 800;
     text-transform: uppercase;
     line-height: 1;
-    margin-bottom: 1px;
+    margin-bottom: 0.5px;
 }
 
 .player-node .player-initials {
-    font-size: clamp(8px, 2.8cqw, 15px);
+    /* Vi har tatt ned maksimumsstørrelsen litt til for å bevare luft i sirkelen */
+    font-size: clamp(8px, 2.2cqw, 12px); 
     font-weight: 700;
     line-height: 1;
 }
 
+/* Select-menyen er usynlig, men dekker hele brikken for klikk */
 .player-node select {
     position: absolute;
     width: 100%;
