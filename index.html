@@ -2,101 +2,90 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSK Fotball - Hjem</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taktikk og Statistikk - Hjem</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for ikoner -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Ditt herdede stilark -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="sidebar" id="sidebar"></div>
+    <!-- Her lastes navigasjonen inn via navigation.js -->
+    <div id="sidebar" class="sidebar collapsed"></div>
 
-    <div class="main-content">
-        <div class="top-bar">
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <header class="top-bar">
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h2 class="section-title">BSK Herrer A-lag</h2>
-        </div>
+            <h1 class="section-title">Oversikt</h1>
+        </header>
 
+        <!-- DASHBOARD INNHOLD -->
         <div class="dashboard-grid">
+            
+            <!-- Kort 1: Taktikk (Index/Hjem) -->
+            <a href="index.html" class="dash-card">
+                <div class="dash-icon">
+                    <i class="fa-solid fa- chalkboard-user"></i>
+                </div>
+                <div class="dash-info">
+                    <h3>Taktikkbrett</h3>
+                    <p>Planlegg formasjoner og spillestil.</p>
+                </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </a>
+
+            <!-- Kort 2: Oppmøte -->
             <a href="oppmote.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="dash-icon">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
                 <div class="dash-info">
                     <h3>Oppmøte</h3>
-                    <p>Registrer dagens trening eller kamp</p>
+                    <p>Registrer trening og kampfravær.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-            <a href="kamper.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-trophy"></i></div>
-                <div class="dash-info">
-                    <h3>Kamper</h3>
-                    <p id="nextMatchPreview">Laster neste kamp...</p> 
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </a>
-            
+            <!-- Kort 3: Statistikk -->
             <a href="statistikk.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="dash-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
                 <div class="dash-info">
                     <h3>Statistikk</h3>
-                    <p>Se hvem som topper lista denne måneden</p>
+                    <p>Se spillerprestasjoner og data.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
+            <!-- Kort 4: Spillere -->
             <a href="spillere.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="dash-icon">
+                    <i class="fa-solid fa-users"></i>
+                </div>
                 <div class="dash-info">
                     <h3>Spillerstall</h3>
-                    <p>Administrer spillere og informasjon</p>
+                    <p>Administrer spillere og informasjon.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
+
         </div>
-    </div>
+    </main>
 
-    <script type="module">
-        // Vi importerer nå db fra vår nye konfigurasjonsfil
-        import { db } from './firebase-config.js';
-        import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        // Funksjon for å finne neste kamp
-        onValue(ref(db, 'matches'), (snapshot) => {
-            const data = snapshot.val();
-            const previewElement = document.getElementById('nextMatchPreview');
-            
-            if (data) {
-                const nå = new Date();
-                const matches = Object.values(data);
-                
-                // Finn kamper som er i dag eller frem i tid, sorter dem
-                const kommendeKamper = matches
-                    .filter(m => new Date(m.date + "T23:59:59") >= nå)
-                    .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                if (kommendeKamper.length > 0) {
-                    const neste = kommendeKamper[0];
-                    const d = new Date(neste.date);
-                    const datoFormatert = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-                    
-                    previewElement.innerHTML = `Neste: <strong>${neste.opponent}</strong> (${datoFormatert} kl. ${neste.time})`;
-                } else {
-                    previewElement.innerText = "Ingen kommende kamper";
-                }
-            } else {
-                previewElement.innerText = "Ingen kamper lagt inn";
-            }
-        });
-    </script>
-
+    <!-- JavaScript-filer -->
     <script src="navigation.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof loadNavigation === 'function') loadNavigation();
-        });
+        // Her kan du legge til logikk spesifikt for hjemsiden hvis nødvendig
     </script>
 </body>
 </html>
