@@ -111,7 +111,7 @@ body {
     justify-content: center;
 }
 
-/* --- 5. TAKTIKK-BRETT (RESPONSIVT) --- */
+/* --- 5. TAKTIKK-BRETT (KORRIGERT RESPONSIVITET) --- */
 .tactic-container {
     position: relative;
     width: 100%;
@@ -122,15 +122,14 @@ body {
     border: 5px solid white;
     border-radius: 10px;
     overflow: hidden;
-    /* Aktiverer container-spørringer for brikkene inni */
-    container-type: inline-size;
+    container-type: inline-size; /* Muliggjør cqw-enheter */
 }
 
 .player-node {
-    /* Bredde i prosent av banens bredde */
-    width: 10%; 
-    /* Garanterer sirkelform uansett skalering */
+    width: 9%; /* Brikkens bredde relativt til banen */
     aspect-ratio: 1 / 1;
+    height: auto !important; /* Hindrer vertikal strekking */
+    
     background-color: var(--primary);
     color: white;
     border-radius: 50%;
@@ -141,28 +140,30 @@ body {
     justify-content: center;
     transform: translate(-50%, -50%);
     cursor: pointer;
-    box-shadow: 0 0.5cqw 1cqw rgba(0,0,0,0.3);
-    border: 0.4cqw solid white;
-    transition: transform 0.2s ease;
+    box-shadow: 0 0.4cqw 0.8cqw rgba(0,0,0,0.3);
+    border: 0.3cqw solid white;
+    transition: all 0.2s ease;
     z-index: 100;
+    padding: 0;
 }
 
 .player-node:hover {
     transform: translate(-50%, -50%) scale(1.1);
 }
 
-/* Tekst som skalerer basert på banens bredde (cqw) */
+/* Tekstkontroll med clamp() for å hindre ekstrem størrelse */
 .player-node .pos-label {
-    font-size: 1.8cqw;
+    font-size: clamp(6px, 1.5cqw, 10px);
     font-weight: 800;
     text-transform: uppercase;
-    opacity: 0.9;
-    margin-bottom: -0.2cqw;
+    line-height: 1;
+    margin-bottom: 1px;
 }
 
 .player-node .player-initials {
-    font-size: 2.8cqw;
+    font-size: clamp(8px, 2.8cqw, 15px);
     font-weight: 700;
+    line-height: 1;
 }
 
 .player-node select {
@@ -171,6 +172,8 @@ body {
     height: 100%;
     opacity: 0;
     cursor: pointer;
+    left: 0;
+    top: 0;
     border-radius: 50%;
 }
 
@@ -210,24 +213,22 @@ th {
     z-index: 10;
     text-align: left;
     min-width: 140px;
-    font-weight: 600;
 }
 
-/* Oppmøte-piller i tabellen (Sirkulære) */
+/* Runde piller i statistikken */
 .status-pill {
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: white;
-    flex-shrink: 0;
 }
 
-/* --- 7. DASHBOARD OG FILTER --- */
+/* --- 7. FILTER OG VERKTØY --- */
 .filter-bar {
     display: flex;
     justify-content: center;
@@ -249,9 +250,43 @@ th {
     border-radius: 8px;
     outline: none;
     font-weight: 600;
+    background-color: white;
 }
 
-/* --- 8. MOBIL-TILPASNING --- */
+/* --- 8. DASHBOARD KORT --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 25px;
+}
+
+.dash-card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-main);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.dash-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--primary);
+    margin-right: 15px;
+}
+
+/* --- 9. MOBIL-TILPASNING --- */
 @media (max-width: 768px) {
     .main-content { margin-left: 0 !important; }
     .sidebar { transform: translateX(-260px); }
@@ -259,5 +294,6 @@ th {
     
     .name-col { min-width: 110px; font-size: 0.85rem; }
     
-    .player-node { width: 12%; } /* Litt større brikker på mobil */
+    /* Justerer brikkestørrelse litt på små skjermer */
+    .player-node { width: 11%; }
 }
