@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taktikk og Statistikk - Hjem</title>
+    <title>Taktikk og Statistikk - Dashbord</title>
     
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     
     <!-- FontAwesome for ikoner -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Ditt herdede stilark -->
+    <!-- Ditt robuste stilark -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Her lastes navigasjonen inn via navigation.js -->
+    <!-- Sidebar-container (Fylles av navigation.js) -->
     <div id="sidebar" class="sidebar collapsed"></div>
 
     <main class="main-content">
@@ -25,67 +25,64 @@
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h1 class="section-title">Oversikt</h1>
+            <h1 class="section-title">Hovedmeny</h1>
         </header>
 
-        <!-- DASHBOARD INNHOLD -->
-        <div class="dashboard-grid">
+        <!-- DASHBOARD GRID -->
+        <section class="dashboard-grid">
             
-            <!-- Kort 1: Taktikk (Index/Hjem) -->
+            <!-- KORT 1: TAKTIKK -->
             <a href="index.html" class="dash-card">
                 <div class="dash-icon">
-                    <i class="fa-solid fa- chalkboard-user"></i>
+                    <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <div class="dash-info">
                     <h3>Taktikkbrett</h3>
-                    <p>Planlegg formasjoner og spillestil.</p>
+                    <p>Konfigurer formasjon og spillere på banen.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-            <!-- Kort 2: Oppmøte -->
+            <!-- KORT 2: OPPMØTE -->
             <a href="oppmote.html" class="dash-card">
                 <div class="dash-icon">
-                    <i class="fa-solid fa-calendar-check"></i>
+                    <i class="fa-solid fa-clipboard-user"></i>
                 </div>
                 <div class="dash-info">
                     <h3>Oppmøte</h3>
-                    <p>Registrer trening og kampfravær.</p>
+                    <p>Registrer fravær og se hvem som er klare.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-            <!-- Kort 3: Statistikk -->
-            <a href="statistikk.html" class="dash-card">
-                <div class="dash-icon">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div class="dash-info">
-                    <h3>Statistikk</h3>
-                    <p>Se spillerprestasjoner og data.</p>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </a>
-
-            <!-- Kort 4: Spillere -->
+            <!-- KORT 3: SPILLERE -->
             <a href="spillere.html" class="dash-card">
                 <div class="dash-icon">
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <div class="dash-info">
                     <h3>Spillerstall</h3>
-                    <p>Administrer spillere og informasjon.</p>
+                    <p>Administrer spillerinformasjon og posisjoner.</p>
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </a>
 
-        </div>
+            <!-- KORT 4: STATISTIKK -->
+            <a href="statistikk.html" class="dash-card">
+                <div class="dash-icon">
+                    <i class="fa-solid fa-chart-simple"></i>
+                </div>
+                <div class="dash-info">
+                    <h3>Statistikk</h3>
+                    <p>Analyser resultater og spillerprestasjoner.</p>
+                </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </a>
+
+        </section>
     </main>
 
-    <!-- JavaScript-filer -->
+    <!-- Scripts -->
     <script src="navigation.js"></script>
-    <script>
-        // Her kan du legge til logikk spesifikt for hjemsiden hvis nødvendig
-    </script>
 </body>
 </html>
