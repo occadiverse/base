@@ -1,70 +1,12 @@
-/* --- 1. DESIGNVARIABLER --- */
-:root {
-    /* Vi definerer blåfargen her på nytt for sikkerhets skyld */
-    --primary: #3498db; 
-    --primary-dark: #2980b9;
-    --bg-light: #f4f7f6;
-    --text-main: #2d3436;
-    --text-muted: #636e72;
-    --border-color: #dfe6e9;
-    --white: #ffffff;
-    --success: #2ecc71;
-    --danger: #e74c3c;
-    --shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-/* --- 2. GRUNNLEGGENDE --- */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
-}
-
-body {
-    background-color: var(--bg-light);
-    display: flex;
-    min-height: 100vh;
-}
-
-/* --- 3. LAYOUT --- */
-.sidebar {
-    width: 260px;
-    background-color: var(--white);
-    border-right: 1px solid var(--border-color);
-    position: fixed;
-    height: 100vh;
-    z-index: 2000;
-}
-
-.main-content {
-    flex: 1;
-    margin-left: 260px;
-}
-
-/* --- 4. TAKTIKK-BRETT --- */
-.tactic-container {
-    position: relative;
-    width: 95%;
-    max-width: 600px;
-    margin: 20px auto;
-    aspect-ratio: 2 / 3;
-    background-color: #27ae60; /* Dette er banens grønnfarge */
-    border: 5px solid white;
-    border-radius: 10px;
-    overflow: hidden;
-    container-type: inline-size;
-}
-
-/* --- TAKTIKK-BRIKKER (FINJUSTERT: 5.8% OG TYNNERE KANT) --- */
+/* --- TAKTIKK-BRIKKER (FINJUSTERT: 6.2% OG SYLTYNN KANT) --- */
 
 .player-node {
-    /* STØRRELSE: Økt fra 5.5% til 5.8% for å nærme seg 6% uten å bli "for stor" */
-    width: 5.8% !important; 
+    /* STØRRELSE: Økt til 6.2% for bedre synlighet */
+    width: 6.2% !important; 
     aspect-ratio: 1 / 1 !important;
     height: auto !important;
     
-    /* FARGE: Solid blåfarge */
+    /* FARGE: Den faste blåfargen */
     background-color: #3498db !important; 
     color: white !important;
     
@@ -78,11 +20,11 @@ body {
     cursor: pointer;
     z-index: 100;
     
-    /* KANTLINJE: Redusert fra 0.25cqw til 0.15cqw for et tynnere uttrykk */
-    border: 0.15cqw solid white !important;
+    /* KANTLINJE: Redusert til en syltynn 'hårlinje' */
+    border: 0.07cqw solid white !important;
     
-    /* SKYGGE: Gjort litt mer diskret for å matche den tynnere kanten */
-    box-shadow: 0 0.2cqw 0.5cqw rgba(0,0,0,0.25);
+    /* SKYGGE: Gjort enda mer subtil for å matche den fine kanten */
+    box-shadow: 0 0.15cqw 0.4cqw rgba(0,0,0,0.2);
     
     transition: transform 0.2s ease, background-color 0.2s;
     padding: 0;
@@ -94,13 +36,13 @@ body {
     background-color: #2980b9 !important;
 }
 
-/* Tekststørrelsene beholdes som de var (fungerte bra) */
+/* Tekststørrelsene beholdes (fungerer bra) */
 .player-node .pos-label {
     font-size: clamp(4px, 1.3cqw, 9px);
     font-weight: 800;
     text-transform: uppercase;
     line-height: 1;
-    margin-bottom: 1px;
+    margin-bottom: 0.5px;
     pointer-events: none;
 }
 
@@ -111,7 +53,7 @@ body {
     pointer-events: none;
 }
 
-/* Klikksone */
+/* Klikksone for mobil og mus */
 .player-node select {
     position: absolute;
     width: 140%;
@@ -121,42 +63,4 @@ body {
     left: -20%;
     top: -20%;
     border-radius: 50%;
-}
-
-/* --- 5. STATISTIKK (TABELL) --- */
-.table-container {
-    margin: 25px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.status-pill {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #3498db;
-    color: white;
-    font-weight: 700;
-}
-
-/* --- 6. MOBIL-TILPASNING --- */
-@media (max-width: 768px) {
-    .main-content { margin-left: 0; }
-    .sidebar { display: none; }
-    .player-node { width: 8% !important; }
 }
