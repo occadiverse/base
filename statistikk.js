@@ -1,82 +1,97 @@
-(function() {
-    const statsBody = document.getElementById('statsBody');
-    const periodSelect = document.getElementById('statPeriodSelect');
+import { db } from './firebase-config.js';
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    function renderStats() {
-        const players = DB.getActivePlayers();
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-        const showTotal = periodSelect.value === 'total';
+const statsBody = document.getElementById('statsBody');
+const periodSelect = document.getElementById('statPeriodSelect');
 
-        let playerStats = [];
+let globalData = null; // Lagrer kopi av data for filter-bytte uten ny henting
 
-        // 1. Beregn statistikk for alle spillere
-        players.forEach(player => {
-            let tCount = 0; // Treninger
-            let kCount = 0; // Kamper
-            let possible = 0;
-            let attended = 0;
+// --- INITIALISERING ---
+onValue(ref(db, '/'), (snapshot) => {
+    globalData = snapshot.val() || {};
+    oppdaterStatistikk();
+});
 
-            for (let m = 0; m <= 11; m++) {
-                if (!showTotal && m !== currentMonth) continue;
+// Lytt til endringer i dropdown
+periodSelect.addEventListener('change', oppdaterStatistikk);
 
-                for (let d = 1; d <= 31; d++) {
-                    const status = DB.getAttendance(currentYear, m, player.id, d);
-                    const type = localStorage.getItem(`type-${currentYear}-${m}-${d}`);
+function oppdaterStatistikk() {
+    if (!globalData) return;
 
-                    if (status === 'present') {
-                        attended++;
-                        if (type === 'K') kCount++;
-                        else tCount++;
-                    }
+    const players = globalData.players || {};
+    const attendance = globalData.attendance || {};
+    const valg = periodSelect.value;
 
-                    if (type === 'T' || type === 'K') {
-                        possible++;
-                    }
+    const stats = beregnLogikk(players, attendance, valg);
+    renderTabell(stats);
+}
+
+// --- BEREGNINGSLOGIKK ---
+function beregnLogikk(players, attendance, periode) {
+    const nå = new Date();
+    const inneværendeMåned = nå.getMonth() + 1; // 1-12
+    const inneværendeÅr = nå.getFullYear();
+
+    // 1. Finn relevante datoer basert på filter
+    const alleDatoer = Object.keys(attendance);
+    const relevanteDatoer = alleDatoer.filter(datoStr => {
+        if (periode === 'total') return true;
+        
+        // Formatet vårt er DD-MM-YYYY
+        const [dag, mnd, år] = datoStr.split('-').map(Number);
+        return mnd === inneværendeMåned && år === inneværendeÅr;
+    });
+
+    const totaltMulige = relevanteDatoer.length;
+
+    // 2. Beregn per spiller
+    const resultat = Object.entries(players)
+        .filter(([id, p]) => p.status !== 'Passiv') // Tar kun med aktive spillere
+        .map(([id, pData]) => {
+            let treninger = 0;
+            let kamper = 0;
+
+            relevanteDatoer.forEach(dato => {
+                if (attendance[dato][id] === 'K') {
+                    const type = attendance[dato].info?.type;
+                    if (type === 'Kamp') kamper++;
+                    else treninger++; // Standard er Trening
                 }
-            }
-
-            const percent = possible > 0 ? Math.round((attended / possible) * 100) : 0;
-            
-            playerStats.push({
-                navn: player.navn,
-                tCount: tCount,
-                kCount: kCount,
-                percent: percent
             });
+
+            const oppmøtt = treninger + kamper;
+            const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
+
+            return {
+                navn: pData.navn,
+                treninger,
+                kamper,
+                prosent
+            };
         });
 
-        // 2. SORTERING: Høyest prosent øverst
-        playerStats.sort((a, b) => b.percent - a.percent);
+    // Sorter etter høyest prosent
+    return resultat.sort((a, b) => b.prosent - a.prosent);
+}
 
-        // 3. GENERER HTML
-        let html = '';
-        playerStats.forEach(p => {
-            const statClass = p.percent >= 80 ? 'stat-good' : (p.percent >= 50 ? 'stat-mid' : 'stat-low');
+// --- VISNING ---
+function renderTabell(statsArray) {
+    statsBody.innerHTML = statsArray.map(s => `
+        <tr>
+            <td class="name-col"><strong>${s.navn}</strong></td>
+            <td>${s.treninger}</td>
+            <td>${s.kamper}</td>
+            <td class="stat-col">
+                <span class="status-pill" style="background: ${getFarge(s.prosent)}; color: white; width: 50px; display: inline-block;">
+                    ${s.prosent}%
+                </span>
+            </td>
+        </tr>
+    `).join('');
+}
 
-            html += `
-                <tr>
-                    <td class="name-col">${p.navn}</td>
-                    <td>${p.tCount}</td>
-                    <td>${p.kCount}</td>
-                    <td class="stat-col ${statClass}"><strong>${p.percent}%</strong></td>
-                </tr>
-            `;
-        });
-
-        statsBody.innerHTML = html || '<tr><td colspan="4">Ingen data funnet.</td></tr>';
-    }
-
-    // Event listeners
-    if (periodSelect) {
-        periodSelect.addEventListener('change', renderStats);
-    }
-
-    // Kjør ved oppstart
-    setTimeout(renderStats, 500);
-
-    // Live-oppdatering fra Firebase
-    if (window.dbOnValue && window.dbRef && window.db) {
-        window.dbOnValue(window.dbRef(window.db, 'attendance/'), renderStats);
-    }
-})();
+function getFarge(prosent) {
+    if (prosent >= 85) return '#2ecc71'; // Grønn
+    if (prosent >= 60) return '#f1c40f'; // Gul
+    return '#e74c3c'; // Rød
+}
