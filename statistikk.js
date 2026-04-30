@@ -91,7 +91,7 @@ function renderTabell(statsArray) {
 }
 
 function getFarge(prosent) {
-    if (prosent >= 85) return '#2ecc71'; // Grønn
-    if (prosent >= 60) return '#f1c40f'; // Gul
+    if (prosent >= 75) return '#2ecc71'; // Grønn
+    if (prosent >= 50) return '#f1c40f'; // Gul
     return '#e74c3c'; // Rød
 }
