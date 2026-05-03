@@ -50,8 +50,9 @@ body {
 }
 
 .sidebar-header {
-    padding: 15px 20px;
+    padding: 0 20px;
     height: 60px;
+    box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -306,3 +307,269 @@ td:first-child {
 }
 
 .close-btn:hover { color: var(--bsk-blaa); }
+
+/* --- 7. OPPMØTE / STATISTIKK KLASSESTILER --- */
+.top-bar-spread {
+    justify-content: space-between;
+}
+
+.top-title-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.month-picker {
+    padding: 5px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    min-width: 150px;
+    max-width: 220px;
+}
+
+.btn-muted {
+    background: #6c757d;
+}
+
+.btn-muted:hover {
+    background: #5a6268;
+}
+
+.btn-compact {
+    height: 40px;
+    font-size: 13px;
+}
+
+.admin-footer {
+    margin-top: 40px;
+    padding: 20px;
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.admin-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.inline-input-row {
+    display: flex;
+    gap: 5px;
+}
+
+.date-header,
+.status-cell {
+    cursor: pointer;
+}
+
+.date-header {
+    min-width: 45px;
+}
+
+.date-weekday {
+    font-size: 11px;
+}
+
+.day-type {
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.day-type-training {
+    background: var(--bsk-blaa);
+    color: #fff;
+}
+
+.day-type-match {
+    background: var(--bsk-gul);
+    color: #000;
+}
+
+.day-type-none {
+    background: #ccc;
+    color: #fff;
+}
+
+.name-cell {
+    text-align: left;
+    padding-left: 15px;
+}
+
+.stat-good {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.stat-mid {
+    font-weight: bold;
+    color: #f39c12;
+}
+
+.stat-low {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.stats-card {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.card-text-small {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.rank-col {
+    width: 60px;
+}
+
+.percent-col {
+    width: 250px;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.rank-cell {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.stat-attended {
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.stats-percent-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.percent-strong {
+    font-weight: bold;
+}
+
+.progress-bar-bg {
+    background: #eee;
+    height: 8px;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--bsk-gul);
+    transition: width 0.5s ease-in-out;
+}
+
+tr.rank-1 {
+    background-color: rgba(255, 222, 0, 0.1);
+}
+
+/* --- 8. FELLES HJELPEKLASSER --- */
+.is-hidden {
+    display: none;
+}
+
+.push-right {
+    margin-left: auto;
+}
+
+.btn-inline-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 11px;
+}
+
+.btn-muted-light {
+    background: var(--hover-bg);
+    color: var(--text-dark);
+}
+
+.home-container {
+    max-width: 800px;
+}
+
+.quick-info-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 5px solid #3498db;
+    margin-top: 30px;
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px 0;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-grow-2 {
+    flex: 2;
+}
+
+.btn-grow-1 {
+    flex: 1;
+}
+
+.modal-title {
+    margin: 0;
+    color: var(--primary);
+}
+
+.status-pill {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.status-active {
+    background: var(--bsk-gul);
+}
+
+.status-passive {
+    background: #eee;
+}
+
+.nav-home-icon {
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.nav-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 10px;
+    color: #a0aec0;
+    text-align: center;
+}
