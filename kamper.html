@@ -12,29 +12,31 @@
 <div class="sidebar" id="sidebar"></div>
 
 <div class="main-content">
+    <!-- 1. TOP BAR (Slik du har den) -->
     <div class="top-bar">
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
+        <h2 class="section-title">Kamper</h2>
     </div>
 
-    <!-- NY HERO-SEKSJON SOM MATCHER DE ANDRE SIDENE -->
+    <!-- 2. HERO SEKSJON (Dette gir den visuelle likheten) -->
     <div class="welcome-hero">
         <div class="hero-content">
             <h2>Terminliste & Resultater</h2>
-            <p>Her får du full oversikt over sesongens kamper, baner og resultater for BSK Fotball.</p>
+            <p>Oversikt over kommende utfordringer og lagets prestasjoner på banen.</p>
         </div>
     </div>
 
-    <!-- Filter-linje -->
-    <div class="filter-bar" style="margin-bottom: 20px;">
-        <div style="display: flex; gap: 10px; max-width: 400px;">
-            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">Kommende</button>
-            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')">Tidligere</button>
+    <!-- 3. FILTER-BAR (Lagd som et "kort" for å matche stilen) -->
+    <div class="filter-bar" style="margin-bottom: 25px;">
+        <div style="display: flex; gap: 10px; max-width: 400px; background: var(--white); padding: 8px; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: var(--shadow);">
+            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')" style="flex: 1;">Kommende</button>
+            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')" style="flex: 1;">Tidligere</button>
         </div>
     </div>
 
+    <!-- 4. TABELL-CONTAINER -->
     <div class="table-container">
         <table id="matchTable">
             <thead>
@@ -47,7 +49,9 @@
                     <th>Handling</th>
                 </tr>
             </thead>
-            <tbody id="matchTableBody"></tbody>
+            <tbody id="matchTableBody">
+                <!-- Fylles dynamisk av kamper.js -->
+            </tbody>
         </table>
     </div>
 </div>
