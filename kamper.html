@@ -16,11 +16,20 @@
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 class="section-title">Terminliste & Resultater</h2>
+        <h2 class="section-title">Terminliste</h2>
     </div>
 
+    <!-- NY HERO-SEKSJON SOM MATCHER DE ANDRE SIDENE -->
+    <div class="welcome-hero">
+        <div class="hero-content">
+            <h2>Terminliste & Resultater</h2>
+            <p>Her får du full oversikt over sesongens kamper, baner og resultater for BSK Fotball.</p>
+        </div>
+    </div>
+
+    <!-- Filter-linje -->
     <div class="filter-bar" style="margin-bottom: 20px;">
-        <div style="display: flex; gap: 10px; max-width: 400px; background: white; padding: 10px; border-radius: 12px; box-shadow: var(--shadow);">
+        <div style="display: flex; gap: 10px; max-width: 400px;">
             <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">Kommende</button>
             <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')">Tidligere</button>
         </div>
