@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
@@ -39,6 +39,38 @@
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+
+        .filter-bar label {
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .filter-bar label i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        /* Sørger for at tab-knappene dine bruker plassen i containeren */
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
 
         /* FAB Button styling for konsistens */
@@ -115,7 +147,7 @@
         <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
     </div>
 
-    <!-- HERO SEKSJON: Nøyaktig lik oppmote.html -->
+    <!-- HERO SEKSJON -->
     <section class="kamper-hero">
         <div class="hero-content">
             <h2>Terminliste & Resultater</h2>
@@ -123,15 +155,15 @@
         </div>
     </section>
 
-    <!-- FILTER BAR: Bygd som den hvite boksen i oppmote.html -->
-    <div class="filter-bar" style="background: var(--white); border-radius: 12px; padding: 20px 25px; margin-bottom: 25px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 15px;">
-        <label style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-            <i class="fa-solid fa-filter" style="color: var(--primary);"></i>
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+        <label>
+            <i class="fa-solid fa-filter"></i>
             Vis kamper:
         </label>
-        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px;">
-            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')" style="flex: 1; padding: 10px; border-radius: 8px;">Kommende</button>
-            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')" style="flex: 1; padding: 10px; border-radius: 8px;">Tidligere</button>
+        <div class="tab-container-inner">
+            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">Kommende</button>
+            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')">Tidligere</button>
         </div>
     </div>
 
