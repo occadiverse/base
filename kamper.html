@@ -115,23 +115,26 @@
         <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
     </div>
 
-    <!-- HERO SEKSJON -->
-    <section class="kamper-hero">
+    <!-- HERO SEKSJON: Nøyaktig lik oppmote.html -->
+    <section class="kamper-hero" style="background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; padding: 50px; color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);">
         <div class="hero-content">
             <h2>Terminliste & Resultater</h2>
-            <p>Oversikt over sesongens kamper. Registrer resultater og se påmeldte spillere til hver kamp.</p>
+            <p>Full oversikt over sesongens kamper. Her kan du administrere kampdetaljer, resultater og se troppen.</p>
         </div>
     </section>
 
-    <!-- FILTER BAR -->
-    <div class="filter-bar">
-        <div style="display: flex; gap: 10px; width: 100%; max-width: 400px;">
-            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')" style="flex:1; padding: 12px;">Kommende</button>
-            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')" style="flex:1; padding: 12px;">Tidligere</button>
+    <!-- FILTER BAR: Bygd som den hvite boksen i oppmote.html -->
+    <div class="filter-bar" style="background: var(--white); border-radius: 12px; padding: 20px 25px; margin-bottom: 25px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 15px;">
+        <label style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+            <i class="fa-solid fa-filter" style="color: var(--primary);"></i>
+            Vis kamper:
+        </label>
+        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px;">
+            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')" style="flex: 1; padding: 10px; border-radius: 8px;">Kommende</button>
+            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')" style="flex: 1; padding: 10px; border-radius: 8px;">Tidligere</button>
         </div>
     </div>
 
-    <!-- TABELL -->
     <div class="table-container">
         <table id="matchTable">
            <thead>
@@ -149,8 +152,8 @@
     </div>
 </div>
 
-<!-- FAB KNAPP (Flyttet ned for konsistens) -->
-<button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
+<!-- FAB KNAPP: Nøyaktig lik posisjon og stil som oppmøte -->
+<button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp" style="position: fixed; right: 20px; bottom: 20px; width: 60px; height: 60px; background: var(--primary); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4); z-index: 1000;">
     <i class="fa-solid fa-plus"></i>
 </button>
 
