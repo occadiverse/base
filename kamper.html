@@ -133,6 +133,42 @@
             from { transform: translateY(-50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        /* Responsiv tilpasning for mobil (maks 768px bredde) */
+        @media (max-width: 768px) {
+            /* Justerer Hero-seksjonen */
+            .kamper-hero {
+            padding: 30px;
+            margin-bottom: 20px;
+            }
+
+            .kamper-hero h2 {
+            font-size: 1.6rem;
+            }
+
+            /* Endrer filter-baren til vertikal visning */
+            .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 15px; /* Litt mindre padding på mobil */
+            }
+
+            .filter-bar label {
+            justify-content: flex-start;
+            margin-bottom: 10px;
+            }
+
+            .tab-container-inner {
+            max-width: 100%; /* Lar knappene bruke hele bredden */
+            }
+
+            /* Gjør modalene mer brukervennlige på små skjermer */
+            .modal-content {
+            width: 95%;
+            padding: 20px;
+            }
+        }
+        
     </style>
 </head>
 <body>
