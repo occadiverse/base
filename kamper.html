@@ -95,16 +95,21 @@
         }
 
         .tab-btn.active {
-            /* Beholder din blå fargeprofil */
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-            color: white;
-            border-color: #3498db;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            background-color: var(--primary); 
+            color: #ffffff !important;
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
         }
 
         .tab-btn:hover {
             border-color: var(--primary);
             color: var(--primary);
+        }
+
+        .tab-btn:not(.active):hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: #f8f9fa;
         }
 
         /* FAB Button styling for konsistens */
