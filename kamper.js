@@ -83,19 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </td>
                 <td style="font-size:0.9em; color:var(--text-muted);">${match.pitch}</td>
-                <td>
-                    <span class="status-pill" style="width:auto; padding:0 10px; font-size:0.75em; border-radius:4px; background:var(--primary);">
-                        ${match.type}
-                    </span>
+        
+                <!-- OPPDATERT KOLONNE FOR TYPE (Uten blå bakgrunn) -->
+                <td style="font-size:0.85rem; font-weight:500; color:var(--text-main);">
+                    ${match.type}
                 </td>
+
                 <td>
                     <div style="display: flex; justify-content: center; gap: 8px;">
-                        <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
-                                class="action-btn btn-edit" title="Rediger">
+                        <button onclick="openEditMatch(...)" class="action-btn btn-edit">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button onclick="deleteMatch('${match.id}')" 
-                                class="action-btn btn-delete" title="Slett">
+                        <button onclick="deleteMatch('${match.id}')" class="action-btn btn-delete">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
