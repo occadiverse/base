@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
 </head>
-<body>
 
+<body>
 <div class="sidebar" id="sidebar"></div>
 
 <div class="main-content">
@@ -19,8 +19,8 @@
         <h2 class="section-title">Terminliste & Resultater</h2>
     </div>
 
-    <div class="filter-bar" style="flex-direction: column; gap: 10px;">
-        <div style="display: flex; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto;">
+    <div class="filter-bar" style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; max-width: 400px; background: white; padding: 10px; border-radius: 12px; box-shadow: var(--shadow);">
             <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">Kommende</button>
             <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')">Tidligere</button>
         </div>
@@ -28,9 +28,9 @@
 
     <div class="table-container">
         <table id="matchTable">
-           <thead>
+            <thead>
                 <tr>
-                    <th style="min-width: 110px; white-space: nowrap;">Dato & Kl.</th>
+                    <th class="name-col">Dato & Kl.</th>
                     <th class="text-left">Motstander</th> 
                     <th>Resultat</th> 
                     <th>Bane</th>
@@ -41,7 +41,8 @@
             <tbody id="matchTableBody"></tbody>
         </table>
     </div>
-</div> <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp" style="position: fixed !important; right: 20px !important; bottom: 20px !important; z-index: 9999 !important; display: flex !important;">
+</div>
+<button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp" style="position: fixed !important; right: 20px !important; bottom: 20px !important; z-index: 9999 !important; display: flex !important;">
     <i class="fa-solid fa-plus"></i>
     <span class="fab-text">Ny kamp</span>
 </button>
