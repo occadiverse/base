@@ -30,6 +30,18 @@
             line-height: 1.5;
         }
 
+        th {
+            background: #f8f9fa;
+            padding: 20px 12px; /* Beholder den gode høyden/størrelsen din */
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase; /* Gjør teksten til store bokstaver som i spillere.html */
+        }
+
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
@@ -55,16 +67,25 @@
             font-size: 1.1rem;
         }
 
+        .filter-label {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-right: 15px;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+        }
+
         /* Sørger for at tab-knappene dine bruker plassen i containeren */
         .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
             background: var(--white);
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-weight: 600;
+            color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
         }
 
         .tab-btn.active {
