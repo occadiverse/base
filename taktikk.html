@@ -270,16 +270,25 @@
         </div>
 
         <div class="tactic-card">
-            <h3><i class="fa-solid fa-arrows-to-dot"></i> Corner-instrukser</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Offensiv Corner</label>
-                <textarea id="off-corner-text" placeholder="Beskriv bevegelser og soner..."></textarea>
-            </div>
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 800; color: #e74c3c; text-transform: uppercase;">Defensiv Corner</label>
-                <textarea id="def-corner-text" placeholder="Markeringstype og posisjoner..."></textarea>
-            </div>
+    <h3><i class="fa-solid fa-arrows-to-dot"></i> Corner-instrukser</h3>
+    
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <label style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Offensiv Corner</label>
+            <!-- Knappen som flytter fokus og bytter fase -->
+            <button class="tab-btn" style="padding: 5px 10px; font-size: 0.7rem;" onclick="TaktikkModul.fokuserFase('off_corner')">Vis på kart</button>
         </div>
+        <textarea id="off-corner-text" placeholder="Beskriv bevegelser og soner..."></textarea>
+    </div>
+
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <label style="font-size: 0.85rem; font-weight: 800; color: #e74c3c; text-transform: uppercase;">Defensiv Corner</label>
+            <button class="tab-btn" style="padding: 5px 10px; font-size: 0.7rem;" onclick="TaktikkModul.fokuserFase('def_corner')">Vis på kart</button>
+        </div>
+        <textarea id="def-corner-text" placeholder="Markeringstype og posisjoner..."></textarea>
+    </div>
+</div>
 
         <div class="tactic-card">
             <h3><i class="fa-solid fa-users"></i> Benken</h3>
