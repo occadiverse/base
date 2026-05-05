@@ -31,6 +31,20 @@ const TaktikkModul = {
             { id: "M1", top: 58, left: 38 }, { id: "M2", top: 58, left: 62 },
             { id: "V", top: 18, left: 10 }, { id: "IM1", top: 22, left: 32 }, 
             { id: "S", top: 15, left: 50 }, { id: "IM2", top: 22, left: 68 }, { id: "H", top: 18, left: 90 }
+        ],
+        "off_corner": [
+            { id: "GK", top: 96, left: 50 },
+            { id: "F1", top: 10, left: 45 }, { id: "F2", top: 10, left: 55 }, { id: "F3", top: 15, left: 50 },
+            { id: "M1", top: 12, left: 35 }, { id: "M2", top: 12, left: 65 },
+            { id: "V", top: 15, left: 5 }, { id: "S1", top: 8, left: 48 }, 
+            { id: "S2", top: 8, left: 52 }, { id: "H", top: 15, left: 95 }, { id: "B", top: 25, left: 50 }
+        ],
+        "def_corner": [
+            { id: "GK", top: 92, left: 50 },
+            { id: "F1", top: 95, left: 45 }, { id: "F2", top: 95, left: 55 }, { id: "F3", top: 90, left: 50 },
+            { id: "M1", top: 88, left: 40 }, { id: "M2", top: 88, left: 60 },
+            { id: "V", top: 85, left: 15 }, { id: "S1", top: 92, left: 42 }, 
+            { id: "S2", top: 92, left: 58 }, { id: "H", top: 85, left: 85 }, { id: "B", top: 60, left: 50 }
         ]
     },
 
@@ -74,6 +88,24 @@ const TaktikkModul = {
         this.oppdaterBenken();
     },
 
+    // Ny funksjon for å koble tekstboks-knapper til kartet
+    fokuserFase: function(faseId) {
+        const filterButtons = document.querySelectorAll('.filter-bar .tab-btn');
+        let targetBtn = null;
+
+        filterButtons.forEach(btn => {
+            if (btn.getAttribute('onclick').includes(`'${faseId}'`)) {
+                targetBtn = btn;
+            }
+        });
+
+        if (targetBtn) {
+            this.byttFase(faseId, targetBtn);
+        }
+
+        document.getElementById('pitch').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    },
+
     oppdaterAlleSelectMenyer: function() {
         const tropp = this.hentAktuellTropp();
         const roles = this.valgtLag.roles || {};
@@ -105,8 +137,6 @@ const TaktikkModul = {
 
         const tropp = this.hentAktuellTropp();
         const startelleverIder = Object.values(this.valgtLag.lineup || {});
-        
-        // Finn de som ikke er i startelleveren
         const benkSpillere = tropp.filter(s => !startelleverIder.includes(s.id));
         const lagretPlan = this.valgtLag.subPlan || {};
         
@@ -115,7 +145,6 @@ const TaktikkModul = {
             return;
         }
 
-        // Lag rader for hver spiller på benken med tids-dropdown
         subContainer.innerHTML = benkSpillere.map(s => `
             <div class="role-row">
                 <span style="font-weight:600; font-size: 0.9rem;">${s.navn || s.name}</span>
@@ -205,7 +234,21 @@ const TaktikkModul = {
 
     renderBane: function(fase) {
         const layer = document.getElementById('playerLayer');
-        if (!layer) return;
+        const pitchContainer = document.getElementById('pitch');
+        if (!layer || !pitchContainer) return;
+
+        // Implementerer "Halv bane"-zoom
+        if (fase === 'off_corner') {
+            pitchContainer.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
+            pitchContainer.style.transformOrigin = "top center";
+            pitchContainer.style.transform = "scale(1.6) translateY(5%)";
+        } else if (fase === 'def_corner') {
+            pitchContainer.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
+            pitchContainer.style.transformOrigin = "bottom center";
+            pitchContainer.style.transform = "scale(1.6) translateY(-5%)";
+        } else {
+            pitchContainer.style.transform = "scale(1) translateY(0)";
+        }
 
         const tropp = this.hentAktuellTropp();
         const posisjoner = this.konfigurasjon[fase];
@@ -243,6 +286,7 @@ const TaktikkModul = {
                 innholdHTML = `<div class="player-initials" style="opacity: 0.7;">${p.id}</div>`;
             }
 
+            // Select-meny vises kun i Fase 1 (424) for å tildele plasser
             if (fase === "424") {
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white;">
                     <option value="">-- Ledig --</option>`;
