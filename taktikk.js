@@ -65,7 +65,6 @@ const TaktikkModul = {
             }
         }
 
-        // Henter nå fase fra .tab-btn som er active (pga ny stil i HTML)
         const activeBtn = document.querySelector('.tab-btn.active');
         const currentPhase = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : "424";
         this.renderBane(currentPhase);
@@ -133,7 +132,6 @@ const TaktikkModul = {
     },
 
     byttFase: function(fase, btn) {
-        // Bruker nå .tab-btn klassen for å fjerne active
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.renderBane(fase);
@@ -193,15 +191,31 @@ const TaktikkModul = {
             const lagretId = lineup[index] || "";
             const valgtSpiller = tropp.find(s => s.id === lagretId);
             
-            const tekstSomSkalVises = valgtSpiller 
-                ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) 
-                : p.id;
+            // Sjekk om dette er keeper-posisjonen for å gi den oransje farge (GK, GK1 osv)
+            if (p.id.includes("GK")) {
+                node.style.backgroundColor = "#e67e22"; // Oransje farge for keeper
+                node.style.borderColor = "#fff";
+            }
 
-            let innholdHTML = `<div class="player-initials">${tekstSomSkalVises}</div>`;
+            let innholdHTML = "";
+            
+            if (valgtSpiller) {
+                const navn = valgtSpiller.navn || valgtSpiller.name;
+                const initialer = this.formaterInitialer(navn);
+                const etternavn = navn.split(' ').pop();
+                
+                innholdHTML = `
+                    <div class="player-initials">${initialer}</div>
+                    <div class="player-full-name" style="font-size: 9px; color: rgba(255,255,255,0.9); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${etternavn}</div>
+                `;
+            } else {
+                node.classList.add('empty'); // Legger til "tom" klasse for stiplet ramme/gjennomsiktighet
+                innholdHTML = `<div class="player-initials" style="opacity: 0.7;">${p.id}</div>`;
+            }
 
             if (fase === "424") {
-                let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
-                    <option value="">-- Velg --</option>`;
+                let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white;">
+                    <option value="">-- Ledig --</option>`;
                 
                 tropp.forEach(s => {
                     const isSelected = s.id === lagretId ? "selected" : "";
