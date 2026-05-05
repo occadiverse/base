@@ -1,12 +1,8 @@
-import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { db } from './firebase-config.js';
 
-/**
- * BSK Taktikk-modul
- * Håndterer formasjoner, spillerutvalg og sanntidssynkronisering.
- */
 const TaktikkModul = {
-    valgtLag: {}, 
+    valgtLag: { lineup: {}, roles: {}, instructions: {}, subPlan: "" }, 
     databaseKopi: null,
     matchId: new URLSearchParams(window.location.search).get('matchId'),
 
@@ -36,18 +32,56 @@ const TaktikkModul = {
     },
 
     init: function() {
+        if (!this.matchId) return;
+
         const rootRef = ref(db, '/');
         onValue(rootRef, (snapshot) => {
             const data = snapshot.val();
             this.databaseKopi = data;
 
-            if (this.matchId && data.tactics && data.tactics[this.matchId]) {
-                this.valgtLag = data.tactics[this.matchId];
+            if (data.tactics && data.tactics[this.matchId]) {
+                // Sørg for at vi har riktig struktur selv om gammel data finnes
+                const saved = data.tactics[this.matchId];
+                this.valgtLag = {
+                    lineup: saved.lineup || saved || {}, // Fallback hvis gammelt format
+                    roles: saved.roles || {},
+                    instructions: saved.instructions || {},
+                    subPlan: saved.subPlan || ""
+                };
             }
             
-            console.log("Firebase-data synkronisert.");
             this.oppdaterVisning();
+            this.oppdaterTekstFelter();
+            this.oppdaterBenken();
         });
+    },
+
+    // NY: Oppdaterer input-feltene i HTML
+    oppdaterTekstFelter: function() {
+        const r = this.valgtLag.roles;
+        const i = this.valgtLag.instructions;
+        
+        if(document.getElementById('cap-input')) document.getElementById('cap-input').value = r.captain || "";
+        if(document.getElementById('pen-input')) document.getElementById('pen-input').value = r.penalty || "";
+        if(document.getElementById('cor-input')) document.getElementById('cor-input').value = r.corners || "";
+        if(document.getElementById('off-corner-text')) document.getElementById('off-corner-text').value = i.offCorner || "";
+        if(document.getElementById('def-corner-text')) document.getElementById('def-corner-text').value = i.defCorner || "";
+        if(document.getElementById('sub-plan-text')) document.getElementById('sub-plan-text').value = this.valgtLag.subPlan || "";
+    },
+
+    // NY: Viser spillere som ikke er i 11-eren
+    oppdaterBenken: function() {
+        const benchDiv = document.getElementById('bench-list');
+        if (!benchDiv) return;
+
+        const tropp = this.hentAktuellTropp();
+        const startelleverIder = Object.values(this.valgtLag.lineup);
+        
+        const benkSpillere = tropp.filter(s => !startelleverIder.includes(s.id));
+        
+        benchDiv.innerHTML = benkSpillere.length > 0 
+            ? benkSpillere.map(s => `<span class="badge">${s.navn || s.name}</span>`).join(' ')
+            : '<span style="color:var(--text-muted); font-size:0.8rem;">Ingen på benken</span>';
     },
 
     oppdaterVisning: function() {
@@ -63,15 +97,8 @@ const TaktikkModul = {
 
     hentAktuellTropp: function() {
         if (!this.databaseKopi) return [];
-
         const params = new URLSearchParams(window.location.search);
         let targetDate = params.get('date');
-
-        if (!targetDate) {
-            const nå = new Date();
-            targetDate = `${String(nå.getDate()).padStart(2, '0')}-${String(nå.getMonth() + 1).padStart(2, '0')}-${nå.getFullYear()}`;
-        }
-
         const players = this.databaseKopi.players || {};
         const attendance = this.databaseKopi.attendance || {};
         const dailyAttendance = attendance[targetDate] || {};
@@ -87,14 +114,36 @@ const TaktikkModul = {
         this.renderBane(fase);
     },
 
+    // OPPDATERT: Lagrer nå hele objektet inkludert roller
+    lagreTaktikk: function() {
+        if (!this.matchId) return;
+
+        // Oppdater objektet fra tekstfeltene før lagring
+        this.valgtLag.roles = {
+            captain: document.getElementById('cap-input')?.value || "",
+            penalty: document.getElementById('pen-input')?.value || "",
+            corners: document.getElementById('cor-input')?.value || ""
+        };
+        this.valgtLag.instructions = {
+            offCorner: document.getElementById('off-corner-text')?.value || "",
+            defCorner: document.getElementById('def-corner-text')?.value || ""
+        };
+        this.valgtLag.subPlan = document.getElementById('sub-plan-text')?.value || "";
+
+        const tacticRef = ref(db, `tactics/${this.matchId}`);
+        set(tacticRef, this.valgtLag)
+            .then(() => alert("Hele kampplanen er lagret!"))
+            .catch((err) => alert("Lagringsfeil: " + err));
+    },
+
+    // Hjelpefunksjon for å lagre kun posisjon (brukes av select-menyen)
     lagreValg: function(index, playerId) {
-        this.valgtLag[index] = playerId;
-        if (this.matchId) {
-            const tacticRef = ref(db, `tactics/${this.matchId}`);
-            set(tacticRef, this.valgtLag)
-                .then(() => console.log("Posisjon lagret."))
-                .catch((err) => console.error("Lagringsfeil:", err));
-        }
+        this.valgtLag.lineup[index] = playerId;
+        this.oppdaterBenken(); // Oppdater benk-visning med en gang
+        
+        // Lagre automatisk posisjonsendring
+        const lineupRef = ref(db, `tactics/${this.matchId}/lineup`);
+        set(lineupRef, this.valgtLag.lineup);
     },
 
     renderBane: function(fase) {
@@ -112,28 +161,22 @@ const TaktikkModul = {
             node.style.top = `${p.top}%`;
             node.style.left = `${p.left}%`;
 
-            const lagretId = this.valgtLag[index] || "";
+            const lagretId = this.valgtLag.lineup[index] || "";
             const valgtSpiller = tropp.find(s => s.id === lagretId);
             
-            // LOGIKK FOR VISNINGSTEKST:
-            // Hvis spiller er valgt -> Vis initialer
-            // Hvis ingen spiller er valgt -> Vis posisjons-ID (GK, VB osv)
             const tekstSomSkalVises = valgtSpiller 
                 ? this.formaterInitialer(valgtSpiller.navn || valgtSpiller.name) 
                 : p.id;
 
-            // Vi bruker en egen klasse for teksten slik at vi kan style den i CSS
             let innholdHTML = `<div class="player-initials">${tekstSomSkalVises}</div>`;
 
-            // Legg til den usynlige select-menyen kun i fase "424"
             if (fase === "424") {
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)">
                     <option value="">-- Velg --</option>`;
                 
                 tropp.forEach(s => {
                     const isSelected = s.id === lagretId ? "selected" : "";
-                    const fulltNavn = s.navn || s.name || "Ukjent";
-                    selectHTML += `<option value="${s.id}" ${isSelected}>${fulltNavn}</option>`;
+                    selectHTML += `<option value="${s.id}" ${isSelected}>${s.navn || s.name}</option>`;
                 });
                 selectHTML += `</select>`;
                 innholdHTML += selectHTML;
