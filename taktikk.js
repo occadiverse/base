@@ -236,10 +236,10 @@ const TaktikkModul = {
         const pitchContainer = document.getElementById('pitch');
         if (!layer || !pitchContainer) return;
 
-        // FJERNET ZOOMING FOR BEDRE MOBILBRUK
-        pitchContainer.style.transform = "none";
-        pitchContainer.style.transformOrigin = "initial";
-        pitchContainer.style.transition = "none";
+        // Tvinger banen til å holde seg i ro (viktig for mobil)
+        pitchContainer.style.setProperty('transform', 'none', 'important');
+        pitchContainer.style.setProperty('transition', 'none', 'important');
+        pitchContainer.style.setProperty('transform-origin', 'initial', 'important');
 
         const tropp = this.hentAktuellTropp();
         const posisjoner = this.konfigurasjon[fase];
