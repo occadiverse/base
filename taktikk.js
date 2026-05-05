@@ -111,11 +111,16 @@ const TaktikkModul = {
         let isDragging = false;
 
         const startDragging = (e) => {
-            if (e.target.tagName === 'SELECT') return;
-            isDragging = true;
-            node.style.cursor = 'grabbing';
-            node.style.zIndex = 1000;
-            node.style.transition = 'none'; // Stopper animasjon mens vi drar
+        // Sjekk om vi trykker på select-menyen ELLER om menyen er åpen
+        if (e.target.tagName === 'SELECT' || e.target.closest('select')) {
+        isDragging = false; 
+        return; 
+        }
+    
+        isDragging = true;
+        node.style.cursor = 'grabbing';
+        node.style.zIndex = 1000;
+        node.style.transition = 'none';
         };
 
         const moveNode = (e) => {
