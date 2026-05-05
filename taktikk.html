@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BSK Fotball - Taktikk</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=2"> <!-- Samme versjon som kamper.html -->
+    <link rel="stylesheet" href="style.css?v=2">
     <style>
-        /* Taktikk-spesifikke stiler (Synkronisert med kamper.html) */
+        /* Taktikk-spesifikke stiler */
         .taktikk-hero {
             background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
             border-radius: 20px;
@@ -30,17 +30,24 @@
             line-height: 1.5;
         }
 
-        .taktikk-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            padding: 0 10px;
+        /* Filter-bar styling identisk med kamper.html */
+        .filter-bar {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
-        .phase-btn {
+        .filter-bar > div {
+            display: flex;
+            gap: 10px;
+            justify-content: center; /* Sentrerer knappene */
+        }
+
+        .tab-btn {
             padding: 12px 20px;
             border: 2px solid var(--border-color);
             background: var(--white);
@@ -54,11 +61,16 @@
             text-transform: uppercase;
         }
 
-        .phase-btn.active {
+        .tab-btn.active {
             background-color: var(--primary); 
             color: #ffffff !important;
             border: 2px solid var(--primary);
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         /* BANEN */
@@ -139,6 +151,7 @@
         @media (max-width: 768px) {
             .taktikk-hero { padding: 30px; }
             .taktikk-hero h2 { font-size: 1.6rem; }
+            .filter-bar { padding: 15px; }
         }
     </style>
 </head>
@@ -147,7 +160,7 @@
 <div class="sidebar" id="sidebar"></div>
 
 <div class="main-content">
-    <!-- TOP BAR - IDENTISK MED KAMPER.HTML -->
+    <!-- TOP BAR -->
     <div class="top-bar">
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
@@ -155,7 +168,7 @@
         <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
     </div>
 
-    <!-- HERO SEKSJON - IDENTISK STIL MED KAMPER.HTML -->
+    <!-- HERO SEKSJON -->
     <section class="taktikk-hero">
         <div class="hero-content">
             <h2 id="matchOpponentTitle">Kampplan</h2>
@@ -163,11 +176,13 @@
         </div>
     </section>
 
-    <!-- FASE-KONTROLLER - SYNCRONISERT MED TAB-BTN STIL -->
-    <div class="taktikk-controls">
-        <button class="phase-btn active" onclick="TaktikkModul.byttFase('424', this)">Fase 1 (4-2-4)</button>
-        <button class="phase-btn" onclick="TaktikkModul.byttFase('2323', this)">Fase 2 (2-3-2-3)</button>
-        <button class="phase-btn" onclick="TaktikkModul.byttFase('325', this)">Fase 3 (3-2-5)</button>
+    <!-- FILTER BAR / FASE-KONTROLLER (Identisk med kamper.html) -->
+    <div class="filter-bar">
+        <div>
+            <button class="tab-btn active" onclick="TaktikkModul.byttFase('424', this)">Fase 1 (4-2-4)</button>
+            <button class="tab-btn" onclick="TaktikkModul.byttFase('2323', this)">Fase 2 (2-3-2-3)</button>
+            <button class="tab-btn" onclick="TaktikkModul.byttFase('325', this)">Fase 3 (3-2-5)</button>
+        </div>
     </div>
 
     <!-- FOTBALLBANEN -->
@@ -247,7 +262,6 @@
 </div>
 
 <script src="navigation.js"></script>
-<!-- Taktikk.js må importeres her -->
 <script type="module" src="taktikk.js"></script>
 
 </body>
