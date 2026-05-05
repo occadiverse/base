@@ -88,7 +88,6 @@ const TaktikkModul = {
         this.oppdaterBenken();
     },
 
-    // Ny funksjon for å koble tekstboks-knapper til kartet
     fokuserFase: function(faseId) {
         const filterButtons = document.querySelectorAll('.filter-bar .tab-btn');
         let targetBtn = null;
@@ -237,18 +236,10 @@ const TaktikkModul = {
         const pitchContainer = document.getElementById('pitch');
         if (!layer || !pitchContainer) return;
 
-        // Implementerer "Halv bane"-zoom
-        if (fase === 'off_corner') {
-            pitchContainer.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
-            pitchContainer.style.transformOrigin = "top center";
-            pitchContainer.style.transform = "scale(1.6) translateY(5%)";
-        } else if (fase === 'def_corner') {
-            pitchContainer.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
-            pitchContainer.style.transformOrigin = "bottom center";
-            pitchContainer.style.transform = "scale(1.6) translateY(-5%)";
-        } else {
-            pitchContainer.style.transform = "scale(1) translateY(0)";
-        }
+        // FJERNET ZOOMING FOR BEDRE MOBILBRUK
+        pitchContainer.style.transform = "none";
+        pitchContainer.style.transformOrigin = "initial";
+        pitchContainer.style.transition = "none";
 
         const tropp = this.hentAktuellTropp();
         const posisjoner = this.konfigurasjon[fase];
@@ -286,7 +277,6 @@ const TaktikkModul = {
                 innholdHTML = `<div class="player-initials" style="opacity: 0.7;">${p.id}</div>`;
             }
 
-            // Select-meny vises kun i Fase 1 (424) for å tildele plasser
             if (fase === "424") {
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white;">
                     <option value="">-- Ledig --</option>`;
