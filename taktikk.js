@@ -122,8 +122,11 @@ const TaktikkModul = {
             node.style.transition = 'none';
         };
 
-        const moveNode = (e) => {
-            if (!isDragging) return;
+       const moveNode = (e) => {
+            if (!isDragging) return; // Hvis vi ikke drar, la nettleseren håndtere eventet (scrolling fungerer)
+
+            // Hvis vi faktisk drar en spiller, hindrer vi scrolling
+            if (e.touches) e.preventDefault(); 
 
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -137,8 +140,6 @@ const TaktikkModul = {
 
             node.style.left = x + '%';
             node.style.top = y + '%';
-
-            if (e.touches) e.preventDefault();
         };
 
         const stopDragging = () => {
