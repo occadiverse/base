@@ -106,21 +106,20 @@ const TaktikkModul = {
         document.getElementById('pitch').scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
 
-    // Ny funksjon som håndterer både mus og touch for alle noder
     gjorFlyttbar: function(node, index, fase) {
         let isDragging = false;
 
         const startDragging = (e) => {
-        // Sjekk om vi trykker på select-menyen ELLER om menyen er åpen
-        if (e.target.tagName === 'SELECT' || e.target.closest('select')) {
-        isDragging = false; 
-        return; 
-        }
-    
-        isDragging = true;
-        node.style.cursor = 'grabbing';
-        node.style.zIndex = 1000;
-        node.style.transition = 'none';
+            // STRENG SJEKK: Hvis vi treffer SELECT eller dens innhold, avbryt dragging umiddelbart
+            if (e.target.tagName === 'SELECT' || e.target.closest('select')) {
+                isDragging = false;
+                return;
+            }
+            
+            isDragging = true;
+            node.style.cursor = 'grabbing';
+            node.style.zIndex = 1000;
+            node.style.transition = 'none';
         };
 
         const moveNode = (e) => {
@@ -133,14 +132,13 @@ const TaktikkModul = {
             let x = ((clientX - rect.left) / rect.width) * 100;
             let y = ((clientY - rect.top) / rect.height) * 100;
 
-            // Begrensning til banens areal
             x = Math.max(0, Math.min(100, x));
             y = Math.max(0, Math.min(100, y));
 
             node.style.left = x + '%';
             node.style.top = y + '%';
 
-            if (e.touches) e.preventDefault(); // Hindrer scroll på mobil
+            if (e.touches) e.preventDefault();
         };
 
         const stopDragging = () => {
@@ -300,7 +298,6 @@ const TaktikkModul = {
         const pitchContainer = document.getElementById('pitch');
         if (!layer || !pitchContainer) return;
 
-        // Faste stiler for banen
         pitchContainer.style.setProperty('transform', 'none', 'important');
         pitchContainer.style.setProperty('transition', 'none', 'important');
         pitchContainer.style.setProperty('transform-origin', 'initial', 'important');
@@ -316,7 +313,6 @@ const TaktikkModul = {
             node.className = 'player-node'; 
             node.style.cursor = 'grab';
 
-            // Henter lagret posisjon hvis den finnes, ellers standard
             const custom = this.valgtLag.customPositions?.[fase]?.[index];
             node.style.top = `${custom ? custom.top : p.top}%`;
             node.style.left = `${custom ? custom.left : p.left}%`;
@@ -336,17 +332,19 @@ const TaktikkModul = {
                 const initialer = this.formaterInitialer(navn);
                 const etternavn = navn.split(' ').pop();
                 
+                // POINTER-EVENTS: NONE gjør at navnene ikke "stjeler" klikket fra brikken (håndtaket)
                 innholdHTML = `
-                    <div class="player-initials">${initialer}</div>
-                    <div class="player-full-name">${etternavn}</div>
+                    <div class="player-initials" style="pointer-events: none;">${initialer}</div>
+                    <div class="player-full-name" style="pointer-events: none;">${etternavn}</div>
                 `;
             } else {
                 node.classList.add('empty');
-                innholdHTML = `<div class="player-initials" style="opacity: 0.7;">${p.id}</div>`;
+                innholdHTML = `<div class="player-initials" style="opacity: 0.7; pointer-events: none;">${p.id}</div>`;
             }
 
             if (fase === "424") {
-                let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white;">
+                // Her prioriteres select-menyen hvis man trykker direkte på den
+                let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white; position: relative; z-index: 10;">
                     <option value="">-- Ledig --</option>`;
                 
                 tropp.forEach(s => {
@@ -358,10 +356,7 @@ const TaktikkModul = {
             }
 
             node.innerHTML = innholdHTML;
-            
-            // Aktiverer Drag and Drop for alle noder
             this.gjorFlyttbar(node, index, fase);
-            
             layer.appendChild(node);
         });
     }
