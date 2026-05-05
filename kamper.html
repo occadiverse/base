@@ -344,12 +344,17 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
+
+        <!-- 1. Dato, Sted og "Påmeldt tropp"-bar legges her av JS -->
         <div id="matchInfoDetails"></div>
         
-        <!-- Spillerlisten styres av JS (ligger under action-barene) -->
+        <!-- 2. Spillerlisten (Denne ruller ut og skyver alt under seg nedover) -->
         <div id="matchPlayerList"></div>
 
-        <!-- Footer-knapper er nå fjernet for et renere design -->
+        <!-- 3. Kampplan-baren legges her av JS for å alltid ligge under troppen -->
+        <div id="tacticBarContainer"></div>
+
+        <!-- Footer-knapper (Skjult) -->
         <div class="button-group" style="margin-top: 25px; display: none;">
             <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
         </div>
