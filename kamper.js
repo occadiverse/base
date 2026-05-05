@@ -45,20 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
         matchTableBody.innerHTML = '';
         const nå = new Date();
         
-        // 1. Filtrering
         let filtrerteKamper = allMatches.filter(m => {
             const kampDato = new Date(m.date + "T23:59:59");
             return currentView === 'kommende' ? kampDato >= nå : kampDato < nå;
         });
 
-        // 2. Sortering
         filtrerteKamper.sort((a, b) => {
             return currentView === 'kommende' 
                 ? new Date(a.date) - new Date(b.date) 
                 : new Date(b.date) - new Date(a.date);
         });
 
-        // 3. Generering av rader
         if (filtrerteKamper.length === 0) {
             matchTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen kamper registrert her.</td></tr>`;
             return;
@@ -86,11 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </td>
                     <td style="font-size:0.9em; color:var(--text-muted);">${match.pitch}</td>
-                    
-                    <td style="font-size:0.85rem; font-weight:500; color:var(--text-main);">
-                        ${match.type}
-                    </td>
-
+                    <td style="font-size:0.85rem; font-weight:500; color:var(--text-main);">${match.type}</td>
                     <td>
                         <div style="display: flex; justify-content: center; gap: 8px;">
                             <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
@@ -108,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- VIS KAMP-INFO OG SPILLERE ---
+    // --- VIS KAMP-INFO OG SPILLERE (MED ACCORDION) ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
         const playerListUl = document.getElementById('matchPlayerList');
         const infoTitle = document.getElementById('infoTitle');
@@ -118,10 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
         
         infoTitle.innerText = opponent;
-        infoTitle.style.fontWeight = '800';
 
+        // Bygger innholdet med den nye klikkbare baren
         detailsDiv.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <i class="fa-solid fa-calendar-day" style="color: var(--primary); width: 20px;"></i> 
                     <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
@@ -132,22 +125,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 0 5px;">
-                <span style="font-weight: 700; font-size: 1.1rem; color: var(--text-main);">Påmeldt tropp</span>
-                <span id="pilleAntall" style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem;">0</span>
+            <div class="tropp-header" id="toggleTropp">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700; color: var(--text-main);">Påmeldt tropp</span>
+                    <span id="pilleAntall" style="background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem;">0</span>
+                </div>
+                <i class="fa-solid fa-chevron-down chevron"></i>
             </div>
         `;
 
+        // Reset spillerliste-visning (skjult som standard)
+        playerListUl.classList.remove('show');
         playerListUl.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted); text-align: center; padding: 20px;">Henter spillere...</div>';
-        playerListUl.style.display = 'grid';
-        playerListUl.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
-        playerListUl.style.gap = '10px';
+
+        // Legg til klikk-event for å åpne/lukke troppen
+        const toggleBtn = document.getElementById('toggleTropp');
+        toggleBtn.onclick = () => {
+            toggleBtn.classList.toggle('open');
+            playerListUl.classList.toggle('show');
+        };
 
         // --- DYNAMISKE KNAPPER I BUNNEN ---
         const modalFooter = document.querySelector('#matchInfoModal .button-group');
         if (modalFooter) {
-            modalFooter.innerHTML = ''; // Tømmer for å unngå duplikater
-
+            modalFooter.innerHTML = '';
             const tacticBtn = document.createElement('button');
             tacticBtn.className = 'btn btn-grow-2';
             tacticBtn.style.background = 'var(--success)';
@@ -237,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- HENT DATA FRA FIREBASE ---
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         allMatches = data ? Object.entries(data).map(([id, match]) => ({ id, ...match })) : [];
