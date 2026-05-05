@@ -106,12 +106,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerListUl = document.getElementById('matchPlayerList');
         const infoTitle = document.getElementById('infoTitle');
         const detailsDiv = document.getElementById('matchInfoDetails');
+        const tacticContainer = document.getElementById('tacticBarContainer');
         
         const parts = date.split('-'); 
         const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
         
         infoTitle.innerText = opponent;
 
+        // 1. Info-boks og Tropp-header (detailsDiv)
         detailsDiv.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -132,8 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <i class="fa-solid fa-chevron-down chevron"></i>
             </div>
+        `;
 
-            <div class="modal-action-bar" id="jumpToTactic">
+        // 2. Kampplan-bar (tacticBarContainer - ligger etter playerList i HTML)
+        tacticContainer.innerHTML = `
+            <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px;">
                 <div style="display: flex; align-items: center;">
                     <i class="fa-solid fa-clipboard-list icon-left"></i>
                     <span style="font-weight: 700; color: var(--text-main);">Kampplan</span>
@@ -148,10 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
             modalFooter.style.display = 'none';
         }
 
+        // Reset spillerliste-visning
         playerListUl.classList.remove('show');
+        const toggleBtn = document.getElementById('toggleTropp');
+        toggleBtn.classList.remove('open');
         playerListUl.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted); text-align: center; padding: 20px;">Henter spillere...</div>';
 
-        const toggleBtn = document.getElementById('toggleTropp');
         toggleBtn.onclick = () => {
             toggleBtn.classList.toggle('open');
             playerListUl.classList.toggle('show');
@@ -165,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('matchInfoModal').style.display = 'flex';
 
+        // --- HENTING AV SPILLERE ---
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const root = snapshot.val();
             const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
