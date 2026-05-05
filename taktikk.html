@@ -280,11 +280,13 @@
 
         <div class="tactic-card">
             <h3><i class="fa-solid fa-users"></i> Benken</h3>
-            <div id="bench-list" style="margin-bottom: 20px;">
-                <!-- Spillere på benken genereres her -->
+            <div id="sub-plan-container">
             </div>
-            <label style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase;">Bytteplan / Notater</label>
-            <textarea id="sub-plan-text" placeholder="Skriv inn planlagte bytter..."></textarea>
+    
+            <div id="bench-status" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                <label style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">Tilgjengelige reserver:</label>
+                <div id="bench-list" style="margin-top: 5px;"></div>
+            </div>
         </div>
 
         <button onclick="TaktikkModul.lagreTaktikk()" class="btn-save">
