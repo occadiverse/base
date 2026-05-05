@@ -44,7 +44,6 @@
         .filter-bar > div {
             display: flex;
             gap: 10px;
-            /* justify-content: center fjernet for å matche kamper.html (venstrestilt) */
         }
 
         .tab-btn {
@@ -85,6 +84,8 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             overflow: hidden;
+            /* Hindrer scrolling ved drag på mobil */
+            touch-action: none;
         }
 
         .pitch-line {
@@ -114,55 +115,60 @@
         .bottom-zone .penalty-spot { bottom: 11%; }
 
         /* SPILLER-NODER */
-.player-node {
-    position: absolute;
-    width: 75px; /* Litt bredere for å få plass til tekst */
-    background-color: var(--primary);
-    border: 2px solid #fff;
-    border-radius: 8px;
-    padding: 5px 2px;
-    text-align: center;
-    z-index: 5;
-    transform: translate(-50%, -50%);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
+        .player-node {
+            position: absolute;
+            width: 75px;
+            background-color: var(--primary);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            padding: 5px 2px;
+            text-align: center;
+            z-index: 5;
+            transform: translate(-50%, -50%);
+            /* Transition deaktiveres ofte i JS ved drag for flyt */
+            transition: top 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            /* Hindrer tekstvalg ved drag */
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
-/* Stil for noder som ikke har fått tildelt spiller enda */
-.player-node.empty {
-    background-color: rgba(44, 62, 80, 0.6); /* Mørkegrå/blå og transparent */
-    border-style: dashed; /* Stiplet linje for "ledig plass" */
-}
+        .player-node.empty {
+            background-color: rgba(44, 62, 80, 0.6);
+            border-style: dashed;
+        }
 
-.player-initials { 
-    font-weight: 800; 
-    font-size: 16px; /* Større bokstaver */
-    color: #ffffff;
-    display: block;
-    line-height: 1.2;
-}
+        .player-initials { 
+            font-weight: 800; 
+            font-size: 16px;
+            color: #ffffff;
+            display: block;
+            line-height: 1.2;
+            pointer-events: none; /* Lar klikk gå gjennom til noden */
+        }
 
-/* Ny stil for et lite "undertekst-navn" */
-.player-full-name {
-    font-size: 9px;
-    color: rgba(255,255,255,0.9);
-    display: block;
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 1px;
-}
+        .player-full-name {
+            font-size: 9px;
+            color: rgba(255,255,255,0.9);
+            display: block;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+            pointer-events: none;
+        }
 
-.player-node select { 
-    width: 90%; 
-    font-size: 9px; 
-    margin-top: 4px;
-    border: none;
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-}
+        .player-node select { 
+            width: 90%; 
+            font-size: 9px; 
+            margin-top: 4px;
+            border: none;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+
         /* INFO-KORT UNDER BANEN */
         .tactic-details { padding: 20px; max-width: 500px; margin: 0 auto; }
         .tactic-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
@@ -192,7 +198,6 @@
 <div class="sidebar" id="sidebar"></div>
 
 <div class="main-content">
-    <!-- TOP BAR -->
     <div class="top-bar">
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
@@ -200,7 +205,6 @@
         <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
     </div>
 
-    <!-- HERO SEKSJON -->
     <section class="taktikk-hero">
         <div class="hero-content">
             <h2 id="matchOpponentTitle">Kampplan</h2>
@@ -208,8 +212,6 @@
         </div>
     </section>
 
-    <!-- FILTER BAR / FASE-KONTROLLER -->
-    <!-- FILTER BAR med kortere navn og nye corner-knapper -->
     <div class="filter-bar">
         <div>
             <button class="tab-btn active" onclick="TaktikkModul.byttFase('424', this)">F1</button>
@@ -220,7 +222,6 @@
         </div>
     </div>
 
-    <!-- FOTBALLBANEN -->
     <div class="pitch-container" id="pitch">
         <div class="top-zone">
             <div class="pitch-line penalty-arc"></div>
@@ -243,7 +244,6 @@
         <div id="playerLayer"></div>
     </div>
 
-    <!-- TAKTIKK DETALJER -->
     <div class="tactic-details">
         <div class="tactic-card">
             <h3><i class="fa-solid fa-star"></i> Nøkkelroller</h3>
@@ -270,30 +270,28 @@
         </div>
 
         <div class="tactic-card">
-    <h3><i class="fa-solid fa-arrows-to-dot"></i> Corner-instrukser</h3>
-    
-    <div style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <label style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Offensiv Corner</label>
-            <!-- Knappen som flytter fokus og bytter fase -->
-            <button class="tab-btn" style="padding: 5px 10px; font-size: 0.7rem;" onclick="TaktikkModul.fokuserFase('off_corner')">Vis på kart</button>
-        </div>
-        <textarea id="off-corner-text" placeholder="Beskriv bevegelser og soner..."></textarea>
-    </div>
+            <h3><i class="fa-solid fa-arrows-to-dot"></i> Corner-instrukser</h3>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Offensiv Corner</label>
+                    <button class="tab-btn" style="padding: 5px 10px; font-size: 0.7rem;" onclick="TaktikkModul.fokuserFase('off_corner')">Vis på kart</button>
+                </div>
+                <textarea id="off-corner-text" placeholder="Beskriv bevegelser og soner..."></textarea>
+            </div>
 
-    <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <label style="font-size: 0.85rem; font-weight: 800; color: #e74c3c; text-transform: uppercase;">Defensiv Corner</label>
-            <button class="tab-btn" style="padding: 5px 10px; font-size: 0.7rem;" onclick="TaktikkModul.fokuserFase('def_corner')">Vis på kart</button>
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="font-size: 0.85rem; font-weight: 800; color: #e74c3c; text-transform: uppercase;">Defensiv Corner</label>
+                    <button class="tab-btn" style="padding: 5px 10px; font-size: 0.7rem;" onclick="TaktikkModul.fokuserFase('def_corner')">Vis på kart</button>
+                </div>
+                <textarea id="def-corner-text" placeholder="Markeringstype og posisjoner..."></textarea>
+            </div>
         </div>
-        <textarea id="def-corner-text" placeholder="Markeringstype og posisjoner..."></textarea>
-    </div>
-</div>
 
         <div class="tactic-card">
-            <h3><i class="fa-solid fa-users"></i> Benken</h3>
+            <h3><i class="fa-solid fa-users"></i> Bytteplan</h3>
             <div id="sub-plan-container">
-                <!-- Her genereres radene med spiller og tids-dropdown -->
+                <!-- Her genereres radene -->
             </div>
         </div>
 
