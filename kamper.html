@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
@@ -32,14 +32,14 @@
 
         th {
             background: #f8f9fa;
-            padding: 20px 12px; /* Beholder den gode høyden/størrelsen din */
+            padding: 20px 12px;
             text-align: center;
             font-weight: 700;
             color: var(--text-main);
             border-bottom: 2px solid var(--border-color);
             font-size: 0.85rem;
             letter-spacing: 0.05em;
-            text-transform: uppercase; /* Gjør teksten til store bokstaver som i spillere.html */
+            text-transform: uppercase;
         }
 
         .filter-bar {
@@ -48,7 +48,6 @@
             padding: 20px 25px;
             margin-bottom: 25px;
             box-shadow: var(--shadow);
-            /* Gjør det mulig å scrolle knappene på mobil */
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -58,31 +57,9 @@
             gap: 10px;
         }
 
-        .filter-bar label {
-            font-weight: 600;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .filter-bar label i {
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-
-        .filter-label {
-            font-weight: 700;
-            color: var(--text-main);
-            margin-right: 15px;
-            font-size: 0.9rem;
-            letter-spacing: 0.05em;
-        }
-
         .tab-btn {
             padding: 12px 20px;
-            border: 2px solid var(--border-color); /* Tykkere ramme som på spiller-siden */
+            border: 2px solid var(--border-color);
             background: var(--white);
             border-radius: 8px;
             cursor: pointer;
@@ -91,7 +68,7 @@
             white-space: nowrap;
             transition: all 0.3s;
             font-size: 0.95rem;
-            text-transform: uppercase; /* Store bokstaver for sportslig preg */
+            text-transform: uppercase;
         }
 
         .tab-btn.active {
@@ -106,36 +83,47 @@
             color: var(--primary);
         }
 
-        .tab-btn:not(.active):hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background-color: #f8f9fa;
+        /* MODAL HEADER - Her skjer magien med Flexbox */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        /* X-knappen i modal-header */
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
         .close-btn {
-            background: #f1f3f5; /* Lys grå bakgrunn som standard */
+            background: #f1f3f5;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             color: var(--text-muted);
             transition: all 0.2s ease;
             width: 36px;
             height: 36px;
-            border-radius: 50%; /* Gjør den helt rund */
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
+            flex-shrink: 0;
         }
 
         .close-btn:hover {
             background: #e9ecef;
-            color: var(--danger); /* Blir rød når man skal lukke */
-            transform: rotate(90deg); /* En liten detalj som gjør den "levende" */
+            color: var(--danger);
+            transform: rotate(90deg);
         }
 
-        /* FAB Button styling for konsistens */
         .fab-btn {
             position: fixed;
             right: 20px;
@@ -156,12 +144,6 @@
             z-index: 1000;
         }
 
-        .fab-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.6);
-        }
-
-        /* Modal animasjoner */
         .modal {
             display: none;
             position: fixed;
@@ -176,11 +158,6 @@
             animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { background-color: rgba(0, 0, 0, 0); }
-            to { background-color: rgba(0, 0, 0, 0.5); }
-        }
-
         .modal-content {
             background-color: var(--white);
             padding: 30px;
@@ -191,46 +168,22 @@
             animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        @keyframes fadeIn {
+            from { background-color: rgba(0, 0, 0, 0); }
+            to { background-color: rgba(0, 0, 0, 0.5); }
+        }
+
         @keyframes slideIn {
             from { transform: translateY(-50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Responsiv tilpasning for mobil (maks 768px bredde) */
         @media (max-width: 768px) {
-            /* Justerer Hero-seksjonen */
-            .kamper-hero {
-            padding: 30px;
-            margin-bottom: 20px;
-            }
-
-            .kamper-hero h2 {
-            font-size: 1.6rem;
-            }
-
-            /* Endrer filter-baren til vertikal visning */
-            .filter-bar {
-            flex-direction: column;
-            align-items: stretch;
-            padding: 15px; /* Litt mindre padding på mobil */
-            }
-
-            .filter-bar label {
-            justify-content: flex-start;
-            margin-bottom: 10px;
-            }
-
-            .tab-container-inner {
-            max-width: 100%; /* Lar knappene bruke hele bredden */
-            }
-
-            /* Gjør modalene mer brukervennlige på små skjermer */
-            .modal-content {
-            width: 95%;
-            padding: 20px;
-            }
+            .kamper-hero { padding: 30px; }
+            .kamper-hero h2 { font-size: 1.6rem; }
+            .filter-bar { padding: 15px; }
+            .modal-content { width: 95%; padding: 20px; }
         }
-        
     </style>
 </head>
 <body>
@@ -245,7 +198,6 @@
         <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
     </div>
 
-    <!-- HERO SEKSJON -->
     <section class="kamper-hero">
         <div class="hero-content">
             <h2>Terminliste & Resultater</h2>
@@ -253,7 +205,6 @@
         </div>
     </section>
 
-    <!-- FILTER BAR -->
     <div class="filter-bar">
         <div>
             <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">KOMMENDE</button>
@@ -261,7 +212,6 @@
         </div>
     </div>
 
-    <!-- TABELL-CONTAINER -->
     <div class="table-container">
         <table id="matchTable">
             <thead>
@@ -277,9 +227,9 @@
             <tbody id="matchTableBody"></tbody>
         </table>
     </div>
+</div>
 
-<!-- FAB KNAPP: Nøyaktig lik posisjon og stil som oppmøte -->
-<button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp" style="position: fixed; right: 20px; bottom: 20px; width: 60px; height: 60px; background: var(--primary); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4); z-index: 1000;">
+<button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
 
@@ -287,8 +237,10 @@
 <div id="matchModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 id="modalTitle">Registrer kamp</h3>
-            <button class="close-btn" onclick="closeMatchModal()">&times;</button>
+            <h3 id="modalTitle">Legg til ny kamp</h3>
+            <button type="button" class="close-btn" onclick="closeMatchModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
         <form id="matchForm">
             <input type="hidden" id="editMatchId">
@@ -330,12 +282,14 @@
     </div>
 </div>
 
-<!-- MODAL FOR KAMPINFO (Spillerliste) -->
+<!-- MODAL FOR KAMPINFO -->
 <div id="matchInfoModal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
         <div class="modal-header">
-            <h3 id="infoTitle">Laster...</h3>
-            <button class="close-btn" onclick="closeMatchInfo()">&times;</button>
+            <h3 id="infoTitle" style="margin:0;">Laster...</h3>
+            <button type="button" class="close-btn" onclick="closeMatchInfo()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
         <div id="matchInfoDetails"></div>
         <div id="matchPlayerList" style="margin-top: 10px;"></div>
@@ -364,11 +318,9 @@
         document.getElementById('matchModal').style.display = 'none';
         document.getElementById('matchForm').reset();
         document.getElementById('editMatchId').value = '';
-        document.getElementById('modalTitle').innerText = 'Registrer kamp';
     };
     
     window.openMatchModal = () => {
-        document.getElementById('modalTitle').innerText = 'Registrer kamp';
         document.getElementById('matchModal').style.display = 'flex';
         document.getElementById('matchDate').valueAsDate = new Date();
     };
@@ -378,9 +330,8 @@
     };
 
     window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
+        if (event.target.id === 'matchModal') closeMatchModal();
+        if (event.target.id === 'matchInfoModal') closeMatchInfo();
     }
 </script>
 
