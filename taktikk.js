@@ -5,7 +5,7 @@ import { db } from './firebase-config.js';
  * BSK Taktikk-modul
  */
 const TaktikkModul = {
-    valgtLag: { lineup: {}, roles: {}, instructions: {}, subPlan: {} }, 
+    valgtLag: { lineup: {}, roles: {}, instructions: {}, subPlan: {}, customPositions: {} }, 
     databaseKopi: null,
     matchId: new URLSearchParams(window.location.search).get('matchId'),
 
@@ -62,7 +62,8 @@ const TaktikkModul = {
                     lineup: saved.lineup || {},
                     roles: saved.roles || {},
                     instructions: saved.instructions || {},
-                    subPlan: saved.subPlan || {} 
+                    subPlan: saved.subPlan || {},
+                    customPositions: saved.customPositions || {}
                 };
             }
             
@@ -103,6 +104,64 @@ const TaktikkModul = {
         }
 
         document.getElementById('pitch').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    },
+
+    // Ny funksjon som håndterer både mus og touch for alle noder
+    gjorFlyttbar: function(node, index, fase) {
+        let isDragging = false;
+
+        const startDragging = (e) => {
+            if (e.target.tagName === 'SELECT') return;
+            isDragging = true;
+            node.style.cursor = 'grabbing';
+            node.style.zIndex = 1000;
+            node.style.transition = 'none'; // Stopper animasjon mens vi drar
+        };
+
+        const moveNode = (e) => {
+            if (!isDragging) return;
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const rect = document.getElementById('pitch').getBoundingClientRect();
+            let x = ((clientX - rect.left) / rect.width) * 100;
+            let y = ((clientY - rect.top) / rect.height) * 100;
+
+            // Begrensning til banens areal
+            x = Math.max(0, Math.min(100, x));
+            y = Math.max(0, Math.min(100, y));
+
+            node.style.left = x + '%';
+            node.style.top = y + '%';
+
+            if (e.touches) e.preventDefault(); // Hindrer scroll på mobil
+        };
+
+        const stopDragging = () => {
+            if (isDragging) {
+                isDragging = false;
+                node.style.cursor = 'grab';
+                node.style.zIndex = 5;
+                node.style.transition = 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+                if (!this.valgtLag.customPositions) this.valgtLag.customPositions = {};
+                if (!this.valgtLag.customPositions[fase]) this.valgtLag.customPositions[fase] = {};
+
+                this.valgtLag.customPositions[fase][index] = {
+                    top: parseFloat(node.style.top),
+                    left: parseFloat(node.style.left)
+                };
+            }
+        };
+
+        node.onmousedown = startDragging;
+        window.addEventListener('mousemove', moveNode);
+        window.addEventListener('mouseup', stopDragging);
+
+        node.addEventListener('touchstart', startDragging, { passive: false });
+        window.addEventListener('touchmove', moveNode, { passive: false });
+        window.addEventListener('touchend', stopDragging);
     },
 
     oppdaterAlleSelectMenyer: function() {
@@ -236,7 +295,7 @@ const TaktikkModul = {
         const pitchContainer = document.getElementById('pitch');
         if (!layer || !pitchContainer) return;
 
-        // Tvinger banen til å holde seg i ro (viktig for mobil)
+        // Faste stiler for banen
         pitchContainer.style.setProperty('transform', 'none', 'important');
         pitchContainer.style.setProperty('transition', 'none', 'important');
         pitchContainer.style.setProperty('transform-origin', 'initial', 'important');
@@ -250,8 +309,12 @@ const TaktikkModul = {
         posisjoner.forEach((p, index) => {
             const node = document.createElement('div');
             node.className = 'player-node'; 
-            node.style.top = `${p.top}%`;
-            node.style.left = `${p.left}%`;
+            node.style.cursor = 'grab';
+
+            // Henter lagret posisjon hvis den finnes, ellers standard
+            const custom = this.valgtLag.customPositions?.[fase]?.[index];
+            node.style.top = `${custom ? custom.top : p.top}%`;
+            node.style.left = `${custom ? custom.left : p.left}%`;
 
             const lagretId = lineup[index] || "";
             const valgtSpiller = tropp.find(s => s.id === lagretId);
@@ -270,7 +333,7 @@ const TaktikkModul = {
                 
                 innholdHTML = `
                     <div class="player-initials">${initialer}</div>
-                    <div class="player-full-name" style="font-size: 9px; color: rgba(255,255,255,0.9); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${etternavn}</div>
+                    <div class="player-full-name">${etternavn}</div>
                 `;
             } else {
                 node.classList.add('empty');
@@ -290,6 +353,10 @@ const TaktikkModul = {
             }
 
             node.innerHTML = innholdHTML;
+            
+            // Aktiverer Drag and Drop for alle noder
+            this.gjorFlyttbar(node, index, fase);
+            
             layer.appendChild(node);
         });
     }
