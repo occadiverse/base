@@ -56,9 +56,7 @@ const TaktikkModul = {
         });
     },
 
-    // Oppdaterer Hero-seksjon, Bane, Dropdowns og Tekstfelter
     oppdaterVisning: function() {
-        // 1. Oppdater Hero-tekst (Motstander og Kampinfo)
         if (this.databaseKopi && this.matchId) {
             const match = this.databaseKopi.matches?.[this.matchId];
             if (match) {
@@ -67,12 +65,11 @@ const TaktikkModul = {
             }
         }
 
-        // 2. Render Banen
-        const activeBtn = document.querySelector('.phase-btn.active');
+        // Henter nå fase fra .tab-btn som er active (pga ny stil i HTML)
+        const activeBtn = document.querySelector('.tab-btn.active');
         const currentPhase = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : "424";
         this.renderBane(currentPhase);
 
-        // 3. Fyll alle dropdown-menyer og tekstfelter
         this.oppdaterAlleSelectMenyer();
         this.oppdaterTekstFelter();
         this.oppdaterBenken();
@@ -81,8 +78,6 @@ const TaktikkModul = {
     oppdaterAlleSelectMenyer: function() {
         const tropp = this.hentAktuellTropp();
         const roles = this.valgtLag.roles || {};
-        
-        // Liste over alle select-IDer i "Nøkkelroller"
         const selectIds = ['cap-select', 'pen1-select', 'pen2-select', 'corV-select', 'corH-select'];
 
         selectIds.forEach(id => {
@@ -101,7 +96,6 @@ const TaktikkModul = {
 
     oppdaterTekstFelter: function() {
         const i = this.valgtLag.instructions || {};
-        
         if(document.getElementById('off-corner-text')) document.getElementById('off-corner-text').value = i.offCorner || "";
         if(document.getElementById('def-corner-text')) document.getElementById('def-corner-text').value = i.defCorner || "";
         if(document.getElementById('sub-plan-text')) document.getElementById('sub-plan-text').value = this.valgtLag.subPlan || "";
@@ -113,7 +107,6 @@ const TaktikkModul = {
 
         const tropp = this.hentAktuellTropp();
         const startelleverIder = Object.values(this.valgtLag.lineup || {});
-        
         const benkSpillere = tropp.filter(s => !startelleverIder.includes(s.id));
         
         benchDiv.innerHTML = benkSpillere.length > 0 
@@ -140,7 +133,8 @@ const TaktikkModul = {
     },
 
     byttFase: function(fase, btn) {
-        document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+        // Bruker nå .tab-btn klassen for å fjerne active
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.renderBane(fase);
     },
@@ -148,7 +142,6 @@ const TaktikkModul = {
     lagreTaktikk: function() {
         if (!this.matchId) return;
 
-        // Samle inn verdier fra alle select-menyer og tekstfelter
         this.valgtLag.roles = {
             'cap-select': document.getElementById('cap-select')?.value || "",
             'pen1-select': document.getElementById('pen1-select')?.value || "",
