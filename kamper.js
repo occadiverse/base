@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- VIS KAMP-INFO OG SPILLERE (MED ACCORDION) ---
+    // --- VIS KAMP-INFO OG SPILLERE (MED MODAL ACTION BARS) ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
         const playerListUl = document.getElementById('matchPlayerList');
         const infoTitle = document.getElementById('infoTitle');
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         infoTitle.innerText = opponent;
 
-        // Bygger innholdet med den nye klikkbare baren
+        // Bygger innholdet med ACTION BARS
         detailsDiv.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -125,47 +125,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            <div class="tropp-header" id="toggleTropp">
-                <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- BAR 1: PÅMELDT TROPP -->
+            <div class="modal-action-bar" id="toggleTropp">
+                <div style="display: flex; align-items: center;">
+                    <i class="fa-solid fa-users icon-left"></i>
                     <span style="font-weight: 700; color: var(--text-main);">Påmeldt tropp</span>
-                    <span id="pilleAntall" style="background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem;">0</span>
+                    <span id="pilleAntall" style="background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
                 </div>
                 <i class="fa-solid fa-chevron-down chevron"></i>
             </div>
+
+            <!-- BAR 2: KAMPPLAN -->
+            <div class="modal-action-bar" id="jumpToTactic">
+                <div style="display: flex; align-items: center;">
+                    <i class="fa-solid fa-clipboard-list icon-left"></i>
+                    <span style="font-weight: 700; color: var(--text-main);">Kampplan</span>
+                </div>
+                <i class="fa-solid fa-arrow-right" style="color: var(--text-muted); font-size: 0.9rem;"></i>
+            </div>
         `;
 
-        // Reset spillerliste-visning (skjult som standard)
+        // Skjuler knappene nederst helt
+        const modalFooter = document.querySelector('#matchInfoModal .button-group');
+        if (modalFooter) {
+            modalFooter.innerHTML = '';
+            modalFooter.style.display = 'none';
+        }
+
+        // Reset spillerliste-visning
         playerListUl.classList.remove('show');
         playerListUl.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted); text-align: center; padding: 20px;">Henter spillere...</div>';
 
-        // Legg til klikk-event for å åpne/lukke troppen
+        // Klikk-event for Tropp
         const toggleBtn = document.getElementById('toggleTropp');
         toggleBtn.onclick = () => {
             toggleBtn.classList.toggle('open');
             playerListUl.classList.toggle('show');
         };
 
-        // --- DYNAMISKE KNAPPER I BUNNEN ---
-        const modalFooter = document.querySelector('#matchInfoModal .button-group');
-        if (modalFooter) {
-            modalFooter.innerHTML = '';
-            const tacticBtn = document.createElement('button');
-            tacticBtn.className = 'btn btn-grow-2';
-            tacticBtn.style.background = 'var(--success)';
-            tacticBtn.innerHTML = '<i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> Taktikk';
-            tacticBtn.onclick = () => {
-                const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                window.location.href = `taktikk.html?matchId=${id}&date=${dateKey}`;
-            };
-
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'btn-secondary-outline';
-            closeBtn.innerText = 'Lukk';
-            closeBtn.onclick = window.closeMatchInfo;
-
-            modalFooter.appendChild(tacticBtn);
-            modalFooter.appendChild(closeBtn);
-        }
+        // Klikk-event for Kampplan (Taktikk)
+        const tacticBar = document.getElementById('jumpToTactic');
+        tacticBar.onclick = () => {
+            const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            window.location.href = `taktikk.html?matchId=${id}&date=${dateKey}`;
+        };
 
         document.getElementById('matchInfoModal').style.display = 'flex';
 
