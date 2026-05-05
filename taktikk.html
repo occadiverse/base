@@ -5,30 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BSK Fotball - Taktikk</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2"> <!-- Samme versjon som kamper.html -->
     <style>
-        /* Taktikk-spesifikke stiler */
+        /* Taktikk-spesifikke stiler (Synkronisert med kamper.html) */
+        .taktikk-hero {
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border-radius: 20px;
+            padding: 50px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);
+        }
+
+        .taktikk-hero h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .taktikk-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
         .taktikk-controls {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin: 15px 0;
             padding: 0 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .phase-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            background-color: #f0f0f0;
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
+            background: var(--white);
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            text-transform: uppercase;
         }
 
         .phase-btn.active {
-            background-color: #2d5a27;
-            color: white;
+            background-color: var(--primary); 
+            color: #ffffff !important;
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
         }
 
         /* BANEN */
@@ -76,7 +106,7 @@
             position: absolute;
             width: 70px;
             background-color: #fff;
-            border: 2px solid #2d5a27;
+            border: 2px solid var(--primary);
             border-radius: 6px;
             padding: 4px;
             text-align: center;
@@ -86,127 +116,139 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        .player-initials { font-weight: 800; font-size: 14px; color: #2d5a27; margin-bottom: 2px; }
+        .player-initials { font-weight: 800; font-size: 14px; color: var(--primary); margin-bottom: 2px; }
         .player-node select { width: 100%; font-size: 10px; border: 1px solid #ddd; border-radius: 3px; background: #f9f9f9; }
 
         /* INFO-KORT UNDER BANEN */
         .tactic-details { padding: 20px; max-width: 500px; margin: 0 auto; }
-        .tactic-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .tactic-card h3 { margin: 0 0 12px 0; font-size: 1rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .tactic-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .tactic-card h3 { margin: 0 0 12px 0; font-size: 1.1rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         
-        .role-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dotted #eee; }
-        .role-row select { border: 1px solid #ddd; padding: 5px; border-radius: 4px; width: 60%; font-size: 0.85rem; background-color: #fff; }
+        .role-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; }
+        .role-row select { border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; width: 60%; font-size: 0.9rem; background: var(--white); }
         
-        textarea { width: 100%; min-height: 60px; border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin-top: 5px; font-family: inherit; font-size: 0.9rem; resize: none; }
+        textarea { width: 100%; min-height: 80px; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 5px; font-family: inherit; font-size: 0.95rem; resize: none; transition: border-color 0.3s; }
+        textarea:focus { border-color: var(--primary); outline: none; }
         
-        .badge { display: inline-block; background: #e8f5e9; color: #2d5a27; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin: 2px; border: 1px solid #c8e6c9; }
+        .badge { display: inline-block; background: #f1f3f5; color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin: 3px; border: 1px solid var(--border-color); }
         
-        .btn-save { background: #2d5a27; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; margin-bottom: 40px; }
-        .btn-save:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 12px; width: 100%; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; margin-bottom: 60px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn-save:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3); }
+        .btn-save:active { transform: scale(0.98); }
+
+        @media (max-width: 768px) {
+            .taktikk-hero { padding: 30px; }
+            .taktikk-hero h2 { font-size: 1.6rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar" id="sidebar"></div>
 
-    <div class="main-content">
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <button class="menu-toggle" onclick="toggleMenu()">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-             <span class="app-title">BSK Fotball Herrer - A-lag</span>
-            </div>
-        </div>
+<div class="sidebar" id="sidebar"></div>
 
-        <!-- HERO SEKSJON -->
-        <div class="hero-section">
-            <h1 id="matchOpponentTitle">Kampplan</h1>
-            <p id="matchDetailsSub">Laster kampdetaljer...</p>
-        </div>
-
-        <div class="taktikk-controls">
-            <button class="phase-btn active" onclick="TaktikkModul.byttFase('424', this)">Fase 1 (4-2-4)</button>
-            <button class="phase-btn" onclick="TaktikkModul.byttFase('2323', this)">Fase 2 (2-3-2-3)</button>
-            <button class="phase-btn" onclick="TaktikkModul.byttFase('325', this)">Fase 3 (3-2-5)</button>
-        </div>
-
-        <!-- FOTBALLBANEN -->
-        <div class="pitch-container" id="pitch">
-            <div class="top-zone">
-                <div class="pitch-line penalty-arc"></div>
-                <div class="pitch-line penalty-area"></div>
-                <div class="pitch-line goal-area"></div>
-                <div class="pitch-line penalty-spot"></div>
-            </div>
-
-            <div class="pitch-line mid-line"></div>
-            <div class="pitch-line center-circle"></div>
-            <div class="pitch-line center-spot"></div>
-
-            <div class="bottom-zone">
-                <div class="pitch-line penalty-arc"></div>
-                <div class="pitch-line penalty-area"></div>
-                <div class="pitch-line goal-area"></div>
-                <div class="pitch-line penalty-spot"></div>
-            </div>
-
-            <div id="playerLayer"></div>
-        </div>
-
-        <!-- TAKTIKK DETALJER -->
-        <div class="tactic-details">
-            <div class="tactic-card">
-                <h3><i class="fa-solid fa-star"></i> Nøkkelroller</h3>
-                <div class="role-row">
-                    <span>Kaptein:</span> 
-                    <select id="cap-select"><option value="">Velg...</option></select>
-                </div>
-                <div class="role-row">
-                    <span>Straffe 1:</span> 
-                    <select id="pen1-select"><option value="">Velg...</option></select>
-                </div>
-                <div class="role-row">
-                    <span>Straffe 2:</span> 
-                    <select id="pen2-select"><option value="">Velg...</option></select>
-                </div>
-                <div class="role-row">
-                    <span>Corner Venstre:</span> 
-                    <select id="corV-select"><option value="">Velg...</option></select>
-                </div>
-                <div class="role-row">
-                    <span>Corner Høyre:</span> 
-                    <select id="corH-select"><option value="">Velg...</option></select>
-                </div>
-            </div>
-
-            <div class="tactic-card">
-                <h3><i class="fa-solid fa-arrows-to-dot"></i> Corner-instrukser</h3>
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 0.8rem; font-weight: 700; color: #2d5a27;">OFFENSIV:</label>
-                    <textarea id="off-corner-text" placeholder="Hva gjør vi på offensiv corner?"></textarea>
-                </div>
-                <div>
-                    <label style="font-size: 0.8rem; font-weight: 700; color: #c62828;">DEFENSIV:</label>
-                    <textarea id="def-corner-text" placeholder="Hva gjør vi på defensiv corner?"></textarea>
-                </div>
-            </div>
-
-            <div class="tactic-card">
-                <h3><i class="fa-solid fa-couch"></i> Benken</h3>
-                <div id="bench-list" style="margin-bottom: 15px;">
-                    <!-- Badges for spillere på benken genereres her -->
-                </div>
-                <label style="font-size: 0.8rem; font-weight: 700;">BYTTEPLAN / NOTATER:</label>
-                <textarea id="sub-plan-text" placeholder="Planlagte bytter eller tidspunkter..."></textarea>
-            </div>
-
-            <button onclick="TaktikkModul.lagreTaktikk()" class="btn-save">
-                <i class="fa-solid fa-floppy-disk"></i> LAGRE HELE KAMPLANEN
-            </button>
-        </div>
+<div class="main-content">
+    <!-- TOP BAR - IDENTISK MED KAMPER.HTML -->
+    <div class="top-bar">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
     </div>
 
-    <script src="navigation.js"></script>
-    <script type="module" src="taktikk.js"></script>
+    <!-- HERO SEKSJON - IDENTISK STIL MED KAMPER.HTML -->
+    <section class="taktikk-hero">
+        <div class="hero-content">
+            <h2 id="matchOpponentTitle">Kampplan</h2>
+            <p id="matchDetailsSub">Her setter du opp tropp, roller og taktiske instrukser for kampen.</p>
+        </div>
+    </section>
+
+    <!-- FASE-KONTROLLER - SYNCRONISERT MED TAB-BTN STIL -->
+    <div class="taktikk-controls">
+        <button class="phase-btn active" onclick="TaktikkModul.byttFase('424', this)">Fase 1 (4-2-4)</button>
+        <button class="phase-btn" onclick="TaktikkModul.byttFase('2323', this)">Fase 2 (2-3-2-3)</button>
+        <button class="phase-btn" onclick="TaktikkModul.byttFase('325', this)">Fase 3 (3-2-5)</button>
+    </div>
+
+    <!-- FOTBALLBANEN -->
+    <div class="pitch-container" id="pitch">
+        <div class="top-zone">
+            <div class="pitch-line penalty-arc"></div>
+            <div class="pitch-line penalty-area"></div>
+            <div class="pitch-line goal-area"></div>
+            <div class="pitch-line penalty-spot"></div>
+        </div>
+
+        <div class="pitch-line mid-line"></div>
+        <div class="pitch-line center-circle"></div>
+        <div class="pitch-line center-spot"></div>
+
+        <div class="bottom-zone">
+            <div class="pitch-line penalty-arc"></div>
+            <div class="pitch-line penalty-area"></div>
+            <div class="pitch-line goal-area"></div>
+            <div class="pitch-line penalty-spot"></div>
+        </div>
+
+        <div id="playerLayer"></div>
+    </div>
+
+    <!-- TAKTIKK DETALJER -->
+    <div class="tactic-details">
+        <div class="tactic-card">
+            <h3><i class="fa-solid fa-star"></i> Nøkkelroller</h3>
+            <div class="role-row">
+                <span>Kaptein:</span> 
+                <select id="cap-select"><option value="">Velg...</option></select>
+            </div>
+            <div class="role-row">
+                <span>Straffe 1:</span> 
+                <select id="pen1-select"><option value="">Velg...</option></select>
+            </div>
+            <div class="role-row">
+                <span>Straffe 2:</span> 
+                <select id="pen2-select"><option value="">Velg...</option></select>
+            </div>
+            <div class="role-row">
+                <span>Corner Venstre:</span> 
+                <select id="corV-select"><option value="">Velg...</option></select>
+            </div>
+            <div class="role-row">
+                <span>Corner Høyre:</span> 
+                <select id="corH-select"><option value="">Velg...</option></select>
+            </div>
+        </div>
+
+        <div class="tactic-card">
+            <h3><i class="fa-solid fa-arrows-to-dot"></i> Corner-instrukser</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Offensiv Corner</label>
+                <textarea id="off-corner-text" placeholder="Beskriv bevegelser og soner..."></textarea>
+            </div>
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 800; color: #e74c3c; text-transform: uppercase;">Defensiv Corner</label>
+                <textarea id="def-corner-text" placeholder="Markeringstype og posisjoner..."></textarea>
+            </div>
+        </div>
+
+        <div class="tactic-card">
+            <h3><i class="fa-solid fa-users"></i> Benken</h3>
+            <div id="bench-list" style="margin-bottom: 20px;">
+                <!-- Spillere på benken genereres her -->
+            </div>
+            <label style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase;">Bytteplan / Notater</label>
+            <textarea id="sub-plan-text" placeholder="Skriv inn planlagte bytter..."></textarea>
+        </div>
+
+        <button onclick="TaktikkModul.lagreTaktikk()" class="btn-save">
+            <i class="fa-solid fa-floppy-disk"></i> Lagre Hele Kampplanen
+        </button>
+    </div>
+</div>
+
+<script src="navigation.js"></script>
+<!-- Taktikk.js må importeres her -->
+<script type="module" src="taktikk.js"></script>
+
 </body>
 </html>
