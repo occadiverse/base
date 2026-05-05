@@ -124,8 +124,8 @@
             transform: rotate(90deg);
         }
 
-        /* STYLING FOR UTVIDBAR TROPP */
-        .tropp-header {
+        /* NYE KLIKKBARE BARER I MODAL */
+        .modal-action-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -138,17 +138,25 @@
             margin-top: 10px;
         }
 
-        .tropp-header:hover {
+        .modal-action-bar:hover {
             background: #f1f3f5;
             border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
-        .tropp-header i.chevron {
-            transition: transform 0.3s ease;
+        .modal-action-bar i.icon-left {
             color: var(--primary);
+            width: 20px;
+            margin-right: 10px;
+            font-size: 1.1rem;
         }
 
-        .tropp-header.open i.chevron {
+        .modal-action-bar i.chevron {
+            transition: transform 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        .modal-action-bar.open i.chevron {
             transform: rotate(180deg);
         }
 
@@ -157,16 +165,16 @@
             overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
             opacity: 0;
-            display: grid; /* Beholder grid-oppsettet ditt */
+            display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
         }
 
         #matchPlayerList.show {
-            max-height: 1000px; /* Høy nok til å romme hele troppen */
+            max-height: 1000px;
             opacity: 1;
             margin-top: 15px;
-            padding-bottom: 10px;
+            padding: 10px 5px;
         }
 
         .fab-btn {
@@ -338,10 +346,11 @@
         </div>
         <div id="matchInfoDetails"></div>
         
-        <!-- Spillerlisten ligger nå inni denne div-en som styres av JS -->
+        <!-- Spillerlisten styres av JS (ligger under action-barene) -->
         <div id="matchPlayerList"></div>
 
-        <div class="button-group" style="margin-top: 25px;">
+        <!-- Footer-knapper er nå fjernet for et renere design -->
+        <div class="button-group" style="margin-top: 25px; display: none;">
             <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
         </div>
     </div>
