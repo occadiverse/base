@@ -48,7 +48,7 @@ const TaktikkModul = {
                     lineup: saved.lineup || {},
                     roles: saved.roles || {},
                     instructions: saved.instructions || {},
-                    subPlan: saved.subPlan || {} // Sørger for at dette er et objekt
+                    subPlan: saved.subPlan || {} 
                 };
             }
             
@@ -97,26 +97,25 @@ const TaktikkModul = {
         const i = this.valgtLag.instructions || {};
         if(document.getElementById('off-corner-text')) document.getElementById('off-corner-text').value = i.offCorner || "";
         if(document.getElementById('def-corner-text')) document.getElementById('def-corner-text').value = i.defCorner || "";
-        // sub-plan-text er fjernet fra HTML, så vi trenger ikke oppdatere det her
     },
 
     oppdaterBenken: function() {
         const subContainer = document.getElementById('sub-plan-container');
-        const benchDiv = document.getElementById('bench-list');
-        if (!subContainer || !benchDiv) return;
+        if (!subContainer) return;
 
         const tropp = this.hentAktuellTropp();
         const startelleverIder = Object.values(this.valgtLag.lineup || {});
-        const benkSpillere = tropp.filter(s => !startelleverIder.includes(s.id));
         
-        // 1. Vis tilgjengelige reserver som badges nederst
-        benchDiv.innerHTML = benkSpillere.length > 0 
-            ? benkSpillere.map(s => `<span class="badge">${s.navn || s.name}</span>`).join(' ')
-            : '<span style="color:var(--text-muted); font-size:0.8rem;">Ingen reserver</span>';
-
-        // 2. Lag rader for hver spiller på benken med tids-dropdown
+        // Finn de som ikke er i startelleveren
+        const benkSpillere = tropp.filter(s => !startelleverIder.includes(s.id));
         const lagretPlan = this.valgtLag.subPlan || {};
         
+        if (benkSpillere.length === 0) {
+            subContainer.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem; padding:10px; display:block;">Ingen spillere på benken</span>';
+            return;
+        }
+
+        // Lag rader for hver spiller på benken med tids-dropdown
         subContainer.innerHTML = benkSpillere.map(s => `
             <div class="role-row">
                 <span style="font-weight:600; font-size: 0.9rem;">${s.navn || s.name}</span>
@@ -186,8 +185,6 @@ const TaktikkModul = {
             offCorner: document.getElementById('off-corner-text')?.value || "",
             defCorner: document.getElementById('def-corner-text')?.value || ""
         };
-
-        // subPlan objektet er allerede oppdatert via oppdaterBytteTid()
 
         const tacticRef = ref(db, `tactics/${this.matchId}`);
         set(tacticRef, this.valgtLag)
