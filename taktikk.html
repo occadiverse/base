@@ -95,7 +95,7 @@
         .tactic-card h3 { margin: 0 0 12px 0; font-size: 1rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; }
         
         .role-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dotted #eee; }
-        .role-row input { border: 1px solid #ddd; padding: 5px; border-radius: 4px; width: 60%; font-size: 0.9rem; }
+        .role-row select { border: 1px solid #ddd; padding: 5px; border-radius: 4px; width: 60%; font-size: 0.85rem; background-color: #fff; }
         
         textarea { width: 100%; min-height: 60px; border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin-top: 5px; font-family: inherit; font-size: 0.9rem; resize: none; }
         
@@ -111,7 +111,13 @@
     <div class="main-content">
         <div class="top-bar">
             <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-            <h2 class="section-title">Kamptaktikk</h2>
+            <div style="font-weight: 700; color: white;">BSK Fotball Herrer - A-lag</div>
+        </div>
+
+        <!-- HERO SEKSJON -->
+        <div class="hero-section">
+            <h1 id="matchOpponentTitle">Kampplan</h1>
+            <p id="matchDetailsSub">Laster kampdetaljer...</p>
         </div>
 
         <div class="taktikk-controls">
@@ -147,9 +153,26 @@
         <div class="tactic-details">
             <div class="tactic-card">
                 <h3><i class="fa-solid fa-star"></i> Nøkkelroller</h3>
-                <div class="role-row"><span>Kaptein:</span> <input type="text" id="cap-input" placeholder="Navn..."></div>
-                <div class="role-row"><span>Straffer:</span> <input type="text" id="pen-input" placeholder="Navn..."></div>
-                <div class="role-row"><span>Cornere:</span> <input type="text" id="cor-input" placeholder="Navn..."></div>
+                <div class="role-row">
+                    <span>Kaptein:</span> 
+                    <select id="cap-select"><option value="">Velg...</option></select>
+                </div>
+                <div class="role-row">
+                    <span>Straffe 1:</span> 
+                    <select id="pen1-select"><option value="">Velg...</option></select>
+                </div>
+                <div class="role-row">
+                    <span>Straffe 2:</span> 
+                    <select id="pen2-select"><option value="">Velg...</option></select>
+                </div>
+                <div class="role-row">
+                    <span>Corner Venstre:</span> 
+                    <select id="corV-select"><option value="">Velg...</option></select>
+                </div>
+                <div class="role-row">
+                    <span>Corner Høyre:</span> 
+                    <select id="corH-select"><option value="">Velg...</option></select>
+                </div>
             </div>
 
             <div class="tactic-card">
