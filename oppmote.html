@@ -113,10 +113,6 @@
             transform: scale(0.95);
         }
 
-        .fab-text {
-            display: none;
-        }
-
         /* Modal styling */
         .modal {
             display: none;
@@ -306,10 +302,6 @@
             min-width: 150px;
         }
 
-        .text-left {
-            text-align: left;
-        }
-
         .day-type {
             display: inline-block;
             width: 28px;
@@ -324,70 +316,15 @@
             color: white;
         }
 
-        .day-type-training {
-            background: #95a5a6;
-        }
-
-        .day-type-match {
-            background: var(--danger);
-        }
-
-        .status-present {
-            color: var(--success);
-            font-size: 1.4rem;
-        }
-
-        .status-none {
-            color: var(--border-color);
-            font-size: 1.4rem;
-        }
-
-        .action-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: 0.2s;
-            padding: 4px 8px;
-        }
-
-        .btn-delete:hover {
-            color: var(--danger);
-            transform: scale(1.2);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
+        .day-type-training { background: #95a5a6; }
+        .day-type-match { background: var(--danger); }
 
         /* Responsiv */
         @media (max-width: 768px) {
-            .oppmote-hero {
-                padding: 30px;
-            }
-
-            .oppmote-hero h2 {
-                font-size: 1.6rem;
-            }
-
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-bar label {
-                justify-content: flex-start;
-            }
-
-            .custom-select-wrapper {
-                width: 100%;
-            }
-
-            .modal-content {
-                width: 95%;
-            }
+            .oppmote-hero { padding: 30px; }
+            .oppmote-hero h2 { font-size: 1.6rem; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .modal-content { width: 95%; }
         }
     </style>
 </head>
@@ -448,7 +385,6 @@
 <!-- FAB KNAPP -->
 <button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny dag">
     <i class="fa-solid fa-calendar-plus"></i>
-    <span class="fab-text">Ny dag</span>
 </button>
 
 <!-- MODAL -->
@@ -484,6 +420,7 @@
 <script type="module" src="oppmote.js"></script>
 
 <script>
+    // Grunnleggende Modal-funksjoner
     window.openAttendanceModal = () => {
         document.getElementById('attendanceModal').style.display = 'flex';
         document.getElementById('eventDate').valueAsDate = new Date();
@@ -495,6 +432,25 @@
     window.onclick = function(event) {
         if (event.target == document.getElementById('attendanceModal')) closeAttendanceModal();
     }
+
+    // AUTOMATISK FILTERING PÅ NÅVÆRENDE MÅNED
+    document.addEventListener('DOMContentLoaded', () => {
+        const monthFilter = document.getElementById('monthFilter');
+        if (monthFilter) {
+            // Henter måned fra systemklokka (0-11)
+            const currentMonth = new Date().getMonth().toString();
+            
+            // Setter dropdown-menyen til nåværende måned
+            monthFilter.value = currentMonth;
+            
+            // Trigger filtreringen med en liten delay for å sikre at oppmote.js er lastet
+            setTimeout(() => {
+                if (window.filterByMonth) {
+                    window.filterByMonth(currentMonth);
+                }
+            }, 600);
+        }
+    });
 </script>
 
 </body>
