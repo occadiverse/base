@@ -103,18 +103,21 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (Oppdatert med stabel-design)
-    let headerRow = `<tr><th class="name-col">Spiller</th>`;
+    // 1. Headere (Oppdatert med mellomrom i dato og Spiller-header struktur)
+    let headerRow = `<tr><th class="name-col"><span>Spiller</span></th>`;
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         const isoDate = date.split('-').reverse().join('-');
         
+        // Fjerner bindestrek fra datoen (f.eks "06-05" blir "06 05")
+        const datoOverskrift = date.substring(0, 5).replace('-', ' ');
+        
         headerRow += `
             <th data-date="${isoDate}">
                 <div class="header-content">
-                    <span class="header-date">${date.substring(0, 5)}</span>
+                    <span class="header-date">${datoOverskrift}</span>
                     <div class="day-type ${typeClass}">${type.charAt(0)}</div>
                     <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">
                         <i class="fa-solid fa-xmark"></i>
