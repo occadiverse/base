@@ -312,6 +312,11 @@
             vertical-align: top;
         }
 
+        /* Sørg for at th-cellen tillater flex-sentrering */
+        th.name-col {
+            vertical-align: middle;
+        }
+        
         td {
             padding: 14px 12px;
             border-bottom: 1px solid var(--border-color);
@@ -336,15 +341,19 @@
             margin-bottom: 2px;
         }
 
-        /* Gjør navnekolonnen ryddig */
         .name-col {
             position: sticky;
             left: 0;
-            background: white;
+            background: #f8f9fa; /* Matcher resten av header-bakgrunnen */
             z-index: 10;
             text-align: left;
             min-width: 140px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            /* Vertikal sentrering */
+            display: flex;
+            align-items: center;
+            height: 100%; 
+            padding-left: 15px;
         }
 
         /* T eller K brikken (sentrert og finere) */
