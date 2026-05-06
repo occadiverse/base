@@ -9,14 +9,20 @@ const TaktikkModul = {
     databaseKopi: null,
     matchId: new URLSearchParams(window.location.search).get('matchId'),
 
+    // Oppdatert konfigurasjon med klassisk nummersystem 1-11
     konfigurasjon: {
         "424": [
-            { id: "GK", top: 96, left: 50 },
-            { id: "VB", top: 83, left: 15 }, { id: "VS", top: 95, left: 32 },
-            { id: "HS", top: 95, left: 70 }, { id: "HB", top: 83, left: 85 },
-            { id: "DM", top: 75, left: 35 }, { id: "OM", top: 75, left: 65 },
-            { id: "VK", top: 50, left: 5 }, { id: "SP", top: 50, left: 40 },
-            { id: "PM", top: 55, left: 60 }, { id: "HK", top: 50, left: 95 }
+            { id: "GK", top: 96, left: 50 },  // 1
+            { id: "HB", top: 83, left: 85 },  // 2
+            { id: "VB", top: 83, left: 15 },  // 3
+            { id: "HS", top: 92, left: 65 },  // 4
+            { id: "VS", top: 92, left: 35 },  // 5
+            { id: "DM", top: 72, left: 40 },  // 6
+            { id: "HK", top: 50, left: 92 },  // 7
+            { id: "OM", top: 72, left: 60 },  // 8
+            { id: "SP", top: 45, left: 42 },  // 9
+            { id: "PM", top: 45, left: 58 },  // 10
+            { id: "VK", top: 50, left: 8 }    // 11
         ],
         "2323": [
             { id: "GK", top: 88, left: 50 },
@@ -50,12 +56,10 @@ const TaktikkModul = {
 
     init: function() {
         if (!this.matchId) return;
-
         const rootRef = ref(db, '/');
         onValue(rootRef, (snapshot) => {
             const data = snapshot.val();
             this.databaseKopi = data;
-
             if (data.tactics && data.tactics[this.matchId]) {
                 const saved = data.tactics[this.matchId];
                 this.valgtLag = {
@@ -66,7 +70,6 @@ const TaktikkModul = {
                     customPositions: saved.customPositions || {}
                 };
             }
-            
             this.oppdaterVisning();
         });
     },
@@ -79,11 +82,9 @@ const TaktikkModul = {
                 document.getElementById('matchDetailsSub').innerText = `Kampplan | ${match.date} kl. ${match.time}`;
             }
         }
-
         const activeBtn = document.querySelector('.tab-btn.active');
         const currentPhase = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : "424";
         this.renderBane(currentPhase);
-
         this.oppdaterAlleSelectMenyer();
         this.oppdaterTekstFelter();
         this.oppdaterBenken();
@@ -92,29 +93,24 @@ const TaktikkModul = {
     fokuserFase: function(faseId) {
         const filterButtons = document.querySelectorAll('.filter-bar .tab-btn');
         let targetBtn = null;
-
         filterButtons.forEach(btn => {
             if (btn.getAttribute('onclick').includes(`'${faseId}'`)) {
                 targetBtn = btn;
             }
         });
-
         if (targetBtn) {
             this.byttFase(faseId, targetBtn);
         }
-
         document.getElementById('pitch').scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
 
     gjorFlyttbar: function(node, index, fase) {
         let isDragging = false;
-
         const startDragging = (e) => {
             if (e.target.tagName === 'SELECT' || e.target.closest('select')) {
                 isDragging = false;
                 return;
             }
-            
             isDragging = true;
             node.style.cursor = 'grabbing';
             node.style.zIndex = 1000;
@@ -123,20 +119,14 @@ const TaktikkModul = {
 
         const moveNode = (e) => {
             if (!isDragging) return;
-
-            // Hindrer scrolling KUN hvis vi faktisk drar en spiller
             if (e.cancelable) e.preventDefault();
-
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
             const rect = document.getElementById('pitch').getBoundingClientRect();
             let x = ((clientX - rect.left) / rect.width) * 100;
             let y = ((clientY - rect.top) / rect.height) * 100;
-
             x = Math.max(0, Math.min(100, x));
             y = Math.max(0, Math.min(100, y));
-
             node.style.left = x + '%';
             node.style.top = y + '%';
         };
@@ -147,10 +137,8 @@ const TaktikkModul = {
                 node.style.cursor = 'grab';
                 node.style.zIndex = 5;
                 node.style.transition = 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-
                 if (!this.valgtLag.customPositions) this.valgtLag.customPositions = {};
                 if (!this.valgtLag.customPositions[fase]) this.valgtLag.customPositions[fase] = {};
-
                 this.valgtLag.customPositions[fase][index] = {
                     top: parseFloat(node.style.top),
                     left: parseFloat(node.style.left)
@@ -161,7 +149,6 @@ const TaktikkModul = {
         node.onmousedown = startDragging;
         window.addEventListener('mousemove', moveNode);
         window.addEventListener('mouseup', stopDragging);
-
         node.addEventListener('touchstart', startDragging, { passive: false });
         window.addEventListener('touchmove', moveNode, { passive: false });
         window.addEventListener('touchend', stopDragging);
@@ -171,13 +158,10 @@ const TaktikkModul = {
         const tropp = this.hentAktuellTropp();
         const roles = this.valgtLag.roles || {};
         const selectIds = ['cap-select', 'pen1-select', 'pen2-select', 'corV-select', 'corH-select'];
-
         selectIds.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
-
             const lagretVerdi = roles[id] || "";
-            
             el.innerHTML = '<option value="">-- Velg spiller --</option>';
             tropp.forEach(s => {
                 const isSelected = s.id === lagretVerdi ? "selected" : "";
@@ -195,17 +179,14 @@ const TaktikkModul = {
     oppdaterBenken: function() {
         const subContainer = document.getElementById('sub-plan-container');
         if (!subContainer) return;
-
         const tropp = this.hentAktuellTropp();
         const startelleverIder = Object.values(this.valgtLag.lineup || {});
         const benkSpillere = tropp.filter(s => !startelleverIder.includes(s.id));
         const lagretPlan = this.valgtLag.subPlan || {};
-        
         if (benkSpillere.length === 0) {
             subContainer.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem; padding:10px; display:block;">Ingen spillere på benken</span>';
             return;
         }
-
         subContainer.innerHTML = benkSpillere.map(s => `
             <div class="role-row">
                 <span style="font-weight:600; font-size: 0.9rem;">${s.navn || s.name}</span>
@@ -248,7 +229,6 @@ const TaktikkModul = {
         const players = this.databaseKopi.players || {};
         const attendance = this.databaseKopi.attendance || {};
         const dailyAttendance = attendance[targetDate] || {};
-
         return Object.entries(players)
             .map(([id, data]) => ({ id, ...data }))
             .filter(player => dailyAttendance[player.id] === 'K');
@@ -262,7 +242,6 @@ const TaktikkModul = {
 
     lagreTaktikk: function() {
         if (!this.matchId) return;
-
         this.valgtLag.roles = {
             'cap-select': document.getElementById('cap-select')?.value || "",
             'pen1-select': document.getElementById('pen1-select')?.value || "",
@@ -270,12 +249,10 @@ const TaktikkModul = {
             'corV-select': document.getElementById('corV-select')?.value || "",
             'corH-select': document.getElementById('corH-select')?.value || ""
         };
-
         this.valgtLag.instructions = {
             offCorner: document.getElementById('off-corner-text')?.value || "",
             defCorner: document.getElementById('def-corner-text')?.value || ""
         };
-
         const tacticRef = ref(db, `tactics/${this.matchId}`);
         set(tacticRef, this.valgtLag)
             .then(() => alert("Hele kampplanen er lagret!"))
@@ -286,7 +263,6 @@ const TaktikkModul = {
         if (!this.valgtLag.lineup) this.valgtLag.lineup = {};
         this.valgtLag.lineup[index] = playerId;
         this.oppdaterBenken();
-        
         if (this.matchId) {
             const lineupRef = ref(db, `tactics/${this.matchId}/lineup`);
             set(lineupRef, this.valgtLag.lineup);
@@ -311,7 +287,15 @@ const TaktikkModul = {
         posisjoner.forEach((p, index) => {
             const node = document.createElement('div');
             node.className = 'player-node'; 
-            node.style.cursor = 'grab';
+            
+            // Fikser sirkulær form i koden (bredde=høyde)
+            node.style.width = '55px';
+            node.style.height = '55px';
+            node.style.borderRadius = '50%';
+            node.style.display = 'flex';
+            node.style.flexDirection = 'column';
+            node.style.alignItems = 'center';
+            node.style.justifyContent = 'center';
 
             const custom = this.valgtLag.customPositions?.[fase]?.[index];
             node.style.top = `${custom ? custom.top : p.top}%`;
@@ -322,27 +306,29 @@ const TaktikkModul = {
             
             if (p.id.includes("GK")) {
                 node.style.backgroundColor = "#e67e22";
-                node.style.borderColor = "#fff";
             }
 
             let innholdHTML = "";
             
+            // Bruker Posisjonsnummer (index + 1) i stedet for initialer
+            const posNummer = index + 1;
+
             if (valgtSpiller) {
                 const navn = valgtSpiller.navn || valgtSpiller.name;
-                const initialer = this.formaterInitialer(navn);
                 const etternavn = navn.split(' ').pop();
                 
                 innholdHTML = `
-                    <div class="player-initials" style="pointer-events: none;">${initialer}</div>
-                    <div class="player-full-name" style="pointer-events: none;">${etternavn}</div>
+                    <div class="player-initials" style="pointer-events: none; font-size: 16px;">${posNummer}</div>
+                    <div class="player-full-name" style="pointer-events: none; font-size: 8px;">${etternavn}</div>
                 `;
             } else {
                 node.classList.add('empty');
-                innholdHTML = `<div class="player-initials" style="opacity: 0.7; pointer-events: none;">${p.id}</div>`;
+                innholdHTML = `<div class="player-initials" style="opacity: 0.7; pointer-events: none;">${posNummer}</div>`;
             }
 
             if (fase === "424") {
-                let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white; position: relative; z-index: 10;">
+                let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" 
+                    style="width: 75px; font-size: 9px; position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); z-index: 10;">
                     <option value="">-- Ledig --</option>`;
                 
                 tropp.forEach(s => {
