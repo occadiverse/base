@@ -18,7 +18,6 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
-    // Hent alle unike datoer og sorter dem kronologisk (Eldst til nyest for oversikt)
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
@@ -28,11 +27,9 @@ onValue(ref(db, '/'), (snapshot) => {
     updateMonthDropdown();
     renderMatrix();
     
-    // Rull til dagens dato etter første innlasting
     setTimeout(scrollToCurrentDate, 300);
 });
 
-// --- LYTT SPESIFIKT TIL OPPMØTE-ENDRINGER FOR SANNTIDS-SYNC ---
 onValue(ref(db, 'attendance'), (snapshot) => {
     const attendanceUpdated = snapshot.val() || {};
     attendanceData = attendanceUpdated;
@@ -47,7 +44,7 @@ function updateMonthDropdown() {
     dates.forEach(date => {
         const parts = date.split('-');
         if (parts.length === 3) {
-            monthsFound.add(`${parts[1]}-${parts[2]}`); // "MM-YYYY"
+            monthsFound.add(`${parts[1]}-${parts[2]}`); 
         }
     });
 
@@ -68,10 +65,6 @@ function updateMonthDropdown() {
     
     monthFilter.innerHTML = filterHTML;
 
-    // Logikk for standardvalg:
-    // 1. Behold gammelt valg hvis det fortsatt finnes
-    // 2. Hvis ikke, velg inneværende måned hvis den finnes
-    // 3. Fallback til siste måned i lista
     if (previousSelection && Array.from(monthFilter.options).some(opt => opt.value === previousSelection)) {
         monthFilter.value = previousSelection;
     } else if (monthsFound.has(currentMonthYear)) {
@@ -82,12 +75,10 @@ function updateMonthDropdown() {
 // --- AUTO-FOKUS (SCROLL) ---
 function scrollToCurrentDate() {
     if (!scrollContainer) return;
-
     const todayISO = new Date().toISOString().split('T')[0];
     const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
     let target = null;
 
-    // Finn kolonnen som er i dag eller nærmest fram i tid
     for (let th of headers) {
         if (th.dataset.date >= todayISO) {
             target = th;
@@ -96,11 +87,7 @@ function scrollToCurrentDate() {
     }
 
     if (target) {
-        target.scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center',
-            block: 'nearest'
-        });
+        target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
 }
 
@@ -116,23 +103,21 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (Datoer)
+    // 1. Headere (Oppdatert med stabel-design)
     let headerRow = `<tr><th class="name-col">Spiller</th>`;
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
-        
-        // Konverter DD-MM-YYYY til ISO for data-attributt
         const isoDate = date.split('-').reverse().join('-');
         
         headerRow += `
             <th data-date="${isoDate}">
-                <div style="font-size: 0.85rem; white-space: nowrap;">${date.substring(0, 5)}</div>
-                <div class="day-type ${typeClass}">${type.charAt(0)}</div>
-                <div style="margin-top: 8px;">
-                    <button class="action-btn btn-delete" style="width: 24px; height: 24px; font-size: 0.7rem;" onclick="window.deleteDate('${date}')">
-                        <i class="fa-solid fa-trash"></i>
+                <div class="header-content">
+                    <span class="header-date">${date.substring(0, 5)}</span>
+                    <div class="day-type ${typeClass}">${type.charAt(0)}</div>
+                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
             </th>`;
@@ -156,9 +141,7 @@ function renderMatrix() {
             const dateData = attendanceData[date] || {};
             const status = dateData[pId] || '';
             row += `<td class="attendance-cell" data-date="${date}" data-player="${pId}" onclick="window.toggleStatus('${date}', '${pId}', '${status}')" 
-                        style="cursor:pointer; transition: background 0.1s;"
-                        onmouseover="this.style.background='#f8f9fa'" 
-                        onmouseout="this.style.background='transparent'">
+                        style="cursor:pointer; transition: background 0.1s;">
                         ${getStatusIcon(status)}
                     </td>`;
         });
@@ -171,7 +154,6 @@ function renderMatrix() {
 // --- GLOBALE FUNKSJONER ---
 window.filterByMonth = (monthValue) => {
     renderMatrix();
-    // Ved manuelt bytte av måned ruller vi til starten av tabellen eller dagens dato
     setTimeout(scrollToCurrentDate, 100);
 };
 
@@ -183,24 +165,19 @@ function getStatusIcon(status) {
 
 window.toggleStatus = (date, pId, currentStatus) => {
     const nextStatus = currentStatus === 'K' ? '' : 'K';
-    
-    // Legg til visual feedback
     const cell = document.querySelector(`[data-date="${date}"][data-player="${pId}"]`);
     if (cell) {
         cell.style.opacity = '0.6';
         cell.style.transform = 'scale(0.95)';
     }
     
-    // Oppdater Firebase
     update(ref(db, `attendance/${date}`), { [pId]: nextStatus }).then(() => {
-        // Fjern visual feedback etter oppdatering
         if (cell) {
             cell.style.opacity = '1';
             cell.style.transform = 'scale(1)';
         }
     }).catch((error) => {
         console.error('Feil ved oppdatering:', error);
-        // Reverter visual feedback ved feil
         if (cell) {
             cell.style.opacity = '1';
             cell.style.transform = 'scale(1)';
@@ -209,19 +186,19 @@ window.toggleStatus = (date, pId, currentStatus) => {
 };
 
 window.deleteDate = (date) => {
-    if (confirm(`Slette ${date}?`)) {
+    if (confirm(`Er du sikker på at du vil slette hele dagen ${date}?`)) {
         remove(ref(db, `attendance/${date}`));
     }
 };
 
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const rawDate = document.getElementById('eventDate').value; // YYYY-MM-DD
+    const rawDate = document.getElementById('eventDate').value; 
     const type = document.getElementById('eventType').value;
     if (!rawDate) return;
 
     const parts = rawDate.split('-');
-    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
+    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; 
 
     set(ref(db, `attendance/${formattedDate}/info`), {
         type: type,
