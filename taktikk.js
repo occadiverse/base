@@ -110,7 +110,6 @@ const TaktikkModul = {
         let isDragging = false;
 
         const startDragging = (e) => {
-            // STRENG SJEKK: Hvis vi treffer SELECT eller dens innhold, avbryt dragging umiddelbart
             if (e.target.tagName === 'SELECT' || e.target.closest('select')) {
                 isDragging = false;
                 return;
@@ -122,11 +121,11 @@ const TaktikkModul = {
             node.style.transition = 'none';
         };
 
-       const moveNode = (e) => {
-            if (!isDragging) return; // Hvis vi ikke drar, la nettleseren håndtere eventet (scrolling fungerer)
+        const moveNode = (e) => {
+            if (!isDragging) return;
 
-            // Hvis vi faktisk drar en spiller, hindrer vi scrolling
-            if (e.touches) e.preventDefault(); 
+            // Hindrer scrolling KUN hvis vi faktisk drar en spiller
+            if (e.cancelable) e.preventDefault();
 
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -333,7 +332,6 @@ const TaktikkModul = {
                 const initialer = this.formaterInitialer(navn);
                 const etternavn = navn.split(' ').pop();
                 
-                // POINTER-EVENTS: NONE gjør at navnene ikke "stjeler" klikket fra brikken (håndtaket)
                 innholdHTML = `
                     <div class="player-initials" style="pointer-events: none;">${initialer}</div>
                     <div class="player-full-name" style="pointer-events: none;">${etternavn}</div>
@@ -344,7 +342,6 @@ const TaktikkModul = {
             }
 
             if (fase === "424") {
-                // Her prioriteres select-menyen hvis man trykker direkte på den
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" style="width: 90%; font-size: 9px; margin-top: 4px; border: none; border-radius: 4px; background: white; position: relative; z-index: 10;">
                     <option value="">-- Ledig --</option>`;
                 
