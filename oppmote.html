@@ -30,10 +30,11 @@
             line-height: 1.5;
         }
 
+        /* GJENOPPRETTET FILTER BAR STYLING */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
-            padding: 20px 25px;
+            padding: 15px 25px;
             margin-bottom: 25px;
             box-shadow: var(--shadow);
             display: flex;
@@ -41,7 +42,39 @@
             gap: 15px;
         }
 
-        /* TABELL STYLING - FORBEDRET FOR STICKY OG SORTERING */
+        .filter-bar label {
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-bar label i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .custom-select-wrapper {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .select-input-clean {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--white);
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* TABELL STYLING - TILPASSET NAVNEBREDE */
         .table-container {
             background: var(--white);
             border-radius: 12px;
@@ -51,7 +84,7 @@
 
         table {
             width: 100%;
-            border-collapse: separate; /* Nødvendig for sticky border */
+            border-collapse: separate;
             border-spacing: 0;
         }
 
@@ -60,7 +93,6 @@
             border-right: 1px solid var(--border-color);
         }
 
-        /* Header-styling */
         th {
             background: #f8f9fa;
             padding: 10px;
@@ -70,32 +102,30 @@
             box-sizing: border-box;
         }
 
-        /* Låst navnekolonne */
+        /* NAVNEKOLONNE - DYNAMISK BREDDE */
         .name-col {
             position: sticky;
             left: 0;
             background: #f8f9fa;
             z-index: 10;
-            min-width: 180px;
-            max-width: 180px;
+            min-width: 130px; /* Redusert siden vi bruker fornavn + initial */
             border-right: 2px solid #ddd !important; 
             text-align: left;
-            padding-left: 12px;
-            padding-right: 8px;
+            padding: 0 12px;
         }
 
         th.name-col {
             background: #f8f9fa;
-            display: table-cell; /* Tvinger den til å oppføre seg som en th */
+            display: table-cell;
         }
 
-        /* Wrapper for navn og sum */
         .player-info-wrapper {
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            gap: 8px;
+            gap: 10px;
+            padding: 10px 0;
         }
 
         .player-name {
@@ -103,11 +133,8 @@
             color: var(--text-main);
             font-size: 0.95rem;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        /* Den blå sum-boksen */
         .attendance-badge {
             background: #3498db;
             color: white;
@@ -121,7 +148,6 @@
             box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
         }
 
-        /* Innhold i dato-headere */
         .header-content {
             display: flex;
             flex-direction: column;
@@ -158,12 +184,6 @@
             font-size: 10px;
             cursor: pointer;
             transition: 0.2s;
-            padding: 2px;
-        }
-
-        .btn-delete-header:hover {
-            color: var(--danger);
-            transform: scale(1.2);
         }
 
         td {
@@ -213,7 +233,8 @@
         }
 
         @media (max-width: 768px) {
-            .name-col { min-width: 140px; max-width: 140px; font-size: 0.85rem; }
+            .name-col { min-width: 110px; padding: 0 8px; }
+            .player-name { font-size: 0.85rem; }
             .oppmote-hero { padding: 25px; }
         }
     </style>
@@ -240,11 +261,11 @@
     <div class="filter-bar">
         <label for="monthFilter">
             <i class="fa-solid fa-calendar"></i>
-            Måned:
+            Filtrer etter måned:
         </label>
         <div class="custom-select-wrapper">
             <select id="monthFilter" class="select-input-clean" onchange="window.filterByMonth(this.value)">
-                <option value="Alle">Hele sesongen</option>
+                <option value="Alle">Hele sesongen (Vis alle)</option>
                 <option value="0">Januar</option>
                 <option value="1">Februar</option>
                 <option value="2">Mars</option>
