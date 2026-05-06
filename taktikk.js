@@ -9,20 +9,20 @@ const TaktikkModul = {
     databaseKopi: null,
     matchId: new URLSearchParams(window.location.search).get('matchId'),
 
-    // Oppdatert konfigurasjon med klassisk nummersystem 1-11
+    // Konfigurasjon sortert 1-11 (Klassiske posisjoner)
     konfigurasjon: {
         "424": [
-            { id: "GK", top: 96, left: 50 },  // 1
-            { id: "HB", top: 83, left: 85 },  // 2
-            { id: "VB", top: 83, left: 15 },  // 3
-            { id: "HS", top: 92, left: 65 },  // 4
-            { id: "VS", top: 92, left: 35 },  // 5
-            { id: "DM", top: 72, left: 40 },  // 6
-            { id: "HK", top: 50, left: 92 },  // 7
-            { id: "OM", top: 72, left: 60 },  // 8
-            { id: "SP", top: 45, left: 42 },  // 9
-            { id: "PM", top: 45, left: 58 },  // 10
-            { id: "VK", top: 50, left: 8 }    // 11
+            { id: "GK", top: 96, left: 50 },  // 1: Keeper
+            { id: "HB", top: 83, left: 85 },  // 2: Høyreback
+            { id: "VB", top: 83, left: 15 },  // 3: Venstreback
+            { id: "HS", top: 92, left: 65 },  // 4: Høyre stopper
+            { id: "VS", top: 92, left: 35 },  // 5: Venstre stopper
+            { id: "DM", top: 72, left: 40 },  // 6: Defensiv midtbane
+            { id: "HK", top: 50, left: 92 },  // 7: Høyre kant
+            { id: "OM", top: 72, left: 60 },  // 8: Sentral midtbane
+            { id: "SP", top: 45, left: 42 },  // 9: Spiss (H)
+            { id: "PM", top: 45, left: 58 },  // 10: Spiss (V)
+            { id: "VK", top: 50, left: 8 }    // 11: Venstre kant
         ],
         "2323": [
             { id: "GK", top: 88, left: 50 },
@@ -94,13 +94,9 @@ const TaktikkModul = {
         const filterButtons = document.querySelectorAll('.filter-bar .tab-btn');
         let targetBtn = null;
         filterButtons.forEach(btn => {
-            if (btn.getAttribute('onclick').includes(`'${faseId}'`)) {
-                targetBtn = btn;
-            }
+            if (btn.getAttribute('onclick').includes(`'${faseId}'`)) targetBtn = btn;
         });
-        if (targetBtn) {
-            this.byttFase(faseId, targetBtn);
-        }
+        if (targetBtn) this.byttFase(faseId, targetBtn);
         document.getElementById('pitch').scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
 
@@ -211,9 +207,7 @@ const TaktikkModul = {
     },
 
     oppdaterBytteTid: function(spillerId, tid) {
-        if (!this.valgtLag.subPlan || typeof this.valgtLag.subPlan === 'string') {
-            this.valgtLag.subPlan = {};
-        }
+        if (!this.valgtLag.subPlan || typeof this.valgtLag.subPlan === 'string') this.valgtLag.subPlan = {};
         this.valgtLag.subPlan[spillerId] = tid;
     },
 
@@ -274,21 +268,16 @@ const TaktikkModul = {
         const pitchContainer = document.getElementById('pitch');
         if (!layer || !pitchContainer) return;
 
-        pitchContainer.style.setProperty('transform', 'none', 'important');
-        pitchContainer.style.setProperty('transition', 'none', 'important');
-        pitchContainer.style.setProperty('transform-origin', 'initial', 'important');
-
+        layer.innerHTML = ''; 
         const tropp = this.hentAktuellTropp();
         const posisjoner = this.konfigurasjon[fase];
         const lineup = this.valgtLag.lineup || {};
-
-        layer.innerHTML = ''; 
 
         posisjoner.forEach((p, index) => {
             const node = document.createElement('div');
             node.className = 'player-node'; 
             
-            // Fikser sirkulær form i koden (bredde=høyde)
+            // Fikser sirkulær form direkte i stilen
             node.style.width = '55px';
             node.style.height = '55px';
             node.style.borderRadius = '50%';
@@ -303,20 +292,14 @@ const TaktikkModul = {
 
             const lagretId = lineup[index] || "";
             const valgtSpiller = tropp.find(s => s.id === lagretId);
-            
-            if (p.id.includes("GK")) {
-                node.style.backgroundColor = "#e67e22";
-            }
+            if (p.id.includes("GK")) node.style.backgroundColor = "#e67e22";
 
             let innholdHTML = "";
-            
-            // Bruker Posisjonsnummer (index + 1) i stedet for initialer
             const posNummer = index + 1;
 
             if (valgtSpiller) {
                 const navn = valgtSpiller.navn || valgtSpiller.name;
                 const etternavn = navn.split(' ').pop();
-                
                 innholdHTML = `
                     <div class="player-initials" style="pointer-events: none; font-size: 16px;">${posNummer}</div>
                     <div class="player-full-name" style="pointer-events: none; font-size: 8px;">${etternavn}</div>
@@ -330,7 +313,6 @@ const TaktikkModul = {
                 let selectHTML = `<select onchange="TaktikkModul.lagreValg(${index}, this.value)" 
                     style="width: 75px; font-size: 9px; position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); z-index: 10;">
                     <option value="">-- Ledig --</option>`;
-                
                 tropp.forEach(s => {
                     const isSelected = s.id === lagretId ? "selected" : "";
                     selectHTML += `<option value="${s.id}" ${isSelected}>${s.navn || s.name}</option>`;
