@@ -18,7 +18,6 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
-    // Hent datoer og sorter kronologisk
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
@@ -31,7 +30,6 @@ onValue(ref(db, '/'), (snapshot) => {
     setTimeout(scrollToCurrentDate, 300);
 });
 
-// Lytt til endringer i oppmøte
 onValue(ref(db, 'attendance'), (snapshot) => {
     const attendanceUpdated = snapshot.val() || {};
     attendanceData = attendanceUpdated;
@@ -128,7 +126,7 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // 2. Telling og Sortering (T + K slått sammen)
+    // 2. Telling, Sortering og Navneforkortelse
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, p]) => {
@@ -136,7 +134,17 @@ function renderMatrix() {
             const totalCount = Object.values(attendanceData).reduce((acc, curr) => {
                 return acc + (curr[id] === 'K' ? 1 : 0);
             }, 0);
-            return { id, ...p, totalCount };
+
+            // LOGIKK FOR NAVNEFORKORTELSE: "Ole Nordmann" -> "Ole N."
+            const navneDeler = p.navn.trim().split(' ');
+            let kortNavn = p.navn;
+            if (navneDeler.length > 1) {
+                const fornavn = navneDeler[0];
+                const etternavnInitial = navneDeler[navneDeler.length - 1].charAt(0);
+                kortNavn = `${fornavn} ${etternavnInitial}.`;
+            }
+
+            return { id, navn: kortNavn, totalCount };
         })
         .sort((a, b) => {
             // Sorter etter oppmøte (høyest først)
