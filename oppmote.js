@@ -18,6 +18,7 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
+    // Hent datoer og sorter kronologisk
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
@@ -30,6 +31,7 @@ onValue(ref(db, '/'), (snapshot) => {
     setTimeout(scrollToCurrentDate, 300);
 });
 
+// Lytt til endringer i oppmøte
 onValue(ref(db, 'attendance'), (snapshot) => {
     const attendanceUpdated = snapshot.val() || {};
     attendanceData = attendanceUpdated;
@@ -103,15 +105,13 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (Oppdatert med mellomrom i dato og Spiller-header struktur)
+    // 1. Headere
     let headerRow = `<tr><th class="name-col"><span>Spiller</span></th>`;
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         const isoDate = date.split('-').reverse().join('-');
-        
-        // Fjerner bindestrek fra datoen (f.eks "06-05" blir "06 05")
         const datoOverskrift = date.substring(0, 5).replace('-', ' ');
         
         headerRow += `
@@ -119,7 +119,7 @@ function renderMatrix() {
                 <div class="header-content">
                     <span class="header-date">${datoOverskrift}</span>
                     <div class="day-type ${typeClass}">${type.charAt(0)}</div>
-                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">
+                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -128,23 +128,40 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // 2. Rader (Spillere)
+    // 2. Telling og Sortering (T + K slått sammen)
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
-        .sort((a, b) => a[1].navn.localeCompare(b[1].navn, 'nb'));
+        .map(([id, p]) => {
+            // Tell totalt antall 'K' for denne spilleren
+            const totalCount = Object.values(attendanceData).reduce((acc, curr) => {
+                return acc + (curr[id] === 'K' ? 1 : 0);
+            }, 0);
+            return { id, ...p, totalCount };
+        })
+        .sort((a, b) => {
+            // Sorter etter oppmøte (høyest først)
+            if (b.totalCount !== a.totalCount) {
+                return b.totalCount - a.totalCount;
+            }
+            // Sorter alfabetisk hvis likt
+            return a.navn.localeCompare(b.navn, 'nb');
+        });
 
+    // 3. Rader
     let bodyHTML = '';
-    sortedPlayers.forEach(([pId, pData]) => {
+    sortedPlayers.forEach((p) => {
         let row = `<tr>
-            <td class="name-col text-left">
-                <span style="color: var(--text-main); font-weight: 600;">${pData.navn}</span>
+            <td class="name-col">
+                <div class="player-info-wrapper">
+                    <span class="player-name">${p.navn}</span>
+                    <span class="attendance-badge">${p.totalCount}</span>
+                </div>
             </td>`;
         
         filteredDates.forEach(date => {
             const dateData = attendanceData[date] || {};
-            const status = dateData[pId] || '';
-            row += `<td class="attendance-cell" data-date="${date}" data-player="${pId}" onclick="window.toggleStatus('${date}', '${pId}', '${status}')" 
-                        style="cursor:pointer; transition: background 0.1s;">
+            const status = dateData[p.id] || '';
+            row += `<td class="attendance-cell" data-date="${date}" data-player="${p.id}" onclick="window.toggleStatus('${date}', '${p.id}', '${status}')">
                         ${getStatusIcon(status)}
                     </td>`;
         });
@@ -169,6 +186,7 @@ function getStatusIcon(status) {
 window.toggleStatus = (date, pId, currentStatus) => {
     const nextStatus = currentStatus === 'K' ? '' : 'K';
     const cell = document.querySelector(`[data-date="${date}"][data-player="${pId}"]`);
+    
     if (cell) {
         cell.style.opacity = '0.6';
         cell.style.transform = 'scale(0.95)';
