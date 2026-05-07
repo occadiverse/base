@@ -77,7 +77,7 @@
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
         }
 
-        /* MODAL STYLING (SYNKRONISERT) */
+        /* MODAL STYLING */
         .modal {
             display: none;
             position: fixed;
@@ -108,10 +108,49 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .modal-header h3 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-main);
+        /* UTVIDBAR SPILLERLISTE FIX */
+        #matchPlayerList {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+        }
+
+        #matchPlayerList.show {
+            max-height: 1000px; /* Stor nok verdi for å romme listen */
+            opacity: 1;
+            margin-top: 15px;
+            padding: 10px 5px;
+            display: grid; /* Flyttet hit for å ikke overstyre max-height: 0 */
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .modal-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+
+        .modal-action-bar:hover {
+            border-color: var(--primary);
+            background: #f1f3f5;
+        }
+
+        /* Roterer pilen når åpen */
+        .modal-action-bar.open i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .modal-action-bar i.fa-chevron-down {
+            transition: transform 0.3s ease;
         }
 
         /* FORM STYLING */
@@ -141,18 +180,9 @@
             border-radius: 8px;
             font-size: 1rem;
             font-family: inherit;
-            transition: all 0.2s;
             color: var(--text-main);
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        /* BUTTONS */
         .button-group {
             display: flex;
             gap: 12px;
@@ -178,47 +208,10 @@
             flex: 1;
         }
 
-        .btn-grow-2:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-
         .btn-danger {
             background: #ecf0f1;
             color: var(--text-main);
             flex: 1;
-        }
-
-        /* ACTIONS BARS IN INFO MODAL */
-        .modal-action-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--border-color);
-            margin-top: 10px;
-        }
-
-        .modal-action-bar:hover {
-            border-color: var(--primary);
-            background: #f1f3f5;
-        }
-
-        .close-btn {
-            background: #f1f3f5;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-muted);
         }
 
         .fab-btn {
