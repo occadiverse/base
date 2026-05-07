@@ -77,7 +77,7 @@
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
         }
 
-        /* MODAL STYLING */
+        /* MODAL SYSTEM - FELLES FOR ALLE POPUPER */
         .modal {
             display: none;
             position: fixed;
@@ -94,9 +94,14 @@
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 450px;
+            max-width: 450px; /* Standard bredde */
             width: 90%;
             animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Spesifikk bredde for info-modalen siden den har spillerlister */
+        #matchInfoModal .modal-content {
+            max-width: 550px;
         }
 
         .modal-header {
@@ -108,52 +113,14 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* UTVIDBAR SPILLERLISTE FIX */
-        #matchPlayerList {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0;
         }
 
-        #matchPlayerList.show {
-            max-height: 1000px; /* Stor nok verdi for å romme listen */
-            opacity: 1;
-            margin-top: 15px;
-            padding: 10px 5px;
-            display: grid; /* Flyttet hit for å ikke overstyre max-height: 0 */
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px;
-        }
-
-        .modal-action-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--border-color);
-            margin-top: 10px;
-        }
-
-        .modal-action-bar:hover {
-            border-color: var(--primary);
-            background: #f1f3f5;
-        }
-
-        /* Roterer pilen når åpen */
-        .modal-action-bar.open i.fa-chevron-down {
-            transform: rotate(180deg);
-        }
-
-        .modal-action-bar i.fa-chevron-down {
-            transition: transform 0.3s ease;
-        }
-
-        /* FORM STYLING */
+        /* FORM OG ELEMENTER INNE I MODALER */
         .form-stack {
             display: flex;
             flex-direction: column;
@@ -183,10 +150,52 @@
             color: var(--text-main);
         }
 
+        /* SPILLERLISTE I INFO-MODAL */
+        #matchPlayerList {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        #matchPlayerList.show {
+            max-height: 1000px;
+            opacity: 1;
+            margin-top: 15px;
+            padding: 10px 5px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        /* KNAPPER OG HANDLINGER */
+        .modal-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+
+        .modal-action-bar:hover {
+            border-color: var(--primary);
+            background: #f1f3f5;
+        }
+
+        .modal-action-bar.open i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
         .button-group {
             display: flex;
             gap: 12px;
             justify-content: flex-end;
+            margin-top: 20px;
         }
 
         .btn {
@@ -212,6 +221,25 @@
             background: #ecf0f1;
             color: var(--text-main);
             flex: 1;
+        }
+
+        .close-btn {
+            background: #f1f3f5;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #e9ecef;
+            color: var(--danger);
         }
 
         .fab-btn {
@@ -337,11 +365,11 @@
     </div>
 </div>
 
-<!-- MODAL FOR KAMPINFO -->
+<!-- MODAL FOR KAMPINFO - NÅ MED SAMME STIL -->
 <div id="matchInfoModal" class="modal">
-    <div class="modal-content" style="max-width: 550px;">
+    <div class="modal-content">
         <div class="modal-header">
-            <h3 id="infoTitle" style="margin:0;">Laster...</h3>
+            <h3 id="infoTitle">Laster...</h3>
             <button type="button" class="close-btn" onclick="closeMatchInfo()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -349,6 +377,9 @@
         <div id="matchInfoDetails"></div>
         <div id="matchPlayerList"></div>
         <div id="tacticBarContainer"></div>
+        <div class="button-group">
+            <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
+        </div>
     </div>
 </div>
 
