@@ -182,7 +182,7 @@
     </div>
 </div>
 
-<!-- MODAL FOR KAMPINFO -->
+<!-- MODAL FOR KAMPINFO - OPPDATERT MED STATS-REGISTRERING -->
 <div id="matchInfoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -191,9 +191,65 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
+        
         <div id="matchInfoDetails"></div>
         <div id="matchPlayerList"></div>
         <div id="tacticBarContainer"></div>
+
+        <!-- NY SEKSJON: Registrer Mål & Assist (Toggle) -->
+        <div id="statsEditToggle" style="margin-top: 15px;">
+            <button class="modal-action-bar" onclick="toggleStatsEdit()" style="width: 100%;">
+                <div>
+                    <i class="fa-solid fa-chart-line icon-left"></i>
+                    <span>Registrer Mål & Karakterer</span>
+                </div>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+        </div>
+
+        <!-- NY SEKSJON: Selve registreringsskjemaet (Skjult som standard) -->
+        <div id="postMatchStats" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: none;">
+            <h4 style="margin-bottom: 15px; font-size: 1rem; color: var(--text-main);">Kamprapport</h4>
+            
+            <div class="form-stack">
+                <div class="form-group">
+                    <label>Målscorer</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="goalSelect" style="flex: 1;"></select>
+                        <button type="button" class="btn" onclick="addGoal()" style="background: var(--primary); color: white; padding: 0 15px;">+</button>
+                    </div>
+                    <div id="goalListDisplay" style="margin-top: 8px; font-size: 0.9rem; color: var(--primary); font-weight: 600;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Assist</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="assistSelect" style="flex: 1;"></select>
+                        <button type="button" class="btn" onclick="addAssist()" style="background: #27ae60; color: white; padding: 0 15px;">+</button>
+                    </div>
+                    <div id="assistListDisplay" style="margin-top: 8px; font-size: 0.9rem; color: #27ae60; font-weight: 600;"></div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label style="font-weight: 600; font-size: 0.95rem; display: block; margin-bottom: 10px;">Vurdering (1 = Bra, 0 = Under pari)</label>
+                    <div id="ratingTableContainer" style="background: #f8f9fa; border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="text-align: left; border-bottom: 1px solid #ddd;">
+                                    <th style="padding: 5px;">Navn</th>
+                                    <th style="text-align: center;">OFF</th>
+                                    <th style="text-align: center;">DEF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playerRatingBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-grow-2" onclick="saveFinalMatchStats()" style="margin-top: 20px;">Lagre rapport</button>
+            </div>
+        </div>
+
         <div class="button-group">
             <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
         </div>
@@ -202,13 +258,14 @@
 
 <script type="module">
     import { db } from './firebase-config.js';
-    import { ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     window.db = db; 
     window.dbRef = ref; 
     window.dbSet = set; 
     window.dbPush = push; 
     window.dbRemove = remove; 
     window.dbOnValue = onValue;
+    window.dbUpdate = update;
 </script>
 
 <script src="navigation.js"></script>
@@ -228,6 +285,8 @@
 
     window.closeMatchInfo = () => {
         document.getElementById('matchInfoModal').style.display = 'none';
+        // Skjul stats-seksjonen igjen til neste gang
+        document.getElementById('postMatchStats').style.display = 'none';
     };
 
     window.onclick = function(event) {
