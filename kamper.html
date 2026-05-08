@@ -6,8 +6,11 @@
     <title>Kamper - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
+    <!-- Vi henter popup-stilen fra den nye fila her -->
+    <link rel="stylesheet" href="modals.css?v=1">
+    
     <style>
-        /* Synkronisert styling fra oppmote.html */
+        /* Vi beholder KUN sidestylingen her for å gjøre fila lett */
         .kamper-hero {
             background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
             border-radius: 20px;
@@ -51,7 +54,7 @@
             overflow-x: auto;
         }
 
-        .filter-bar > div {
+        .filter-bar div {
             display: flex;
             gap: 10px;
         }
@@ -77,222 +80,9 @@
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
         }
 
-        /* MODAL SYSTEM - FELLES FOR ALLE POPUPER */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-content {
-            background-color: var(--white);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 450px; 
-            width: 90%;
-            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #matchInfoModal .modal-content {
-            max-width: 550px;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .modal-header h3 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-main);
-            margin: 0;
-        }
-
-        /* FORM STYLING */
-        .form-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-main);
-            font-size: 0.95rem;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 12px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            color: var(--text-main);
-        }
-
-        /* MODAL ACTION BARS (Klikkbare barer for tropp/plan) */
-        .modal-action-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--border-color);
-            margin-top: 10px;
-        }
-
-        .modal-action-bar:hover {
-            border-color: var(--primary);
-            background: #f1f3f5;
-        }
-
-        /* FIKS: Mellomrom mellom ikon og tekst */
-        .modal-action-bar div:first-child {
-            display: flex;
-            align-items: center;
-        }
-
-        .modal-action-bar i.fa-solid, 
-        .modal-action-bar i.fa-regular,
-        .modal-action-bar i.icon-left {
-            margin-right: 12px; /* Plass mellom ikon og tekst */
-            color: var(--primary);
-            width: 20px; /* Sørger for at teksten starter på samme linje */
-            text-align: center;
-            font-size: 1.1rem;
-        }
-
-        .modal-action-bar span {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
-
-        .modal-action-bar.open i.fa-chevron-down {
-            transform: rotate(180deg);
-        }
-
-        .modal-action-bar i.fa-chevron-down {
-            transition: transform 0.3s ease;
-            color: var(--text-muted);
-        }
-
-        /* SPILLERLISTE */
-        #matchPlayerList {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-        }
-
-        #matchPlayerList.show {
-            max-height: 1000px;
-            opacity: 1;
-            margin-top: 15px;
-            padding: 10px 5px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px;
-        }
-
-        /* KNAPPER */
-        .button-group {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-grow-2 {
-            background: var(--primary);
-            color: white;
-            flex: 1;
-        }
-
-        .btn-danger {
-            background: #ecf0f1;
-            color: var(--text-main);
-            flex: 1;
-        }
-
-        .close-btn {
-            background: #f1f3f5;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: 0.2s;
-        }
-
-        .close-btn:hover {
-            background: #e9ecef;
-            color: var(--danger);
-        }
-
-        .fab-btn {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
-            z-index: 1000;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
         @media (max-width: 768px) {
-            .modal-content { width: 95%; padding: 20px; }
+            .kamper-hero { padding: 30px; }
+            .kamper-hero h2 { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -343,6 +133,7 @@
     <i class="fa-solid fa-plus"></i>
 </button>
 
+<!-- MODAL FOR REGISTRERING -->
 <div id="matchModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -391,6 +182,7 @@
     </div>
 </div>
 
+<!-- MODAL FOR KAMPINFO -->
 <div id="matchInfoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
