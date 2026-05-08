@@ -2,6 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const matchTableBody = document.getElementById('matchTableBody');
     const matchForm = document.getElementById('matchForm');
 
+    // --- GLOBALE VARIABLER FOR STATS ---
+    let allMatches = []; 
+    let currentView = 'kommende';
+    let currentMatchGoals = [];
+    let currentMatchAssists = [];
+    let currentTroopNames = []; // Holder på navnene til de påmeldte for dropdowns
+
     // --- MODAL KONTROLL ---
     window.openMatchModal = () => {
         document.getElementById('modalTitle').innerText = 'Registrer kamp';
@@ -16,12 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.closeMatchInfo = () => {
         document.getElementById('matchInfoModal').style.display = 'none';
+        document.getElementById('postMatchStats').style.display = 'none'; // Skjul stats ved lukk
     };
 
     // --- LOGIKK FOR FANER (Kommende/Tidligere) ---
-    let allMatches = []; 
-    let currentView = 'kommende';
-
     window.switchView = (view) => {
         currentView = view;
         const btnKommende = document.getElementById('btnKommende');
@@ -79,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>
                         <div style="background:rgba(0,0,0,0.04); padding:4px 10px; border-radius:6px; font-weight:800; display:inline-block;">
-                            ${match.result}
+                            ${match.result || '-'}
                         </div>
                     </td>
                     <td style="font-size:0.9em; color:var(--text-muted);">${match.pitch}</td>
@@ -101,8 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- VIS KAMP-INFO OG SPILLERE (MED ACTION BARS) ---
+    // --- VIS KAMP-INFO OG SPILLERE ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
+        // Viktig: Lagre ID i det skjulte feltet så stats vet hvilken kamp det gjelder
+        document.getElementById('editMatchId').value = id;
+
         const playerListUl = document.getElementById('matchPlayerList');
         const infoTitle = document.getElementById('infoTitle');
         const detailsDiv = document.getElementById('matchInfoDetails');
@@ -113,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         infoTitle.innerText = opponent;
 
-        // 1. Info-boks og Tropp-header (detailsDiv)
         detailsDiv.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -125,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
                 </div>
             </div>
-            
             <div class="modal-action-bar" id="toggleTropp">
                 <div style="display: flex; align-items: center;">
                     <i class="fa-solid fa-users icon-left"></i>
@@ -136,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // 2. Kampplan-bar (tacticBarContainer - ligger etter playerList i HTML)
         tacticContainer.innerHTML = `
             <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px;">
                 <div style="display: flex; align-items: center;">
@@ -147,18 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        const modalFooter = document.querySelector('#matchInfoModal .button-group');
-        if (modalFooter) {
-            modalFooter.innerHTML = '';
-            modalFooter.style.display = 'none';
-        }
-
-        // Reset spillerliste-visning
         playerListUl.classList.remove('show');
         const toggleBtn = document.getElementById('toggleTropp');
-        toggleBtn.classList.remove('open');
-        playerListUl.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted); text-align: center; padding: 20px;">Henter spillere...</div>';
-
         toggleBtn.onclick = () => {
             toggleBtn.classList.toggle('open');
             playerListUl.classList.toggle('show');
@@ -172,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // --- HENTING AV SPILLERE ---
+        // Hent spillere og lagre i currentTroopNames for stats-bruk
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const root = snapshot.val();
             const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
@@ -192,6 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 list.sort((a, b) => a.localeCompare(b, 'nb'));
             }
 
+            currentTroopNames = list; // Lagre troppen globalt for dropdown-bruk
+            
             const pille = document.getElementById('pilleAntall');
             if (pille) pille.innerText = list.length;
 
@@ -206,6 +203,97 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerListUl.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">Ingen påmeldte.</div>';
             }
         }, { onlyOnce: true });
+    };
+
+    // --- STATISTIKK LOGIKK (MÅL, ASSIST, KARAKTERER) ---
+    window.toggleStatsEdit = function() {
+        const container = document.getElementById('postMatchStats');
+        const isVisible = container.style.display === 'block';
+        if (!isVisible) {
+            container.style.display = 'block';
+            prepareStatsForm();
+        } else {
+            container.style.display = 'none';
+        }
+    };
+
+    function prepareStatsForm() {
+        if (currentTroopNames.length === 0) {
+            alert("Ingen spillere i troppen. Sjekk oppmøte-listen.");
+            document.getElementById('postMatchStats').style.display = 'none';
+            return;
+        }
+
+        const goalSelect = document.getElementById('goalSelect');
+        const assistSelect = document.getElementById('assistSelect');
+        const options = currentTroopNames.map(name => `<option value="${name}">${name}</option>`).join('');
+        
+        goalSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
+        assistSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
+
+        currentMatchGoals = [];
+        currentMatchAssists = [];
+        renderStatsBadges();
+
+        const ratingBody = document.getElementById('playerRatingBody');
+        ratingBody.innerHTML = currentTroopNames.map(name => `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px 5px; font-weight: 600;">${name}</td>
+                <td style="text-align: center;">
+                    <select class="off-rating" data-player="${name}" style="padding: 5px; border-radius: 4px;">
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </td>
+                <td style="text-align: center;">
+                    <select class="def-rating" data-player="${name}" style="padding: 5px; border-radius: 4px;">
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.addGoal = function() {
+        const name = document.getElementById('goalSelect').value;
+        if (name) { currentMatchGoals.push(name); renderStatsBadges(); }
+    };
+
+    window.addAssist = function() {
+        const name = document.getElementById('assistSelect').value;
+        if (name) { currentMatchAssists.push(name); renderStatsBadges(); }
+    };
+
+    function renderStatsBadges() {
+        document.getElementById('goalListDisplay').innerText = currentMatchGoals.length > 0 ? "Mål: " + currentMatchGoals.join(', ') : "";
+        document.getElementById('assistListDisplay').innerText = currentMatchAssists.length > 0 ? "Assist: " + currentMatchAssists.join(', ') : "";
+    }
+
+    window.saveFinalMatchStats = function() {
+        const matchId = document.getElementById('editMatchId').value;
+        if (!matchId) return;
+
+        const ratings = {};
+        document.querySelectorAll('.off-rating').forEach(el => {
+            const player = el.getAttribute('data-player');
+            ratings[player] = {
+                off: parseInt(el.value),
+                def: parseInt(document.querySelector(`.def-rating[data-player="${player}"]`).value)
+            };
+        });
+
+        const updates = {};
+        updates[`matches/${matchId}/goalScorers`] = currentMatchGoals.join(', ');
+        updates[`matches/${matchId}/assists`] = currentMatchAssists.join(', ');
+        updates[`matches/${matchId}/playerRatings`] = ratings;
+
+        window.dbUpdate(window.dbRef(window.db), updates)
+            .then(() => {
+                alert("Kamprapport lagret!");
+                document.getElementById('postMatchStats').style.display = 'none';
+            })
+            .catch(err => alert("Feil: " + err.message));
     };
 
     // --- REDIGERING OG SLETTING ---
@@ -248,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.deleteMatch = (id) => {
-        if(confirm('Er du sikker på at du vil slett denne kampen?')) {
+        if(confirm('Er du sikker på at du vil slette denne kampen?')) {
             window.dbRemove(window.dbRef(window.db, `matches/${id}`));
         }
     };
