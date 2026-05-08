@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- VIS KAMP-INFO (Mål og Assist) ---
+    // --- VIS KAMP-INFO ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
         document.getElementById('editMatchId').value = id;
         const playerListUl = document.getElementById('matchPlayerList');
@@ -240,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
         goalSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
         assistSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
 
-        // Last inn eksisterende mål og assist hvis de finnes
         currentMatchGoals = matchData?.goalScorers ? matchData.goalScorers.split(', ').filter(s => s !== "") : [];
         currentMatchAssists = matchData?.assists ? matchData.assists.split(', ').filter(s => s !== "") : [];
         renderStatsBadges();
@@ -270,15 +269,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addGoal = function() {
         const name = document.getElementById('goalSelect').value;
-        if (name) { currentMatchGoals.push(name); renderStatsBadges(); }
+        if (name) { 
+            currentMatchGoals.push(name); 
+            renderStatsBadges(); 
+            document.getElementById('goalSelect').value = "";
+        }
     };
+
     window.addAssist = function() {
         const name = document.getElementById('assistSelect').value;
-        if (name) { currentMatchAssists.push(name); renderStatsBadges(); }
+        if (name) { 
+            currentMatchAssists.push(name); 
+            renderStatsBadges(); 
+            document.getElementById('assistSelect').value = "";
+        }
     };
+
+    window.removeGoal = function(index) {
+        currentMatchGoals.splice(index, 1);
+        renderStatsBadges();
+    };
+
+    window.removeAssist = function(index) {
+        currentMatchAssists.splice(index, 1);
+        renderStatsBadges();
+    };
+
     function renderStatsBadges() {
-        document.getElementById('goalListDisplay').innerText = currentMatchGoals.length > 0 ? "Mål: " + currentMatchGoals.join(', ') : "";
-        document.getElementById('assistListDisplay').innerText = currentMatchAssists.length > 0 ? "Assist: " + currentMatchAssists.join(', ') : "";
+        const goalDisplay = document.getElementById('goalListDisplay');
+        const assistDisplay = document.getElementById('assistListDisplay');
+
+        goalDisplay.innerHTML = currentMatchGoals.map((name, index) => `
+            <span onclick="removeGoal(${index})" style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-right: 5px; margin-bottom: 5px; border: 1px solid #2e7d32; font-size: 0.85rem; font-weight: 600;">
+                ${name} <i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i>
+            </span>
+        `).join('');
+
+        assistDisplay.innerHTML = currentMatchAssists.map((name, index) => `
+            <span onclick="removeAssist(${index})" style="background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-right: 5px; margin-bottom: 5px; border: 1px solid #1565c0; font-size: 0.85rem; font-weight: 600;">
+                ${name} <i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i>
+            </span>
+        `).join('');
     }
 
     window.saveFinalMatchStats = function() {
@@ -299,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.dbUpdate(window.dbRef(window.db), updates).then(() => {
             alert("Rapport lagret!");
-            // Istedenfor reload, oppdaterer vi allMatches lokalt slik at UI-en er up to date
             const matchIndex = allMatches.findIndex(m => m.id === matchId);
             if (matchIndex !== -1) {
                 allMatches[matchIndex].goalScorers = currentMatchGoals.join(', ');
