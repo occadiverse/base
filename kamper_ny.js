@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentView = 'kommende';
     let currentMatchGoals = [];
     let currentMatchAssists = [];
-    let currentTroopNames = []; // Holder på navnene til de påmeldte for dropdowns
+    let currentTroopNames = [];
 
     // --- MODAL KONTROLL ---
     window.openMatchModal = () => {
@@ -23,15 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.closeMatchInfo = () => {
         document.getElementById('matchInfoModal').style.display = 'none';
-        document.getElementById('postMatchStats').style.display = 'none'; // Skjul stats ved lukk
+        document.getElementById('postMatchStats').style.display = 'none';
     };
 
-    // --- LOGIKK FOR FANER (Kommende/Tidligere) ---
+    // --- LOGIKK FOR FANER ---
     window.switchView = (view) => {
         currentView = view;
         const btnKommende = document.getElementById('btnKommende');
         const btnTidligere = document.getElementById('btnTidligere');
-        
         if (btnKommende && btnTidligere) {
             if (view === 'kommende') {
                 btnKommende.classList.add('active');
@@ -69,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
         filtrerteKamper.forEach(match => {
             const d = new Date(match.date);
             const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-            
             const row = `
                 <tr>
                     <td class="name-col">
@@ -106,10 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- VIS KAMP-INFO OG SPILLERE ---
+    // --- VIS KAMP-INFO (Mål og Assist) ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
         document.getElementById('editMatchId').value = id;
-
         const playerListUl = document.getElementById('matchPlayerList');
         const infoTitle = document.getElementById('infoTitle');
         const detailsDiv = document.getElementById('matchInfoDetails');
@@ -117,16 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const parts = date.split('-'); 
         const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
-        
         infoTitle.innerText = opponent;
 
-        // Finn data for denne spesifikke kampen fra allMatches
         const matchData = allMatches.find(m => m.id === id);
-        const resultText = matchData && matchData.result ? matchData.result : '-';
-        const goalsText = matchData && matchData.goalScorers ? matchData.goalScorers : '';
-        const assistsText = matchData && matchData.assists ? matchData.assists : '';
+        const resultText = matchData?.result || '-';
+        const goalsText = matchData?.goalScorers || '';
+        const assistsText = matchData?.assists || '';
 
-        // Bygg info-boksen med resultatet tydelig øverst
         let infoHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -144,52 +138,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
         `;
 
-        // Legg til Målscorere hvis det finnes data
         if (goalsText) {
-            infoHTML += `
-                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
-                        <i class="fa-solid fa-futbol" style="margin-right: 8px; color: #2ecc71;"></i> MÅL
-                    </div>
-                    <div style="font-size: 0.9rem; color: var(--text-main); padding-left: 28px;">${goalsText}</div>
-                </div>
-            `;
+            infoHTML += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-futbol" style="margin-right: 8px; color: #2ecc71;"></i> MÅL</div>
+                <div style="font-size: 0.9rem; padding-left: 28px;">${goalsText}</div></div>`;
         }
-
-        // Legg til Assist hvis det finnes data
         if (assistsText) {
-            infoHTML += `
-                <div style="margin-top: 8px;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
-                        <i class="fa-solid fa-hands-helping" style="margin-right: 8px; color: #3498db;"></i> ASSIST
-                    </div>
-                    <div style="font-size: 0.9rem; color: var(--text-main); padding-left: 28px;">${assistsText}</div>
-                </div>
-            `;
+            infoHTML += `<div style="margin-top: 8px;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-handshake" style="margin-right: 8px; color: #3498db;"></i> ASSIST</div>
+                <div style="font-size: 0.9rem; padding-left: 28px;">${assistsText}</div></div>`;
         }
 
-        infoHTML += `</div>`; // Lukk boks
-
+        infoHTML += `</div>`;
         infoHTML += `
             <div class="modal-action-bar" id="toggleTropp">
                 <div style="display: flex; align-items: center;">
                     <i class="fa-solid fa-users icon-left"></i>
-                    <span style="font-weight: 700; color: var(--text-main);">Påmeldt tropp</span>
+                    <span style="font-weight: 700;">Påmeldt tropp</span>
                     <span id="pilleAntall" style="background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
                 </div>
                 <i class="fa-solid fa-chevron-down chevron"></i>
             </div>
         `;
-
         detailsDiv.innerHTML = infoHTML;
 
         tacticContainer.innerHTML = `
             <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px;">
-                <div style="display: flex; align-items: center;">
-                    <i class="fa-solid fa-clipboard-list icon-left"></i>
-                    <span style="font-weight: 700; color: var(--text-main);">Kampplan</span>
-                </div>
-                <i class="fa-solid fa-arrow-right" style="color: var(--text-muted); font-size: 0.9rem;"></i>
+                <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list icon-left"></i><span style="font-weight: 700;">Kampplan</span></div>
+                <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
             </div>
         `;
 
@@ -213,10 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
             const enrolled = root.attendance ? root.attendance[dateKey] : null;
             const allPlayers = root.players;
-
             playerListUl.innerHTML = '';
             let list = [];
-
             if (enrolled && allPlayers) {
                 Object.entries(enrolled).forEach(([pId, status]) => {
                     if (status === 'K') {
@@ -226,22 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 list.sort((a, b) => a.localeCompare(b, 'nb'));
             }
-
-            currentTroopNames = list; 
-            
-            const pille = document.getElementById('pilleAntall');
-            if (pille) pille.innerText = list.length;
-
-            if (list.length > 0) {
-                list.forEach(name => {
-                    const item = document.createElement('div');
-                    item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.9rem; color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.02);`;
-                    item.innerText = name;
-                    playerListUl.appendChild(item);
-                });
-            } else {
-                playerListUl.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">Ingen påmeldte.</div>';
-            }
+            currentTroopNames = list;
+            if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
+            list.forEach(name => {
+                const item = document.createElement('div');
+                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.9rem;`;
+                item.innerText = name;
+                playerListUl.appendChild(item);
+            });
         }, { onlyOnce: true });
     };
 
@@ -258,8 +224,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function prepareStatsForm() {
+        const matchId = document.getElementById('editMatchId').value;
+        const matchData = allMatches.find(m => m.id === matchId);
+        const savedRatings = matchData?.playerRatings || {};
+
         if (currentTroopNames.length === 0) {
-            alert("Ingen spillere i troppen. Sjekk oppmøte-listen.");
+            alert("Ingen spillere i troppen.");
             document.getElementById('postMatchStats').style.display = 'none';
             return;
         }
@@ -267,44 +237,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const goalSelect = document.getElementById('goalSelect');
         const assistSelect = document.getElementById('assistSelect');
         const options = currentTroopNames.map(name => `<option value="${name}">${name}</option>`).join('');
-        
         goalSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
         assistSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
 
-        currentMatchGoals = [];
-        currentMatchAssists = [];
+        // Last inn eksisterende mål og assist hvis de finnes
+        currentMatchGoals = matchData?.goalScorers ? matchData.goalScorers.split(', ').filter(s => s !== "") : [];
+        currentMatchAssists = matchData?.assists ? matchData.assists.split(', ').filter(s => s !== "") : [];
         renderStatsBadges();
 
         const ratingBody = document.getElementById('playerRatingBody');
-        ratingBody.innerHTML = currentTroopNames.map(name => `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 10px 5px; font-weight: 600;">${name}</td>
-                <td style="text-align: center;">
-                    <select class="off-rating" data-player="${name}" style="padding: 5px; border-radius: 4px;">
-                        <option value="1">1</option>
-                        <option value="0">0</option>
-                    </select>
-                </td>
-                <td style="text-align: center;">
-                    <select class="def-rating" data-player="${name}" style="padding: 5px; border-radius: 4px;">
-                        <option value="1">1</option>
-                        <option value="0">0</option>
-                    </select>
-                </td>
-            </tr>
-        `).join('');
+        ratingBody.innerHTML = currentTroopNames.map(name => {
+            const r = savedRatings[name] || { off: 1, def: 1 };
+            return `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 5px; font-weight: 600;">${name}</td>
+                    <td style="text-align: center;">
+                        <select class="off-rating" data-player="${name}">
+                            <option value="1" ${r.off == 1 ? 'selected' : ''}>1</option>
+                            <option value="0" ${r.off == 0 ? 'selected' : ''}>0</option>
+                        </select>
+                    </td>
+                    <td style="text-align: center;">
+                        <select class="def-rating" data-player="${name}">
+                            <option value="1" ${r.def == 1 ? 'selected' : ''}>1</option>
+                            <option value="0" ${r.def == 0 ? 'selected' : ''}>0</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     window.addGoal = function() {
         const name = document.getElementById('goalSelect').value;
         if (name) { currentMatchGoals.push(name); renderStatsBadges(); }
     };
-
     window.addAssist = function() {
         const name = document.getElementById('assistSelect').value;
         if (name) { currentMatchAssists.push(name); renderStatsBadges(); }
     };
-
     function renderStatsBadges() {
         document.getElementById('goalListDisplay').innerText = currentMatchGoals.length > 0 ? "Mål: " + currentMatchGoals.join(', ') : "";
         document.getElementById('assistListDisplay').innerText = currentMatchAssists.length > 0 ? "Assist: " + currentMatchAssists.join(', ') : "";
@@ -313,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.saveFinalMatchStats = function() {
         const matchId = document.getElementById('editMatchId').value;
         if (!matchId) return;
-
         const ratings = {};
         document.querySelectorAll('.off-rating').forEach(el => {
             const player = el.getAttribute('data-player');
@@ -322,21 +292,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 def: parseInt(document.querySelector(`.def-rating[data-player="${player}"]`).value)
             };
         });
-
         const updates = {};
         updates[`matches/${matchId}/goalScorers`] = currentMatchGoals.join(', ');
         updates[`matches/${matchId}/assists`] = currentMatchAssists.join(', ');
         updates[`matches/${matchId}/playerRatings`] = ratings;
-
-        window.dbUpdate(window.dbRef(window.db), updates)
-            .then(() => {
-                alert("Kamprapport lagret!");
-                document.getElementById('postMatchStats').style.display = 'none';
-            })
-            .catch(err => alert("Feil: " + err.message));
+        
+        window.dbUpdate(window.dbRef(window.db), updates).then(() => {
+            alert("Rapport lagret!");
+            // Istedenfor reload, oppdaterer vi allMatches lokalt slik at UI-en er up to date
+            const matchIndex = allMatches.findIndex(m => m.id === matchId);
+            if (matchIndex !== -1) {
+                allMatches[matchIndex].goalScorers = currentMatchGoals.join(', ');
+                allMatches[matchIndex].assists = currentMatchAssists.join(', ');
+                allMatches[matchIndex].playerRatings = ratings;
+            }
+            document.getElementById('postMatchStats').style.display = 'none';
+            showMatchInfo(matchId, allMatches[matchIndex].date, allMatches[matchIndex].opponent, allMatches[matchIndex].time, allMatches[matchIndex].pitch);
+        });
     };
 
-    // --- REDIGERING OG SLETTING ---
+    // --- STANDARD MODAL FUNKSJONER ---
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
         document.getElementById('editMatchId').value = id;
@@ -360,13 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
             type: document.getElementById('matchType').value,
             result: document.getElementById('result').value || '-'
         };
-
-        if (matchId) {
-            window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData).then(() => closeMatchModal());
-        } else {
-            const matchRef = window.dbPush(window.dbRef(window.db, 'matches'));
-            window.dbSet(matchRef, matchData).then(() => closeMatchModal());
-        }
+        const path = matchId ? `matches/${matchId}` : `matches/${window.dbPush(window.dbRef(window.db, 'matches')).key}`;
+        window.dbSet(window.dbRef(window.db, path), matchData).then(() => closeMatchModal());
     });
 
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
@@ -376,8 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.deleteMatch = (id) => {
-        if(confirm('Er du sikker på at du vil slette denne kampen?')) {
-            window.dbRemove(window.dbRef(window.db, `matches/${id}`));
-        }
+        if(confirm('Slette kampen?')) window.dbRemove(window.dbRef(window.db, `matches/${id}`));
     };
 });
