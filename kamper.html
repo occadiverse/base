@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     <!-- Vi henter popup-stilen fra den nye fila her -->
-    <link rel="stylesheet" href="modals.css?v=1">
+    <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
         /* Vi beholder KUN sidestylingen her for å gjøre fila lett */
@@ -182,7 +182,7 @@
     </div>
 </div>
 
-<!-- MODAL FOR KAMPINFO - OPPDATERT MED STATS-REGISTRERING -->
+<!-- MODAL FOR KAMPINFO -->
 <div id="matchInfoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -196,7 +196,7 @@
         <div id="matchPlayerList"></div>
         <div id="tacticBarContainer"></div>
 
-        <!-- NY SEKSJON: Registrer Mål & Assist (Toggle) -->
+        <!-- REGISTRER STATS TOGGLE -->
         <div id="statsEditToggle" style="margin-top: 15px;">
             <button class="modal-action-bar" onclick="toggleStatsEdit()" style="width: 100%;">
                 <div>
@@ -207,7 +207,7 @@
             </button>
         </div>
 
-        <!-- NY SEKSJON: Selve registreringsskjemaet (Skjult som standard) -->
+        <!-- STATS SKJEMA -->
         <div id="postMatchStats" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: none;">
             <h4 style="margin-bottom: 15px; font-size: 1rem; color: var(--text-main);">Kamprapport</h4>
             
@@ -232,7 +232,7 @@
 
                 <div style="margin-top: 15px;">
                     <label style="font-weight: 600; font-size: 0.95rem; display: block; margin-bottom: 10px;">Vurdering (1 = Bra, 0 = Under pari)</label>
-                    <div id="ratingTableContainer" style="background: #f8f9fa; border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">
+                    <div id="ratingTableContainer" style="background: #f8f9fa; border-radius: 8px; padding: 10px; max-height: 250px; overflow-y: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                             <thead>
                                 <tr style="text-align: left; border-bottom: 1px solid #ddd;">
@@ -265,7 +265,7 @@
     window.dbPush = push; 
     window.dbRemove = remove; 
     window.dbOnValue = onValue;
-    window.dbUpdate = update;
+    window.dbUpdate = update; // Viktig for å oppdatere stats uten å slette alt annet
 </script>
 
 <script src="navigation.js"></script>
@@ -285,7 +285,6 @@
 
     window.closeMatchInfo = () => {
         document.getElementById('matchInfoModal').style.display = 'none';
-        // Skjul stats-seksjonen igjen til neste gang
         document.getElementById('postMatchStats').style.display = 'none';
     };
 
