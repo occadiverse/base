@@ -108,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VIS KAMP-INFO OG SPILLERE ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
-        // Viktig: Lagre ID i det skjulte feltet så stats vet hvilken kamp det gjelder
         document.getElementById('editMatchId').value = id;
 
         const playerListUl = document.getElementById('matchPlayerList');
@@ -121,17 +120,57 @@ document.addEventListener('DOMContentLoaded', () => {
         
         infoTitle.innerText = opponent;
 
-        detailsDiv.innerHTML = `
+        // Finn data for denne spesifikke kampen fra allMatches
+        const matchData = allMatches.find(m => m.id === id);
+        const resultText = matchData && matchData.result ? matchData.result : '-';
+        const goalsText = matchData && matchData.goalScorers ? matchData.goalScorers : '';
+        const assistsText = matchData && matchData.assists ? matchData.assists : '';
+
+        // Bygg info-boksen med resultatet tydelig øverst
+        let infoHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <i class="fa-solid fa-calendar-day" style="color: var(--primary); width: 20px;"></i> 
-                    <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-calendar-day" style="color: var(--primary); width: 20px;"></i> 
+                        <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
+                    </div>
+                    <div style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.1rem;">
+                        ${resultText}
+                    </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <i class="fa-solid fa-location-dot" style="color: var(--primary); width: 20px;"></i> 
                     <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
                 </div>
-            </div>
+        `;
+
+        // Legg til Målscorere hvis det finnes data
+        if (goalsText) {
+            infoHTML += `
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+                        <i class="fa-solid fa-futbol" style="margin-right: 8px; color: #2ecc71;"></i> MÅL
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-main); padding-left: 28px;">${goalsText}</div>
+                </div>
+            `;
+        }
+
+        // Legg til Assist hvis det finnes data
+        if (assistsText) {
+            infoHTML += `
+                <div style="margin-top: 8px;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+                        <i class="fa-solid fa-hands-helping" style="margin-right: 8px; color: #3498db;"></i> ASSIST
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-main); padding-left: 28px;">${assistsText}</div>
+                </div>
+            `;
+        }
+
+        infoHTML += `</div>`; // Lukk boks
+
+        infoHTML += `
             <div class="modal-action-bar" id="toggleTropp">
                 <div style="display: flex; align-items: center;">
                     <i class="fa-solid fa-users icon-left"></i>
@@ -141,6 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fa-solid fa-chevron-down chevron"></i>
             </div>
         `;
+
+        detailsDiv.innerHTML = infoHTML;
 
         tacticContainer.innerHTML = `
             <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px;">
@@ -167,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // Hent spillere og lagre i currentTroopNames for stats-bruk
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const root = snapshot.val();
             const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
@@ -187,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 list.sort((a, b) => a.localeCompare(b, 'nb'));
             }
 
-            currentTroopNames = list; // Lagre troppen globalt for dropdown-bruk
+            currentTroopNames = list; 
             
             const pille = document.getElementById('pilleAntall');
             if (pille) pille.innerText = list.length;
@@ -205,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { onlyOnce: true });
     };
 
-    // --- STATISTIKK LOGIKK (MÅL, ASSIST, KARAKTERER) ---
+    // --- STATISTIKK LOGIKK ---
     window.toggleStatsEdit = function() {
         const container = document.getElementById('postMatchStats');
         const isVisible = container.style.display === 'block';
