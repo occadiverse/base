@@ -63,14 +63,15 @@
         .toggle-icon { color: #ccc; transition: transform 0.3s; }
         .stat-header.active .toggle-icon { transform: rotate(180deg); }
 
+        /* OPPDATERT: Samme tekststørrelse som resten av listen */
         .winner-display {
-            padding: 20px 0;
+            padding: 15px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--primary);
+            font-size: 0.95rem; 
+            font-weight: 600;
+            color: var(--text-main);
         }
 
         .hidden-list {
@@ -84,13 +85,13 @@
         @media (min-width: 769px) {
             .stat-header {
                 cursor: default;
-                pointer-events: none; /* Deaktiverer klikk på PC */
+                pointer-events: none;
             }
             .toggle-icon {
-                display: none; /* Skjuler pilen på PC */
+                display: none;
             }
             .hidden-list {
-                display: block !important; /* Alltid åpen på PC */
+                display: block !important;
                 border-top: 1px solid #f8f9fa;
             }
             .winner-display {
@@ -197,9 +198,10 @@
     </div>
 
     <div class="stats-grid">
+        <!-- POENGKONGEN -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listPoengContainer', this)">
-                <h3><i class="fa-solid fa-crown" style="color: #f1c40f;"></i> Poengkongen</h3>
+                <h3><i class="fa-solid fa-crown" style="color: var(--primary);"></i> Poengkongen</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerPoeng" class="winner-display"></div>
@@ -208,9 +210,10 @@
             </div>
         </div>
 
+        <!-- LAGSPILLER -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listKomplettContainer', this)">
-                <h3><i class="fa-solid fa-shield-halved" style="color: #3498db;"></i> Komplett Lagspiller</h3>
+                <h3><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Lagspiller</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerKomplett" class="winner-display"></div>
@@ -219,9 +222,10 @@
             </div>
         </div>
 
+        <!-- TRENINGSIVER -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listOppmoteContainer', this)">
-                <h3><i class="fa-solid fa-calendar-check" style="color: #2ecc71;"></i> Treningsiver</h3>
+                <h3><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Treningsiver</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerOppmote" class="winner-display"></div>
@@ -234,9 +238,7 @@
 
 <script>
     function toggleStatList(id, header) {
-        // Vi sjekker skjermbredde i JS også for sikkerhets skyld
         if (window.innerWidth > 768) return; 
-        
         const container = document.getElementById(id);
         container.classList.toggle('show');
         header.classList.toggle('active');
