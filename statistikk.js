@@ -165,14 +165,37 @@ function oppdaterLagStats(matches, statsArray, periode) {
 }
 
 function renderTopplister(statsArray) {
+    const matches = globalData.matches || {};
+    const valg = periodSelect.value;
+    
+    // Finn totalt antall spilte kamper for laget i valgt periode
+    const antallLagKamper = Object.values(matches).filter(m => {
+        if (!m.result || m.result === '-' || m.result === ' - ') return false;
+        if (valg === 'total') return true;
+        const d = new Date(m.date);
+        const kampPeriode = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+        return kampPeriode === valg;
+    }).length;
+
     const configs = [
-        { key: 'poeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' poeng', minKamper: 0 },
-        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minKamper: 2 },
-        { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minKamper: 0 }
+        { key: 'poeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' poeng', minOppmoteProsent: 0.3 },
+        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minOppmoteProsent: 0.3 },
+        { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minOppmoteProsent: 0 }
     ];
 
     configs.forEach(conf => {
-        const filtered = statsArray.filter(s => s.kamperOppmøte >= conf.minKamper);
+        // Filtrer ut de som ikke har nok kamp-oppmøte (30%)
+        const filtered = statsArray.filter(s => {
+            if (conf.minOppmoteProsent > 0) {
+                // Sikkerhetsventil: hvis laget har spilt få kamper, la folk vises uansett for å unngå tomme lister
+                if (antallLagKamper <= 1) return s.kamperOppmøte >= 1;
+                
+                const spillerKampProsent = s.kamperOppmøte / antallLagKamper;
+                return spillerKampProsent >= conf.minOppmoteProsent;
+            }
+            return true;
+        });
+
         const sorted = [...filtered].sort((a, b) => b[conf.key] - a[conf.key]).slice(0, 10);
         
         const winnerDisplay = document.getElementById(conf.winnerEl);
@@ -197,19 +220,19 @@ function renderTopplister(statsArray) {
                 </div>
             `).join('');
 
+            // Legg til/oppdater info-tekst for Lagspiller
             if (conf.key === 'komplettScore') {
                 let footer = parentCard.querySelector('.stat-footer');
                 if (!footer) {
                     footer = document.createElement('div');
-                    // Lagt til 'hidden-footer' klassen her
                     footer.className = 'stat-footer hidden-footer';
                     footer.style.cssText = "margin-top: 15px; padding-top: 10px; border-top: 1px dashed #eee; font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 8px;";
-                    footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på kampkarakter + målpoeng. Krever min. 2 kamper.`;
                     parentCard.appendChild(footer);
                 }
+                footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på kampkarakter + målpoeng. Krever min. 30% kampoppmøte.`;
             }
         } else {
-            winnerDisplay.innerHTML = '<div class="stat-row">Ingen data for denne perioden</div>';
+            winnerDisplay.innerHTML = '<div class="stat-row">Ikke nok spilte kamper for statistikk</div>';
             listDisplay.innerHTML = "";
         }
     });
