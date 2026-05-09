@@ -17,12 +17,10 @@ onValue(ref(db, '/'), (snapshot) => {
 });
 
 periodSelect.addEventListener('change', () => {
-    // Marker at brukeren har gjort et manuelt valg
     periodSelect.setAttribute('data-user-selected', 'true');
     oppdaterStatistikk();
 });
 
-// Gjør toggle-funksjonen tilgjengelig globalt for onclick i HTML
 window.toggleStatList = function(id, header) {
     if (window.innerWidth > 768) return;
     const container = document.getElementById(id);
@@ -124,10 +122,23 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             const oppmøtt = treninger + kamperOppmøte;
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
-            const jobbVerdi = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
-            const komplettScore = parseFloat((poeng * jobbVerdi) + (prosent / 100)).toFixed(2);
+            
+            // NY LOGIKK FOR LAGSPILLER:
+            // Vi bruker snittrating (0-10) som base (80% vekt) og målpoeng pr kamp som bonus (20% vekt).
+            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
+            const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
+            
+            const lagspillerScore = parseFloat((snittRating * 0.8) + (poengPerKamp * 2)).toFixed(2);
 
-            return { navn, mål, poeng, prosent, komplettScore, harRating: antallRatings > 0 };
+            return { 
+                navn, 
+                mål, 
+                poeng, 
+                prosent, 
+                komplettScore: lagspillerScore, 
+                antallRatings, // Brukes for filtrering i render
+                harRating: antallRatings > 0 
+            };
         });
 }
 
@@ -159,24 +170,33 @@ function renderTopplister(statsArray) {
             key: 'poeng', 
             winnerEl: 'winnerPoeng', 
             listEl: 'listPoengContainer', 
-            suffix: ' poeng' 
+            suffix: ' poeng',
+            minKamper: 0 
         },
         { 
             key: 'komplettScore', 
             winnerEl: 'winnerKomplett', 
             listEl: 'listKomplettContainer', 
-            suffix: '' 
+            suffix: '',
+            minKamper: 2 // Krever minst 2 kamper med rating for å vises her
         },
         { 
             key: 'prosent', 
             winnerEl: 'winnerOppmote', 
             listEl: 'listOppmoteContainer', 
-            suffix: '%' 
+            suffix: '%',
+            minKamper: 0 
         }
     ];
 
     configs.forEach(conf => {
-        const sorted = [...statsArray].sort((a, b) => b[conf.key] - a[conf.key]).slice(0, 10);
+        // Filtrerer ut de som ikke har nok kamper for den spesifikke kategorien
+        const filtered = statsArray.filter(s => {
+            if (conf.key === 'komplettScore') return s.antallRatings >= conf.minKamper;
+            return true;
+        });
+
+        const sorted = [...filtered].sort((a, b) => b[conf.key] - a[conf.key]).slice(0, 10);
         const winnerDisplay = document.getElementById(conf.winnerEl);
         const listDisplay = document.getElementById(conf.listEl);
 
@@ -184,7 +204,6 @@ function renderTopplister(statsArray) {
             const winner = sorted[0];
             const rest = sorted.slice(1);
 
-            // Nr 1 i stat-row struktur
             winnerDisplay.innerHTML = `
                 <div class="stat-row">
                     <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
@@ -192,7 +211,6 @@ function renderTopplister(statsArray) {
                 </div>
             `;
 
-            // Resten i stat-row struktur (ikke li/ul)
             listDisplay.innerHTML = rest.map((s, i) => `
                 <div class="stat-row">
                     <span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span>
