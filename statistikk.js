@@ -44,14 +44,11 @@ function genererDynamiskFilter() {
         }
     });
 
-    // Finn inneværende måned i formatet "MM-YYYY"
     const nå = new Date();
     const innevarendeMndAr = `${String(nå.getMonth() + 1).padStart(2, '0')}-${nå.getFullYear()}`;
 
-    // Sjekk hva som skal være valgt verdi
     let valgtNå = periodSelect.value;
     
-    // Hvis brukeren ikke har valgt noe manuelt ennå, og inneværende måned finnes i dataene:
     if (!periodSelect.hasAttribute('data-user-selected') && unikePerioder.has(innevarendeMndAr)) {
         valgtNå = innevarendeMndAr;
     }
@@ -67,7 +64,6 @@ function genererDynamiskFilter() {
         periodSelect.appendChild(option);
     });
 
-    // Sett verdien tilbake (enten manuelt valg eller auto-valgt måned)
     if (valgtNå) periodSelect.value = valgtNå;
 }
 
@@ -162,19 +158,19 @@ function renderTopplister(statsArray) {
         { 
             key: 'poeng', 
             winnerEl: 'winnerPoeng', 
-            listEl: 'listPoeng', 
+            listEl: 'listPoengContainer', 
             suffix: ' poeng' 
         },
         { 
             key: 'komplettScore', 
             winnerEl: 'winnerKomplett', 
-            listEl: 'listKomplett', 
+            listEl: 'listKomplettContainer', 
             suffix: '' 
         },
         { 
             key: 'prosent', 
             winnerEl: 'winnerOppmote', 
-            listEl: 'listOppmote', 
+            listEl: 'listOppmoteContainer', 
             suffix: '%' 
         }
     ];
@@ -188,21 +184,23 @@ function renderTopplister(statsArray) {
             const winner = sorted[0];
             const rest = sorted.slice(1);
 
-            // Vis vinneren (Nr 1) - nå med samme span-struktur som resten for lik tekststørrelse
+            // Nr 1 i stat-row struktur
             winnerDisplay.innerHTML = `
-                <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
-                <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
+                <div class="stat-row">
+                    <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
+                    <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
+                </div>
             `;
 
-            // Vis resten i listen (Nr 2-10)
+            // Resten i stat-row struktur (ikke li/ul)
             listDisplay.innerHTML = rest.map((s, i) => `
-                <li>
+                <div class="stat-row">
                     <span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span>
                     <span class="score-val">${s[conf.key]}${conf.suffix}</span>
-                </li>
+                </div>
             `).join('');
         } else {
-            winnerDisplay.innerHTML = "Ingen data for denne perioden";
+            winnerDisplay.innerHTML = '<div class="stat-row">Ingen data for denne perioden</div>';
             listDisplay.innerHTML = "";
         }
     });
