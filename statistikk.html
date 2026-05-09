@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Statistikk - BSK Fotball</title>
+    <title>BSK Fotball Herrer A-lag</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     <style>
-        /* Standard Hero (Lik som kamper.html/spillere.html) */
         .stats-hero-clean {
             background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
             border-radius: 20px;
@@ -19,47 +18,45 @@
         .stats-hero-clean h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
         .stats-hero-clean p { font-size: 1.1rem; opacity: 0.8; }
 
-        /* Grid for Topplister */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px; /* Mer luft i bunnen */
         }
 
         .stat-card {
             background: var(--white);
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             box-shadow: var(--shadow);
         }
 
         .stat-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             color: var(--text-main);
             border-bottom: 2px solid #f8f9fa;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
         }
 
         .top-list { list-style: none; padding: 0; margin: 0; }
         .top-list li {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 0.95rem;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1rem;
         }
         .top-list li:last-child { border-bottom: none; }
-        .rank { font-weight: 800; color: var(--primary); margin-right: 10px; width: 20px; display: inline-block; }
-        .player-name { flex: 1; font-weight: 600; }
-        .score-val { font-weight: 800; color: var(--text-main); }
+        .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
+        .player-name { flex: 1; font-weight: 600; color: #333; }
+        .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
 
-        /* Spesialfarge for vinneren */
-        .top-list li:first-child .player-name { color: var(--primary); }
+        .top-list li:first-child .player-name { color: var(--primary); font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -71,19 +68,19 @@
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 class="section-title">BSK Fotball - Analyse</h2>
+        <h2 class="section-title">Analyse</h2>
     </div>
 
     <section class="stats-hero-clean">
-        <h2>Sesongens Tall</h2>
-        <p>Her finner du oversikten over poengkonger, innsats og treningsiver.</p>
+        <h2>Sesongens Høydepunkter</h2>
+        <p>En oversikt over de som har utmerket seg på banen og treningsfeltet.</p>
     </section>
 
     <div class="filter-bar">
         <div class="centered-tools">
             <div class="tool-item">
                 <div class="custom-select-wrapper">
-                    <i class="fa-solid fa-calendar-check"></i>
+                    <i class="fa-solid fa-filter"></i>
                     <select id="statPeriodSelect" class="select-input-clean">
                         <option value="total">Total sesong</option>
                         <option value="current">Denne måneden</option>
@@ -93,41 +90,21 @@
         </div>
     </div>
 
-    <!-- TOPPLISTER (Topp 10) -->
     <div class="stats-grid">
-        <!-- POENGKONGEN -->
         <div class="stat-card">
             <h3><i class="fa-solid fa-crown" style="color: #f1c40f;"></i> Poengkongen</h3>
             <ul id="listPoeng" class="top-list"></ul>
         </div>
 
-        <!-- KOMPLETT LAGSPILLER -->
         <div class="stat-card">
-            <h3><i class="fa-solid fa-star" style="color: #3498db;"></i> Komplett Lagspiller</h3>
+            <h3><i class="fa-solid fa-shield-halved" style="color: #3498db;"></i> Komplett Lagspiller</h3>
             <ul id="listKomplett" class="top-list"></ul>
         </div>
 
-        <!-- TRENINGSIVRIG -->
         <div class="stat-card">
-            <h3><i class="fa-solid fa-fire" style="color: #e74c3c;"></i> Treningsiver</h3>
+            <h3><i class="fa-solid fa-calendar-check" style="color: #2ecc71;"></i> Treningsiver</h3>
             <ul id="listOppmote" class="top-list"></ul>
         </div>
-    </div>
-
-    <!-- FULLSTENDIG TABELL (Beholdes for de som vil se alle) -->
-    <div class="table-container">
-        <table id="statsTable">
-            <thead>
-                <tr>
-                    <th class="name-col">Spiller</th>
-                    <th>Mål</th>
-                    <th>Assist</th>
-                    <th>Jobb (snitt)</th>
-                    <th>Oppmøte %</th>
-                </tr>
-            </thead>
-            <tbody id="statsBody"></tbody>
-        </table>
     </div>
 </div>
 
