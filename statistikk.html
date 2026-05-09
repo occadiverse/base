@@ -55,7 +55,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0; /* Standard tynn linje */
             font-size: 0.95rem;
             font-weight: 600;
             color: var(--text-main);
@@ -68,8 +68,10 @@
         .player-name { flex: 1; font-weight: 600; color: #333; }
         .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
 
-        /* Sørger for at vinneren ALLTID har en linje under seg (fikser mobil-visning) */
-        #winnerPoeng, #winnerKomplett, #winnerOppmote {
+        /* Sørger for at linjen under vinneren (nr 1) er identisk med de andre */
+        #winnerPoeng .stat-row, 
+        #winnerKomplett .stat-row, 
+        #winnerOppmote .stat-row {
             border-bottom: 1px solid #f0f0f0;
         }
 
@@ -78,9 +80,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
             padding-bottom: 10px;
             border-bottom: 2px solid #f8f9fa;
+            cursor: pointer;
         }
         .stat-header h3 { font-size: 1.2rem; display: flex; align-items: center; gap: 12px; color: var(--text-main); margin: 0; }
         .toggle-icon { color: #ccc; transition: transform 0.3s; }
