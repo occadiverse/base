@@ -80,9 +80,36 @@
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
         }
 
+        /* FAB-knapp styling */
+        .fab-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            background-color: #2980b9;
+        }
+
         @media (max-width: 768px) {
             .kamper-hero { padding: 30px; }
             .kamper-hero h2 { font-size: 1.6rem; }
+            .fab-btn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
         }
     </style>
 </head>
@@ -129,6 +156,7 @@
     </div>
 </div>
 
+<!-- RUND LEGG TIL KNAPP (FAB) -->
 <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
@@ -218,7 +246,7 @@
                         <select id="goalSelect" style="flex: 1;"></select>
                         <button type="button" class="btn" onclick="addGoal()" style="background: var(--primary); color: white; padding: 0 15px;">+</button>
                     </div>
-                    <div id="goalListDisplay" style="margin-top: 8px; font-size: 0.9rem; color: var(--primary); font-weight: 600;"></div>
+                    <div id="goalListDisplay" style="margin-top: 8px; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px;"></div>
                 </div>
 
                 <div class="form-group">
@@ -227,7 +255,7 @@
                         <select id="assistSelect" style="flex: 1;"></select>
                         <button type="button" class="btn" onclick="addAssist()" style="background: #27ae60; color: white; padding: 0 15px;">+</button>
                     </div>
-                    <div id="assistListDisplay" style="margin-top: 8px; font-size: 0.9rem; color: #27ae60; font-weight: 600;"></div>
+                    <div id="assistListDisplay" style="margin-top: 8px; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px;"></div>
                 </div>
 
                 <div style="margin-top: 15px;">
@@ -265,7 +293,7 @@
     window.dbPush = push; 
     window.dbRemove = remove; 
     window.dbOnValue = onValue;
-    window.dbUpdate = update; // Viktig for å oppdatere stats uten å slette alt annet
+    window.dbUpdate = update;
 </script>
 
 <script src="navigation.js"></script>
@@ -279,8 +307,11 @@
     };
     
     window.openMatchModal = () => {
+        document.getElementById('modalTitle').innerText = 'Legg til ny kamp';
         document.getElementById('matchModal').style.display = 'flex';
-        document.getElementById('matchDate').valueAsDate = new Date();
+        // Setter dagens dato som standard
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('matchDate').value = today;
     };
 
     window.closeMatchInfo = () => {
