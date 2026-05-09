@@ -168,7 +168,6 @@ function renderTopplister(statsArray) {
     const matches = globalData.matches || {};
     const valg = periodSelect.value;
     
-    // Finn totalt antall spilte kamper for laget i valgt periode
     const antallLagKamper = Object.values(matches).filter(m => {
         if (!m.result || m.result === '-' || m.result === ' - ') return false;
         if (valg === 'total') return true;
@@ -178,18 +177,36 @@ function renderTopplister(statsArray) {
     }).length;
 
     const configs = [
-        { key: 'poeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' poeng', minOppmoteProsent: 0.3 },
-        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minOppmoteProsent: 0.3 },
-        { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minOppmoteProsent: 0 }
+        { 
+            key: 'poeng', 
+            winnerEl: 'winnerPoeng', 
+            listEl: 'listPoengContainer', 
+            suffix: ' poeng', 
+            minOppmoteProsent: 0.3,
+            info: "Sum av mål og assists. Krever min. 30% kampoppmøte."
+        },
+        { 
+            key: 'komplettScore', 
+            winnerEl: 'winnerKomplett', 
+            listEl: 'listKomplettContainer', 
+            suffix: '', 
+            minOppmoteProsent: 0.3,
+            info: "Basert på kampkarakter + målpoeng. Krever min. 30% kampoppmøte."
+        },
+        { 
+            key: 'prosent', 
+            winnerEl: 'winnerOppmote', 
+            listEl: 'listOppmoteContainer', 
+            suffix: '%', 
+            minOppmoteProsent: 0,
+            info: "Totalt oppmøte på treninger og kamper."
+        }
     ];
 
     configs.forEach(conf => {
-        // Filtrer ut de som ikke har nok kamp-oppmøte (30%)
         const filtered = statsArray.filter(s => {
             if (conf.minOppmoteProsent > 0) {
-                // Sikkerhetsventil: hvis laget har spilt få kamper, la folk vises uansett for å unngå tomme lister
                 if (antallLagKamper <= 1) return s.kamperOppmøte >= 1;
-                
                 const spillerKampProsent = s.kamperOppmøte / antallLagKamper;
                 return spillerKampProsent >= conf.minOppmoteProsent;
             }
@@ -220,8 +237,8 @@ function renderTopplister(statsArray) {
                 </div>
             `).join('');
 
-            // Legg til/oppdater info-tekst for Lagspiller
-            if (conf.key === 'komplettScore') {
+            // Oppdater eller lag footer for alle kortene som har info-tekst definert
+            if (conf.info) {
                 let footer = parentCard.querySelector('.stat-footer');
                 if (!footer) {
                     footer = document.createElement('div');
@@ -229,7 +246,7 @@ function renderTopplister(statsArray) {
                     footer.style.cssText = "margin-top: 15px; padding-top: 10px; border-top: 1px dashed #eee; font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 8px;";
                     parentCard.appendChild(footer);
                 }
-                footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på kampkarakter + målpoeng. Krever min. 30% kampoppmøte.`;
+                footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> ${conf.info}`;
             }
         } else {
             winnerDisplay.innerHTML = '<div class="stat-row">Ikke nok spilte kamper for statistikk</div>';
