@@ -115,10 +115,12 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
             
-            // NY LOGIKK FOR LAGSPILLER
+            // OPPDATERT LOGIKK FOR LAGSPILLER (10-poengs skala)
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
             const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
-            const lagspillerScore = parseFloat((snittRating * 0.8) + (poengPerKamp * 2)).toFixed(2);
+            
+            // Formel: Snittrating (0-10) + bonus for målpoeng (2 poeng per poengsnitt)
+            const lagspillerScore = parseFloat(snittRating + (poengPerKamp * 2)).toFixed(2);
 
             return { 
                 navn, 
@@ -215,9 +217,8 @@ function renderTopplister(statsArray) {
                 if (!footer) {
                     footer = document.createElement('div');
                     footer.className = 'stat-footer';
-                    // Vi bruker inline style her så vi ikke trenger å endre HTML/CSS-filene dine
                     footer.style.cssText = "margin-top: 15px; padding-top: 10px; border-top: 1px dashed #eee; font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 8px;";
-                    footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på 80% kampkarakter og 20% målpoeng. Krever min. 2 kamper.`;
+                    footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på kampkarakter + målpoeng. Krever min. 2 kamper.`;
                     parentCard.appendChild(footer);
                 }
             }
