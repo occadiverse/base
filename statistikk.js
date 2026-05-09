@@ -1,12 +1,10 @@
 import { db } from './firebase-config.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-const statsBody = document.getElementById('statsBody');
 const periodSelect = document.getElementById('statPeriodSelect');
 
 let globalData = null;
 
-// --- INITIALISERING ---
 onValue(ref(db, '/'), (snapshot) => {
     globalData = snapshot.val() || {};
     oppdaterStatistikk();
@@ -23,13 +21,9 @@ function oppdaterStatistikk() {
     const valg = periodSelect.value;
 
     const stats = beregnLogikk(players, attendance, matches, valg);
-    
-    // Vi tegner både de tre topp-listene og den store tabellen
     renderTopplister(stats);
-    renderTabell(stats);
 }
 
-// --- BEREGNINGSLOGIKK ---
 function beregnLogikk(players, attendance, matches, periode) {
     const nå = new Date();
     const inneværendeMåned = nå.getMonth() + 1;
@@ -44,7 +38,7 @@ function beregnLogikk(players, attendance, matches, periode) {
 
     const totaltMulige = relevanteDatoer.length;
 
-    const resultat = Object.entries(players)
+    return Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, pData]) => {
             const navn = pData.navn || pData.name;
@@ -70,12 +64,10 @@ function beregnLogikk(players, attendance, matches, periode) {
                     const scorers = m.goalScorers.split(', ');
                     mål += scorers.filter(s => s === navn).length;
                 }
-
                 if (m.assists) {
                     const assists = m.assists.split(', ');
                     assist += assists.filter(a => a === navn).length;
                 }
-
                 if (m.playerRatings && m.playerRatings[navn]) {
                     const r = m.playerRatings[navn];
                     totalRatingScore += (Number(r.off) + Number(r.def));
@@ -88,83 +80,44 @@ function beregnLogikk(players, attendance, matches, periode) {
             const poeng = mål + assist;
             const jobbVerdi = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
 
-            // Komplett score: (Poeng * innsats) + (liten oppmøte-bonus)
+            // FORMEL: KOMPLETT LAGSPILLER
             const komplettScore = parseFloat((poeng * jobbVerdi) + (prosent / 100)).toFixed(2);
 
             return {
                 navn,
-                mål,
-                assist,
                 poeng,
-                jobbSnitt: jobbVerdi.toFixed(2),
                 prosent,
                 komplettScore,
                 harRating: antallRatings > 0
             };
         });
-
-    return resultat;
 }
 
-// --- VISNING: TOPPLISTER (Topp 10) ---
 function renderTopplister(statsArray) {
-    // 1. Poengkongen (Sortert på poeng)
+    // 1. POENGKONGRE
     const toppPoeng = [...statsArray].sort((a, b) => b.poeng - a.poeng).slice(0, 10);
-    const listPoeng = document.getElementById('listPoeng');
-    listPoeng.innerHTML = toppPoeng.map((s, i) => `
+    document.getElementById('listPoeng').innerHTML = toppPoeng.map((s, i) => `
         <li>
             <span><span class="rank">${i + 1}</span><span class="player-name">${s.navn}</span></span>
-            <span class="score-val">${s.poeng} <small>p</small></span>
+            <span class="score-val">${s.poeng} poeng</span>
         </li>
     `).join('');
 
-    // 2. Komplett Lagspiller (Sortert på komplettScore)
-    const toppKomplett = [...statsArray]
-        .filter(s => s.harRating || s.poeng > 0)
-        .sort((a, b) => b.komplettScore - a.komplettScore)
-        .slice(0, 10);
-    const listKomplett = document.getElementById('listKomplett');
-    listKomplett.innerHTML = toppKomplett.map((s, i) => `
+    // 2. KOMPLETT LAGSPILLER
+    const toppKomplett = [...statsArray].sort((a, b) => b.komplettScore - a.komplettScore).slice(0, 10);
+    document.getElementById('listKomplett').innerHTML = toppKomplett.map((s, i) => `
         <li>
             <span><span class="rank">${i + 1}</span><span class="player-name">${s.navn}</span></span>
             <span class="score-val">${s.komplettScore}</span>
         </li>
     `).join('');
 
-    // 3. Treningsiver (Sortert på prosent)
+    // 3. TRENINGSIVER
     const toppOppmote = [...statsArray].sort((a, b) => b.prosent - a.prosent).slice(0, 10);
-    const listOppmote = document.getElementById('listOppmote');
-    listOppmote.innerHTML = toppOppmote.map((s, i) => `
+    document.getElementById('listOppmote').innerHTML = toppOppmote.map((s, i) => `
         <li>
             <span><span class="rank">${i + 1}</span><span class="player-name">${s.navn}</span></span>
             <span class="score-val">${s.prosent}%</span>
         </li>
     `).join('');
-}
-
-// --- VISNING: FULL TABELL ---
-function renderTabell(statsArray) {
-    // Sorterer hovedtabellen etter poeng som standard
-    const sortertTabell = [...statsArray].sort((a, b) => b.poeng - a.poeng);
-    
-    statsBody.innerHTML = sortertTabell.map(s => `
-        <tr>
-            <td class="name-col"><strong>${s.navn}</strong></td>
-            <td style="text-align: center;">${s.mål}</td>
-            <td style="text-align: center;">${s.assist}</td>
-            <td style="text-align: center;"><span class="badge-point">${s.poeng}</span></td>
-            <td style="text-align: center;"><span class="badge-work">${s.jobbSnitt}</span></td>
-            <td class="stat-col" style="text-align: center;">
-                <span style="font-weight: 700; color: ${getFarge(s.prosent)};">
-                    ${s.prosent}%
-                </span>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function getFarge(prosent) {
-    if (prosent >= 85) return '#2ecc71'; 
-    if (prosent >= 60) return '#f39c12'; 
-    return '#e74c3c'; 
 }
