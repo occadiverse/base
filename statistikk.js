@@ -21,14 +21,6 @@ periodSelect.addEventListener('change', () => {
     oppdaterStatistikk();
 });
 
-window.toggleStatList = function(id, header) {
-    if (window.innerWidth > 768) return;
-    const container = document.getElementById(id);
-    if (!container) return;
-    container.classList.toggle('show');
-    header.classList.toggle('active');
-};
-
 function genererDynamiskFilter() {
     const attendance = globalData.attendance || {};
     const datoer = Object.keys(attendance);
@@ -123,11 +115,9 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
             
-            // NY LOGIKK FOR LAGSPILLER:
-            // Vi bruker snittrating (0-10) som base (80% vekt) og målpoeng pr kamp som bonus (20% vekt).
+            // NY LOGIKK FOR LAGSPILLER
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
             const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
-            
             const lagspillerScore = parseFloat((snittRating * 0.8) + (poengPerKamp * 2)).toFixed(2);
 
             return { 
@@ -136,7 +126,8 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 poeng, 
                 prosent, 
                 komplettScore: lagspillerScore, 
-                antallRatings, // Brukes for filtrering i render
+                antallRatings,
+                kamperOppmøte,
                 harRating: antallRatings > 0 
             };
         });
@@ -171,34 +162,34 @@ function renderTopplister(statsArray) {
             winnerEl: 'winnerPoeng', 
             listEl: 'listPoengContainer', 
             suffix: ' poeng',
-            minKamper: 0 
+            minKamper: 0
         },
         { 
             key: 'komplettScore', 
             winnerEl: 'winnerKomplett', 
             listEl: 'listKomplettContainer', 
             suffix: '',
-            minKamper: 2 // Krever minst 2 kamper med rating for å vises her
+            minKamper: 2 // Krever 2 kamper for Lagspiller
         },
         { 
             key: 'prosent', 
             winnerEl: 'winnerOppmote', 
             listEl: 'listOppmoteContainer', 
             suffix: '%',
-            minKamper: 0 
+            minKamper: 0
         }
     ];
 
     configs.forEach(conf => {
-        // Filtrerer ut de som ikke har nok kamper for den spesifikke kategorien
-        const filtered = statsArray.filter(s => {
-            if (conf.key === 'komplettScore') return s.antallRatings >= conf.minKamper;
-            return true;
-        });
-
+        // Filtrer ut de som ikke har nok spilte kamper for den aktuelle listen
+        const filtered = statsArray.filter(s => s.kamperOppmøte >= conf.minKamper);
         const sorted = [...filtered].sort((a, b) => b[conf.key] - a[conf.key]).slice(0, 10);
+        
         const winnerDisplay = document.getElementById(conf.winnerEl);
         const listDisplay = document.getElementById(conf.listEl);
+
+        // Finn stat-card for å legge til info-tekst i bunnen
+        const parentCard = winnerDisplay.closest('.stat-card');
 
         if (sorted.length > 0) {
             const winner = sorted[0];
@@ -217,6 +208,19 @@ function renderTopplister(statsArray) {
                     <span class="score-val">${s[conf.key]}${conf.suffix}</span>
                 </div>
             `).join('');
+
+            // Hvis det er Lagspiller-kortet, legg til info-tekst nederst hvis den ikke allerede er der
+            if (conf.key === 'komplettScore') {
+                let footer = parentCard.querySelector('.stat-footer');
+                if (!footer) {
+                    footer = document.createElement('div');
+                    footer.className = 'stat-footer';
+                    // Vi bruker inline style her så vi ikke trenger å endre HTML/CSS-filene dine
+                    footer.style.cssText = "margin-top: 15px; padding-top: 10px; border-top: 1px dashed #eee; font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 8px;";
+                    footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på 80% kampkarakter og 20% målpoeng. Krever min. 2 kamper.`;
+                    parentCard.appendChild(footer);
+                }
+            }
         } else {
             winnerDisplay.innerHTML = '<div class="stat-row">Ingen data for denne perioden</div>';
             listDisplay.innerHTML = "";
