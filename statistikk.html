@@ -14,7 +14,6 @@
             color: white;
             margin-bottom: 30px;
             display: grid;
-            /* Justert til 5 kolonner for å få plass til alt */
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -39,9 +38,25 @@
             line-height: 1.2;
         }
         
-        /* Spesifikk farge for de gjeveste titlene */
         #heroTopScorer { color: #2ecc71 !important; }
         #heroCompletePlayer { color: #f1c40f !important; }
+
+        /* Filter bar styling for å matche de andre sidene */
+        .filter-bar {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: center;
+        }
+
+        .centered-tools {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
         th { text-align: center !important; }
         .name-col { text-align: left !important; }
@@ -111,11 +126,12 @@
             </div>
         </div>
 
+        <!-- OPPDATERT FILTER BAR -->
         <div class="filter-bar">
             <div class="centered-tools">
                 <div class="tool-item">
                     <div class="custom-select-wrapper">
-                        <i class="fa-solid fa-filter"></i>
+                        <i class="fa-solid fa-calendar-alt"></i>
                         <select id="statPeriodSelect" class="select-input-clean">
                             <option value="total">Total sesong</option>
                             <option value="current">Denne måneden</option>
