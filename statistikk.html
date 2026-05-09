@@ -18,7 +18,6 @@
         .stats-hero-clean h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
         .stats-hero-clean p { font-size: 1.1rem; opacity: 0.8; }
 
-        /* Lag-statistikk rader - RENSKÅRET */
         .team-stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -31,7 +30,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: var(--shadow);
-            border-top: none; /* Fjernet blå ramme her */
+            border-top: none;
         }
         .team-card .label { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 700; }
         .team-card .value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
@@ -50,7 +49,7 @@
             box-shadow: var(--shadow);
         }
 
-        /* Accordion / Vis-Skjul styling */
+        /* --- ACCORDION LOGIKK (MOBIL) --- */
         .stat-header {
             display: flex;
             justify-content: space-between;
@@ -64,7 +63,6 @@
         .toggle-icon { color: #ccc; transition: transform 0.3s; }
         .stat-header.active .toggle-icon { transform: rotate(180deg); }
 
-        /* Vinner-visning (Nr 1) */
         .winner-display {
             padding: 20px 0;
             display: flex;
@@ -75,13 +73,31 @@
             color: var(--primary);
         }
 
-        /* Skjult liste (Nr 2-10) */
         .hidden-list {
             display: none;
             border-top: 1px dashed #eee;
             padding-top: 10px;
         }
         .hidden-list.show { display: block; }
+
+        /* --- PC VISNING (BREDE SKJERMER) --- */
+        @media (min-width: 769px) {
+            .stat-header {
+                cursor: default;
+                pointer-events: none; /* Deaktiverer klikk på PC */
+            }
+            .toggle-icon {
+                display: none; /* Skjuler pilen på PC */
+            }
+            .hidden-list {
+                display: block !important; /* Alltid åpen på PC */
+                border-top: 1px solid #f8f9fa;
+            }
+            .winner-display {
+                border-bottom: 1px solid #f8f9fa;
+                margin-bottom: 5px;
+            }
+        }
 
         .top-list { list-style: none; padding: 0; margin: 0; }
         .top-list li {
@@ -96,7 +112,6 @@
         .player-name { flex: 1; font-weight: 600; color: #333; }
         .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
 
-        /* Filter bar fra oppmote.html */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
@@ -161,7 +176,7 @@
         </label>
         <div class="custom-select-wrapper">
             <select id="statPeriodSelect" class="select-input-clean">
-                <option value="total">Hele sesongen (Vis alle)</option>
+                <option value="total">Hele sesongen</option>
             </select>
         </div>
     </div>
@@ -182,7 +197,6 @@
     </div>
 
     <div class="stats-grid">
-        <!-- POENGKONGEN -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listPoengContainer', this)">
                 <h3><i class="fa-solid fa-crown" style="color: #f1c40f;"></i> Poengkongen</h3>
@@ -194,7 +208,6 @@
             </div>
         </div>
 
-        <!-- KOMPLETT LAGSPILLER -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listKomplettContainer', this)">
                 <h3><i class="fa-solid fa-shield-halved" style="color: #3498db;"></i> Komplett Lagspiller</h3>
@@ -206,7 +219,6 @@
             </div>
         </div>
 
-        <!-- TRENINGSIVER -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listOppmoteContainer', this)">
                 <h3><i class="fa-solid fa-calendar-check" style="color: #2ecc71;"></i> Treningsiver</h3>
@@ -221,8 +233,10 @@
 </div>
 
 <script>
-    // Enkel funksjon for vis/skjul
     function toggleStatList(id, header) {
+        // Vi sjekker skjermbredde i JS også for sikkerhets skyld
+        if (window.innerWidth > 768) return; 
+        
         const container = document.getElementById(id);
         container.classList.toggle('show');
         header.classList.toggle('active');
