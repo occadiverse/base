@@ -93,6 +93,22 @@
         }
         .hidden-list.show { display: block; }
 
+        /* --- INFO-TEKST LOGIKK (SKJULING) --- */
+        @media (max-width: 768px) {
+            .stat-footer.hidden-footer {
+                display: none !important;
+            }
+            /* Vis kun hvis headeren over er aktiv */
+            .stat-header.active ~ .stat-footer.hidden-footer {
+                display: flex !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .stat-footer.hidden-footer {
+                display: flex !important;
+            }
+        }
+
         /* --- PC VISNING (BREDE SKJERMER) --- */
         @media (min-width: 769px) {
             .stat-header {
