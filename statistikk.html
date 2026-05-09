@@ -55,20 +55,18 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0; /* Standard tynn linje */
+            border-bottom: 1px solid #f0f0f0; 
             font-size: 0.95rem;
             font-weight: 600;
             color: var(--text-main);
         }
 
-        /* Fjerner linje på absolutt siste rad i hele kortet */
         .hidden-list .stat-row:last-child { border-bottom: none; }
 
         .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
         .player-name { flex: 1; font-weight: 600; color: #333; }
         .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
 
-        /* Sørger for at linjen under vinneren (nr 1) er identisk med de andre */
         #winnerPoeng .stat-row, 
         #winnerKomplett .stat-row, 
         #winnerOppmote .stat-row {
@@ -93,12 +91,12 @@
         }
         .hidden-list.show { display: block; }
 
-        /* --- INFO-TEKST LOGIKK (SKJULING) --- */
+        /* --- INFO-TEKST LOGIKK (SKJULING PÅ MOBIL) --- */
         @media (max-width: 768px) {
             .stat-footer.hidden-footer {
                 display: none !important;
             }
-            /* Vis kun hvis headeren over er aktiv */
+            /* Vis kun footer hvis stat-headeren i samme kort har klassen .active */
             .stat-header.active ~ .stat-footer.hidden-footer {
                 display: flex !important;
             }
@@ -211,10 +209,10 @@
             <div id="listPoengContainer" class="hidden-list"></div>
         </div>
 
-        <!-- LAGSPILLER -->
+        <!-- MVP KAMP -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listKomplettContainer', this)">
-                <h3><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Lagspiller</h3>
+                <h3><i class="fa-solid fa-trophy" style="color: var(--primary);"></i> MVP Kamp</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerKomplett"></div>
