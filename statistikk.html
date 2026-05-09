@@ -30,7 +30,6 @@
             padding: 20px;
             text-align: center;
             box-shadow: var(--shadow);
-            border-top: none;
         }
         .team-card .label { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 700; }
         .team-card .value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
@@ -49,70 +48,57 @@
             box-shadow: var(--shadow);
         }
 
+        /* --- NY RAD-STYLING (ERSTATTER UL/LI) --- */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Fjerner linje på siste rad i en blokk */
+        .stat-row:last-child { border-bottom: none; }
+
+        .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
+        .player-name { flex: 1; font-weight: 600; color: #333; }
+        .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
+
         /* --- ACCORDION LOGIKK (MOBIL) --- */
         .stat-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            padding-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 2px solid #f8f9fa;
         }
         .stat-header h3 { font-size: 1.2rem; display: flex; align-items: center; gap: 12px; color: var(--text-main); margin: 0; }
-        
         .toggle-icon { color: #ccc; transition: transform 0.3s; }
         .stat-header.active .toggle-icon { transform: rotate(180deg); }
 
-        /* OPPDATERT: Samme tekststørrelse som resten av listen */
-        .winner-display {
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem; 
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
         .hidden-list {
             display: none;
-            border-top: 1px dashed #eee;
-            padding-top: 10px;
+            /* Ingen padding eller margin her, stat-row fikser rommet */
         }
         .hidden-list.show { display: block; }
 
-        /* --- PC VISNING (BREDE SKJERMER) --- */
+        /* --- PC VISNING --- */
         @media (min-width: 769px) {
-            .stat-header {
-                cursor: default;
-                pointer-events: none;
-            }
-            .toggle-icon {
-                display: none;
-            }
-            .hidden-list {
-                display: block !important;
-                border-top: 1px solid #f8f9fa;
-            }
-            .winner-display {
-                border-bottom: 1px solid #f8f9fa;
-                margin-bottom: 0px;
+            .stat-header { cursor: default; pointer-events: none; }
+            .toggle-icon { display: none; }
+            .hidden-list { display: block !important; }
+            
+            /* På PC vil vi ha en linje mellom nr 1 og nr 2 */
+            #winnerPoeng, #winnerKomplett, #winnerOppmote {
+                border-bottom: 1px solid #f0f0f0;
             }
         }
 
-        .top-list { list-style: none; padding: 0; margin: 0; }
-        .top-list li {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 0.95rem;
-        }
-        .top-list li:last-child { border-bottom: none; }
-        .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
-        .player-name { flex: 1; font-weight: 600; color: #333; }
-        .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
-
+        /* Filter bar */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
@@ -123,16 +109,8 @@
             align-items: center;
             gap: 15px;
         }
-        .filter-bar label {
-            font-weight: 600;
-            color: var(--text-main);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .filter-bar label { font-weight: 600; color: var(--text-main); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
         .filter-bar label i { color: var(--primary); font-size: 1.1rem; }
-
         .custom-select-wrapper { flex: 1; max-width: 300px; }
         .select-input-clean {
             width: 100%;
@@ -204,10 +182,8 @@
                 <h3><i class="fa-solid fa-crown" style="color: var(--primary);"></i> Poengkongen</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
-            <div id="winnerPoeng" class="winner-display"></div>
-            <div id="listPoengContainer" class="hidden-list">
-                <ul id="listPoeng" class="top-list"></ul>
-            </div>
+            <div id="winnerPoeng"></div>
+            <div id="listPoengContainer" class="hidden-list"></div>
         </div>
 
         <!-- LAGSPILLER -->
@@ -216,10 +192,8 @@
                 <h3><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Lagspiller</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
-            <div id="winnerKomplett" class="winner-display"></div>
-            <div id="listKomplettContainer" class="hidden-list">
-                <ul id="listKomplett" class="top-list"></ul>
-            </div>
+            <div id="winnerKomplett"></div>
+            <div id="listKomplettContainer" class="hidden-list"></div>
         </div>
 
         <!-- TRENINGSIVER -->
@@ -228,10 +202,8 @@
                 <h3><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Treningsiver</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
-            <div id="winnerOppmote" class="winner-display"></div>
-            <div id="listOppmoteContainer" class="hidden-list">
-                <ul id="listOppmote" class="top-list"></ul>
-            </div>
+            <div id="winnerOppmote"></div>
+            <div id="listOppmoteContainer" class="hidden-list"></div>
         </div>
     </div>
 </div>
