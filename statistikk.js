@@ -21,7 +21,7 @@ periodSelect.addEventListener('change', () => {
     oppdaterStatistikk();
 });
 
-// Oppdatert toggle-funksjon som sikrer at footeren følger accordions tilstand
+// Sikrer at accordions og fotnoter fungerer på mobil
 window.toggleStatList = function(id, header) {
     if (window.innerWidth > 768) return;
     const container = document.getElementById(id);
@@ -124,17 +124,18 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
             
+            // MVP LOGIKK (0-10 skala basert på binær rating)
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
             const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
             
-            const lagspillerScore = parseFloat((snittRating * 7) + (poengPerKamp * 1.5)).toFixed(2);
+            const mvpScore = parseFloat((snittRating * 7) + (poengPerKamp * 1.5)).toFixed(2);
 
             return { 
                 navn, 
                 mål, 
                 poeng, 
                 prosent, 
-                komplettScore: lagspillerScore, 
+                komplettScore: mvpScore, 
                 antallRatings,
                 kamperOppmøte,
                 harRating: antallRatings > 0 
@@ -191,7 +192,7 @@ function renderTopplister(statsArray) {
             listEl: 'listKomplettContainer', 
             suffix: '', 
             minOppmoteProsent: 0.3,
-            info: "Basert på kampkarakter + målpoeng. Krever min. 30% kampoppmøte."
+            info: "MVP-indeks: (Snittrating × 7) + (Målpoeng pr kamp × 1.5). Krever min. 30% oppmøte."
         },
         { 
             key: 'prosent', 
@@ -199,7 +200,7 @@ function renderTopplister(statsArray) {
             listEl: 'listOppmoteContainer', 
             suffix: '%', 
             minOppmoteProsent: 0,
-            info: "Totalt oppmøte på treninger og kamper."
+            info: "Totalt oppmøte på treninger og kamper kombinert."
         }
     ];
 
@@ -237,7 +238,6 @@ function renderTopplister(statsArray) {
                 </div>
             `).join('');
 
-            // Oppdater eller lag footer for alle kortene som har info-tekst definert
             if (conf.info) {
                 let footer = parentCard.querySelector('.stat-footer');
                 if (!footer) {
