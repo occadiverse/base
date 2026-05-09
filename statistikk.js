@@ -16,13 +16,15 @@ onValue(ref(db, '/'), (snapshot) => {
     oppdaterStatistikk();
 });
 
-periodSelect.addEventListener('change', oppdaterStatistikk);
+periodSelect.addEventListener('change', () => {
+    // Marker at brukeren har gjort et manuelt valg
+    periodSelect.setAttribute('data-user-selected', 'true');
+    oppdaterStatistikk();
+});
 
 // Gjør toggle-funksjonen tilgjengelig globalt for onclick i HTML
 window.toggleStatList = function(id, header) {
-    // Sjekker skjermbredde - hvis PC (> 768px), gjør vi ingenting da listene alltid skal være åpne
     if (window.innerWidth > 768) return;
-
     const container = document.getElementById(id);
     if (!container) return;
     container.classList.toggle('show');
@@ -42,8 +44,18 @@ function genererDynamiskFilter() {
         }
     });
 
-    const valgtNå = periodSelect.value;
-    // Oppdatert tekst: Fjernet "(Vis alle)"
+    // Finn inneværende måned i formatet "MM-YYYY"
+    const nå = new Date();
+    const innevarendeMndAr = `${String(nå.getMonth() + 1).padStart(2, '0')}-${nå.getFullYear()}`;
+
+    // Sjekk hva som skal være valgt verdi
+    let valgtNå = periodSelect.value;
+    
+    // Hvis brukeren ikke har valgt noe manuelt ennå, og inneværende måned finnes i dataene:
+    if (!periodSelect.hasAttribute('data-user-selected') && unikePerioder.has(innevarendeMndAr)) {
+        valgtNå = innevarendeMndAr;
+    }
+
     periodSelect.innerHTML = '<option value="total">Hele sesongen</option>';
 
     Array.from(unikePerioder).sort().reverse().forEach(periode => {
@@ -55,6 +67,7 @@ function genererDynamiskFilter() {
         periodSelect.appendChild(option);
     });
 
+    // Sett verdien tilbake (enten manuelt valg eller auto-valgt måned)
     if (valgtNå) periodSelect.value = valgtNå;
 }
 
@@ -175,9 +188,9 @@ function renderTopplister(statsArray) {
             const winner = sorted[0];
             const rest = sorted.slice(1);
 
-            // Vis vinneren (Nr 1)
+            // Vis vinneren (Nr 1) - nå med samme span-struktur som resten for lik tekststørrelse
             winnerDisplay.innerHTML = `
-                <span><span class="rank">1</span> ${winner.navn}</span>
+                <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
                 <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
             `;
 
@@ -189,7 +202,7 @@ function renderTopplister(statsArray) {
                 </li>
             `).join('');
         } else {
-            winnerDisplay.innerHTML = "Ingen data";
+            winnerDisplay.innerHTML = "Ingen data for denne perioden";
             listDisplay.innerHTML = "";
         }
     });
