@@ -2,10 +2,31 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Statistikk - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    <style>
+        .stats-hero {
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .hero-stat-item { text-align: center; }
+        .hero-stat-item div:first-child { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; margin-bottom: 5px; }
+        .hero-stat-item div:last-child { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        
+        th { text-align: center !important; }
+        .name-col { text-align: left !important; }
+        .badge-point { background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
+        .badge-work { background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
+    </style>
 </head>
 <body>
 
@@ -16,17 +37,37 @@
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h2 class="section-title">Statistikk</h2>
+            <h2 class="section-title">Sesongstatistikk</h2>
+        </div>
+
+        <!-- LAGDATA HERO -->
+        <div class="stats-hero" id="teamStatsHero">
+            <div class="hero-stat-item">
+                <div>Kamper</div>
+                <div id="heroTotalMatches">-</div>
+            </div>
+            <div class="hero-stat-item">
+                <div>Mål scoret</div>
+                <div id="heroTotalGoals">-</div>
+            </div>
+            <div class="hero-stat-item">
+                <div>Oppmøte snitt</div>
+                <div id="heroAvgAttendance">-</div>
+            </div>
+            <div class="hero-stat-item">
+                <div>Poengkonge</div>
+                <div id="heroTopScorer" style="font-size: 1.1rem !important;">-</div>
+            </div>
         </div>
 
         <div class="filter-bar">
             <div class="centered-tools">
                 <div class="tool-item">
                     <div class="custom-select-wrapper">
-                        <i class="fa-solid fa-chart-line"></i>
+                        <i class="fa-solid fa-filter"></i>
                         <select id="statPeriodSelect" class="select-input-clean">
-                            <option value="current">Denne måneden</option>
                             <option value="total">Total sesong</option>
+                            <option value="current">Denne måneden</option>
                         </select>
                     </div>
                 </div>
@@ -38,32 +79,20 @@
                 <thead>
                     <tr>
                         <th class="name-col">Spiller</th>
-                        <th>Treninger</th>
-                        <th>Kamper</th>
-                        <th class="stat-col">Total %</th>
+                        <th>Mål</th>
+                        <th>Assist</th>
+                        <th>Poeng</th>
+                        <th>Jobb (snitt)</th>
+                        <th>Oppmøte %</th>
                     </tr>
                 </thead>
-                <tbody id="statsBody">
-                    <!-- Data injiseres her av statistikk.js -->
-                </tbody>
+                <tbody id="statsBody"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- 1. Navigasjon lastes først -->
     <script src="navigation.js"></script>
-
-    <!-- 2. Statistikk-logikken lastes som MODUL (løser SyntaxError) -->
     <script type="module" src="statistikk.js"></script>
 
-    <!-- 3. Initialisering av UI-komponenter -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Sjekker om navigasjonsfunksjonen eksisterer før kjøring
-            if (typeof window.loadNavigation === 'function') {
-                window.loadNavigation();
-            }
-        });
-    </script>
 </body>
 </html>
