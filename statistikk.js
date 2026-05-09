@@ -20,6 +20,9 @@ periodSelect.addEventListener('change', oppdaterStatistikk);
 
 // Gjør toggle-funksjonen tilgjengelig globalt for onclick i HTML
 window.toggleStatList = function(id, header) {
+    // Sjekker skjermbredde - hvis PC (> 768px), gjør vi ingenting da listene alltid skal være åpne
+    if (window.innerWidth > 768) return;
+
     const container = document.getElementById(id);
     if (!container) return;
     container.classList.toggle('show');
@@ -40,7 +43,8 @@ function genererDynamiskFilter() {
     });
 
     const valgtNå = periodSelect.value;
-    periodSelect.innerHTML = '<option value="total">Hele sesongen (Vis alle)</option>';
+    // Oppdatert tekst: Fjernet "(Vis alle)"
+    periodSelect.innerHTML = '<option value="total">Hele sesongen</option>';
 
     Array.from(unikePerioder).sort().reverse().forEach(periode => {
         const [mnd, ar] = periode.split('-');
@@ -177,7 +181,7 @@ function renderTopplister(statsArray) {
                 <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
             `;
 
-            // Vis resten i den skjulte listen (Nr 2-10)
+            // Vis resten i listen (Nr 2-10)
             listDisplay.innerHTML = rest.map((s, i) => `
                 <li>
                     <span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span>
