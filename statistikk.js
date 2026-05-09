@@ -23,8 +23,10 @@ function oppdaterStatistikk() {
     const valg = periodSelect.value;
 
     const stats = beregnLogikk(players, attendance, matches, valg);
+    
+    // Vi tegner både de tre topp-listene og den store tabellen
+    renderTopplister(stats);
     renderTabell(stats);
-    oppdaterHero(stats, matches, valg);
 }
 
 // --- BEREGNINGSLOGIKK ---
@@ -84,13 +86,9 @@ function beregnLogikk(players, attendance, matches, periode) {
             const oppmøtt = treninger + kamperOppmøte;
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
-            
             const jobbVerdi = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
-            const jobbSnitt = jobbVerdi.toFixed(2);
 
-            // FORMEL: DEN KOMPLETTE LAGSPILLEREN
-            // Vi vekter poengproduksjon med arbeidsinnsats (jobbsnitt).
-            // Vi legger også til en liten bonus for oppmøte (prosent / 100).
+            // Komplett score: (Poeng * innsats) + (liten oppmøte-bonus)
             const komplettScore = parseFloat((poeng * jobbVerdi) + (prosent / 100)).toFixed(2);
 
             return {
@@ -98,28 +96,64 @@ function beregnLogikk(players, attendance, matches, periode) {
                 mål,
                 assist,
                 poeng,
-                jobbSnitt,
-                jobbVerdi,
+                jobbSnitt: jobbVerdi.toFixed(2),
                 prosent,
                 komplettScore,
                 harRating: antallRatings > 0
             };
         });
 
-    return resultat.sort((a, b) => b.poeng - a.poeng || b.prosent - a.prosent);
+    return resultat;
 }
 
-// --- VISNING ---
+// --- VISNING: TOPPLISTER (Topp 10) ---
+function renderTopplister(statsArray) {
+    // 1. Poengkongen (Sortert på poeng)
+    const toppPoeng = [...statsArray].sort((a, b) => b.poeng - a.poeng).slice(0, 10);
+    const listPoeng = document.getElementById('listPoeng');
+    listPoeng.innerHTML = toppPoeng.map((s, i) => `
+        <li>
+            <span><span class="rank">${i + 1}</span><span class="player-name">${s.navn}</span></span>
+            <span class="score-val">${s.poeng} <small>p</small></span>
+        </li>
+    `).join('');
+
+    // 2. Komplett Lagspiller (Sortert på komplettScore)
+    const toppKomplett = [...statsArray]
+        .filter(s => s.harRating || s.poeng > 0)
+        .sort((a, b) => b.komplettScore - a.komplettScore)
+        .slice(0, 10);
+    const listKomplett = document.getElementById('listKomplett');
+    listKomplett.innerHTML = toppKomplett.map((s, i) => `
+        <li>
+            <span><span class="rank">${i + 1}</span><span class="player-name">${s.navn}</span></span>
+            <span class="score-val">${s.komplettScore}</span>
+        </li>
+    `).join('');
+
+    // 3. Treningsiver (Sortert på prosent)
+    const toppOppmote = [...statsArray].sort((a, b) => b.prosent - a.prosent).slice(0, 10);
+    const listOppmote = document.getElementById('listOppmote');
+    listOppmote.innerHTML = toppOppmote.map((s, i) => `
+        <li>
+            <span><span class="rank">${i + 1}</span><span class="player-name">${s.navn}</span></span>
+            <span class="score-val">${s.prosent}%</span>
+        </li>
+    `).join('');
+}
+
+// --- VISNING: FULL TABELL ---
 function renderTabell(statsArray) {
-    statsBody.innerHTML = statsArray.map(s => `
+    // Sorterer hovedtabellen etter poeng som standard
+    const sortertTabell = [...statsArray].sort((a, b) => b.poeng - a.poeng);
+    
+    statsBody.innerHTML = sortertTabell.map(s => `
         <tr>
             <td class="name-col"><strong>${s.navn}</strong></td>
             <td style="text-align: center;">${s.mål}</td>
             <td style="text-align: center;">${s.assist}</td>
             <td style="text-align: center;"><span class="badge-point">${s.poeng}</span></td>
-            <td style="text-align: center;" title="Komplett score: ${s.komplettScore}">
-                <span class="badge-work">${s.jobbSnitt}</span>
-            </td>
+            <td style="text-align: center;"><span class="badge-work">${s.jobbSnitt}</span></td>
             <td class="stat-col" style="text-align: center;">
                 <span style="font-weight: 700; color: ${getFarge(s.prosent)};">
                     ${s.prosent}%
@@ -127,43 +161,6 @@ function renderTabell(statsArray) {
             </td>
         </tr>
     `).join('');
-}
-
-function oppdaterHero(statsArray, matches, periode) {
-    const nå = new Date();
-    const inneværendeMåned = nå.getMonth() + 1;
-    
-    const relevanteKamper = Object.values(matches).filter(m => {
-        if (periode === 'total') return m.result && m.result !== '-';
-        const matchDate = new Date(m.date);
-        return (matchDate.getMonth() + 1 === inneværendeMåned) && m.result && m.result !== '-';
-    });
-
-    const totaltMål = statsArray.reduce((sum, s) => sum + s.mål, 0);
-    
-    // Finn poengkonge
-    const poengkonge = statsArray.length > 0 && statsArray[0].poeng > 0 ? statsArray[0].navn : "-";
-
-    // Finn den KOMPLETTE LAGSPILLEREN
-    // Vi sorterer på nytt etter den skjulte 'komplettScore'
-    const komplettVinner = [...statsArray]
-        .filter(s => s.harRating) 
-        .sort((a, b) => b.komplettScore - a.komplettScore)[0];
-
-    document.getElementById('heroTotalMatches').innerText = relevanteKamper.length;
-    document.getElementById('heroTotalGoals').innerText = totaltMål;
-    
-    // Her bytter vi ut oppmøte-snittet med Komplett Lagspiller hvis ID-en finnes
-    const heroComplete = document.getElementById('heroCompletePlayer');
-    if (heroComplete) {
-        heroComplete.innerText = komplettVinner ? komplettVinner.navn : "-";
-        // Vi kan fortsatt vise oppmøte et annet sted om ønskelig
-    } else {
-        // Fallback: Bruker ID-en til oppmøte hvis du ikke har endret HTML ennå
-        document.getElementById('heroAvgAttendance').innerText = komplettVinner ? komplettVinner.navn : "-";
-    }
-    
-    document.getElementById('heroTopScorer').innerText = poengkonge;
 }
 
 function getFarge(prosent) {
