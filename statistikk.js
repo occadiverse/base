@@ -5,6 +5,7 @@ const periodSelect = document.getElementById('statPeriodSelect');
 
 let globalData = null;
 
+// --- INITIALISERING ---
 onValue(ref(db, '/'), (snapshot) => {
     globalData = snapshot.val() || {};
     oppdaterStatistikk();
@@ -21,9 +22,12 @@ function oppdaterStatistikk() {
     const valg = periodSelect.value;
 
     const stats = beregnLogikk(players, attendance, matches, valg);
+    
     renderTopplister(stats);
+    oppdaterLagStats(matches, stats, valg); // Sender med stats for å telle lag-mål enkelt
 }
 
+// --- BEREGNINGSLOGIKK ---
 function beregnLogikk(players, attendance, matches, periode) {
     const nå = new Date();
     const inneværendeMåned = nå.getMonth() + 1;
@@ -80,11 +84,11 @@ function beregnLogikk(players, attendance, matches, periode) {
             const poeng = mål + assist;
             const jobbVerdi = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
 
-            // FORMEL: KOMPLETT LAGSPILLER
             const komplettScore = parseFloat((poeng * jobbVerdi) + (prosent / 100)).toFixed(2);
 
             return {
                 navn,
+                mål, // Trengs for lag-stats
                 poeng,
                 prosent,
                 komplettScore,
@@ -93,8 +97,41 @@ function beregnLogikk(players, attendance, matches, periode) {
         });
 }
 
+// --- LAG-STATISTIKK ---
+function oppdaterLagStats(matches, statsArray, periode) {
+    const nå = new Date();
+    const denneMnd = nå.getMonth() + 1;
+    
+    // 1. Kamper spilt (kun de med resultat)
+    const kampListe = Object.values(matches).filter(m => {
+        if (!m.result || m.result === '-' || m.result === ' - ') return false;
+        if (periode === 'total') return true;
+        const d = new Date(m.date);
+        return (d.getMonth() + 1) === denneMnd;
+    });
+
+    // 2. Totalt mål (summen av alle spilleres mål i perioden)
+    const totaltMål = statsArray.reduce((sum, s) => sum + s.mål, 0);
+
+    // 3. Seiersprosent
+    let seire = 0;
+    kampListe.forEach(m => {
+        const scores = m.result.split(' - ').map(Number);
+        if (scores.length === 2 && scores[0] > scores[1]) {
+            seire++;
+        }
+    });
+    const seiersProsent = kampListe.length > 0 ? Math.round((seire / kampListe.length) * 100) : 0;
+
+    // Oppdater HTML
+    document.getElementById('teamMatches').innerText = kampListe.length;
+    document.getElementById('teamGoals').innerText = totaltMål;
+    document.getElementById('teamWinRate').innerText = seiersProsent + "%";
+}
+
+// --- VISNING: TOPPLISTER ---
 function renderTopplister(statsArray) {
-    // 1. POENGKONGRE
+    // 1. POENGKONGEN
     const toppPoeng = [...statsArray].sort((a, b) => b.poeng - a.poeng).slice(0, 10);
     document.getElementById('listPoeng').innerHTML = toppPoeng.map((s, i) => `
         <li>
