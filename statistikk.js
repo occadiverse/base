@@ -115,12 +115,12 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
             
-            // OPPDATERT LOGIKK FOR LAGSPILLER (10-poengs skala)
-            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
+            // LOGIKK FOR LAGSPILLER (0-10 SKALA)
+            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0; // (0 eller 1)
             const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
             
-            // Formel: Snittrating (0-10) + bonus for målpoeng (2 poeng per poengsnitt)
-            const lagspillerScore = parseFloat(snittRating + (poengPerKamp * 2)).toFixed(2);
+            // Vi ganger snitt-karakter (0-1) med 7, og gir 1.5 poeng bonus per målpoeng-snitt.
+            const lagspillerScore = parseFloat((snittRating * 7) + (poengPerKamp * 1.5)).toFixed(2);
 
             return { 
                 navn, 
@@ -159,38 +159,17 @@ function oppdaterLagStats(matches, statsArray, periode) {
 
 function renderTopplister(statsArray) {
     const configs = [
-        { 
-            key: 'poeng', 
-            winnerEl: 'winnerPoeng', 
-            listEl: 'listPoengContainer', 
-            suffix: ' poeng',
-            minKamper: 0
-        },
-        { 
-            key: 'komplettScore', 
-            winnerEl: 'winnerKomplett', 
-            listEl: 'listKomplettContainer', 
-            suffix: '',
-            minKamper: 2 // Krever 2 kamper for Lagspiller
-        },
-        { 
-            key: 'prosent', 
-            winnerEl: 'winnerOppmote', 
-            listEl: 'listOppmoteContainer', 
-            suffix: '%',
-            minKamper: 0
-        }
+        { key: 'poeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' poeng', minKamper: 0 },
+        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minKamper: 2 },
+        { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minKamper: 0 }
     ];
 
     configs.forEach(conf => {
-        // Filtrer ut de som ikke har nok spilte kamper for den aktuelle listen
         const filtered = statsArray.filter(s => s.kamperOppmøte >= conf.minKamper);
         const sorted = [...filtered].sort((a, b) => b[conf.key] - a[conf.key]).slice(0, 10);
         
         const winnerDisplay = document.getElementById(conf.winnerEl);
         const listDisplay = document.getElementById(conf.listEl);
-
-        // Finn stat-card for å legge til info-tekst i bunnen
         const parentCard = winnerDisplay.closest('.stat-card');
 
         if (sorted.length > 0) {
@@ -211,7 +190,6 @@ function renderTopplister(statsArray) {
                 </div>
             `).join('');
 
-            // Hvis det er Lagspiller-kortet, legg til info-tekst nederst hvis den ikke allerede er der
             if (conf.key === 'komplettScore') {
                 let footer = parentCard.querySelector('.stat-footer');
                 if (!footer) {
