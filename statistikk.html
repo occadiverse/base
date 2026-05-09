@@ -18,7 +18,7 @@
         .stats-hero-clean h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
         .stats-hero-clean p { font-size: 1.1rem; opacity: 0.8; }
 
-        /* Lag-statistikk rader */
+        /* Lag-statistikk rader - RENSKÅRET */
         .team-stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -31,7 +31,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: var(--shadow);
-            border-top: 4px solid var(--primary);
+            border-top: none; /* Fjernet blå ramme her */
         }
         .team-card .label { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 700; }
         .team-card .value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
@@ -50,33 +50,53 @@
             box-shadow: var(--shadow);
         }
 
-        .stat-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
+        /* Accordion / Vis-Skjul styling */
+        .stat-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            color: var(--text-main);
-            border-bottom: 2px solid #f8f9fa;
+            cursor: pointer;
             padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
         }
+        .stat-header h3 { font-size: 1.2rem; display: flex; align-items: center; gap: 12px; color: var(--text-main); margin: 0; }
+        
+        .toggle-icon { color: #ccc; transition: transform 0.3s; }
+        .stat-header.active .toggle-icon { transform: rotate(180deg); }
+
+        /* Vinner-visning (Nr 1) */
+        .winner-display {
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* Skjult liste (Nr 2-10) */
+        .hidden-list {
+            display: none;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+        }
+        .hidden-list.show { display: block; }
 
         .top-list { list-style: none; padding: 0; margin: 0; }
         .top-list li {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #f0f0f0;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
         .top-list li:last-child { border-bottom: none; }
         .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
         .player-name { flex: 1; font-weight: 600; color: #333; }
         .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
 
-        .top-list li:first-child .player-name { color: var(--primary); font-size: 1.1rem; }
-
-        /* --- GJENOPPRETTET FILTER BAR STYLING FRA OPPMOTE.HTML --- */
+        /* Filter bar fra oppmote.html */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
@@ -97,11 +117,7 @@
         }
         .filter-bar label i { color: var(--primary); font-size: 1.1rem; }
 
-        .custom-select-wrapper {
-            flex: 1;
-            max-width: 300px;
-        }
-
+        .custom-select-wrapper { flex: 1; max-width: 300px; }
         .select-input-clean {
             width: 100%;
             padding: 10px 15px;
@@ -112,17 +128,12 @@
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
             appearance: none;
             -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 10px center;
             background-size: 1em;
-        }
-
-        .select-input-clean:hover {
-            border-color: var(--primary);
         }
     </style>
 </head>
@@ -143,21 +154,18 @@
         <p>En dypere titt på prestasjonene som definerer oss i år.</p>
     </section>
 
-    <!-- Dynamisk Filter Bar - Nå identisk med oppmote.html i funksjon -->
     <div class="filter-bar">
         <label for="statPeriodSelect">
             <i class="fa-solid fa-calendar"></i>
-            Filtrer periode:
+            Filtrer etter måned:
         </label>
         <div class="custom-select-wrapper">
             <select id="statPeriodSelect" class="select-input-clean">
                 <option value="total">Hele sesongen (Vis alle)</option>
-                <!-- Måneder som "April 2026" legges til her av statistikk.js -->
             </select>
         </div>
     </div>
 
-    <!-- 3 GODE LAG STATS -->
     <div class="team-stats-row">
         <div class="team-card">
             <div class="label">Kamper Spilt</div>
@@ -176,23 +184,50 @@
     <div class="stats-grid">
         <!-- POENGKONGEN -->
         <div class="stat-card">
-            <h3><i class="fa-solid fa-crown" style="color: #f1c40f;"></i> Poengkongen</h3>
-            <ul id="listPoeng" class="top-list"></ul>
+            <div class="stat-header" onclick="toggleStatList('listPoengContainer', this)">
+                <h3><i class="fa-solid fa-crown" style="color: #f1c40f;"></i> Poengkongen</h3>
+                <i class="fa-solid fa-chevron-down toggle-icon"></i>
+            </div>
+            <div id="winnerPoeng" class="winner-display"></div>
+            <div id="listPoengContainer" class="hidden-list">
+                <ul id="listPoeng" class="top-list"></ul>
+            </div>
         </div>
 
         <!-- KOMPLETT LAGSPILLER -->
         <div class="stat-card">
-            <h3><i class="fa-solid fa-shield-halved" style="color: #3498db;"></i> Komplett Lagspiller</h3>
-            <ul id="listKomplett" class="top-list"></ul>
+            <div class="stat-header" onclick="toggleStatList('listKomplettContainer', this)">
+                <h3><i class="fa-solid fa-shield-halved" style="color: #3498db;"></i> Komplett Lagspiller</h3>
+                <i class="fa-solid fa-chevron-down toggle-icon"></i>
+            </div>
+            <div id="winnerKomplett" class="winner-display"></div>
+            <div id="listKomplettContainer" class="hidden-list">
+                <ul id="listKomplett" class="top-list"></ul>
+            </div>
         </div>
 
         <!-- TRENINGSIVER -->
         <div class="stat-card">
-            <h3><i class="fa-solid fa-calendar-check" style="color: #2ecc71;"></i> Treningsiver</h3>
-            <ul id="listOppmote" class="top-list"></ul>
+            <div class="stat-header" onclick="toggleStatList('listOppmoteContainer', this)">
+                <h3><i class="fa-solid fa-calendar-check" style="color: #2ecc71;"></i> Treningsiver</h3>
+                <i class="fa-solid fa-chevron-down toggle-icon"></i>
+            </div>
+            <div id="winnerOppmote" class="winner-display"></div>
+            <div id="listOppmoteContainer" class="hidden-list">
+                <ul id="listOppmote" class="top-list"></ul>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Enkel funksjon for vis/skjul
+    function toggleStatList(id, header) {
+        const container = document.getElementById(id);
+        container.classList.toggle('show');
+        header.classList.toggle('active');
+    }
+</script>
 
 <script src="navigation.js"></script>
 <script type="module" src="statistikk.js"></script>
