@@ -21,6 +21,15 @@ periodSelect.addEventListener('change', () => {
     oppdaterStatistikk();
 });
 
+// Oppdatert toggle-funksjon som sikrer at footeren følger accordions tilstand
+window.toggleStatList = function(id, header) {
+    if (window.innerWidth > 768) return;
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.classList.toggle('show');
+    header.classList.toggle('active');
+};
+
 function genererDynamiskFilter() {
     const attendance = globalData.attendance || {};
     const datoer = Object.keys(attendance);
@@ -115,11 +124,9 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
             const poeng = mål + assist;
             
-            // LOGIKK FOR LAGSPILLER (0-10 SKALA)
-            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0; // (0 eller 1)
+            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
             const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
             
-            // Vi ganger snitt-karakter (0-1) med 7, og gir 1.5 poeng bonus per målpoeng-snitt.
             const lagspillerScore = parseFloat((snittRating * 7) + (poengPerKamp * 1.5)).toFixed(2);
 
             return { 
@@ -194,7 +201,8 @@ function renderTopplister(statsArray) {
                 let footer = parentCard.querySelector('.stat-footer');
                 if (!footer) {
                     footer = document.createElement('div');
-                    footer.className = 'stat-footer';
+                    // Lagt til 'hidden-footer' klassen her
+                    footer.className = 'stat-footer hidden-footer';
                     footer.style.cssText = "margin-top: 15px; padding-top: 10px; border-top: 1px dashed #eee; font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 8px;";
                     footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Basert på kampkarakter + målpoeng. Krever min. 2 kamper.`;
                     parentCard.appendChild(footer);
