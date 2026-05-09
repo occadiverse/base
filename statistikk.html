@@ -14,18 +14,65 @@
             color: white;
             margin-bottom: 30px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
+            /* Justert til 5 kolonner for å få plass til alt */
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        .hero-stat-item { text-align: center; }
-        .hero-stat-item div:first-child { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; margin-bottom: 5px; }
-        .hero-stat-item div:last-child { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .hero-stat-item { 
+            text-align: center; 
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .hero-stat-item div:first-child { 
+            font-size: 0.7rem; 
+            opacity: 0.7; 
+            text-transform: uppercase; 
+            margin-bottom: 8px; 
+            letter-spacing: 0.05em;
+        }
+        .hero-stat-item div:last-child { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: var(--primary); 
+            line-height: 1.2;
+        }
         
+        /* Spesifikk farge for de gjeveste titlene */
+        #heroTopScorer { color: #2ecc71 !important; }
+        #heroCompletePlayer { color: #f1c40f !important; }
+
         th { text-align: center !important; }
         .name-col { text-align: left !important; }
-        .badge-point { background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
-        .badge-work { background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
+        
+        .badge-point { 
+            background: #e8f5e9; 
+            color: #2e7d32; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            font-weight: 800; 
+            font-size: 0.85rem; 
+            display: inline-block;
+            min-width: 30px;
+        }
+        
+        .badge-work { 
+            background: #fff3e0; 
+            color: #e65100; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            font-weight: 800; 
+            font-size: 0.85rem; 
+            display: inline-block;
+            min-width: 45px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-hero { grid-template-columns: repeat(2, 1fr); }
+            .hero-stat-item:last-child { grid-column: span 2; }
+            .hero-stat-item div:last-child { font-size: 1.2rem; }
+        }
     </style>
 </head>
 <body>
@@ -51,12 +98,16 @@
                 <div id="heroTotalGoals">-</div>
             </div>
             <div class="hero-stat-item">
-                <div>Oppmøte snitt</div>
+                <div>Snitt Oppmøte</div>
                 <div id="heroAvgAttendance">-</div>
             </div>
             <div class="hero-stat-item">
                 <div>Poengkonge</div>
-                <div id="heroTopScorer" style="font-size: 1.1rem !important;">-</div>
+                <div id="heroTopScorer">-</div>
+            </div>
+            <div class="hero-stat-item">
+                <div>Komplett Spiller</div>
+                <div id="heroCompletePlayer">-</div>
             </div>
         </div>
 
