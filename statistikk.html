@@ -76,7 +76,7 @@
 
         .top-list li:first-child .player-name { color: var(--primary); font-size: 1.1rem; }
 
-        /* Filter bar fra oppmote.html */
+        /* --- GJENOPPRETTET FILTER BAR STYLING FRA OPPMOTE.HTML --- */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
@@ -96,6 +96,35 @@
             gap: 8px;
         }
         .filter-bar label i { color: var(--primary); font-size: 1.1rem; }
+
+        .custom-select-wrapper {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .select-input-clean {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--white);
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            /* Sikrer at pilen forsvinner hvis style.css fjerner den, eller beholder den ren */
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
+        }
+
+        .select-input-clean:hover {
+            border-color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -115,7 +144,7 @@
         <p>En dypere titt på prestasjonene som definerer oss i år.</p>
     </section>
 
-    <!-- Filter Bar - IDENTISK med oppmote.html -->
+    <!-- Filter Bar - NÅ HELT LIK oppmote.html -->
     <div class="filter-bar">
         <label for="statPeriodSelect">
             <i class="fa-solid fa-calendar"></i>
