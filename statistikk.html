@@ -113,7 +113,6 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            /* Sikrer at pilen forsvinner hvis style.css fjerner den, eller beholder den ren */
             appearance: none;
             -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -144,7 +143,7 @@
         <p>En dypere titt på prestasjonene som definerer oss i år.</p>
     </section>
 
-    <!-- Filter Bar - NÅ HELT LIK oppmote.html -->
+    <!-- Dynamisk Filter Bar - Nå identisk med oppmote.html i funksjon -->
     <div class="filter-bar">
         <label for="statPeriodSelect">
             <i class="fa-solid fa-calendar"></i>
@@ -153,7 +152,7 @@
         <div class="custom-select-wrapper">
             <select id="statPeriodSelect" class="select-input-clean">
                 <option value="total">Hele sesongen (Vis alle)</option>
-                <option value="current">Inneværende måned</option>
+                <!-- Måneder som "April 2026" legges til her av statistikk.js -->
             </select>
         </div>
     </div>
