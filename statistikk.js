@@ -11,21 +11,17 @@ const manederTekst = [
 
 // --- HJELPEFUNKSJONER FOR DATO-SYNKRONISERING ---
 
-// Trekker ut "MM-YYYY" uavhengig om dato er DD-MM-YYYY eller YYYY-MM-DD
 function hentPeriodeFraDato(datoStr) {
     if (!datoStr || typeof datoStr !== 'string') return "";
     const deler = datoStr.split('-');
     if (deler.length !== 3) return "";
     
-    // Hvis første del er 4 siffer, er det YYYY-MM-DD
     if (deler[0].length === 4) {
         return `${deler[1]}-${deler[0]}`;
     } 
-    // Ellers antar vi DD-MM-YYYY
     return `${deler[1]}-${deler[2]}`;
 }
 
-// Sammenligner datoer uavhengig av rekkefølge på tallene
 function matchDatoer(dato1, dato2) {
     if (!dato1 || !dato2) return false;
     const d1 = dato1.split('-').sort().join('');
@@ -111,15 +107,27 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
 
                         if (kamp && kamp.result) {
                             const scores = kamp.result.replace(/\s/g, "").split('-');
+                            const personligRating = kamp.playerRatings ? kamp.playerRatings[navn] : null;
+
+                            // Sjekker om spilleren har fått 1 i vurdering for denne kampen
+                            const harBraOff = personligRating && Number(personligRating.off) === 1;
+                            const harBraDef = personligRating && Number(personligRating.def) === 1;
+
                             if (scores.length === 2) {
                                 const vi = Number(scores[0]);
                                 const dem = Number(scores[1]);
 
-                                if (vi >= 3) mvpLagScore += 1.0;
-                                else if (vi >= 1) mvpLagScore += 0.5;
+                                // OFFENSIVT: Laget scorer, men du må ha 1 i off-vurdering
+                                if (harBraOff) {
+                                    if (vi >= 3) mvpLagScore += 1.0;
+                                    else if (vi >= 1) mvpLagScore += 0.5;
+                                }
 
-                                if (dem === 0) mvpLagScore += 1.0;
-                                else if (dem === 1) mvpLagScore += 0.5;
+                                // DEFENSIVT: Laget holder tett, men du må ha 1 i def-vurdering
+                                if (harBraDef) {
+                                    if (dem === 0) mvpLagScore += 1.0;
+                                    else if (dem === 1) mvpLagScore += 0.5;
+                                }
                             }
                         }
                     } else {
@@ -128,7 +136,6 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // MVP KAMP & MÅL-TELLING
             Object.values(matches).forEach(m => {
                 if (periodeValg !== 'total' && hentPeriodeFraDato(m.date) !== periodeValg) return;
 
@@ -164,7 +171,7 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
 
 function renderTopplister(statsArray) {
     const configs = [
-        { key: 'lagPoeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' pts', minOppmoteProsent: 0, info: "MVP Lag: Basert på lagets resultat når du spiller." },
+        { key: 'lagPoeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' pts', minOppmoteProsent: 0, info: "MVP Lag: Lagets resultat kombinert med din personlige 1-er vurdering." },
         { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minOppmoteProsent: 0.3, info: "MVP Kamp: Individuell score basert på rating og mål." },
         { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minOppmoteProsent: 0, info: "Total treningsiver og kampoppmøte." }
     ];
