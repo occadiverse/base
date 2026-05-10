@@ -9,13 +9,12 @@ const manederTekst = [
     "Juli", "August", "September", "Oktober", "November", "Desember"
 ];
 
-// --- DATO-HÅNDTERING (Viktig for din struktur) ---
+// --- DATO-HÅNDTERING ---
 
 function hentPeriodeFraDato(datoStr) {
     if (!datoStr) return "";
     const deler = datoStr.split('-');
     if (deler.length !== 3) return "";
-    // Håndterer både 2026-04-29 og 29-04-2026
     const mnd = deler[0].length === 4 ? deler[1] : deler[1];
     const ar = deler[0].length === 4 ? deler[0] : deler[2];
     return `${mnd}-${ar}`;
@@ -23,10 +22,8 @@ function hentPeriodeFraDato(datoStr) {
 
 function matchDatoer(dato1, dato2) {
     if (!dato1 || !dato2) return false;
-    const d1 = dato1.replace(/\D/g, ""); // "20260429"
-    const d2 = dato2.split('-').reverse().join(""); // Snur "29-04-2026" til "20260429"
-    
-    // Hvis d2 ikke ble snudd riktig (allerede ISO), sjekker vi begge veier
+    const d1 = dato1.replace(/\D/g, ""); 
+    const d2 = dato2.split('-').reverse().join(""); 
     const d2_alt = dato2.replace(/\D/g, "");
     return d1 === d2 || d1 === d2_alt;
 }
@@ -90,10 +87,8 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                         const kamp = Object.values(matches).find(m => matchDatoer(m.date, dato));
 
                         if (kamp && kamp.result) {
-                            // Din "vaskemaskin" for resultatet (håndterer "1-5")
                             const scores = kamp.result.replace(/\s/g, "").split('-');
                             
-                            // Finn rating for denne spilleren
                             let pRating = null;
                             if (kamp.playerRatings) {
                                 const rKey = Object.keys(kamp.playerRatings).find(k => k.trim() === navn);
@@ -104,18 +99,21 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                                 const vi = Number(scores[0]);
                                 const dem = Number(scores[1]);
 
-                                // Din 0/1 logikk:
                                 const harBraOff = pRating.off == 1;
                                 const harBraDef = pRating.def == 1;
 
+                                // --- NY LOGIKK (ALTERNATIV 1) ---
+                                
+                                // Offensiv utregning
                                 if (harBraOff) {
-                                    if (vi >= 3) mvpLagScore += 1.0;
-                                    else if (vi >= 1) mvpLagScore += 0.5;
+                                    mvpLagScore += 0.5; // Basis for god kamp
+                                    if (vi >= 3) mvpLagScore += 0.5; // Bonus for lag-mål
                                 }
 
+                                // Defensiv utregning
                                 if (harBraDef) {
-                                    if (dem === 0) mvpLagScore += 1.0;
-                                    else if (dem === 1) mvpLagScore += 0.5;
+                                    mvpLagScore += 0.5; // Basis for god kamp
+                                    if (dem === 0) mvpLagScore += 0.5; // Bonus for clean sheet
                                 }
                             }
                         }
@@ -123,7 +121,7 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // MVP KAMP (Individuell)
+            // MVP KAMP & MÅL-TELLING
             Object.values(matches).forEach(m => {
                 if (periodeValg !== 'total' && hentPeriodeFraDato(m.date) !== periodeValg) return;
                 if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
@@ -165,8 +163,11 @@ function renderTopplister(statsArray) {
             .sort((a, b) => Number(b[conf.key]) - Number(a[conf.key]))
             .slice(0, 10);
         
-        document.getElementById(conf.winnerEl).innerHTML = sorted.length > 0 ? `<div class="stat-row"><span><span class="rank">1</span><span class="player-name">${sorted[0].navn}</span></span><span class="score-val">${sorted[0][conf.key]}${conf.suffix}</span></div>` : "";
-        document.getElementById(conf.listEl).innerHTML = sorted.slice(1).map((s, i) => `<div class="stat-row"><span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span><span class="score-val">${s[conf.key]}${conf.suffix}</span></div>`).join('');
+        const winnerEl = document.getElementById(conf.winnerEl);
+        const listEl = document.getElementById(conf.listEl);
+        
+        if (winnerEl) winnerEl.innerHTML = sorted.length > 0 ? `<div class="stat-row"><span><span class="rank">1</span><span class="player-name">${sorted[0].navn}</span></span><span class="score-val">${sorted[0][conf.key]}${conf.suffix}</span></div>` : "";
+        if (listEl) listEl.innerHTML = sorted.slice(1).map((s, i) => `<div class="stat-row"><span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span><span class="score-val">${s[conf.key]}${conf.suffix}</span></div>`).join('');
     });
 }
 
@@ -179,7 +180,12 @@ function oppdaterLagStats(matches, statsArray, periode) {
         const s = m.result.split('-').map(Number);
         return s[0] > s[1];
     }).length;
-    document.getElementById('teamMatches').innerText = kampListe.length;
-    document.getElementById('teamGoals').innerText = statsArray.reduce((sum, s) => sum + s.mål, 0);
-    document.getElementById('teamWinRate').innerText = (kampListe.length > 0 ? Math.round((seire/kampListe.length)*100) : 0) + "%";
+    
+    const teamMatchesEl = document.getElementById('teamMatches');
+    const teamGoalsEl = document.getElementById('teamGoals');
+    const teamWinRateEl = document.getElementById('teamWinRate');
+    
+    if (teamMatchesEl) teamMatchesEl.innerText = kampListe.length;
+    if (teamGoalsEl) teamGoalsEl.innerText = statsArray.reduce((sum, s) => sum + s.mål, 0);
+    if (teamWinRateEl) teamWinRateEl.innerText = (kampListe.length > 0 ? Math.round((seire/kampListe.length)*100) : 0) + "%";
 }
