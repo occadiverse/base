@@ -92,14 +92,33 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
         .map(([id, pData]) => {
             const navn = pData.navn || pData.name;
             let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0, totalRatingScore = 0, antallRatings = 0;
+            let mvpLagScore = 0;
 
             relevanteDatoer.forEach(dato => {
                 if (attendance[dato][id] === 'K') {
-                    if (attendance[dato].info?.type === 'Kamp') kamperOppmøte++;
-                    else treninger++;
+                    if (attendance[dato].info?.type === 'Kamp') {
+                        kamperOppmøte++;
+
+                        // --- MVP LAG LOGIKK (Din poengtabell) ---
+                        const kamp = Object.values(matches).find(m => m.date === dato);
+                        if (kamp && kamp.result && kamp.result.includes(' - ')) {
+                            const [vi, dem] = kamp.result.split(' - ').map(Number);
+                            
+                            // Offensivt bidrag (Laget scorer)
+                            if (vi >= 3) mvpLagScore += 1.0;
+                            else if (vi >= 1) mvpLagScore += 0.5;
+
+                            // Defensivt bidrag (Laget holder tett)
+                            if (dem === 0) mvpLagScore += 1.0;
+                            else if (dem === 1) mvpLagScore += 0.5;
+                        }
+                    } else {
+                        treninger++;
+                    }
                 }
             });
 
+            // INDIVIDUELLE STATS (Brukt til MVP Kamp)
             Object.values(matches).forEach(m => {
                 const d = new Date(m.date);
                 const kampPeriode = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
@@ -122,23 +141,20 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
 
             const oppmøtt = treninger + kamperOppmøte;
             const prosent = totaltMulige > 0 ? Math.round((oppmøtt / totaltMulige) * 100) : 0;
-            const poeng = mål + assist;
+            const individueltPoeng = mål + assist;
             
-            // MVP LOGIKK (0-10 skala basert på binær rating)
+            // MVP Kamp (Individuell prestasjon)
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
-            const poengPerKamp = kamperOppmøte > 0 ? (poeng / kamperOppmøte) : 0;
-            
-            const mvpScore = parseFloat((snittRating * 7) + (poengPerKamp * 1.5)).toFixed(2);
+            const poengPerKamp = kamperOppmøte > 0 ? (individueltPoeng / kamperOppmøte) : 0;
+            const mvpKampScore = parseFloat((snittRating * 7) + (poengPerKamp * 1.5)).toFixed(2);
 
             return { 
                 navn, 
                 mål, 
-                poeng, 
+                lagPoeng: mvpLagScore.toFixed(1), // Til MVP Lag
                 prosent, 
-                komplettScore: mvpScore, 
-                antallRatings,
-                kamperOppmøte,
-                harRating: antallRatings > 0 
+                komplettScore: mvpKampScore, // Til MVP Kamp
+                kamperOppmøte
             };
         });
 }
@@ -179,12 +195,12 @@ function renderTopplister(statsArray) {
 
     const configs = [
         { 
-            key: 'poeng', 
+            key: 'lagPoeng', 
             winnerEl: 'winnerPoeng', 
             listEl: 'listPoengContainer', 
-            suffix: ' poeng', 
+            suffix: ' pts', 
             minOppmoteProsent: 0.3,
-            info: "Sum av mål og assists. Krever min. 30% kampoppmøte."
+            info: "MVP Lag: Lagets prestasjon når du spiller. Mål (maks 1.0) og defensivt (maks 1.0). Krever 30% oppmøte."
         },
         { 
             key: 'komplettScore', 
@@ -192,7 +208,7 @@ function renderTopplister(statsArray) {
             listEl: 'listKomplettContainer', 
             suffix: '', 
             minOppmoteProsent: 0.3,
-            info: "MVP-indeks: (Snittrating × 7) + (Målpoeng pr kamp × 1.5). Krever min. 30% oppmøte."
+            info: "MVP Kamp: (Snittrating × 7) + (Målpoeng pr kamp × 1.5). Krever min. 30% kampoppmøte."
         },
         { 
             key: 'prosent', 
@@ -214,7 +230,7 @@ function renderTopplister(statsArray) {
             return true;
         });
 
-        const sorted = [...filtered].sort((a, b) => b[conf.key] - a[conf.key]).slice(0, 10);
+        const sorted = [...filtered].sort((a, b) => Number(b[conf.key]) - Number(a[conf.key])).slice(0, 10);
         
         const winnerDisplay = document.getElementById(conf.winnerEl);
         const listDisplay = document.getElementById(conf.listEl);
@@ -249,7 +265,7 @@ function renderTopplister(statsArray) {
                 footer.innerHTML = `<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> ${conf.info}`;
             }
         } else {
-            winnerDisplay.innerHTML = '<div class="stat-row">Ikke nok spilte kamper for statistikk</div>';
+            winnerDisplay.innerHTML = '<div class="stat-row">Ikke nok data</div>';
             listDisplay.innerHTML = "";
         }
     });
