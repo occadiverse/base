@@ -9,6 +9,32 @@ const manederTekst = [
     "Juli", "August", "September", "Oktober", "November", "Desember"
 ];
 
+// --- HJELPEFUNKSJONER FOR DATO-SYNKRONISERING ---
+
+// Trekker ut "MM-YYYY" uavhengig om dato er DD-MM-YYYY eller YYYY-MM-DD
+function hentPeriodeFraDato(datoStr) {
+    if (!datoStr || typeof datoStr !== 'string') return "";
+    const deler = datoStr.split('-');
+    if (deler.length !== 3) return "";
+    
+    // Hvis første del er 4 siffer, er det YYYY-MM-DD
+    if (deler[0].length === 4) {
+        return `${deler[1]}-${deler[0]}`;
+    } 
+    // Ellers antar vi DD-MM-YYYY
+    return `${deler[1]}-${deler[2]}`;
+}
+
+// Sammenligner datoer uavhengig av rekkefølge på tallene
+function matchDatoer(dato1, dato2) {
+    if (!dato1 || !dato2) return false;
+    const d1 = dato1.split('-').sort().join('');
+    const d2 = dato2.split('-').sort().join('');
+    return d1 === d2;
+}
+
+// --- INITIALISERING ---
+
 onValue(ref(db, '/'), (snapshot) => {
     globalData = snapshot.val() || {};
     genererDynamiskFilter();
@@ -34,13 +60,8 @@ function genererDynamiskFilter() {
     const unikePerioder = new Set();
 
     datoer.forEach(datoStr => {
-        const deler = datoStr.split('-');
-        if (deler.length === 3) {
-            // Håndterer både DD-MM-YYYY og YYYY-MM-DD for filteret
-            const mnd = deler[1];
-            const ar = deler[0].length === 4 ? deler[0] : deler[2];
-            unikePerioder.add(`${mnd}-${ar}`);
-        }
+        const p = hentPeriodeFraDato(datoStr);
+        if (p) unikePerioder.add(p);
     });
 
     const nå = new Date();
@@ -66,21 +87,10 @@ function oppdaterStatistikk() {
     oppdaterLagStats(globalData.matches || {}, stats, periodSelect.value);
 }
 
-// HJELPEFUNKSJON FOR Å SAMMENLIGNE DATOER UAVHENGIG AV FORMAT
-function matchDatoer(dato1, dato2) {
-    if (!dato1 || !dato2) return false;
-    const d1 = dato1.split('-').sort().join('');
-    const d2 = dato2.split('-').sort().join('');
-    return d1 === d2;
-}
-
 function beregnLogikk(players, attendance, matches, periodeValg) {
     const relevanteDatoer = Object.keys(attendance).filter(d => {
         if (periodeValg === 'total') return true;
-        const deler = d.split('-');
-        const mnd = deler[1];
-        const ar = deler[0].length === 4 ? deler[0] : deler[2];
-        return `${mnd}-${ar}` === periodeValg;
+        return hentPeriodeFraDato(d) === periodeValg;
     });
 
     const totaltMulige = relevanteDatoer.length;
@@ -97,7 +107,6 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                     if (attendance[dato].info?.type === 'Kamp') {
                         kamperOppmøte++;
 
-                        // FINN KAMP MED ROBUST DATO-SJEKK
                         const kamp = Object.values(matches).find(m => matchDatoer(m.date, dato));
 
                         if (kamp && kamp.result) {
@@ -106,7 +115,6 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                                 const vi = Number(scores[0]);
                                 const dem = Number(scores[1]);
 
-                                // POENG LOGIKK (Din tabell)
                                 if (vi >= 3) mvpLagScore += 1.0;
                                 else if (vi >= 1) mvpLagScore += 0.5;
 
@@ -120,15 +128,18 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // MVP KAMP (INDIVIDUELL)
+            // MVP KAMP & MÅL-TELLING
             Object.values(matches).forEach(m => {
-                const kamp = m.date ? m.date.split('-') : [];
-                const mnd = kamp[1];
-                const ar = kamp[0]?.length === 4 ? kamp[0] : kamp[2];
-                if (periodeValg !== 'total' && `${mnd}-${ar}` !== periodeValg) return;
+                if (periodeValg !== 'total' && hentPeriodeFraDato(m.date) !== periodeValg) return;
 
-                if (m.goalScorers) mål += m.goalScorers.split(', ').filter(s => s.trim() === navn).length;
-                if (m.assists) assist += m.assists.split(', ').filter(a => a.trim() === navn).length;
+                if (m.goalScorers) {
+                    const scorere = m.goalScorers.split(',').map(s => s.trim());
+                    mål += scorere.filter(s => s === navn).length;
+                }
+                if (m.assists) {
+                    const assistenter = m.assists.split(',').map(a => a.trim());
+                    assist += assistenter.filter(a => a === navn).length;
+                }
                 if (m.playerRatings && m.playerRatings[navn]) {
                     const r = m.playerRatings[navn];
                     totalRatingScore += (Number(r.off) + Number(r.def));
@@ -153,8 +164,8 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
 
 function renderTopplister(statsArray) {
     const configs = [
-        { key: 'lagPoeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' pts', minOppmoteProsent: 0, info: "MVP Lag: Belønner lagets suksess når du er på banen. Mål (maks 1.0) og Clean Sheet (maks 1.0)." },
-        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minOppmoteProsent: 0.3, info: "MVP Kamp: Individuell score basert på rating og målpoeng." },
+        { key: 'lagPoeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' pts', minOppmoteProsent: 0, info: "MVP Lag: Basert på lagets resultat når du spiller." },
+        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minOppmoteProsent: 0.3, info: "MVP Kamp: Individuell score basert på rating og mål." },
         { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minOppmoteProsent: 0, info: "Total treningsiver og kampoppmøte." }
     ];
 
@@ -162,7 +173,6 @@ function renderTopplister(statsArray) {
         const sorted = [...statsArray]
             .filter(s => {
                 if (conf.minOppmoteProsent === 0) return true;
-                // Enkel sjekk for MVP Kamp
                 return s.kamperOppmøte >= 1; 
             })
             .sort((a, b) => Number(b[conf.key]) - Number(a[conf.key]))
@@ -178,21 +188,21 @@ function renderTopplister(statsArray) {
     });
 }
 
-function oppdaterLagStats(matches, statsArray, periode) {
+function oppdaterLagStats(matches, statsArray, periodeValg) {
     const kampListe = Object.values(matches).filter(m => {
-        if (!m.result || m.result === ' - ') return false;
-        if (periode === 'total') return true;
-        const deler = m.date.split('-');
-        const mnd = deler[1];
-        const ar = deler[0].length === 4 ? deler[0] : deler[2];
-        return `${mnd}-${ar}` === periode;
+        if (!m.result || m.result === ' - ' || m.result === '-') return false;
+        if (periodeValg === 'total') return true;
+        return hentPeriodeFraDato(m.date) === periodeValg;
     });
+
     const totaltMål = statsArray.reduce((sum, s) => sum + s.mål, 0);
     let seire = 0;
+    
     kampListe.forEach(m => {
         const s = m.result.replace(/\s/g, "").split('-');
-        if (Number(s[0]) > Number(s[1])) seire++;
+        if (s.length === 2 && Number(s[0]) > Number(s[1])) seire++;
     });
+
     document.getElementById('teamMatches').innerText = kampListe.length;
     document.getElementById('teamGoals').innerText = totaltMål;
     document.getElementById('teamWinRate').innerText = (kampListe.length > 0 ? Math.round((seire/kampListe.length)*100) : 0) + "%";
