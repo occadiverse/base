@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSK Fotball Herrer A-lag</title>
+    <title>BSK Fotball Herrer A-lag - Statistikk</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     <style>
@@ -30,7 +30,6 @@
             padding: 20px;
             text-align: center;
             box-shadow: var(--shadow);
-            border-top: none;
         }
         .team-card .label { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 700; }
         .team-card .value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
@@ -47,9 +46,10 @@
             border-radius: 15px;
             padding: 25px;
             box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- RAD-STYLING --- */
         .stat-row {
             display: flex;
             justify-content: space-between;
@@ -61,19 +61,22 @@
             color: var(--text-main);
         }
 
-        .hidden-list .stat-row:last-child { border-bottom: none; }
-
         .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
         .player-name { flex: 1; font-weight: 600; color: #333; }
         .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
 
-        #winnerPoeng .stat-row, 
-        #winnerKomplett .stat-row, 
-        #winnerOppmote .stat-row {
-            border-bottom: 1px solid #f0f0f0;
+        /* --- INFO SEKSJON --- */
+        .stat-info {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #ddd;
+            font-size: 0.8rem;
+            color: #777;
+            line-height: 1.4;
         }
+        .stat-info i { margin-right: 5px; color: var(--primary); }
 
-        /* --- ACCORDION LOGIKK (MOBIL) --- */
+        /* --- ACCORDION --- */
         .stat-header {
             display: flex;
             justify-content: space-between;
@@ -82,43 +85,17 @@
             border-bottom: 2px solid #f8f9fa;
             cursor: pointer;
         }
-        .stat-header h3 { font-size: 1.2rem; display: flex; align-items: center; gap: 12px; color: var(--text-main); margin: 0; }
-        .toggle-icon { color: #ccc; transition: transform 0.3s; }
+        .stat-header h3 { font-size: 1.2rem; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .toggle-icon { transition: transform 0.3s; color: #ccc; }
         .stat-header.active .toggle-icon { transform: rotate(180deg); }
 
-        .hidden-list {
-            display: none;
-        }
+        .hidden-list { display: none; }
         .hidden-list.show { display: block; }
 
-        /* --- INFO-TEKST LOGIKK (SKJULING PÅ MOBIL) --- */
-        @media (max-width: 768px) {
-            .stat-footer.hidden-footer {
-                display: none !important;
-            }
-            /* Vis kun footer hvis stat-headeren i samme kort har klassen .active */
-            .stat-header.active ~ .stat-footer.hidden-footer {
-                display: flex !important;
-            }
-        }
         @media (min-width: 769px) {
-            .stat-footer.hidden-footer {
-                display: flex !important;
-            }
-        }
-
-        /* --- PC VISNING (BREDE SKJERMER) --- */
-        @media (min-width: 769px) {
-            .stat-header {
-                cursor: default;
-                pointer-events: none;
-            }
-            .toggle-icon {
-                display: none;
-            }
-            .hidden-list {
-                display: block !important;
-            }
+            .stat-header { cursor: default; pointer-events: none; }
+            .toggle-icon { display: none; }
+            .hidden-list { display: block !important; }
         }
 
         /* Filter bar */
@@ -132,25 +109,11 @@
             align-items: center;
             gap: 15px;
         }
-        .filter-bar label { font-weight: 600; color: var(--text-main); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
-        .filter-bar label i { color: var(--primary); font-size: 1.1rem; }
-        .custom-select-wrapper { flex: 1; max-width: 300px; }
         .select-input-clean {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid var(--border-color);
+            padding: 8px 12px;
             border-radius: 8px;
-            background-color: var(--white);
-            color: var(--text-main);
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 1em;
+            border: 1px solid #ddd;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -163,33 +126,28 @@
         <button class="menu-toggle" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <h2 class="section-title">BSK Fotball Herrer A-lag</h2>
+        <h2 class="section-title">Statistikk & Analyse</h2>
     </div>
 
     <section class="stats-hero-clean">
-        <h2>Sesongens Høydepunkter</h2>
-        <p>En dypere titt på prestasjonene som definerer oss i år.</p>
+        <h2>Sesongens Prestasjoner</h2>
+        <p>Basert på kampresultater og personlige 0-1-2 vurderinger.</p>
     </section>
 
     <div class="filter-bar">
-        <label for="statPeriodSelect">
-            <i class="fa-solid fa-calendar"></i>
-            Filtrer etter måned:
-        </label>
-        <div class="custom-select-wrapper">
-            <select id="statPeriodSelect" class="select-input-clean">
-                <option value="total">Hele sesongen</option>
-            </select>
-        </div>
+        <label for="statPeriodSelect"><i class="fa-solid fa-calendar"></i> Periode:</label>
+        <select id="statPeriodSelect" class="select-input-clean">
+            <option value="total">Hele sesongen</option>
+        </select>
     </div>
 
     <div class="team-stats-row">
         <div class="team-card">
-            <div class="label">Kamper Spilt</div>
+            <div class="label">Kamper</div>
             <div id="teamMatches" class="value">-</div>
         </div>
         <div class="team-card">
-            <div class="label">Mål Scoret</div>
+            <div class="label">Mål</div>
             <div id="teamGoals" class="value">-</div>
         </div>
         <div class="team-card">
@@ -199,6 +157,7 @@
     </div>
 
     <div class="stats-grid">
+        <!-- MVP LAG -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listPoengContainer', this)">
                 <h3><i class="fa-solid fa-users-rays" style="color: var(--primary);"></i> MVP Lag</h3>
@@ -206,8 +165,14 @@
             </div>
             <div id="winnerPoeng"></div>
             <div id="listPoengContainer" class="hidden-list"></div>
+            <div class="stat-info">
+                <i class="fa-solid fa-circle-info"></i>
+                <strong>2 pts:</strong> Bra bidrag. <strong>1 pt:</strong> Var innpå. <strong>0 pts:</strong> Under par.
+                Bonuser gis ved 3+ mål eller Clean Sheet.
+            </div>
         </div>
 
+        <!-- MVP KAMP -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listKomplettContainer', this)">
                 <h3><i class="fa-solid fa-trophy" style="color: var(--primary);"></i> MVP Kamp</h3>
@@ -215,8 +180,13 @@
             </div>
             <div id="winnerKomplett"></div>
             <div id="listKomplettContainer" class="hidden-list"></div>
+            <div class="stat-info">
+                <i class="fa-solid fa-circle-info"></i>
+                Vektet score basert på dine personlige karakterer (0-2) kombinert med mål og assists.
+            </div>
         </div>
 
+        <!-- TRENINGSIVER -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listOppmoteContainer', this)">
                 <h3><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Treningsiver</h3>
@@ -224,16 +194,21 @@
             </div>
             <div id="winnerOppmote"></div>
             <div id="listOppmoteContainer" class="hidden-list"></div>
+            <div class="stat-info">
+                <i class="fa-solid fa-circle-info"></i>
+                Prosentvis oppmøte på treninger og kamper i valgt periode.
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     function toggleStatList(id, header) {
-        if (window.innerWidth > 768) return; 
-        const container = document.getElementById(id);
-        container.classList.toggle('show');
-        header.classList.toggle('active');
+        if (window.innerWidth > 768) {
+            const container = document.getElementById(id);
+            container.classList.toggle('show');
+            header.classList.toggle('active');
+        }
     }
 </script>
 
