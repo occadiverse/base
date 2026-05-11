@@ -247,19 +247,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const ratingBody = document.getElementById('playerRatingBody');
         ratingBody.innerHTML = currentTroopNames.map(name => {
             const r = savedRatings[name] || { off: 1, def: 1 };
+            // OPPDATERT: Lagt til verdi 2 i select-menyene
             return `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 10px 5px; font-weight: 600;">${name}</td>
                     <td style="text-align: center;">
                         <select class="off-rating" data-player="${name}">
-                            <option value="1" ${r.off == 1 ? 'selected' : ''}>1</option>
-                            <option value="0" ${r.off == 0 ? 'selected' : ''}>0</option>
+                            <option value="2" ${r.off == 2 ? 'selected' : ''}>2 (Bra)</option>
+                            <option value="1" ${r.off == 1 ? 'selected' : ''}>1 (Innpå)</option>
+                            <option value="0" ${r.off == 0 ? 'selected' : ''}>0 (Dårlig)</option>
                         </select>
                     </td>
                     <td style="text-align: center;">
                         <select class="def-rating" data-player="${name}">
-                            <option value="1" ${r.def == 1 ? 'selected' : ''}>1</option>
-                            <option value="0" ${r.def == 0 ? 'selected' : ''}>0</option>
+                            <option value="2" ${r.def == 2 ? 'selected' : ''}>2 (Bra)</option>
+                            <option value="1" ${r.def == 1 ? 'selected' : ''}>1 (Innpå)</option>
+                            <option value="0" ${r.def == 0 ? 'selected' : ''}>0 (Dårlig)</option>
                         </select>
                     </td>
                 </tr>
