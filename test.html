@@ -4,67 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base - Design System</title>
-    <link rel="stylesheet" href="style.css"> <!-- Pass på at navnet stemmer -->
-    <style>
-        /* Midlertidige stiler kun for testsiden */
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; padding: 20px; }
-        .test-section { background: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h2 { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 10px; display: block; }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for ikoner (brukes i din sidebar) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <h1>Base Komponent-test</h1>
-    <p>Bruk denne siden for å se at alt ser likt ut før du legger det inn på hovedsidene.</p>
-
-    <!-- 1. FILTER-BAR -->
-    <div class="test-section">
-        <h2>1. Filter-bar (Nøytral)</h2>
-        <span class="label">Brukes til måneder, posisjoner, kjemi osv.</span>
-        <div class="filter-wrapper">
-            <select class="base-select">
-                <option value="">Velg periode...</option>
-                <option value="total">Hele sesongen</option>
-                <option value="05-2026">Mai 2026</option>
-            </select>
+    <!-- DIN SIDEBAR STIL -->
+    <aside class="sidebar">
+        <div class="nav-links">
+            <a href="#" class="nav-item active"><i class="fas fa-vial"></i><span>Test-side</span></a>
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Hjem</span></a>
         </div>
-    </div>
+    </aside>
 
-    <!-- 2. STATISTIKK-RADER -->
-    <div class="test-section">
-        <h2>2. Statistikk-rader</h2>
-        <span class="label">Brukes i topplister</span>
-        <div class="list-container"> <!-- Bruker dine eksisterende klasser -->
-            <div class="stat-row">
-                <span>
-                    <span class="rank">1</span>
-                    <span class="player-name">Testspiller Navn</span>
-                </span>
-                <span class="score-val">10.5 pts</span>
-            </div>
-            <div class="stat-row">
-                <span>
-                    <span class="rank">2</span>
-                    <span class="player-name">Annen Spiller</span>
-                </span>
-                <span class="score-val">8.0 pts</span>
+    <!-- DITT HOVEDINNHOLD STIL -->
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+            <h2>Design System & Test</h2>
+        </div>
+
+        <div class="welcome-hero">
+            <div class="hero-content">
+                <h2>Element-test</h2>
+                <p>Her kan du se hvordan nye elementer ser ut før vi tar de i bruk på statistikk-siden.</p>
             </div>
         </div>
-    </div>
 
-    <!-- 3. KJEMI-KORT (Konsept) -->
-    <div class="test-section">
-        <h2>3. Kjemi-kort (Neste prosjekt)</h2>
-        <span class="label">Slik kan en "Duo" se ut</span>
-        <div style="display: flex; gap: 15px; background: #eef2f7; padding: 20px; border-radius: 10px; align-items: center;">
-            <div style="font-weight: bold; font-size: 1.2rem;">🔥 85%</div>
-            <div>
-                <strong>Sebastian & Peder</strong><br>
-                <span style="font-size: 0.9rem; color: #666;">Vinner nesten alltid sammen</span>
+        <!-- TEST AV FILTER-BAR -->
+        <div class="dashboard-grid">
+            <div class="dash-card" style="display: block !important;">
+                <div class="dash-info">
+                    <h3>Filter-system</h3>
+                    <p>Bruker klassen .base-select</p>
+                    <div class="filter-wrapper">
+                        <select class="base-select">
+                            <option>Mai 2026</option>
+                            <option>April 2026</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEST AV KJEMI-KORT -->
+            <div class="dash-card">
+                <div class="dash-icon"><i class="fas fa-hands-helping"></i></div>
+                <div class="dash-info">
+                    <h3>Kjemi: Sebastian & Viktor</h3>
+                    <p>Seiersprosent sammen: 92%</p>
+                </div>
+                <i class="fas fa-chevron-right arrow"></i>
             </div>
         </div>
-    </div>
+
+        <!-- TEST AV TABELL-STIL -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="name-col">Navn</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="name-col">Sebastian Mørken</td>
+                        <td><span class="status-pill">SM</span></td>
+                        <td>1.5</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
 
 </body>
 </html>
