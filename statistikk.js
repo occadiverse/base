@@ -173,8 +173,9 @@ function renderTopplister(statsArray) {
         const listEl = document.getElementById(conf.listEl);
         
         if (winnerEl) {
+            // FJERNET winner-row HER:
             winnerEl.innerHTML = winner ? `
-                <div class="stat-row winner-row">
+                <div class="stat-row">
                     <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
                     <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
                 </div>` : "";
