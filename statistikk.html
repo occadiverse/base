@@ -61,6 +61,13 @@
             color: var(--text-main);
         }
 
+        .winner-row {
+            background: #fffdf5;
+            border-radius: 8px;
+            padding: 12px 8px;
+            border-bottom: 2px solid #ffecb3;
+        }
+
         .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
         .player-name { flex: 1; font-weight: 600; color: #333; }
         .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
@@ -75,6 +82,31 @@
             line-height: 1.4;
         }
         .stat-info i { margin-right: 5px; color: var(--primary); }
+
+        /* --- VIS ALLE KNAPP --- */
+        .show-all-btn {
+            width: 100%;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            color: var(--primary);
+            padding: 12px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+        }
+
+        .show-all-btn:hover {
+            background: #f1f3f5;
+            border-color: var(--primary);
+        }
+
+        .show-all-btn:active {
+            transform: scale(0.98);
+        }
 
         /* --- ACCORDION --- */
         .stat-header {
@@ -91,6 +123,10 @@
 
         .hidden-list { display: none; }
         .hidden-list.show { display: block; }
+
+        @media (max-width: 768px) {
+            .stat-header.active ~ .stat-info { display: block; }
+        }
 
         @media (min-width: 769px) {
             .stat-header { cursor: default; pointer-events: none; }
@@ -204,7 +240,8 @@
 
 <script>
     function toggleStatList(id, header) {
-        if (window.innerWidth > 768) {
+        // På mobil vil vi trigge accordion
+        if (window.innerWidth <= 768) {
             const container = document.getElementById(id);
             container.classList.toggle('show');
             header.classList.toggle('active');
