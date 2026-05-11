@@ -99,26 +99,23 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                                 const vi = Number(scores[0]);
                                 const dem = Number(scores[1]);
 
-                                // Henter verdien (0, 1 eller 2)
                                 const offVal = Number(pRating.off || 0);
                                 const defVal = Number(pRating.def || 0);
 
-                                // OFFENSIV LOGIKK
                                 if (offVal === 2) {
-                                    mvpLagScore += 0.5; // Basis for bra
-                                    if (vi >= 3) mvpLagScore += 0.5; // Bonus for lag-mål
+                                    mvpLagScore += 0.5;
+                                    if (vi >= 3) mvpLagScore += 0.5;
                                 } else if (offVal === 1) {
-                                    mvpLagScore += 0.25; // Basis for innpå
-                                    if (vi >= 3) mvpLagScore += 0.25; // Bonus for lag-mål
+                                    mvpLagScore += 0.25;
+                                    if (vi >= 3) mvpLagScore += 0.25;
                                 }
 
-                                // DEFENSIV LOGIKK
                                 if (defVal === 2) {
-                                    mvpLagScore += 0.5; // Basis for bra
-                                    if (dem === 0) mvpLagScore += 0.5; // Bonus for clean sheet
+                                    mvpLagScore += 0.5;
+                                    if (dem === 0) mvpLagScore += 0.5;
                                 } else if (defVal === 1) {
-                                    mvpLagScore += 0.25; // Basis for innpå
-                                    if (dem === 0) mvpLagScore += 0.25; // Bonus for clean sheet
+                                    mvpLagScore += 0.25;
+                                    if (dem === 0) mvpLagScore += 0.25;
                                 }
                             }
                         }
@@ -126,7 +123,6 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // MVP KAMP & MÅL-TELLING
             Object.values(matches).forEach(m => {
                 if (periodeValg !== 'total' && hentPeriodeFraDato(m.date) !== periodeValg) return;
                 if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
@@ -141,7 +137,6 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // SnittRating deler på 4 fordi maks poeng per kamp nå er 4 (2 off + 2 def)
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 4)) : 0;
             const pPk = kamperOppmøte > 0 ? ((mål + assist) / kamperOppmøte) : 0;
             const mvpKampScore = parseFloat((snittRating * 7) + (pPk * 1.5)).toFixed(2);
@@ -156,6 +151,8 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
         });
 }
 
+// --- VISUALISERING ---
+
 function renderTopplister(statsArray) {
     const configs = [
         { key: 'lagPoeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' pts', minOppmote: 0 },
@@ -164,18 +161,63 @@ function renderTopplister(statsArray) {
     ];
 
     configs.forEach(conf => {
-        const sorted = [...statsArray]
+        const allSorted = [...statsArray]
             .filter(s => s.kamperOppmøte >= conf.minOppmote)
-            .sort((a, b) => Number(b[conf.key]) - Number(a[conf.key]))
-            .slice(0, 10);
+            .sort((a, b) => Number(b[conf.key]) - Number(a[conf.key]));
+
+        const winner = allSorted[0];
+        const top10 = allSorted.slice(1, 10);
+        const resten = allSorted.slice(10);
         
         const winnerEl = document.getElementById(conf.winnerEl);
         const listEl = document.getElementById(conf.listEl);
         
-        if (winnerEl) winnerEl.innerHTML = sorted.length > 0 ? `<div class="stat-row"><span><span class="rank">1</span><span class="player-name">${sorted[0].navn}</span></span><span class="score-val">${sorted[0][conf.key]}${conf.suffix}</span></div>` : "";
-        if (listEl) listEl.innerHTML = sorted.slice(1).map((s, i) => `<div class="stat-row"><span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span><span class="score-val">${s[conf.key]}${conf.suffix}</span></div>`).join('');
+        if (winnerEl) {
+            winnerEl.innerHTML = winner ? `
+                <div class="stat-row winner-row">
+                    <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
+                    <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
+                </div>` : "";
+        }
+
+        if (listEl) {
+            let listHTML = top10.map((s, i) => `
+                <div class="stat-row">
+                    <span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span>
+                    <span class="score-val">${s[conf.key]}${conf.suffix}</span>
+                </div>`).join('');
+
+            if (resten.length > 0) {
+                const extraId = `extra-${conf.key}`;
+                listHTML += `
+                    <div id="${extraId}" style="display:none;">
+                        ${resten.map((s, i) => `
+                            <div class="stat-row">
+                                <span><span class="rank">${i + 11}</span><span class="player-name">${s.navn}</span></span>
+                                <span class="score-val">${s[conf.key]}${conf.suffix}</span>
+                            </div>`).join('')}
+                    </div>
+                    <button onclick="event.stopPropagation(); toggleFullList('${extraId}', this)" class="show-all-btn">
+                        Vis alle (${allSorted.length} spillere)
+                    </button>
+                `;
+            }
+            listEl.innerHTML = listHTML;
+        }
     });
 }
+
+// Global funksjon for å åpne/lukke resten av lista
+window.toggleFullList = function(id, btn) {
+    const extraDiv = document.getElementById(id);
+    if (extraDiv.style.display === "none") {
+        extraDiv.style.display = "block";
+        btn.innerText = "Vis færre";
+    } else {
+        extraDiv.style.display = "none";
+        btn.innerText = "Vis alle";
+    }
+};
 
 function oppdaterLagStats(matches, statsArray, periode) {
     const kampListe = Object.values(matches).filter(m => {
