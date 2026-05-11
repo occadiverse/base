@@ -99,21 +99,26 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                                 const vi = Number(scores[0]);
                                 const dem = Number(scores[1]);
 
-                                const harBraOff = pRating.off == 1;
-                                const harBraDef = pRating.def == 1;
+                                // Henter verdien (0, 1 eller 2)
+                                const offVal = Number(pRating.off || 0);
+                                const defVal = Number(pRating.def || 0);
 
-                                // --- NY LOGIKK (ALTERNATIV 1) ---
-                                
-                                // Offensiv utregning
-                                if (harBraOff) {
-                                    mvpLagScore += 0.5; // Basis for god kamp
+                                // OFFENSIV LOGIKK
+                                if (offVal === 2) {
+                                    mvpLagScore += 0.5; // Basis for bra
                                     if (vi >= 3) mvpLagScore += 0.5; // Bonus for lag-mål
+                                } else if (offVal === 1) {
+                                    mvpLagScore += 0.25; // Basis for innpå
+                                    if (vi >= 3) mvpLagScore += 0.25; // Bonus for lag-mål
                                 }
 
-                                // Defensiv utregning
-                                if (harBraDef) {
-                                    mvpLagScore += 0.5; // Basis for god kamp
+                                // DEFENSIV LOGIKK
+                                if (defVal === 2) {
+                                    mvpLagScore += 0.5; // Basis for bra
                                     if (dem === 0) mvpLagScore += 0.5; // Bonus for clean sheet
+                                } else if (defVal === 1) {
+                                    mvpLagScore += 0.25; // Basis for innpå
+                                    if (dem === 0) mvpLagScore += 0.25; // Bonus for clean sheet
                                 }
                             }
                         }
@@ -130,13 +135,14 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                     const rKey = Object.keys(m.playerRatings).find(k => k.trim() === navn);
                     if (rKey) {
                         const r = m.playerRatings[rKey];
-                        totalRatingScore += (Number(r.off) + Number(r.def));
+                        totalRatingScore += (Number(r.off || 0) + Number(r.def || 0));
                         antallRatings++;
                     }
                 }
             });
 
-            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 2)) : 0;
+            // SnittRating deler på 4 fordi maks poeng per kamp nå er 4 (2 off + 2 def)
+            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 4)) : 0;
             const pPk = kamperOppmøte > 0 ? ((mål + assist) / kamperOppmøte) : 0;
             const mvpKampScore = parseFloat((snittRating * 7) + (pPk * 1.5)).toFixed(2);
 
