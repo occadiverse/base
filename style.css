@@ -324,15 +324,37 @@ body {
     margin-right: 15px;
 }
 
+/* Containeren som holder tabellen */
 .table-container {
-    background: var(--white);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    overflow-x: auto;
+    background: #ffffff;
+    border-radius: 15px;
+    overflow: hidden; /* Sørger for at header-hjørnene følger runden */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e1e8ed;
+    margin: 20px 0;
 }
 
 table { width: 100%; border-collapse: collapse; }
-th { background-color: #f8f9fa; padding: 15px; border-bottom: 2px solid var(--border-color); font-weight: 700; color: var(--bsk-blue); }
-td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: center; }
-
+thead { background-color: #f8f9fa; /* Den lyse "proffe" gråfargen */ }
+th {
+    padding: 16px 20px;
+    font-size: 0.7rem; /* Liten, men tydelig */
+    font-weight: 900;  /* Maks tykkelse for autoritet */
+    color: #64748b;    /* Elegant grå-blå tekstfarge */
+    text-transform: uppercase;
+    letter-spacing: 0.1em; /* Litt luft mellom bokstavene */
+    text-align: center;
+    border-bottom: 2px solid #eef2f6;
+}
+td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+/* Gjør annenhver rad litt annerledes (valgfritt, men pent) */
+tbody tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
 .name-col { text-align: left; font-weight: 600; color: var(--text-main); }
