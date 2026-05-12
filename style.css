@@ -47,7 +47,7 @@ body {
 
 /* 
 ================================================================
-3. TOP BAR (Oppdatert med dropdown helt til høyre)
+3. TOP BAR
 ================================================================
 */
 .top-bar {
@@ -56,7 +56,7 @@ body {
     z-index: 1000;
     height: var(--topbar-height);
     background: var(--white);
-    display: flex; /* Endret fra grid til flex for bedre kontroll */
+    display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
@@ -84,13 +84,12 @@ body {
     font-size: 1rem;
     font-weight: 700;
     color: var(--text-main);
-    position: absolute; /* Sentrerer tittelen uavhengig av logo og filter */
+    position: absolute;
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
 }
 
-/* --- FILTER / DROPDOWN STYLING --- */
 .filter-wrapper {
     display: flex;
     justify-content: flex-end;
@@ -114,10 +113,7 @@ body {
     background: var(--white);
 }
 
-.filter-container i {
-    color: var(--bsk-blue);
-    font-size: 0.9rem;
-}
+.filter-container i { color: var(--bsk-blue); font-size: 0.9rem; }
 
 .base-select {
     font-size: 0.85rem;
@@ -129,10 +125,9 @@ body {
     outline: none;
     padding-right: 5px;
     text-transform: uppercase;
-    appearance: none; /* Fjerner standard pil for et renere utseende */
+    appearance: none;
 }
 
-/* Skjul dropdown på mobil hvis det blir for trangt (valgfritt) */
 @media (max-width: 400px) {
     .logo-brand span { display: none; }
 }
@@ -194,9 +189,11 @@ td {
 
 /* 
 ================================================================
-6. NAVIGASJON (PC Sidebar)
+6. NAVIGASJON & HOVEDLAYOUT
 ================================================================
 */
+
+/* --- PC SIDEBAR & LAYOUT --- */
 @media (min-width: 769px) {
     .sidebar {
         width: var(--sidebar-width);
@@ -243,7 +240,6 @@ td {
         color: var(--bsk-blue);
     }
 
-    /* AKTIV STATUS PC */
     .nav-item.active {
         background: var(--active-bg);
         color: var(--bsk-blue);
@@ -253,15 +249,12 @@ td {
 
     .main-content {
         margin-left: var(--sidebar-width);
-        padding: 40px;
+        padding: 25px 40px; /* Redusert padding i toppen */
+        min-height: calc(100vh - var(--topbar-height));
     }
 }
 
-/* 
-================================================================
-6. NAVIGASJON (Mobil Bottom-Nav)
-================================================================
-*/
+/* --- MOBIL BOTTOM-NAV & LAYOUT --- */
 @media (max-width: 768px) {
     .sidebar { display: none; }
 
@@ -297,7 +290,6 @@ td {
 
     .bottom-nav .nav-item i { font-size: 1.3rem; transition: transform 0.2s ease; }
 
-    /* AKTIV STATUS MOBIL */
     .bottom-nav .nav-item.active { color: var(--bsk-blue); }
     .bottom-nav .nav-item.active i { transform: translateY(-2px); }
     
@@ -313,22 +305,24 @@ td {
 
     .main-content {
         margin-left: 0;
-        padding: 20px;
+        padding: 15px; /* Redusert padding i toppen */
         padding-bottom: 100px;
     }
 }
 
 /* 
 ================================================================
-7. ØVRIG STYLING
+7. ØVRIG STYLING & HERO-FIX
 ================================================================
 */
-.welcome-hero {
+.kamper-hero, .welcome-hero {
     background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
     border-radius: 20px;
-    padding: 40px;
+    padding: 35px 40px;
     color: white;
-    margin-bottom: 30px;
+    margin-top: 0; /* Sikrer at den starter helt oppe */
+    margin-bottom: 25px;
+    box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
 }
 
 .name-col { text-align: left; font-weight: 600; }
