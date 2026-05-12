@@ -3,87 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base - Design System & NFF Tabell</title>
-    <!-- Linker til din eksisterende style.css -->
+    <title>BSK Test - Design System</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome for ikoner (brukes i din sidebar) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* Ekstra hjelpestiler for testsiden */
-        .component-label {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-        
-        /* Gjør tabellen mer lik NFF sin (litt mer luft og tydelige skiller) */
-        .nff-style th {
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            background-color: #fcfcfc;
-        }
-
-        .highlight-score {
-            font-weight: 700;
-            color: var(--primary);
-        }
-    </style>
 </head>
 <body>
 
-    <!-- SIDEBAR (Basert på din stil) -->
-    <aside class="sidebar">
+    <div id="sidebar" class="sidebar">
         <div class="nav-links">
-            <a href="#" class="nav-item active"><i class="fas fa-flask"></i><span>Design Lab</span></a>
-            <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Hjem</span></a>
-            <a href="statistikk.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Statistikk</span></a>
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Hjem</span></a>
+            <a href="#" class="nav-item active"><i class="fa-solid fa-flask"></i><span>Test-side</span></a>
         </div>
-    </aside>
+    </div>
 
-    <!-- HOVEDINNHOLD -->
     <main class="main-content">
-        <div class="top-bar">
-            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
-            <h2>Design Lab: Nye Funksjoner</h2>
-        </div>
-
-        <div class="welcome-hero">
-            <div class="hero-content">
-                <h2>NFF-inspirert Oversikt</h2>
-                <p>Her tester vi den nye tabellen med Assists og det nøytrale filtersystemet.</p>
-            </div>
-        </div>
-
-        <!-- FILTERSYSYTEM -->
-        <div class="dash-card" style="display: block !important; margin-bottom: 25px;">
-            <span class="component-label">Periodevelger (Nøytral stil)</span>
-            <div class="filter-wrapper">
+        <header class="top-bar">
+            <button class="menu-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h1 class="section-title">Design-test</h1>
+            
+            <div class="filter-wrapper" style="margin-left: auto; margin-right: 25px; padding: 0;">
                 <select class="base-select">
-                    <option value="total">Hele sesongen 2026</option>
+                    <option value="total">Hele sesongen</option>
                     <option value="05-2026">Mai 2026</option>
-                    <option value="04-2026">April 2026</option>
                 </select>
             </div>
-        </div>
+        </header>
+
+        <section class="welcome-hero">
+            <div class="hero-content">
+                <h2>Oversikt & Kjemi</h2>
+                <p>Her tester vi hvordan den nye tabellen med Assists og Kjemi-kortene ser ut i ditt format.</p>
+            </div>
+        </section>
 
         <div class="dashboard-grid">
-            <!-- UTVIDET TABELL (NFF STIL) -->
-            <div class="table-container" style="grid-column: span 2;">
-                <span class="component-label" style="padding: 20px 20px 0 20px;">Spillerstatistikk (K | M | A | MVP)</span>
-                <table class="nff-style">
+            
+            <div class="dash-card">
+                <div class="dash-icon"><i class="fa-solid fa-hands-holding-circle"></i></div>
+                <div class="dash-info">
+                    <h3>Beste Duo</h3>
+                    <p>Sebastian & Viktor (92%)</p>
+                </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </div>
+
+            <div class="table-container" style="grid-column: 1 / -1; margin-top: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr>
+                        <tr style="background-color: #f8f9fa;">
                             <th class="name-col">Spiller</th>
                             <th>K</th>
                             <th>M</th>
                             <th>A</th>
-                            <th>MVP Lag</th>
+                            <th>MVP</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,43 +68,19 @@
                             <td>12</td>
                             <td>5</td>
                             <td>3</td>
-                            <td class="highlight-score">1.5</td>
+                            <td style="color: var(--primary); font-weight: 700;">1.5</td>
                         </tr>
                         <tr>
                             <td class="name-col">Peder Vegsund</td>
                             <td>10</td>
                             <td>2</td>
                             <td>8</td>
-                            <td class="highlight-score">1.2</td>
-                        </tr>
-                        <tr>
-                            <td class="name-col">Viktor ...</td>
-                            <td>11</td>
-                            <td>4</td>
-                            <td>4</td>
-                            <td class="highlight-score">1.1</td>
+                            <td style="color: var(--primary); font-weight: 700;">1.2</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- KJEMI MODUL (SMART-KORT) -->
-            <div class="dash-card">
-                <div class="dash-info">
-                    <span class="component-label">Kjemi-måler</span>
-                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-                        <div class="dash-icon" style="margin-right: 0;"><i class="fas fa-bolt"></i></div>
-                        <div>
-                            <h3 style="margin:0;">Sebastian & Viktor</h3>
-                            <p style="margin:0;">Giftigste duo (5 mål sammen)</p>
-                        </div>
-                    </div>
-                    <div style="margin-top: 20px; background: #eee; height: 8px; border-radius: 4px; overflow: hidden;">
-                        <div style="width: 92%; background: var(--success); height: 100%;"></div>
-                    </div>
-                    <p style="font-size: 0.8rem; margin-top: 5px; font-weight: bold; color: var(--success);">92% Kjemi-match</p>
-                </div>
-            </div>
         </div>
     </main>
 
