@@ -2,7 +2,6 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <!-- Oppdatert viewport for bedre mobilfølelse -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- App-innstillinger -->
@@ -46,7 +45,6 @@
     </header>
 
     <!-- SIDEBAR (PC) -->
-    <!-- Vi fjerner klassen 'collapsed' som standard for PC-visning -->
     <aside id="sidebar" class="sidebar"></aside>
 
     <!-- BUNNMENY (MOBIL) -->
@@ -78,57 +76,25 @@
         <!-- HERO SEKSJON -->
         <section class="welcome-hero">
             <div class="hero-content">
-                <!-- Siden du er Christian, er det hyggelig med en personlig hilsen -->
                 <h2>Velkommen, Christian</h2>
-                <p>Her er kontrollsenteret for BSK Fotball. Administrer taktikk, oppmøte og se lagets prestasjoner i sanntid.</p>
+                <p>BSK Fotball Herrer A-lag: Ditt digitale kontrollsenter for kampanalyse og troppsledelse.</p>
             </div>
         </section>
 
-        <!-- DASHBOARD GRID -->
+        <!-- DASHBOARD GRID - KLAR FOR DATA -->
         <div class="dashboard-grid">
             
-            <a href="kamper.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-trophy"></i></div>
-                <div class="dash-info">
-                    <h3>Kamper</h3>
-                    <p>Terminliste og taktikk.</p>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </a>
-
-            <a href="oppmote.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-check-double"></i></div>
-                <div class="dash-info">
-                    <h3>Oppmøte</h3>
-                    <p>Registrer trening og fravær.</p>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </a>
-
-            <a href="spillere.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-user-group"></i></div>
-                <div class="dash-info">
-                    <h3>Spillerstall</h3>
-                    <p>Tropp og spillerinfo.</p>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </a>
-
-            <a href="statistikk.html" class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-chart-line"></i></div>
-                <div class="dash-info">
-                    <h3>Statistikk</h3>
-                    <p>Mål, assists og rating.</p>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </a>
+            <!-- Her kan du senere legge inn widgets eller statusrapporter -->
+            <div class="table-container" style="grid-column: 1 / -1; padding: 30px; text-align: center; border: 2px dashed var(--border-color); background: transparent;">
+                <i class="fa-solid fa-chart-pie" style="font-size: 2rem; color: var(--bsk-blue); margin-bottom: 15px; display: block;"></i>
+                <h3 style="color: var(--bsk-blue); margin-bottom: 8px;">Klar for analyse</h3>
+                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;">Bruk menyen for å navigere. Denne flaten er nå klar for å vise dine Google Sheets-data, som f.eks. neste kamp eller form-tabell.</p>
+            </div>
 
         </div>
     </main>
 
     <!-- SCRIPTS -->
     <script src="navigation.js"></script>
-    <!-- Slett script.js hvis den er tom/gir 404, ellers behold den -->
 </body>
-
 </html>
