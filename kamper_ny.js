@@ -191,19 +191,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsDiv = document.getElementById('matchInfoDetails');
     const tacticContainer = document.getElementById('tacticBarContainer');
     
-    // 1. DATO-KONVERTERING (Fra 2026-04-29 til 29-04-2026)
+    // Konverterer dato fra YYYY-MM-DD (fra matches) til DD-MM-YYYY (for attendance)
     const parts = date.split('-'); 
     const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; 
     const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
     infoTitle.innerText = opponent;
 
-    // Finn kampdata for å vise resultat og målscorere i headeren
     const matchData = allMatches.find(m => m.id === id);
     const resultText = matchData?.result || '-';
     const goalsText = matchData?.goalScorers || '';
-    const assistsText = matchData?.assists || '';
 
+    // Header-info i modalen
     let infoHTML = `
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -266,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('matchInfoModal').style.display = 'flex';
 
-    // 2. FIREBASE-HENTING
+    // Henting fra Firebase
     window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
         const root = snapshot.val();
         if (!root) return;
@@ -277,15 +276,14 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.innerHTML = '';
         let list = [];
 
-        if (enrolled) {
+        if (enrolled && allPlayers) {
             Object.entries(enrolled).forEach(([pId, status]) => {
                 if (status === 'K') {
-                    // Sjekker om pId er navnet direkte eller en ID i players-mappen
-                    let name = pId;
-                    if (allPlayers && allPlayers[pId]) {
-                        name = allPlayers[pId].navn || allPlayers[pId].name || pId;
+                    // Vi bruker pId (f.eks -OrIrY42W...) til å finne navnet i 'players'
+                    const playerObj = allPlayers[pId];
+                    if (playerObj) {
+                        list.push(playerObj.navn || playerObj.name);
                     }
-                    list.push(name);
                 }
             });
             list.sort((a, b) => a.localeCompare(b, 'nb'));
@@ -305,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { onlyOnce: true });
 };
-
     // --- STATISTIKK LOGIKK ---
     window.toggleStatsEdit = function() {
         const container = document.getElementById('postMatchStats');
