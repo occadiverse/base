@@ -1,6 +1,6 @@
 /* 
 ================================================================
-1. DESIGNVARIABLER (Sentralstyring)
+1. DESIGNVARIABLER
 ================================================================
 */
 :root {
@@ -25,7 +25,7 @@
     
     --sidebar-width: 260px;
     --topbar-height: 56px;
-    --bottom-nav-height: 65px;
+    --bottom-nav-height: 70px;
 }
 
 /* 
@@ -43,8 +43,6 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
 }
 
 /* 
@@ -70,71 +68,31 @@ body {
     grid-column: 1;
     display: flex;
     align-items: center;
-    width: 170px; 
-    flex-shrink: 0;
     font-weight: 900; 
     font-size: 1rem;
     color: var(--bsk-blue) !important;
     text-decoration: none !important;
     white-space: nowrap;
-    transition: opacity 0.2s ease;
 }
 
 .logo-brand i { margin-right: 6px; }
 .logo-brand span { color: var(--bsk-yellow) !important; margin-left: 6px; }
-.logo-brand:hover { opacity: 0.8; }
 
 .section-title {
     grid-column: 2;
     font-size: 1rem;
     font-weight: 700;
-    margin: 0;
     color: var(--text-main);
     text-align: center;
 }
 
-.filter-wrapper {
-    grid-column: 3;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.filter-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--bg-light);
-    padding: 6px 12px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border-color);
-    cursor: pointer;
-}
-
-.base-select {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--bsk-blue);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    outline: none;
-}
-
 /* 
 ================================================================
-4. RESPONSIV KONTROLL (Mobil vs Desktop)
+4. RESPONSIV KONTROLL
 ================================================================
 */
-
-/* Skjul desktop-ting på mobil */
-.desktop-only {
-    display: none !important;
-}
-
-/* Skjul mobil-ting på PC */
-.mobile-only {
-    display: block;
-}
+.desktop-only { display: none !important; }
+.mobile-only { display: block; }
 
 @media (min-width: 769px) {
     .desktop-only { display: table-cell !important; }
@@ -143,25 +101,20 @@ body {
 
 /* 
 ================================================================
-5. TABELL-SYSTEM (Oppdatert for mobil)
+5. TABELL-SYSTEM
 ================================================================
 */
 .table-container {
     background: var(--white);
     border-radius: 15px;
-    overflow-x: auto; /* Tillater rulling sidelengs på mobil */
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
     margin: 20px 0;
 }
 
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    min-width: 400px; /* Sikrer at tabellen ikke blir helt klemt */
-}
-
+table { width: 100%; border-collapse: collapse; min-width: 450px; }
 thead { background-color: #f8f9fa; }
 
 th {
@@ -171,7 +124,6 @@ th {
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    text-align: center;
     border-bottom: 2px solid #eef2f6;
 }
 
@@ -183,58 +135,92 @@ td {
     vertical-align: middle;
 }
 
-.match-row {
-    cursor: pointer;
-    transition: background 0.2s;
-}
+.match-row:hover { background-color: #f8fbff; }
 
-.match-row:hover {
-    background-color: #f8f9fa;
-}
+.date-time-cell { text-align: center; line-height: 1.2; }
+.time-part { display: block; font-weight: 800; color: var(--bsk-blue); font-size: 0.9rem; }
+.date-part { display: block; font-size: 0.7rem; color: var(--text-muted); }
 
-/* Kombinert Dato/Tid-styling for mobil */
-.date-time-cell {
-    text-align: center;
-    line-height: 1.2;
-}
+/* 
+================================================================
+6. NAVIGASJON (PC Sidebar)
+================================================================
+*/
+@media (min-width: 769px) {
+    .sidebar {
+        width: var(--sidebar-width);
+        background: var(--white);
+        border-right: 1px solid var(--border-color);
+        position: fixed;
+        top: var(--topbar-height);
+        left: 0;
+        height: calc(100vh - var(--topbar-height));
+        z-index: 900;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+    }
 
-.time-part {
-    display: block;
-    font-weight: 800;
-    color: var(--bsk-blue);
-    font-size: 0.9rem;
-}
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        padding-top: 25px;
+        width: 100%;
+    }
 
-.date-part {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--text-muted);
+    .nav-item {
+        padding: 16px 28px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        border-right: 4px solid transparent;
+    }
+
+    .nav-item i {
+        width: 25px;
+        text-align: center;
+        font-size: 1.15rem;
+    }
+
+    .nav-item:hover {
+        background: var(--active-bg);
+        color: var(--bsk-blue);
+    }
+
+    /* AKTIV STATUS PC */
+    .nav-item.active {
+        background: var(--active-bg);
+        color: var(--bsk-blue);
+        font-weight: 800;
+        border-right: 4px solid var(--bsk-yellow);
+    }
+
+    .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 40px;
+    }
 }
 
 /* 
 ================================================================
-6. NAVIGASJON (Uendret logikk, polert stil)
+6. NAVIGASJON (Mobil Bottom-Nav)
 ================================================================
 */
-.sidebar {
-    width: var(--sidebar-width);
-    background: var(--white);
-    border-right: 1px solid var(--border-color);
-    position: fixed;
-    top: var(--topbar-height);
-    left: 0;
-    height: calc(100vh - var(--topbar-height));
-    z-index: 900;
-}
-
 @media (max-width: 768px) {
+    .sidebar { display: none; }
+
     .bottom-nav {
         display: flex;
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 70px; /* Litt høyere for bedre tommel-plass */
+        height: var(--bottom-nav-height);
         background: #ffffff;
         border-top: 1px solid rgba(0, 0, 0, 0.08);
         justify-content: space-around;
@@ -252,67 +238,32 @@ td {
         justify-content: center;
         gap: 4px;
         text-decoration: none;
-        color: #636e72; /* --text-muted */
+        color: #636e72;
         font-size: 0.65rem;
         font-weight: 700;
-        transition: all 0.3s ease;
         position: relative;
     }
 
-    .bottom-nav .nav-item i {
-        font-size: 1.3rem;
-        transition: transform 0.2s ease;
-    }
+    .bottom-nav .nav-item i { font-size: 1.3rem; transition: transform 0.2s ease; }
 
-    /* Den fine blå og gule aktive stilen */
-    .bottom-nav .nav-item.active {
-        color: #0056b3; /* --bsk-blue */
-    }
-
-    .bottom-nav .nav-item.active i {
-        transform: translateY(-2px); /* Løfter ikonet litt */
-    }
-
-    /* Den lille gule indikatoren under ikonet */
+    /* AKTIV STATUS MOBIL */
+    .bottom-nav .nav-item.active { color: var(--bsk-blue); }
+    .bottom-nav .nav-item.active i { transform: translateY(-2px); }
+    
     .bottom-nav .nav-item.active::after {
         content: '';
         position: absolute;
         bottom: -2px;
         width: 15px;
         height: 3px;
-        background: #ffcc00; /* --bsk-yellow */
+        background: var(--bsk-yellow);
         border-radius: 10px;
     }
-}
-@media (max-width: 768px) {
-    .sidebar { display: none; }
-    .bottom-nav { display: flex; justify-content: space-around; align-items: center; }
-    
-    .nav-item {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 0.65rem;
-        color: var(--text-muted);
-        text-decoration: none;
-        gap: 4px;
-    }
-    
-    .nav-item.active { color: var(--bsk-blue); }
-    
+
     .main-content {
         margin-left: 0;
-        padding-bottom: 90px;
-    }
-}
-
-@media (min-width: 769px) {
-    .main-content { margin-left: var(--sidebar-width); }
-    .nav-item.active {
-        background: var(--active-bg);
-        color: var(--bsk-blue);
-        border-right: 4px solid var(--bsk-yellow);
+        padding: 20px;
+        padding-bottom: 100px;
     }
 }
 
