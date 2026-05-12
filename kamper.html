@@ -10,108 +10,101 @@
     <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-        /* Vi beholder KUN sidestylingen her for å gjøre fila lett */
-        .kamper-hero {
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-            border-radius: 20px;
-            padding: 50px;
-            color: white;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);
-        }
+    /* BSK-blå Hero - Identisk med spiller.html */
+    .kamper-hero {
+        background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
+    }
 
-        .kamper-hero h2 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
+    .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
+    .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
-        .kamper-hero p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 600px;
-            line-height: 1.5;
-        }
+    /* Filter Tabs - Identisk med spiller.html */
+    .filter-bar {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 25px;
+        box-shadow: var(--shadow);
+        overflow-x: auto;
+        border: 1px solid var(--border-color);
+    }
 
-        th {
-            background: #f8f9fa;
-            padding: 20px 12px;
-            text-align: center;
-            font-weight: 700;
-            color: var(--text-main);
-            border-bottom: 2px solid var(--border-color);
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
+    .tab-btn {
+        padding: 10px 18px;
+        border: 1px solid transparent;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--text-muted);
+        transition: 0.2s;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
 
-        .filter-bar {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px 25px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-        }
+    .tab-btn.active {
+        background-color: var(--active-bg) !important; 
+        color: var(--bsk-blue) !important;
+        border: 1px solid var(--bsk-blue);
+    }
 
-        .filter-bar div {
-            display: flex;
-            gap: 10px;
-        }
+    /* Form & Modal styling - Identisk med spiller.html */
+    .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+    .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+    .form-control { 
+        width: 100%; padding: 12px; border-radius: 10px; 
+        border: 1.5px solid var(--border-color); outline: none; font-family: inherit;
+    }
 
-        .tab-btn {
-            padding: 12px 20px;
-            border: 2px solid var(--border-color);
-            background: var(--white);
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-main);
-            white-space: nowrap;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-        }
+    /* FAB Button - Med gul farge og blå bakgrunn */
+    .fab-btn {
+        position: fixed;
+        right: 25px;
+        bottom: 25px;
+        width: 60px;
+        height: 60px;
+        background: var(--bsk-blue);
+        color: var(--bsk-yellow);
+        border: 2px solid var(--bsk-yellow);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+    }
 
-        .tab-btn.active {
-            background-color: var(--primary); 
-            color: #ffffff !important;
-            border: 2px solid var(--primary);
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
-        }
+    @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
 
-        /* FAB-knapp styling */
-        .fab-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 50%;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 3000;
+        left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    }
 
-        .fab-btn:hover {
-            transform: scale(1.1) rotate(90deg);
-            background-color: #2980b9;
-        }
-
-        @media (max-width: 768px) {
-            .kamper-hero { padding: 30px; }
-            .kamper-hero h2 { font-size: 1.6rem; }
-            .fab-btn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
-        }
-    </style>
+    .modal-content {
+        background-color: var(--white);
+        padding: 30px;
+        border-radius: 20px;
+        width: 95%;
+        max-width: 500px;
+        box-shadow: var(--shadow);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+</style>
 </head>
 <body>
 
