@@ -51,10 +51,10 @@ body {
 ================================================================
 */
 .top-bar {
-    position: fixed; /* Endret til fixed for bedre kontroll på PC-overlapp */
+    position: fixed; 
     top: 0;
     left: 0;
-    z-index: 1000;
+    z-index: 2000; /* Høyere enn alt annet */
     height: var(--topbar-height);
     background: var(--white);
     display: flex;
@@ -182,12 +182,15 @@ td {
 
 /* 
 ================================================================
-6. NAVIGASJON & HOVEDLAYOUT (Sikkerhetsavstand mot overlapp)
+6. NAVIGASJON & HOVEDLAYOUT
 ================================================================
 */
 
 /* --- PC SIDEBAR & LAYOUT --- */
 @media (min-width: 769px) {
+    /* FJERNER MOBILMENY HELT PÅ PC */
+    .bottom-nav { display: none !important; }
+
     .sidebar {
         width: var(--sidebar-width);
         background: var(--white);
@@ -196,7 +199,7 @@ td {
         top: var(--topbar-height);
         left: 0;
         height: calc(100vh - var(--topbar-height));
-        z-index: 900;
+        z-index: 1000;
         display: flex;
         flex-direction: column;
         box-shadow: 2px 0 10px rgba(0,0,0,0.02);
@@ -235,15 +238,15 @@ td {
 
     .main-content {
         margin-left: var(--sidebar-width);
-        /* 56px (topbar) + 30px (pusterom) = 86px */
-        padding: 86px 40px 40px 40px; 
+        /* Tvinger innholdet ned under den faste toppmenyen */
+        padding: calc(var(--topbar-height) + 30px) 40px 40px 40px !important;
         min-height: 100vh;
     }
 }
 
 /* --- MOBIL BOTTOM-NAV & LAYOUT --- */
 @media (max-width: 768px) {
-    .sidebar { display: none; }
+    .sidebar { display: none !important; }
 
     .bottom-nav {
         display: flex;
@@ -271,6 +274,7 @@ td {
         color: #636e72;
         font-size: 0.65rem;
         font-weight: 700;
+        text-decoration: none;
         position: relative;
     }
 
@@ -286,14 +290,13 @@ td {
     }
 
     .main-content {
-        /* 56px (topbar) + 20px (pusterom) = 76px */
-        padding: 76px 15px 100px 15px; 
+        padding: calc(var(--topbar-height) + 20px) 15px 100px 15px !important; 
     }
 }
 
 /* 
 ================================================================
-7. ØVRIG STYLING & HERO-FIX
+7. ØVRIG STYLING & HERO
 ================================================================
 */
 .kamper-hero, .welcome-hero {
@@ -303,6 +306,8 @@ td {
     color: white;
     margin-bottom: 25px;
     box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
+    position: relative;
+    z-index: 1;
 }
 
 .date-time-cell { text-align: center; line-height: 1.2; }
