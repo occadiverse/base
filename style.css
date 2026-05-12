@@ -47,12 +47,13 @@ body {
 
 /* 
 ================================================================
-3. TOP BAR (Fast og ryddig)
+3. TOP BAR
 ================================================================
 */
 .top-bar {
-    position: sticky;
+    position: fixed; /* Endret til fixed for bedre kontroll på PC-overlapp */
     top: 0;
+    left: 0;
     z-index: 1000;
     height: var(--topbar-height);
     background: var(--white);
@@ -128,10 +129,6 @@ body {
     appearance: none;
 }
 
-@media (max-width: 400px) {
-    .logo-brand span { display: none; }
-}
-
 /* 
 ================================================================
 4. RESPONSIV KONTROLL
@@ -183,13 +180,9 @@ td {
 
 .match-row:hover { background-color: #f8fbff; }
 
-.date-time-cell { text-align: center; line-height: 1.2; }
-.time-part { display: block; font-weight: 800; color: var(--bsk-blue); font-size: 0.9rem; }
-.date-part { display: block; font-size: 0.7rem; color: var(--text-muted); }
-
 /* 
 ================================================================
-6. NAVIGASJON & HOVEDLAYOUT (Luft-fikser her)
+6. NAVIGASJON & HOVEDLAYOUT (Sikkerhetsavstand mot overlapp)
 ================================================================
 */
 
@@ -229,16 +222,9 @@ td {
         border-right: 4px solid transparent;
     }
 
-    .nav-item i {
-        width: 25px;
-        text-align: center;
-        font-size: 1.15rem;
-    }
+    .nav-item i { width: 25px; text-align: center; font-size: 1.15rem; }
 
-    .nav-item:hover {
-        background: var(--active-bg);
-        color: var(--bsk-blue);
-    }
+    .nav-item:hover { background: var(--active-bg); color: var(--bsk-blue); }
 
     .nav-item.active {
         background: var(--active-bg);
@@ -249,8 +235,9 @@ td {
 
     .main-content {
         margin-left: var(--sidebar-width);
-        padding: 20px 40px !important; /* Tvinger mindre toppluft på PC */
-        min-height: calc(100vh - var(--topbar-height));
+        /* 56px (topbar) + 30px (pusterom) = 86px */
+        padding: 86px 40px 40px 40px; 
+        min-height: 100vh;
     }
 }
 
@@ -281,18 +268,13 @@ td {
         align-items: center;
         justify-content: center;
         gap: 4px;
-        text-decoration: none;
         color: #636e72;
         font-size: 0.65rem;
         font-weight: 700;
         position: relative;
     }
 
-    .bottom-nav .nav-item i { font-size: 1.3rem; transition: transform 0.2s ease; }
-
     .bottom-nav .nav-item.active { color: var(--bsk-blue); }
-    .bottom-nav .nav-item.active i { transform: translateY(-2px); }
-    
     .bottom-nav .nav-item.active::after {
         content: '';
         position: absolute;
@@ -304,25 +286,25 @@ td {
     }
 
     .main-content {
-        margin-left: 0;
-        padding: 10px 15px !important; /* Tvinger minimal toppluft på mobil */
-        padding-bottom: 100px !important;
+        /* 56px (topbar) + 20px (pusterom) = 76px */
+        padding: 76px 15px 100px 15px; 
     }
 }
 
 /* 
 ================================================================
-7. ØVRIG STYLING & HERO-FIX (Viktig for å fjerne luft)
+7. ØVRIG STYLING & HERO-FIX
 ================================================================
 */
 .kamper-hero, .welcome-hero {
     background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
     border-radius: 20px;
-    padding: 30px 40px;
+    padding: 35px 40px;
     color: white;
-    margin-top: 0 !important; /* Fjerner all luft over den blå boksen */
     margin-bottom: 25px;
     box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
 }
 
-.name-col { text-align: left; font-weight: 600; }
+.date-time-cell { text-align: center; line-height: 1.2; }
+.time-part { display: block; font-weight: 800; color: var(--bsk-blue); font-size: 0.9rem; }
+.date-part { display: block; font-size: 0.7rem; color: var(--text-muted); }
