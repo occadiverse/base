@@ -65,22 +65,32 @@ body {
 
 .logo-brand {
     grid-column: 1;
-    font-weight: 900;
-    font-size: 1rem;
     display: flex;
     align-items: center;
     gap: 5px;
-    color: var(--bsk-blue);
-    text-decoration: none;
-    width: fit-content; /* Gjør at kun selve logoen er klikkbar, ikke tomrommet ved siden av */
-    transition: transform 0.1s ease;
+    
+    /* Tvinger ultra-fet skrifttype og farge for lik stil på alle sider */
+    font-weight: 900 !important; 
+    font-size: 1rem;
+    color: var(--bsk-blue) !important;
+    text-decoration: none !important;
+    
+    width: fit-content;
+    transition: transform 0.1s ease, opacity 0.2s;
+}
+
+.logo-brand span { 
+    color: var(--bsk-yellow) !important; 
+    font-weight: 900 !important;
+}
+
+.logo-brand:hover {
+    opacity: 0.8;
 }
 
 .logo-brand:active {
-    transform: scale(0.98); /* Gir en liten "klikk-følelse" når man trykker på den */
+    transform: scale(0.98);
 }
-
-.logo-brand span { color: var(--bsk-yellow); }
 
 .section-title {
     grid-column: 2;
@@ -162,7 +172,6 @@ body {
     color: var(--text-muted);
     font-weight: 500;
     transition: 0.2s;
-    /* Fjernet border-left her for å styre den via media-query */
 }
 
 .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
@@ -175,7 +184,6 @@ body {
         background: var(--active-bg);
         color: var(--bsk-blue);
         font-weight: 700;
-        /* Gul kant til høyre mot innholdet ser proffere ut på PC */
         border-right: 4px solid var(--bsk-yellow); 
     }
 }
@@ -194,7 +202,6 @@ body {
         width: 100%;
         height: var(--bottom-nav-height);
         background: var(--white);
-        /* Subtil grå linje i stedet for tykk gul */
         border-top: 1px solid rgba(0, 0, 0, 0.08); 
         justify-content: space-around;
         align-items: center;
@@ -214,7 +221,7 @@ body {
         font-weight: 600;
         gap: 4px;
         padding: 10px 0;
-        border: none !important; /* Sikrer ingen kanter på mobil */
+        border: none !important;
     }
 
     .nav-item i { font-size: 1.2rem; transition: transform 0.2s; }
@@ -224,7 +231,6 @@ body {
         background: transparent;
     }
 
-    /* En liten gul prikk under aktivt valg på mobil for diskret markering */
     .nav-item.active::after {
         content: '';
         width: 4px;
