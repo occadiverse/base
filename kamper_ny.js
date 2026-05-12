@@ -69,37 +69,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = new Date(match.date);
             const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
             const row = `
-                <tr>
-                    <td class="name-col">
-                        <div style="font-weight:600;">${shortDate}</div>
-                        <div style="font-size:0.8em; color:var(--text-muted);">kl. ${match.time}</div>
-                    </td>
-                    <td class="text-left">
-                        <span style="font-weight:700; color:var(--primary); cursor:pointer; text-decoration: underline;" 
-                              onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
-                            ${match.opponent}
-                        </span>
-                    </td>
-                    <td>
-                        <div style="background:rgba(0,0,0,0.04); padding:4px 10px; border-radius:6px; font-weight:800; display:inline-block;">
-                            ${match.result || '-'}
-                        </div>
-                    </td>
-                    <td style="font-size:0.9em; color:var(--text-muted);">${match.pitch}</td>
-                    <td style="font-size:0.85rem; font-weight:500; color:var(--text-main);">${match.type}</td>
-                    <td>
-                        <div style="display: flex; justify-content: center; gap: 8px;">
-                            <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
-                                    class="action-btn btn-edit" title="Rediger">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button onclick="deleteMatch('${match.id}')" 
-                                    class="action-btn btn-delete" title="Slett">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
+    <tr>
+        <td class="name-col">
+            <div style="font-weight:700; color:var(--text-main);">${shortDate}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">kl. ${match.time}</div>
+        </td>
+        <td class="name-col">
+            <span style="font-weight:800; color:var(--bsk-blue); cursor:pointer;" 
+                  onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
+                ${match.opponent}
+            </span>
+        </td>
+        <td>
+            <span class="status-pill" style="background:#f1f2f6; min-width:45px; font-weight:800; display:inline-block;">
+                ${match.result || '-'}
+            </span>
+        </td>
+        <td style="font-size:0.85rem; color:var(--text-muted);">${match.pitch}</td>
+        <td><span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">${match.type}</span></td>
+        <td>
+            <div style="display: flex; justify-content: center; gap: 8px;">
+                <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
+                        class="action-btn btn-edit">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button onclick="deleteMatch('${match.id}')" 
+                        class="action-btn btn-delete">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </td>
+    </tr>`;
             matchTableBody.innerHTML += row;
         });
     }
