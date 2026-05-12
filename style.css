@@ -118,34 +118,58 @@ body {
 }
 
 .top-bar {
-    position: sticky; /* Denne gjør magien */
-    top: 0;           /* Sier at den skal låses helt øverst */
-    z-index: 1000;    /* Sørger for at den ligger over tabellen når du scroller */
-    
-    height: var(--topbar-height);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 56px; /* Slankere høyde som Gemini */
     background: var(--white);
-    display: flex;
+    display: grid; /* Vi bruker grid for perfekt sentrering */
+    grid-template-columns: 1fr auto 1fr; 
     align-items: center;
-    padding: 0 25px;
+    padding: 0 15px;
     border-bottom: 1px solid var(--border-color);
-    
-    /* Vi fjerner de negative marginene som vi brukte før, 
-       for å unngå tull med scrolling */
-    margin: 0; 
+    margin: 0;
     width: 100%;
 }
 
+.section-title {
+    grid-column: 2; /* Tvinger tittelen til midten */
+    font-size: 1rem; /* Mindre og mer diskret tekst */
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0;
+    white-space: nowrap;
+}
+
 .menu-toggle {
-    background: #f1f2f6;
+    grid-column: 1; /* Knappen til venstre */
+    background: transparent; /* Fjerner bakgrunnsfargen for et renere utseende */
     border: none;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    margin: 0;
     cursor: pointer;
-    margin-right: 15px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+}
+
+.filter-wrapper {
+    grid-column: 3; /* Filteret til høyre */
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Gjør selve select-boksen mindre og mer minimalistisk */
+.base-select {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: 500;
+    color: var(--primary); /* Gir den litt farge så man ser den er klikkbar */
+    cursor: pointer;
 }
 
 /* 
