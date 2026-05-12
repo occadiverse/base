@@ -128,107 +128,119 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- VIS KAMP-INFO ---
-    window.showMatchInfo = (id, date, opponent, time, pitch) => {
-        document.getElementById('editMatchId').value = id;
-        const playerListUl = document.getElementById('matchPlayerList');
-        const detailsDiv = document.getElementById('matchInfoDetails');
-        const tacticContainer = document.getElementById('tacticBarContainer');
-        
-        // Vi må sørge for at datoen sendes til Firebase på samme format som taktikk-siden bruker.
-        // Hvis din 'attendance' bruker DD-MM-YYYY, må vi snu 'date' (som er YYYY-MM-DD).
-        const parts = date.split('-');
-        const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; 
-        const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+   window.showMatchInfo = (id, date, opponent, time, pitch) => {
+    document.getElementById('editMatchId').value = id;
+    const playerListUl = document.getElementById('matchPlayerList');
+    const detailsDiv = document.getElementById('matchInfoDetails');
+    const tacticContainer = document.getElementById('tacticBarContainer');
+    
+    // Konverterer dato fra YYYY-MM-DD til DD-MM-YYYY for Firebase
+    const parts = date.split('-');
+    const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; 
+    const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
-        document.getElementById('infoTitle').innerText = opponent;
-        const matchData = allMatches.find(m => m.id === id);
+    document.getElementById('infoTitle').innerText = opponent;
+    const matchData = allMatches.find(m => m.id === id);
 
-        detailsDiv.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fa-solid fa-calendar-day" style="color: var(--bsk-blue);"></i> 
-                        <span style="font-weight: 600;">${displayDate} kl. ${time}</span>
-                    </div>
-                    <div style="background: var(--bsk-blue); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800;">${matchData?.result || '-'}</div>
-                </div>
+    // Header-info og Toggle-knapp
+    detailsDiv.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue);"></i> 
-                    <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
+                    <i class="fa-solid fa-calendar-day" style="color: var(--bsk-blue);"></i> 
+                    <span style="font-weight: 600;">${displayDate} kl. ${time}</span>
                 </div>
+                <div style="background: var(--bsk-blue); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800;">${matchData?.result || '-'}</div>
             </div>
-            <div class="modal-action-bar" id="toggleTropp" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
-                <div style="display: flex; align-items: center;">
-                    <i class="fa-solid fa-users" style="margin-right:10px; color:var(--bsk-blue);"></i>
-                    <span style="font-weight: 700;">Påmeldt tropp</span>
-                    <span id="pilleAntall" style="background: var(--bsk-blue); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
-                </div>
-                <i class="fa-solid fa-chevron-down chevron-icon" style="transition: 0.3s;"></i>
-            </div>`;
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue);"></i> 
+                <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
+            </div>
+        </div>
+        <div class="modal-action-bar" id="toggleTropp" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display: flex; align-items: center;">
+                <i class="fa-solid fa-users" style="margin-right:10px; color:var(--bsk-blue);"></i>
+                <span style="font-weight: 700;">Påmeldt tropp</span>
+                <span id="pilleAntall" style="background: var(--bsk-blue); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron-icon" style="transition: 0.3s; pointer-events: none;"></i>
+        </div>`;
 
-        tacticContainer.innerHTML = `
-            <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
-                <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
-                <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
-            </div>`;
+    tacticContainer.innerHTML = `
+        <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
+            <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
+        </div>`;
 
-        playerListUl.style.display = 'none';
-        playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
-        playerListUl.style.gap = '10px';
-        playerListUl.style.marginTop = '15px';
+    // Nullstill og skjul listen (viktig for hver gang modalen åpnes)
+    playerListUl.innerHTML = '';
+    playerListUl.style.setProperty('display', 'none', 'important');
+    playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    playerListUl.style.gap = '10px';
+    playerListUl.style.marginTop = '15px';
 
-        document.getElementById('toggleTropp').onclick = () => {
-            const isHidden = playerListUl.style.display === 'none';
-            playerListUl.style.display = isHidden ? 'grid' : 'none';
-            const icon = document.querySelector('.chevron-icon');
-            if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-        };
+    // SKUDDSIKKER TOGGLE-LOGIKK
+    const toggleBtn = document.getElementById('toggleTropp');
+    toggleBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-        // Her sender vi nøyaktig den datoen som taktikk-siden forventer
-        document.getElementById('jumpToTactic').onclick = () => {
-            window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`;
-        };
+        // Sjekker den faktiske display-tilstanden fra nettleseren
+        const isHidden = window.getComputedStyle(playerListUl).display === 'none';
+        const icon = toggleBtn.querySelector('.chevron-icon');
 
-        document.getElementById('matchInfoModal').style.display = 'flex';
-
-        // --- KOPIERT LOGIKK FRA TAKTIKK.JS ---
-        window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-            const root = snapshot.val();
-            if (!root) return;
-
-            const players = root.players || {};
-            const attendance = root.attendance || {};
-            
-            // Taktikk-metoden: Slå opp på datoen
-            const dailyAttendance = attendance[firebaseDateKey] || {};
-            
-            // Taktikk-metoden: Map spillere og filtrer på 'K'
-            const tropp = Object.entries(players)
-                .map(([pId, data]) => ({ id: pId, ...data }))
-                .filter(player => dailyAttendance[player.id] === 'K');
-
-            playerListUl.innerHTML = '';
-            
-            // Lagre for statistikk-bruk
-            currentTroopNames = tropp.map(p => p.navn || p.name);
-            currentTroopNames.sort((a, b) => a.localeCompare(b, 'nb'));
-
-            if (document.getElementById('pilleAntall')) {
-                document.getElementById('pilleAntall').innerText = currentTroopNames.length;
-            }
-
-            if (currentTroopNames.length === 0) {
-                playerListUl.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte funnet for ${firebaseDateKey}</div>`;
-            } else {
-                currentTroopNames.forEach(name => {
-                    const item = document.createElement('div');
-                    item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
-                    item.innerText = name;
-                    playerListUl.appendChild(item);
-                });
-            }
-        }, { onlyOnce: true });
+        if (isHidden) {
+            playerListUl.style.setProperty('display', 'grid', 'important');
+            if (icon) icon.style.transform = 'rotate(180deg)';
+            toggleBtn.style.backgroundColor = '#edf2f7';
+        } else {
+            playerListUl.style.setProperty('display', 'none', 'important');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+            toggleBtn.style.backgroundColor = 'var(--bg-light)';
+        }
     };
+
+    document.getElementById('jumpToTactic').onclick = () => {
+        window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`;
+    };
+
+    document.getElementById('matchInfoModal').style.display = 'flex';
+
+    // --- HENTING FRA FIREBASE ---
+    window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+        const root = snapshot.val();
+        if (!root) return;
+
+        const players = root.players || {};
+        const attendance = root.attendance || {};
+        const dailyAttendance = attendance[firebaseDateKey] || {};
+        
+        const tropp = Object.entries(players)
+            .map(([pId, data]) => ({ id: pId, ...data }))
+            .filter(player => dailyAttendance[player.id] === 'K');
+
+        playerListUl.innerHTML = '';
+        
+        // Oppdaterer den globale variabelen for rapport-skjemaet
+        currentTroopNames = tropp.map(p => p.navn || p.name);
+        currentTroopNames.sort((a, b) => a.localeCompare(b, 'nb'));
+
+        if (document.getElementById('pilleAntall')) {
+            document.getElementById('pilleAntall').innerText = currentTroopNames.length;
+        }
+
+        if (currentTroopNames.length === 0) {
+            playerListUl.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte funnet for ${firebaseDateKey}</div>`;
+        } else {
+            currentTroopNames.forEach(name => {
+                const item = document.createElement('div');
+                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
+                item.innerText = name;
+                playerListUl.appendChild(item);
+            });
+        }
+    }, { onlyOnce: true });
+};
 
     // --- STATISTIKK LOGIKK ---
     window.toggleStatsEdit = function() {
