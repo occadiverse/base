@@ -23,6 +23,30 @@ const posMap = {
     '-': '-'
 };
 
+// --- NY FUNKSJON: OPPDATERER HERO-STATS ---
+function updateHeroStats(liste) {
+    const aktive = liste.filter(s => s.status === 'Aktiv');
+    const rekrutter = liste.filter(s => s.status === 'Rekrutt');
+    
+    // Vi beregner snittalder for de som er enten Aktiv eller Rekrutt
+    const relevante = [...aktive, ...rekrutter];
+    const currentYear = new Date().getFullYear();
+    const totalAlder = relevante.reduce((acc, s) => acc + (s.fodselsaar ? (currentYear - s.fodselsaar) : 0), 0);
+    
+    const snittAlder = relevante.length > 0 ? (totalAlder / relevante.length).toFixed(1) : 0;
+
+    // Oppdaterer HTML-elementene i Hero-seksjonen
+    if (document.getElementById('stat-total-players')) {
+        document.getElementById('stat-total-players').innerText = `${relevante.length} spillere`;
+    }
+    if (document.getElementById('stat-avg-age')) {
+        document.getElementById('stat-avg-age').innerText = `${snittAlder} år`;
+    }
+    if (document.getElementById('stat-total-rekrutt')) {
+        document.getElementById('stat-total-rekrutt').innerText = `${rekrutter.length} rekrutter`;
+    }
+}
+
 // --- HENT DATA FRA FIREBASE ---
 onValue(ref(db, 'players'), (snapshot) => {
     const data = snapshot.val() || {};
@@ -31,6 +55,9 @@ onValue(ref(db, 'players'), (snapshot) => {
         id: id,
         ...values
     })).sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
+    
+    // Oppdaterer statistikk i Hero
+    updateHeroStats(spillerliste);
     
     renderPlayers();
 });
@@ -77,13 +104,14 @@ function renderPlayers() {
 
         return `
             <tr>
-                <!-- Endret farge på draktnummer til var(--text-main) -->
                 <td><strong style="color: var(--text-main);">${s.draktnummer || '-'}</strong></td>
-                <td class="name-col"><strong>${s.navn}</strong></td>
+                <td class="name-col">
+                    <strong>${s.navn}</strong>
+                    ${s.status === 'Passiv' ? '<span style="font-size:0.7rem; color:var(--text-muted); margin-left:5px;">(P)</span>' : ''}
+                </td>
                 <td>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <span style="display:inline-block; width:28px; height:28px; line-height:28px; background:var(--text-main); color:white; border-radius:50%; font-weight:800; font-size:0.8rem;">${n1}</span>
-                        <!-- Fjernet skråtegnet mellom n1 og n2 -->
                         ${n2 !== '-' ? `<span style="color:var(--text-muted); font-size:0.75rem; font-weight: 500;">${n2}</span>` : ''}
                     </div>
                 </td>
@@ -116,6 +144,7 @@ window.editPlayer = function(id) {
     document.getElementById('pos2').value = spiller.pos2 || '-';
     document.getElementById('fot').value = spiller.fot || 'Høyre';
     document.getElementById('draktnummer').value = spiller.draktnummer || '';
+    document.getElementById('status').value = spiller.status || 'Aktiv'; // NY
 
     document.getElementById('formTitle').innerText = 'Rediger spiller';
     document.getElementById('submitBtn').innerText = 'Oppdater spiller';
@@ -140,7 +169,8 @@ playerForm.addEventListener('submit', (e) => {
         pos1: document.getElementById('pos1').value,
         pos2: document.getElementById('pos2').value,
         fot: document.getElementById('fot').value,
-        draktnummer: document.getElementById('draktnummer').value || '-'
+        draktnummer: document.getElementById('draktnummer').value || '-',
+        status: document.getElementById('status').value // NY
     };
 
     if (editId) {
