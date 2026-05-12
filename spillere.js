@@ -86,23 +86,15 @@ function renderPlayers() {
         return;
     }
 
-    let filtrertListe = spillerliste;
-    if (currentFilter !== 'Alle') {
-        filtrertListe = spillerliste.filter(s => 
-            s.pos1 === currentFilter || s.pos2 === currentFilter
-        );
-    }
-
+    // Vi bruker nå hele spillerliste siden filter-bar er borte
     const currentYear = new Date().getFullYear();
 
-    tableBody.innerHTML = filtrertListe.map(s => {
+    tableBody.innerHTML = spillerliste.map(s => {
         const alder = s.fodselsaar ? (currentYear - s.fodselsaar) : '-';
         const n1 = posMap[s.pos1] || '?';
         const n2 = posMap[s.pos2] || '-';
-        
         const fotVisning = s.fot === 'Begge' ? 'B' : (s.fot === 'Venstre' ? 'V' : 'H');
 
-        // Generer status-merker (R for Rekrutt, P for Passiv)
         let statusBadge = '';
         if (s.status === 'Rekrutt') {
             statusBadge = '<span style="font-size:0.7rem; color:var(--bsk-blue); margin-left:5px; font-weight:800;">(R)</span>';
