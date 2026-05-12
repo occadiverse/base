@@ -266,9 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('matchInfoModal').style.display = 'flex';
 
     // Henting fra Firebase
-    window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+   window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
         const root = snapshot.val();
-        if (!root) return;
+        if (!root) {
+            playerListUl.innerHTML = '<div style="grid-column: span 2; color: red;">Feil: Ingen kontakt med Firebase</div>';
+            return;
+        }
 
         const enrolled = root.attendance ? root.attendance[firebaseDateKey] : null;
         const allPlayers = root.players;
@@ -276,24 +279,38 @@ document.addEventListener('DOMContentLoaded', () => {
         playerListUl.innerHTML = '';
         let list = [];
 
-        if (enrolled && allPlayers) {
-            Object.entries(enrolled).forEach(([pId, status]) => {
-                if (status === 'K') {
-                    // Vi bruker pId (f.eks -OrIrY42W...) til å finne navnet i 'players'
-                    const playerObj = allPlayers[pId];
-                    if (playerObj) {
-                        list.push(playerObj.navn || playerObj.name);
+        if (!enrolled) {
+            playerListUl.innerHTML = `<div style="grid-column: span 2; text-align: center; padding: 20px;">
+                Fant ingen data for dato: <strong>${firebaseDateKey}</strong> i mappen "attendance".
+            </div>`;
+            return;
+        }
+
+        Object.entries(enrolled).forEach(([pId, status]) => {
+            if (status === 'K') {
+                // Vi prøver å finne spilleren i 'players'
+                let playerName = "Ukjent navn (" + pId.substring(0, 5) + "...)";
+                
+                if (allPlayers) {
+                    // Sjekker om pId finnes som nøkkel
+                    if (allPlayers[pId]) {
+                        playerName = allPlayers[pId].navn || allPlayers[pId].name;
+                    } else {
+                        // Hvis ikke, leter vi manuelt gjennom alle spiller-objektene
+                        const found = Object.values(allPlayers).find(p => p.id === pId);
+                        if (found) playerName = found.navn || found.name;
                     }
                 }
-            });
-            list.sort((a, b) => a.localeCompare(b, 'nb'));
-        }
+                list.push(playerName);
+            }
+        });
 
         if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
         
         if (list.length === 0) {
-            playerListUl.innerHTML = `<div style="grid-column: span 2; text-align: center; padding: 15px; color: var(--text-muted); font-size: 0.85rem;">Ingen påmeldte funnet for ${firebaseDateKey}</div>`;
+            playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 15px; color: var(--text-muted);">Ingen hadde status "K" på denne datoen.</div>';
         } else {
+            list.sort((a, b) => a.localeCompare(b, 'nb'));
             list.forEach(name => {
                 const item = document.createElement('div');
                 item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
@@ -302,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }, { onlyOnce: true });
-};
+       
     // --- STATISTIKK LOGIKK ---
     window.toggleStatsEdit = function() {
         const container = document.getElementById('postMatchStats');
