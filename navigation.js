@@ -8,6 +8,23 @@ function loadNavigation() {
     const path = window.location.pathname;
     const currentPage = path.split("/").pop() || 'index.html';
 
+    // --- AUTOMATISK OVERKRIFT LOGIKK ---
+    const pageTitles = {
+        'index.html': 'Hjem',
+        'oppmote.html': 'Oppmøte',
+        'kamper.html': 'Kamper',
+        'spillere.html': 'Spillere',
+        'statistikk.html': 'Statistikk',
+        'test.html': 'Design-test'
+    };
+
+    // Finn h1-tittelen i top-bar og oppdater den
+    const topBarTitle = document.querySelector('.top-bar .section-title');
+    if (topBarTitle) {
+        topBarTitle.innerText = pageTitles[currentPage] || 'BSK Fotball';
+    }
+    // ----------------------------------
+
     sidebar.innerHTML = `
         <nav class="nav-links">
             <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">
@@ -28,12 +45,13 @@ function loadNavigation() {
         </nav>
     `;
 
-    // NYTT: Lukk menyen når man trykker på en lenke (viktig for mobil)
+    // Lukk menyen når man trykker på en lenke (viktig for mobil)
     const navItems = sidebar.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
                 sidebar.classList.add('collapsed');
+                document.body.style.overflow = 'auto';
             }
         });
     });
@@ -45,7 +63,7 @@ function toggleMenu() {
     if (sidebar) {
         sidebar.classList.toggle('collapsed');
         
-        // NYTT: Hindre scrolling på selve siden når menyen er åpen på mobil
+        // Hindre scrolling på selve siden når menyen er åpen på mobil
         if (!sidebar.classList.contains('collapsed') && window.innerWidth <= 768) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -54,13 +72,13 @@ function toggleMenu() {
     }
 }
 
-// NYTT: Lukk menyen hvis man klikker utenfor den (på hovedinnholdet)
+// Lukk menyen hvis man klikker utenfor den (på hovedinnholdet)
 document.addEventListener('click', (event) => {
     const sidebar = document.getElementById('sidebar');
     const menuToggle = document.querySelector('.menu-toggle');
     
-    // Hvis menyen er åpen, og trykket IKKE er inne i menyen eller på knappen
     if (sidebar && !sidebar.classList.contains('collapsed')) {
+        // Sjekk om klikket er utenfor både sidebar og toggle-knappen
         if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
             sidebar.classList.add('collapsed');
             document.body.style.overflow = 'auto';
