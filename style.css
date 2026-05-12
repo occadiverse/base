@@ -4,16 +4,31 @@
 ================================================================
 */
 :root {
-    --primary: #3498db;
-    --primary-dark: #2980b9;
-    --bsk-red: #e74c3c;
+    /* BSK Offisielle Farger */
+    --bsk-blue: #0056b3;     /* Hovedfarge */
+    --bsk-yellow: #ffcc00;   /* Aksentfarge */
+    
+    /* Funksjonelle Farger */
+    --primary: var(--bsk-blue);
+    --primary-dark: #004494;
+    --accent: var(--bsk-yellow);
+    --active-bg: rgba(0, 86, 179, 0.08); /* Lys blå til aktive knapper */
+    
+    /* Standard farger for tekst og bakgrunn */
     --bg-light: #f4f7f6;
     --text-main: #2d3436;
     --text-muted: #636e72;
     --border-color: #dfe6e9;
     --white: #ffffff;
+    
+    /* Statusfarger */
+    --success: #2ecc71;
+    --danger: #e74c3c;
+    
+    /* Effekter */
     --shadow: 0 4px 15px rgba(0,0,0,0.08);
     
+    /* Layout variabler */
     --sidebar-width: 260px;
     --topbar-height: 56px;
     --bottom-nav-height: 65px;
@@ -30,6 +45,7 @@ body {
     background-color: var(--bg-light);
     color: var(--text-main);
     display: flex;
+    flex-direction: column; /* Sikrer at top-bar ligger øverst */
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -55,20 +71,41 @@ body {
 
 .logo-brand {
     grid-column: 1;
-    font-weight: 800;
-    font-size: 0.9rem;
+    font-weight: 900;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     gap: 5px;
+    color: var(--bsk-blue);
 }
 
-.logo-brand span { color: var(--bsk-red); }
+.logo-brand span { color: var(--bsk-yellow); }
 
 .section-title {
     grid-column: 2;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     margin: 0;
+    color: var(--text-main);
+}
+
+.filter-wrapper {
+    grid-column: 3;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Styling for dropdown/select i toppen */
+.base-select {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--bsk-blue);
+    border: 1px solid var(--border-color);
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: var(--bg-light);
+    cursor: pointer;
+    outline: none;
 }
 
 /* 
@@ -90,13 +127,49 @@ body {
     transition: transform 0.3s ease;
 }
 
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+}
+
+.nav-item {
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.nav-item:hover {
+    background: var(--bg-light);
+    color: var(--bsk-blue);
+}
+
+.nav-item.active {
+    background: var(--active-bg);
+    color: var(--bsk-blue);
+    border-left-color: var(--bsk-yellow);
+    font-weight: 700;
+}
+
 /* Mobil Bottom Nav (Skjult på PC) */
 .bottom-nav {
     display: none;
 }
 
 @media (max-width: 768px) {
-    .sidebar { display: none; } /* Skjul sidebar på mobil */
+    .sidebar { display: none; }
     
     .bottom-nav {
         display: flex;
@@ -106,14 +179,16 @@ body {
         width: 100%;
         height: var(--bottom-nav-height);
         background: var(--white);
-        border-top: 1px solid var(--border-color);
+        border-top: 3px solid var(--bsk-yellow); /* BSK-gul stripe øverst */
         justify-content: space-around;
         align-items: center;
         z-index: 2000;
         padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
 
     .nav-item {
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -122,10 +197,16 @@ body {
         font-size: 0.65rem;
         font-weight: 600;
         gap: 4px;
+        border-left: none; /* Fjerner sidebar-stilen på mobil */
+        padding: 10px 0;
     }
 
     .nav-item i { font-size: 1.2rem; }
-    .nav-item.active { color: var(--bsk-red); }
+    
+    .nav-item.active { 
+        color: var(--bsk-blue); 
+        background: transparent;
+    }
 }
 
 /* 
@@ -143,7 +224,7 @@ body {
 @media (max-width: 768px) {
     .main-content {
         margin-left: 0;
-        padding-bottom: 90px; /* Plass til bottom-nav */
+        padding-bottom: 90px; /* Gir plass til bunnmenyen */
     }
 }
 
@@ -153,11 +234,12 @@ body {
 ================================================================
 */
 .welcome-hero {
-    background: linear-gradient(135deg, var(--primary) 0%, #2c3e50 100%);
+    background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
     border-radius: 20px;
     padding: 40px;
     color: white;
     margin-bottom: 30px;
+    box-shadow: 0 10px 25px rgba(0, 86, 179, 0.2);
 }
 
 .dashboard-grid {
@@ -176,6 +258,25 @@ body {
     color: inherit;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+
+.dash-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--bsk-yellow);
+}
+
+.dash-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--active-bg);
+    color: var(--bsk-blue);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: 15px;
 }
 
 .tactic-container {
@@ -194,7 +295,7 @@ body {
 .player-node {
     width: 6.5% !important;
     aspect-ratio: 1 / 1;
-    background-color: var(--primary);
+    background-color: var(--bsk-blue);
     color: white;
     border-radius: 50%;
     position: absolute;
@@ -202,7 +303,8 @@ body {
     align-items: center;
     justify-content: center;
     transform: translate(-50%, -50%);
-    border: 1px solid white;
+    border: 1px solid var(--bsk-yellow);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .table-container {
@@ -213,4 +315,35 @@ body {
 }
 
 table { width: 100%; border-collapse: collapse; }
-th, td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: center; }
+
+th { 
+    background-color: #f8f9fa; 
+    padding: 15px; 
+    border-bottom: 2px solid var(--border-color); 
+    font-weight: 700;
+    color: var(--bsk-blue);
+}
+
+td { 
+    padding: 15px; 
+    border-bottom: 1px solid var(--border-color); 
+    text-align: center; 
+}
+
+/* Spesialstyling for navn-kolonnen */
+.name-col {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* MVP/Status sirkler */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bsk-blue);
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+}
