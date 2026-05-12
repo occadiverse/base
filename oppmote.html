@@ -39,14 +39,25 @@
             border-spacing: 0;
         }
 
-        /* NY RYDDIG HEADER STYLING */
+        /* RYDDIG HEADER STYLING */
         #attendanceHeader th {
             padding: 12px 8px;
             background: #f8f9fa;
             border-bottom: 2px solid var(--border-color);
             border-right: 1px solid #eee;
             min-width: 55px;
-            vertical-align: top;
+            vertical-align: top; /* Dato-cellene starter øverst for å gi plass til innholdet */
+        }
+
+        /* Spesifikk midtstilling for "Spiller"-overskriften */
+        #attendanceHeader th.name-col {
+            vertical-align: middle !important; /* Tvinger teksten til midten vertikalt */
+            text-align: left !important;
+        }
+
+        #attendanceHeader th.name-col span {
+            display: inline-block;
+            padding-bottom: 5px; /* Litt finjustering for optisk midtstilling */
         }
 
         .header-content {
