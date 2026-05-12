@@ -65,40 +65,40 @@ body {
 
 .logo-brand {
     grid-column: 1;
-    /* Vi bytter fra flex til inline-block for å låse rendringen helt */
-    display: inline-block; 
-    white-space: nowrap;
-    width: fit-content;
+    display: flex;
+    align-items: center;
+    /* Vi går tilbake til flex, det er best for linjejustering */
     
-    /* 1. TVINGER VEKT OG STIL */
+    /* 1. DEN VIKTIGSTE LÅSEN: FAST BREDDE */
+    width: 160px;          /* JUSTER DENNE: Finn en verdi som akkurat rommer teksten din */
+    flex-shrink: 0;        /* Nekter logoen å bli presset sammen */
+    
+    /* 2. TVING VEKT OG STIL */
     font-weight: 900 !important; 
     font-size: 1rem;
     color: var(--bsk-blue) !important;
     text-decoration: none !important;
+    white-space: nowrap;
 
-    /* 2. EKSTREM STABILITET */
+    /* 3. STABILISERING */
     font-kerning: none;
     letter-spacing: 0px;
-    font-stretch: 100%;
-    
-    /* Stopper alle former for sub-piksel bevegelser */
     -webkit-font-smoothing: antialiased;
-    transform: translateZ(0); /* Tvinger logoen til sitt eget lag uten å skalere */
     
     transition: opacity 0.2s ease;
 }
 
-/* Siden vi ikke har 'gap' lenger, bruker vi margin på ikonet */
 .logo-brand i {
-    margin-right: 6px; 
-    vertical-align: middle; /* Sørger for at ikonet flukter med teksten */
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
 }
 
 .logo-brand span { 
     color: var(--bsk-yellow) !important; 
     font-weight: 900 !important;
-    letter-spacing: 0px;
-    vertical-align: middle;
+    display: flex;
+    align-items: center;
 }
 
 .logo-brand:hover {
