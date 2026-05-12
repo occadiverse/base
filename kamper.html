@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-        /* BSK-blå Hero - Identisk med spiller.html */
+        /* BSK-blå Hero */
         .kamper-hero {
             background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
             border-radius: 20px;
@@ -23,38 +23,39 @@
         .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
         .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
-        /* Filter Tabs - Identisk med spiller.html */
-        .filter-bar {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-            border: 1px solid var(--border-color);
+        /* Tabell og Sentrering */
+        #matchTable {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .tab-btn {
-            padding: 10px 18px;
-            border: 1px solid transparent;
-            background: transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            color: var(--text-muted);
-            transition: 0.2s;
+        /* Tvinger overskrifter (Kommende/Tidligere) til å sentreres i tabellen */
+        #matchTable td[colspan="6"] {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+
+        /* Spillerliste Rutenett (Dette fikser visningen av troppen) */
+        .player-grid-compact {
+            display: none; /* Skjult som standard, styres av JS */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .stat-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 10px;
+            border-radius: 20px;
             font-size: 0.8rem;
-            text-transform: uppercase;
-            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid #2e7d32;
+            display: inline-block;
         }
 
-        .tab-btn.active {
-            background-color: var(--active-bg) !important; 
-            color: var(--bsk-blue) !important;
-            border: 1px solid var(--bsk-blue);
-        }
-
-        /* Form & Modal styling - Identisk med spiller.html */
+        /* Form & Modal styling */
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
@@ -105,18 +106,14 @@
             overflow-y: auto;
         }
 
-        /* Spesifikke tabell-justeringer for kamper */
         .text-left { text-align: left; }
     </style>
 </head>
 <body>
 
-<!-- TOP BAR - Identisk med spiller.html -->
 <header class="top-bar">
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
-    
     <h1 id="section-title" class="section-title">Kamper</h1>
-
     <div class="filter-wrapper">
         <div class="filter-container">
             <i class="fa-solid fa-calendar-check"></i>
@@ -130,7 +127,6 @@
 
 <div class="sidebar" id="sidebar"></div>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
     <a href="index.html" class="nav-item">
         <i class="fa-solid fa-house"></i>
@@ -156,14 +152,14 @@
 
 <main class="main-content">
     <section class="kamper-hero">
-    <div class="hero-content">
-        <p class="hero-intro-text">
-            Neste kamp er mot <strong id="stat-next-opponent">Laster...</strong> den <strong id="stat-next-match">Laster...</strong>. 
-            Sesongen har så langt gitt oss <strong id="stat-wins">0 seire</strong> 
-            og totalt <strong id="stat-goals">0 scorede mål</strong>.
-        </p>
-    </div>
-</section>
+        <div class="hero-content">
+            <p class="hero-intro-text">
+                Neste kamp er mot <strong id="stat-next-opponent">Laster...</strong> den <strong id="stat-next-match">Laster...</strong>. 
+                Sesongen har så langt gitt oss <strong id="stat-wins">0 seire</strong> 
+                og totalt <strong id="stat-goals">0 scorede mål</strong>.
+            </p>
+        </div>
+    </section>
 
     <div class="table-container">
         <table id="matchTable">
@@ -182,7 +178,6 @@
     </div>
 </main>
 
-<!-- FAB KNAPP -->
 <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
@@ -196,7 +191,6 @@
         </div>
         <form id="matchForm">
             <input type="hidden" id="editMatchId">
-            
             <div class="form-row">
                 <div class="form-group">
                     <label>Dato</label>
@@ -207,21 +201,18 @@
                     <input type="time" id="matchTime" class="form-control"> 
                 </div>
             </div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label>Motstander</label>
                     <input type="text" id="opponent" placeholder="Navn på lag" required class="form-control">
                 </div>
             </div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label>Bane / Sted</label>
                     <input type="text" id="pitch" placeholder="Bane" class="form-control"> 
                 </div>
             </div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label>Kamp-type</label>
@@ -236,7 +227,6 @@
                     <input type="text" id="result" placeholder="f.eks. 3-1" class="form-control">
                 </div>
             </div>
-
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button type="submit" id="saveBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE KAMP</button>
                 <button type="button" onclick="window.closeMatchModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
@@ -254,11 +244,12 @@
         </div>
         
         <div id="matchInfoDetails"></div>
+        <!-- Liste over påmeldte spillere -->
         <div id="matchPlayerList" class="player-grid-compact"></div>
         <div id="tacticBarContainer"></div>
 
         <div id="statsEditToggle" style="margin-top: 15px;">
-            <button class="modal-action-bar" onclick="toggleStatsEdit()" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-light); cursor: pointer;">
+            <button class="modal-action-bar" onclick="window.toggleStatsEdit()" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-light); cursor: pointer;">
                 <div>
                     <i class="fa-solid fa-chart-line" style="margin-right: 10px; color: var(--bsk-blue);"></i>
                     <span style="font-weight: 700;">Registrer Mål & Karakterer</span>
@@ -267,9 +258,7 @@
             </button>
         </div>
 
-        <div id="postMatchStats" style="margin-top: 20px; display: none;">
-            <!-- Her fylles stats-skjemaet fra JS -->
-        </div>
+        <div id="postMatchStats" style="margin-top: 20px; display: none;"></div>
 
         <div style="margin-top: 20px;">
             <button class="btn" onclick="window.closeMatchInfo()" style="width: 100%; padding: 12px; border-radius: 10px; background: var(--bg-light); border: none; font-weight: 700; cursor: pointer;">LUKK</button>
@@ -294,28 +283,11 @@
 <script src="kamper_ny.js"></script>
 
 <script>
-    window.closeMatchModal = () => {
-        document.getElementById('matchModal').style.display = 'none';
-        document.getElementById('matchForm').reset();
-        document.getElementById('editMatchId').value = '';
-    };
-    
-    window.openMatchModal = () => {
-        document.getElementById('modalTitle').innerText = 'Registrer kamp';
-        document.getElementById('matchModal').style.display = 'flex';
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('matchDate').value = today;
-    };
-
-    window.closeMatchInfo = () => {
-        document.getElementById('matchInfoModal').style.display = 'none';
-        if(document.getElementById('postMatchStats')) document.getElementById('postMatchStats').style.display = 'none';
-    };
-
+    // Klikk utenfor modal lukker den
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
-            closeMatchModal();
-            closeMatchInfo();
+            if(window.closeMatchModal) window.closeMatchModal();
+            if(window.closeMatchInfo) window.closeMatchInfo();
         }
     }
 </script>
