@@ -11,46 +11,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NY FUNKSJON: OPPDATERER HERO-STATS I TOPPEN ---
     function updateMatchHeroStats(matches) {
-        const nå = new Date();
-        nå.setHours(0, 0, 0, 0); // Nullstiller for nøyaktig dato-sammenligning
+    const nå = new Date();
+    nå.setHours(0, 0, 0, 0);
 
-        // 1. Finn neste kamp
-        const kommende = matches
-            .filter(m => new Date(m.date + "T23:59:59") >= nå)
-            .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        let nesteKampTekst = "ingen planlagte";
-        if (kommende.length > 0) {
-            const d = new Date(kommende[0].date);
-            nesteKampTekst = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-        }
+    // 1. Finn neste kamp
+    const kommende = matches
+        .filter(m => new Date(m.date + "T23:59:59") >= nå)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    let nesteKampDato = "ingen planlagte";
+    let nesteMotstander = "...";
 
-        // 2. Beregn seire og mål
-        let totalSeire = 0;
-        let totalMaal = 0;
-
-        matches.forEach(m => {
-            if (m.result && m.result.includes('-')) {
-                // Vi antar formatet "Hjemme-Borte"
-                const scores = m.result.split('-').map(s => parseInt(s.trim()));
-                if (scores.length === 2 && !isNaN(scores[0])) {
-                    totalMaal += scores[0]; // Legger til BSKs mål
-                    if (scores[0] > scores[1]) {
-                        totalSeire++;
-                    }
-                }
-            }
-        });
-
-        // Oppdater HTML-elementene hvis de finnes
-        const nextEl = document.getElementById('stat-next-match');
-        const winsEl = document.getElementById('stat-wins');
-        const goalsEl = document.getElementById('stat-goals');
-
-        if (nextEl) nextEl.innerText = nesteKampTekst;
-        if (winsEl) winsEl.innerText = `${totalSeire} seire`;
-        if (goalsEl) goalsEl.innerText = `${totalMaal} scorede mål`;
+    if (kommende.length > 0) {
+        const d = new Date(kommende[0].date);
+        nesteKampDato = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+        nesteMotstander = kommende[0].opponent; // Henter motstander-navnet
     }
+
+    // 2. Beregn seire og mål (samme som før)
+    let totalSeire = 0;
+    let totalMaal = 0;
+
+    matches.forEach(m => {
+        if (m.result && m.result.includes('-')) {
+            const scores = m.result.split('-').map(s => parseInt(s.trim()));
+            if (scores.length === 2 && !isNaN(scores[0])) {
+                totalMaal += scores[0]; 
+                if (scores[0] > scores[1]) totalSeire++;
+            }
+        }
+    });
+
+    // Oppdater HTML
+    const opponentEl = document.getElementById('stat-next-opponent');
+    const dateEl = document.getElementById('stat-next-match');
+    const winsEl = document.getElementById('stat-wins');
+    const goalsEl = document.getElementById('stat-goals');
+
+    if (opponentEl) opponentEl.innerText = nesteMotstander;
+    if (dateEl) dateEl.innerText = nesteKampDato;
+    if (winsEl) winsEl.innerText = `${totalSeire} seire`;
+    if (goalsEl) goalsEl.innerText = `${totalMaal} scorede mål`;
+}
 
     // --- MODAL KONTROLL ---
     window.openMatchModal = () => {
