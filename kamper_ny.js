@@ -9,6 +9,49 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMatchAssists = [];
     let currentTroopNames = [];
 
+    // --- NY FUNKSJON: OPPDATERER HERO-STATS I TOPPEN ---
+    function updateMatchHeroStats(matches) {
+        const nå = new Date();
+        nå.setHours(0, 0, 0, 0); // Nullstiller for nøyaktig dato-sammenligning
+
+        // 1. Finn neste kamp
+        const kommende = matches
+            .filter(m => new Date(m.date + "T23:59:59") >= nå)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        let nesteKampTekst = "ingen planlagte";
+        if (kommende.length > 0) {
+            const d = new Date(kommende[0].date);
+            nesteKampTekst = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+        }
+
+        // 2. Beregn seire og mål
+        let totalSeire = 0;
+        let totalMaal = 0;
+
+        matches.forEach(m => {
+            if (m.result && m.result.includes('-')) {
+                // Vi antar formatet "Hjemme-Borte"
+                const scores = m.result.split('-').map(s => parseInt(s.trim()));
+                if (scores.length === 2 && !isNaN(scores[0])) {
+                    totalMaal += scores[0]; // Legger til BSKs mål
+                    if (scores[0] > scores[1]) {
+                        totalSeire++;
+                    }
+                }
+            }
+        });
+
+        // Oppdater HTML-elementene hvis de finnes
+        const nextEl = document.getElementById('stat-next-match');
+        const winsEl = document.getElementById('stat-wins');
+        const goalsEl = document.getElementById('stat-goals');
+
+        if (nextEl) nextEl.innerText = nesteKampTekst;
+        if (winsEl) winsEl.innerText = `${totalSeire} seire`;
+        if (goalsEl) goalsEl.innerText = `${totalMaal} scorede mål`;
+    }
+
     // --- MODAL KONTROLL ---
     window.openMatchModal = () => {
         document.getElementById('modalTitle').innerText = 'Registrer kamp';
@@ -45,90 +88,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- TEGN TABELLEN ---
     function renderTable() {
-    const matchTableBody = document.getElementById('matchTableBody');
-    matchTableBody.innerHTML = '';
-    const nå = new Date();
-    
-    // Sett timer til 0 for å sammenligne kun dato hvis ønskelig, 
-    // men her beholder vi din logikk for "kommende" ut dagen.
-    let filtrerteKamper = allMatches.filter(m => {
-        const kampDato = new Date(m.date + "T23:59:59");
-        return currentView === 'kommende' ? kampDato >= nå : kampDato < nå;
-    });
+        const matchTableBody = document.getElementById('matchTableBody');
+        matchTableBody.innerHTML = '';
+        const nå = new Date();
+        
+        let filtrerteKamper = allMatches.filter(m => {
+            const kampDato = new Date(m.date + "T23:59:59");
+            return currentView === 'kommende' ? kampDato >= nå : kampDato < nå;
+        });
 
-    // Sortering: Kommende vises nærmeste først, tidligere vises nyeste først
-    filtrerteKamper.sort((a, b) => {
-        return currentView === 'kommende' 
-            ? new Date(a.date) - new Date(b.date) 
-            : new Date(b.date) - new Date(a.date);
-    });
+        filtrerteKamper.sort((a, b) => {
+            return currentView === 'kommende' 
+                ? new Date(a.date) - new Date(b.date) 
+                : new Date(b.date) - new Date(a.date);
+        });
 
-    if (filtrerteKamper.length === 0) {
-        matchTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen kamper registrert her.</td></tr>`;
-        return;
+        if (filtrerteKamper.length === 0) {
+            matchTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen kamper registrert her.</td></tr>`;
+            return;
+        }
+
+        filtrerteKamper.forEach(match => {
+            const d = new Date(match.date);
+            const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+            
+            const row = `
+            <tr>
+                <td class="name-col" style="min-width: 100px; padding-left: 20px;">
+                    <div style="font-weight:700; color:var(--text-main); line-height: 1.1; font-size: 0.95rem;">
+                        ${shortDate}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-top: 3px;">
+                        kl. ${match.time}
+                    </div>
+                </td>
+                <td class="name-col">
+                    <span style="font-weight:800; color:var(--bsk-blue); cursor:pointer;" 
+                          onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
+                        ${match.opponent}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-pill" style="background:#f1f2f6; min-width:50px; font-weight:800; display:inline-block; padding: 4px 8px; border-radius: 8px;">
+                        ${match.result || '-'}
+                    </span>
+                </td>
+                <td style="font-size:0.85rem; color:var(--text-muted); font-weight:500;">
+                    ${match.pitch}
+                </td>
+                <td>
+                    <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">
+                        ${match.type}
+                    </span>
+                </td>
+                <td>
+                    <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
+                                class="action-btn btn-edit">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deleteMatch('${match.id}')" 
+                                class="action-btn btn-delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+            
+            matchTableBody.innerHTML += row;
+        });
     }
-
-    filtrerteKamper.forEach(match => {
-        const d = new Date(match.date);
-        const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-        
-        const row = `
-        <tr>
-            <!-- TID-kolonne med stabling av dato og klokkeslett -->
-            <td class="name-col" style="min-width: 100px; padding-left: 20px;">
-                <div style="font-weight:700; color:var(--text-main); line-height: 1.1; font-size: 0.95rem;">
-                    ${shortDate}
-                </div>
-                <div style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-top: 3px;">
-                    kl. ${match.time}
-                </div>
-            </td>
-            
-            <!-- MOTSTANDER -->
-            <td class="name-col">
-                <span style="font-weight:800; color:var(--bsk-blue); cursor:pointer;" 
-                      onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
-                    ${match.opponent}
-                </span>
-            </td>
-            
-            <!-- RESULTAT -->
-            <td>
-                <span class="status-pill" style="background:#f1f2f6; min-width:50px; font-weight:800; display:inline-block; padding: 4px 8px; border-radius: 8px;">
-                    ${match.result || '-'}
-                </span>
-            </td>
-            
-            <!-- BANE -->
-            <td style="font-size:0.85rem; color:var(--text-muted); font-weight:500;">
-                ${match.pitch}
-            </td>
-            
-            <!-- TYPE -->
-            <td>
-                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em;">
-                    ${match.type}
-                </span>
-            </td>
-            
-            <!-- HANDLING -->
-            <td>
-                <div style="display: flex; justify-content: center; gap: 8px;">
-                    <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
-                            class="action-btn btn-edit">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button onclick="deleteMatch('${match.id}')" 
-                            class="action-btn btn-delete">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>`;
-        
-        matchTableBody.innerHTML += row;
-    });
-}
 
     // --- VIS KAMP-INFO ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
@@ -151,15 +180,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fa-solid fa-calendar-day" style="color: var(--primary); width: 20px;"></i> 
+                        <i class="fa-solid fa-calendar-day" style="color: var(--bsk-blue); width: 20px;"></i> 
                         <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
                     </div>
-                    <div style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.1rem;">
+                    <div style="background: var(--bsk-blue); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.1rem;">
                         ${resultText}
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <i class="fa-solid fa-location-dot" style="color: var(--primary); width: 20px;"></i> 
+                    <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue); width: 20px;"></i> 
                     <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
                 </div>
         `;
@@ -177,29 +206,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         infoHTML += `</div>`;
         infoHTML += `
-            <div class="modal-action-bar" id="toggleTropp">
+            <div class="modal-action-bar" id="toggleTropp" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
                 <div style="display: flex; align-items: center;">
-                    <i class="fa-solid fa-users icon-left"></i>
+                    <i class="fa-solid fa-users" style="margin-right:10px; color:var(--bsk-blue);"></i>
                     <span style="font-weight: 700;">Påmeldt tropp</span>
-                    <span id="pilleAntall" style="background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
+                    <span id="pilleAntall" style="background: var(--bsk-blue); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
                 </div>
-                <i class="fa-solid fa-chevron-down chevron"></i>
+                <i class="fa-solid fa-chevron-down"></i>
             </div>
         `;
         detailsDiv.innerHTML = infoHTML;
 
         tacticContainer.innerHTML = `
-            <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px;">
-                <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list icon-left"></i><span style="font-weight: 700;">Kampplan</span></div>
+            <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
+                <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
                 <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
             </div>
         `;
 
-        playerListUl.classList.remove('show');
+        playerListUl.innerHTML = '';
+        playerListUl.style.display = 'none';
+        playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        playerListUl.style.gap = '10px';
+        playerListUl.style.marginTop = '10px';
+
         const toggleBtn = document.getElementById('toggleTropp');
         toggleBtn.onclick = () => {
-            toggleBtn.classList.toggle('open');
-            playerListUl.classList.toggle('show');
+            const isHidden = playerListUl.style.display === 'none';
+            playerListUl.style.display = isHidden ? 'grid' : 'none';
         };
 
         const tacticBar = document.getElementById('jumpToTactic');
@@ -230,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
             list.forEach(name => {
                 const item = document.createElement('div');
-                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.9rem;`;
+                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.85rem;`;
                 item.innerText = name;
                 playerListUl.appendChild(item);
             });
@@ -260,11 +294,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const container = document.getElementById('postMatchStats');
+        container.innerHTML = `
+            <div class="form-row">
+                <div class="form-group" style="flex:1">
+                    <label>Målscorer</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="goalSelect" class="form-control" style="flex: 1;"></select>
+                        <button type="button" onclick="window.addGoal()" style="background: var(--bsk-blue); color: white; border:none; padding: 0 15px; border-radius:10px;">+</button>
+                    </div>
+                    <div id="goalListDisplay" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex:1">
+                    <label>Assist</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="assistSelect" class="form-control" style="flex: 1;"></select>
+                        <button type="button" onclick="window.addAssist()" style="background: #27ae60; color: white; border:none; padding: 0 15px; border-radius:10px;">+</button>
+                    </div>
+                    <div id="assistListDisplay" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label style="font-weight: 700; font-size: 0.9rem; display: block; margin-bottom: 10px; color: var(--text-main);">Vurdering (2=Bra, 1=Innpå, 0=Dårlig)</label>
+                <div style="background: #f8f9fa; border-radius: 12px; padding: 10px; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="text-align: left; border-bottom: 1px solid #ddd;">
+                                <th style="padding: 5px;">Navn</th>
+                                <th style="text-align: center;">OFF</th>
+                                <th style="text-align: center;">DEF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playerRatingBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <button type="button" onclick="window.saveFinalMatchStats()" style="width:100%; background: var(--bsk-blue); color:white; border:none; padding:14px; border-radius:12px; font-weight:700; margin-top:15px; cursor:pointer;">LAGRE RAPPORT</button>
+        `;
+
         const goalSelect = document.getElementById('goalSelect');
         const assistSelect = document.getElementById('assistSelect');
         const options = currentTroopNames.map(name => `<option value="${name}">${name}</option>`).join('');
-        goalSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
-        assistSelect.innerHTML = `<option value="">Velg spiller...</option>` + options;
+        goalSelect.innerHTML = `<option value="">Velg...</option>` + options;
+        assistSelect.innerHTML = `<option value="">Velg...</option>` + options;
 
         currentMatchGoals = matchData?.goalScorers ? matchData.goalScorers.split(', ').filter(s => s !== "") : [];
         currentMatchAssists = matchData?.assists ? matchData.assists.split(', ').filter(s => s !== "") : [];
@@ -273,22 +347,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const ratingBody = document.getElementById('playerRatingBody');
         ratingBody.innerHTML = currentTroopNames.map(name => {
             const r = savedRatings[name] || { off: 1, def: 1 };
-            // OPPDATERT: Lagt til verdi 2 i select-menyene
             return `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 10px 5px; font-weight: 600;">${name}</td>
                     <td style="text-align: center;">
-                        <select class="off-rating" data-player="${name}">
-                            <option value="2" ${r.off == 2 ? 'selected' : ''}>2 (Bra)</option>
-                            <option value="1" ${r.off == 1 ? 'selected' : ''}>1 (Innpå)</option>
-                            <option value="0" ${r.off == 0 ? 'selected' : ''}>0 (Dårlig)</option>
+                        <select class="off-rating" data-player="${name}" style="padding:2px; border-radius:4px;">
+                            <option value="2" ${r.off == 2 ? 'selected' : ''}>2</option>
+                            <option value="1" ${r.off == 1 ? 'selected' : ''}>1</option>
+                            <option value="0" ${r.off == 0 ? 'selected' : ''}>0</option>
                         </select>
                     </td>
                     <td style="text-align: center;">
-                        <select class="def-rating" data-player="${name}">
-                            <option value="2" ${r.def == 2 ? 'selected' : ''}>2 (Bra)</option>
-                            <option value="1" ${r.def == 1 ? 'selected' : ''}>1 (Innpå)</option>
-                            <option value="0" ${r.def == 0 ? 'selected' : ''}>0 (Dårlig)</option>
+                        <select class="def-rating" data-player="${name}" style="padding:2px; border-radius:4px;">
+                            <option value="2" ${r.def == 2 ? 'selected' : ''}>2</option>
+                            <option value="1" ${r.def == 1 ? 'selected' : ''}>1</option>
+                            <option value="0" ${r.def == 0 ? 'selected' : ''}>0</option>
                         </select>
                     </td>
                 </tr>
@@ -298,20 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addGoal = function() {
         const name = document.getElementById('goalSelect').value;
-        if (name) { 
-            currentMatchGoals.push(name); 
-            renderStatsBadges(); 
-            document.getElementById('goalSelect').value = "";
-        }
+        if (name) { currentMatchGoals.push(name); renderStatsBadges(); }
     };
 
     window.addAssist = function() {
         const name = document.getElementById('assistSelect').value;
-        if (name) { 
-            currentMatchAssists.push(name); 
-            renderStatsBadges(); 
-            document.getElementById('assistSelect').value = "";
-        }
+        if (name) { currentMatchAssists.push(name); renderStatsBadges(); }
     };
 
     window.removeGoal = function(index) {
@@ -327,23 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderStatsBadges() {
         const goalDisplay = document.getElementById('goalListDisplay');
         const assistDisplay = document.getElementById('assistListDisplay');
-
-        goalDisplay.innerHTML = currentMatchGoals.map((name, index) => `
-            <span onclick="removeGoal(${index})" style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-right: 5px; margin-bottom: 5px; border: 1px solid #2e7d32; font-size: 0.85rem; font-weight: 600;">
-                ${name} <i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i>
-            </span>
-        `).join('');
-
-        assistDisplay.innerHTML = currentMatchAssists.map((name, index) => `
-            <span onclick="removeAssist(${index})" style="background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-right: 5px; margin-bottom: 5px; border: 1px solid #1565c0; font-size: 0.85rem; font-weight: 600;">
-                ${name} <i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i>
-            </span>
-        `).join('');
+        goalDisplay.innerHTML = currentMatchGoals.map((name, index) => `<span onclick="window.removeGoal(${index})" style="background:#e8f5e9; color:#2e7d32; padding:4px 10px; border-radius:20px; font-size:0.8rem; cursor:pointer; border:1px solid #2e7d32;">${name} &times;</span>`).join('');
+        assistDisplay.innerHTML = currentMatchAssists.map((name, index) => `<span onclick="window.removeAssist(${index})" style="background:#e3f2fd; color:#1565c0; padding:4px 10px; border-radius:20px; font-size:0.8rem; cursor:pointer; border:1px solid #1565c0;">${name} &times;</span>`).join('');
     }
 
     window.saveFinalMatchStats = function() {
         const matchId = document.getElementById('editMatchId').value;
-        if (!matchId) return;
         const ratings = {};
         document.querySelectorAll('.off-rating').forEach(el => {
             const player = el.getAttribute('data-player');
@@ -359,14 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.dbUpdate(window.dbRef(window.db), updates).then(() => {
             alert("Rapport lagret!");
-            const matchIndex = allMatches.findIndex(m => m.id === matchId);
-            if (matchIndex !== -1) {
-                allMatches[matchIndex].goalScorers = currentMatchGoals.join(', ');
-                allMatches[matchIndex].assists = currentMatchAssists.join(', ');
-                allMatches[matchIndex].playerRatings = ratings;
-            }
             document.getElementById('postMatchStats').style.display = 'none';
-            showMatchInfo(matchId, allMatches[matchIndex].date, allMatches[matchIndex].opponent, allMatches[matchIndex].time, allMatches[matchIndex].pitch);
         });
     };
 
@@ -395,12 +442,13 @@ document.addEventListener('DOMContentLoaded', () => {
             result: document.getElementById('result').value || '-'
         };
         const path = matchId ? `matches/${matchId}` : `matches/${window.dbPush(window.dbRef(window.db, 'matches')).key}`;
-        window.dbSet(window.dbRef(window.db, path), matchData).then(() => closeMatchModal());
+        window.dbSet(window.dbRef(window.db, path), matchData).then(() => window.closeMatchModal());
     });
 
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         allMatches = data ? Object.entries(data).map(([id, match]) => ({ id, ...match })) : [];
+        updateMatchHeroStats(allMatches); // Oppdaterer den blå boksen
         renderTable(); 
     });
 
