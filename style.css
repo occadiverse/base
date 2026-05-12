@@ -70,43 +70,19 @@ body {
     grid-column: 1;
     display: flex;
     align-items: center;
-    
-    /* Låser bredden så layouten ikke hopper ved sidebytte */
     width: 170px; 
     flex-shrink: 0;
-    
-    /* Font-innstillinger */
-    font-weight: 900 !important; 
+    font-weight: 900; 
     font-size: 1rem;
     color: var(--bsk-blue) !important;
     text-decoration: none !important;
     white-space: nowrap;
-
-    /* Sikrer stabil rendering av fet skrift på tvers av sider */
-    -webkit-font-smoothing: antialiased;
-    font-variation-settings: "wght" 900;
-    
     transition: opacity 0.2s ease;
 }
 
-.logo-brand i {
-    flex-shrink: 0;
-    margin-right: 6px; /* Mellomrom mellom skjold og BSK */
-}
-
-.logo-brand span { 
-    color: var(--bsk-yellow) !important; 
-    font-weight: 900 !important;
-    margin-left: 6px; /* Mellomrom mellom BSK og A-LAG */
-}
-
-.logo-brand:hover {
-    opacity: 0.8;
-}
-
-.logo-brand:active {
-    opacity: 0.6;
-}
+.logo-brand i { margin-right: 6px; }
+.logo-brand span { color: var(--bsk-yellow) !important; margin-left: 6px; }
+.logo-brand:hover { opacity: 0.8; }
 
 .section-title {
     grid-column: 2;
@@ -114,14 +90,13 @@ body {
     font-weight: 700;
     margin: 0;
     color: var(--text-main);
+    text-align: center;
 }
 
 .filter-wrapper {
     grid-column: 3;
     display: flex;
     justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
 }
 
 .filter-container {
@@ -132,17 +107,8 @@ body {
     padding: 6px 12px;
     border-radius: 10px;
     border: 1.5px solid var(--border-color);
-    transition: all 0.2s ease;
     cursor: pointer;
 }
-
-.filter-container:hover {
-    border-color: var(--bsk-yellow);
-    background: var(--white);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.filter-container i { color: var(--bsk-blue); font-size: 0.9rem; }
 
 .base-select {
     font-size: 0.85rem;
@@ -152,16 +118,104 @@ body {
     background: transparent;
     cursor: pointer;
     outline: none;
-    padding-right: 5px;
 }
 
 /* 
 ================================================================
-4. NAVIGASJON (PC Sidebar & Mobil Bottom Nav)
+4. RESPONSIV KONTROLL (Mobil vs Desktop)
 ================================================================
 */
 
-/* PC Sidebar */
+/* Skjul desktop-ting på mobil */
+.desktop-only {
+    display: none !important;
+}
+
+/* Skjul mobil-ting på PC */
+.mobile-only {
+    display: block;
+}
+
+@media (min-width: 769px) {
+    .desktop-only { display: table-cell !important; }
+    .mobile-only { display: none !important; }
+}
+
+/* 
+================================================================
+5. TABELL-SYSTEM (Oppdatert for mobil)
+================================================================
+*/
+.table-container {
+    background: var(--white);
+    border-radius: 15px;
+    overflow-x: auto; /* Tillater rulling sidelengs på mobil */
+    -webkit-overflow-scrolling: touch;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    min-width: 400px; /* Sikrer at tabellen ikke blir helt klemt */
+}
+
+thead { background-color: #f8f9fa; }
+
+th {
+    padding: 16px 20px;
+    font-size: 0.7rem;
+    font-weight: 900; 
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    border-bottom: 2px solid #eef2f6;
+}
+
+td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.match-row {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.match-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Kombinert Dato/Tid-styling for mobil */
+.date-time-cell {
+    text-align: center;
+    line-height: 1.2;
+}
+
+.time-part {
+    display: block;
+    font-weight: 800;
+    color: var(--bsk-blue);
+    font-size: 0.9rem;
+}
+
+.date-part {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* 
+================================================================
+6. NAVIGASJON (Uendret logikk, polert stil)
+================================================================
+*/
 .sidebar {
     width: var(--sidebar-width);
     background: var(--white);
@@ -173,112 +227,54 @@ body {
     z-index: 900;
 }
 
-.nav-links {
-    display: flex;
-    flex-direction: column;
-    padding-top: 20px;
+.bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--bottom-nav-height);
+    background: var(--white);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    z-index: 2000;
+    padding-bottom: env(safe-area-inset-bottom);
 }
-
-.nav-item {
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    color: var(--text-muted);
-    font-weight: 500;
-    transition: 0.2s;
-}
-
-.nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
-
-.nav-item:hover { background: var(--bg-light); color: var(--bsk-blue); }
-
-/* PC-SPESIFIKK AKTIV STIL */
-@media (min-width: 769px) {
-    .nav-item.active {
-        background: var(--active-bg);
-        color: var(--bsk-blue);
-        font-weight: 700;
-        border-right: 4px solid var(--bsk-yellow); 
-    }
-}
-
-/* Mobil Bottom Nav */
-.bottom-nav { display: none; }
 
 @media (max-width: 768px) {
     .sidebar { display: none; }
+    .bottom-nav { display: flex; justify-content: space-around; align-items: center; }
     
-    .bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: var(--bottom-nav-height);
-        background: var(--white);
-        border-top: 1px solid rgba(0, 0, 0, 0.08); 
-        justify-content: space-around;
-        align-items: center;
-        z-index: 2000;
-        padding-bottom: env(safe-area-inset-bottom);
-        box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
-    }
-
     .nav-item {
         flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        text-decoration: none;
-        color: var(--text-muted);
         font-size: 0.65rem;
-        font-weight: 600;
+        color: var(--text-muted);
+        text-decoration: none;
         gap: 4px;
-        padding: 10px 0;
-        border: none !important;
     }
-
-    .nav-item i { font-size: 1.2rem; transition: transform 0.2s; }
     
-    .nav-item.active { 
-        color: var(--bsk-blue); 
-        background: transparent;
-    }
-
-    .nav-item.active::after {
-        content: '';
-        width: 4px;
-        height: 4px;
-        background: var(--bsk-yellow);
-        border-radius: 50%;
-        margin-top: 2px;
-    }
-}
-
-/* 
-================================================================
-5. HOVEDLAYOUT
-================================================================
-*/
-.main-content {
-    flex: 1;
-    margin-left: var(--sidebar-width);
-    padding: 20px;
-    min-width: 0;
-}
-
-@media (max-width: 768px) {
+    .nav-item.active { color: var(--bsk-blue); }
+    
     .main-content {
         margin-left: 0;
-        padding-bottom: 90px; 
+        padding-bottom: 90px;
+    }
+}
+
+@media (min-width: 769px) {
+    .main-content { margin-left: var(--sidebar-width); }
+    .nav-item.active {
+        background: var(--active-bg);
+        color: var(--bsk-blue);
+        border-right: 4px solid var(--bsk-yellow);
     }
 }
 
 /* 
 ================================================================
-6. ELEMENT-STILER
+7. ØVRIG STYLING
 ================================================================
 */
 .welcome-hero {
@@ -287,74 +283,6 @@ body {
     padding: 40px;
     color: white;
     margin-bottom: 30px;
-    box-shadow: 0 10px 25px rgba(0, 86, 179, 0.2);
 }
 
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.dash-card {
-    display: flex;
-    align-items: center;
-    background: var(--white);
-    padding: 25px;
-    border-radius: 15px;
-    text-decoration: none;
-    color: inherit;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
-    transition: transform 0.2s;
-}
-
-.dash-card:hover { transform: translateY(-5px); border-color: var(--bsk-yellow); }
-
-.dash-icon {
-    width: 50px;
-    height: 50px;
-    background: var(--active-bg);
-    color: var(--bsk-blue);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    margin-right: 15px;
-}
-
-/* Containeren som holder tabellen */
-.table-container {
-    background: #ffffff;
-    border-radius: 15px;
-    overflow: hidden; /* Sørger for at header-hjørnene følger runden */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border: 1px solid #e1e8ed;
-    margin: 20px 0;
-}
-
-table { width: 100%; border-collapse: collapse; }
-thead { background-color: #f8f9fa; /* Den lyse "proffe" gråfargen */ }
-th {
-    padding: 16px 20px;
-    font-size: 0.7rem; /* Liten, men tydelig */
-    font-weight: 900;  /* Maks tykkelse for autoritet */
-    color: #64748b;    /* Elegant grå-blå tekstfarge */
-    text-transform: uppercase;
-    letter-spacing: 0.1em; /* Litt luft mellom bokstavene */
-    text-align: center;
-    border-bottom: 2px solid #eef2f6;
-}
-td {
-    padding: 14px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
-    font-size: 0.9rem;
-    vertical-align: middle;
-}
-/* Gjør annenhver rad litt annerledes (valgfritt, men pent) */
-tbody tr:nth-child(even) {
-    background-color: #fcfcfc;
-}
-.name-col { text-align: left; font-weight: 600; color: var(--text-main); }
+.name-col { text-align: left; font-weight: 600; }
