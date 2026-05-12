@@ -184,31 +184,31 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
     // --- VIS KAMP-INFO ---
-    window.showMatchInfo = (id, date, opponent, time, pitch) => {
+   window.showMatchInfo = (id, date, opponent, time, pitch) => {
     document.getElementById('editMatchId').value = id;
     const playerListUl = document.getElementById('matchPlayerList');
     const infoTitle = document.getElementById('infoTitle');
     const detailsDiv = document.getElementById('matchInfoDetails');
     const tacticContainer = document.getElementById('tacticBarContainer');
     
+    // date kommer inn som YYYY-MM-DD fra koden (standard input-format)
+    // Vi må konvertere den til DD-MM-YYYY for å matche din Firebase-nøkkel
     const parts = date.split('-'); 
-    const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+    const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; // Blir f.eks. "02-05-2026"
+    const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`; // Blir "02.05.2026"
+
     infoTitle.innerText = opponent;
 
-    const matchData = allMatches.find(m => m.id === id);
-    const resultText = matchData?.result || '-';
-    const goalsText = matchData?.goalScorers || '';
-    const assistsText = matchData?.assists || '';
-
-    let infoHTML = `
+    // Tegn selve info-boksen og knappen for tropp
+    detailsDiv.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <i class="fa-solid fa-calendar-day" style="color: var(--bsk-blue); width: 20px;"></i> 
-                    <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
+                    <span style="font-weight: 600;">${displayDate} kl. ${time}</span>
                 </div>
                 <div style="background: var(--bsk-blue); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.1rem;">
-                    ${resultText}
+                    ${allMatches.find(m => m.id === id)?.result || '-'}
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -226,18 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
 
-    if (goalsText) {
-        // Legger til mål/assist i info-boksen hvis de finnes
-        const statsHTML = `
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-futbol" style="margin-right: 8px; color: #2ecc71;"></i> MÅL</div>
-                <div style="font-size: 0.9rem; padding-left: 28px;">${goalsText}</div>
-            </div>`;
-        // Her kan du dytte inn statsHTML i infoHTML hvis ønskelig
-    }
-
-    detailsDiv.innerHTML = infoHTML;
-
     tacticContainer.innerHTML = `
         <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
             <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
@@ -245,14 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
 
-    // Klargjør listen (skjult som standard)
-    playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 10px; color: var(--text-muted);">Henter spillere...</div>';
+    // Nullstill og skjul listen
+    playerListUl.innerHTML = '';
     playerListUl.style.display = 'none';
     playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
     playerListUl.style.gap = '10px';
     playerListUl.style.marginTop = '15px';
 
-    // Klikk-logikk for å åpne/lukke
     const toggleBtn = document.getElementById('toggleTropp');
     toggleBtn.onclick = () => {
         const isHidden = playerListUl.style.display === 'none';
@@ -263,28 +250,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tacticBar = document.getElementById('jumpToTactic');
     tacticBar.onclick = () => {
-        const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        window.location.href = `taktikk.html?matchId=${id}&date=${dateKey}`;
+        window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`;
     };
 
     document.getElementById('matchInfoModal').style.display = 'flex';
 
-    // Hent spillere fra Firebase
+    // Hent troppen fra Firebase
     window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
         const root = snapshot.val();
-        const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        const enrolled = root.attendance ? root.attendance[dateKey] : null;
+        if (!root) return;
+
+        const enrolled = root.attendance ? root.attendance[firebaseDateKey] : null;
         const allPlayers = root.players;
         
-        playerListUl.innerHTML = ''; // Tømmer "Henter spillere..."
+        playerListUl.innerHTML = '';
         let list = [];
 
-        if (enrolled && allPlayers) {
+        if (enrolled) {
             Object.entries(enrolled).forEach(([pId, status]) => {
                 if (status === 'K') {
-                    // Sjekker både ID og navn i tilfelle Firebase-strukturen varierer
-                    let player = allPlayers[pId] || Object.values(allPlayers).find(p => p.id === pId);
-                    if (player) list.push(player.name || player.navn);
+                    // Sjekker om pId finnes i players-mappen for å få navnet, 
+                    // hvis ikke bruker vi selve IDen (hvis den er lagret som tekst)
+                    let name = pId;
+                    if (allPlayers && allPlayers[pId]) {
+                        name = allPlayers[pId].navn || allPlayers[pId].name || pId;
+                    }
+                    list.push(name);
                 }
             });
             list.sort((a, b) => a.localeCompare(b, 'nb'));
@@ -293,11 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
         
         if (list.length === 0) {
-            playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 10px; color: var(--text-muted);">Ingen påmeldte spillere funnet.</div>';
+            playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 15px; color: var(--text-muted); font-size: 0.85rem; font-style: italic;">Ingen påmeldte spillere funnet.</div>';
         } else {
             list.forEach(name => {
                 const item = document.createElement('div');
-                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
+                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue);`;
                 item.innerText = name;
                 playerListUl.appendChild(item);
             });
