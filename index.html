@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Din hovedstil -->
+    <!-- Hovedstil -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,9 +27,7 @@
     <!-- TOP BAR -->
     <header class="top-bar">
         <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
-    
-    <h1 id="section-title" class="section-title"></h1>
-
+        <h1 id="section-title" class="section-title"></h1>
         <div class="filter-wrapper">
             <div class="filter-container">
                 <i class="fa-solid fa-calendar-day"></i>
@@ -44,29 +42,8 @@
     <!-- SIDEBAR (PC) -->
     <aside id="sidebar" class="sidebar"></aside>
 
-    <!-- BUNNMENY (MOBIL) -->
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item active">
-            <i class="fa-solid fa-house"></i>
-            <span>Hjem</span>
-        </a>
-        <a href="oppmote.html" class="nav-item">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Oppmøte</span>
-        </a>
-        <a href="kamper.html" class="nav-item">
-            <i class="fa-solid fa-soccer-ball"></i>
-            <span>Kamper</span>
-        </a>
-        <a href="spillere.html" class="nav-item">
-            <i class="fa-solid fa-users"></i>
-            <span>Tropp</span>
-        </a>
-        <a href="statistikk.html" class="nav-item">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Stats</span>
-        </a>
-    </nav>
+    <!-- BUNNMENY (MOBIL) - Genereres av navigation.js -->
+    <nav class="bottom-nav"></nav>
 
     <!-- HOVEDINNHOLD -->
     <main class="main-content">
@@ -78,16 +55,13 @@
             </div>
         </section>
 
-        <!-- DASHBOARD GRID - KLAR FOR DATA -->
+        <!-- DASHBOARD GRID -->
         <div class="dashboard-grid">
-            
-            <!-- Her kan du senere legge inn widgets eller statusrapporter -->
             <div class="table-container" style="grid-column: 1 / -1; padding: 30px; text-align: center; border: 2px dashed var(--border-color); background: transparent;">
                 <i class="fa-solid fa-chart-pie" style="font-size: 2rem; color: var(--bsk-blue); margin-bottom: 15px; display: block;"></i>
                 <h3 style="color: var(--bsk-blue); margin-bottom: 8px;">Klar for analyse</h3>
                 <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;">Bruk menyen for å navigere. Denne flaten er nå klar for å vise dine Google Sheets-data, som f.eks. neste kamp eller form-tabell.</p>
             </div>
-
         </div>
     </main>
 
