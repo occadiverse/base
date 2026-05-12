@@ -61,6 +61,8 @@ body {
 
 .sidebar.collapsed {
     transform: translateX(calc(-1 * var(--sidebar-width)));
+    box-shadow: none; /* Fjerner skyggen som "stikker ut" */
+    border-right: none; /* Fjerner kanten som lager den hvite streken */
 }
 
 .nav-links {
@@ -355,41 +357,51 @@ th {
 
 /* 
 ================================================================
-9. MOBIL-TILPASNING 
+9. MOBIL-TILPASNING (REVIDERT)
 ================================================================
 */
 @media (max-width: 768px) {
+    /* 1. Tving menyen HELT ut av skjermen og skru av skygge når den er lukket */
     .sidebar {
-        /* Flytt menyen helt ut av syne som standard på mobil */
-        transform: translateX(-100%); 
-        width: 280px; /* Litt bredere for tommel-vennlighet */
-        box-shadow: 5px 0 25px rgba(0,0,0,0.15);
+        transform: translateX(-110%); 
+        width: 280px;
+        box-shadow: none; 
+        transition: transform 0.3s ease-in-out;
     }
     
-    /* Når JavaScript fjerner 'collapsed', sklir denne inn */
     .sidebar:not(.collapsed) {
         transform: translateX(0);
+        box-shadow: 5px 0 25px rgba(0,0,0,0.2);
     }
 
-    /* VIKTIG: Sørg for at innholdet ikke prøver å lage plass til menyen på mobil */
+    /* 2. Fjern det hvite feltet til venstre ved å tvinge margin til 0 */
     .main-content {
         margin-left: 0 !important;
-        padding: 15px; /* Litt mindre padding på små skjermer */
+        padding: 15px;
+        width: 100%;
+        min-width: 100%;
     }
 
-    /* Juster Top Bar for mobil */
+    /* 3. Fiks Top Bar så den ikke "stikker ut" på sidene */
     .top-bar {
+        margin: -15px -15px 20px -15px !important; /* Justert for å matche ny padding */
         padding: 0 15px;
-        justify-content: space-between; /* Spre knapp og tittel */
+        width: calc(100% + 30px); /* Fyller hele bredden */
+        justify-content: space-between;
+    }
+
+    /* 4. Hindre sidelengs scrolling av hele siden */
+    body {
+        overflow-x: hidden;
+        position: relative;
     }
 
     .section-title {
-        font-size: 1.1rem; /* Litt mindre tekst så den får plass */
+        font-size: 1.1rem;
     }
 
-    /* Taktikk-brett og Hero justeringer */
     .player-node {
-        width: 10% !important; /* Gjør spiller-sirklene litt større på mobil */
+        width: 10% !important;
     }
 
     .welcome-hero {
@@ -401,9 +413,8 @@ th {
         font-size: 1.5rem;
     }
     
-    /* Gjør tabellen lettere å lese på mobil */
     .name-col {
-        min-width: 120px;
-        font-size: 0.9rem;
+        min-width: 110px;
+        font-size: 0.85rem;
     }
 }
