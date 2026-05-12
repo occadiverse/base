@@ -1,169 +1,134 @@
 <!DOCTYPE html>
-
 <html lang="no">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <!-- Oppdatert viewport for bedre mobilfølelse -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- App-innstillinger -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
     <meta name="description" content="BSK Fotball Herrer A lag - Administrasjon av lag, taktikk, oppmøte og statistikk">
-
     <title>BSK Fotball Herrer - A lag</title>
-
     
-
     <!-- Favicon -->
-
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-
     
-
     <!-- Fonts og Ikoner -->
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
+    <!-- Din hovedstil -->
     <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
 
+    <!-- TOP BAR -->
+    <header class="top-bar">
+        <div class="logo-brand">
+            <i class="fa-solid fa-shield-halved"></i> 
+            BSK <span>A-LAG</span>
+        </div>
+        
+        <h1 class="section-title">Oversikt</h1>
 
-
-    <!-- Sidebar fylles av navigation.js -->
-
-    <div id="sidebar" class="sidebar collapsed"></div>
-
-
-
-    <main class="main-content">
-
-        <!-- TOP BAR -->
-
-        <header class="top-bar">
-
-            <button class="menu-toggle" onclick="toggleMenu()">
-
-                <i class="fa-solid fa-bars"></i>
-
-            </button>
-
-            <h1 class="section-title">BSK Fotball Herrer</h1>
-
-        </header>
-
-
-
-        <!-- HERO SEKSJON -->
-
-        <section class="welcome-hero">
-
-            <div class="hero-content">
-
-                <h2>Velkommen, Trener</h2>
-
-                <p>Her er kontrollsenteret for BSK Fotball Herrer. Administrer taktikk, oppmøte og se lagets prestasjoner.</p>
-
+        <div class="filter-wrapper">
+            <div class="filter-container">
+                <i class="fa-solid fa-calendar-day"></i>
+                <select class="base-select">
+                    <option>SESONG 2026</option>
+                    <option>MAI</option>
+                </select>
             </div>
+        </div>
+    </header>
 
+    <!-- SIDEBAR (PC) -->
+    <!-- Vi fjerner klassen 'collapsed' som standard for PC-visning -->
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <!-- BUNNMENY (MOBIL) -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span>Hjem</span>
+        </a>
+        <a href="oppmote.html" class="nav-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Oppmøte</span>
+        </a>
+        <a href="kamper.html" class="nav-item">
+            <i class="fa-solid fa-soccer-ball"></i>
+            <span>Kamper</span>
+        </a>
+        <a href="spillere.html" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Tropp</span>
+        </a>
+        <a href="statistikk.html" class="nav-item">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Stats</span>
+        </a>
+    </nav>
+
+    <!-- HOVEDINNHOLD -->
+    <main class="main-content">
+        <!-- HERO SEKSJON -->
+        <section class="welcome-hero">
+            <div class="hero-content">
+                <!-- Siden du er Christian, er det hyggelig med en personlig hilsen -->
+                <h2>Velkommen, Christian</h2>
+                <p>Her er kontrollsenteret for BSK Fotball. Administrer taktikk, oppmøte og se lagets prestasjoner i sanntid.</p>
+            </div>
         </section>
 
-
-
-        <!-- DASHBOARD GRID - Dette forvandler lenker til kort -->
-
+        <!-- DASHBOARD GRID -->
         <div class="dashboard-grid">
-
             
-
             <a href="kamper.html" class="dash-card">
-
-                <div class="dash-icon"><i class="fa-solid fa-layer-group"></i></div>
-
+                <div class="dash-icon"><i class="fa-solid fa-trophy"></i></div>
                 <div class="dash-info">
-
                     <h3>Kamper</h3>
-
-                    <p>Kamptaktikk og terminliste.</p>
-
+                    <p>Terminliste og taktikk.</p>
                 </div>
-
                 <i class="fa-solid fa-chevron-right arrow"></i>
-
             </a>
-
-
 
             <a href="oppmote.html" class="dash-card">
-
-                <div class="dash-icon"><i class="fa-solid fa-calendar-check"></i></div>
-
+                <div class="dash-icon"><i class="fa-solid fa-check-double"></i></div>
                 <div class="dash-info">
-
                     <h3>Oppmøte</h3>
-
-                    <p>Registrer fravær og trening.</p>
-
+                    <p>Registrer trening og fravær.</p>
                 </div>
-
                 <i class="fa-solid fa-chevron-right arrow"></i>
-
             </a>
-
-
 
             <a href="spillere.html" class="dash-card">
-
-                <div class="dash-icon"><i class="fa-solid fa-users"></i></div>
-
+                <div class="dash-icon"><i class="fa-solid fa-user-group"></i></div>
                 <div class="dash-info">
-
                     <h3>Spillerstall</h3>
-
-                    <p>Oversikt over alle spillerne.</p>
-
+                    <p>Tropp og spillerinfo.</p>
                 </div>
-
                 <i class="fa-solid fa-chevron-right arrow"></i>
-
             </a>
-
-
 
             <a href="statistikk.html" class="dash-card">
-
-                <div class="dash-icon"><i class="fa-solid fa-chart-simple"></i></div>
-
+                <div class="dash-icon"><i class="fa-solid fa-chart-line"></i></div>
                 <div class="dash-info">
-
                     <h3>Statistikk</h3>
-
-                    <p>Se mål, assist og prestasjoner.</p>
-
+                    <p>Mål, assists og rating.</p>
                 </div>
-
                 <i class="fa-solid fa-chevron-right arrow"></i>
-
             </a>
 
-
-
         </div>
-
     </main>
 
-
-
+    <!-- SCRIPTS -->
     <script src="navigation.js"></script>
-
-    <script src="dashboard.js"></script>
-
-    <script src="script.js"></script>
-
+    <!-- Slett script.js hvis den er tom/gir 404, ellers behold den -->
 </body>
 
 </html>
