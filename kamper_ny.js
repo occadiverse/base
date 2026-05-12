@@ -90,76 +90,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- TEGN TABELLEN ---
     function renderTable() {
-        const matchTableBody = document.getElementById('matchTableBody');
-        matchTableBody.innerHTML = '';
-        const nå = new Date();
+    const matchTableBody = document.getElementById('matchTableBody');
+    matchTableBody.innerHTML = '';
+    const nå = new Date();
+    nå.setHours(0, 0, 0, 0); // Nullstiller klokkeslett for ren dato-sjekk
+
+    // 1. Del opp i to grupper
+    const kommende = allMatches.filter(m => new Date(m.date + "T23:59:59") >= nå);
+    const tidligere = allMatches.filter(m => new Date(m.date + "T23:59:59") < nå);
+
+    // 2. Sorter listene
+    // Kommende: Nærmeste kamp først
+    kommende.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Tidligere: Siste spilte kamp øverst
+    tidligere.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Hjelpefunksjon for å generere rad-HTML
+    const lagRadHTML = (match, erTidligere) => {
+        const d = new Date(match.date);
+        const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
         
-        let filtrerteKamper = allMatches.filter(m => {
-            const kampDato = new Date(m.date + "T23:59:59");
-            return currentView === 'kommende' ? kampDato >= nå : kampDato < nå;
-        });
+        return `
+        <tr style="${erTidligere ? 'opacity: 0.85;' : ''}">
+            <td class="name-col" style="min-width: 100px; padding-left: 20px;">
+                <div style="font-weight:700; color:var(--text-main); line-height: 1.1; font-size: 0.95rem;">
+                    ${shortDate}
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-top: 3px;">
+                    kl. ${match.time}
+                </div>
+            </td>
+            <td class="name-col">
+                <span style="font-weight:800; color:var(--bsk-blue); cursor:pointer;" 
+                      onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
+                    ${match.opponent}
+                </span>
+            </td>
+            <td>
+                <span class="status-pill" style="background:#f1f2f6; min-width:50px; font-weight:800; display:inline-block; padding: 4px 8px; border-radius: 8px;">
+                    ${match.result || '-'}
+                </span>
+            </td>
+            <td style="font-size:0.85rem; color:var(--text-muted); font-weight:500;">
+                ${match.pitch}
+            </td>
+            <td>
+                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">
+                    ${match.type}
+                </span>
+            </td>
+            <td>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
+                            class="action-btn btn-edit">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button onclick="deleteMatch('${match.id}')" 
+                            class="action-btn btn-delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    };
 
-        filtrerteKamper.sort((a, b) => {
-            return currentView === 'kommende' 
-                ? new Date(a.date) - new Date(b.date) 
-                : new Date(b.date) - new Date(a.date);
-        });
-
-        if (filtrerteKamper.length === 0) {
-            matchTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen kamper registrert her.</td></tr>`;
-            return;
-        }
-
-        filtrerteKamper.forEach(match => {
-            const d = new Date(match.date);
-            const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-            
-            const row = `
+    // 3. Tegn KOMMENDE seksjon
+    if (kommende.length > 0) {
+        matchTableBody.innerHTML += `
             <tr>
-                <td class="name-col" style="min-width: 100px; padding-left: 20px;">
-                    <div style="font-weight:700; color:var(--text-main); line-height: 1.1; font-size: 0.95rem;">
-                        ${shortDate}
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-top: 3px;">
-                        kl. ${match.time}
-                    </div>
-                </td>
-                <td class="name-col">
-                    <span style="font-weight:800; color:var(--bsk-blue); cursor:pointer;" 
-                          onclick="showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
-                        ${match.opponent}
-                    </span>
-                </td>
-                <td>
-                    <span class="status-pill" style="background:#f1f2f6; min-width:50px; font-weight:800; display:inline-block; padding: 4px 8px; border-radius: 8px;">
-                        ${match.result || '-'}
-                    </span>
-                </td>
-                <td style="font-size:0.85rem; color:var(--text-muted); font-weight:500;">
-                    ${match.pitch}
-                </td>
-                <td>
-                    <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">
-                        ${match.type}
-                    </span>
-                </td>
-                <td>
-                    <div style="display: flex; justify-content: center; gap: 8px;">
-                        <button onclick="openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" 
-                                class="action-btn btn-edit">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button onclick="deleteMatch('${match.id}')" 
-                                class="action-btn btn-delete">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
+                <td colspan="6" style="background: #f8f9fa; padding: 12px 20px; font-weight: 800; font-size: 0.75rem; color: var(--bsk-blue); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border-color);">
+                    <i class="fa-solid fa-calendar-star" style="margin-right: 8px;"></i> Kommende Kamper
                 </td>
             </tr>`;
-            
-            matchTableBody.innerHTML += row;
-        });
+        kommende.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, false));
     }
+
+    // 4. Tegn TIDLIGERE seksjon (Resultater)
+    if (tidligere.length > 0) {
+        // Legger til litt ekstra luft før resultatene hvis det er mange kommende kamper
+        const spacer = kommende.length > 0 ? 'border-top: 20px solid white;' : '';
+        matchTableBody.innerHTML += `
+            <tr>
+                <td colspan="6" style="background: #f8f9fa; padding: 12px 20px; font-weight: 800; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border-color); ${spacer}">
+                    <i class="fa-solid fa-clock-rotate-left" style="margin-right: 8px;"></i> Tidligere Resultater
+                </td>
+            </tr>`;
+        tidligere.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, true));
+    }
+
+    if (allMatches.length === 0) {
+        matchTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen kamper registrert.</td></tr>`;
+    }
+}
 
     // --- VIS KAMP-INFO ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
