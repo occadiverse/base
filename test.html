@@ -21,16 +21,19 @@
 
     <main class="main-content">
         <header class="top-bar">
-            <!-- FIX 2: Legg til onclick="toggleMenu()" på knappen -->
             <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h1 class="section-title">Design-test</h1>
-            
-            <div class="filter-wrapper" style="margin-left: auto; margin-right: 25px; padding: 0;">
-                <select class="base-select">
-                    <option value="total">Hele sesongen</option>
-                    <option value="05-2026">Mai 2026</option>
+    
+            <!-- Riktig navn på siden -->
+            <h1 class="section-title">Spillerstatistikk</h1>
+
+            <!-- Filterbaren plassert til høyre -->
+            <div class="filter-wrapper" style="margin-left: auto;">
+                <select class="base-select" id="period-filter">
+                <option value="total">Hele sesongen</option>
+                <option value="2026-05">Mai 2026</option>
+                <option value="2026-04">April 2026</option>
                 </select>
             </div>
         </header>
