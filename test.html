@@ -11,7 +11,8 @@
 </head>
 <body>
 
-    <div id="sidebar" class="sidebar">
+    <!-- FIX 1: Legg til klassen 'collapsed' her, ellers står den alltid åpen -->
+    <div id="sidebar" class="sidebar collapsed">
         <div class="nav-links">
             <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Hjem</span></a>
             <a href="#" class="nav-item active"><i class="fa-solid fa-flask"></i><span>Test-side</span></a>
@@ -20,7 +21,8 @@
 
     <main class="main-content">
         <header class="top-bar">
-            <button class="menu-toggle">
+            <!-- FIX 2: Legg til onclick="toggleMenu()" på knappen -->
+            <button class="menu-toggle" onclick="toggleMenu()">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <h1 class="section-title">Design-test</h1>
@@ -41,7 +43,6 @@
         </section>
 
         <div class="dashboard-grid">
-            
             <div class="dash-card">
                 <div class="dash-icon"><i class="fa-solid fa-hands-holding-circle"></i></div>
                 <div class="dash-info">
@@ -80,9 +81,11 @@
                     </tbody>
                 </table>
             </div>
-
         </div>
     </main>
 
+    <!-- FIX 3: Husk å inkludere scriptene dine nederst så funksjonene virker! -->
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
