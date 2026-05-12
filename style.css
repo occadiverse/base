@@ -65,9 +65,10 @@ body {
 
 .logo-brand {
     grid-column: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    /* Vi bytter fra flex til inline-block for å låse rendringen helt */
+    display: inline-block; 
+    white-space: nowrap;
+    width: fit-content;
     
     /* 1. TVINGER VEKT OG STIL */
     font-weight: 900 !important; 
@@ -75,29 +76,36 @@ body {
     color: var(--bsk-blue) !important;
     text-decoration: none !important;
 
-    /* 2. MAKSIMAL STABILITET: Fjerner alt som kan trigge "stretching" */
+    /* 2. EKSTREM STABILITET */
     font-kerning: none;
     letter-spacing: 0px;
     font-stretch: 100%;
-    white-space: nowrap;
     
-    /* Vi fjerner transform fra transition for å unngå sub-piksel-problemer */
+    /* Stopper alle former for sub-piksel bevegelser */
+    -webkit-font-smoothing: antialiased;
+    transform: translateZ(0); /* Tvinger logoen til sitt eget lag uten å skalere */
+    
     transition: opacity 0.2s ease;
-    
-    width: fit-content;
-    /* Sikrer at nettleseren tegner fonten på statiske piksler */
-    will-change: auto; 
+}
+
+/* Siden vi ikke har 'gap' lenger, bruker vi margin på ikonet */
+.logo-brand i {
+    margin-right: 6px; 
+    vertical-align: middle; /* Sørger for at ikonet flukter med teksten */
 }
 
 .logo-brand span { 
     color: var(--bsk-yellow) !important; 
     font-weight: 900 !important;
     letter-spacing: 0px;
+    vertical-align: middle;
 }
 
 .logo-brand:hover {
     opacity: 0.8;
 }
+
+/* Vi holder oss unna :active scale for å være helt trygge */
 
 /* 3. RESPONS UTEN STREKKING: 
    Vi bruker opacity i stedet for scale for å unngå at fonten rendres på nytt */
