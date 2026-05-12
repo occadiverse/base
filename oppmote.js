@@ -18,7 +18,7 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
-    // Sorter datoer kronologisk
+    // Sorter datoer kronologisk (DD-MM-YYYY -> YYYY-MM-DD for riktig sortering)
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
@@ -28,7 +28,7 @@ onValue(ref(db, '/'), (snapshot) => {
     updateMonthDropdown();
     renderMatrix();
     
-    // Auto-scroll til dagens dato etter lasting
+    // Auto-scroll til dagens dato (eller nærmeste fremtidige) etter lasting
     setTimeout(scrollToCurrentDate, 300);
 });
 
@@ -71,19 +71,24 @@ function updateMonthDropdown() {
 // --- AUTO-FOKUS (SCROLL) ---
 function scrollToCurrentDate() {
     if (!scrollContainer) return;
-    const todayISO = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
     const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
     let target = null;
 
     for (let th of headers) {
-        if (th.dataset.date >= todayISO) {
+        const thDate = new Date(th.dataset.date);
+        if (thDate >= today) {
             target = th;
             break;
         }
     }
 
     if (target) {
-        target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        // Sentrerer den aktuelle datoen i skjermbildet
+        const offset = target.offsetLeft - (scrollContainer.offsetWidth / 2) + (target.offsetWidth / 2);
+        scrollContainer.scrollTo({ left: offset, behavior: 'smooth' });
     }
 }
 
@@ -99,15 +104,16 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (NY STRUKTUR)
+    // 1. Headere - Sørger for at "Spiller" har <span> for CSS-midtstilling
     let headerRow = `<tr><th class="name-col"><span>Spiller</span></th>`;
+    
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         const isoDate = date.split('-').reverse().join('-');
         
-        // Formater dato: "12-05-2026" -> "12.05"
+        // Formater dato til "12.05"
         const d = date.split('-');
         const datoOverskrift = `${d[0]}.${d[1]}`;
         
@@ -123,16 +129,16 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // 2. Telling, Sortering og Navneforkortelse
+    // 2. Sortering og Navnehåndtering
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, p]) => {
-            // Tell totalt antall 'K' for denne spilleren på tvers av ALLE datoer
+            // Tell totalt oppmøte (K) på tvers av sesongen
             const totalCount = Object.values(attendanceData).reduce((acc, curr) => {
                 return acc + (curr[id] === 'K' ? 1 : 0);
             }, 0);
 
-            // LOGIKK FOR NAVNEFORKORTELSE: "Ole Nordmann" -> "Ole N."
+            // Kortnavn-logikk (Ole N.)
             const navneDeler = p.navn.trim().split(' ');
             let kortNavn = p.navn;
             if (navneDeler.length > 1) {
@@ -144,11 +150,8 @@ function renderMatrix() {
             return { id, navn: kortNavn, totalCount };
         })
         .sort((a, b) => {
-            // Sorter etter oppmøte (høyest først)
-            if (b.totalCount !== a.totalCount) {
-                return b.totalCount - a.totalCount;
-            }
-            // Sorter alfabetisk hvis likt
+            // Sorter primært på flest oppmøter, sekundært alfabetisk
+            if (b.totalCount !== a.totalCount) return b.totalCount - a.totalCount;
             return a.navn.localeCompare(b.navn, 'nb');
         });
 
@@ -178,13 +181,12 @@ function renderMatrix() {
 
 // --- HJELPEFUNKSJONER ---
 function getStatusIcon(status) {
-    // Returnerer fylt sirkel for 'K', og en tom sirkel for ingenting
     return status === 'K' 
         ? '<i class="fa-solid fa-circle-check status-present"></i>' 
         : '<i class="fa-regular fa-circle status-none"></i>';
 }
 
-// --- GLOBALE FUNKSJONER ---
+// --- GLOBALE FUNKSJONER (window) ---
 window.filterByMonth = (monthValue) => {
     renderMatrix();
     setTimeout(scrollToCurrentDate, 100);
@@ -195,25 +197,24 @@ window.toggleStatus = (date, pId, currentStatus) => {
     const cell = document.querySelector(`[data-date="${date}"][data-player="${pId}"]`);
     
     if (cell) {
-        cell.style.opacity = '0.5'; // Visuell bekreftelse på klikk
+        cell.style.opacity = '0.5';
+        cell.style.transform = 'scale(0.9)';
+        cell.style.transition = '0.1s';
     }
     
-    update(ref(db, `attendance/${date}`), { [pId]: nextStatus }).then(() => {
-        // Vi trenger ikke manuelt oppdatere ikonet her, 
-        // da onValue i toppen vil trigge renderMatrix() automatisk
-    }).catch((error) => {
+    update(ref(db, `attendance/${date}`), { [pId]: nextStatus }).catch((error) => {
         console.error('Feil ved oppdatering:', error);
         if (cell) cell.style.opacity = '1';
     });
 };
 
 window.deleteDate = (date) => {
-    if (confirm(`Vil du slette ${date} permanent fra oppmøtelista?`)) {
+    if (confirm(`Vil du slette ${date} permanent fra systemet?`)) {
         remove(ref(db, `attendance/${date}`));
     }
 };
 
-// --- FORM SUBMIT (NY DAG) ---
+// --- FORM HANDLING ---
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawDate = document.getElementById('eventDate').value; 
@@ -221,7 +222,7 @@ attendanceForm.addEventListener('submit', (e) => {
     if (!rawDate) return;
 
     const parts = rawDate.split('-');
-    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
+    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // Til DD-MM-YYYY format
 
     set(ref(db, `attendance/${formattedDate}/info`), {
         type: type,
