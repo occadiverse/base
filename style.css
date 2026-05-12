@@ -47,7 +47,7 @@ body {
 
 /* 
 ================================================================
-3. TOP BAR
+3. TOP BAR (Fast og ryddig)
 ================================================================
 */
 .top-bar {
@@ -189,7 +189,7 @@ td {
 
 /* 
 ================================================================
-6. NAVIGASJON & HOVEDLAYOUT
+6. NAVIGASJON & HOVEDLAYOUT (Luft-fikser her)
 ================================================================
 */
 
@@ -249,7 +249,7 @@ td {
 
     .main-content {
         margin-left: var(--sidebar-width);
-        padding: 25px 40px; /* Redusert padding i toppen */
+        padding: 20px 40px !important; /* Tvinger mindre toppluft på PC */
         min-height: calc(100vh - var(--topbar-height));
     }
 }
@@ -305,22 +305,22 @@ td {
 
     .main-content {
         margin-left: 0;
-        padding: 15px; /* Redusert padding i toppen */
-        padding-bottom: 100px;
+        padding: 10px 15px !important; /* Tvinger minimal toppluft på mobil */
+        padding-bottom: 100px !important;
     }
 }
 
 /* 
 ================================================================
-7. ØVRIG STYLING & HERO-FIX
+7. ØVRIG STYLING & HERO-FIX (Viktig for å fjerne luft)
 ================================================================
 */
 .kamper-hero, .welcome-hero {
     background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
     border-radius: 20px;
-    padding: 35px 40px;
+    padding: 30px 40px;
     color: white;
-    margin-top: 0; /* Sikrer at den starter helt oppe */
+    margin-top: 0 !important; /* Fjerner all luft over den blå boksen */
     margin-bottom: 25px;
     box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
 }
