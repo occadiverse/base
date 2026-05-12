@@ -45,7 +45,7 @@ body {
     background-color: var(--bg-light);
     color: var(--text-main);
     display: flex;
-    flex-direction: column; /* Sikrer at top-bar ligger øverst */
+    flex-direction: column; 
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -89,23 +89,48 @@ body {
     color: var(--text-main);
 }
 
+/* OPPGRADERT FILTER-STYLING */
 .filter-wrapper {
     grid-column: 3;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Styling for dropdown/select i toppen */
+/* Dette er "knappen" som inneholder både ikon og dropdown */
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-light);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.filter-container:hover {
+    border-color: var(--bsk-yellow);
+    background: var(--white);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter-container i {
+    color: var(--bsk-blue);
+    font-size: 0.9rem;
+}
+
 .base-select {
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--bsk-blue);
-    border: 1px solid var(--border-color);
-    padding: 5px 10px;
-    border-radius: 8px;
-    background: var(--bg-light);
+    border: none;
+    background: transparent;
     cursor: pointer;
     outline: none;
+    padding-right: 5px;
 }
 
 /* 
@@ -163,7 +188,7 @@ body {
     font-weight: 700;
 }
 
-/* Mobil Bottom Nav (Skjult på PC) */
+/* Mobil Bottom Nav */
 .bottom-nav {
     display: none;
 }
@@ -179,7 +204,7 @@ body {
         width: 100%;
         height: var(--bottom-nav-height);
         background: var(--white);
-        border-top: 3px solid var(--bsk-yellow); /* BSK-gul stripe øverst */
+        border-top: 3px solid var(--bsk-yellow); 
         justify-content: space-around;
         align-items: center;
         z-index: 2000;
@@ -197,7 +222,6 @@ body {
         font-size: 0.65rem;
         font-weight: 600;
         gap: 4px;
-        border-left: none; /* Fjerner sidebar-stilen på mobil */
         padding: 10px 0;
     }
 
@@ -224,7 +248,7 @@ body {
 @media (max-width: 768px) {
     .main-content {
         margin-left: 0;
-        padding-bottom: 90px; /* Gir plass til bunnmenyen */
+        padding-bottom: 90px; 
     }
 }
 
@@ -330,14 +354,12 @@ td {
     text-align: center; 
 }
 
-/* Spesialstyling for navn-kolonnen */
 .name-col {
     text-align: left;
     font-weight: 600;
     color: var(--text-main);
 }
 
-/* MVP/Status sirkler */
 .status-pill {
     display: inline-flex;
     align-items: center;
