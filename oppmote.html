@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Oppmøte - BSK Fotball Herrer - A lag</title>
+    <title>Oppmøte - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
+    
     <style>
-        /* Ekstra styling for oppmøte-siden */
+        /* BSK-blå Hero - Nå identisk med kamper.html */
         .oppmote-hero {
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
             border-radius: 20px;
-            padding: 50px;
+            padding: 40px;
             color: white;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
         }
 
         .oppmote-hero h2 {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 800;
             margin-bottom: 10px;
         }
@@ -30,7 +31,7 @@
             line-height: 1.5;
         }
 
-        /* GJENOPPRETTET FILTER BAR STYLING */
+        /* Filter Bar */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
@@ -40,246 +41,166 @@
             display: flex;
             align-items: center;
             gap: 15px;
-        }
-
-        .filter-bar label {
-            font-weight: 600;
-            color: var(--text-main);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .filter-bar label i {
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-
-        .custom-select-wrapper {
-            flex: 1;
-            max-width: 300px;
-        }
-
-        .select-input-clean {
-            width: 100%;
-            padding: 10px 15px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--white);
-            color: var(--text-main);
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
         }
 
-        /* TABELL STYLING - TILPASSET NAVNEBREDE */
+        /* OPPSETT FOR STICKY NAVNEKOLONNE (Beholdes kun her) */
         .table-container {
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
             overflow-x: auto;
+            position: relative;
         }
 
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        th, td {
-            border-bottom: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-        }
-
-        th {
-            background: #f8f9fa;
-            padding: 10px;
-            text-align: center;
+        /* Spesifikk overstyring for oppmøte-header for å få plass til dato + slett */
+        #attendanceHeader th {
+            height: 90px;
+            min-width: 60px;
             vertical-align: middle;
-            height: 80px; 
-            box-sizing: border-box;
         }
 
-        /* NAVNEKOLONNE - DYNAMISK BREDDE */
         .name-col {
             position: sticky;
             left: 0;
-            background: #f8f9fa;
+            background: #f8f9fa !important;
             z-index: 10;
-            min-width: 130px; /* Redusert siden vi bruker fornavn + initial */
+            min-width: 140px;
             border-right: 2px solid #ddd !important; 
-            text-align: left;
-            padding: 0 12px;
+            text-align: left !important;
+            padding: 0 15px !important;
         }
 
-        th.name-col {
-            background: #f8f9fa;
-            display: table-cell;
+        /* Badge for antall treninger */
+        .attendance-badge {
+            background: var(--bsk-blue);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
         }
 
         .player-info-wrapper {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             width: 100%;
-            gap: 10px;
-            padding: 10px 0;
         }
 
-        .player-name {
-            font-weight: 600;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            white-space: nowrap;
-        }
-
-        .attendance-badge {
-            background: #3498db;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 6px;
-            min-width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
-        }
-
-        .header-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            justify-content: center;
-        }
-
-        .header-date {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
+        /* Status-ikoner */
+        .status-present { color: #2ecc71; font-size: 1.2rem; }
+        .status-none { color: #eee; font-size: 1.2rem; }
 
         .day-type {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             border-radius: 4px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: white;
+            margin-top: 4px;
         }
-
         .day-type-training { background: #95a5a6; }
-        .day-type-match { background: var(--danger); }
+        .day-type-match { background: #e74c3c; }
 
-        .btn-delete-header {
-            background: transparent;
-            border: none;
-            color: #a4b0be;
-            font-size: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        td {
-            padding: 12px;
-            background: white;
-        }
-
-        .status-present { color: var(--success); font-size: 1.3rem; }
-        .status-none { color: #eee; font-size: 1.3rem; }
-
-        /* FAB og Modal */
+        /* FAB Button */
         .fab-btn {
             position: fixed;
-            right: 20px;
-            bottom: 20px;
+            right: 25px;
+            bottom: 25px;
             width: 60px;
             height: 60px;
-            background: var(--primary);
-            color: white;
-            border: none;
+            background: var(--bsk-blue);
+            color: var(--bsk-yellow);
+            border: 2px solid var(--bsk-yellow);
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 24px;
-            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
 
         .modal {
             display: none;
             position: fixed;
-            z-index: 2000;
+            z-index: 3000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
             background-color: white;
             padding: 30px;
-            border-radius: 16px;
+            border-radius: 20px;
             width: 90%;
             max-width: 400px;
-        }
-
-        @media (max-width: 768px) {
-            .name-col { min-width: 110px; padding: 0 8px; }
-            .player-name { font-size: 0.85rem; }
-            .oppmote-hero { padding: 25px; }
+            box-shadow: var(--shadow);
         }
     </style>
 </head>
 <body>
 
-<div class="sidebar" id="sidebar"></div>
+<header class="top-bar">
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
+    <h1 id="section-title" class="section-title">Oppmøte</h1>
+</header>
 
-<div class="main-content">
-    <div class="top-bar">
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <h1 id="section-title" class="section-title"></h1>
-    </div>
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span>Hjem</span>
+    </a>
+    <a href="oppmote.html" class="nav-item active">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Oppmøte</span>
+    </a>
+    <a href="kamper.html" class="nav-item">
+        <i class="fa-solid fa-soccer-ball"></i>
+        <span>Kamper</span>
+    </a>
+    <a href="spillere.html" class="nav-item">
+        <i class="fa-solid fa-users"></i>
+        <span>Tropp</span>
+    </a>
+    <a href="statistikk.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Stats</span>
+    </a>
+</nav>
 
+<main class="main-content">
     <section class="oppmote-hero">
         <div class="hero-content">
-            <h2>Oppmøte & Deltakelse</h2>
-            <p>Full oversikt over spillerstallen. Sortert etter innsats og oppmøte.</p>
+            <h2>Oppmøte & Innsats</h2>
+            <p>Her har du full oversikt over hvem som legger ned jobben. Sortert etter treningsiver.</p>
         </div>
     </section>
 
     <div class="filter-bar">
         <label for="monthFilter">
-            <i class="fa-solid fa-calendar"></i>
-            Filtrer etter måned:
+            <i class="fa-solid fa-calendar-days"></i>
+            Vis måned:
         </label>
-        <div class="custom-select-wrapper">
-            <select id="monthFilter" class="select-input-clean" onchange="window.filterByMonth(this.value)">
-                <option value="Alle">Hele sesongen (Vis alle)</option>
-                <option value="0">Januar</option>
-                <option value="1">Februar</option>
-                <option value="2">Mars</option>
-                <option value="3">April</option>
-                <option value="4">Mai</option>
-                <option value="5">Juni</option>
-                <option value="6">Juli</option>
-                <option value="7">August</option>
-                <option value="8">September</option>
-                <option value="9">Oktober</option>
-                <option value="10">November</option>
-                <option value="11">Desember</option>
-            </select>
-        </div>
+        <select id="monthFilter" class="base-select" onchange="window.filterByMonth(this.value)" style="border:none; font-weight:700; color:var(--bsk-blue); cursor:pointer;">
+            <option value="Alle">Hele sesongen</option>
+            <option value="0">Januar</option>
+            <option value="1">Februar</option>
+            <option value="2">Mars</option>
+            <option value="3">April</option>
+            <option value="4">Mai</option>
+            <option value="5">Juni</option>
+            <option value="6">Juli</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">Oktober</option>
+            <option value="10">November</option>
+            <option value="11">Desember</option>
+        </select>
     </div>
 
     <div class="table-container">
@@ -288,35 +209,36 @@
             <tbody id="attendanceBody"></tbody>
         </table>
     </div>
-</div>
+</main>
 
 <button class="fab-btn" onclick="openAttendanceModal()">
     <i class="fa-solid fa-calendar-plus"></i>
 </button>
 
+<!-- MODAL FOR NY DAG -->
 <div id="attendanceModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3>Legg til ny dag</h3>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color:var(--bsk-blue); margin:0;">Ny økt / Kamp</h3>
             <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer;">&times;</button>
         </div>
         <form id="attendanceForm">
             <div style="display:flex; flex-direction:column; gap: 15px; margin-bottom: 20px;">
-                <div style="display:flex; flex-direction:column;">
-                    <label style="font-weight:600; margin-bottom: 5px;">Dato</label>
-                    <input type="date" id="eventDate" required style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <label style="font-weight:700; font-size:0.85rem;">Dato</label>
+                    <input type="date" id="eventDate" required class="form-control">
                 </div>
-                <div style="display:flex; flex-direction:column;">
-                    <label style="font-weight:600; margin-bottom: 5px;">Type</label>
-                    <select id="eventType" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <label style="font-weight:700; font-size:0.85rem;">Type</label>
+                    <select id="eventType" class="form-control">
                         <option value="Trening">Trening</option>
                         <option value="Kamp">Kamp</option>
                     </select>
                 </div>
             </div>
             <div style="display:flex; gap: 10px;">
-                <button type="submit" style="flex:1; background: var(--primary); color:white; border:none; padding: 12px; border-radius: 8px; font-weight:600; cursor:pointer;">Lagre</button>
-                <button type="button" onclick="closeAttendanceModal()" style="flex:1; background: #eee; border:none; padding: 12px; border-radius: 8px; cursor:pointer;">Avbryt</button>
+                <button type="submit" style="flex:2; background: var(--bsk-blue); color:white; border:none; padding: 14px; border-radius: 12px; font-weight:700; cursor:pointer;">LAGRE</button>
+                <button type="button" onclick="closeAttendanceModal()" style="flex:1; background: var(--bg-light); border:none; padding: 14px; border-radius: 12px; font-weight:600; cursor:pointer;">AVBRYT</button>
             </div>
         </form>
     </div>
@@ -341,6 +263,7 @@
         if (monthFilter) {
             const currentMonth = new Date().getMonth().toString();
             monthFilter.value = currentMonth;
+            // Litt forsinkelse så Firebase rekker å laste
             setTimeout(() => {
                 if (window.filterByMonth) window.filterByMonth(currentMonth);
             }, 800);
