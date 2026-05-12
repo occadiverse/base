@@ -73,7 +73,6 @@
 
         @media (max-width: 768px) { 
             .fab-btn { bottom: 85px; } 
-            /* Mer luft i tabellen på mobil */
             td { padding: 12px 10px; }
         }
 
@@ -118,30 +117,11 @@
     </div>
 </header>
 
+<!-- Sidemeny (PC) - Fylles av navigation.js -->
 <div class="sidebar" id="sidebar"></div>
 
-<nav class="bottom-nav">
-    <a href="index.html" class="nav-item">
-        <i class="fa-solid fa-house"></i>
-        <span>Hjem</span>
-    </a>
-    <a href="oppmote.html" class="nav-item">
-        <i class="fa-solid fa-calendar-check"></i>
-        <span>Oppmøte</span>
-    </a>
-    <a href="kamper.html" class="nav-item active">
-        <i class="fa-solid fa-soccer-ball"></i>
-        <span>Kamper</span>
-    </a>
-    <a href="spillere.html" class="nav-item">
-        <i class="fa-solid fa-users"></i>
-        <span>Tropp</span>
-    </a>
-    <a href="statistikk.html" class="nav-item">
-        <i class="fa-solid fa-chart-line"></i>
-        <span>Stats</span>
-    </a>
-</nav>
+<!-- Bunnmeny (Mobil) - Fylles av navigation.js -->
+<nav class="bottom-nav"></nav>
 
 <main class="main-content">
     <section class="kamper-hero">
@@ -171,6 +151,7 @@
     </div>
 </main>
 
+<!-- Flytende knapp for å legge til kamp -->
 <button class="fab-btn" onclick="window.openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
@@ -258,7 +239,7 @@
     </div>
 </div>
 
-<!-- SCRIPTS -->
+<!-- FIREBASE & LOGIKK SCRIPTS -->
 <script type="module">
     import { db } from './firebase-config.js';
     import { ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -275,6 +256,7 @@
 <script src="kamper_ny.js"></script>
 
 <script>
+    // Lukk modaler ved klikk utenfor
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
             if(window.closeMatchModal) window.closeMatchModal();
