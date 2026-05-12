@@ -42,6 +42,9 @@ body {
     flex-direction: column; 
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 /* 
@@ -67,11 +70,10 @@ body {
     grid-column: 1;
     display: flex;
     align-items: center;
-    /* Vi går tilbake til flex, det er best for linjejustering */
     
-    /* 1. DEN VIKTIGSTE LÅSEN: FAST BREDDE */
-    width: 160px;          /* JUSTER DENNE: Finn en verdi som akkurat rommer teksten din */
-    flex-shrink: 0;        /* Nekter logoen å bli presset sammen */
+    /* 1. FAST BREDDE-LÅS */
+    width: 160px;          
+    flex-shrink: 0;        
     
     /* 2. TVING VEKT OG STIL */
     font-weight: 900 !important; 
@@ -80,18 +82,24 @@ body {
     text-decoration: none !important;
     white-space: nowrap;
 
-    /* 3. STABILISERING */
+    /* 3. EKSTREM STABILISERING FOR Å STOPPE "TYNN/TYKK" EFFEKT */
     font-kerning: none;
     letter-spacing: 0px;
-    -webkit-font-smoothing: antialiased;
+    
+    /* Tvinger lik kantutjevning på alle sider */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    
+    /* Tvinger font-motoren til å holde seg til 900-vekt uten variasjon */
+    font-variation-settings: "wght" 900; 
     
     transition: opacity 0.2s ease;
 }
 
 .logo-brand i {
+    flex-shrink: 0;
     margin-right: 6px;
-    display: flex;
-    align-items: center;
 }
 
 .logo-brand span { 
