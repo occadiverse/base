@@ -3,182 +3,231 @@
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- App-innstillinger -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <title>Spillerstall - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    
     <style>
-        /* Siden vi har en rød hero her, beholder vi denne spesifikke stylingen */
+        /* BSK-blå Hero */
         .spiller-hero {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
             border-radius: 20px;
-            padding: 40px; /* Litt mindre enn før for Gemini-stil */
+            padding: 40px;
             color: white;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
         }
 
         .spiller-hero h2 { font-size: 2rem; font-weight: 800; margin-bottom: 10px; }
         .spiller-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; line-height: 1.5; }
 
-        /* Filter-linjen (Tabs) */
+        /* Filter Tabs */
         .filter-bar {
             background: var(--white);
             border-radius: 12px;
-            padding: 15px;
+            padding: 12px;
             margin-bottom: 25px;
             box-shadow: var(--shadow);
             overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border-color);
         }
 
-        .filter-bar > div { display: flex; gap: 8px; }
-
         .tab-btn {
-            padding: 10px 16px;
-            border: 1px solid var(--border-color);
-            background: var(--white);
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            background: transparent;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-muted);
             transition: 0.2s;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
 
         .tab-btn.active {
-            background-color: #e74c3c !important; 
-            color: #ffffff !important;
-            border-color: #e74c3c;
+            background-color: var(--active-bg) !important; 
+            color: var(--bsk-blue) !important;
+            border: 1px solid var(--bsk-blue);
         }
 
-        /* Modal og form styling (Beholdes for funksjonalitet) */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 3000; /* Høyere enn sidebar */
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: var(--white);
-            padding: 25px;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        /* FAB Button */
+        /* FAB Button (Pluss) - Flyttet opp på mobil for å unngå bottom-nav */
         .fab-btn {
             position: fixed;
             right: 25px;
             bottom: 25px;
-            width: 56px;
-            height: 56px;
-            background: #e74c3c;
-            color: white;
-            border: none;
+            width: 60px;
+            height: 60px;
+            background: var(--bsk-blue);
+            color: var(--bsk-yellow);
+            border: 2px solid var(--bsk-yellow);
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .fab-btn { bottom: 85px; } /* Ligger nå rett over mobilmenyen */
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
         }
     </style>
 </head>
 <body>
 
-<div class="sidebar" id="sidebar"></div>
-
-<main class="main-content">
+    <!-- TOP BAR -->
     <header class="top-bar">
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <!-- Navnet fylles nå automatisk av navigation.js ("Spillere") -->
-        <h1 class="section-title"></h1>
+        <div class="logo-brand">
+            <i class="fa-solid fa-shield-halved"></i> 
+            BSK <span>A-LAG</span>
+        </div>
         
-        <!-- Her kan vi ha et søkefelt eller la det stå tomt for Gemini-look -->
-        <div class="filter-wrapper"></div>
+        <h1 class="section-title">Spillere</h1>
+
+        <div class="filter-wrapper">
+            <div class="filter-container">
+                <i class="fa-solid fa-user-gear"></i>
+                <select class="base-select">
+                    <option>A-STALL</option>
+                    <option>REKRUTT</option>
+                </select>
+            </div>
+        </div>
     </header>
 
-    <section class="spiller-hero">
-        <div class="hero-content">
-            <h2>Spillertropp</h2>
-            <p>Administrer draktnummer, posisjoner og personlige data for alle spillerne i troppen.</p>
-        </div>
-    </section>
+    <!-- SIDEBAR (PC) -->
+    <aside id="sidebar" class="sidebar"></aside>
 
-    <div class="filter-bar">
-        <div>
-            <button id="btnAlle" class="tab-btn active" onclick="window.switchPlayerView('Alle')">ALLE</button>
-            <button id="btn1" class="tab-btn" onclick="window.switchPlayerView('Keeper')">KEEPER</button>
-            <button id="btn-for" class="tab-btn" onclick="window.switchPlayerView('Forsvar')">FORSVAR</button>
-            <button id="btn-mid" class="tab-btn" onclick="window.switchPlayerView('Midtbane')">MIDTBANE</button>
-            <button id="btn-ang" class="tab-btn" onclick="window.switchPlayerView('Angrep')">ANGREP</button>
-        </div>
-    </div>
+    <!-- BUNNMENY (MOBIL) -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Hjem</span>
+        </a>
+        <a href="oppmote.html" class="nav-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Oppmøte</span>
+        </a>
+        <a href="kamper.html" class="nav-item">
+            <i class="fa-solid fa-soccer-ball"></i>
+            <span>Kamper</span>
+        </a>
+        <a href="spillere.html" class="nav-item active">
+            <i class="fa-solid fa-users"></i>
+            <span>Tropp</span>
+        </a>
+        <a href="statistikk.html" class="nav-item">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Stats</span>
+        </a>
+    </nav>
 
-    <div class="table-container">
-        <table id="playerTable">
-            <thead>
-                <tr>
-                    <th style="width: 50px;">#</th>
-                    <th class="name-col">Navn</th>
-                    <th>Pos</th>
-                    <th>Fot</th>
-                    <th>Alder</th>
-                    <th style="width: 80px;"></th>
-                </tr>
-            </thead>
-            <tbody id="playerTableBody"></tbody>
-        </table>
-    </div>
-</main>
-
-<button class="fab-btn" onclick="window.openModal()" title="Registrer ny spiller">
-    <i class="fa-solid fa-plus"></i>
-</button>
-
-<!-- Modal (Samme form-logikk som før) -->
-<div id="playerModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 id="formTitle">Registrer ny spiller</h3>
-            <button onclick="window.closeModal()" style="background:none; border:none; font-size: 24px; cursor:pointer;">&times;</button>
-        </div>
-        <form id="playerForm">
-            <input type="hidden" id="editId">
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <div class="form-group">
-                    <label style="display:block; font-weight:600; margin-bottom:5px;">Fullt navn *</label>
-                    <input type="text" id="navn" required style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                </div>
-                <!-- ... Resten av formen din her ... -->
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" id="submitBtn" class="btn" style="flex:2; background:#e74c3c; color:white; padding:12px; border:none; border-radius:8px; font-weight:600;">Lagre</button>
-                    <button type="button" onclick="window.closeModal()" class="btn" style="flex:1; background:#eee; padding:12px; border:none; border-radius:8px;">Avbryt</button>
-                </div>
+    <main class="main-content">
+        <section class="spiller-hero">
+            <div class="hero-content">
+                <h2>Spillertropp</h2>
+                <p>Administrer drakter, posisjoner og personalia. Endringer lagres direkte i Firebase.</p>
             </div>
-        </form>
+        </section>
+
+        <div class="filter-bar">
+            <div style="display: flex; gap: 8px;">
+                <button id="btnAlle" class="tab-btn active" onclick="window.switchPlayerView('Alle')">ALLE</button>
+                <button class="tab-btn" onclick="window.switchPlayerView('Keeper')">KEEPER</button>
+                <button class="tab-btn" onclick="switchView('Forsvar')">FORSVAR</button>
+                <button class="tab-btn" onclick="switchView('Midtbane')">MIDTBANE</button>
+                <button class="tab-btn" onclick="switchView('Angrep')">ANGREP</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="playerTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th class="name-col">Navn</th>
+                        <th>Pos</th>
+                        <th>Fot</th>
+                        <th>Alder</th>
+                        <th style="width: 80px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="playerTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Flytende pluss-knapp -->
+    <button class="fab-btn" onclick="window.openModal()" title="Registrer ny spiller">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- Modal Form -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="formTitle" style="color: var(--bsk-blue);">Registrer spiller</h3>
+                <button onclick="window.closeModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
+            </div>
+            <form id="playerForm">
+                <input type="hidden" id="editId">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="display:block; font-weight:600; margin-bottom:5px; font-size: 0.85rem;">Navn</label>
+                        <input type="text" id="navn" required style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-color); outline: none;">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" id="submitBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:12px; border:none; border-radius:10px; font-weight:700; cursor: pointer;">LAGRE</button>
+                        <button type="button" onclick="window.closeModal()" style="flex:1; background: var(--bg-light); padding:12px; border:none; border-radius:10px; font-weight:600; cursor: pointer;">AVBRYT</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script src="navigation.js"></script>
-<script type="module" src="spillere.js"></script>
+    <!-- Scripts -->
+    <script src="navigation.js"></script>
+    <script type="module" src="spillere.js"></script>
 
-<script>
-    window.openModal = () => { document.getElementById('playerModal').style.display = 'flex'; };
-    window.closeModal = () => { document.getElementById('playerModal').style.display = 'none'; };
-</script>
-
+    <script>
+        window.openModal = () => { document.getElementById('playerModal').style.display = 'flex'; };
+        window.closeModal = () => { document.getElementById('playerModal').style.display = 'none'; };
+        
+        // Sørger for at modal lukkes hvis man klikker utenfor
+        window.onclick = function(event) {
+            let modal = document.getElementById('playerModal');
+            if (event.target == modal) { closeModal(); }
+        }
+    </script>
 </body>
 </html>
