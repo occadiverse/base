@@ -54,7 +54,7 @@ body {
     position: fixed; 
     top: 0;
     left: 0;
-    z-index: 2000; /* Høyere enn alt annet */
+    z-index: 2000;
     height: var(--topbar-height);
     background: var(--white);
     display: flex;
@@ -186,9 +186,7 @@ td {
 ================================================================
 */
 
-/* --- PC SIDEBAR & LAYOUT --- */
 @media (min-width: 769px) {
-    /* FJERNER MOBILMENY HELT PÅ PC */
     .bottom-nav { display: none !important; }
 
     .sidebar {
@@ -205,46 +203,13 @@ td {
         box-shadow: 2px 0 10px rgba(0,0,0,0.02);
     }
 
-    .nav-links {
-        display: flex;
-        flex-direction: column;
-        padding-top: 25px;
-        width: 100%;
-    }
-
-    .nav-item {
-        padding: 16px 28px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        text-decoration: none;
-        color: var(--text-muted);
-        font-weight: 600;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        border-right: 4px solid transparent;
-    }
-
-    .nav-item i { width: 25px; text-align: center; font-size: 1.15rem; }
-
-    .nav-item:hover { background: var(--active-bg); color: var(--bsk-blue); }
-
-    .nav-item.active {
-        background: var(--active-bg);
-        color: var(--bsk-blue);
-        font-weight: 800;
-        border-right: 4px solid var(--bsk-yellow);
-    }
-
     .main-content {
         margin-left: var(--sidebar-width);
-        /* Tvinger innholdet ned under den faste toppmenyen */
         padding: calc(var(--topbar-height) + 30px) 40px 40px 40px !important;
         min-height: 100vh;
     }
 }
 
-/* --- MOBIL BOTTOM-NAV & LAYOUT --- */
 @media (max-width: 768px) {
     .sidebar { display: none !important; }
 
@@ -262,20 +227,6 @@ td {
         z-index: 2000;
         padding-bottom: env(safe-area-inset-bottom);
         box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-    }
-
-    .bottom-nav .nav-item {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: #636e72;
-        font-size: 0.65rem;
-        font-weight: 700;
-        text-decoration: none;
-        position: relative;
     }
 
     .bottom-nav .nav-item.active { color: var(--bsk-blue); }
@@ -296,7 +247,7 @@ td {
 
 /* 
 ================================================================
-7. ØVRIG STYLING & HERO
+7. ØVRIG STYLING, HERO & TID/RES
 ================================================================
 */
 .kamper-hero, .welcome-hero {
@@ -310,6 +261,36 @@ td {
     z-index: 1;
 }
 
-.date-time-cell { text-align: center; line-height: 1.2; }
-.time-part { display: block; font-weight: 800; color: var(--bsk-blue); font-size: 0.9rem; }
-.date-part { display: block; font-size: 0.7rem; color: var(--text-muted); }
+/* TID-KOLONNE: DATO OVER TID (Dato er mest synlig) */
+.date-time-cell { 
+    text-align: center; 
+    line-height: 1.1; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.date-part { 
+    display: block; 
+    font-size: 1.05rem; /* Stor og tydelig */
+    font-weight: 900;    /* Maksimal tyngde */
+    color: var(--text-main); 
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.time-part { 
+    display: block; 
+    font-size: 0.8rem;   /* Mindre og mer diskret */
+    font-weight: 600; 
+    color: var(--bsk-blue); 
+    margin-top: 2px;
+}
+
+/* RESULTAT-KOLONNE: MIDTSTILT */
+.res-cell {
+    text-align: center !important;
+    vertical-align: middle;
+}
