@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const detailsDiv = document.getElementById('matchInfoDetails');
         const tacticContainer = document.getElementById('tacticBarContainer');
         
+        // Konverterer 2026-05-13 -> 13-05-2026 for å matche din Firebase
         const parts = date.split('-'); 
         const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; 
         const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
@@ -188,30 +189,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('matchInfoModal').style.display = 'flex';
 
+        // --- HENTING SOM MATCHER KAMPPLAN-LOGIKKEN ---
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const root = snapshot.val();
             if (!root) return;
+
             const enrolled = root.attendance ? root.attendance[firebaseDateKey] : null;
             const allPlayers = root.players;
+            
             playerListUl.innerHTML = '';
             let list = [];
+
             if (enrolled && allPlayers) {
                 Object.entries(enrolled).forEach(([pId, status]) => {
                     if (status === 'K') {
-                        const p = allPlayers[pId];
-                        if (p) list.push(p.navn || p.name);
+                        // Vi henter navnet på nøyaktig samme måte som taktikk-siden din
+                        const player = allPlayers[pId];
+                        if (player) {
+                            list.push(player.navn || player.name);
+                        }
                     }
                 });
                 list.sort((a, b) => a.localeCompare(b, 'nb'));
             }
+
+            // VIKTIG: Lagre navnene her slik at Statistikk-delen finner dem!
             currentTroopNames = list;
-            if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
+
+            if (document.getElementById('pilleAntall')) {
+                document.getElementById('pilleAntall').innerText = list.length;
+            }
+
             if (list.length === 0) {
-                playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; color: var(--text-muted);">Ingen påmeldte.</div>';
+                playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte spillere funnet.</div>';
             } else {
                 list.forEach(name => {
                     const item = document.createElement('div');
-                    item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue);`;
+                    item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
                     item.innerText = name;
                     playerListUl.appendChild(item);
                 });
