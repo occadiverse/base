@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('postMatchStats').style.display = 'none';
     };
 
-    // --- TEGN TABELLEN (OPPDATERT FOR TID OG RES) ---
+    // --- TEGN TABELLEN (KLIKKBAR RAD + STOP PROPAGATION) ---
     function renderTable() {
         if (!matchTableBody) return;
         matchTableBody.innerHTML = '';
@@ -110,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="desktop-only"><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type}</span></td>
                 
                 <td class="desktop-only">
-                    <div style="display: flex; justify-content: center; gap: 8px;" onclick="event.stopPropagation()">
-                        <button onclick="window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit">
+                    <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button onclick="event.stopPropagation(); window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button onclick="window.deleteMatch('${match.id}')" class="action-btn btn-delete">
+                        <button onclick="event.stopPropagation(); window.deleteMatch('${match.id}')" class="action-btn btn-delete">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -137,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- (Resten av koden for modal, stats og firebase forblir uendret) ---
-    // ... (visMatchInfo, addGoal, saveStats osv) ...
+    // --- (Henting av data og andre funksjoner forblir som før) ---
+    // ...
 
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
