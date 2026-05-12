@@ -134,8 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const detailsDiv = document.getElementById('matchInfoDetails');
         const tacticContainer = document.getElementById('tacticBarContainer');
         
-        // Konverterer 2026-05-13 -> 13-05-2026 for å matche din Firebase
-        const parts = date.split('-'); 
+        // Vi må sørge for at datoen sendes til Firebase på samme format som taktikk-siden bruker.
+        // Hvis din 'attendance' bruker DD-MM-YYYY, må vi snu 'date' (som er YYYY-MM-DD).
+        const parts = date.split('-');
         const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; 
         const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
@@ -183,47 +184,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         };
 
+        // Her sender vi nøyaktig den datoen som taktikk-siden forventer
         document.getElementById('jumpToTactic').onclick = () => {
             window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`;
         };
 
         document.getElementById('matchInfoModal').style.display = 'flex';
 
-        // --- HENTING SOM MATCHER KAMPPLAN-LOGIKKEN ---
+        // --- KOPIERT LOGIKK FRA TAKTIKK.JS ---
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const root = snapshot.val();
             if (!root) return;
 
-            const enrolled = root.attendance ? root.attendance[firebaseDateKey] : null;
-            const allPlayers = root.players;
+            const players = root.players || {};
+            const attendance = root.attendance || {};
             
+            // Taktikk-metoden: Slå opp på datoen
+            const dailyAttendance = attendance[firebaseDateKey] || {};
+            
+            // Taktikk-metoden: Map spillere og filtrer på 'K'
+            const tropp = Object.entries(players)
+                .map(([pId, data]) => ({ id: pId, ...data }))
+                .filter(player => dailyAttendance[player.id] === 'K');
+
             playerListUl.innerHTML = '';
-            let list = [];
-
-            if (enrolled && allPlayers) {
-                Object.entries(enrolled).forEach(([pId, status]) => {
-                    if (status === 'K') {
-                        // Vi henter navnet på nøyaktig samme måte som taktikk-siden din
-                        const player = allPlayers[pId];
-                        if (player) {
-                            list.push(player.navn || player.name);
-                        }
-                    }
-                });
-                list.sort((a, b) => a.localeCompare(b, 'nb'));
-            }
-
-            // VIKTIG: Lagre navnene her slik at Statistikk-delen finner dem!
-            currentTroopNames = list;
+            
+            // Lagre for statistikk-bruk
+            currentTroopNames = tropp.map(p => p.navn || p.name);
+            currentTroopNames.sort((a, b) => a.localeCompare(b, 'nb'));
 
             if (document.getElementById('pilleAntall')) {
-                document.getElementById('pilleAntall').innerText = list.length;
+                document.getElementById('pilleAntall').innerText = currentTroopNames.length;
             }
 
-            if (list.length === 0) {
-                playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte spillere funnet.</div>';
+            if (currentTroopNames.length === 0) {
+                playerListUl.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte funnet for ${firebaseDateKey}</div>`;
             } else {
-                list.forEach(name => {
+                currentTroopNames.forEach(name => {
                     const item = document.createElement('div');
                     item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 12px 10px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--bsk-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
                     item.innerText = name;
