@@ -71,6 +71,13 @@ body {
     align-items: center;
     gap: 5px;
     color: var(--bsk-blue);
+    text-decoration: none;
+    width: fit-content; /* Gjør at kun selve logoen er klikkbar, ikke tomrommet ved siden av */
+    transition: transform 0.1s ease;
+}
+
+.logo-brand:active {
+    transform: scale(0.98); /* Gir en liten "klikk-følelse" når man trykker på den */
 }
 
 .logo-brand span { color: var(--bsk-yellow); }
