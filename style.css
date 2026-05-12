@@ -69,11 +69,19 @@ body {
     align-items: center;
     gap: 5px;
     
-    /* Tvinger ultra-fet skrifttype og farge for lik stil på alle sider */
+    /* Tvinger ultra-fet skrifttype og farge */
     font-weight: 900 !important; 
     font-size: 1rem;
     color: var(--bsk-blue) !important;
     text-decoration: none !important;
+
+    /* FIKS FOR "STREKKING": Låser bokstavavstanden og rendring */
+    letter-spacing: -0.01em;       /* Låser avstanden mellom bokstaver */
+    font-stretch: 100%;            /* Hindrer horisontal strekking */
+    -webkit-font-smoothing: antialiased; /* Gjør fonten skarpere */
+    -moz-osx-font-smoothing: grayscale;
+    font-variant-ligatures: none;  /* Hindrer at bokstaver flyter sammen */
+    white-space: nowrap;           /* Sikrer at den alltid er på én linje */
     
     width: fit-content;
     transition: transform 0.1s ease, opacity 0.2s;
@@ -82,6 +90,8 @@ body {
 .logo-brand span { 
     color: var(--bsk-yellow) !important; 
     font-weight: 900 !important;
+    /* Arver låsingen fra forelderen */
+    letter-spacing: inherit;
 }
 
 .logo-brand:hover {
