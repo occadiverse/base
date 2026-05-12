@@ -4,131 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kamper - BSK Fotball</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
-    <!-- Vi henter popup-stilen fra den nye fila her -->
     <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-    /* BSK-blå Hero - Identisk med spiller.html */
-    .kamper-hero {
-        background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
-        border-radius: 20px;
-        padding: 40px;
-        color: white;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
-    }
+        /* BSK-blå Hero - Identisk med spiller.html */
+        .kamper-hero {
+            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
+        }
 
-    .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
-    .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
+        .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
+        .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
-    /* Filter Tabs - Identisk med spiller.html */
-    .filter-bar {
-        background: var(--white);
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 25px;
-        box-shadow: var(--shadow);
-        overflow-x: auto;
-        border: 1px solid var(--border-color);
-    }
+        /* Filter Tabs - Identisk med spiller.html */
+        .filter-bar {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
 
-    .tab-btn {
-        padding: 10px 18px;
-        border: 1px solid transparent;
-        background: transparent;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 700;
-        color: var(--text-muted);
-        transition: 0.2s;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        white-space: nowrap;
-    }
+        .tab-btn {
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: 0.2s;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
 
-    .tab-btn.active {
-        background-color: var(--active-bg) !important; 
-        color: var(--bsk-blue) !important;
-        border: 1px solid var(--bsk-blue);
-    }
+        .tab-btn.active {
+            background-color: var(--active-bg) !important; 
+            color: var(--bsk-blue) !important;
+            border: 1px solid var(--bsk-blue);
+        }
 
-    /* Form & Modal styling - Identisk med spiller.html */
-    .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-    .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-    .form-group label { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
-    .form-control { 
-        width: 100%; padding: 12px; border-radius: 10px; 
-        border: 1.5px solid var(--border-color); outline: none; font-family: inherit;
-    }
+        /* Form & Modal styling - Identisk med spiller.html */
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+        .form-control { 
+            width: 100%; padding: 12px; border-radius: 10px; 
+            border: 1.5px solid var(--border-color); outline: none; font-family: inherit;
+        }
 
-    /* FAB Button - Med gul farge og blå bakgrunn */
-    .fab-btn {
-        position: fixed;
-        right: 25px;
-        bottom: 25px;
-        width: 60px;
-        height: 60px;
-        background: var(--bsk-blue);
-        color: var(--bsk-yellow);
-        border: 2px solid var(--bsk-yellow);
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-    }
+        /* FAB Button */
+        .fab-btn {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            width: 60px;
+            height: 60px;
+            background: var(--bsk-blue);
+            color: var(--bsk-yellow);
+            border: 2px solid var(--bsk-yellow);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
 
-    @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
+        @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
 
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 3000;
-        left: 0; top: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(4px);
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
 
-    .modal-content {
-        background-color: var(--white);
-        padding: 30px;
-        border-radius: 20px;
-        width: 95%;
-        max-width: 500px;
-        box-shadow: var(--shadow);
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-</style>
+        .modal-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            width: 95%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Spesifikke tabell-justeringer for kamper */
+        .text-left { text-align: left; }
+    </style>
 </head>
 <body>
 
+<!-- TOP BAR - Identisk med spiller.html -->
+<header class="top-bar">
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
+    
+    <h1 id="section-title" class="section-title">Kamper</h1>
+
+    <div class="filter-wrapper">
+        <div class="filter-container">
+            <i class="fa-solid fa-calendar-check"></i>
+            <select class="base-select">
+                <option>SESONG 2026</option>
+                <option>ARKIV</option>
+            </select>
+        </div>
+    </div>
+</header>
+
 <div class="sidebar" id="sidebar"></div>
 
-<div class="main-content">
-    <div class="top-bar">
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <h2 class="section-title">BSK Fotball Herrer - A lag</h2>
-    </div>
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span>Hjem</span>
+    </a>
+    <a href="oppmote.html" class="nav-item">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Oppmøte</span>
+    </a>
+    <a href="kamper.html" class="nav-item active">
+        <i class="fa-solid fa-soccer-ball"></i>
+        <span>Kamper</span>
+    </a>
+    <a href="spillere.html" class="nav-item">
+        <i class="fa-solid fa-users"></i>
+        <span>Tropp</span>
+    </a>
+    <a href="statistikk.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Stats</span>
+    </a>
+</nav>
 
+<main class="main-content">
     <section class="kamper-hero">
         <div class="hero-content">
             <h2>Terminliste & Resultater</h2>
-            <p>Full oversikt over sesongens kamper, baner og resultater for BSK Fotball.</p>
+            <p class="hero-intro-text">
+                Neste kamp spilles <strong id="stat-next-match">Laster...</strong>. 
+                Sesongen har så langt gitt oss <strong id="stat-wins">0 seire</strong> 
+                og totalt <strong id="stat-goals">0 scorede mål</strong>.
+            </p>
         </div>
     </section>
 
     <div class="filter-bar">
-        <div>
-            <button id="btnKommende" class="tab-btn active" onclick="switchView('kommende')">KOMMENDE</button>
-            <button id="btnTidligere" class="tab-btn" onclick="switchView('tidligere')">TIDLIGERE</button>
+        <div style="display: flex; gap: 8px;">
+            <button id="btnKommende" class="tab-btn active" onclick="window.switchView('kommende')">KOMMENDE</button>
+            <button id="btnTidligere" class="tab-btn" onclick="window.switchView('tidligere')">TIDLIGERE</button>
         </div>
     </div>
 
@@ -147,44 +188,52 @@
             <tbody id="matchTableBody"></tbody>
         </table>
     </div>
-</div>
+</main>
 
-<!-- RUND LEGG TIL KNAPP (FAB) -->
+<!-- FAB KNAPP -->
 <button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
 
-<!-- MODAL FOR REGISTRERING -->
+<!-- MODAL: REGISTRERING/REDIGERING -->
 <div id="matchModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">Legg til ny kamp</h3>
-            <button type="button" class="close-btn" onclick="closeMatchModal()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="modalTitle" style="color: var(--bsk-blue); margin:0;">Registrer kamp</h3>
+            <button onclick="window.closeMatchModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
         </div>
         <form id="matchForm">
             <input type="hidden" id="editMatchId">
-            <div class="form-stack">
+            
+            <div class="form-row">
                 <div class="form-group">
                     <label>Dato</label>
-                    <input type="date" id="matchDate" required>
+                    <input type="date" id="matchDate" required class="form-control">
                 </div>
                 <div class="form-group">
                     <label>Klokkeslett</label>
-                    <input type="time" id="matchTime"> 
+                    <input type="time" id="matchTime" class="form-control"> 
                 </div>
+            </div>
+
+            <div class="form-row">
                 <div class="form-group">
                     <label>Motstander</label>
-                    <input type="text" id="opponent" placeholder="F.eks. KFUM" required>
+                    <input type="text" id="opponent" placeholder="Navn på lag" required class="form-control">
                 </div>
+            </div>
+
+            <div class="form-row">
                 <div class="form-group">
                     <label>Bane / Sted</label>
-                    <input type="text" id="pitch" placeholder="F.eks. BSK Kunstgress"> 
+                    <input type="text" id="pitch" placeholder="Bane" class="form-control"> 
                 </div>
+            </div>
+
+            <div class="form-row">
                 <div class="form-group">
                     <label>Kamp-type</label>
-                    <select id="matchType">
+                    <select id="matchType" class="form-control">
                         <option value="Serie">Seriekamp</option>
                         <option value="Cup">Cupkamp</option>
                         <option value="Treningskamp">Treningskamp</option>
@@ -192,91 +241,51 @@
                 </div>
                 <div class="form-group">
                     <label>Resultat (valgfritt)</label>
-                    <input type="text" id="result" placeholder="f.eks. 3-1">
+                    <input type="text" id="result" placeholder="f.eks. 3-1" class="form-control">
                 </div>
             </div>
-            <div class="button-group">
-                <button type="submit" id="saveBtn" class="btn btn-grow-2">Lagre kamp</button>
-                <button type="button" class="btn btn-danger" onclick="closeMatchModal()">Avbryt</button>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" id="saveBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE KAMP</button>
+                <button type="button" onclick="window.closeMatchModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- MODAL FOR KAMPINFO -->
+<!-- MODAL: KAMPINFO & RAPPORT -->
 <div id="matchInfoModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="infoTitle">Laster...</h3>
-            <button type="button" class="close-btn" onclick="closeMatchInfo()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="infoTitle" style="color: var(--bsk-blue); margin:0;">Laster...</h3>
+            <button onclick="window.closeMatchInfo()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
         </div>
         
         <div id="matchInfoDetails"></div>
-        <div id="matchPlayerList"></div>
+        <div id="matchPlayerList" class="player-grid-compact"></div>
         <div id="tacticBarContainer"></div>
 
-        <!-- REGISTRER STATS TOGGLE -->
         <div id="statsEditToggle" style="margin-top: 15px;">
-            <button class="modal-action-bar" onclick="toggleStatsEdit()" style="width: 100%;">
+            <button class="modal-action-bar" onclick="toggleStatsEdit()" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-light); cursor: pointer;">
                 <div>
-                    <i class="fa-solid fa-chart-line icon-left"></i>
-                    <span>Registrer Mål & Karakterer</span>
+                    <i class="fa-solid fa-chart-line" style="margin-right: 10px; color: var(--bsk-blue);"></i>
+                    <span style="font-weight: 700;">Registrer Mål & Karakterer</span>
                 </div>
                 <i class="fa-solid fa-chevron-down"></i>
             </button>
         </div>
 
-        <!-- STATS SKJEMA -->
-        <div id="postMatchStats" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: none;">
-            <h4 style="margin-bottom: 15px; font-size: 1rem; color: var(--text-main);">Kamprapport</h4>
-            
-            <div class="form-stack">
-                <div class="form-group">
-                    <label>Målscorer</label>
-                    <div style="display: flex; gap: 8px;">
-                        <select id="goalSelect" style="flex: 1;"></select>
-                        <button type="button" class="btn" onclick="addGoal()" style="background: var(--primary); color: white; padding: 0 15px;">+</button>
-                    </div>
-                    <div id="goalListDisplay" style="margin-top: 8px; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px;"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Assist</label>
-                    <div style="display: flex; gap: 8px;">
-                        <select id="assistSelect" style="flex: 1;"></select>
-                        <button type="button" class="btn" onclick="addAssist()" style="background: #27ae60; color: white; padding: 0 15px;">+</button>
-                    </div>
-                    <div id="assistListDisplay" style="margin-top: 8px; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 5px;"></div>
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <label style="font-weight: 600; font-size: 0.95rem; display: block; margin-bottom: 10px;">Vurdering (1 = Bra, 0 = Under pari)</label>
-                    <div id="ratingTableContainer" style="background: #f8f9fa; border-radius: 8px; padding: 10px; max-height: 250px; overflow-y: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-                            <thead>
-                                <tr style="text-align: left; border-bottom: 1px solid #ddd;">
-                                    <th style="padding: 5px;">Navn</th>
-                                    <th style="text-align: center;">OFF</th>
-                                    <th style="text-align: center;">DEF</th>
-                                </tr>
-                            </thead>
-                            <tbody id="playerRatingBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <button type="button" class="btn btn-grow-2" onclick="saveFinalMatchStats()" style="margin-top: 20px;">Lagre rapport</button>
-            </div>
+        <div id="postMatchStats" style="margin-top: 20px; display: none;">
+            <!-- Her fylles stats-skjemaet fra JS -->
         </div>
 
-        <div class="button-group">
-            <button class="btn btn-grow-2" onclick="closeMatchInfo()">Lukk</button>
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="window.closeMatchInfo()" style="width: 100%; padding: 12px; border-radius: 10px; background: var(--bg-light); border: none; font-weight: 700; cursor: pointer;">LUKK</button>
         </div>
     </div>
 </div>
 
+<!-- SCRIPTS -->
 <script type="module">
     import { db } from './firebase-config.js';
     import { ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -300,16 +309,15 @@
     };
     
     window.openMatchModal = () => {
-        document.getElementById('modalTitle').innerText = 'Legg til ny kamp';
+        document.getElementById('modalTitle').innerText = 'Registrer kamp';
         document.getElementById('matchModal').style.display = 'flex';
-        // Setter dagens dato som standard
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('matchDate').value = today;
     };
 
     window.closeMatchInfo = () => {
         document.getElementById('matchInfoModal').style.display = 'none';
-        document.getElementById('postMatchStats').style.display = 'none';
+        if(document.getElementById('postMatchStats')) document.getElementById('postMatchStats').style.display = 'none';
     };
 
     window.onclick = function(event) {
