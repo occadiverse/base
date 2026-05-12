@@ -102,12 +102,20 @@ function renderPlayers() {
         
         const fotVisning = s.fot === 'Begge' ? 'B' : (s.fot === 'Venstre' ? 'V' : 'H');
 
+        // Generer status-merker (R for Rekrutt, P for Passiv)
+        let statusBadge = '';
+        if (s.status === 'Rekrutt') {
+            statusBadge = '<span style="font-size:0.7rem; color:var(--bsk-blue); margin-left:5px; font-weight:800;">(R)</span>';
+        } else if (s.status === 'Passiv') {
+            statusBadge = '<span style="font-size:0.7rem; color:var(--text-muted); margin-left:5px; font-weight:500;">(P)</span>';
+        }
+
         return `
             <tr>
                 <td><strong style="color: var(--text-main);">${s.draktnummer || '-'}</strong></td>
                 <td class="name-col">
                     <strong>${s.navn}</strong>
-                    ${s.status === 'Passiv' ? '<span style="font-size:0.7rem; color:var(--text-muted); margin-left:5px;">(P)</span>' : ''}
+                    ${statusBadge}
                 </td>
                 <td>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
