@@ -25,8 +25,8 @@
             box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
         }
 
-        .spiller-hero h2 { font-size: 2rem; font-weight: 800; margin-bottom: 10px; }
-        .spiller-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; line-height: 1.5; }
+        .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
+        .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
         /* Filter Tabs */
         .filter-bar {
@@ -50,6 +50,7 @@
             transition: 0.2s;
             font-size: 0.8rem;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .tab-btn.active {
@@ -58,7 +59,16 @@
             border: 1px solid var(--bsk-blue);
         }
 
-        /* FAB Button (Pluss) - Flyttet opp på mobil for å unngå bottom-nav */
+        /* Form styling */
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+        .form-control { 
+            width: 100%; padding: 12px; border-radius: 10px; 
+            border: 1.5px solid var(--border-color); outline: none; font-family: inherit;
+        }
+
+        /* FAB Button */
         .fab-btn {
             position: fixed;
             right: 25px;
@@ -70,19 +80,14 @@
             border: 2px solid var(--bsk-yellow);
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 24px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
 
-        @media (max-width: 768px) {
-            .fab-btn { bottom: 85px; } /* Ligger nå rett over mobilmenyen */
-        }
+        @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
 
-        /* Modal styling */
         .modal {
             display: none;
             position: fixed;
@@ -98,9 +103,11 @@
             background-color: var(--white);
             padding: 30px;
             border-radius: 20px;
-            width: 90%;
+            width: 95%;
             max-width: 500px;
             box-shadow: var(--shadow);
+            max-height: 90vh;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -109,9 +116,7 @@
     <!-- TOP BAR -->
     <header class="top-bar">
         <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
-    
-    <h1 id="section-title" class="section-title"></h1>
-
+        <h1 id="section-title" class="section-title">Tropp</h1>
         <div class="filter-wrapper">
             <div class="filter-container">
                 <i class="fa-solid fa-user-gear"></i>
@@ -123,10 +128,8 @@
         </div>
     </header>
 
-    <!-- SIDEBAR (PC) -->
     <aside id="sidebar" class="sidebar"></aside>
 
-    <!-- BUNNMENY (MOBIL) -->
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item">
             <i class="fa-solid fa-house"></i>
@@ -154,8 +157,8 @@
         <section class="spiller-hero">
             <div class="hero-content">
                 <p class="hero-intro-text">
-                    Sesongen 2026 består A-stallen av <strong>24 spillere</strong> med en gjennomsnittsalder på 
-                    <strong>23.2 år</strong>. Vi har for øyeblikket <strong>12 rekrutter</strong> tilknyttet troppen. 
+                    Sesongen 2026 består A-stallen av <strong id="stat-total-players">0 spillere</strong> med en gjennomsnittsalder på 
+                    <strong id="stat-avg-age">0 år</strong>. Vi har for øyeblikket <strong id="stat-total-rekrutt">0 rekrutter</strong> tilknyttet troppen. 
                 </p>
             </div>
         </section>
@@ -164,9 +167,9 @@
             <div style="display: flex; gap: 8px;">
                 <button id="btnAlle" class="tab-btn active" onclick="window.switchPlayerView('Alle')">ALLE</button>
                 <button class="tab-btn" onclick="window.switchPlayerView('Keeper')">KEEPER</button>
-                <button class="tab-btn" onclick="switchView('Forsvar')">FORSVAR</button>
-                <button class="tab-btn" onclick="switchView('Midtbane')">MIDTBANE</button>
-                <button class="tab-btn" onclick="switchView('Angrep')">ANGREP</button>
+                <button class="tab-btn" onclick="window.switchPlayerView('Forsvar')">FORSVAR</button>
+                <button class="tab-btn" onclick="window.switchPlayerView('Midtbane')">MIDTBANE</button>
+                <button class="tab-btn" onclick="window.switchPlayerView('Angrep')">ANGREP</button>
             </div>
         </div>
 
@@ -187,43 +190,113 @@
         </div>
     </main>
 
-    <!-- Flytende pluss-knapp -->
     <button class="fab-btn" onclick="window.openModal()" title="Registrer ny spiller">
         <i class="fa-solid fa-plus"></i>
     </button>
 
-    <!-- Modal Form -->
     <div id="playerModal" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 id="formTitle" style="color: var(--bsk-blue);">Registrer spiller</h3>
+                <h3 id="formTitle" style="color: var(--bsk-blue); margin:0;">Registrer spiller</h3>
                 <button onclick="window.closeModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
             </div>
+            
             <form id="playerForm">
                 <input type="hidden" id="editId">
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <div>
-                        <label style="display:block; font-weight:600; margin-bottom:5px; font-size: 0.85rem;">Navn</label>
-                        <input type="text" id="navn" required style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-color); outline: none;">
+                
+                <div class="form-row">
+                    <div class="form-group" style="flex: 3;">
+                        <label>Fullt navn</label>
+                        <input type="text" id="navn" required class="form-control" placeholder="Navn Navnesen">
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" id="submitBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:12px; border:none; border-radius:10px; font-weight:700; cursor: pointer;">LAGRE</button>
-                        <button type="button" onclick="window.closeModal()" style="flex:1; background: var(--bg-light); padding:12px; border:none; border-radius:10px; font-weight:600; cursor: pointer;">AVBRYT</button>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Nr #</label>
+                        <input type="number" id="draktnummer" class="form-control" placeholder="00">
                     </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fødselsår</label>
+                        <input type="number" id="fodselsaar" class="form-control" placeholder="f.eks 1998">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status" class="form-control">
+                            <option value="Aktiv">Aktiv</option>
+                            <option value="Rekrutt">Rekrutt</option>
+                            <option value="Passiv">Passiv</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hovedposisjon</label>
+                        <select id="pos1" class="form-control">
+                            <option value="Keeper">Keeper</option>
+                            <option value="Høyre bekk">Høyre bekk</option>
+                            <option value="Venstre bekk">Venstre bekk</option>
+                            <option value="Høyre stopper">Høyre stopper</option>
+                            <option value="Venstre stopper">Venstre stopper</option>
+                            <option value="Defensiv midtbane">Defensiv midtbane</option>
+                            <option value="Høyre kant">Høyre kant</option>
+                            <option value="Offensiv midtbane">Offensiv midtbane</option>
+                            <option value="Spiss">Spiss</option>
+                            <option value="Playmaker">Playmaker</option>
+                            <option value="Venstre kant">Venstre kant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sekundærposisjon</label>
+                        <select id="pos2" class="form-control">
+                            <option value="-">- Ingen -</option>
+                            <option value="Høyre bekk">Høyre bekk</option>
+                            <option value="Venstre bekk">Venstre bekk</option>
+                            <option value="Høyre stopper">Høyre stopper</option>
+                            <option value="Venstre stopper">Venstre stopper</option>
+                            <option value="Defensiv midtbane">Defensiv midtbane</option>
+                            <option value="Høyre kant">Høyre kant</option>
+                            <option value="Offensiv midtbane">Offensiv midtbane</option>
+                            <option value="Spiss">Spiss</option>
+                            <option value="Playmaker">Playmaker</option>
+                            <option value="Venstre kant">Venstre kant</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Foretrukket fot</label>
+                        <select id="fot" class="form-control">
+                            <option value="Høyre">Høyre</option>
+                            <option value="Venstre">Venstre</option>
+                            <option value="Begge">Begge</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="submit" id="submitBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE SPILLER</button>
+                    <button type="button" onclick="window.closeModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="navigation.js"></script>
     <script type="module" src="spillere.js"></script>
 
     <script>
-        window.openModal = () => { document.getElementById('playerModal').style.display = 'flex'; };
+        window.openModal = () => { 
+            document.getElementById('playerForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('formTitle').innerText = 'Registrer spiller';
+            document.getElementById('submitBtn').innerText = 'LAGRE SPILLER';
+            document.getElementById('playerModal').style.display = 'flex'; 
+        };
         window.closeModal = () => { document.getElementById('playerModal').style.display = 'none'; };
         
-        // Sørger for at modal lukkes hvis man klikker utenfor
         window.onclick = function(event) {
             let modal = document.getElementById('playerModal');
             if (event.target == modal) { closeModal(); }
