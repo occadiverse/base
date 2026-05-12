@@ -361,60 +361,39 @@ th {
 ================================================================
 */
 @media (max-width: 768px) {
-    /* 1. Tving menyen HELT ut av skjermen og skru av skygge når den er lukket */
     .sidebar {
-        transform: translateX(-110%); 
+        /* FIX: Vi flytter startpunktet til menyen helt ut av skjermen */
+        left: -300px !important; 
         width: 280px;
-        box-shadow: none; 
-        transition: transform 0.3s ease-in-out;
+        position: fixed;
+        /* Vi bruker 0 her, fordi left-verdien allerede har skjøvet den ut */
+        transform: translateX(0); 
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
     }
     
+    /* Når menyen skal vises, drar vi den inn til kanten */
     .sidebar:not(.collapsed) {
-        transform: translateX(0);
+        left: 0 !important;
         box-shadow: 5px 0 25px rgba(0,0,0,0.2);
     }
 
-    /* 2. Fjern det hvite feltet til venstre ved å tvinge margin til 0 */
     .main-content {
         margin-left: 0 !important;
         padding: 15px;
         width: 100%;
-        min-width: 100%;
-    }
-
-    /* 3. Fiks Top Bar så den ikke "stikker ut" på sidene */
-    .top-bar {
-        margin: -15px -15px 20px -15px !important; /* Justert for å matche ny padding */
-        padding: 0 15px;
-        width: calc(100% + 30px); /* Fyller hele bredden */
-        justify-content: space-between;
-    }
-
-    /* 4. Hindre sidelengs scrolling av hele siden */
-    body {
-        overflow-x: hidden;
         position: relative;
     }
 
-    .section-title {
-        font-size: 1.1rem;
+    /* Fjerner alt som kan stikke ut fra toppen */
+    .top-bar {
+        margin: 0 !important; 
+        width: 100%;
+        padding: 0 15px;
+        left: 0;
     }
 
-    .player-node {
-        width: 10% !important;
-    }
-
-    .welcome-hero {
-        padding: 25px;
-        border-radius: 15px;
-    }
-
-    .hero-content h2 {
-        font-size: 1.5rem;
-    }
-    
-    .name-col {
-        min-width: 110px;
-        font-size: 0.85rem;
+    body {
+        overflow-x: hidden;
     }
 }
