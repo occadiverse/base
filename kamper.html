@@ -23,36 +23,25 @@
         .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
         .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
-        /* Tabell og Sentrering */
-        #matchTable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
         /* Tvinger overskrifter (Kommende/Tidligere) til å sentreres i tabellen */
-        #matchTable td[colspan="6"] {
+        #matchTableBody td[colspan] {
             text-align: center !important;
-            vertical-align: middle;
+            background-color: #f8f9fa;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 15px;
         }
 
-        /* Spillerliste Rutenett (Dette fikser visningen av troppen) */
+        /* Spillerliste Rutenett */
         .player-grid-compact {
-            display: none; /* Skjult som standard, styres av JS */
+            display: none; 
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 15px;
             width: 100%;
-        }
-
-        .stat-badge {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            border: 1px solid #2e7d32;
-            display: inline-block;
         }
 
         /* Form & Modal styling */
@@ -82,7 +71,11 @@
             z-index: 1000;
         }
 
-        @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
+        @media (max-width: 768px) { 
+            .fab-btn { bottom: 85px; } 
+            /* Mer luft i tabellen på mobil */
+            td { padding: 12px 10px; }
+        }
 
         .modal {
             display: none;
@@ -106,7 +99,7 @@
             overflow-y: auto;
         }
 
-        .text-left { text-align: left; }
+        .text-left { text-align: left !important; }
     </style>
 </head>
 <body>
@@ -162,15 +155,15 @@
     </section>
 
     <div class="table-container">
-        <table>
+        <table class="match-table" id="matchTable">
             <thead>
                 <tr>
-                    <th class="text-left">Tid</th>
+                    <th>Kampinfo</th> <!-- Tid/Dato kombinert på mobil -->
                     <th class="text-left">Motstander</th> 
-                    <th>Resultat</th> 
-                    <th class="text-left">Bane</th>
-                    <th class="text-left">Type</th>
-                    <th>Handling</th>
+                    <th>Res</th> 
+                    <th class="text-left desktop-only">Bane</th>
+                    <th class="text-left desktop-only">Type</th>
+                    <th class="desktop-only">Handling</th>
                 </tr>
             </thead>
             <tbody id="matchTableBody"></tbody>
@@ -178,7 +171,7 @@
     </div>
 </main>
 
-<button class="fab-btn" onclick="openMatchModal()" title="Registrer ny kamp">
+<button class="fab-btn" onclick="window.openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
 
@@ -244,7 +237,6 @@
         </div>
         
         <div id="matchInfoDetails"></div>
-        <!-- Liste over påmeldte spillere -->
         <div id="matchPlayerList" class="player-grid-compact"></div>
         <div id="tacticBarContainer"></div>
 
@@ -283,7 +275,6 @@
 <script src="kamper_ny.js"></script>
 
 <script>
-    // Klikk utenfor modal lukker den
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
             if(window.closeMatchModal) window.closeMatchModal();
