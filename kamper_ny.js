@@ -185,115 +185,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VIS KAMP-INFO ---
     window.showMatchInfo = (id, date, opponent, time, pitch) => {
-        document.getElementById('editMatchId').value = id;
-        const playerListUl = document.getElementById('matchPlayerList');
-        const infoTitle = document.getElementById('infoTitle');
-        const detailsDiv = document.getElementById('matchInfoDetails');
-        const tacticContainer = document.getElementById('tacticBarContainer');
-        
-        const parts = date.split('-'); 
-        const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
-        infoTitle.innerText = opponent;
+    document.getElementById('editMatchId').value = id;
+    const playerListUl = document.getElementById('matchPlayerList');
+    const infoTitle = document.getElementById('infoTitle');
+    const detailsDiv = document.getElementById('matchInfoDetails');
+    const tacticContainer = document.getElementById('tacticBarContainer');
+    
+    const parts = date.split('-'); 
+    const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+    infoTitle.innerText = opponent;
 
-        const matchData = allMatches.find(m => m.id === id);
-        const resultText = matchData?.result || '-';
-        const goalsText = matchData?.goalScorers || '';
-        const assistsText = matchData?.assists || '';
+    const matchData = allMatches.find(m => m.id === id);
+    const resultText = matchData?.result || '-';
+    const goalsText = matchData?.goalScorers || '';
+    const assistsText = matchData?.assists || '';
 
-        let infoHTML = `
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fa-solid fa-calendar-day" style="color: var(--bsk-blue); width: 20px;"></i> 
-                        <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
-                    </div>
-                    <div style="background: var(--bsk-blue); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.1rem;">
-                        ${resultText}
-                    </div>
-                </div>
+    let infoHTML = `
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue); width: 20px;"></i> 
-                    <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
+                    <i class="fa-solid fa-calendar-day" style="color: var(--bsk-blue); width: 20px;"></i> 
+                    <span style="font-weight: 600;">${formattedDate} kl. ${time}</span>
                 </div>
-        `;
+                <div style="background: var(--bsk-blue); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.1rem;">
+                    ${resultText}
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue); width: 20px;"></i> 
+                <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
+            </div>
+        </div>
+        <div class="modal-action-bar" id="toggleTropp" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display: flex; align-items: center;">
+                <i class="fa-solid fa-users" style="margin-right:10px; color:var(--bsk-blue);"></i>
+                <span style="font-weight: 700;">Påmeldt tropp</span>
+                <span id="pilleAntall" style="background: var(--bsk-blue); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
+            </div>
+            <i class="fa-solid fa-chevron-down chevron-icon" style="transition: 0.3s;"></i>
+        </div>
+    `;
 
-        if (goalsText) {
-            infoHTML += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+    if (goalsText) {
+        // Legger til mål/assist i info-boksen hvis de finnes
+        const statsHTML = `
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
                 <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-futbol" style="margin-right: 8px; color: #2ecc71;"></i> MÅL</div>
-                <div style="font-size: 0.9rem; padding-left: 28px;">${goalsText}</div></div>`;
+                <div style="font-size: 0.9rem; padding-left: 28px;">${goalsText}</div>
+            </div>`;
+        // Her kan du dytte inn statsHTML i infoHTML hvis ønskelig
+    }
+
+    detailsDiv.innerHTML = infoHTML;
+
+    tacticContainer.innerHTML = `
+        <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
+            <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
+        </div>
+    `;
+
+    // Klargjør listen (skjult som standard)
+    playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 10px; color: var(--text-muted);">Henter spillere...</div>';
+    playerListUl.style.display = 'none';
+    playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    playerListUl.style.gap = '10px';
+    playerListUl.style.marginTop = '15px';
+
+    // Klikk-logikk for å åpne/lukke
+    const toggleBtn = document.getElementById('toggleTropp');
+    toggleBtn.onclick = () => {
+        const isHidden = playerListUl.style.display === 'none';
+        playerListUl.style.display = isHidden ? 'grid' : 'none';
+        const icon = toggleBtn.querySelector('.chevron-icon');
+        if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    };
+
+    const tacticBar = document.getElementById('jumpToTactic');
+    tacticBar.onclick = () => {
+        const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        window.location.href = `taktikk.html?matchId=${id}&date=${dateKey}`;
+    };
+
+    document.getElementById('matchInfoModal').style.display = 'flex';
+
+    // Hent spillere fra Firebase
+    window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
+        const root = snapshot.val();
+        const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        const enrolled = root.attendance ? root.attendance[dateKey] : null;
+        const allPlayers = root.players;
+        
+        playerListUl.innerHTML = ''; // Tømmer "Henter spillere..."
+        let list = [];
+
+        if (enrolled && allPlayers) {
+            Object.entries(enrolled).forEach(([pId, status]) => {
+                if (status === 'K') {
+                    // Sjekker både ID og navn i tilfelle Firebase-strukturen varierer
+                    let player = allPlayers[pId] || Object.values(allPlayers).find(p => p.id === pId);
+                    if (player) list.push(player.name || player.navn);
+                }
+            });
+            list.sort((a, b) => a.localeCompare(b, 'nb'));
         }
-        if (assistsText) {
-            infoHTML += `<div style="margin-top: 8px;">
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-handshake" style="margin-right: 8px; color: #3498db;"></i> ASSIST</div>
-                <div style="font-size: 0.9rem; padding-left: 28px;">${assistsText}</div></div>`;
-        }
 
-        infoHTML += `</div>`;
-        infoHTML += `
-            <div class="modal-action-bar" id="toggleTropp" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
-                <div style="display: flex; align-items: center;">
-                    <i class="fa-solid fa-users" style="margin-right:10px; color:var(--bsk-blue);"></i>
-                    <span style="font-weight: 700;">Påmeldt tropp</span>
-                    <span id="pilleAntall" style="background: var(--bsk-blue); color: white; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 10px;">0</span>
-                </div>
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-        `;
-        detailsDiv.innerHTML = infoHTML;
-
-        tacticContainer.innerHTML = `
-            <div class="modal-action-bar" id="jumpToTactic" style="margin-top: 15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
-                <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
-                <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
-            </div>
-        `;
-
-        playerListUl.innerHTML = '';
-        playerListUl.style.display = 'none';
-        playerListUl.style.gridTemplateColumns = 'repeat(2, 1fr)';
-        playerListUl.style.gap = '10px';
-        playerListUl.style.marginTop = '10px';
-
-        const toggleBtn = document.getElementById('toggleTropp');
-        toggleBtn.onclick = () => {
-            const isHidden = playerListUl.style.display === 'none';
-            playerListUl.style.display = isHidden ? 'grid' : 'none';
-        };
-
-        const tacticBar = document.getElementById('jumpToTactic');
-        tacticBar.onclick = () => {
-            const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
-            window.location.href = `taktikk.html?matchId=${id}&date=${dateKey}`;
-        };
-
-        document.getElementById('matchInfoModal').style.display = 'flex';
-
-        window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
-            const root = snapshot.val();
-            const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
-            const enrolled = root.attendance ? root.attendance[dateKey] : null;
-            const allPlayers = root.players;
-            playerListUl.innerHTML = '';
-            let list = [];
-            if (enrolled && allPlayers) {
-                Object.entries(enrolled).forEach(([pId, status]) => {
-                    if (status === 'K') {
-                        let player = allPlayers[pId] || Object.values(allPlayers).find(p => p.id === pId);
-                        if (player) list.push(player.name || player.navn);
-                    }
-                });
-                list.sort((a, b) => a.localeCompare(b, 'nb'));
-            }
-            currentTroopNames = list;
-            if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
+        if (document.getElementById('pilleAntall')) document.getElementById('pilleAntall').innerText = list.length;
+        
+        if (list.length === 0) {
+            playerListUl.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 10px; color: var(--text-muted);">Ingen påmeldte spillere funnet.</div>';
+        } else {
             list.forEach(name => {
                 const item = document.createElement('div');
-                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.85rem;`;
+                item.style.cssText = `background: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);`;
                 item.innerText = name;
                 playerListUl.appendChild(item);
             });
-        }, { onlyOnce: true });
-    };
+        }
+    }, { onlyOnce: true });
+};
 
     // --- STATISTIKK LOGIKK ---
     window.toggleStatsEdit = function() {
