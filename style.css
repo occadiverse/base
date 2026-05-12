@@ -355,35 +355,55 @@ th {
 
 /* 
 ================================================================
-9. MOBIL-TILPASNING (Media Queries)
+9. MOBIL-TILPASNING 
 ================================================================
 */
 @media (max-width: 768px) {
     .sidebar {
-        transform: translateX(calc(-1 * var(--sidebar-width)));
+        /* Flytt menyen helt ut av syne som standard på mobil */
+        transform: translateX(-100%); 
+        width: 280px; /* Litt bredere for tommel-vennlighet */
+        box-shadow: 5px 0 25px rgba(0,0,0,0.15);
     }
     
+    /* Når JavaScript fjerner 'collapsed', sklir denne inn */
     .sidebar:not(.collapsed) {
         transform: translateX(0);
     }
 
+    /* VIKTIG: Sørg for at innholdet ikke prøver å lage plass til menyen på mobil */
     .main-content {
         margin-left: 0 !important;
+        padding: 15px; /* Litt mindre padding på små skjermer */
     }
-    
+
+    /* Juster Top Bar for mobil */
+    .top-bar {
+        padding: 0 15px;
+        justify-content: space-between; /* Spre knapp og tittel */
+    }
+
+    .section-title {
+        font-size: 1.1rem; /* Litt mindre tekst så den får plass */
+    }
+
+    /* Taktikk-brett og Hero justeringer */
     .player-node {
-        width: 9% !important;
+        width: 10% !important; /* Gjør spiller-sirklene litt større på mobil */
     }
 
     .welcome-hero {
-        padding: 30px;
+        padding: 25px;
+        border-radius: 15px;
     }
 
     .hero-content h2 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
-
+    
+    /* Gjør tabellen lettere å lese på mobil */
     .name-col {
-        min-width: 130px;
+        min-width: 120px;
+        font-size: 0.9rem;
     }
 }
