@@ -118,13 +118,21 @@ body {
 }
 
 .top-bar {
+    position: sticky; /* Denne gjør magien */
+    top: 0;           /* Sier at den skal låses helt øverst */
+    z-index: 1000;    /* Sørger for at den ligger over tabellen når du scroller */
+    
     height: var(--topbar-height);
     background: var(--white);
     display: flex;
     align-items: center;
     padding: 0 25px;
     border-bottom: 1px solid var(--border-color);
-    margin: -20px -20px 20px -20px;
+    
+    /* Vi fjerner de negative marginene som vi brukte før, 
+       for å unngå tull med scrolling */
+    margin: 0; 
+    width: 100%;
 }
 
 .menu-toggle {
