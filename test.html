@@ -2,8 +2,8 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSK Test - Design System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BSK Test - Hybrid Design</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,37 +11,59 @@
 </head>
 <body>
 
-    <!-- FIX 1: Legg til klassen 'collapsed' her, ellers står den alltid åpen -->
-    <div id="sidebar" class="sidebar collapsed">
-        <div class="nav-links">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Hjem</span></a>
-            <a href="#" class="nav-item active"><i class="fa-solid fa-flask"></i><span>Test-side</span></a>
+    <!-- TOP BAR (Alltid synlig) -->
+    <header class="top-bar">
+        <div class="logo-brand">
+            <i class="fa-solid fa-shield-halved"></i> 
+            BSK <span>A-LAG</span>
         </div>
-    </div>
+        
+        <!-- Tittelen fylles automatisk av navigation.js -->
+        <h1 class="section-title"></h1>
 
+        <div class="filter-wrapper">
+            <select class="base-select" id="period-filter">
+                <option value="total">2026</option>
+                <option value="05">Mai</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- SIDEBAR (Vises kun på PC via style.css) -->
+    <aside id="sidebar" class="sidebar">
+        <!-- Innholdet genereres av navigation.js -->
+    </aside>
+
+    <!-- BUNNMENY (Vises kun på MOBIL via style.css) -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Hjem</span>
+        </a>
+        <a href="oppmote.html" class="nav-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Oppmøte</span>
+        </a>
+        <a href="kamper.html" class="nav-item">
+            <i class="fa-solid fa-soccer-ball"></i>
+            <span>Kamper</span>
+        </a>
+        <a href="spillere.html" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Tropp</span>
+        </a>
+        <a href="statistikk.html" class="nav-item active">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Stats</span>
+        </a>
+    </nav>
+
+    <!-- HOVEDINNHOLD -->
     <main class="main-content">
-        <header class="top-bar">
-            <!-- Menyknapp (Hamburger) -->
-            <button class="menu-toggle" onclick="toggleMenu()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-    
-            <!-- Overskrift -->
-            <h1 class="section-title">Statistikk</h1>
-
-            <!-- Filter (Ligger fast til høyre) -->
-           <div class="filter-wrapper">
-                <select class="base-select" id="period-filter">
-                    <option value="total">2026</option>
-                    <option value="05">Mai</option>
-                </select>
-            </div>
-        </header>
-
         <section class="welcome-hero">
             <div class="hero-content">
-                <h2>Oversikt & Kjemi</h2>
-                <p>Her tester vi hvordan den nye tabellen med Assists og Kjemi-kortene ser ut i ditt format.</p>
+                <h2>Hybrid System Test</h2>
+                <p>Resiz vinduet på PC-en for å se menyen flytte seg fra siden til bunnen. Dette er ekte app-følelse!</p>
             </div>
         </section>
 
@@ -55,10 +77,11 @@
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </div>
 
+            <!-- Tabell med de nye kolonnene -->
             <div class="table-container" style="grid-column: 1 / -1; margin-top: 20px;">
-                <table style="width: 100%; border-collapse: collapse;">
+                <table>
                     <thead>
-                        <tr style="background-color: #f8f9fa;">
+                        <tr>
                             <th class="name-col">Spiller</th>
                             <th>K</th>
                             <th>M</th>
@@ -72,14 +95,14 @@
                             <td>12</td>
                             <td>5</td>
                             <td>3</td>
-                            <td style="color: var(--primary); font-weight: 700;">1.5</td>
+                            <td><span class="status-pill" style="width: 35px; height: 35px; font-size: 0.8rem;">1.5</span></td>
                         </tr>
                         <tr>
                             <td class="name-col">Peder Vegsund</td>
                             <td>10</td>
                             <td>2</td>
                             <td>8</td>
-                            <td style="color: var(--primary); font-weight: 700;">1.2</td>
+                            <td><span class="status-pill" style="width: 35px; height: 35px; font-size: 0.8rem;">1.2</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -87,8 +110,18 @@
         </div>
     </main>
 
-    <!-- FIX 3: Husk å inkludere scriptene dine nederst så funksjonene virker! -->
     <script src="navigation.js"></script>
-    <script src="script.js"></script>
+    <script>
+        // Enkel sjekk for å markere aktiv side i bunn-menyen manuelt i denne testen
+        const path = window.location.pathname;
+        const page = path.split("/").pop() || 'index.html';
+        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+            if(item.getAttribute('href') === page) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
