@@ -18,6 +18,7 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
+    // Sorter datoer kronologisk
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
@@ -27,13 +28,8 @@ onValue(ref(db, '/'), (snapshot) => {
     updateMonthDropdown();
     renderMatrix();
     
+    // Auto-scroll til dagens dato etter lasting
     setTimeout(scrollToCurrentDate, 300);
-});
-
-onValue(ref(db, 'attendance'), (snapshot) => {
-    const attendanceUpdated = snapshot.val() || {};
-    attendanceData = attendanceUpdated;
-    renderMatrix();
 });
 
 // --- LAG MÅNEDSVELGER ---
@@ -57,10 +53,10 @@ function updateMonthDropdown() {
     const currentMonthYear = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
     const previousSelection = monthFilter.value;
 
-    let filterHTML = '<option value="Alle">Hele sesongen</option>';
+    let filterHTML = '<option value="Alle">HELE SESONGEN</option>';
     sortedMonths.forEach(mY => {
         const [m, y] = mY.split('-');
-        filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1]} ${y}</option>`;
+        filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1].toUpperCase()} ${y}</option>`;
     });
     
     monthFilter.innerHTML = filterHTML;
@@ -103,23 +99,24 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere
+    // 1. Headere (NY STRUKTUR)
     let headerRow = `<tr><th class="name-col"><span>Spiller</span></th>`;
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         const isoDate = date.split('-').reverse().join('-');
-        const datoOverskrift = date.substring(0, 5).replace('-', ' ');
+        
+        // Formater dato: "12-05-2026" -> "12.05"
+        const d = date.split('-');
+        const datoOverskrift = `${d[0]}.${d[1]}`;
         
         headerRow += `
             <th data-date="${isoDate}">
                 <div class="header-content">
+                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">Slett</button>
                     <span class="header-date">${datoOverskrift}</span>
                     <div class="day-type ${typeClass}">${type.charAt(0)}</div>
-                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
                 </div>
             </th>`;
     });
@@ -130,7 +127,7 @@ function renderMatrix() {
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, p]) => {
-            // Tell totalt antall 'K' for denne spilleren
+            // Tell totalt antall 'K' for denne spilleren på tvers av ALLE datoer
             const totalCount = Object.values(attendanceData).reduce((acc, curr) => {
                 return acc + (curr[id] === 'K' ? 1 : 0);
             }, 0);
@@ -179,47 +176,44 @@ function renderMatrix() {
     attendanceBody.innerHTML = bodyHTML;
 }
 
+// --- HJELPEFUNKSJONER ---
+function getStatusIcon(status) {
+    // Returnerer fylt sirkel for 'K', og en tom sirkel for ingenting
+    return status === 'K' 
+        ? '<i class="fa-solid fa-circle-check status-present"></i>' 
+        : '<i class="fa-regular fa-circle status-none"></i>';
+}
+
 // --- GLOBALE FUNKSJONER ---
 window.filterByMonth = (monthValue) => {
     renderMatrix();
     setTimeout(scrollToCurrentDate, 100);
 };
 
-function getStatusIcon(status) {
-    return status === 'K' 
-        ? '<i class="fa-solid fa-circle-check status-present"></i>' 
-        : '<i class="fa-regular fa-circle status-none"></i>';
-}
-
 window.toggleStatus = (date, pId, currentStatus) => {
     const nextStatus = currentStatus === 'K' ? '' : 'K';
     const cell = document.querySelector(`[data-date="${date}"][data-player="${pId}"]`);
     
     if (cell) {
-        cell.style.opacity = '0.6';
-        cell.style.transform = 'scale(0.95)';
+        cell.style.opacity = '0.5'; // Visuell bekreftelse på klikk
     }
     
     update(ref(db, `attendance/${date}`), { [pId]: nextStatus }).then(() => {
-        if (cell) {
-            cell.style.opacity = '1';
-            cell.style.transform = 'scale(1)';
-        }
+        // Vi trenger ikke manuelt oppdatere ikonet her, 
+        // da onValue i toppen vil trigge renderMatrix() automatisk
     }).catch((error) => {
         console.error('Feil ved oppdatering:', error);
-        if (cell) {
-            cell.style.opacity = '1';
-            cell.style.transform = 'scale(1)';
-        }
+        if (cell) cell.style.opacity = '1';
     });
 };
 
 window.deleteDate = (date) => {
-    if (confirm(`Er du sikker på at du vil slette hele dagen ${date}?`)) {
+    if (confirm(`Vil du slette ${date} permanent fra oppmøtelista?`)) {
         remove(ref(db, `attendance/${date}`));
     }
 };
 
+// --- FORM SUBMIT (NY DAG) ---
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawDate = document.getElementById('eventDate').value; 
@@ -227,12 +221,12 @@ attendanceForm.addEventListener('submit', (e) => {
     if (!rawDate) return;
 
     const parts = rawDate.split('-');
-    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; 
+    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
 
     set(ref(db, `attendance/${formattedDate}/info`), {
         type: type,
         timestamp: Date.now()
     }).then(() => {
-        window.closeAttendanceModal();
+        if (window.closeAttendanceModal) window.closeAttendanceModal();
     });
 });
