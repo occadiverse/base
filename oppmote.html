@@ -23,7 +23,7 @@
         .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
         .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
-        /* Oppmøte-spesifikk tabell-logikk for sticky kolonne */
+        /* Tabell-container og struktur */
         .table-container {
             overflow-x: auto;
             position: relative;
@@ -39,18 +39,60 @@
             border-spacing: 0;
         }
 
+        /* NY RYDDIG HEADER STYLING */
         #attendanceHeader th {
-            height: 90px;
+            padding: 12px 8px;
             background: #f8f9fa;
-            font-size: 0.7rem;
-            font-weight: 900;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
             border-bottom: 2px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
+            border-right: 1px solid #eee;
+            min-width: 55px;
+            vertical-align: top;
         }
 
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-date {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        /* Dag-type (T/K) som runde sirkler */
+        .day-type {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.65rem;
+            color: white;
+        }
+        .day-type-training { background: #cbd5e1; color: #475569; }
+        .day-type-match { background: #ef4444; }
+
+        .btn-delete-header {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: 800;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: 0.2s;
+        }
+        .btn-delete-header:hover { opacity: 1; }
+
+        /* Sticky navnekolonne */
         .name-col {
             position: sticky;
             left: 0;
@@ -63,7 +105,30 @@
             font-weight: 700;
         }
 
-        /* FAB Button - Identisk plassering */
+        /* Sentrering av sjekk-rundinger i cellene */
+        #attendanceTable td {
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f2f6;
+            border-right: 1px solid #f1f2f6;
+            padding: 12px 5px;
+        }
+
+        /* Status styling */
+        .status-present { color: #2ecc71; font-size: 1.3rem; display: block; width: 100%; }
+        .status-none { color: #f1f2f6; font-size: 1.3rem; display: block; width: 100%; }
+        
+        .attendance-badge {
+            background: var(--bsk-blue);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            float: right;
+        }
+
+        /* FAB Button */
         .fab-btn {
             position: fixed;
             right: 25px;
@@ -82,30 +147,13 @@
         }
 
         @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
-
-        /* Status styling */
-        .status-present { color: #2ecc71; font-size: 1.3rem; }
-        .status-none { color: #eee; font-size: 1.3rem; }
-        
-        .attendance-badge {
-            background: var(--bsk-blue);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            float: right;
-        }
     </style>
 </head>
 <body>
 
-<!-- TOP BAR - Identisk med kamper.html -->
 <header class="top-bar">
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
-    
     <h1 id="section-title" class="section-title">Oppmøte</h1>
-
     <div class="filter-wrapper">
         <div class="filter-container">
             <i class="fa-solid fa-calendar-days"></i>
@@ -130,7 +178,6 @@
 
 <div class="sidebar" id="sidebar"></div>
 
-<!-- BOTTOM NAV - Identisk -->
 <nav class="bottom-nav">
     <a href="index.html" class="nav-item">
         <i class="fa-solid fa-house"></i>
@@ -172,12 +219,11 @@
     </div>
 </main>
 
-<!-- FAB KNAPP - Identisk -->
 <button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny dag">
     <i class="fa-solid fa-calendar-plus"></i>
 </button>
 
-<!-- MODAL: NY ØKT (Brukt samme struktur som kamper.html) -->
+<!-- MODAL: NY ØKT -->
 <div id="attendanceModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -207,7 +253,6 @@
     </div>
 </div>
 
-<!-- SCRIPTS -->
 <script src="navigation.js"></script>
 <script type="module" src="oppmote.js"></script>
 
