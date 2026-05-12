@@ -18,7 +18,7 @@
     
     /* Layout variabler */
     --sidebar-width: 260px;
-    --topbar-height: 70px;
+    --topbar-height: 56px; /* Oppdatert til slank Gemini-høyde */
 }
 
 /* 
@@ -55,18 +55,18 @@ body {
     left: 0;
     height: 100vh;
     z-index: 2000;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s ease;
     box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
 .sidebar.collapsed {
     transform: translateX(calc(-1 * var(--sidebar-width)));
-    box-shadow: none; /* Fjerner skyggen som "stikker ut" */
-    border-right: none; /* Fjerner kanten som lager den hvite streken */
+    box-shadow: none;
+    border-right: none;
 }
 
 .nav-links {
-    padding-top: 80px;
+    padding-top: 30px; /* Litt mindre padding for renere look */
     display: flex;
     flex-direction: column;
 }
@@ -102,7 +102,7 @@ body {
 
 /* 
 ================================================================
-4. HOVEDLAYOUT (MAIN CONTENT)
+4. HOVEDLAYOUT & TOP-BAR (GEMINI STIL)
 ================================================================
 */
 .main-content {
@@ -121,20 +121,20 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    height: 56px; /* Slankere høyde som Gemini */
+    height: var(--topbar-height);
     background: var(--white);
-    display: grid; /* Vi bruker grid for perfekt sentrering */
-    grid-template-columns: 1fr auto 1fr; 
+    display: grid; 
+    grid-template-columns: 1fr auto 1fr;  /* Sikrer perfekt sentrering */
     align-items: center;
     padding: 0 15px;
     border-bottom: 1px solid var(--border-color);
-    margin: 0;
-    width: 100%;
+    margin: -20px -20px 20px -20px; /* Beholder din flyt inn i padding */
+    width: calc(100% + 40px);
 }
 
 .section-title {
-    grid-column: 2; /* Tvinger tittelen til midten */
-    font-size: 1rem; /* Mindre og mer diskret tekst */
+    grid-column: 2;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-main);
     margin: 0;
@@ -142,39 +142,37 @@ body {
 }
 
 .menu-toggle {
-    grid-column: 1; /* Knappen til venstre */
-    background: transparent; /* Fjerner bakgrunnsfargen for et renere utseende */
+    grid-column: 1;
+    background: transparent;
     border: none;
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    margin: 0;
+    width: 42px;
+    height: 42px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    font-size: 1.2rem;
 }
 
 .filter-wrapper {
-    grid-column: 3; /* Filteret til høyre */
+    grid-column: 3;
     display: flex;
     justify-content: flex-end;
 }
 
-/* Gjør selve select-boksen mindre og mer minimalistisk */
 .base-select {
     font-size: 0.85rem;
     padding: 4px 8px;
-    border: 1px solid transparent;
+    border: none;
     background: transparent;
-    font-weight: 500;
-    color: var(--primary); /* Gir den litt farge så man ser den er klikkbar */
+    font-weight: 600;
+    color: var(--primary);
     cursor: pointer;
 }
 
 /* 
 ================================================================
-5. HERO SEKSJON STIL
+5. HERO SEKSJON STIL (BEHOLDT)
 ================================================================
 */
 .welcome-hero {
@@ -201,7 +199,7 @@ body {
 
 /* 
 ================================================================
-6. DASHBORD KORT (GRID SYSTEM)
+6. DASHBORD KORT (BEHOLDT)
 ================================================================
 */
 .dashboard-grid {
@@ -224,52 +222,9 @@ body {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dash-card:hover {
-    transform: translateY(-8px);
-    border-color: var(--primary);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-}
-
-.dash-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(52, 152, 219, 0.1);
-    color: var(--primary);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin-right: 20px;
-    flex-shrink: 0;
-}
-
-.dash-info h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 5px;
-}
-
-.dash-info p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
-
-.dash-card .arrow {
-    margin-left: auto;
-    opacity: 0.3;
-    transition: 0.3s;
-}
-
-.dash-card:hover .arrow {
-    opacity: 1;
-    transform: translateX(5px);
-    color: var(--primary);
-}
-
 /* 
 ================================================================
-7. TAKTIKK-BRETT (6.5% stilen)
+7. TAKTIKK-BRETT (BEHOLDT)
 ================================================================
 */
 .tactic-container {
@@ -302,38 +257,11 @@ body {
     z-index: 100;
     border: 0.07cqw solid white !important;
     box-shadow: 0 0.2cqw 0.5cqw rgba(0,0,0,0.2);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.player-node .pos-label {
-    font-size: clamp(4px, 1.2cqw, 8px);
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    line-height: 1;
-    margin-bottom: 1px;
-    opacity: 0.85;
-}
-
-.player-node .player-initials {
-    font-size: clamp(8px, 2.6cqw, 14px);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 0.9;
-}
-
-.player-node select {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    border-radius: 50%;
 }
 
 /* 
 ================================================================
-8. TABELLER OG STATISTIKK
+8. TABELLER OG STATISTIKK (BEHOLDT)
 ================================================================
 */
 .table-container {
@@ -354,57 +282,21 @@ th, td {
     text-align: center;
 }
 
-th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: var(--text-main);
-}
-
-/* Sticky navn-kolonne - ALLTID sticky */
-.name-col {
-    position: sticky;
-    left: 0;
-    background-color: #f8f9fa;
-    z-index: 10;
-    min-width: 150px;
-    text-align: left;
-    font-weight: 600;
-}
-
-.table-container tbody .name-col {
-    background-color: var(--white);
-}
-
-.status-pill {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--primary);
-    color: var(--white);
-    font-weight: 700;
-}
-
 /* 
 ================================================================
-9. MOBIL-TILPASNING (REVIDERT)
+9. MOBIL-TILPASNING (REVIDERT & TRYGG)
 ================================================================
 */
 @media (max-width: 768px) {
     .sidebar {
-        /* FIX: Vi flytter startpunktet til menyen helt ut av skjermen */
         left: -300px !important; 
         width: 280px;
         position: fixed;
-        /* Vi bruker 0 her, fordi left-verdien allerede har skjøvet den ut */
-        transform: translateX(0); 
+        transform: none !important;
         transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: none;
     }
     
-    /* Når menyen skal vises, drar vi den inn til kanten */
     .sidebar:not(.collapsed) {
         left: 0 !important;
         box-shadow: 5px 0 25px rgba(0,0,0,0.2);
@@ -414,18 +306,19 @@ th {
         margin-left: 0 !important;
         padding: 15px;
         width: 100%;
-        position: relative;
     }
 
-    /* Fjerner alt som kan stikke ut fra toppen */
     .top-bar {
         margin: 0 !important; 
         width: 100%;
         padding: 0 15px;
-        left: 0;
     }
 
-    body {
-        overflow-x: hidden;
+    .welcome-hero {
+        padding: 30px;
+    }
+
+    .hero-content h2 {
+        font-size: 1.6rem;
     }
 }
