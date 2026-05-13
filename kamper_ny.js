@@ -112,8 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
                 
-                <td class="date-time-cell">
+                <td style="text-align: center; font-weight: 600;">
                     <span class="date-part">${shortDate}</span>
+                </td>
+
+                <td style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">
                     <span class="time-part">${match.time}</span>
                 </td>
                 
@@ -146,12 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (kommende.length > 0) {
-            matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="6" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">KOMMENDE KAMPER</td></tr>`;
+            matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">KOMMENDE KAMPER</td></tr>`;
             kommende.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, false));
         }
 
         if (tidligere.length > 0) {
-            matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="6" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">TIDLIGERE RESULTATER</td></tr>`;
+            matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">TIDLIGERE RESULTATER</td></tr>`;
             tidligere.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, true));
         }
     }
@@ -288,7 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="nySpillerListe" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;"></div>
         `;
 
-        // Toggle-funksjon for stats-knappen (Den du spurte om)
         const statsToggleBtn = document.getElementById('statsEditToggle')?.querySelector('button');
         if (statsToggleBtn) {
             statsToggleBtn.onclick = () => {
