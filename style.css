@@ -1,211 +1,51 @@
 /* 
-
-
-
 ================================================================
-
-
-
 1. DESIGNVARIABLER
-
-
-
 ================================================================
-
-
-
 */
-
-
-
 :root {
-
-
-
     --bsk-blue: #0056b3;
-
-
-
     --bsk-yellow: #ffcc00;
-
-
-
-    
-
-
-
     --primary: var(--bsk-blue);
-
-
-
     --primary-dark: #004494;
-
-
-
     --accent: var(--bsk-yellow);
-
-
-
     --active-bg: rgba(0, 86, 179, 0.08);
-
-
-
-    
-
-
-
     --bg-light: #f4f7f6;
-
-
-
     --text-main: #2d3436;
-
-
-
     --text-muted: #636e72;
-
-
-
     --border-color: #dfe6e9;
-
-
-
     --white: #ffffff;
-
-
-
-    
-
-
-
     --success: #2ecc71;
-
-
-
     --danger: #e74c3c;
-
-
-
-    
-
-
-
     --shadow: 0 4px 15px rgba(0,0,0,0.08);
-
-
-
-    
-
-
-
     --sidebar-width: 260px;
-
-
-
     --topbar-height: 56px;
-
-
-
     --bottom-nav-height: 70px;
-
-
-
 }
 
-
-
-
-
-
-
 /* 
-
-
-
 ================================================================
-
-
-
 2. GRUNNLEGGENDE RESET
-
-
-
 ================================================================
-
-
-
 */
-
-
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-
-
-
-
-
-
 body {
-
-
-
     background-color: var(--bg-light);
-
-
-
     color: var(--text-main);
-
-
-
     display: flex;
-
-
-
     flex-direction: column; 
-
-
-
     min-height: 100vh;
-
-
-
     overflow-x: hidden;
-
-
-
     -webkit-font-smoothing: antialiased;
-
-
-
 }
 
-
-
-
-
-
-
 /* 
-
-
-
 ================================================================
-
-
-
 3. TOP BAR
-
-
-
 ================================================================
-
-
-
 */
-
-
-
 .top-bar {
 
 
@@ -1325,39 +1165,52 @@ td {
     }
 }
 
-/* --- SPESIFIKK TILPASNING KUN FOR KAMPTABELLEN --- */
+/* --- MOBIL-TILPASNING FOR KAMPTABELL --- */
 @media (max-width: 768px) {
-    /* Vi treffer kun tabellen med klassen .match-table */
     table.match-table {
-        min-width: 100% !important;
-        width: 100% !important;
         table-layout: fixed !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
     }
 
-    /* Kolonne 1: TID (25%) */
-    table.match-table th:nth-child(1), 
-    table.match-table td:nth-child(1) { 
-        width: 25% !important; 
-        padding: 12px 2px !important;
+    /* Vi definerer nøyaktig hva de tre synlige kolonnene skal være */
+    
+    /* 1. kolonne: TID */
+    table.match-table th:nth-of-type(1), 
+    table.match-table td:nth-of-type(1) { 
+        width: 22% !important; 
         text-align: center !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
     }
 
-    /* Kolonne 2: MOTSTANDER (50%) */
-    table.match-table th:nth-child(2), 
-    table.match-table td:nth-child(2) { 
-        width: 50% !important; 
-        padding: 12px 5px !important;
+    /* 2. kolonne: MOTSTANDER */
+    table.match-table th:nth-of-type(2), 
+    table.match-table td:nth-of-type(2) { 
+        width: 58% !important; /* Øker denne litt for å tette gapet */
+        text-align: left !important;
+        padding-left: 5px !important;
     }
 
-    /* Kolonne 3: RES (25%) */
-    table.match-table th:nth-child(3), 
-    table.match-table td:nth-child(3) { 
-        width: 25% !important; 
-        padding: 12px 2px !important;
+    /* 3. kolonne: RES */
+    table.match-table th:nth-of-type(3), 
+    table.match-table td:nth-of-type(3) { 
+        width: 20% !important; 
         text-align: center !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
     }
 
-    /* Sørger for at innholdet i kamptabellen holder seg på én linje */
-    table.match-table .date-part { font-size: 0.85rem !important; white-space: nowrap; }
-    table.match-table .time-part { font-size: 0.7rem !important; }
+    /* SKJULER de andre kolonnene på mobil (Bane, Type, Handling) */
+    /* Dette sikrer at de ikke tar opp usynlig plass */
+    table.match-table th:nth-of-type(n+4),
+    table.match-table td:nth-of-type(n+4) {
+        display: none !important;
+    }
+
+    /* Fjerner eventuelle gap i celle-innholdet */
+    table.match-table .date-time-cell {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
 }
