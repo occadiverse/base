@@ -199,173 +199,48 @@ body {
 
 
 /* 
-
-
-
 ================================================================
-
-
-
 5. TABELL-SYSTEM
-
-
-
 ================================================================
-
-
-
 */
-
-
-
 .table-container {
-
-
-
     background: var(--white);
-
-
-
     border-radius: 15px;
-
-
-
     overflow-x: auto;
-
-
-
     -webkit-overflow-scrolling: touch;
-
-
-
     box-shadow: var(--shadow);
-
-
-
     border: 1px solid var(--border-color);
-
-
-
     margin: 20px 0;
-
-
-
 }
 
-
-
-
-
-
-
-table { width: 100%; border-collapse: collapse; min-width: 450px; }
-
-
+table { width: 100%; border-collapse: collapse; min-width: 0px; }
 
 thead { background-color: #f8f9fa; }
 
-
-
-
-
-
-
 th {
-
-
-
     padding: 16px 20px;
-
-
-
     font-size: 0.7rem;
-
-
-
     font-weight: 900; 
-
-
-
     color: #64748b;
-
-
-
     text-transform: uppercase;
-
-
-
     letter-spacing: 0.1em;
-
-
-
     border-bottom: 2px solid #eef2f6;
-
-
-
 }
-
-
-
-
-
-
 
 td {
-
-
-
     padding: 14px 20px;
-
-
-
     border-bottom: 1px solid #f1f5f9;
-
-
-
     color: #1e293b;
-
-
-
     font-size: 0.9rem;
-
-
-
     vertical-align: middle;
-
-
-
 }
-
-
-
-
-
-
 
 .match-row:hover { background-color: #f8fbff; }
 
-
-
-
-
-
-
 /* 
-
-
-
 ================================================================
-
-
-
 6. NAVIGASJON & HOVEDLAYOUT
-
-
-
 ================================================================
-
-
-
 */
 
 
@@ -949,41 +824,43 @@ td {
     }
 }
 
+/* --- REN MOBILVISNING (Dato, Tid, Motstander, Res) --- */
 @media (max-width: 768px) {
     
-    /* 1. Tving tabellen til å aldri bli bredere enn skjermen */
+    /* 1. Fjern begrensninger på containeren */
     .table-container {
+        overflow-x: hidden !important;
+        min-width: 0 !important;
         width: 100% !important;
-        overflow-x: hidden !important; /* Stopper all sidelengs rulling */
-        padding: 0 !important;
-        margin: 0 !important;
     }
 
-    table.match-table {
-        width: 100% !important;
-        table-layout: fixed !important; /* KRITISK: Tvinger kolonnene til å lystre bredden */
-        border-collapse: collapse !important;
+    /* 2. Kolonne 1, 2 og 4: MIDTSTILT */
+    table.match-table th:nth-child(1), table.match-table td:nth-child(1),
+    table.match-table th:nth-child(2), table.match-table td:nth-child(2),
+    table.match-table th:nth-child(4), table.match-table td:nth-child(4) {
+        text-align: center !important;
+        padding: 12px 5px !important;
+        width: auto !important; /* Lar innholdet styre */
     }
 
-    /* 2. Bruk border-box så padding ikke "stjeler" plass utover */
-    table.match-table th, 
-    table.match-table td {
-        box-sizing: border-box !important;
-        overflow: hidden;
-        text-overflow: ellipsis; /* Legger til ... hvis teksten er for lang */
-        white-space: nowrap;
-        padding: 10px 4px !important;
+    /* 3. Kolonne 3: VENSTRESTILT (Motstander) */
+    table.match-table th:nth-child(3), 
+    table.match-table td:nth-child(3) {
+        text-align: left !important;
+        padding: 12px 10px !important;
+        width: 100% !important; /* Tvinger denne til å ta all restplass */
     }
 
-    /* 3. Definer de 4 kolonnene i % (summen må være 100) */
-    table.match-table th:nth-child(1), table.match-table td:nth-child(1) { width: 22% !important; text-align: center !important; }
-    table.match-table th:nth-child(2), table.match-table td:nth-child(2) { width: 15% !important; text-align: center !important; }
-    table.match-table th:nth-child(3), table.match-table td:nth-child(3) { width: 45% !important; text-align: left !important; }
-    table.match-table th:nth-child(4), table.match-table td:nth-child(4) { width: 18% !important; text-align: center !important; }
-
-    /* 4. Skjul resten */
+    /* 4. SKJUL kolonne 5, 6 og 7 (Bane, Type, Handling) */
     table.match-table th:nth-child(n+5),
     table.match-table td:nth-child(n+5) {
         display: none !important;
+    }
+
+    /* Sikrer at lagnavn ikke brekker over mange linjer */
+    table.match-table td:nth-child(3) div {
+        white-space: normal;
+        word-break: break-word;
+        max-width: 150px; /* Juster denne hvis navnet blir for dominerende */
     }
 }
