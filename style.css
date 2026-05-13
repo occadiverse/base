@@ -949,40 +949,41 @@ td {
     }
 }
 
-/* --- REN MOBILVISNING (Dato, Tid, Motstander, Res) --- */
 @media (max-width: 768px) {
     
-    /* Tvinger tabellen til å bruke hele skjermbredden */
+    /* 1. Tving tabellen til å aldri bli bredere enn skjermen */
+    .table-container {
+        width: 100% !important;
+        overflow-x: hidden !important; /* Stopper all sidelengs rulling */
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
     table.match-table {
         width: 100% !important;
-        table-layout: auto !important; 
+        table-layout: fixed !important; /* KRITISK: Tvinger kolonnene til å lystre bredden */
         border-collapse: collapse !important;
     }
 
-    /* Midtstill tekst i kolonne 1, 2 og 4 */
-    table.match-table th:nth-child(1), table.match-table td:nth-child(1),
-    table.match-table th:nth-child(2), table.match-table td:nth-child(2),
-    table.match-table th:nth-child(4), table.match-table td:nth-child(4) {
-        text-align: center !important;
+    /* 2. Bruk border-box så padding ikke "stjeler" plass utover */
+    table.match-table th, 
+    table.match-table td {
+        box-sizing: border-box !important;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Legger til ... hvis teksten er for lang */
+        white-space: nowrap;
         padding: 10px 4px !important;
     }
 
-    /* Venstrestill Motstander (kolonne 3) */
-    table.match-table th:nth-child(3), 
-    table.match-table td:nth-child(3) {
-        text-align: left !important;
-        padding: 10px 8px !important;
-    }
+    /* 3. Definer de 4 kolonnene i % (summen må være 100) */
+    table.match-table th:nth-child(1), table.match-table td:nth-child(1) { width: 22% !important; text-align: center !important; }
+    table.match-table th:nth-child(2), table.match-table td:nth-child(2) { width: 15% !important; text-align: center !important; }
+    table.match-table th:nth-child(3), table.match-table td:nth-child(3) { width: 45% !important; text-align: left !important; }
+    table.match-table th:nth-child(4), table.match-table td:nth-child(4) { width: 18% !important; text-align: center !important; }
 
-    /* Skjul alt etter kolonne 4 (Bane, Type, Handling) */
+    /* 4. Skjul resten */
     table.match-table th:nth-child(n+5),
     table.match-table td:nth-child(n+5) {
         display: none !important;
-    }
-
-    /* Fjern eventuelle rammer/skygger som dytter på bredden */
-    .table-container {
-        overflow-x: hidden !important;
-        padding: 0 !important;
     }
 }
