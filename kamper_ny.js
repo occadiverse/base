@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('postMatchStats').style.display = 'none';
     };
 
-    // --- TEGN TABELLEN (OPPDATERT FOR RESPONSIVITET OG KLIKK) ---
+    // --- TEGN TABELLEN ---
     function renderTable() {
         if (!matchTableBody) return;
         matchTableBody.innerHTML = '';
@@ -154,27 +154,111 @@ document.addEventListener('DOMContentLoaded', () => {
             matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="6" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">TIDLIGERE RESULTATER</td></tr>`;
             tidligere.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, true));
         }
-
-        if (allMatches.length === 0) {
-            matchTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen kamper registrert.</td></tr>`;
-        }
     }
+
+    // --- LOGIKK FOR Å GENERERE STATISTIKK-SKJEMA ---
+    function prepareStatsForm(matchData, troop) {
+        const container = document.getElementById('postMatchStats');
+        const savedRatings = matchData?.playerRatings || {};
+
+        container.innerHTML = `
+            <div class="form-row" style="margin-top:15px;">
+                <div class="form-group" style="flex:1">
+                    <label>Målscorer</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="goalSelect" class="form-control" style="flex: 1;"></select>
+                        <button type="button" onclick="window.addGoal()" style="background: var(--bsk-blue); color: white; border:none; padding: 0 15px; border-radius:10px; cursor:pointer;">+</button>
+                    </div>
+                    <div id="goalListDisplay" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex:1">
+                    <label>Assist</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="assistSelect" class="form-control" style="flex: 1;"></select>
+                        <button type="button" onclick="window.addAssist()" style="background: #27ae60; color: white; border:none; padding: 0 15px; border-radius:10px; cursor:pointer;">+</button>
+                    </div>
+                    <div id="assistListDisplay" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 10px;">Vurdering (2=Bra, 1=Ok, 0=Svak)</label>
+                <div style="background: #f8f9fa; border-radius: 12px; padding: 10px; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead><tr style="text-align: left; border-bottom: 1px solid #ddd;"><th style="padding: 5px;">Navn</th><th style="text-align: center;">OFF</th><th style="text-align: center;">DEF</th></tr></thead>
+                        <tbody id="playerRatingBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <button type="button" onclick="window.saveFinalMatchStats()" style="width:100%; background: var(--bsk-blue); color:white; border:none; padding:14px; border-radius:12px; font-weight:700; margin-top:15px; cursor:pointer;">LAGRE RAPPORT</button>`;
+
+        const options = troop.map(name => `<option value="${name}">${name}</option>`).join('');
+        document.getElementById('goalSelect').innerHTML = `<option value="">Velg...</option>` + options;
+        document.getElementById('assistSelect').innerHTML = `<option value="">Velg...</option>` + options;
+
+        currentMatchGoals = matchData?.goalScorers ? matchData.goalScorers.split(', ').filter(s => s !== "") : [];
+        currentMatchAssists = matchData?.assists ? matchData.assists.split(', ').filter(s => s !== "") : [];
+        renderStatsBadges();
+
+        document.getElementById('playerRatingBody').innerHTML = troop.map(name => {
+            const r = savedRatings[name] || { off: 1, def: 1 };
+            return `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 5px; font-weight: 600;">${name}</td>
+                    <td style="text-align: center;"><select class="off-rating" data-player="${name}"><option value="2" ${r.off == 2 ? 'selected' : ''}>2</option><option value="1" ${r.off == 1 ? 'selected' : ''}>1</option><option value="0" ${r.off == 0 ? 'selected' : ''}>0</option></select></td>
+                    <td style="text-align: center;"><select class="def-rating" data-player="${name}"><option value="2" ${r.def == 2 ? 'selected' : ''}>2</option><option value="1" ${r.def == 1 ? 'selected' : ''}>1</option><option value="0" ${r.def == 0 ? 'selected' : ''}>0</option></select></td>
+                </tr>`;
+        }).join('');
+    }
+
+    function renderStatsBadges() {
+        const goalDiv = document.getElementById('goalListDisplay');
+        const assistDiv = document.getElementById('assistListDisplay');
+        if(goalDiv) goalDiv.innerHTML = currentMatchGoals.map((n, i) => `<span onclick="window.removeGoal(${i})" style="background:var(--bsk-blue); color:white; padding:4px 8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">${n} &times;</span>`).join('');
+        if(assistDiv) assistDiv.innerHTML = currentMatchAssists.map((n, i) => `<span onclick="window.removeAssist(${i})" style="background:#27ae60; color:white; padding:4px 8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">${n} &times;</span>`).join('');
+    }
+
+    // Hjelpefunksjoner for statistikk på window
+    window.addGoal = () => { const n = document.getElementById('goalSelect').value; if(n){currentMatchGoals.push(n); renderStatsBadges();} };
+    window.addAssist = () => { const n = document.getElementById('assistSelect').value; if(n){currentMatchAssists.push(n); renderStatsBadges();} };
+    window.removeGoal = (i) => { currentMatchGoals.splice(i,1); renderStatsBadges(); };
+    window.removeAssist = (i) => { currentMatchAssists.splice(i,1); renderStatsBadges(); };
+
+    window.saveFinalMatchStats = () => {
+        const matchId = document.getElementById('editMatchId').value;
+        const ratings = {};
+        document.querySelectorAll('.off-rating').forEach(el => {
+            const p = el.getAttribute('data-player');
+            ratings[p] = { 
+                off: parseInt(el.value), 
+                def: parseInt(document.querySelector(`.def-rating[data-player="${p}"]`).value) 
+            };
+        });
+        const updates = {};
+        updates[`matches/${matchId}/goalScorers`] = currentMatchGoals.join(', ');
+        updates[`matches/${matchId}/assists`] = currentMatchAssists.join(', ');
+        updates[`matches/${matchId}/playerRatings`] = ratings;
+        
+        window.dbUpdate(window.dbRef(window.db), updates).then(() => { 
+            alert("Rapport lagret!"); 
+            document.getElementById('postMatchStats').style.display = 'none'; 
+        });
+    };
 
     // --- LOGIKK FOR Å FYLLE KAMPINFO-MODAL ---
     document.addEventListener('renderMatchDetails', (e) => {
         const { id, date, opponent, time, pitch } = e.detail;
-        
-        // Oppdaterer tittelen fra "Laster..." til motstanderens navn
         const infoTitle = document.getElementById('infoTitle');
         if (infoTitle) infoTitle.innerText = opponent;
 
         const detailsDiv = document.getElementById('matchInfoDetails');
         const tacticContainer = document.getElementById('tacticBarContainer');
+        const matchData = allMatches.find(m => m.id === id);
         
         const parts = date.split('-');
         const firebaseDateKey = `${parts[2]}-${parts[1]}-${parts[0]}`; 
         const displayDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
-        const matchData = allMatches.find(m => m.id === id);
 
         if (!detailsDiv) return;
 
@@ -204,19 +288,34 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="nySpillerListe" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;"></div>
         `;
 
+        // Toggle-funksjon for stats-knappen (Den du spurte om)
+        const statsToggleBtn = document.getElementById('statsEditToggle')?.querySelector('button');
+        if (statsToggleBtn) {
+            statsToggleBtn.onclick = () => {
+                const container = document.getElementById('postMatchStats');
+                const isVisible = container.style.display === 'block';
+                if (!isVisible) {
+                    container.style.display = 'block';
+                    prepareStatsForm(matchData, currentTroopNames);
+                } else {
+                    container.style.display = 'none';
+                }
+                const icon = statsToggleBtn.querySelector('.fa-chevron-down');
+                if (icon) icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+            };
+        }
+
         if (tacticContainer) {
             tacticContainer.innerHTML = `
                 <div class="modal-action-bar" id="jumpToTactic" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color);">
                     <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
                     <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
                 </div>`;
-            
             document.getElementById('jumpToTactic').onclick = () => {
                 window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`;
             };
         }
 
-        // Toggle-funksjon for spillerliste
         document.getElementById('toggleTropp').onclick = () => {
             const list = document.getElementById('nySpillerListe');
             const isHidden = list.style.display === 'none';
@@ -225,33 +324,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         };
 
-        // Firebase Henting av Tropp (K-status)
         window.dbOnValue(window.dbRef(window.db, '/'), (snapshot) => {
             const root = snapshot.val();
             if (!root) return;
             const players = root.players || {};
             const attendance = root.attendance || {};
             const dailyAttendance = attendance[firebaseDateKey] || {};
-            
             const tropp = Object.entries(players)
                 .map(([pId, data]) => ({ id: pId, ...data }))
                 .filter(player => dailyAttendance[player.id] === 'K');
 
             currentTroopNames = tropp.map(p => p.navn || p.name).sort((a, b) => a.localeCompare(b, 'nb'));
-            
             const pille = document.getElementById('pilleAntall');
             if (pille) pille.innerText = currentTroopNames.length;
-            
             const nyListe = document.getElementById('nySpillerListe');
             if (nyListe) {
-                if (currentTroopNames.length === 0) {
-                    nyListe.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte.</div>`;
-                } else {
-                    nyListe.innerHTML = currentTroopNames.map(name => `
-                        <div style="background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; color: var(--bsk-blue); font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            ${name}
-                        </div>`).join('');
-                }
+                nyListe.innerHTML = currentTroopNames.length === 0 ? `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 10px;">Ingen påmeldte.</div>` :
+                currentTroopNames.map(name => `<div style="background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; color: var(--bsk-blue); font-size: 0.85rem;">${name}</div>`).join('');
             }
         }, { onlyOnce: true });
     });
@@ -284,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.dbSet(window.dbRef(window.db, path), matchData).then(() => window.closeMatchModal());
     });
 
-    // --- FIREBASE HOVED-LYTTER ---
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         allMatches = data ? Object.entries(data).map(([id, match]) => ({ id, ...match })) : [];
@@ -292,7 +380,5 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTable(); 
     });
 
-    window.deleteMatch = (id) => { 
-        if(confirm('Slette kampen?')) window.dbRemove(window.dbRef(window.db, `matches/${id}`)); 
-    };
+    window.deleteMatch = (id) => { if(confirm('Slette kampen?')) window.dbRemove(window.dbRef(window.db, `matches/${id}`)); };
 });
