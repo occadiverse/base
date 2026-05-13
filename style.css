@@ -1311,3 +1311,16 @@ td {
     margin: 0 auto;
 
 }
+/* Kun oppgradering av ikoner i mobilmeny - endrer ingenting annet i tabellen */
+@media (max-width: 768px) {
+    .bottom-nav {
+        height: 75px !important; /* Litt mer plass */
+    }
+    .bottom-nav .nav-item i {
+        font-size: 1.4rem !important; /* Større ikoner */
+    }
+    .bottom-nav .nav-item span {
+        font-size: 0.7rem !important; /* Litt tydeligere tekst */
+        font-weight: 800 !important;
+    }
+}
