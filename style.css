@@ -1078,7 +1078,7 @@ td {
     }
 }
 
-/* --- MOBIL-TILPASNING FOR 4 KOLONNER (Dato, Kl, Motstander, Res) --- */
+/* --- MOBIL-TILPASNING: 4 KOLONNER MED SIKKER BREDDE --- */
 @media (max-width: 768px) {
     
     .table-container {
@@ -1089,59 +1089,62 @@ td {
     }
 
     table.match-table {
-        table-layout: fixed !important; /* Tvinger kolonnebreddene */
+        table-layout: fixed !important;
         width: 100% !important;
         border-collapse: collapse !important;
+        /* Sørger for at padding ikke legger til ekstra bredde */
+        box-sizing: border-box !important;
     }
 
-    /* Kolonne 1: DATO (22%) */
-    table.match-table th:nth-child(1),
-    table.match-table td:nth-child(1) {
+    /* Felles regel for alle celler i kamptabellen på mobil */
+    table.match-table th, 
+    table.match-table td {
+        box-sizing: border-box !important;
+        padding: 12px 4px !important; /* Her er luften din */
+        overflow: hidden;
+    }
+
+    /* 1. DATO (22%) */
+    table.match-table td:nth-child(1),
+    table.match-table th:nth-child(1) {
         width: 22% !important;
         text-align: center !important;
-        padding: 12px 2px !important;
-        font-size: 0.85rem !important;
     }
 
-    /* Kolonne 2: KL. (15%) */
-    table.match-table th:nth-child(2),
-    table.match-table td:nth-child(2) {
+    /* 2. KL. (15%) */
+    table.match-table td:nth-child(2),
+    table.match-table th:nth-child(2) {
         width: 15% !important;
         text-align: center !important;
-        padding: 12px 2px !important;
-        font-size: 0.8rem !important;
         color: var(--text-muted);
     }
 
-    /* Kolonne 3: MOTSTANDER (43%) */
-    table.match-table th:nth-child(3),
-    table.match-table td:nth-child(3) {
+    /* 3. MOTSTANDER (43%) */
+    table.match-table td:nth-child(3),
+    table.match-table th:nth-child(3) {
         width: 43% !important;
         text-align: left !important;
-        padding: 12px 5px !important;
     }
 
-    /* Kolonne 4: RES (20%) */
-    table.match-table th:nth-child(4),
-    table.match-table td:nth-child(4) {
+    /* 4. RES (20%) */
+    table.match-table td:nth-child(4),
+    table.match-table th:nth-child(4) {
         width: 20% !important;
         text-align: center !important;
-        padding: 12px 2px !important;
     }
 
-    /* SKJULER kolonne 5, 6 og 7 på mobil (Bane, Type, Handling) */
-    table.match-table th:nth-child(5), table.match-table td:nth-child(5),
-    table.match-table th:nth-child(6), table.match-table td:nth-child(6),
-    table.match-table th:nth-child(7), table.match-table td:nth-child(7) {
+    /* Skjul de resterende kolonnene */
+    table.match-table th:nth-child(n+5),
+    table.match-table td:nth-child(n+5) {
         display: none !important;
     }
 
-    /* Hindrer at lange navn i kolonne 3 lager krøll */
+    /* Tekst-beskyttelse for lagnavn */
     table.match-table td:nth-child(3) div {
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
-        display: block !important;
         width: 100% !important;
+        display: block;
     }
 }
