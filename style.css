@@ -47,121 +47,34 @@ body {
 ================================================================
 */
 .top-bar {
-
-
-
     position: fixed; 
-
-
-
     top: 0;
-
-
-
     left: 0;
-
-
-
     z-index: 2000; /* Høyere enn alt annet */
-
-
-
     height: var(--topbar-height);
-
-
-
     background: var(--white);
-
-
-
     display: flex;
-
-
-
     justify-content: space-between;
-
-
-
     align-items: center;
-
-
-
     padding: 0 20px;
-
-
-
     border-bottom: 1px solid var(--border-color);
-
-
-
     width: 100%;
-
-
-
 }
-
-
-
-
-
-
 
 .logo-brand {
-
-
-
     display: flex;
-
-
-
     align-items: center;
-
-
-
     font-weight: 900; 
-
-
-
     font-size: 1.1rem;
-
-
-
     color: var(--bsk-blue) !important;
-
-
-
     text-decoration: none !important;
-
-
-
     white-space: nowrap;
-
-
-
     min-width: 150px;
-
-
-
 }
 
-
-
-
-
-
-
 .logo-brand span { 
-
-
-
     color: var(--bsk-yellow) !important; 
-
-
-
     margin-left: 5px; 
-
-
-
 }
 
 
@@ -1165,76 +1078,70 @@ td {
     }
 }
 
-/* --- MOBIL-FIX FOR KAMPTABELL (CLEAN SLATE) --- */
+/* --- MOBIL-TILPASNING FOR 4 KOLONNER (Dato, Kl, Motstander, Res) --- */
 @media (max-width: 768px) {
     
-    /* 1. Nullstill containeren helt */
     .table-container {
         padding: 0 !important;
         margin: 10px 0 !important;
-        overflow: hidden !important; /* Stopper all rulling */
         width: 100% !important;
+        overflow-x: hidden !important;
     }
 
-    /* 2. Tving tabellen til å bruke nøyaktig 100% av skjermen */
     table.match-table {
-        display: table !important; /* Sikrer at den oppfører seg som en tabell */
-        width: 100% !important;
-        min-width: 100% !important;
-        max-width: 100% !important;
         table-layout: fixed !important; /* Tvinger kolonnebreddene */
-        border-spacing: 0 !important;
+        width: 100% !important;
         border-collapse: collapse !important;
     }
 
-    /* 3. Definer de 3 kolonnene (25% - 50% - 25%) */
-    /* Vi bruker nth-child(1), (2) og (3) */
-    
-    /* TID */
+    /* Kolonne 1: DATO (22%) */
     table.match-table th:nth-child(1),
     table.match-table td:nth-child(1) {
-        width: 25% !important;
-        padding: 10px 2px !important;
+        width: 22% !important;
         text-align: center !important;
+        padding: 12px 2px !important;
+        font-size: 0.85rem !important;
     }
 
-    /* MOTSTANDER */
+    /* Kolonne 2: KL. (15%) */
     table.match-table th:nth-child(2),
     table.match-table td:nth-child(2) {
-        width: 50% !important;
-        padding: 10px 5px !important;
-        text-align: left !important;
+        width: 15% !important;
+        text-align: center !important;
+        padding: 12px 2px !important;
+        font-size: 0.8rem !important;
+        color: var(--text-muted);
     }
 
-    /* RES */
+    /* Kolonne 3: MOTSTANDER (43%) */
     table.match-table th:nth-child(3),
     table.match-table td:nth-child(3) {
-        width: 25% !important;
-        padding: 10px 2px !important;
-        text-align: center !important;
+        width: 43% !important;
+        text-align: left !important;
+        padding: 12px 5px !important;
     }
 
-    /* 4. SKJUL alt annet (kolonne 4, 5, 6) */
-    table.match-table th:nth-child(4), table.match-table td:nth-child(4),
+    /* Kolonne 4: RES (20%) */
+    table.match-table th:nth-child(4),
+    table.match-table td:nth-child(4) {
+        width: 20% !important;
+        text-align: center !important;
+        padding: 12px 2px !important;
+    }
+
+    /* SKJULER kolonne 5, 6 og 7 på mobil (Bane, Type, Handling) */
     table.match-table th:nth-child(5), table.match-table td:nth-child(5),
-    table.match-table th:nth-child(6), table.match-table td:nth-child(6) {
+    table.match-table th:nth-child(6), table.match-table td:nth-child(6),
+    table.match-table th:nth-child(7), table.match-table td:nth-child(7) {
         display: none !important;
     }
 
-    /* 5. Fix for teksten inni TID-kolonnen */
-    .date-time-cell {
-        display: block !important; /* Prøv block i stedet for flex her */
+    /* Hindrer at lange navn i kolonne 3 lager krøll */
+    table.match-table td:nth-child(3) div {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
         width: 100% !important;
-    }
-    
-    .date-part {
-        font-size: 0.8rem !important;
-        display: block !important;
-        letter-spacing: -0.5px !important;
-    }
-
-    .time-part {
-        font-size: 0.65rem !important;
-        display: block !important;
     }
 }
