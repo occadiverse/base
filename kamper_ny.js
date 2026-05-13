@@ -25,15 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMatchAssists = [];
     let currentTroopNames = [];
 
+    // --- FIKSET HERO-STATS LOGIKK ---
     function updateMatchHeroStats(matches) {
         const nå = new Date();
         nå.setHours(0, 0, 0, 0);
+
         const kommende = matches
             .filter(m => new Date(m.date + "T23:59:59") >= nå)
             .sort((a, b) => new Date(a.date) - new Date(b.date));
         
         let nesteKampDato = "ingen planlagte";
         let nesteMotstander = "...";
+
         if (kommende.length > 0) {
             const d = new Date(kommende[0].date);
             nesteKampDato = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
@@ -42,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let totalSeire = 0;
         let totalMaal = 0;
+
         matches.forEach(m => {
             if (m.result && m.result.includes('-')) {
                 const scores = m.result.split('-').map(s => parseInt(s.trim()));
@@ -54,8 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const opponentEl = document.getElementById('stat-next-opponent');
         const dateEl = document.getElementById('stat-next-match');
+        const winsEl = document.getElementById('stat-wins');
+        const goalsEl = document.getElementById('stat-goals');
+
         if (opponentEl) opponentEl.innerText = nesteMotstander;
         if (dateEl) dateEl.innerText = nesteKampDato;
+        if (winsEl) winsEl.innerText = `${totalSeire} seire`;
+        if (goalsEl) goalsEl.innerText = `${totalMaal} scorede mål`;
     }
 
     window.openMatchModal = () => {
@@ -74,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('postMatchStats').style.display = 'none';
     };
 
+    // --- LAGT TILBAKE SLETTE-KNAPP I TABELL ---
     function renderTable() {
         if (!matchTableBody) return;
         matchTableBody.innerHTML = '';
@@ -108,6 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display: flex; justify-content: center; gap: 8px;">
                         <button onclick="event.stopPropagation(); window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit">
                             <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="event.stopPropagation(); window.deleteMatch('${match.id}')" class="action-btn btn-delete">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -217,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!detailsDiv) return;
 
-        // Målscorer-visning
+        // --- VISNING AV MÅLSCORERE I MODAL ---
         let goalScorerHtml = '';
         if (matchData?.goalScorers) {
             goalScorerHtml = `
@@ -242,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${goalScorerHtml}
 
-                <!-- ADMIN-KNAPPER INTEGRERT I INFO-BOKSEN -->
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; gap: 8px;">
                     <button onclick="window.closeMatchInfo(); window.openEditMatch('${id}', '${date}', '${time}', '${opponent}', '${pitch}', '${matchData?.type || ''}', '${matchData?.result || '-'}')" 
                             style="flex: 1; background: #eee; border: none; padding: 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer;">
@@ -262,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="nySpillerListe" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;"></div>
         `;
 
-        // Taktikk-knapp
         const tacticContainer = document.getElementById('tacticBarContainer');
         if (tacticContainer) {
             tacticContainer.innerHTML = `
@@ -273,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('jumpToTactic').onclick = () => { window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`; };
         }
 
-        // Stats-toggle logikk
         const statsToggleBtn = document.getElementById('statsEditToggle')?.querySelector('button');
         if (statsToggleBtn) {
             statsToggleBtn.onclick = () => {
@@ -284,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        // Påmeldt tropp logikk
         document.getElementById('toggleTropp').onclick = () => {
             const list = document.getElementById('nySpillerListe');
             const isHidden = list.style.display === 'none';
@@ -339,5 +348,5 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTable(); 
     });
 
-    window.deleteMatch = (id) => { window.dbRemove(window.dbRef(window.db, `matches/${id}`)); };
+    window.deleteMatch = (id) => { if(confirm('Slette kampen?')) window.dbRemove(window.dbRef(window.db, `matches/${id}`)); };
 });
