@@ -117,10 +117,8 @@
     </div>
 </header>
 
-<!-- Sidemeny (PC) - Fylles av navigation.js -->
 <div class="sidebar" id="sidebar"></div>
 
-<!-- Bunnmeny (Mobil) - Fylles av navigation.js -->
 <nav class="bottom-nav"></nav>
 
 <main class="main-content">
@@ -151,12 +149,10 @@
     </div>
 </main>
 
-<!-- Flytende knapp for å legge til kamp -->
 <button class="fab-btn" onclick="window.openMatchModal()" title="Registrer ny kamp">
     <i class="fa-solid fa-plus"></i>
 </button>
 
-<!-- MODAL: REGISTRERING/REDIGERING -->
 <div id="matchModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -209,7 +205,6 @@
     </div>
 </div>
 
-<!-- MODAL: KAMPINFO & RAPPORT -->
 <div id="matchInfoModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -222,7 +217,6 @@
         <div id="tacticBarContainer"></div>
 
         <div id="statsEditToggle" style="margin-top: 15px;">
-            <!-- Merk: onclick er fjernet herfra, styres nå av kamper_ny.js -->
             <button class="modal-action-bar" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-light); cursor: pointer;">
                 <div>
                     <i class="fa-solid fa-chart-line" style="margin-right: 10px; color: var(--bsk-blue);"></i>
@@ -240,7 +234,6 @@
     </div>
 </div>
 
-<!-- FIREBASE & LOGIKK SCRIPTS -->
 <script type="module">
     import { db } from './firebase-config.js';
     import { ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
