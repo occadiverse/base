@@ -77,176 +77,47 @@ body {
     margin-left: 5px; 
 }
 
-
-
-
-
-
-
 .section-title {
-
-
-
     font-size: 1rem;
-
-
-
     font-weight: 700;
-
-
-
     color: var(--text-main);
-
-
-
     position: absolute;
-
-
-
     left: 50%;
-
-
-
     transform: translateX(-50%);
-
-
-
     white-space: nowrap;
-
-
-
 }
-
-
-
-
-
-
 
 .filter-wrapper {
-
-
-
     display: flex;
-
-
-
     justify-content: flex-end;
-
-
-
     min-width: 150px;
-
-
-
 }
-
-
-
-
-
-
 
 .filter-container {
-
-
-
     display: flex;
-
-
-
     align-items: center;
-
-
-
     gap: 8px;
-
-
-
     background: var(--bg-light);
-
-
-
     padding: 8px 12px;
-
-
-
     border-radius: 12px;
-
-
-
     border: 1.5px solid var(--border-color);
-
-
-
     transition: all 0.2s ease;
-
-
-
     cursor: pointer;
-
-
-
 }
-
-
-
-
-
-
 
 .filter-container:hover {
-
-
-
     border-color: var(--bsk-blue);
-
-
-
     background: var(--white);
-
-
-
 }
-
-
-
-
-
-
 
 .filter-container i { color: var(--bsk-blue); font-size: 0.9rem; }
 
-
-
-
-
-
-
 .base-select {
-
-
-
     font-size: 0.85rem;
-
-
-
     font-weight: 800;
-
-
-
     color: var(--bsk-blue);
-
-
-
     border: none;
-
-
-
     background: transparent;
-
-
-
     cursor: pointer;
 
 
@@ -1078,70 +949,40 @@ td {
     }
 }
 
-/* --- MOBIL-FIX: MAKSIMERER MOTSTANDER-PLASS --- */
+/* --- REN MOBILVISNING (Dato, Tid, Motstander, Res) --- */
 @media (max-width: 768px) {
     
-    .table-container {
-        padding: 0 !important;
-        margin: 10px 0 !important;
-        width: 100% !important;
-        overflow: hidden !important; 
-    }
-
+    /* Tvinger tabellen til å bruke hele skjermbredden */
     table.match-table {
-        /* Vi fjerner 'fixed' her for å la tabellen puste mer naturlig */
-        table-layout: auto !important; 
         width: 100% !important;
+        table-layout: auto !important; 
         border-collapse: collapse !important;
     }
 
-    /* 1. DATO */
-    table.match-table th:nth-child(1),
-    table.match-table td:nth-child(1) {
-        width: 18% !important;
+    /* Midtstill tekst i kolonne 1, 2 og 4 */
+    table.match-table th:nth-child(1), table.match-table td:nth-child(1),
+    table.match-table th:nth-child(2), table.match-table td:nth-child(2),
+    table.match-table th:nth-child(4), table.match-table td:nth-child(4) {
         text-align: center !important;
-        padding: 12px 2px !important;
-        font-size: 0.85rem !important;
-        white-space: nowrap;
+        padding: 10px 4px !important;
     }
 
-    /* 2. KL. */
-    table.match-table th:nth-child(2),
-    table.match-table td:nth-child(2) {
-        width: 12% !important;
-        text-align: center !important;
-        padding: 12px 2px !important;
-        font-size: 0.8rem !important;
-        color: var(--text-muted);
-    }
-
-    /* 3. MOTSTANDER - Nå med mye mer plass */
-    table.match-table th:nth-child(3),
+    /* Venstrestill Motstander (kolonne 3) */
+    table.match-table th:nth-child(3), 
     table.match-table td:nth-child(3) {
-        width: 55% !important; 
         text-align: left !important;
-        padding: 12px 8px !important;
+        padding: 10px 8px !important;
     }
 
-    /* 4. RES */
-    table.match-table th:nth-child(4),
-    table.match-table td:nth-child(4) {
-        width: 15% !important;
-        text-align: center !important;
-        padding: 12px 2px !important;
-    }
-
-    /* Sørger for at teksten i motstander-kolonnen bruker plassen sin helt ut */
-    table.match-table td:nth-child(3) div {
-        display: inline-block;
-        white-space: normal; /* Tillater to linjer hvis navnet er ekstremt langt */
-        word-break: break-word;
-        line-height: 1.2;
-    }
-
-    /* Skjul de resterende kolonnene */
+    /* Skjul alt etter kolonne 4 (Bane, Type, Handling) */
     table.match-table th:nth-child(n+5),
     table.match-table td:nth-child(n+5) {
         display: none !important;
+    }
+
+    /* Fjern eventuelle rammer/skygger som dytter på bredden */
+    .table-container {
+        overflow-x: hidden !important;
+        padding: 0 !important;
     }
 }
