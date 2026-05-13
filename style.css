@@ -1078,73 +1078,69 @@ td {
     }
 }
 
-/* --- MOBIL-TILPASNING: 4 KOLONNER MED SIKKER BREDDE --- */
+/* --- MOBIL-FIX: TVINGER KOLONNE 4 INN PÅ SKJERMEN --- */
 @media (max-width: 768px) {
     
     .table-container {
         padding: 0 !important;
         margin: 10px 0 !important;
         width: 100% !important;
-        overflow-x: hidden !important;
+        overflow: hidden !important; /* Stopper all sidelengs rulling */
     }
 
     table.match-table {
-        table-layout: fixed !important;
+        table-layout: fixed !important; /* KRITISK: Tvinger kolonnebredder */
         width: 100% !important;
         border-collapse: collapse !important;
-        /* Sørger for at padding ikke legger til ekstra bredde */
-        box-sizing: border-box !important;
     }
 
-    /* Felles regel for alle celler i kamptabellen på mobil */
-    table.match-table th, 
-    table.match-table td {
-        box-sizing: border-box !important;
-        padding: 12px 4px !important; /* Her er luften din */
-        overflow: hidden;
-    }
-
-    /* 1. DATO (22%) */
-    table.match-table td:nth-child(1),
-    table.match-table th:nth-child(1) {
-        width: 22% !important;
+    /* 1. DATO - Låst bredde */
+    table.match-table th:nth-child(1),
+    table.match-table td:nth-child(1) {
+        width: 65px !important; /* Faste piksler er tryggere enn % her */
         text-align: center !important;
+        padding: 12px 2px !important;
     }
 
-    /* 2. KL. (15%) */
-    table.match-table td:nth-child(2),
-    table.match-table th:nth-child(2) {
-        width: 15% !important;
+    /* 2. KL. - Låst bredde */
+    table.match-table th:nth-child(2),
+    table.match-table td:nth-child(2) {
+        width: 45px !important;
         text-align: center !important;
-        color: var(--text-muted);
+        padding: 12px 2px !important;
     }
 
-    /* 3. MOTSTANDER (43%) */
-    table.match-table td:nth-child(3),
-    table.match-table th:nth-child(3) {
-        width: 43% !important;
+    /* 3. MOTSTANDER - Fleksibel, men kutter tekst */
+    table.match-table th:nth-child(3),
+    table.match-table td:nth-child(3) {
+        width: auto !important; /* Tar resten av plassen */
         text-align: left !important;
+        padding: 12px 8px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    /* 4. RES (20%) */
-    table.match-table td:nth-child(4),
-    table.match-table th:nth-child(4) {
-        width: 20% !important;
+    /* 4. RES - Låst bredde (Nå forsvinner den ikke!) */
+    table.match-table th:nth-child(4),
+    table.match-table td:nth-child(4) {
+        width: 60px !important;
         text-align: center !important;
+        padding: 12px 2px !important;
     }
 
-    /* Skjul de resterende kolonnene */
+    /* Tvinger teksten inni motstander-cellen til å kutte seg */
+    table.match-table td:nth-child(3) div {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Skjul resten */
     table.match-table th:nth-child(n+5),
     table.match-table td:nth-child(n+5) {
         display: none !important;
-    }
-
-    /* Tekst-beskyttelse for lagnavn */
-    table.match-table td:nth-child(3) div {
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        width: 100% !important;
-        display: block;
     }
 }
