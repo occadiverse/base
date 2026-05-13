@@ -1325,47 +1325,56 @@ td {
     }
 }
 
-/* --- MOBIL-TILPASNING FOR Å FJERNE SIDELENGS SCROLL --- */
+/* --- MOBIL-TILPASNING: 20% | 60% | 20% --- */
 @media (max-width: 768px) {
-    /* 1. Tving containeren til å holde seg innenfor skjermen */
     .table-container {
         width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        overflow-x: hidden !important; /* Stopper all sidelengs rulling */
+        overflow-x: hidden !important;
     }
 
-    /* 2. Overstyr tabellens faste bredde */
     table {
-        min-width: 100% !important; /* Fjerner f.eks. min-width: 450px */
+        min-width: 100% !important;
         width: 100% !important;
-        table-layout: fixed !important; /* Magien som tvinger alt på én skjerm */
+        table-layout: fixed !important; /* Tvinger prosentfordelingen */
     }
 
-    /* 3. Juster kolonnebredder (TID, MOTSTANDER, RES) */
-    /* TID-kolonnen */
+    /* TID (20%) */
     th:nth-child(1), td:nth-child(1) { 
-        width: 60px !important; 
-        padding: 10px 4px !important; 
+        width: 20% !important; 
+        padding: 12px 5px !important;
+        text-align: center !important;
     }
-    
-    /* MOTSTANDER-kolonnen (får resten av plassen) */
+
+    /* MOTSTANDER (60%) */
     th:nth-child(2), td:nth-child(2) { 
-        width: auto !important; 
-        padding: 10px 4px !important; 
+        width: 60% !important; 
+        padding: 12px 8px !important;
+        text-align: left !important;
     }
 
-    /* RES-kolonnen */
+    /* RES (20%) */
     th:nth-child(3), td:nth-child(3) { 
-        width: 55px !important; 
-        padding: 10px 4px !important; 
+        width: 20% !important; 
+        padding: 12px 5px !important;
+        text-align: center !important;
     }
 
-    /* 4. Sørg for at lange navn kuttes med ... i stedet for å dytte ut tabellen */
+    /* Sørg for at innholdet i cellene bruker plassen sin */
+    .date-time-cell {
+        width: 100%;
+    }
+
     .text-left div {
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        display: block !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        width: 100%;
+    }
+
+    .result-badge {
+        display: inline-block !important;
+        width: 45px; /* Fast bredde på selve tall-boblen */
+        text-align: center;
     }
 }
