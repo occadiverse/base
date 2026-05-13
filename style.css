@@ -1165,52 +1165,76 @@ td {
     }
 }
 
-/* --- MOBIL-TILPASNING FOR KAMPTABELL --- */
+/* --- MOBIL-FIX FOR KAMPTABELL (CLEAN SLATE) --- */
 @media (max-width: 768px) {
-    table.match-table {
-        table-layout: fixed !important;
+    
+    /* 1. Nullstill containeren helt */
+    .table-container {
+        padding: 0 !important;
+        margin: 10px 0 !important;
+        overflow: hidden !important; /* Stopper all rulling */
         width: 100% !important;
+    }
+
+    /* 2. Tving tabellen til å bruke nøyaktig 100% av skjermen */
+    table.match-table {
+        display: table !important; /* Sikrer at den oppfører seg som en tabell */
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important; /* Tvinger kolonnebreddene */
+        border-spacing: 0 !important;
         border-collapse: collapse !important;
     }
 
-    /* Vi definerer nøyaktig hva de tre synlige kolonnene skal være */
+    /* 3. Definer de 3 kolonnene (25% - 50% - 25%) */
+    /* Vi bruker nth-child(1), (2) og (3) */
     
-    /* 1. kolonne: TID */
-    table.match-table th:nth-of-type(1), 
-    table.match-table td:nth-of-type(1) { 
-        width: 22% !important; 
+    /* TID */
+    table.match-table th:nth-child(1),
+    table.match-table td:nth-child(1) {
+        width: 25% !important;
+        padding: 10px 2px !important;
         text-align: center !important;
-        padding-left: 2px !important;
-        padding-right: 2px !important;
     }
 
-    /* 2. kolonne: MOTSTANDER */
-    table.match-table th:nth-of-type(2), 
-    table.match-table td:nth-of-type(2) { 
-        width: 58% !important; /* Øker denne litt for å tette gapet */
+    /* MOTSTANDER */
+    table.match-table th:nth-child(2),
+    table.match-table td:nth-child(2) {
+        width: 50% !important;
+        padding: 10px 5px !important;
         text-align: left !important;
-        padding-left: 5px !important;
     }
 
-    /* 3. kolonne: RES */
-    table.match-table th:nth-of-type(3), 
-    table.match-table td:nth-of-type(3) { 
-        width: 20% !important; 
+    /* RES */
+    table.match-table th:nth-child(3),
+    table.match-table td:nth-child(3) {
+        width: 25% !important;
+        padding: 10px 2px !important;
         text-align: center !important;
-        padding-left: 2px !important;
-        padding-right: 2px !important;
     }
 
-    /* SKJULER de andre kolonnene på mobil (Bane, Type, Handling) */
-    /* Dette sikrer at de ikke tar opp usynlig plass */
-    table.match-table th:nth-of-type(n+4),
-    table.match-table td:nth-of-type(n+4) {
+    /* 4. SKJUL alt annet (kolonne 4, 5, 6) */
+    table.match-table th:nth-child(4), table.match-table td:nth-child(4),
+    table.match-table th:nth-child(5), table.match-table td:nth-child(5),
+    table.match-table th:nth-child(6), table.match-table td:nth-child(6) {
         display: none !important;
     }
 
-    /* Fjerner eventuelle gap i celle-innholdet */
-    table.match-table .date-time-cell {
-        margin: 0 !important;
-        padding: 0 !important;
+    /* 5. Fix for teksten inni TID-kolonnen */
+    .date-time-cell {
+        display: block !important; /* Prøv block i stedet for flex her */
+        width: 100% !important;
+    }
+    
+    .date-part {
+        font-size: 0.8rem !important;
+        display: block !important;
+        letter-spacing: -0.5px !important;
+    }
+
+    .time-part {
+        font-size: 0.65rem !important;
+        display: block !important;
     }
 }
