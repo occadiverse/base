@@ -111,12 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
-                
                 <td style="font-weight: 600;">${shortDate}</td>
                 <td style="color: var(--text-muted); font-size: 0.85rem;">${match.time}</td>
-                <td>
-                    <div style="font-weight:700; color:var(--text-main);">${match.opponent}</div>
-                </td>
+                <td><div style="font-weight:700; color:var(--text-main);">${match.opponent}</div></td>
                 <td class="res-cell">
                     <span class="result-badge" style="background:${match.result && match.result !== '-' ? 'var(--bsk-blue)' : '#f1f2f6'}; 
                           color:${match.result && match.result !== '-' ? 'white' : '#999'}; 
@@ -124,10 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${match.result || '-'}
                     </span>
                 </td>
-                
                 <td class="desktop-only text-left" style="font-size:0.85rem; color:var(--text-muted);">${match.pitch}</td>
                 <td class="desktop-only"><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type}</span></td>
-                
                 <td class="desktop-only">
                     <div style="display: flex; justify-content: center; gap: 8px;">
                         <button onclick="event.stopPropagation(); window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit">
@@ -225,20 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const ratings = {};
         document.querySelectorAll('.off-rating').forEach(el => {
             const p = el.getAttribute('data-player');
-            ratings[p] = { 
-                off: parseInt(el.value), 
-                def: parseInt(document.querySelector(`.def-rating[data-player="${p}"]`).value) 
-            };
+            ratings[p] = { off: parseInt(el.value), def: parseInt(document.querySelector(`.def-rating[data-player="${p}"]`).value) };
         });
         const updates = {};
         updates[`matches/${matchId}/goalScorers`] = currentMatchGoals.join(', ');
         updates[`matches/${matchId}/assists`] = currentMatchAssists.join(', ');
         updates[`matches/${matchId}/playerRatings`] = ratings;
-        
-        window.dbUpdate(window.dbRef(window.db), updates).then(() => { 
-            alert("Rapport lagret!"); 
-            document.getElementById('postMatchStats').style.display = 'none'; 
-        });
+        window.dbUpdate(window.dbRef(window.db), updates).then(() => { alert("Rapport lagret!"); document.getElementById('postMatchStats').style.display = 'none'; });
     };
 
     document.addEventListener('renderMatchDetails', (e) => {
@@ -256,6 +244,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!detailsDiv) return;
 
+        // Lag målscorer-visning hvis det finnes data
+        let goalScorerHtml = '';
+        if (matchData?.goalScorers) {
+            goalScorerHtml = `
+                <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+                    <i class="fa-solid fa-futbol" style="color: var(--text-main); margin-top: 3px; font-size: 0.9rem;"></i> 
+                    <span style="font-weight: 500; color: var(--text-main); font-size: 0.85rem; line-height: 1.4;">${matchData.goalScorers}</span>
+                </div>
+            `;
+        }
+
         detailsDiv.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -269,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue);"></i> 
                     <span style="font-weight: 500; color: var(--text-muted);">${pitch}</span>
                 </div>
+                ${goalScorerHtml}
             </div>
 
             <div class="modal-action-bar" id="toggleTropp" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border-color); margin-bottom: 10px;">
@@ -280,19 +280,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fa-solid fa-chevron-down chevron-icon"></i>
             </div>
             <div id="nySpillerListe" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;"></div>
-
-            <!-- ADMIN-KNAPPER FOR MOBIL -->
-            <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: flex; gap: 10px;">
-                <button onclick="window.closeMatchInfo(); window.openEditMatch('${id}', '${date}', '${time}', '${opponent}', '${pitch}', '${matchData?.type || ''}', '${matchData?.result || '-'}')" 
-                        style="flex: 1; background: #f1f2f6; color: var(--text-main); border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;">
-                    <i class="fa-solid fa-pen" style="margin-right: 8px;"></i>Rediger
-                </button>
-                <button onclick="window.deleteMatch('${id}'); window.closeMatchInfo();" 
-                        style="flex: 1; background: #ffeaa7; color: #d63031; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;">
-                    <i class="fa-solid fa-trash" style="margin-right: 8px;"></i>Slett
-                </button>
-            </div>
         `;
+
+        // --- ADMIN-KNAPPER (Legges til i bunnen av modal-body) ---
+        const modalContent = document.querySelector('#matchInfoModal .modal-body');
+        if (modalContent) {
+            let adminContainer = document.getElementById('mobileAdminActions');
+            if (!adminContainer) {
+                adminContainer = document.createElement('div');
+                adminContainer.id = 'mobileAdminActions';
+                modalContent.appendChild(adminContainer);
+            }
+            adminContainer.innerHTML = `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+                    <button onclick="window.closeMatchInfo(); window.openEditMatch('${id}', '${date}', '${time}', '${opponent}', '${pitch}', '${matchData?.type || ''}', '${matchData?.result || '-'}')" 
+                            style="flex: 1; background: #f1f2f6; color: var(--text-main); border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                        <i class="fa-solid fa-pen" style="margin-right: 8px;"></i>Rediger
+                    </button>
+                    <button onclick="window.deleteMatch('${id}'); window.closeMatchInfo();" 
+                            style="flex: 1; background: #fff5f5; color: #d63031; border: 1px solid #fed7d7; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                        <i class="fa-solid fa-trash" style="margin-right: 8px;"></i>Slett
+                    </button>
+                </div>`;
+        }
 
         const statsToggleBtn = document.getElementById('statsEditToggle')?.querySelector('button');
         if (statsToggleBtn) {
@@ -316,9 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display: flex; align-items: center;"><i class="fa-solid fa-clipboard-list" style="margin-right:10px; color:var(--bsk-blue);"></i><span style="font-weight: 700;">Kampplan</span></div>
                     <i class="fa-solid fa-arrow-right" style="color: var(--text-muted);"></i>
                 </div>`;
-            document.getElementById('jumpToTactic').onclick = () => {
-                window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`;
-            };
+            document.getElementById('jumpToTactic').onclick = () => { window.location.href = `taktikk.html?matchId=${id}&date=${firebaseDateKey}`; };
         }
 
         document.getElementById('toggleTropp').onclick = () => {
@@ -335,10 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const players = root.players || {};
             const attendance = root.attendance || {};
             const dailyAttendance = attendance[firebaseDateKey] || {};
-            const tropp = Object.entries(players)
-                .map(([pId, data]) => ({ id: pId, ...data }))
-                .filter(player => dailyAttendance[player.id] === 'K');
-
+            const tropp = Object.entries(players).map(([pId, data]) => ({ id: pId, ...data })).filter(player => dailyAttendance[player.id] === 'K');
             currentTroopNames = tropp.map(p => p.navn || p.name).sort((a, b) => a.localeCompare(b, 'nb'));
             const pille = document.getElementById('pilleAntall');
             if (pille) pille.innerText = currentTroopNames.length;
