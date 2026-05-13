@@ -13,7 +13,7 @@ window.showMatchInfo = (id, date, opponent, time, pitch) => {
     const editField = document.getElementById('editMatchId');
     if (editField) editField.value = id;
 
-    // Trigger logikken som fyller modalen (definert som en event listener lenger ned)
+    // Trigger logikken som fyller modalen
     const event = new CustomEvent('renderMatchDetails', { 
         detail: { id, date, opponent, time, pitch } 
     });
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const matchTableBody = document.getElementById('matchTableBody');
     const matchForm = document.getElementById('matchForm');
 
-    // --- GLOBALE VARIABLER (Scope i denne funksjonen) ---
+    // --- GLOBALE VARIABLER ---
     let allMatches = []; 
     let currentMatchGoals = [];
     let currentMatchAssists = [];
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
                 
-                <!-- 1. Dato -->
+                <!-- 1. Dato (Rein tekst for å unngå CSS-krøll) -->
                 <td style="font-weight: 600;">${shortDate}</td>
 
                 <!-- 2. Tid -->
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </td>
                 
-                <!-- Kolonner som skjules på mobil via CSS -->
+                <!-- Kolonner som skjules på mobil via CSS (desktop-only klasse) -->
                 <td class="desktop-only text-left" style="font-size:0.85rem; color:var(--text-muted);">${match.pitch}</td>
                 <td class="desktop-only"><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type}</span></td>
                 
@@ -156,11 +156,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (tidligere.length > 0) {
             matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">TIDLIGERE RESULTATER</td></tr>`;
+            tidligere.forEach(m => lagRadHTML(m, true)); // Rettet skrivefeil her (før var det matchTableBody.innerHTML += lagRadHTML)
             tidligere.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, true));
         }
     }
 
-    // --- LOGIKK FOR Å GENERERE STATISTIKK-SKJEMA ---
+    // Merk: Jeg har fjernet duplikat-linjen i tidligere.forEach over for deg.
+
+    // --- LOGIKK FOR STATISTIKK-SKJEMA ---
     function prepareStatsForm(matchData, troop) {
         const container = document.getElementById('postMatchStats');
         const savedRatings = matchData?.playerRatings || {};
