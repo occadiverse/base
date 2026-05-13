@@ -1078,67 +1078,68 @@ td {
     }
 }
 
-/* --- MOBIL-FIX: TVINGER KOLONNE 4 INN PÅ SKJERMEN --- */
+/* --- MOBIL-FIX: MAKSIMERER MOTSTANDER-PLASS --- */
 @media (max-width: 768px) {
     
     .table-container {
         padding: 0 !important;
         margin: 10px 0 !important;
         width: 100% !important;
-        overflow: hidden !important; /* Stopper all sidelengs rulling */
+        overflow: hidden !important; 
     }
 
     table.match-table {
-        table-layout: fixed !important; /* KRITISK: Tvinger kolonnebredder */
+        /* Vi fjerner 'fixed' her for å la tabellen puste mer naturlig */
+        table-layout: auto !important; 
         width: 100% !important;
         border-collapse: collapse !important;
     }
 
-    /* 1. DATO - Låst bredde */
+    /* 1. DATO */
     table.match-table th:nth-child(1),
     table.match-table td:nth-child(1) {
-        width: 65px !important; /* Faste piksler er tryggere enn % her */
+        width: 18% !important;
         text-align: center !important;
         padding: 12px 2px !important;
+        font-size: 0.85rem !important;
+        white-space: nowrap;
     }
 
-    /* 2. KL. - Låst bredde */
+    /* 2. KL. */
     table.match-table th:nth-child(2),
     table.match-table td:nth-child(2) {
-        width: 45px !important;
+        width: 12% !important;
         text-align: center !important;
         padding: 12px 2px !important;
+        font-size: 0.8rem !important;
+        color: var(--text-muted);
     }
 
-    /* 3. MOTSTANDER - Fleksibel, men kutter tekst */
+    /* 3. MOTSTANDER - Nå med mye mer plass */
     table.match-table th:nth-child(3),
     table.match-table td:nth-child(3) {
-        width: auto !important; /* Tar resten av plassen */
+        width: 55% !important; 
         text-align: left !important;
         padding: 12px 8px !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
-    /* 4. RES - Låst bredde (Nå forsvinner den ikke!) */
+    /* 4. RES */
     table.match-table th:nth-child(4),
     table.match-table td:nth-child(4) {
-        width: 60px !important;
+        width: 15% !important;
         text-align: center !important;
         padding: 12px 2px !important;
     }
 
-    /* Tvinger teksten inni motstander-cellen til å kutte seg */
+    /* Sørger for at teksten i motstander-kolonnen bruker plassen sin helt ut */
     table.match-table td:nth-child(3) div {
-        display: block;
-        width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        display: inline-block;
+        white-space: normal; /* Tillater to linjer hvis navnet er ekstremt langt */
+        word-break: break-word;
+        line-height: 1.2;
     }
 
-    /* Skjul resten */
+    /* Skjul de resterende kolonnene */
     table.match-table th:nth-child(n+5),
     table.match-table td:nth-child(n+5) {
         display: none !important;
