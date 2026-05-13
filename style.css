@@ -1324,3 +1324,48 @@ td {
         font-weight: 800 !important;
     }
 }
+
+/* --- MOBIL-TILPASNING FOR Å FJERNE SIDELENGS SCROLL --- */
+@media (max-width: 768px) {
+    /* 1. Tving containeren til å holde seg innenfor skjermen */
+    .table-container {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow-x: hidden !important; /* Stopper all sidelengs rulling */
+    }
+
+    /* 2. Overstyr tabellens faste bredde */
+    table {
+        min-width: 100% !important; /* Fjerner f.eks. min-width: 450px */
+        width: 100% !important;
+        table-layout: fixed !important; /* Magien som tvinger alt på én skjerm */
+    }
+
+    /* 3. Juster kolonnebredder (TID, MOTSTANDER, RES) */
+    /* TID-kolonnen */
+    th:nth-child(1), td:nth-child(1) { 
+        width: 60px !important; 
+        padding: 10px 4px !important; 
+    }
+    
+    /* MOTSTANDER-kolonnen (får resten av plassen) */
+    th:nth-child(2), td:nth-child(2) { 
+        width: auto !important; 
+        padding: 10px 4px !important; 
+    }
+
+    /* RES-kolonnen */
+    th:nth-child(3), td:nth-child(3) { 
+        width: 55px !important; 
+        padding: 10px 4px !important; 
+    }
+
+    /* 4. Sørg for at lange navn kuttes med ... i stedet for å dytte ut tabellen */
+    .text-left div {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+    }
+}
