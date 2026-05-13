@@ -1325,63 +1325,39 @@ td {
     }
 }
 
-/* --- MOBIL-TILPASNING: 25% | 50% | 25% --- */
+/* --- SPESIFIKK TILPASNING KUN FOR KAMPTABELLEN --- */
 @media (max-width: 768px) {
-    .table-container {
-        width: 100% !important;
-        overflow-x: hidden !important;
-        padding: 0 5px; /* Litt luft mellom container-kant og tabell */
-    }
-
-    table {
+    /* Vi treffer kun tabellen med klassen .match-table */
+    table.match-table {
         min-width: 100% !important;
         width: 100% !important;
         table-layout: fixed !important;
     }
 
-    /* TID (25%) */
-    th:nth-child(1), td:nth-child(1) { 
-        width: 25% !important; 
-        padding: 12px 2px !important; /* Minimal side-padding for å unngå skjult tekst */
-        text-align: center !important;
-    }
-
-    /* MOTSTANDER (50%) */
-    th:nth-child(2), td:nth-child(2) { 
-        width: 50% !important; 
-        padding: 12px 5px !important;
-        text-align: left !important;
-    }
-
-    /* RES (25%) */
-    th:nth-child(3), td:nth-child(3) { 
+    /* Kolonne 1: TID (25%) */
+    table.match-table th:nth-child(1), 
+    table.match-table td:nth-child(1) { 
         width: 25% !important; 
         padding: 12px 2px !important;
         text-align: center !important;
     }
 
-    /* Sørg for at dato-parten ikke blir større enn sin 25% brede boks */
-    .date-part {
-        font-size: 0.85rem !important; /* Litt mindre font på mobil for å sikre at det passer */
-        white-space: nowrap;
+    /* Kolonne 2: MOTSTANDER (50%) */
+    table.match-table th:nth-child(2), 
+    table.match-table td:nth-child(2) { 
+        width: 50% !important; 
+        padding: 12px 5px !important;
     }
 
-    .time-part {
-        font-size: 0.7rem !important;
+    /* Kolonne 3: RES (25%) */
+    table.match-table th:nth-child(3), 
+    table.match-table td:nth-child(3) { 
+        width: 25% !important; 
+        padding: 12px 2px !important;
+        text-align: center !important;
     }
 
-    /* Hindrer lagnavn i å dytte ut RES-kolonnen */
-    .text-left div {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-        width: 100%;
-    }
-
-    /* Sentrerer badge-en i den siste 25%-kolonnen */
-    .result-badge {
-        min-width: 42px !important;
-        padding: 4px 2px !important;
-    }
+    /* Sørger for at innholdet i kamptabellen holder seg på én linje */
+    table.match-table .date-part { font-size: 0.85rem !important; white-space: nowrap; }
+    table.match-table .time-part { font-size: 0.7rem !important; }
 }
