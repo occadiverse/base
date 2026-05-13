@@ -112,18 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
                 
-                <!-- 1. Dato (Rein tekst for å unngå CSS-krøll) -->
                 <td style="font-weight: 600;">${shortDate}</td>
-
-                <!-- 2. Tid -->
                 <td style="color: var(--text-muted); font-size: 0.85rem;">${match.time}</td>
-                
-                <!-- 3. Motstander -->
                 <td>
                     <div style="font-weight:700; color:var(--text-main);">${match.opponent}</div>
                 </td>
-                
-                <!-- 4. Resultat -->
                 <td class="res-cell">
                     <span class="result-badge" style="background:${match.result && match.result !== '-' ? 'var(--bsk-blue)' : '#f1f2f6'}; 
                           color:${match.result && match.result !== '-' ? 'white' : '#999'}; 
@@ -132,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </td>
                 
-                <!-- Kolonner som skjules på mobil via CSS (desktop-only klasse) -->
                 <td class="desktop-only text-left" style="font-size:0.85rem; color:var(--text-muted);">${match.pitch}</td>
                 <td class="desktop-only"><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type}</span></td>
                 
@@ -156,12 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (tidligere.length > 0) {
             matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">TIDLIGERE RESULTATER</td></tr>`;
-            tidligere.forEach(m => lagRadHTML(m, true)); // Rettet skrivefeil her (før var det matchTableBody.innerHTML += lagRadHTML)
             tidligere.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, true));
         }
     }
-
-    // Merk: Jeg har fjernet duplikat-linjen i tidligere.forEach over for deg.
 
     // --- LOGIKK FOR STATISTIKK-SKJEMA ---
     function prepareStatsForm(matchData, troop) {
@@ -291,6 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fa-solid fa-chevron-down chevron-icon"></i>
             </div>
             <div id="nySpillerListe" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;"></div>
+
+            <!-- ADMIN-KNAPPER FOR MOBIL -->
+            <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: flex; gap: 10px;">
+                <button onclick="window.closeMatchInfo(); window.openEditMatch('${id}', '${date}', '${time}', '${opponent}', '${pitch}', '${matchData?.type || ''}', '${matchData?.result || '-'}')" 
+                        style="flex: 1; background: #f1f2f6; color: var(--text-main); border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+                    <i class="fa-solid fa-pen" style="margin-right: 8px;"></i>Rediger
+                </button>
+                <button onclick="window.deleteMatch('${id}'); window.closeMatchInfo();" 
+                        style="flex: 1; background: #ffeaa7; color: #d63031; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+                    <i class="fa-solid fa-trash" style="margin-right: 8px;"></i>Slett
+                </button>
+            </div>
         `;
 
         const statsToggleBtn = document.getElementById('statsEditToggle')?.querySelector('button');
