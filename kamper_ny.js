@@ -112,18 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
                 
-                <td style="text-align: center; font-weight: 600;">
-                    <span class="date-part">${shortDate}</span>
-                </td>
+                <!-- 1. Dato -->
+                <td style="font-weight: 600;">${shortDate}</td>
 
-                <td style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-                    <span class="time-part">${match.time}</span>
-                </td>
+                <!-- 2. Tid -->
+                <td style="color: var(--text-muted); font-size: 0.85rem;">${match.time}</td>
                 
-                <td class="text-left">
+                <!-- 3. Motstander -->
+                <td>
                     <div style="font-weight:700; color:var(--text-main);">${match.opponent}</div>
                 </td>
                 
+                <!-- 4. Resultat -->
                 <td class="res-cell">
                     <span class="result-badge" style="background:${match.result && match.result !== '-' ? 'var(--bsk-blue)' : '#f1f2f6'}; 
                           color:${match.result && match.result !== '-' ? 'white' : '#999'}; 
@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </td>
                 
+                <!-- Kolonner som skjules på mobil via CSS -->
                 <td class="desktop-only text-left" style="font-size:0.85rem; color:var(--text-muted);">${match.pitch}</td>
                 <td class="desktop-only"><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type}</span></td>
                 
@@ -222,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(assistDiv) assistDiv.innerHTML = currentMatchAssists.map((n, i) => `<span onclick="window.removeAssist(${i})" style="background:#27ae60; color:white; padding:4px 8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">${n} &times;</span>`).join('');
     }
 
-    // Hjelpefunksjoner for statistikk på window
     window.addGoal = () => { const n = document.getElementById('goalSelect').value; if(n){currentMatchGoals.push(n); renderStatsBadges();} };
     window.addAssist = () => { const n = document.getElementById('assistSelect').value; if(n){currentMatchAssists.push(n); renderStatsBadges();} };
     window.removeGoal = (i) => { currentMatchGoals.splice(i,1); renderStatsBadges(); };
@@ -249,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- LOGIKK FOR Å FYLLE KAMPINFO-MODAL ---
     document.addEventListener('renderMatchDetails', (e) => {
         const { id, date, opponent, time, pitch } = e.detail;
         const infoTitle = document.getElementById('infoTitle');
@@ -347,7 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { onlyOnce: true });
     });
 
-    // --- STANDARD MODAL FUNKSJONER (REDIGERING) ---
     window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
         document.getElementById('editMatchId').value = id;
