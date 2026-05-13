@@ -1325,45 +1325,52 @@ td {
     }
 }
 
-/* --- MOBIL-TILPASNING: 20% | 60% | 20% --- */
+/* --- MOBIL-TILPASNING: 25% | 50% | 25% --- */
 @media (max-width: 768px) {
     .table-container {
         width: 100% !important;
         overflow-x: hidden !important;
+        padding: 0 5px; /* Litt luft mellom container-kant og tabell */
     }
 
     table {
         min-width: 100% !important;
         width: 100% !important;
-        table-layout: fixed !important; /* Tvinger prosentfordelingen */
+        table-layout: fixed !important;
     }
 
-    /* TID (20%) */
+    /* TID (25%) */
     th:nth-child(1), td:nth-child(1) { 
-        width: 20% !important; 
-        padding: 12px 5px !important;
+        width: 25% !important; 
+        padding: 12px 2px !important; /* Minimal side-padding for å unngå skjult tekst */
         text-align: center !important;
     }
 
-    /* MOTSTANDER (60%) */
+    /* MOTSTANDER (50%) */
     th:nth-child(2), td:nth-child(2) { 
-        width: 60% !important; 
-        padding: 12px 8px !important;
+        width: 50% !important; 
+        padding: 12px 5px !important;
         text-align: left !important;
     }
 
-    /* RES (20%) */
+    /* RES (25%) */
     th:nth-child(3), td:nth-child(3) { 
-        width: 20% !important; 
-        padding: 12px 5px !important;
+        width: 25% !important; 
+        padding: 12px 2px !important;
         text-align: center !important;
     }
 
-    /* Sørg for at innholdet i cellene bruker plassen sin */
-    .date-time-cell {
-        width: 100%;
+    /* Sørg for at dato-parten ikke blir større enn sin 25% brede boks */
+    .date-part {
+        font-size: 0.85rem !important; /* Litt mindre font på mobil for å sikre at det passer */
+        white-space: nowrap;
     }
 
+    .time-part {
+        font-size: 0.7rem !important;
+    }
+
+    /* Hindrer lagnavn i å dytte ut RES-kolonnen */
     .text-left div {
         white-space: nowrap;
         overflow: hidden;
@@ -1372,9 +1379,9 @@ td {
         width: 100%;
     }
 
+    /* Sentrerer badge-en i den siste 25%-kolonnen */
     .result-badge {
-        display: inline-block !important;
-        width: 45px; /* Fast bredde på selve tall-boblen */
-        text-align: center;
+        min-width: 42px !important;
+        padding: 4px 2px !important;
     }
 }
