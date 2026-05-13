@@ -163,6 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LOGIKK FOR Å FYLLE KAMPINFO-MODAL ---
     document.addEventListener('renderMatchDetails', (e) => {
         const { id, date, opponent, time, pitch } = e.detail;
+        
+        // Oppdaterer tittelen fra "Laster..." til motstanderens navn
+        const infoTitle = document.getElementById('infoTitle');
+        if (infoTitle) infoTitle.innerText = opponent;
+
         const detailsDiv = document.getElementById('matchInfoDetails');
         const tacticContainer = document.getElementById('tacticBarContainer');
         
