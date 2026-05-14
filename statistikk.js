@@ -54,7 +54,7 @@ function genererDynamiskFilter() {
     let valgt = periodSelect.value;
     if (!periodSelect.hasAttribute('data-user-selected') && unikePerioder.has(innevarende)) valgt = innevarende;
 
-    periodSelect.innerHTML = '<option value="total">Hele sesongen</option>';
+    periodSelect.innerHTML = '<option value="total">Sesong 2026</option>';
     Array.from(unikePerioder).sort().reverse().forEach(p => {
         const [m, a] = p.split('-');
         periodSelect.innerHTML += `<option value="${p}">${manederTekst[parseInt(m)-1]} ${a}</option>`;
