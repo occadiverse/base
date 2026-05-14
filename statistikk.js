@@ -86,7 +86,8 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                         kamperOppmøte++;
                         const kamp = Object.values(matches).find(m => matchDatoer(m.date, dato));
 
-                        if (campaign && kamp.result) {
+                        // FIKSET: Endret fra 'campaign' til 'kamp' så ikke logikken tryner
+                        if (kamp && kamp.result) {
                             const scores = kamp.result.replace(/\s/g, "").split('-');
                             
                             let pRating = null;
@@ -207,11 +208,10 @@ function renderTopplister(statsArray) {
     });
 }
 
-// Global funksjon for å åpne/lukke resten av lista
+// Global funksjon for å åpne/lukke resten av lista via klassestyring
 window.toggleFullList = function(id, btn) {
     const extraDiv = document.getElementById(id);
     
-    // Sjekker klasseliste-tilstand i stedet for uforutsigbare inline-stiler
     if (!extraDiv.classList.contains('show')) {
         extraDiv.classList.add('show');
         btn.innerText = "Vis færre";
