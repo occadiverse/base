@@ -69,9 +69,7 @@ body {
 }
 
 .logo-brand i {
-    margin-right: 10px; /* Her legger vi på avstanden */
-    color: var(--bsk-yellow); /* Sikrer at ikonet fortsatt har BSK-gult */
-    font-size: 1.2rem;
+    margin-right: 10px; /* Her legger vi på avstanden mellom icon og teksten BSK teksten */
 }
 
 .logo-brand span { 
