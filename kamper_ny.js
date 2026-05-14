@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('postMatchStats').style.display = 'none';
     };
 
-    // --- LAGT TILBAKE SLETTE-KNAPP I TABELL ---
+    // --- OPPDATERT TABELLVISNING MED SLETTE-KNAPP OG NY REKKEFØLGE ---
     function renderTable() {
         if (!matchTableBody) return;
         matchTableBody.innerHTML = '';
@@ -99,21 +99,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const lagRadHTML = (match, erTidligere) => {
             const d = new Date(match.date);
             const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+            
             return `
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
-                <td style="font-weight: 600;">${shortDate}</td>
-                <td style="color: var(--text-muted); font-size: 0.85rem;">${match.time}</td>
-                <td><div style="font-weight:700; color:var(--text-main);">${match.opponent}</div></td>
-                <td class="res-cell">
+                
+                <td class="name-col" style="text-align: left;">
+                    ${match.opponent}
+                </td>
+                
+                <td style="text-align: center;">${shortDate}</td>
+                
+                <td style="text-align: center;">${match.time || '-'}</td>
+                
+                <td class="res-cell" style="text-align: center;">
                     <span class="result-badge" style="background:${match.result && match.result !== '-' ? 'var(--bsk-blue)' : '#f1f2f6'}; 
                           color:${match.result && match.result !== '-' ? 'white' : '#999'}; 
                           min-width:45px; font-weight:800; display:inline-block; padding: 4px 8px; border-radius: 8px; font-size: 0.85rem;">
                         ${match.result || '-'}
                     </span>
                 </td>
-                <td class="desktop-only text-left" style="font-size:0.85rem; color:var(--text-muted);">${match.pitch}</td>
-                <td class="desktop-only"><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type}</span></td>
+                
+                <td class="desktop-only text-left" style="font-size:0.85rem; color:var(--text-muted);">${match.pitch || 'Ikke satt'}</td>
+                
+                <td class="desktop-only" style="text-align: left;">
+                    <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform: uppercase;">${match.type || 'Serie'}</span>
+                </td>
+                
                 <td class="desktop-only">
                     <div style="display: flex; justify-content: center; gap: 8px;">
                         <button onclick="event.stopPropagation(); window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit">
@@ -127,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>`;
         };
 
+        // Tabelloverskriftene (table-divider) bruker colspan="7" nå som vi har 7 kolonner totalt på PC
         if (kommende.length > 0) {
             matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">KOMMENDE KAMPER</td></tr>`;
             kommende.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, false));
