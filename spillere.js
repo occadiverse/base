@@ -103,6 +103,9 @@ function renderPlayers() {
             statusBadge = '<span style="font-size:0.7rem; color:var(--text-muted); margin-left:5px; font-weight:500;">(P)</span>';
         }
 
+        // Ren tekst-kombinasjon av posisjonene med bindestrek
+        const posisjonsVisning = n2 !== '-' ? `${n1} - ${n2}` : n1;
+
         return `
             <tr class="match-row" onclick="window.editPlayer('${s.id}')" style="cursor:pointer;">
                 <td class="name-col" style="text-align: left;">
@@ -111,12 +114,7 @@ function renderPlayers() {
                 
                 <td>${s.draktnummer || '-'}</td>
                 
-                <td>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span style="display:inline-block; width:28px; height:28px; line-height:28px; background:var(--text-main); color:white; border-radius:50%; font-weight:800; font-size:0.8rem;">${n1}</span>
-                        ${n2 !== '-' ? `<span style="color:var(--text-muted); font-size:0.75rem; font-weight: 500;">${n2}</span>` : ''}
-                    </div>
-                </td>
+                <td>${posisjonsVisning}</td>
                 
                 <td><span class="status-pill" style="background:#f1f2f6; min-width:30px; font-weight:700;">${fotVisning}</span></td>
                 
