@@ -4,11 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Statistikk - BSK Fotball</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
+        /* BSK-blå Hero - Hentet direkte fra din kamper.html */
+        .kamper-hero {
+            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
+        }
+
+        .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
+        .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
+
         /* Lagstatistikk Ruterett */
         .team-stats-row {
             display: grid;
@@ -137,11 +151,7 @@
 
         @media (max-width: 768px) {
             .stat-header.active ~ .stat-info { display: block; }
-            
-            /* SIKRER GOD AVSTAND FRA DEN FASTE TOPPMENYEN PÅ MOBIL */
-            .main-content {
-                padding-top: calc(var(--topbar-height) + 20px) !important;
-            }
+            td { padding: 12px 10px; }
         }
 
         @media (min-width: 769px) {
@@ -156,64 +166,35 @@
 <header class="top-bar">
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
     <h1 id="section-title" class="section-title">Stats</h1>
-    <div class="filter-wrapper"></div> 
+    <div class="filter-wrapper">
+        <div class="filter-container">
+            <i class="fa-solid fa-calendar-check"></i>
+            <select id="statPeriodSelect" class="base-select">
+                <option value="total">Hele sesongen</option>
+            </select>
+        </div>
+    </div>
 </header>
 
 <div class="sidebar" id="sidebar"></div>
 
-<nav class="bottom-nav">
-    <a href="index.html" class="nav-item">
-        <i class="fa-solid fa-house"></i>
-        <span>Hjem</span>
-    </a>
-    <a href="oppmote.html" class="nav-item">
-        <i class="fa-solid fa-calendar-check"></i>
-        <span>Oppmøte</span>
-    </a>
-    <a href="kamper.html" class="nav-item">
-        <i class="fa-solid fa-soccer-ball"></i>
-        <span>Kamper</span>
-    </a>
-    <a href="spillere.html" class="nav-item">
-        <i class="fa-solid fa-users"></i>
-        <span>Tropp</span>
-    </a>
-    <a href="statistikk.html" class="nav-item active">
-        <i class="fa-solid fa-chart-line"></i>
-        <span>Stats</span>
-    </a>
-</nav>
+<nav class="bottom-nav"></nav>
 
 <main class="main-content">
     <section class="kamper-hero">
         <div class="hero-content">
-            <p class="hero-intro-text" style="font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; color: white;">
-                Her har du full oversikt over <strong>sesongens prestasjoner</strong>. 
-                Tallene er basert på kampresultater og dine personlige vurderinger fra kamprapportene.
+            <p class="hero-intro-text">
+                Sesongen har så langt gitt oss <strong id="teamMatches">-</strong> kamper, totalt 
+                <strong id="teamGoals">-</strong> scorede mål, og en seiersprosent på 
+                <strong id="teamWinRate">-%</strong> basert på dine kamprapporter.
             </p>
         </div>
     </section>
 
-    <div class="filter-bar">
-        <label for="statPeriodSelect"><i class="fa-solid fa-calendar"></i> Periode:</label>
-        <select id="statPeriodSelect" class="select-input-clean">
-            <option value="total">Hele sesongen</option>
-        </select>
-    </div>
-
-    <div class="team-stats-row">
-        <div class="team-card">
-            <div class="label">Kamper</div>
-            <div id="teamMatches" class="value">-</div>
-        </div>
-        <div class="team-card">
-            <div class="label">Mål</div>
-            <div id="teamGoals" class="value">-</div>
-        </div>
-        <div class="team-card">
-            <div class="label">Seiersprosent</div>
-            <div id="teamWinRate" class="value">-%</div>
-        </div>
+    <div class="team-stats-row" style="display: none;">
+        <div class="team-card"><div id="teamMatches" class="value">-</div></div>
+        <div class="team-card"><div id="teamGoals" class="value">-</div></div>
+        <div class="team-card"><div id="teamWinRate" class="value">-%</div></div>
     </div>
 
     <div class="stats-grid">
