@@ -104,7 +104,7 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere - Sørger for at "Spiller" har <span> for CSS-midtstilling
+    // 1. Headere (Lystrer den globale, synkroniserte th-stilen)
     let headerRow = `<tr><th class="name-col"><span>Spiller</span></th>`;
     
     filteredDates.forEach(date => {
