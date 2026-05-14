@@ -68,6 +68,12 @@ body {
     min-width: 150px;
 }
 
+.logo-brand i {
+    margin-right: 10px; /* Her legger vi på avstanden */
+    color: var(--bsk-yellow); /* Sikrer at ikonet fortsatt har BSK-gult */
+    font-size: 1.2rem;
+}
+
 .logo-brand span { 
     color: var(--bsk-yellow) !important; 
     margin-left: 5px; 
