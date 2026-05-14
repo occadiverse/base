@@ -4,7 +4,6 @@
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- App-innstillinger -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -113,7 +112,6 @@
 </head>
 <body>
 
-    <!-- TOP BAR -->
     <header class="top-bar">
         <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
         <h1 id="section-title" class="section-title">Tropp</h1>
@@ -158,7 +156,7 @@
             <div class="hero-content">
                 <p class="hero-intro-text">
                     Sesongen 2026 består A-stallen av <strong id="stat-total-players">0 spillere</strong> med en gjennomsnittsalder på 
-                    <strong id="stat-avg-age">0 år</strong>. Vi har for øyeblikket <strong id="stat-total-rekrutt">0 rekrutter</strong> tilknyttet troppen. 
+                    <strong id="stat-avg-age">0 år</strong>. We have for øyeblikket <strong id="stat-total-rekrutt">0 rekrutter</strong> tilknyttet troppen. 
                 </p>
             </div>
         </section>
@@ -167,8 +165,8 @@
             <table id="playerTable">
                 <thead>
                     <tr>
+                        <th class="name-col" style="text-align: left;">Navn</th>
                         <th style="width: 50px;">#</th>
-                        <th class="name-col">Navn</th>
                         <th>Pos</th>
                         <th>Fot</th>
                         <th>Alder</th>
@@ -180,7 +178,7 @@
         </div>
     </main>
 
-    <button class="fab-btn" onclick="window.openModal()" title="Registrer ny spiller">
+    <button class="fab-btn" onclick="window.openPlayerModal()" title="Registrer ny spiller">
         <i class="fa-solid fa-plus"></i>
     </button>
 
@@ -188,7 +186,7 @@
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 id="formTitle" style="color: var(--bsk-blue); margin:0;">Registrer spiller</h3>
-                <button onclick="window.closeModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
+                <button onclick="window.closePlayerModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
             </div>
             
             <form id="playerForm">
@@ -268,7 +266,7 @@
 
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button type="submit" id="submitBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE SPILLER</button>
-                    <button type="button" onclick="window.closeModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
+                    <button type="button" onclick="window.closePlayerModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
                 </div>
             </form>
         </div>
@@ -276,21 +274,5 @@
 
     <script src="navigation.js"></script>
     <script type="module" src="spillere.js"></script>
-
-    <script>
-        window.openModal = () => { 
-            document.getElementById('playerForm').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('formTitle').innerText = 'Registrer spiller';
-            document.getElementById('submitBtn').innerText = 'LAGRE SPILLER';
-            document.getElementById('playerModal').style.display = 'flex'; 
-        };
-        window.closeModal = () => { document.getElementById('playerModal').style.display = 'none'; };
-        
-        window.onclick = function(event) {
-            let modal = document.getElementById('playerModal');
-            if (event.target == modal) { closeModal(); }
-        }
-    </script>
 </body>
 </html>
