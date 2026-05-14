@@ -47,17 +47,12 @@
             border-bottom: 2px solid var(--border-color);
             border-right: 1px solid #eee;
             min-width: 55px;
-            vertical-align: top; /* Dato-cellene starter øverst for å gi plass til innholdet */
+            vertical-align: top;
         }
 
         /* Spesifikk vertikal midtstilling for "Spiller"-overskriften */
         #attendanceHeader th.name-col {
             vertical-align: middle !important;
-        }
-
-        #attendanceHeader th.name-col span {
-            display: inline-block;
-            padding-bottom: 5px; /* Finjustering for optisk midtstilling */
         }
 
         .header-content {
@@ -70,7 +65,6 @@
         .header-date {
             font-size: 0.75rem;
             font-weight: 800;
-            color: var(--text-main);
             white-space: nowrap;
         }
 
@@ -103,15 +97,16 @@
         }
         .btn-delete-header:hover { opacity: 1; }
 
-        /* Sticky navnekolonne som følger style.css designet */
+        /* Sticky navnekolonne som står bom fast */
         .name-col {
             position: sticky;
             left: 0;
             background: #f8f9fa !important;
             z-index: 10;
-            min-width: 160px;
+            min-width: 200px; /* God bredde for fulle navn på PC og mobil */
             border-right: 2px solid var(--border-color) !important; 
             padding: 0 15px !important;
+            text-align: left !important;
         }
 
         /* Cellene i tabell-kroppen */
@@ -120,6 +115,7 @@
             border-bottom: 1px solid #f1f2f6;
             border-right: 1px solid #f1f2f6;
             padding: 12px 5px;
+            text-align: center;
         }
 
         /* Status styling */
@@ -133,7 +129,6 @@
             font-weight: 800;
             padding: 2px 6px;
             border-radius: 4px;
-            float: right;
         }
 
         /* FAB Button */
@@ -154,7 +149,38 @@
             z-index: 1000;
         }
 
-        @media (max-width: 768px) { .fab-btn { bottom: 85px; } }
+        /* --- SPESIFIKK MOBILHÅNDTERING FOR OPPMØTE-MATRISEN --- */
+        @media (max-width: 768px) {
+            .fab-btn { bottom: 85px; }
+
+            /* Tvinger containeren til å tillate horisontal scroll innendørs på mobil */
+            .table-container {
+                overflow-x: auto !important;
+                display: block !important;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+
+            #attendanceTable {
+                table-layout: auto !important;
+                width: max-content !important; /* Lar matrisen strekke seg ut i full bredde sidelengs */
+            }
+
+            /* Låser navnekolonnen fullstendig til venstre ved rulling */
+            .matrix-table .name-col {
+                position: sticky !important;
+                left: 0 !important;
+                z-index: 20 !important;
+                background: #f8f9fa !important;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.08); /* Skillekant mot datoene */
+            }
+
+            /* Litt mer luft rundt datoene på mobil */
+            .matrix-table th:not(.name-col) {
+                min-width: 65px !important;
+                padding: 10px 4px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -220,7 +246,7 @@
     </section>
 
     <div class="table-container">
-        <table id="attendanceTable" class="match-table">
+        <table id="attendanceTable" class="matrix-table">
             <thead id="attendanceHeader"></thead>
             <tbody id="attendanceBody"></tbody>
         </table>
@@ -247,7 +273,7 @@
                     <label>Type</label>
                     <select id="eventType" class="form-control">
                         <option value="Trening">Trening</option>
-                        <option value="Kamp">Kamp</option>
+                        <option value="Camp">Kamp</option>
                     </select>
                 </div>
             </div>
