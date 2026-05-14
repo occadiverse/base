@@ -25,7 +25,7 @@
 
     /* Tabell-container og struktur */
     .table-container {
-        overflow-x: auto !important; /* Endret til !important her for å sikre PC-flyt */
+        overflow-x: auto !important;
         position: relative;
         background: var(--white);
         border-radius: 15px;
@@ -40,17 +40,16 @@
         border-spacing: 0;
     }
 
-    /* RYDDIG HEADER STYLING */
+    /* RYDDIG HEADER STYLING - Synkronisert med global th-stil */
     #attendanceHeader th {
-        padding: 12px 8px;
+        padding: 16px 12px;
         background: #f8f9fa;
         border-bottom: 2px solid var(--border-color);
-        border-right: 1px solid #eee;
-        min-width: 55px;
+        border-right: 1px solid #eef2f6;
+        min-width: 75px;
         vertical-align: top;
     }
 
-    /* Spesifikk vertikal midtstilling for "Spiller"-overskriften */
     #attendanceHeader th.name-col {
         vertical-align: middle !important;
     }
@@ -59,43 +58,49 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
     }
 
     .header-date {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         font-weight: 800;
+        color: #1e293b;
         white-space: nowrap;
     }
 
-    /* Dag-type (T/K) som runde sirkler */
+    /* Minimalistiske og stilrene økt-merker (K og T) */
     .day-type {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 900;
-        font-size: 0.65rem;
-        color: white;
-    }
-    .day-type-training { background: #cbd5e1; color: #475569; }
-    .day-type-match { background: #ef4444; }
-
-    .btn-delete-header {
-        background: #fee2e2;
-        color: #ef4444;
-        border: none;
-        border-radius: 4px;
-        padding: 2px 6px;
-        font-size: 9px;
+        padding: 3px 8px;
+        border-radius: 6px;
         font-weight: 800;
-        cursor: pointer;
-        opacity: 0.3;
-        transition: 0.2s;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-block;
     }
-    .btn-delete-header:hover { opacity: 1; }
+    .day-type-training { 
+        background: #e2e8f0; 
+        color: #475569; 
+    }
+    .day-type-match { 
+        background: #dbeafe; 
+        color: var(--bsk-blue); 
+    }
+
+    /* Diskret slett-ikon i toppen */
+    .btn-delete-header {
+        background: transparent;
+        color: #94a3b8;
+        border: none;
+        padding: 2px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: color 0.2s;
+        margin-bottom: 2px;
+    }
+    .btn-delete-header:hover { 
+        color: #ef4444; 
+    }
 
     /* Sticky navnekolonne som står bom fast */
     .name-col {
@@ -105,30 +110,43 @@
         z-index: 10;
         min-width: 200px;
         border-right: 2px solid var(--border-color) !important; 
-        padding: 0 15px !important;
+        padding: 0 20px !important;
         text-align: left !important;
     }
 
     /* Cellene i tabell-kroppen */
     #attendanceTable td {
         vertical-align: middle;
-        border-bottom: 1px solid #f1f2f6;
-        border-right: 1px solid #f1f2f6;
-        padding: 12px 5px;
+        border-bottom: 1px solid #f1f5f9;
+        border-right: 1px solid #f1f5f9;
+        padding: 14px 5px;
         text-align: center;
+        cursor: pointer;
     }
 
-    /* Status styling */
-    .status-present { color: #2ecc71; font-size: 1.3rem; display: block; width: 100%; }
-    .status-none { color: #f1f2f6; font-size: 1.3rem; display: block; width: 100%; }
+    #attendanceTable tr:hover td:not(.name-col) {
+        background-color: #f8fbff;
+    }
+
+    /* Elegante og stilrene status-ikoner som matcher appens farger */
+    .status-present { 
+        color: var(--bsk-blue); 
+        font-size: 1.1rem; 
+    }
+    .status-none { 
+        color: #cbd5e1; 
+        font-size: 1.0rem; 
+        opacity: 0.4;
+    }
     
     .attendance-badge {
-        background: var(--bsk-blue);
-        color: white;
-        font-size: 0.7rem;
+        background: var(--active-bg);
+        color: var(--bsk-blue);
+        font-size: 0.75rem;
         font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 4px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 86, 179, 0.15);
     }
 
     /* FAB Button */
@@ -153,37 +171,33 @@
     @media (max-width: 768px) {
         .fab-btn { bottom: 85px; }
 
-        /* Overstyrer den globale overflow-x: hidden fra style.css fullstendig */
         body div.table-container {
             overflow-x: scroll !important;
             display: block !important;
             width: 100% !important;
             padding: 0 !important;
-            -webkit-overflow-scrolling: touch !important; /* Sikrer smooth sveiping på iPhone */
+            -webkit-overflow-scrolling: touch !important;
         }
 
         #attendanceTable {
             table-layout: auto !important;
-            width: max-content !important; /* Tvinger tabellen til å beholde sin naturlige bredde sidelengs */
+            width: max-content !important;
         }
 
-        /* Låser navnekolonnen og sørger for at den ligger over datocellene når man ruller */
         .matrix-table .name-col {
             position: sticky !important;
             left: 0 !important;
-            z-index: 25 !important; /* Høyere z-index for å ligge over sjekk-ikonene */
+            z-index: 25 !important;
             background: #f8f9fa !important;
-            box-shadow: 3px 0 6px rgba(0, 0, 0, 0.12);
+            box-shadow: 3px 0 6px rgba(0, 0, 0, 0.08);
         }
 
-        /* Sikrer luft til dato-kolonnene på mobil */
         .matrix-table th:not(.name-col) {
-            min-width: 65px !important;
-            padding: 10px 4px !important;
+            min-width: 70px !important;
+            padding: 12px 6px !important;
         }
     }
-</style>
-</head>
+</style></head>
 <body>
 
 <header class="top-bar">
