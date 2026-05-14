@@ -23,19 +23,17 @@ const posMap = {
     '-': '-'
 };
 
-// --- NY FUNKSJON: OPPDATERER HERO-STATS ---
+// --- OPPDATERER HERO-STATS ---
 function updateHeroStats(liste) {
     const aktive = liste.filter(s => s.status === 'Aktiv');
     const rekrutter = liste.filter(s => s.status === 'Rekrutt');
     
-    // Vi beregner snittalder for de som er enten Aktiv eller Rekrutt
     const relevante = [...aktive, ...rekrutter];
     const currentYear = new Date().getFullYear();
     const totalAlder = relevante.reduce((acc, s) => acc + (s.fodselsaar ? (currentYear - s.fodselsaar) : 0), 0);
     
     const snittAlder = relevante.length > 0 ? (totalAlder / relevante.length).toFixed(1) : 0;
 
-    // Oppdaterer HTML-elementene i Hero-seksjonen
     if (document.getElementById('stat-total-players')) {
         document.getElementById('stat-total-players').innerText = `${relevante.length} spillere`;
     }
@@ -47,46 +45,49 @@ function updateHeroStats(liste) {
     }
 }
 
-// --- HENT DATA FRA FIREBASE ---
+// --- HENT DATA FRA FIREBASE (Alfabetisk sortering bevart) ---
 onValue(ref(db, 'players'), (snapshot) => {
     const data = snapshot.val() || {};
-    // Konverterer objekt til liste med ID
     spillerliste = Object.entries(data).map(([id, values]) => ({
         id: id,
         ...values
     })).sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
     
-    // Oppdaterer statistikk i Hero
     updateHeroStats(spillerliste);
-    
     renderPlayers();
 });
 
-// --- BYTT VISNING (Filtrering) ---
-window.switchPlayerView = (filter) => {
-    currentFilter = filter;
-    
-    const allButtons = document.querySelectorAll('.tab-btn');
-    allButtons.forEach(btn => {
-        const mappedValue = posMap[filter] || filter;
-        if (btn.innerText === mappedValue || (filter === 'Alle' && btn.innerText === 'ALLE')) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    renderPlayers();
+// --- VISNINGSKONTROLL MODALER ---
+window.openPlayerModal = () => {
+    if (playerForm) playerForm.reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('formTitle').innerText = 'Registrer spiller';
+    document.getElementById('submitBtn').innerText = 'LAGRE SPILLER';
+    document.getElementById('playerModal').style.display = 'flex';
+};
+
+window.closePlayerModal = () => {
+    document.getElementById('playerModal').style.display = 'none';
+    if (playerForm) playerForm.reset();
+    document.getElementById('editId').value = '';
+};
+
+// Lukk modal hvis man klikker på utsiden
+window.onclick = function(event) {
+    const modal = document.getElementById('playerModal');
+    if (event.target === modal) {
+        window.closePlayerModal();
+    }
 };
 
 // --- TEGN OPP TABELLEN ---
 function renderPlayers() {
+    if (!tableBody) return;
     if (spillerliste.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="6" style="padding:20px;">Ingen spillere funnet.</td></tr>';
         return;
     }
 
-    // Vi bruker nå hele spillerliste siden filter-bar er borte
     const currentYear = new Date().getFullYear();
 
     tableBody.innerHTML = spillerliste.map(s => {
@@ -103,26 +104,30 @@ function renderPlayers() {
         }
 
         return `
-            <tr>
-                <td><strong style="color: var(--text-main);">${s.draktnummer || '-'}</strong></td>
-                <td class="name-col">
-                    <strong>${s.navn}</strong>
-                    ${statusBadge}
+            <tr class="match-row" onclick="window.editPlayer('${s.id}')" style="cursor:pointer;">
+                <td class="name-col" style="text-align: left; font-weight: 600;">
+                    <strong>${s.navn}</strong>${statusBadge}
                 </td>
+                
+                <td><strong style="color: var(--text-main);">${s.draktnummer || '-'}</strong></td>
+                
                 <td>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <span style="display:inline-block; width:28px; height:28px; line-height:28px; background:var(--text-main); color:white; border-radius:50%; font-weight:800; font-size:0.8rem;">${n1}</span>
                         ${n2 !== '-' ? `<span style="color:var(--text-muted); font-size:0.75rem; font-weight: 500;">${n2}</span>` : ''}
                     </div>
                 </td>
+                
                 <td><span class="status-pill" style="background:#f1f2f6; min-width:30px; font-weight:700;">${fotVisning}</span></td>
+                
                 <td>${alder}</td>
+                
                 <td>
                     <div style="display: flex; gap: 8px; justify-content: center;">
-                        <button class="action-btn btn-edit" onclick="window.editPlayer('${s.id}')">
+                        <button class="action-btn btn-edit" onclick="event.stopPropagation(); window.editPlayer('${s.id}')">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button class="action-btn btn-delete" onclick="window.deletePlayer('${s.id}')">
+                        <button class="action-btn btn-delete" onclick="event.stopPropagation(); window.deletePlayer('${s.id}')">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -144,10 +149,10 @@ window.editPlayer = function(id) {
     document.getElementById('pos2').value = spiller.pos2 || '-';
     document.getElementById('fot').value = spiller.fot || 'Høyre';
     document.getElementById('draktnummer').value = spiller.draktnummer || '';
-    document.getElementById('status').value = spiller.status || 'Aktiv'; // NY
+    document.getElementById('status').value = spiller.status || 'Aktiv';
 
     document.getElementById('formTitle').innerText = 'Rediger spiller';
-    document.getElementById('submitBtn').innerText = 'Oppdater spiller';
+    document.getElementById('submitBtn').innerText = 'OPPDATER SPILLER';
     document.getElementById('playerModal').style.display = 'flex';
 };
 
@@ -170,13 +175,13 @@ playerForm.addEventListener('submit', (e) => {
         pos2: document.getElementById('pos2').value,
         fot: document.getElementById('fot').value,
         draktnummer: document.getElementById('draktnummer').value || '-',
-        status: document.getElementById('status').value // NY
+        status: document.getElementById('status').value
     };
 
     if (editId) {
-        set(ref(db, `players/${editId}`), spillerData).then(() => window.closeModal());
+        set(ref(db, `players/${editId}`), spillerData).then(() => window.closePlayerModal());
     } else {
         const newRef = push(ref(db, 'players'));
-        set(newRef, spillerData).then(() => window.closeModal());
+        set(newRef, spillerData).then(() => window.closePlayerModal());
     }
 });
