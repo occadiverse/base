@@ -113,7 +113,7 @@ function renderPlayers() {
                 
                 <td style="text-align: center;">${s.draktnummer || '-'}</td>
                 
-                <td style="text-align: left;">${posisjonsVisning}</td>
+                <td style="text-align: center;">${posisjonsVisning}</td>
                 
                 <td style="text-align: center;">${fotVisning}</td>
                 
