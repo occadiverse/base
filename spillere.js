@@ -105,11 +105,11 @@ function renderPlayers() {
 
         return `
             <tr class="match-row" onclick="window.editPlayer('${s.id}')" style="cursor:pointer;">
-                <td class="name-col" style="text-align: left; font-weight: 600;">
-                    <strong>${s.navn}</strong>${statusBadge}
+                <td class="name-col" style="text-align: left;">
+                    ${s.navn}${statusBadge}
                 </td>
                 
-                <td><strong style="color: var(--text-main);">${s.draktnummer || '-'}</strong></td>
+                <td>${s.draktnummer || '-'}</td>
                 
                 <td>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
