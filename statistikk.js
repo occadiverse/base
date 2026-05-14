@@ -86,7 +86,7 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                         kamperOppmøte++;
                         const kamp = Object.values(matches).find(m => matchDatoer(m.date, dato));
 
-                        if (kamp && kamp.result) {
+                        if (campaign && kamp.result) {
                             const scores = kamp.result.replace(/\s/g, "").split('-');
                             
                             let pRating = null;
@@ -173,7 +173,6 @@ function renderTopplister(statsArray) {
         const listEl = document.getElementById(conf.listEl);
         
         if (winnerEl) {
-            // FJERNET winner-row HER:
             winnerEl.innerHTML = winner ? `
                 <div class="stat-row">
                     <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
@@ -191,7 +190,7 @@ function renderTopplister(statsArray) {
             if (resten.length > 0) {
                 const extraId = `extra-${conf.key}`;
                 listHTML += `
-                    <div id="${extraId}" style="display:none;">
+                    <div id="${extraId}" class="hidden-list">
                         ${resten.map((s, i) => `
                             <div class="stat-row">
                                 <span><span class="rank">${i + 11}</span><span class="player-name">${s.navn}</span></span>
@@ -211,11 +210,13 @@ function renderTopplister(statsArray) {
 // Global funksjon for å åpne/lukke resten av lista
 window.toggleFullList = function(id, btn) {
     const extraDiv = document.getElementById(id);
-    if (extraDiv.style.display === "none") {
-        extraDiv.style.display = "block";
+    
+    // Sjekker klasseliste-tilstand i stedet for uforutsigbare inline-stiler
+    if (!extraDiv.classList.contains('show')) {
+        extraDiv.classList.add('show');
         btn.innerText = "Vis færre";
     } else {
-        extraDiv.style.display = "none";
+        extraDiv.classList.remove('show');
         btn.innerText = "Vis alle";
     }
 };
