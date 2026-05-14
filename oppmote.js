@@ -103,8 +103,8 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (Nå fullstendig tilpasset den globale th-stilen med store, fargede bokstaver)
-    let headerRow = `<tr><th class="name-col" style="vertical-align: middle; color: #64748b; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;">SPILLER</th>`;
+    // 1. Headere (Renset for utdaterte inline-stiler, bruker nå FontAwesome-søppelbøtte og hele ord)
+    let headerRow = `<tr><th class="name-col">SPILLER</th>`;
     
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
@@ -116,11 +116,13 @@ function renderMatrix() {
         const datoOverskrift = `${d[0]}.${d[1]}`;
         
         headerRow += `
-            <th data-date="${isoDate}" style="color: #64748b; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;">
+            <th data-date="${isoDate}">
                 <div class="header-content">
-                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">Slett</button>
-                    <span class="header-date" style="color: #64748b;">${datoOverskrift}</span>
-                    <div class="day-type ${typeClass}">${type.charAt(0)}</div>
+                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <span class="header-date">${datoOverskrift}</span>
+                    <div class="day-type ${typeClass}">${type}</div>
                 </div>
             </th>`;
     });
@@ -136,7 +138,6 @@ function renderMatrix() {
                 return acc + (curr[id] === 'K' ? 1 : 0);
             }, 0);
 
-            // Beholder p.navn akkurat slik det er registrert i steden for å forkorte det
             return { id, navn: p.navn, totalCount };
         })
         .sort((a, b) => {
@@ -168,10 +169,10 @@ function renderMatrix() {
     attendanceBody.innerHTML = bodyHTML;
 }
 
-// --- HJELPEFUNKSJONER ---
+// --- HJELPEFUNKSJONER (Stilrent sjekkmerke og nøytral sirkel) ---
 function getStatusIcon(status) {
     return status === 'K' 
-        ? '<i class="fa-solid fa-circle-check status-present"></i>' 
+        ? '<i class="fa-solid fa-check status-present"></i>' 
         : '<i class="fa-regular fa-circle status-none"></i>';
 }
 
