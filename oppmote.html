@@ -10,178 +10,179 @@
     <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-        /* BSK-blå Hero - Identisk med kamper.html */
-        .oppmote-hero {
-            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
-        }
+    /* BSK-blå Hero - Identisk med kamper.html */
+    .oppmote-hero {
+        background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
+    }
 
-        .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
-        .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
+    .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
+    .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
 
-        /* Tabell-container og struktur */
-        .table-container {
-            overflow-x: auto;
-            position: relative;
-            background: var(--white);
-            border-radius: 15px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            margin: 20px 0;
+    /* Tabell-container og struktur */
+    .table-container {
+        overflow-x: auto !important; /* Endret til !important her for å sikre PC-flyt */
+        position: relative;
+        background: var(--white);
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        margin: 20px 0;
+    }
+
+    #attendanceTable {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    /* RYDDIG HEADER STYLING */
+    #attendanceHeader th {
+        padding: 12px 8px;
+        background: #f8f9fa;
+        border-bottom: 2px solid var(--border-color);
+        border-right: 1px solid #eee;
+        min-width: 55px;
+        vertical-align: top;
+    }
+
+    /* Spesifikk vertikal midtstilling for "Spiller"-overskriften */
+    #attendanceHeader th.name-col {
+        vertical-align: middle !important;
+    }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-date {
+        font-size: 0.75rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    /* Dag-type (T/K) som runde sirkler */
+    .day-type {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 0.65rem;
+        color: white;
+    }
+    .day-type-training { background: #cbd5e1; color: #475569; }
+    .day-type-match { background: #ef4444; }
+
+    .btn-delete-header {
+        background: #fee2e2;
+        color: #ef4444;
+        border: none;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 9px;
+        font-weight: 800;
+        cursor: pointer;
+        opacity: 0.3;
+        transition: 0.2s;
+    }
+    .btn-delete-header:hover { opacity: 1; }
+
+    /* Sticky navnekolonne som står bom fast */
+    .name-col {
+        position: sticky;
+        left: 0;
+        background: #f8f9fa !important;
+        z-index: 10;
+        min-width: 200px;
+        border-right: 2px solid var(--border-color) !important; 
+        padding: 0 15px !important;
+        text-align: left !important;
+    }
+
+    /* Cellene i tabell-kroppen */
+    #attendanceTable td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f2f6;
+        border-right: 1px solid #f1f2f6;
+        padding: 12px 5px;
+        text-align: center;
+    }
+
+    /* Status styling */
+    .status-present { color: #2ecc71; font-size: 1.3rem; display: block; width: 100%; }
+    .status-none { color: #f1f2f6; font-size: 1.3rem; display: block; width: 100%; }
+    
+    .attendance-badge {
+        background: var(--bsk-blue);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* FAB Button */
+    .fab-btn {
+        position: fixed;
+        right: 25px;
+        bottom: 25px;
+        width: 60px;
+        height: 60px;
+        background: var(--bsk-blue);
+        color: var(--bsk-yellow);
+        border: 2px solid var(--bsk-yellow);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+    }
+
+    /* --- SPESIFIKK MOBILHÅNDTERING FOR OPPMØTE-MATRISEN --- */
+    @media (max-width: 768px) {
+        .fab-btn { bottom: 85px; }
+
+        /* Overstyrer den globale overflow-x: hidden fra style.css fullstendig */
+        body div.table-container {
+            overflow-x: scroll !important;
+            display: block !important;
+            width: 100% !important;
+            padding: 0 !important;
+            -webkit-overflow-scrolling: touch !important; /* Sikrer smooth sveiping på iPhone */
         }
 
         #attendanceTable {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            table-layout: auto !important;
+            width: max-content !important; /* Tvinger tabellen til å beholde sin naturlige bredde sidelengs */
         }
 
-        /* RYDDIG HEADER STYLING */
-        #attendanceHeader th {
-            padding: 12px 8px;
-            background: #f8f9fa;
-            border-bottom: 2px solid var(--border-color);
-            border-right: 1px solid #eee;
-            min-width: 55px;
-            vertical-align: top;
-        }
-
-        /* Spesifikk vertikal midtstilling for "Spiller"-overskriften */
-        #attendanceHeader th.name-col {
-            vertical-align: middle !important;
-        }
-
-        .header-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-date {
-            font-size: 0.75rem;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        /* Dag-type (T/K) som runde sirkler */
-        .day-type {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 0.65rem;
-            color: white;
-        }
-        .day-type-training { background: #cbd5e1; color: #475569; }
-        .day-type-match { background: #ef4444; }
-
-        .btn-delete-header {
-            background: #fee2e2;
-            color: #ef4444;
-            border: none;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 9px;
-            font-weight: 800;
-            cursor: pointer;
-            opacity: 0.3;
-            transition: 0.2s;
-        }
-        .btn-delete-header:hover { opacity: 1; }
-
-        /* Sticky navnekolonne som står bom fast */
-        .name-col {
-            position: sticky;
-            left: 0;
+        /* Låser navnekolonnen og sørger for at den ligger over datocellene når man ruller */
+        .matrix-table .name-col {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 25 !important; /* Høyere z-index for å ligge over sjekk-ikonene */
             background: #f8f9fa !important;
-            z-index: 10;
-            min-width: 200px; /* God bredde for fulle navn på PC og mobil */
-            border-right: 2px solid var(--border-color) !important; 
-            padding: 0 15px !important;
-            text-align: left !important;
+            box-shadow: 3px 0 6px rgba(0, 0, 0, 0.12);
         }
 
-        /* Cellene i tabell-kroppen */
-        #attendanceTable td {
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f2f6;
-            border-right: 1px solid #f1f2f6;
-            padding: 12px 5px;
-            text-align: center;
+        /* Sikrer luft til dato-kolonnene på mobil */
+        .matrix-table th:not(.name-col) {
+            min-width: 65px !important;
+            padding: 10px 4px !important;
         }
-
-        /* Status styling */
-        .status-present { color: #2ecc71; font-size: 1.3rem; display: block; width: 100%; }
-        .status-none { color: #f1f2f6; font-size: 1.3rem; display: block; width: 100%; }
-        
-        .attendance-badge {
-            background: var(--bsk-blue);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        /* FAB Button */
-        .fab-btn {
-            position: fixed;
-            right: 25px;
-            bottom: 25px;
-            width: 60px;
-            height: 60px;
-            background: var(--bsk-blue);
-            color: var(--bsk-yellow);
-            border: 2px solid var(--bsk-yellow);
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-        }
-
-        /* --- SPESIFIKK MOBILHÅNDTERING FOR OPPMØTE-MATRISEN --- */
-        @media (max-width: 768px) {
-            .fab-btn { bottom: 85px; }
-
-            /* Tvinger containeren til å tillate horisontal scroll innendørs på mobil */
-            .table-container {
-                overflow-x: auto !important;
-                display: block !important;
-                width: 100% !important;
-                padding: 0 !important;
-            }
-
-            #attendanceTable {
-                table-layout: auto !important;
-                width: max-content !important; /* Lar matrisen strekke seg ut i full bredde sidelengs */
-            }
-
-            /* Låser navnekolonnen fullstendig til venstre ved rulling */
-            .matrix-table .name-col {
-                position: sticky !important;
-                left: 0 !important;
-                z-index: 20 !important;
-                background: #f8f9fa !important;
-                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.08); /* Skillekant mot datoene */
-            }
-
-            /* Litt mer luft rundt datoene på mobil */
-            .matrix-table th:not(.name-col) {
-                min-width: 65px !important;
-                padding: 10px 4px !important;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
 
