@@ -9,18 +9,6 @@
     <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-        /* BSK-blå Hero - Synkronisert med resten av appen */
-        .stats-hero-clean {
-            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
-        }
-        .stats-hero-clean h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
-        .stats-hero-clean p { font-size: 1.1rem; opacity: 0.8; }
-
         /* Lagstatistikk Ruterett */
         .team-stats-row {
             display: grid;
@@ -163,7 +151,8 @@
 <header class="top-bar">
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
     <h1 id="section-title" class="section-title">Stats</h1>
-    <div class="filter-wrapper"></div> </header>
+    <div class="filter-wrapper"></div>
+</header>
 
 <div class="sidebar" id="sidebar"></div>
 
@@ -191,9 +180,13 @@
 </nav>
 
 <main class="main-content">
-    <section class="stats-hero-clean">
-        <h2>Sesongens Prestasjoner</h2>
-        <p>Basert på kampresultater og personlige 0-1-2 vurderinger.</p>
+    <section class="kamper-hero">
+        <div class="hero-content">
+            <p class="hero-intro-text" style="font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; color: white;">
+                Her har du full oversikt over <strong>sesongens prestasjoner</strong>. 
+                Tallene er basert på kampresultater og dine personlige vurderinger fra kamprapportene.
+            </p>
+        </div>
     </section>
 
     <div class="filter-bar">
