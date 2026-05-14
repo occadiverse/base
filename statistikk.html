@@ -108,16 +108,6 @@
         .hidden-list { display: none; }
         .hidden-list.show { display: block; }
 
-        @media (max-width: 768px) {
-            .stat-header.active ~ .stat-info { display: block; }
-        }
-
-        @media (min-width: 769px) {
-            .stat-header { cursor: default; pointer-events: none; }
-            .toggle-icon { display: none; }
-            .hidden-list { display: block !important; }
-        }
-
         /* Filter bar */
         .filter-bar {
             background: var(--white);
@@ -144,6 +134,21 @@
             outline: none;
             cursor: pointer;
         }
+
+        @media (max-width: 768px) {
+            .stat-header.active ~ .stat-info { display: block; }
+            
+            /* SIKRER GOD AVSTAND FRA DEN FASTE TOPPMENYEN PÅ MOBIL */
+            .main-content {
+                padding-top: calc(var(--topbar-height) + 20px) !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .stat-header { cursor: default; pointer-events: none; }
+            .toggle-icon { display: none; }
+            .hidden-list { display: block !important; }
+        }
     </style>
 </head>
 <body>
@@ -151,7 +156,8 @@
 <header class="top-bar">
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
     <h1 id="section-title" class="section-title">Stats</h1>
-    <div class="filter-wrapper"></div> </header>
+    <div class="filter-wrapper"></div> 
+</header>
 
 <div class="sidebar" id="sidebar"></div>
 
