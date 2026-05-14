@@ -1,5 +1,4 @@
-/* 
-================================================================
+/* ================================================================
 1. DESIGNVARIABLER
 ================================================================
 */
@@ -23,12 +22,10 @@
     --bottom-nav-height: 70px;
 }
 
-/* 
-================================================================
+/* ================================================================
 2. GRUNNLEGGENDE RESET
 ================================================================
 */
-
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
 body {
@@ -41,8 +38,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* 
-================================================================
+/* ================================================================
 3. TOP BAR
 ================================================================
 */
@@ -50,7 +46,7 @@ body {
     position: fixed; 
     top: 0;
     left: 0;
-    z-index: 2000; /* Høyere enn alt annet */
+    z-index: 2000;
     height: var(--topbar-height);
     background: var(--white);
     display: flex;
@@ -119,87 +115,25 @@ body {
     border: none;
     background: transparent;
     cursor: pointer;
-
-
-
     outline: none;
-
-
-
     padding-right: 5px;
-
-
-
     text-transform: uppercase;
-
-
-
     appearance: none;
-
-
-
 }
 
-
-
-
-
-
-
-/* 
-
-
-
-================================================================
-
-
-
+/* ================================================================
 4. RESPONSIV KONTROLL
-
-
-
 ================================================================
-
-
-
 */
-
-
-
 .desktop-only { display: none !important; }
-
-
-
 .mobile-only { display: block; }
 
-
-
-
-
-
-
 @media (min-width: 769px) {
-
-
-
     .desktop-only { display: table-cell !important; }
-
-
-
     .mobile-only { display: none !important; }
-
-
-
 }
 
-
-
-
-
-
-
-/* 
-================================================================
+/* ================================================================
 5. TABELL-SYSTEM
 ================================================================
 */
@@ -237,594 +171,195 @@ td {
 
 .match-row:hover { background-color: #f8fbff; }
 
-/* 
-================================================================
+/* GLOBALE SYNKRONISERTE REGLER FOR PC-KOLONNER */
+/* Kolonne 1 (Navn / Motstander): Alltid venstrejustert */
+table.match-table th:nth-child(1),
+table.match-table td:nth-child(1) {
+    text-align: left !important;
+}
+
+/* Kolonne 2 (Draktnummer / Dato): Alltid midtstilt, ingen linjebrudd og god plass */
+table.match-table th:nth-child(2),
+table.match-table td:nth-child(2) {
+    text-align: center !important;
+    white-space: nowrap !important;
+    min-width: 100px;
+}
+
+/* ================================================================
 6. NAVIGASJON & HOVEDLAYOUT
 ================================================================
 */
 
-
-
-
-
-
-
 /* --- PC SIDEBAR & LAYOUT --- */
-
-
-
 @media (min-width: 769px) {
-
-
-
-    /* FJERNER MOBILMENY HELT PÅ PC */
-
-
-
     .bottom-nav { display: none !important; }
 
-
-
-
-
-
-
     .sidebar {
-
-
-
         width: var(--sidebar-width);
-
-
-
         background: var(--white);
-
-
-
         border-right: 1px solid var(--border-color);
-
-
-
         position: fixed;
-
-
-
         top: var(--topbar-height);
-
-
-
         left: 0;
-
-
-
         height: calc(100vh - var(--topbar-height));
-
-
-
         z-index: 1000;
-
-
-
         display: flex;
-
-
-
         flex-direction: column;
-
-
-
         box-shadow: 2px 0 10px rgba(0,0,0,0.02);
-
-
-
     }
-
-
-
-
-
-
 
     .nav-links {
-
-
-
         display: flex;
-
-
-
         flex-direction: column;
-
-
-
         padding-top: 25px;
-
-
-
         width: 100%;
-
-
-
     }
-
-
-
-
-
-
 
     .nav-item {
-
-
-
         padding: 16px 28px;
-
-
-
         display: flex;
-
-
-
         align-items: center;
-
-
-
         gap: 15px;
-
-
-
         text-decoration: none;
-
-
-
         color: var(--text-muted);
-
-
-
         font-weight: 600;
-
-
-
         font-size: 0.95rem;
-
-
-
         transition: all 0.2s ease;
-
-
-
         border-right: 4px solid transparent;
-
-
-
     }
-
-
-
-
-
-
 
     .nav-item i { width: 25px; text-align: center; font-size: 1.15rem; }
 
-
-
-
-
-
-
     .nav-item:hover { background: var(--active-bg); color: var(--bsk-blue); }
 
-
-
-
-
-
-
     .nav-item.active {
-
-
-
         background: var(--active-bg);
-
-
-
         color: var(--bsk-blue);
-
-
-
         font-weight: 800;
-
-
-
         border-right: 4px solid var(--bsk-yellow);
-
-
-
     }
-
-
-
-
-
-
 
     .main-content {
-
-
-
         margin-left: var(--sidebar-width);
-
-
-
-        /* Tvinger innholdet ned under den faste toppmenyen */
-
-
-
         padding: calc(var(--topbar-height) + 30px) 40px 40px 40px !important;
-
-
-
         min-height: 100vh;
-
-
-
     }
-
-
-
 }
-
-
-
-
-
-
 
 /* --- MOBIL BOTTOM-NAV & LAYOUT --- */
-
-
-
 @media (max-width: 768px) {
-
-
-
     .sidebar { display: none !important; }
 
-
-
-
-
-
-
     .bottom-nav {
-
-
-
         display: flex;
-
-
-
         position: fixed;
-
-
-
         bottom: 0;
-
-
-
         left: 0;
-
-
-
         width: 100%;
-
-
-
         height: var(--bottom-nav-height);
-
-
-
         background: #ffffff;
-
-
-
         border-top: 1px solid rgba(0, 0, 0, 0.08);
-
-
-
         justify-content: space-around;
-
-
-
         align-items: center;
-
-
-
         z-index: 2000;
-
-
-
         padding-bottom: env(safe-area-inset-bottom);
-
-
-
         box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-
-
-
     }
-
-
-
-
-
-
 
     .bottom-nav .nav-item {
-
-
-
         flex: 1;
-
-
-
         display: flex;
-
-
-
         flex-direction: column;
-
-
-
         align-items: center;
-
-
-
         justify-content: center;
-
-
-
         gap: 4px;
-
-
-
         color: #636e72;
-
-
-
         font-size: 0.65rem;
-
-
-
         font-weight: 700;
-
-
-
         text-decoration: none;
-
-
-
         position: relative;
-
-
-
     }
-
-
-
-
-
-
 
     .bottom-nav .nav-item.active { color: var(--bsk-blue); }
-
-
-
     .bottom-nav .nav-item.active::after {
-
-
-
         content: '';
-
-
-
         position: absolute;
-
-
-
         bottom: -2px;
-
-
-
         width: 15px;
-
-
-
         height: 3px;
-
-
-
         background: var(--bsk-yellow);
-
-
-
         border-radius: 10px;
-
-
-
     }
-
-
-
-
-
-
 
     .main-content {
-
-
-
         padding: calc(var(--topbar-height) + 20px) 15px 100px 15px !important; 
-
-
-
     }
-
-
-
 }
 
-
-
-
-
-
-
-/* 
-
-
-
-================================================================
-
-
-
+/* ================================================================
 7. ØVRIG STYLING & HERO
-
-
-
 ================================================================
-
-
-
 */
-
-
-
 .kamper-hero, .welcome-hero {
-
-
-
     background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
-
-
-
     border-radius: 20px;
-
-
-
     padding: 35px 40px;
-
-
-
     color: white;
-
-
-
     margin-bottom: 25px;
-
-
-
     box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
-
-
-
     position: relative;
-
-
-
     z-index: 1;
-
-
-
 }
-
-
-
-
 
 .date-time-cell { 
-
     text-align: center; 
-
     line-height: 1.3; 
-
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
-
     justify-content: center;
-
     padding: 10px 0;
-
 }
-
-
 
 .date-part { 
-
     display: block; 
-
-    font-size: 0.95rem;      /* Samme størrelse som motstander */
-
-    font-weight: 700;        /* Samme tyngde som motstander */
-
-    color: var(--text-main);  /* Samme farge som motstander */
-
-    text-transform: none;    /* Holder det naturlig som i motstander-navnet */
-
+    font-size: 0.95rem; 
+    font-weight: 700; 
+    color: var(--text-main); 
+    text-transform: none; 
 }
-
-
 
 .time-part { 
-
     display: block; 
-
-    font-size: 0.75rem;      /* Mindre og diskret */
-
+    font-size: 0.75rem; 
     font-weight: 500; 
-
-    color: var(--text-muted); /* Tonet ned for å la datoen være sjef */
-
+    color: var(--text-muted); 
     margin-top: 1px;
-
 }
-
-
-
-/* Sentrerer også selve resultat-badge-en i RES-kolonnen */
 
 .res-cell {
-
     text-align: center !important;
-
 }
-
-
 
 .res-cell .result-badge {
-
     margin: 0 auto;
-
 }
-/* Kun oppgradering av ikoner i mobilmeny - endrer ingenting annet i tabellen */
+
 @media (max-width: 768px) {
     .bottom-nav {
-        height: 75px !important; /* Litt mer plass */
+        height: 75px !important;
     }
     .bottom-nav .nav-item i {
-        font-size: 1.4rem !important; /* Større ikoner */
+        font-size: 1.4rem !important;
     }
     .bottom-nav .nav-item span {
-        font-size: 0.7rem !important; /* Litt tydeligere tekst */
+        font-size: 0.7rem !important;
         font-weight: 800 !important;
     }
 }
 
-/* --- REN MOBILVISNING (Dato, Tid, Motstander, Res) --- */
+/* --- REN MOBILVISNING SYNKRONISERT (Gjelder både Kamper og Tropp) --- */
 @media (max-width: 768px) {
     
     .table-container {
@@ -836,35 +371,35 @@ td {
     table.match-table {
         table-layout: auto !important;
         width: 100% !important;
-        min-width: 0 !important; /* Overstyrer original min-width */
+        min-width: 0 !important;
     }
 
-    /* 1. DATO: Midtstilt og tvinger én linje */
+    /* 1. Kolonne: Navn / Motstander - Venstrejustert, ingen krølling */
     table.match-table th:nth-child(1), 
     table.match-table td:nth-child(1) {
-        text-align: center !important;
-        white-space: nowrap !important; /* Stopper linjebrudd i datoen */
-        padding: 14px 8px !important;   /* Beholder din høyde, gir luft på sidene */
-        width: 1% !important;
+        text-align: left !important;
+        white-space: nowrap !important;
+        padding: 14px 8px !important;
+        width: auto !important;
     }
 
-    /* 2. TID: Midtstilt */
+    /* 2. Kolonne: Draktnummer / Dato - Midtstilt */
     table.match-table th:nth-child(2), 
     table.match-table td:nth-child(2) {
         text-align: center !important;
+        white-space: nowrap !important;
         padding: 14px 8px !important;
         width: 1% !important;
     }
 
-    /* 3. MOTSTANDER: Venstrestilt og fleksibel */
+    /* 3. Kolonne: Posisjon / Klokkeslett - Midtstilt */
     table.match-table th:nth-child(3), 
     table.match-table td:nth-child(3) {
-        text-align: left !important;
+        text-align: center !important;
         padding: 14px 10px !important;
-        width: auto !important;
     }
 
-    /* 4. RES: Midtstilt */
+    /* 4. Kolonne: Fot / Resultat - Midtstilt */
     table.match-table th:nth-child(4), 
     table.match-table td:nth-child(4) {
         text-align: center !important;
@@ -872,16 +407,9 @@ td {
         width: 1% !important;
     }
 
-    /* SKJULER kolonne 5, 6 og 7 */
+    /* SKJULER kolonne 5, 6 og 7 på mobil */
     table.match-table th:nth-child(n+5),
     table.match-table td:nth-child(n+5) {
         display: none !important;
-    }
-
-    /* Sørger for at teksten i motstander-kolonnen kan bruke to linjer ved behov */
-    table.match-table td:nth-child(3) div {
-        white-space: normal;
-        word-break: break-word;
-        font-weight: 700;
     }
 }
