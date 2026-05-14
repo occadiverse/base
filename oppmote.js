@@ -53,7 +53,7 @@ function updateMonthDropdown() {
     const currentMonthYear = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
     const previousSelection = monthFilter.value;
 
-    let filterHTML = '<option value="Alle">HELE SESONGEN</option>';
+    let filterHTML = '<option value="Alle">Sesong 2026</option>';
     sortedMonths.forEach(mY => {
         const [m, y] = mY.split('-');
         filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1].toUpperCase()} ${y}</option>`;
