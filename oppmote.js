@@ -18,7 +18,7 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
-    // Sorter datoer kronologisk (DD-MM-YYYY -> YYYY-MM-DD for riktig sortering)
+    // Sorter datoer kronologisk
     dates = Object.keys(attendanceData).sort((a, b) => {
         const dateA = a.split('-').reverse().join('-');
         const dateB = b.split('-').reverse().join('-');
@@ -28,7 +28,7 @@ onValue(ref(db, '/'), (snapshot) => {
     updateMonthDropdown();
     renderMatrix();
     
-    // Auto-scroll til dagens dato (eller nærmeste fremtidige) etter lasting
+    // Auto-scroll til dagens dato etter lasting
     setTimeout(scrollToCurrentDate, 300);
 });
 
@@ -86,7 +86,6 @@ function scrollToCurrentDate() {
     }
 
     if (target) {
-        // Sentrerer den aktuelle datoen i skjermbildet
         const offset = target.offsetLeft - (scrollContainer.offsetWidth / 2) + (target.offsetWidth / 2);
         scrollContainer.scrollTo({ left: offset, behavior: 'smooth' });
     }
@@ -104,8 +103,8 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (Lystrer den globale, synkroniserte th-stilen)
-    let headerRow = `<tr><th class="name-col"><span>Spiller</span></th>`;
+    // 1. Headere (Nå fullstendig tilpasset den globale th-stilen med store, fargede bokstaver)
+    let headerRow = `<tr><th class="name-col" style="vertical-align: middle; color: #64748b; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;">SPILLER</th>`;
     
     filteredDates.forEach(date => {
         const info = attendanceData[date]?.info || {};
@@ -113,15 +112,14 @@ function renderMatrix() {
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         const isoDate = date.split('-').reverse().join('-');
         
-        // Formater dato til "12.05"
         const d = date.split('-');
         const datoOverskrift = `${d[0]}.${d[1]}`;
         
         headerRow += `
-            <th data-date="${isoDate}">
+            <th data-date="${isoDate}" style="color: #64748b; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;">
                 <div class="header-content">
                     <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">Slett</button>
-                    <span class="header-date">${datoOverskrift}</span>
+                    <span class="header-date" style="color: #64748b;">${datoOverskrift}</span>
                     <div class="day-type ${typeClass}">${type.charAt(0)}</div>
                 </div>
             </th>`;
@@ -129,7 +127,7 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // 2. Sortering og Navnehåndtering
+    // 2. Sortering og Navnehåndtering (Fulle navn bevares her)
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, p]) => {
@@ -138,19 +136,10 @@ function renderMatrix() {
                 return acc + (curr[id] === 'K' ? 1 : 0);
             }, 0);
 
-            // Kortnavn-logikk (Ole N.)
-            const navneDeler = p.navn.trim().split(' ');
-            let kortNavn = p.navn;
-            if (navneDeler.length > 1) {
-                const fornavn = navneDeler[0];
-                const etternavnInitial = navneDeler[navneDeler.length - 1].charAt(0);
-                kortNavn = `${fornavn} ${etternavnInitial}.`;
-            }
-
-            return { id, navn: kortNavn, totalCount };
+            // Beholder p.navn akkurat slik det er registrert i steden for å forkorte det
+            return { id, navn: p.navn, totalCount };
         })
         .sort((a, b) => {
-            // Sorter primært på flest oppmøter, sekundært alfabetisk
             if (b.totalCount !== a.totalCount) return b.totalCount - a.totalCount;
             return a.navn.localeCompare(b.navn, 'nb');
         });
@@ -160,7 +149,7 @@ function renderMatrix() {
     sortedPlayers.forEach((p) => {
         let row = `<tr>
             <td class="name-col">
-                <div class="player-info-wrapper">
+                <div class="player-info-wrapper" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="player-name">${p.navn}</span>
                     <span class="attendance-badge">${p.totalCount}</span>
                 </div>
