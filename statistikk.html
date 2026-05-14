@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSK Fotball Herrer A-lag - Statistikk</title>
+    <title>Statistikk - BSK Fotball</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="modals.css?v=2">
+    
     <style>
+        /* BSK-blå Hero - Synkronisert med resten av appen */
         .stats-hero-clean {
-            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+            background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
             border-radius: 20px;
-            padding: 50px;
+            padding: 40px;
             color: white;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
         }
         .stats-hero-clean h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
         .stats-hero-clean p { font-size: 1.1rem; opacity: 0.8; }
 
+        /* Lagstatistikk Ruterett */
         .team-stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -30,10 +34,12 @@
             padding: 20px;
             text-align: center;
             box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
         }
-        .team-card .label { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 700; }
+        .team-card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; }
         .team-card .value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
 
+        /* Individuell stats-grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -46,6 +52,7 @@
             border-radius: 15px;
             padding: 25px;
             box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
         }
@@ -54,34 +61,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0; 
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9; 
             font-size: 0.95rem;
             font-weight: 600;
             color: var(--text-main);
         }
 
-        .rank { font-weight: 800; color: var(--primary); margin-right: 12px; width: 25px; display: inline-block; }
-        .player-name { flex: 1; font-weight: 600; color: #333; }
-        .score-val { font-weight: 800; color: var(--text-main); background: #f8f9fa; padding: 2px 8px; border-radius: 5px; }
+        .rank { font-weight: 800; color: var(--bsk-blue); margin-right: 12px; width: 25px; display: inline-block; }
+        .player-name { flex: 1; font-weight: 600; color: var(--text-main); }
+        .score-val { font-weight: 800; color: var(--bsk-blue); background: var(--active-bg); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; }
 
-        /* --- INFO SEKSJON --- */
+        /* Info tekst i bunn av kort */
         .stat-info {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px dashed #ddd;
+            border-top: 1px dashed var(--border-color);
             font-size: 0.8rem;
-            color: #777;
+            color: var(--text-muted);
             line-height: 1.4;
         }
-        .stat-info i { margin-right: 5px; color: var(--primary); }
+        .stat-info i { margin-right: 5px; color: var(--bsk-blue); }
 
-        /* --- VIS ALLE KNAPP --- */
+        /* Vis alle knapp */
         .show-all-btn {
             width: 100%;
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
-            color: var(--primary);
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            color: var(--bsk-blue);
             padding: 12px;
             border-radius: 10px;
             margin: 10px 0;
@@ -93,15 +100,11 @@
         }
 
         .show-all-btn:hover {
-            background: #f1f3f5;
-            border-color: var(--primary);
+            background: var(--active-bg);
+            border-color: var(--bsk-blue);
         }
 
-        .show-all-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* --- ACCORDION --- */
+        /* Accordion og header for mobil */
         .stat-header {
             display: flex;
             justify-content: space-between;
@@ -110,8 +113,8 @@
             border-bottom: 2px solid #f8f9fa;
             cursor: pointer;
         }
-        .stat-header h3 { font-size: 1.2rem; margin: 0; display: flex; align-items: center; gap: 10px; }
-        .toggle-icon { transition: transform 0.3s; color: #ccc; }
+        .stat-header h3 { font-size: 1.2rem; margin: 0; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+        .toggle-icon { transition: transform 0.3s; color: var(--text-muted); }
         .stat-header.active .toggle-icon { transform: rotate(180deg); }
 
         .hidden-list { display: none; }
@@ -134,30 +137,60 @@
             padding: 15px 25px;
             margin-bottom: 25px;
             box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-main);
         }
+        .filter-bar i { color: var(--bsk-blue); }
         .select-input-clean {
             padding: 8px 12px;
             border-radius: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             font-weight: 600;
+            background: var(--bg-light);
+            color: var(--bsk-blue);
+            outline: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
+<header class="top-bar">
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
+    <h1 id="section-title" class="section-title">Stats</h1>
+    <div class="filter-wrapper"></div> </header>
+
 <div class="sidebar" id="sidebar"></div>
 
-<div class="main-content">
-    <div class="top-bar">
-        <button class="menu-toggle" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <h2 class="section-title">BSK Fotball Herrer A-lag</h2>
-    </div>
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span>Hjem</span>
+    </a>
+    <a href="oppmote.html" class="nav-item">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Oppmøte</span>
+    </a>
+    <a href="kamper.html" class="nav-item">
+        <i class="fa-solid fa-soccer-ball"></i>
+        <span>Kamper</span>
+    </a>
+    <a href="spillere.html" class="nav-item">
+        <i class="fa-solid fa-users"></i>
+        <span>Tropp</span>
+    </a>
+    <a href="statistikk.html" class="nav-item active">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Stats</span>
+    </a>
+</nav>
 
+<main class="main-content">
     <section class="stats-hero-clean">
         <h2>Sesongens Prestasjoner</h2>
         <p>Basert på kampresultater og personlige 0-1-2 vurderinger.</p>
@@ -186,10 +219,9 @@
     </div>
 
     <div class="stats-grid">
-        <!-- MVP LAG -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listPoengContainer', this)">
-                <h3><i class="fa-solid fa-users-rays" style="color: var(--primary);"></i> MVP Lag</h3>
+                <h3><i class="fa-solid fa-users-rays" style="color: var(--bsk-blue);"></i> MVP Lag</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerPoeng"></div>
@@ -201,10 +233,9 @@
             </div>
         </div>
 
-        <!-- MVP KAMP -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listKomplettContainer', this)">
-                <h3><i class="fa-solid fa-trophy" style="color: var(--primary);"></i> MVP Kamp</h3>
+                <h3><i class="fa-solid fa-trophy" style="color: var(--bsk-blue);"></i> MVP Kamp</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerKomplett"></div>
@@ -215,10 +246,9 @@
             </div>
         </div>
 
-        <!-- TRENINGSIVER -->
         <div class="stat-card">
             <div class="stat-header" onclick="toggleStatList('listOppmoteContainer', this)">
-                <h3><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Treningsiver</h3>
+                <h3><i class="fa-solid fa-calendar-check" style="color: var(--bsk-blue);"></i> Treningsiver</h3>
                 <i class="fa-solid fa-chevron-down toggle-icon"></i>
             </div>
             <div id="winnerOppmote"></div>
@@ -229,11 +259,10 @@
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <script>
     function toggleStatList(id, header) {
-        // På mobil vil vi trigge accordion
         if (window.innerWidth <= 768) {
             const container = document.getElementById(id);
             container.classList.toggle('show');
