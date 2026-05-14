@@ -27,10 +27,45 @@ onValue(ref(db, '/'), (snapshot) => {
     
     updateMonthDropdown();
     renderMatrix();
+    updateHeroStats(); // Oppdaterer tallene i heroseksjonen
     
     // Auto-scroll til dagens dato etter lasting
     setTimeout(scrollToCurrentDate, 300);
 });
+
+// --- DYNAMISK HERO-INFORMASJON ---
+function updateHeroStats() {
+    const totalEvents = dates.length;
+    if (totalEvents === 0) return;
+
+    let totalAttendancePoints = 0;
+    let potentialPoints = 0;
+    let playerAttendanceCounts = {};
+
+    dates.forEach(date => {
+        const dayData = attendanceData[date] || {};
+        Object.entries(players).forEach(([id, p]) => {
+            if (p.status !== 'Passiv') {
+                potentialPoints++;
+                if (dayData[id] === 'K') {
+                    totalAttendancePoints++;
+                    playerAttendanceCounts[id] = (playerAttendanceCounts[id] || 0) + 1;
+                }
+            }
+        });
+    });
+
+    const topAttendance = Math.max(...Object.values(playerAttendanceCounts), 0);
+    const avgPercent = potentialPoints > 0 ? Math.round((totalAttendancePoints / potentialPoints) * 100) : 0;
+
+    const elTotal = document.getElementById('stat-total-events');
+    const elAvg = document.getElementById('stat-avg-attendance');
+    const elTop = document.getElementById('stat-top-attendance');
+
+    if (elTotal) elTotal.innerText = totalEvents;
+    if (elAvg) elAvg.innerText = avgPercent + '%';
+    if (elTop) elTop.innerText = topAttendance;
+}
 
 // --- LAG MÅNEDSVELGER ---
 function updateMonthDropdown() {
@@ -53,7 +88,7 @@ function updateMonthDropdown() {
     const currentMonthYear = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
     const previousSelection = monthFilter.value;
 
-    let filterHTML = '<option value="Alle">Sesong 2026</option>';
+    let filterHTML = '<option value="Alle">SESONG 2026</option>';
     sortedMonths.forEach(mY => {
         const [m, y] = mY.split('-');
         filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1].toUpperCase()} ${y}</option>`;
@@ -103,7 +138,6 @@ function renderMatrix() {
         return `${parts[1]}-${parts[2]}` === selectedMonthYear;
     });
 
-    // 1. Headere (Renset for utdaterte inline-stiler, bruker nå FontAwesome-søppelbøtte og hele ord)
     let headerRow = `<tr><th class="name-col">SPILLER</th>`;
     
     filteredDates.forEach(date => {
@@ -129,11 +163,9 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // 2. Sortering og Navnehåndtering (Fulle navn bevares her)
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, p]) => {
-            // Tell totalt oppmøte (K) på tvers av sesongen
             const totalCount = Object.values(attendanceData).reduce((acc, curr) => {
                 return acc + (curr[id] === 'K' ? 1 : 0);
             }, 0);
@@ -145,7 +177,6 @@ function renderMatrix() {
             return a.navn.localeCompare(b.navn, 'nb');
         });
 
-    // 3. Rader
     let bodyHTML = '';
     sortedPlayers.forEach((p) => {
         let row = `<tr>
@@ -169,14 +200,12 @@ function renderMatrix() {
     attendanceBody.innerHTML = bodyHTML;
 }
 
-// --- HJELPEFUNKSJONER (Stilrent sjekkmerke og nøytral sirkel) ---
 function getStatusIcon(status) {
     return status === 'K' 
         ? '<i class="fa-solid fa-check status-present"></i>' 
         : '<i class="fa-regular fa-circle status-none"></i>';
 }
 
-// --- GLOBALE FUNKSJONER (window) ---
 window.filterByMonth = (monthValue) => {
     renderMatrix();
     setTimeout(scrollToCurrentDate, 100);
@@ -204,7 +233,6 @@ window.deleteDate = (date) => {
     }
 };
 
-// --- FORM HANDLING ---
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawDate = document.getElementById('eventDate').value; 
@@ -212,7 +240,7 @@ attendanceForm.addEventListener('submit', (e) => {
     if (!rawDate) return;
 
     const parts = rawDate.split('-');
-    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // Til DD-MM-YYYY format
+    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; 
 
     set(ref(db, `attendance/${formattedDate}/info`), {
         type: type,
