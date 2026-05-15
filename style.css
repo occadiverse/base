@@ -203,6 +203,12 @@ table.match-table td:nth-child(2) {
     margin-top: 0px;
 }
 
+/* Fjerner den ekstra tabell-margen når boksene ligger i rutenettet på forsiden */
+.dashboard-grid .table-container {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 /* Sikrer at introduksjonsteksten i hero boksen har samme store størrelse på alle sider */
 .hero-intro-text {
     font-size: 1.2rem;
