@@ -151,6 +151,11 @@ body {
     margin: 20px 0;
 }
 
+/* Sørger for at dashboard-boksene på forsiden beholder luft på mobil */
+.table-container.dash-card {
+    padding: 25px !important;
+}
+
 table { width: 100%; border-collapse: collapse; min-width: 0px; }
 
 thead { background-color: #f8f9fa; }
