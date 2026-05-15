@@ -46,20 +46,20 @@
             </div>
         </section>
 
-        <div class="dashboard-grid">
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
             
-            <div class="table-container" id="nextMatchCard" style="grid-column: 1 / -1; padding: 25px; text-align: left;">
+            <div class="table-container" id="nextMatchCard" style="padding: 25px; text-align: left; margin-bottom: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
                     <div>
                         <span class="day-type day-type-match" style="display: inline-block; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">
                             Neste Kamp
                         </span>
-                        <h3 id="dashNextOpponent" style="font-size: 1.8rem; font-weight: 900; color: var(--text-main); margin: 0; line-height: 1.2;">
+                        <h3 id="dashNextOpponent" style="font-size: 1.6rem; font-weight: 900; color: var(--text-main); margin: 0; line-height: 1.2;">
                             Søker etter kamper...
                         </h3>
                     </div>
-                    <div style="background: var(--active-bg); padding: 12px; border-radius: 12px; text-align: center; min-width: 70px;">
-                        <i class="fa-solid fa-soccer-ball" style="font-size: 1.4rem; color: var(--bsk-blue);"></i>
+                    <div style="background: var(--active-bg); padding: 12px; border-radius: 12px; text-align: center; min-width: 50px;">
+                        <i class="fa-solid fa-soccer-ball" style="font-size: 1.2rem; color: var(--bsk-blue);"></i>
                     </div>
                 </div>
 
@@ -78,8 +78,31 @@
                     </div>
                 </div>
 
-                <button onclick="window.location.href='kamper.html'" class="show-all-btn" style="margin: 0; background: var(--bsk-blue); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; width: 100%; text-align: center; cursor: pointer;">
-                    <i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> GÅ TIL KAMPFORBEREDELSER
+                <button onclick="window.location.href='kamper.html'" class="show-all-btn" style="margin: 0; background: var(--bsk-blue); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; width: 100%; text-align: center; cursor: pointer;">
+                    <i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> KAMPFORBEREDELSER
+                </button>
+            </div>
+
+            <div class="table-container" id="formCard" style="padding: 25px; text-align: left; margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <span class="day-type day-type-training" style="display: inline-block; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; background: #e2e8f0; color: #475569;">
+                        Lagets Form
+                    </span>
+                    <h3 style="font-size: 1.6rem; font-weight: 900; color: var(--text-main); margin: 0 0 20px 0; line-height: 1.2;">
+                        Siste 5 kamper
+                    </h3>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <span style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Seier">S</span>
+                        <span style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Seier">S</span>
+                        <span style="width: 40px; height: 40px; border-radius: 50%; background: #ef4444; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Tap">T</span>
+                        <span style="width: 40px; height: 40px; border-radius: 50%; background: #eab308; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Uavgjort">U</span>
+                        <span style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Seier">S</span>
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='statistikk.html'" class="show-all-btn" style="margin: 0; background: transparent; color: var(--bsk-blue); border: 2px solid var(--bsk-blue); padding: 10px; border-radius: 12px; font-weight: 700; width: 100%; text-align: center; cursor: pointer;">
+                    <i class="fa-solid fa-chart-line" style="margin-right: 8px;"></i> SE ALL STATISTIKK
                 </button>
             </div>
             
