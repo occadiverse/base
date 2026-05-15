@@ -32,7 +32,7 @@ onValue(ref(db, 'matches'), (snapshot) => {
     // 4. Oppdater grensesnittet
     if (nesteKamp) {
         // Formater datoen fra YYYY-MM-DD til DD.MM.YYYY for visning på kortet
-        let visningsDato = nesteCamp.date; // Bruker variabelen slik koden din hadde den
+        let visningsDato = nesteKamp.date; 
         if (nesteKamp.date.includes('-')) {
             const deler = nesteKamp.date.split('-');
             if (deler.length === 3) {
@@ -42,8 +42,8 @@ onValue(ref(db, 'matches'), (snapshot) => {
 
         if (nextOpponentEl) nextOpponentEl.innerText = nesteKamp.opponent || "Ukjent motstander";
         if (nextDateEl) nextDateEl.innerText = visningsDato;
-        if (nextTimeEl) nextTimeEl.innerText = "kl. " + (nesteCamp.time || "--:--");
-        if (nextPitchEl) nextPitchEl.innerText = nesteCamp.pitch || "Ikke satt";
+        if (nextTimeEl) nextTimeEl.innerText = "kl. " + (nesteKamp.time || "--:--");
+        if (nextPitchEl) nextPitchEl.innerText = nesteKamp.pitch || "Ikke satt";
         
         // OPPDATERER LENKEN DYNAMISK MED KAMPENS ID
         const nextLinkEl = document.getElementById('dashNextLink');
