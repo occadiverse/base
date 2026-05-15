@@ -11,6 +11,24 @@ const manederTekst = [
 
 // --- DATO-HÅNDTERING ---
 
+// NY: Hjelpefunksjon for å finne riktig filter-periode (MM-YYYY) uavhengig av om nøkkelen er en dato eller en Kamp-ID
+function hentPeriodeFraNokkel(nøkkel, attendance) {
+    if (!nøkkel) return "";
+    
+    const info = attendance[nøkkel]?.info || {};
+    if (info.date) {
+        const deler = info.date.split('-');
+        return `${deler[1]}-${deler[0]}`; // Returnerer MM-YYYY
+    }
+    
+    if (nøkkel.includes('-') && nøkkel.split('-')[0].length === 2) {
+        const deler = nøkkel.split('-');
+        return `${deler[1]}-${deler[2]}`; // Returnerer MM-YYYY
+    }
+    
+    return "";
+}
+
 function hentPeriodeFraDato(datoStr) {
     if (!datoStr) return "";
     const deler = datoStr.split('-');
@@ -44,8 +62,8 @@ periodSelect.addEventListener('change', () => {
 function genererDynamiskFilter() {
     const attendance = globalData.attendance || {};
     const unikePerioder = new Set();
-    Object.keys(attendance).forEach(d => {
-        const p = hentPeriodeFraDato(d);
+    Object.keys(attendance).forEach(key => {
+        const p = hentPeriodeFraNokkel(key, attendance);
         if (p) unikePerioder.add(p);
     });
 
@@ -85,14 +103,19 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
             let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0, totalRatingScore = 0, antallRatings = 0;
             let mvpLagScore = 0;
 
-            const relevanteDatoer = Object.keys(attendance).filter(d => periodeValg === 'total' || hentPeriodeFraDato(d) === periodeValg);
-            const totaltMulige = relevanteDatoer.length;
+            const relevanteNøkler = Object.keys(attendance).filter(key => periodeValg === 'total' || hentPeriodeFraNokkel(key, attendance) === periodeValg);
+            const totaltMulige = relevanteNøkler.length;
 
-            relevanteDatoer.forEach(dato => {
-                if (attendance[dato][id] === 'K') {
-                    if (attendance[dato].info?.type === 'Kamp') {
+            relevanteNøkler.forEach(key => {
+                if (attendance[key][id] === 'K') {
+                    const info = attendance[key].info || {};
+                    const type = info.type || 'Trening';
+
+                    if (type === 'Kamp') {
                         kamperOppmøte++;
-                        const kamp = Object.values(matches).find(m => matchDatoer(m.date, dato));
+                        
+                        // Sjekker om kampen finnes direkte under Kamp-ID, eller om den må søkes opp på dato (gammel struktur)
+                        const kamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
 
                         if (kamp && kamp.result) {
                             const scores = kamp.result.replace(/\s/g, "").split('-');
@@ -131,8 +154,14 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                 }
             });
 
-            Object.values(matches).forEach(m => {
-                if (periodeValg !== 'total' && hentPeriodeFraDato(m.date) !== periodeValg) return;
+            Object.entries(matches).forEach(([mId, m]) => {
+                // Sjekker om kampen tilhører den valgte perioden i filteret (via Kamp-ID eller dato)
+                const tilhorerPerioden = periodeValg === 'total' || 
+                                         (attendance[mId] && hentPeriodeFraNokkel(mId, attendance) === periodeValg) ||
+                                         (m.date && m.date.includes('-') && `${m.date.split('-')[1]}-${m.date.split('-')[0]}` === periodeValg);
+                
+                if (!tilhorerPerioden) return;
+
                 if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
                 if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
                 if (m.playerRatings) {
@@ -244,6 +273,5 @@ function oppdaterLagStats(matches, statsArray, periode) {
     if (teamMatchesEl) teamMatchesEl.innerText = kampListe.length;
     if (teamGoalsEl) teamGoalsEl.innerText = statsArray.reduce((sum, s) => sum + s.mål, 0);
     
-    // FIKSET LOGIKK: Regner nå ut og viser seiersprosenten helt feilfritt
     if (teamWinRateEl) teamWinRateEl.innerText = (kampListe.length > 0 ? Math.round((seire / kampListe.length) * 100) : 0) + "%";
 }
