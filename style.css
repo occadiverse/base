@@ -203,6 +203,15 @@ table.match-table td:nth-child(2) {
     margin-top: 0px;
 }
 
+/* Sikrer at introduksjonsteksten i hero boksen har samme store størrelse på alle sider */
+.hero-intro-text {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 800px;
+    line-height: 1.6;
+    margin: 0;
+}
+
 /* ================================================================
 6. NAVIGASJON & HOVEDLAYOUT
 ================================================================
