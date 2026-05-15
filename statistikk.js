@@ -64,6 +64,14 @@ function genererDynamiskFilter() {
 
 function oppdaterStatistikk() {
     if (!globalData) return;
+    
+    // NYTT: Henter ut den faktiske teksten i filteret og oppdaterer den gule heroteksten i sanntid
+    const periodWordEl = document.getElementById('stat-period-word');
+    if (periodSelect && periodWordEl) {
+        const valgtTekst = periodSelect.options[periodSelect.selectedIndex].text;
+        periodWordEl.innerText = valgtTekst;
+    }
+
     const stats = beregnLogikk(globalData.players || {}, globalData.attendance || {}, globalData.matches || {}, periodSelect.value);
     renderTopplister(stats);
     oppdaterLagStats(globalData.matches || {}, stats, periodSelect.value);
@@ -86,7 +94,6 @@ function beregnLogikk(players, attendance, matches, periodeValg) {
                         kamperOppmøte++;
                         const kamp = Object.values(matches).find(m => matchDatoer(m.date, dato));
 
-                        // FIKSET: Endret fra 'campaign' til 'kamp' så ikke logikken tryner
                         if (kamp && kamp.result) {
                             const scores = kamp.result.replace(/\s/g, "").split('-');
                             
@@ -208,7 +215,6 @@ function renderTopplister(statsArray) {
     });
 }
 
-// Global funksjon for å åpne/lukke resten av lista via klassestyring
 window.toggleFullList = function(id, btn) {
     const extraDiv = document.getElementById(id);
     
@@ -237,5 +243,5 @@ function oppdaterLagStats(matches, statsArray, periode) {
     
     if (teamMatchesEl) teamMatchesEl.innerText = kampListe.length;
     if (teamGoalsEl) teamGoalsEl.innerText = statsArray.reduce((sum, s) => sum + s.mål, 0);
-    if (teamWinRateEl) teamWinRateEl.innerText = (kampListe.length > 0 ? Math.round((seire/kampListe.length)*100) : 0) + "%";
+    if (teamWinRateEl) teamWinRateEl.innerText = (campaignListeLength = kampListe.length > 0 ? Math.round((seire/kampListe.length)*100) : 0) + "%";
 }
