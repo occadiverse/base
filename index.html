@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- App-innstillinger -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -12,19 +11,15 @@
     <meta name="description" content="BSK Fotball Herrer A lag - Administrasjon av lag, taktikk, oppmøte og statistikk">
     <title>BSK Fotball Herrer - A lag</title>
     
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
-    <!-- Fonts og Ikoner -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Hovedstil -->
     <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
-    <!-- TOP BAR -->
     <header class="top-bar">
         <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
         <h1 id="section-title" class="section-title"></h1>
@@ -39,15 +34,11 @@
         </div>
     </header>
 
-    <!-- SIDEBAR (PC) -->
     <aside id="sidebar" class="sidebar"></aside>
 
-    <!-- BUNNMENY (MOBIL) - Genereres av navigation.js -->
     <nav class="bottom-nav"></nav>
 
-    <!-- HOVEDINNHOLD -->
     <main class="main-content">
-        <!-- HERO SEKSJON -->
         <section class="welcome-hero">
             <div class="hero-content">
                 <h2>Velkommen, Christian</h2>
@@ -55,17 +46,47 @@
             </div>
         </section>
 
-        <!-- DASHBOARD GRID -->
         <div class="dashboard-grid">
-            <div class="table-container" style="grid-column: 1 / -1; padding: 30px; text-align: center; border: 2px dashed var(--border-color); background: transparent;">
-                <i class="fa-solid fa-chart-pie" style="font-size: 2rem; color: var(--bsk-blue); margin-bottom: 15px; display: block;"></i>
-                <h3 style="color: var(--bsk-blue); margin-bottom: 8px;">Klar for analyse</h3>
-                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;">Bruk menyen for å navigere. Denne flaten er nå klar for å vise dine Google Sheets-data, som f.eks. neste kamp eller form-tabell.</p>
+            
+            <div class="table-container" id="nextMatchCard" style="grid-column: 1 / -1; padding: 25px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div>
+                        <span class="day-type day-type-match" style="display: inline-block; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">
+                            Neste Kamp
+                        </span>
+                        <h3 id="dashNextOpponent" style="font-size: 1.8rem; font-weight: 900; color: var(--text-main); margin: 0; line-height: 1.2;">
+                            Søker etter kamper...
+                        </h3>
+                    </div>
+                    <div style="background: var(--active-bg); padding: 12px; border-radius: 12px; text-align: center; min-width: 70px;">
+                        <i class="fa-solid fa-soccer-ball" style="font-size: 1.4rem; color: var(--bsk-blue);"></i>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-calendar-days" style="color: var(--bsk-blue); width: 20px;"></i>
+                        <span id="dashNextDate">Laster dato...</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-clock" style="color: var(--bsk-blue); width: 20px;"></i>
+                        <span id="dashNextTime">Laster klokkeslett...</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-location-dot" style="color: var(--bsk-blue); width: 20px;"></i>
+                        <span id="dashNextPitch">Laster bane...</span>
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='kamper.html'" class="show-all-btn" style="margin: 0; background: var(--bsk-blue); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; width: 100%; text-align: center; cursor: pointer;">
+                    <i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> GÅ TIL KAMPFORBEREDELSER
+                </button>
             </div>
+            
         </div>
     </main>
 
-    <!-- SCRIPTS -->
     <script src="navigation.js"></script>
+    <script type="module" src="index.js"></script>
 </body>
 </html>
