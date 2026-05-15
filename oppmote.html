@@ -250,7 +250,6 @@
     </a>
 </nav>
 
-<!-- HOVEDINNHOLD -->
 <main class="main-content">
     <section class="kamper-hero">
         <div class="hero-content">
@@ -270,32 +269,25 @@
     </div>
 </main>
 
-<button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny dag">
+<button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny treningsøkt">
     <i class="fa-solid fa-calendar-plus"></i>
 </button>
 
 <div id="attendanceModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="color: var(--bsk-blue); margin:0;">Ny økt / Kamp</h3>
+            <h3 style="color: var(--bsk-blue); margin:0;">Ny treningsøkt</h3>
             <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
         </div>
         <form id="attendanceForm">
             <div class="form-row">
-                <div class="form-group">
+                <div class="form-group" style="flex: 1;">
                     <label>Dato</label>
                     <input type="date" id="eventDate" required class="form-control">
                 </div>
-                <div class="form-group">
-                    <label>Type</label>
-                    <select id="eventType" class="form-control">
-                        <option value="Trening">Trening</option>
-                        <option value="Kamp">Kamp</option>
-                    </select>
-                </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE ØKT</button>
                 <button type="button" onclick="closeAttendanceModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
             </div>
