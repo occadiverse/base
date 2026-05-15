@@ -9,8 +9,22 @@ const scrollContainer = document.querySelector('.table-container');
 
 let players = {};
 let attendanceData = {};
-let dates = [];
+let keys = []; // Endret fra dates til keys for å romme både datoer og kamp-ID-er
 const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
+
+// Hjelpefunksjon for å hente ut ren ISO-dato (YYYY-MM-DD) uavhengig av nøkkeltype
+function getIsoDateFromKey(key, data) {
+    const info = data[key]?.info || {};
+    if (info.date) {
+        // Hvis kilden har en lagret dato (f.eks. YYYY-MM-DD fra matches metadata)
+        return info.date.includes('-') ? info.date : info.date.split('.').reverse().join('-');
+    }
+    // Hvis nøkkelen er en tradisjonell dato (DD-MM-YYYY)
+    if (key.includes('-') && key.split('-')[0].length === 2) {
+        return key.split('-').reverse().join('-');
+    }
+    return '1970-01-01';
+}
 
 // --- HENT DATA ---
 onValue(ref(db, '/'), (snapshot) => {
@@ -18,32 +32,31 @@ onValue(ref(db, '/'), (snapshot) => {
     players = root.players || {};
     attendanceData = root.attendance || {};
     
-    // Sorter datoer kronologisk
-    dates = Object.keys(attendanceData).sort((a, b) => {
-        const dateA = a.split('-').reverse().join('-');
-        const dateB = b.split('-').reverse().join('-');
-        return new Date(dateA) - new Date(dateB);
+    // Sorterer nøklene kronologisk basert på den reelle datoen aktiviteten har
+    keys = Object.keys(attendanceData).sort((a, b) => {
+        const dateA = new Date(getIsoDateFromKey(a, attendanceData));
+        const dateB = new Date(getIsoDateFromKey(b, attendanceData));
+        return dateA - dateB;
     });
     
     updateMonthDropdown();
     renderMatrix();
-    updateHeroStats(); // Oppdaterer tallene i heroseksjonen
+    updateHeroStats(); 
     
-    // Auto-scroll til dagens dato etter lasting
     setTimeout(scrollToCurrentDate, 300);
 });
 
 // --- DYNAMISK HERO-INFORMASJON ---
 function updateHeroStats() {
-    const totalEvents = dates.length;
+    const totalEvents = keys.length;
     if (totalEvents === 0) return;
 
     let totalAttendancePoints = 0;
     let potentialPoints = 0;
     let playerAttendanceCounts = {};
 
-    dates.forEach(date => {
-        const dayData = attendanceData[date] || {};
+    keys.forEach(key => {
+        const dayData = attendanceData[key] || {};
         Object.entries(players).forEach(([id, p]) => {
             if (p.status !== 'Passiv') {
                 potentialPoints++;
@@ -72,10 +85,11 @@ function updateMonthDropdown() {
     if (!monthFilter) return;
     
     const monthsFound = new Set();
-    dates.forEach(date => {
-        const parts = date.split('-');
+    keys.forEach(key => {
+        const isoDate = getIsoDateFromKey(key, attendanceData);
+        const parts = isoDate.split('-'); // [YYYY, MM, DD]
         if (parts.length === 3) {
-            monthsFound.add(`${parts[1]}-${parts[2]}`); 
+            monthsFound.add(`${parts[1]}-${parts[0]}`); // Format: MM-YYYY
         }
     });
 
@@ -132,27 +146,29 @@ function renderMatrix() {
 
     const selectedMonthYear = monthFilter.value;
 
-    const filteredDates = dates.filter(date => {
+    const filteredKeys = keys.filter(key => {
         if (selectedMonthYear === 'Alle') return true;
-        const parts = date.split('-');
-        return `${parts[1]}-${parts[2]}` === selectedMonthYear;
+        const isoDate = getIsoDateFromKey(key, attendanceData);
+        const parts = isoDate.split('-'); // [YYYY, MM, DD]
+        return `${parts[1]}-${parts[0]}` === selectedMonthYear;
     });
 
     let headerRow = `<tr><th class="name-col">SPILLER</th>`;
     
-    filteredDates.forEach(date => {
-        const info = attendanceData[date]?.info || {};
+    filteredKeys.forEach(key => {
+        const info = attendanceData[key]?.info || {};
         const type = info.type || 'Trening';
         const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
-        const isoDate = date.split('-').reverse().join('-');
+        const isoDate = getIsoDateFromKey(key, attendanceData);
         
-        const d = date.split('-');
-        const datoOverskrift = `${d[0]}.${d[1]}`;
+        // Hent ut DD.MM for kolonneoverskriften
+        const dParts = isoDate.split('-');
+        const datoOverskrift = `${dParts[2]}.${dParts[1]}`;
         
         headerRow += `
             <th data-date="${isoDate}">
                 <div class="header-content">
-                    <button class="btn-delete-header" onclick="window.deleteDate('${date}')" title="Slett dag">
+                    <button class="btn-delete-header" onclick="window.deleteDate('${key}')" title="Slett dag">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                     <span class="header-date">${datoOverskrift}</span>
@@ -187,10 +203,10 @@ function renderMatrix() {
                 </div>
             </td>`;
         
-        filteredDates.forEach(date => {
-            const dateData = attendanceData[date] || {};
+        filteredKeys.forEach(key => {
+            const dateData = attendanceData[key] || {};
             const status = dateData[p.id] || '';
-            row += `<td class="attendance-cell" data-date="${date}" data-player="${p.id}" onclick="window.toggleStatus('${date}', '${p.id}', '${status}')">
+            row += `<td class="attendance-cell" data-date="${key}" data-player="${p.id}" onclick="window.toggleStatus('${key}', '${p.id}', '${status}')">
                         ${getStatusIcon(status)}
                     </td>`;
         });
@@ -211,9 +227,9 @@ window.filterByMonth = (monthValue) => {
     setTimeout(scrollToCurrentDate, 100);
 };
 
-window.toggleStatus = (date, pId, currentStatus) => {
+window.toggleStatus = (key, pId, currentStatus) => {
     const nextStatus = currentStatus === 'K' ? '' : 'K';
-    const cell = document.querySelector(`[data-date="${date}"][data-player="${pId}"]`);
+    const cell = document.querySelector(`[data-date="${key}"][data-player="${pId}"]`);
     
     if (cell) {
         cell.style.opacity = '0.5';
@@ -221,15 +237,15 @@ window.toggleStatus = (date, pId, currentStatus) => {
         cell.style.transition = '0.1s';
     }
     
-    update(ref(db, `attendance/${date}`), { [pId]: nextStatus }).catch((error) => {
+    update(ref(db, `attendance/${key}`), { [pId]: nextStatus }).catch((error) => {
         console.error('Feil ved oppdatering:', error);
         if (cell) cell.style.opacity = '1';
     });
 };
 
-window.deleteDate = (date) => {
-    if (confirm(`Vil du slette ${date} permanent fra systemet?`)) {
-        remove(ref(db, `attendance/${date}`));
+window.deleteDate = (key) => {
+    if (confirm(`Vil du slette denne aktiviteten permanent fra systemet?`)) {
+        remove(ref(db, `attendance/${key}`));
     }
 };
 
