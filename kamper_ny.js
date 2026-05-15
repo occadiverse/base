@@ -139,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>`;
         };
 
-        // Tabelloverskriftene (table-divider) bruker colspan="7" nå som vi har 7 kolonner totalt på PC
         if (kommende.length > 0) {
             matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">KOMMENDE KAMPER</td></tr>`;
             kommende.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, false));
@@ -243,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!detailsDiv) return;
 
-        // --- VISNING AV MÅLSCORERE I MODAL ---
         let goalScorerHtml = '';
         if (matchData?.goalScorers) {
             goalScorerHtml = `
@@ -362,4 +360,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.deleteMatch = (id) => { if(confirm('Slette kampen?')) window.dbRemove(window.dbRef(window.db, `matches/${id}`)); };
+
+    // --- AUTOTRIGGER MODAL VED ID FRA NETTADRESSE ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMatchId = urlParams.get('id');
+
+    if (urlMatchId) {
+        const sjekkForMatser = setInterval(() => {
+            if (allMatches && allMatches.length > 0) {
+                const funnetMatch = allMatches.find(m => m.id === urlMatchId);
+                if (funnetMatch) {
+                    window.showMatchInfo(
+                        funnetMatch.id, 
+                        funnetMatch.date, 
+                        funnetMatch.opponent, 
+                        funnetMatch.time, 
+                        funnetMatch.pitch
+                    );
+                }
+                clearInterval(sjekkForMatser);
+            }
+        }, 100);
+    }
 });
