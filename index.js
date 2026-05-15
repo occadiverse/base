@@ -7,48 +7,46 @@ const nextTimeEl = document.getElementById('dashNextTime');
 const nextPitchEl = document.getElementById('dashNextPitch');
 
 onValue(ref(db, 'matches'), (snapshot) => {
-    const matches = snapshot.val() || {};
+    const data = snapshot.val() || {};
     
-    const nå = new Date(); // Henter nøyaktig tidspunkt akkurat nå (Dato + klokkeslett)
+    // Gjør om Firebase-objektet til en liste (array) slik du gjør i kamper.js
+    const allMatches = Object.entries(data).map(([id, match]) => ({ id, ...match }));
+    
+    const nå = new Date();
 
-    let nesteKamp = null;
-    let nærmesteTid = Infinity;
-
-    Object.values(matches).forEach(m => {
-        if (!m.date) return;
-        
-        // Splitter DD-MM-YYYY
-        const deler = m.date.split('-');
-        if (deler.length !== 3) return;
-        
-        // Hent klokkeslett hvis det finnes (f.eks. "19:30"), hvis ikke sett til 00:00
-        const tid = m.time || "00:00";
-        const [timer, minutter] = tid.split(':');
-
-        // Opprett et ekte Date-objekt for kampen med riktig dato og klokkeslett
-        const kampDato = new Date(deler[2], deler[1] - 1, deler[0], timer || 0, minutter || 0);
-
-        // Hvis kampen er i fremtiden (eller skjer akkurat nå)
-        if (kampDato.getTime() >= nå.getTime()) {
-            const tidsDiff = kampDato.getTime() - nå.getTime();
-            
-            // Vi vil ha den som ligger *nærmest* nåtid
-            if (tidsDiff < nærmesteTid) {
-                nærmesteTid = tidsDiff;
-                nesteKamp = m;
-            }
-        }
+    // 1. Filtrer ut kamper ved å bruke nøyaktig samme datometode som kamper.js
+    let kommendeKamper = allMatches.filter(m => {
+        if (!m.date) return false;
+        const kampDato = new Date(m.date + "T23:59:59");
+        return kampDato >= nå; // Sørger for at den blir stående ut dagen
     });
 
-    // Oppdater HTML med den faktiske neste kampen
+    // 2. Sorter dem kronologisk (den nærmeste kampen først)
+    kommendeKamper.sort((a, b) => {
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    // 3. Plukk ut den aller første kampen i den sorterte listen (neste kamp)
+    const nesteKamp = kommendeKamper[0];
+
+    // 4. Oppdater grensesnittet
     if (nesteKamp) {
+        // Formater datoen fra YYYY-MM-DD til DD.MM.YYYY for visning på kortet
+        let visningsDato = nesteKamp.date;
+        if (nesteKamp.date.includes('-')) {
+            const deler = nesteKamp.date.split('-');
+            if (deler.length === 3) {
+                visningsDato = `${deler[2]}.${deler[1]}.${deler[0]}`;
+            }
+        }
+
         if (nextOpponentEl) nextOpponentEl.innerText = nesteKamp.opponent || "Ukjent motstander";
-        if (nextDateEl) nextDateEl.innerText = nesteKamp.date || "Dato ikke satt";
-        if (nextTimeEl) nextTimeEl.innerText = nesteKamp.time || "Klokkeslett ikke satt";
-        if (nextPitchEl) nextPitchEl.innerText = nesteKamp.pitch || "Bane ikke spesifisert";
+        if (nextDateEl) nextDateEl.innerText = visningsDato;
+        if (nextTimeEl) nextTimeEl.innerText = "kl. " + (nesteKamp.time || "--:--");
+        if (nextPitchEl) nextPitchEl.innerText = nesteKamp.pitch || "Ikke satt";
     } else {
         if (nextOpponentEl) nextOpponentEl.innerText = "Ingen kommende kamper";
-        if (nextDateEl) nextDateEl.innerText = "Neste sesongplan i vente";
+        if (nextDateEl) nextDateEl.innerText = "Sesongplan ikke klar";
         if (nextTimeEl) nextTimeEl.innerText = "--:--";
         if (nextPitchEl) nextPitchEl.innerText = "Ikke satt";
     }
