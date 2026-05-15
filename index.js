@@ -32,7 +32,7 @@ onValue(ref(db, 'matches'), (snapshot) => {
     // 4. Oppdater grensesnittet
     if (nesteKamp) {
         // Formater datoen fra YYYY-MM-DD til DD.MM.YYYY for visning på kortet
-        let visningsDato = nesteKamp.date;
+        let visningsDato = nesteCamp.date; // Bruker variabelen slik koden din hadde den
         if (nesteKamp.date.includes('-')) {
             const deler = nesteKamp.date.split('-');
             if (deler.length === 3) {
@@ -42,12 +42,24 @@ onValue(ref(db, 'matches'), (snapshot) => {
 
         if (nextOpponentEl) nextOpponentEl.innerText = nesteKamp.opponent || "Ukjent motstander";
         if (nextDateEl) nextDateEl.innerText = visningsDato;
-        if (nextTimeEl) nextTimeEl.innerText = "kl. " + (nesteKamp.time || "--:--");
-        if (nextPitchEl) nextPitchEl.innerText = nesteKamp.pitch || "Ikke satt";
+        if (nextTimeEl) nextTimeEl.innerText = "kl. " + (nesteCamp.time || "--:--");
+        if (nextPitchEl) nextPitchEl.innerText = nesteCamp.pitch || "Ikke satt";
+        
+        // OPPDATERER LENKEN DYNAMISK MED KAMPENS ID
+        const nextLinkEl = document.getElementById('dashNextLink');
+        if (nextLinkEl && nesteKamp.id) {
+            nextLinkEl.href = `kamper.html?id=${nesteKamp.id}`;
+        }
     } else {
         if (nextOpponentEl) nextOpponentEl.innerText = "Ingen kommende kamper";
         if (nextDateEl) nextDateEl.innerText = "Sesongplan ikke klar";
         if (nextTimeEl) nextTimeEl.innerText = "--:--";
         if (nextPitchEl) nextPitchEl.innerText = "Ikke satt";
+        
+        // Hvis det ikke er noen kamp, settes lenken tilbake til standard kampside
+        const nextLinkEl = document.getElementById('dashNextLink');
+        if (nextLinkEl) {
+            nextLinkEl.href = 'kamper.html';
+        }
     }
 });
