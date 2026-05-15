@@ -200,7 +200,7 @@ table.match-table td:nth-child(2) {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 12px; /* Drar boksene tettere sammen */
-    margin-top: 20px;
+    margin-top: 0px;
 }
 
 /* ================================================================
