@@ -337,19 +337,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('matchModal').style.display = 'flex';
     };
 
+    // --- STEG 1: OPPDATERT FOR SEAMLESS KOPPLING MOT ATTENDANCE ---
     matchForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const matchId = document.getElementById('editMatchId').value;
+        
+        let matchId = document.getElementById('editMatchId').value;
+        const kampDato = document.getElementById('matchDate').value;
+        const motstander = document.getElementById('opponent').value;
+
+        if (!matchId) {
+            matchId = window.dbPush(window.dbRef(window.db, 'matches')).key;
+        }
+
         const matchData = {
-            date: document.getElementById('matchDate').value,
+            date: kampDato,
             time: document.getElementById('matchTime').value || '--:--',
-            opponent: document.getElementById('opponent').value,
+            opponent: motstander,
             pitch: document.getElementById('pitch').value || 'Ikke satt',
             type: document.getElementById('matchType').value,
             result: document.getElementById('result').value || '-'
         };
-        const path = matchId ? `matches/${matchId}` : `matches/${window.dbPush(window.dbRef(window.db, 'matches')).key}`;
-        window.dbSet(window.dbRef(window.db, path), matchData).then(() => window.closeMatchModal());
+
+        window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData).then(() => {
+            const oppmoteInfoPath = `attendance/${matchId}/info`;
+            const oppmoteInfoData = {
+                type: "Kamp",
+                date: kampDato,
+                opponent: motstander
+            };
+
+            window.dbSet(window.dbRef(window.db, oppmoteInfoPath), oppmoteInfoData).then(() => {
+                window.closeMatchModal();
+            });
+        });
     });
 
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
