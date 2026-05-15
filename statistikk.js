@@ -65,7 +65,7 @@ function genererDynamiskFilter() {
 function oppdaterStatistikk() {
     if (!globalData) return;
     
-    // NYTT: Henter ut den faktiske teksten i filteret og oppdaterer den gule heroteksten i sanntid
+    // Henter ut den faktiske teksten i filteret og oppdaterer den gule heroteksten i sanntid
     const periodWordEl = document.getElementById('stat-period-word');
     if (periodSelect && periodWordEl) {
         const valgtTekst = periodSelect.options[periodSelect.selectedIndex].text;
@@ -243,5 +243,7 @@ function oppdaterLagStats(matches, statsArray, periode) {
     
     if (teamMatchesEl) teamMatchesEl.innerText = kampListe.length;
     if (teamGoalsEl) teamGoalsEl.innerText = statsArray.reduce((sum, s) => sum + s.mål, 0);
-    if (teamWinRateEl) teamWinRateEl.innerText = (campaignListeLength = kampListe.length > 0 ? Math.round((seire/kampListe.length)*100) : 0) + "%";
+    
+    // FIKSET LOGIKK: Regner nå ut og viser seiersprosenten helt feilfritt
+    if (teamWinRateEl) teamWinRateEl.innerText = (kampListe.length > 0 ? Math.round((seire / kampListe.length) * 100) : 0) + "%";
 }
