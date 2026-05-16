@@ -77,16 +77,13 @@ function oppdaterTestStats() {
     renderTestTab(); 
 }
 
-// --- MATEMATISK DATAKVERNING MED LOGGING ---
+// --- MATEMATISK DATAKVERNING MED DOBBELTSJEKK AV SPILTE KAMPER ---
 function kvernRaaData(players, attendance, matches, periodeValg) {
     return Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, pData]) => {
             const navn = (pData.navn || pData.name || "").trim();
             let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0;
-            
-            // En liste for å samle opp kampene vi teller for denne spilleren
-            let talteKamper = [];
 
             const relevanteNøkler = Object.keys(attendance).filter(key => periodeValg === 'total' || hentPeriodeFraNokkel(key, attendance) === periodeValg);
 
@@ -96,19 +93,21 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                     const type = info.type || 'Trening';
                     
                     if (type === 'Kamp') {
-                        kamperOppmøte++;
-                        // Lagrer enten datoen eller Kamp-ID-en og motstander hvis info finnes
-                        talteKamper.push(info.date || key);
+                        // Sjekker om kampen faktisk finnes i matches (enten via ID eller dato)
+                        const tilhørendeKamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
+                        
+                        // SIKRING: Tell bare kampen hvis den faktisk er spilt (har et reelt resultat lagret)
+                        if (tilhørendeKamp && tilhørendeKamp.result && tilhørendeKamp.result !== '-') {
+                            kamperOppmøte++;
+                        } else {
+                            // Hvis kampen ikke er spilt ennå, eller er en fremtidig oppføring,
+                            // skal vi IKKE telle den som kampoppmøte i historisk statistikk.
+                        }
                     } else {
                         treninger++;
                     }
                 }
             });
-
-            // NYTT: Denne vil printe ut listen i nettleser-konsollen din (Trykk F12 -> Console)
-            if (kamperOppmøte > 6) {
-                console.log(`⚠️ Spiller: ${navn} har ${kamperOppmøte} kamper! Talte datoer/ID-er:`, talteKamper);
-            }
 
             Object.entries(matches).forEach(([mId, m]) => {
                 const tilhorerPerioden = periodeValg === 'total' || 
@@ -117,13 +116,17 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 
                 if (!tilhorerPerioden) return;
 
-                if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
-                if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
+                // Teller bare mål og assist fra kamper som faktisk har et resultat
+                if (m.result && m.result !== '-') {
+                    if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
+                    if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
+                }
             });
 
             return { navn, kamperOppmøte, treninger, mål, assist };
         });
 }
+
 // --- VISNINGSFUNKSJON (Tegner opp fanene dynamisk) ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
