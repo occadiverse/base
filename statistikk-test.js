@@ -11,7 +11,8 @@ const manederTekst = [
     "Juli", "August", "September", "Oktober", "November", "Desember"
 ];
 
-// --- DATODETEKTOR (Håndterer både rene datoer og de nye Kamp-ID-ene) ---
+// --- DATODETEKTORER OG HJELPEFUNKSJONER ---
+
 function hentPeriodeFraNokkel(nøkkel, attendance) {
     if (!nøkkel) return "";
     const info = attendance[nøkkel]?.info || {};
@@ -26,7 +27,16 @@ function hentPeriodeFraNokkel(nøkkel, attendance) {
     return "";
 }
 
-// --- INITIALISERING OG METRIC-TRIGGER ---
+function matchDatoer(dato1, dato2) {
+    if (!dato1 || !dato2) return false;
+    const d1 = dato1.replace(/\D/g, ""); 
+    const d2 = dato2.split('-').reverse().join(""); 
+    const d2_alt = dato2.replace(/\D/g, "");
+    return d1 === d2 || d1 === d2_alt;
+}
+
+// --- INITIALISERING OG TRIGGERMELDINGER ---
+
 onValue(ref(db, '/'), (snapshot) => {
     globalData = snapshot.val() || {};
     genererDynamiskFilter();
@@ -77,7 +87,7 @@ function oppdaterTestStats() {
     renderTestTab(); 
 }
 
-// --- MATEMATISK DATAKVERNING MED DOBBELTSJEKK AV SPILTE KAMPER ---
+// --- MATEMATISK DATAKVERNING ---
 function kvernRaaData(players, attendance, matches, periodeValg) {
     return Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
@@ -93,15 +103,12 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                     const type = info.type || 'Trening';
                     
                     if (type === 'Kamp') {
-                        // Sjekker om kampen faktisk finnes i matches (enten via ID eller dato)
+                        // Sjekker om kampen faktisk finnes i matches (via ID eller datomatch)
                         const tilhørendeKamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
                         
-                        // SIKRING: Tell bare kampen hvis den faktisk er spilt (har et reelt resultat lagret)
+                        // SIKRING: Tell bare kampen hvis den har et registrert resultat som ikke er '-'
                         if (tilhørendeKamp && tilhørendeKamp.result && tilhørendeKamp.result !== '-') {
                             kamperOppmøte++;
-                        } else {
-                            // Hvis kampen ikke er spilt ennå, eller er en fremtidig oppføring,
-                            // skal vi IKKE telle den som kampoppmøte i historisk statistikk.
                         }
                     } else {
                         treninger++;
@@ -116,7 +123,7 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 
                 if (!tilhorerPerioden) return;
 
-                // Teller bare mål og assist fra kamper som faktisk har et resultat
+                // Teller bare mål/assist fra spilte kamper
                 if (m.result && m.result !== '-') {
                     if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
                     if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
@@ -127,7 +134,7 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
         });
 }
 
-// --- VISNINGSFUNKSJON (Tegner opp fanene dynamisk) ---
+// --- VISNINGSFUNKSJON ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
@@ -139,7 +146,6 @@ function renderTestTab() {
     else if (currentActiveTab === 'trening') { nøkkel = 'treninger'; tekst = 'treninger'; }
     else if (currentActiveTab === 'kamp') { nøkkel = 'kamperOppmøte'; tekst = 'kamper'; }
 
-    // Sorterer troppen fra mest til færrest basert på valgt fane
     const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
 
     if (sortert.length === 0 || sortert[0][nøkkel] === 0) {
@@ -183,7 +189,7 @@ function renderTestTab() {
     container.innerHTML = html;
 }
 
-// --- FANESTYRING (Globale metoder bundet til vinduet) ---
+// --- FANESTYRING ---
 window.switchStatTab = function(tabName) {
     currentActiveTab = tabName;
     
