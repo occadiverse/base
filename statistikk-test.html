@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Test - Spillerstatistikk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    
+    <style>
+        .stat-tabs::-webkit-scrollbar {
+            display: none; /* Skjuler scrollbar på mobil for en cleanere look */
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>TEST</span></a>
+        <h1 class="section-title">Statistikk-Test</h1>
+        <div class="filter-wrapper">
+            <div class="filter-container">
+                <i class="fa-solid fa-calendar-days"></i>
+                <select id="statPeriodSelect" class="base-select">
+                    <option value="total">Laster filter...</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content" style="padding-top: 100px;">
+        <div class="container" style="max-width: 600px; margin: 0 auto; padding: 0 15px;">
+            
+            <div class="stat-section-title" style="margin-bottom: 15px;">
+                <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin: 0;">
+                    <i class="fa-solid fa-users" style="color: var(--bsk-blue); margin-right: 8px;"></i> 
+                    Troppens Stats (<span id="stat-period-word">Hele sesongen</span>)
+                </h2>
+            </div>
+
+            <!-- Lukrativ tab-meny optimalisert for tommel-klikk på mobil -->
+            <div class="stat-tabs" style="display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch;">
+                <button class="tab-btn" onclick="window.switchStatTab('maal')" id="tab-maal" style="flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: var(--bsk-blue); color: white; white-space: nowrap; transition: 0.2s;">MÅL</button>
+                <button class="tab-btn" onclick="window.switchStatTab('assist')" id="tab-assist" style="flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: var(--bg-light); color: var(--text-muted); white-space: nowrap; transition: 0.2s;">ASSIST</button>
+                <button class="tab-btn" onclick="window.switchStatTab('trening')" id="tab-trening" style="flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: var(--bg-light); color: var(--text-muted); white-space: nowrap; transition: 0.2s;">TRENINGER</button>
+                <button class="tab-btn" onclick="window.switchStatTab('kamp')" id="tab-kamp" style="flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: var(--bg-light); color: var(--text-muted); white-space: nowrap; transition: 0.2s;">KAMPER</button>
+            </div>
+
+            <!-- Selve containeren hvor listene dynamic felles inn -->
+            <div class="table-container dash-card" style="padding: 20px; background: white; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
+                <div id="tabContentContainer">
+                    <div style="text-align:center; padding:20px; color:var(--text-muted);">Kobler til Firebase...</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module" src="statistikk-test.js"></script>
+</body>
+</html>
