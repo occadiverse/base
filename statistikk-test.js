@@ -11,6 +11,8 @@ const manederTekst = [
     "Juli", "August", "September", "Oktober", "November", "Desember"
 ];
 
+// --- DATODETEKTORER OG HJELPEFUNKSJONER ---
+
 function hentPeriodeFraNokkel(nøkkel, attendance) {
     if (!nøkkel) return "";
     const info = attendance[nøkkel]?.info || {};
@@ -33,10 +35,16 @@ function matchDatoer(dato1, dato2) {
     return d1 === d2 || d1 === d2_alt;
 }
 
+// --- INITIALISERING AV FIREBASE ---
+
 onValue(ref(db, '/'), (snapshot) => {
-    globalData = snapshot.val() || {};
-    genererDynamiskFilter();
-    oppdaterTestStats();
+    try {
+        globalData = snapshot.val() || {};
+        genererDynamiskFilter();
+        oppdaterTestStats();
+    } catch (err) {
+        console.error("Feil under lasting av Firebase-data:", err);
+    }
 });
 
 if (periodSelect) {
@@ -83,7 +91,7 @@ function oppdaterTestStats() {
     renderTestTab(); 
 }
 
-// --- MATEMATISK DATAKVERNING (Inkludert full MVP logikk) ---
+// --- MATEMATISK DATAKVERNING MED ALT-I-ETT SIKRING ---
 function kvernRaaData(players, attendance, matches, periodeValg) {
     const naa = new Date();
     const dagensDatoTall = Number(`${naa.getFullYear()}${String(naa.getMonth() + 1).padStart(2, '0')}${String(naa.getDate()).padStart(2, '0')}`);
@@ -109,18 +117,16 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                         oektDatoTall = deler[0].length === 4 ? Number(`${deler[0]}${deler[1]}${deler[2]}`) : Number(`${deler[2]}${deler[1]}${deler[0]}`);
                     }
 
-                    if (type === 'Camp') {
+                    if (type === 'Camp' || type === 'Kamp') {
                         const tilhørendeKamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
                         
-                        // Sjekker om kampen har et reelt resultat (er spilt)
                         if (tilhørendeKamp && tilhørendeKamp.result && tilhørendeKamp.result !== '-') {
                             kamperOppmøte++;
                             
-                            // --- MVP LAG LOGIKK ---
                             const scores = tilhørendeKamp.result.replace(/\s/g, "").split('-');
                             let pRating = null;
                             if (tilhørendeKamp.playerRatings) {
-                                const rKey = Object.keys(tilhørendeKamp.playerRatings).find(k => k.trim() === navn);
+                                const rKey = Object.keys(tilhørendeKamp.playerRatings).find(k => k.trim().toLowerCase() === navn.toLowerCase() || navn.toLowerCase().includes(k.trim().toLowerCase()));
                                 if (rKey) pRating = tilhørendeKamp.playerRatings[rKey];
                             }
 
@@ -130,23 +136,11 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                                 const offVal = Number(pRating.off || 0);
                                 const defVal = Number(pRating.def || 0);
 
-                                // Offensiv kvern (0, 1 eller 2)
-                                if (offVal === 2) {
-                                    mvpLagScore += 0.5;
-                                    if (vi >= 3) mvpLagScore += 0.5;
-                                } else if (offVal === 1) {
-                                    mvpLagScore += 0.25;
-                                    if (vi >= 3) mvpLagScore += 0.25;
-                                }
+                                if (offVal === 2) { mvpLagScore += 0.5; if (vi >= 3) mvpLagScore += 0.5; }
+                                else if (offVal === 1) { mvpLagScore += 0.25; if (vi >= 3) mvpLagScore += 0.25; }
 
-                                // Defensiv kvern (0, 1 eller 2)
-                                if (defVal === 2) {
-                                    mvpLagScore += 0.5;
-                                    if (dem === 0) mvpLagScore += 0.5;
-                                } else if (defVal === 1) {
-                                    mvpLagScore += 0.25;
-                                    if (dem === 0) mvpLagScore += 0.25;
-                                }
+                                if (defVal === 2) { mvpLagScore += 0.5; if (dem === 0) mvpLagScore += 0.5; }
+                                else if (defVal === 1) { mvpLagScore += 0.25; if (dem === 0) mvpLagScore += 0.25; }
                             }
                         }
                     } else {
@@ -157,7 +151,6 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // Går gjennom kampsiden for Mål, Assist og MVP Kamp (Snitt-børs)
             Object.entries(matches).forEach(([mId, m]) => {
                 const tilhorerPerioden = periodeValg === 'total' || 
                                          (attendance[mId] && hentPeriodeFraNokkel(mId, attendance) === periodeValg) ||
@@ -166,11 +159,22 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 if (!tilhorerPerioden) return;
 
                 if (m.result && m.result !== '-') {
-                    if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
-                    if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
+                    if (m.goalScorers) {
+                        mål += m.goalScorers.split(',').filter(s => {
+                            const scName = s.trim().toLowerCase();
+                            return scName && (navn.toLowerCase().includes(scName) || scName.includes(navn.toLowerCase()));
+                        }).length;
+                    }
+                    
+                    if (m.assists) {
+                        assist += m.assists.split(',').filter(a => {
+                            const asName = a.trim().toLowerCase();
+                            return asName && (navn.toLowerCase().includes(asName) || asName.includes(navn.toLowerCase()));
+                        }).length;
+                    }
                     
                     if (m.playerRatings) {
-                        const rKey = Object.keys(m.playerRatings).find(k => k.trim() === navn);
+                        const rKey = Object.keys(m.playerRatings).find(k => k.trim().toLowerCase() === navn.toLowerCase() || navn.toLowerCase().includes(k.trim().toLowerCase()));
                         if (rKey) {
                             const r = m.playerRatings[rKey];
                             totalRatingScore += (Number(r.off || 0) + Number(r.def || 0));
@@ -180,7 +184,6 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 }
             });
 
-            // --- MVP KAMP LOGIKK (Formelen din for snittbørs) ---
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 4)) : 0;
             const pPk = kamperOppmøte > 0 ? ((mål + assist) / kamperOppmøte) : 0;
             const komplettScore = kamperOppmøte > 0 ? parseFloat((snittRating * 7) + (pPk * 1.5)).toFixed(2) : "0.00";
@@ -197,7 +200,7 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
         });
 }
 
-// --- VISNINGSFUNKSJON FOR ALLE TABS ---
+// --- VISNINGSFUNKSJON FOR ENKELT-TABS ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
@@ -211,7 +214,6 @@ function renderTestTab() {
     else if (currentActiveTab === 'mvpkamp') { nøkkel = 'mvpKamp'; tekst = 'score'; }
     else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'pts'; }
 
-    // Sortering
     const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
 
     if (sortert.length === 0 || sortert[0][nøkkel] === 0) {
@@ -230,7 +232,7 @@ function renderTestTab() {
                     <span style="display:inline-block; width:28px; color:${i===0 ? '#eab308' : 'var(--text-muted)'}; font-weight:900; font-size:1.1rem;">${i + 1}</span>
                     <span style="color:var(--text-main); font-size:0.95rem;">${s.navn}</span>
                 </span>
-                <span style="color:var(--bsk-blue); font-weight:800; background: var(--active-bg); padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${s[nøkkel]} ${tekst}</span>
+                <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${s[nøkkel]} ${tekst}</span>
             </div>`;
     });
 
@@ -244,7 +246,7 @@ function renderTestTab() {
                             <span style="display:inline-block; width:28px; color:var(--text-muted); font-size:0.95rem;">${i + 6}</span>
                             <span style="color:var(--text-main); font-size:0.95rem;">${s.navn}</span>
                         </span>
-                        <span style="color:var(--bsk-blue); font-weight:800; background: var(--active-bg); padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${s[nøkkel]} ${tekst}</span>
+                        <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${s[nøkkel]} ${tekst}</span>
                     </div>`).join('')}
             </div>
             <button onclick="event.stopPropagation(); window.toggleTestList('${extraId}', this)" style="margin-top:20px; background:none; border:none; color:var(--bsk-blue); font-weight:800; width:100%; text-align:center; cursor:pointer; font-size:0.85rem; letter-spacing:0.02em;">
@@ -254,6 +256,8 @@ function renderTestTab() {
 
     container.innerHTML = html;
 }
+
+// --- FANESTYRINGSMETODER ---
 
 window.switchStatTab = function(tabName) {
     currentActiveTab = tabName;
