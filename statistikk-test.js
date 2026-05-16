@@ -11,8 +11,6 @@ const manederTekst = [
     "Juli", "August", "September", "Oktober", "November", "Desember"
 ];
 
-// --- DATODETEKTORER OG HJELPEFUNKSJONER ---
-
 function hentPeriodeFraNokkel(nøkkel, attendance) {
     if (!nøkkel) return "";
     const info = attendance[nøkkel]?.info || {};
@@ -34,8 +32,6 @@ function matchDatoer(dato1, dato2) {
     const d2_alt = dato2.replace(/\D/g, "");
     return d1 === d2 || d1 === d2_alt;
 }
-
-// --- INITIALISERING OG TRIGGERMELDINGER ---
 
 onValue(ref(db, '/'), (snapshot) => {
     globalData = snapshot.val() || {};
@@ -77,7 +73,7 @@ function oppdaterTestStats() {
     if (!globalData) return;
     
     const periodWordEl = document.getElementById('stat-period-word');
-    if (periodSelect && periodWordEl) {
+    if (periodWordEl && periodSelect) {
         periodWordEl.innerText = periodSelect.options[periodSelect.selectedIndex].text;
     }
 
@@ -87,13 +83,17 @@ function oppdaterTestStats() {
     renderTestTab(); 
 }
 
-// --- MATEMATISK DATAKVERNING ---
+// --- MATEMATISK DATAKVERNING (Inkludert full MVP logikk) ---
 function kvernRaaData(players, attendance, matches, periodeValg) {
+    const naa = new Date();
+    const dagensDatoTall = Number(`${naa.getFullYear()}${String(naa.getMonth() + 1).padStart(2, '0')}${String(naa.getDate()).padStart(2, '0')}`);
+
     return Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, pData]) => {
             const navn = (pData.navn || pData.name || "").trim();
             let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0;
+            let totalRatingScore = 0, antallRatings = 0, mvpLagScore = 0;
 
             const relevanteNøkler = Object.keys(attendance).filter(key => periodeValg === 'total' || hentPeriodeFraNokkel(key, attendance) === periodeValg);
 
@@ -102,20 +102,62 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                     const info = attendance[key].info || {};
                     const type = info.type || 'Trening';
                     
-                    if (type === 'Kamp') {
-                        // Sjekker om kampen faktisk finnes i matches (via ID eller datomatch)
+                    const oektDatoStr = info.date || (key.includes('-') ? key : "");
+                    let oektDatoTall = 0;
+                    if (oektDatoStr) {
+                        const deler = oektDatoStr.split('-');
+                        oektDatoTall = deler[0].length === 4 ? Number(`${deler[0]}${deler[1]}${deler[2]}`) : Number(`${deler[2]}${deler[1]}${deler[0]}`);
+                    }
+
+                    if (type === 'Camp') {
                         const tilhørendeKamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
                         
-                        // SIKRING: Tell bare kampen hvis den har et registrert resultat som ikke er '-'
+                        // Sjekker om kampen har et reelt resultat (er spilt)
                         if (tilhørendeKamp && tilhørendeKamp.result && tilhørendeKamp.result !== '-') {
                             kamperOppmøte++;
+                            
+                            // --- MVP LAG LOGIKK ---
+                            const scores = tilhørendeKamp.result.replace(/\s/g, "").split('-');
+                            let pRating = null;
+                            if (tilhørendeKamp.playerRatings) {
+                                const rKey = Object.keys(tilhørendeKamp.playerRatings).find(k => k.trim() === navn);
+                                if (rKey) pRating = tilhørendeKamp.playerRatings[rKey];
+                            }
+
+                            if (scores.length === 2 && pRating) {
+                                const vi = Number(scores[0]);
+                                const dem = Number(scores[1]);
+                                const offVal = Number(pRating.off || 0);
+                                const defVal = Number(pRating.def || 0);
+
+                                // Offensiv kvern (0, 1 eller 2)
+                                if (offVal === 2) {
+                                    mvpLagScore += 0.5;
+                                    if (vi >= 3) mvpLagScore += 0.5;
+                                } else if (offVal === 1) {
+                                    mvpLagScore += 0.25;
+                                    if (vi >= 3) mvpLagScore += 0.25;
+                                }
+
+                                // Defensiv kvern (0, 1 eller 2)
+                                if (defVal === 2) {
+                                    mvpLagScore += 0.5;
+                                    if (dem === 0) mvpLagScore += 0.5;
+                                } else if (defVal === 1) {
+                                    mvpLagScore += 0.25;
+                                    if (dem === 0) mvpLagScore += 0.25;
+                                }
+                            }
                         }
                     } else {
-                        treninger++;
+                        if (oektDatoTall === 0 || oektDatoTall <= dagensDatoTall) {
+                            treninger++;
+                        }
                     }
                 }
             });
 
+            // Går gjennom kampsiden for Mål, Assist og MVP Kamp (Snitt-børs)
             Object.entries(matches).forEach(([mId, m]) => {
                 const tilhorerPerioden = periodeValg === 'total' || 
                                          (attendance[mId] && hentPeriodeFraNokkel(mId, attendance) === periodeValg) ||
@@ -123,18 +165,39 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 
                 if (!tilhorerPerioden) return;
 
-                // Teller bare mål/assist fra spilte kamper
                 if (m.result && m.result !== '-') {
                     if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
                     if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
+                    
+                    if (m.playerRatings) {
+                        const rKey = Object.keys(m.playerRatings).find(k => k.trim() === navn);
+                        if (rKey) {
+                            const r = m.playerRatings[rKey];
+                            totalRatingScore += (Number(r.off || 0) + Number(r.def || 0));
+                            antallRatings++;
+                        }
+                    }
                 }
             });
 
-            return { navn, kamperOppmøte, treninger, mål, assist };
+            // --- MVP KAMP LOGIKK (Formelen din for snittbørs) ---
+            const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 4)) : 0;
+            const pPk = kamperOppmøte > 0 ? ((mål + assist) / kamperOppmøte) : 0;
+            const komplettScore = kamperOppmøte > 0 ? parseFloat((snittRating * 7) + (pPk * 1.5)).toFixed(2) : "0.00";
+
+            return { 
+                navn, 
+                kamperOppmøte, 
+                treninger, 
+                mål, 
+                assist,
+                mvpKamp: Number(komplettScore),
+                mvpLag: Number(parseFloat(mvpLagScore).toFixed(2))
+            };
         });
 }
 
-// --- VISNINGSFUNKSJON ---
+// --- VISNINGSFUNKSJON FOR ALLE TABS ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
@@ -145,7 +208,10 @@ function renderTestTab() {
     if (currentActiveTab === 'assist') { nøkkel = 'assist'; tekst = 'assists'; }
     else if (currentActiveTab === 'trening') { nøkkel = 'treninger'; tekst = 'treninger'; }
     else if (currentActiveTab === 'kamp') { nøkkel = 'kamperOppmøte'; tekst = 'kamper'; }
+    else if (currentActiveTab === 'mvpkamp') { nøkkel = 'mvpKamp'; tekst = 'score'; }
+    else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'pts'; }
 
+    // Sortering
     const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
 
     if (sortert.length === 0 || sortert[0][nøkkel] === 0) {
@@ -189,7 +255,6 @@ function renderTestTab() {
     container.innerHTML = html;
 }
 
-// --- FANESTYRING ---
 window.switchStatTab = function(tabName) {
     currentActiveTab = tabName;
     
