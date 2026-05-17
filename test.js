@@ -89,12 +89,17 @@ function updateHeroStats() {
     keys.forEach(key => {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
-        const aktivitetGruppe = info.gruppe || 'Alle';
+        
+        // OPPDATERT: Gammel historikk som mangler merking får verdien 'Historikk' i minnet
+        const aktivitetGruppe = info.gruppe || 'Historikk'; 
+        
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
 
         const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
-        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Alle' || aktivitetGruppe === valgtLag);
+        
+        // Loggikksjekk for lag: 'Alle' viser alt. 'Lag A' / 'Lag B' viser spesifikke eller nye fellesøkter ('Alle')
+        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || (valgtLag !== 'Alle' && aktivitetGruppe === 'Alle'));
 
         if (matcherMåned && matcherLag) {
             antallAktiviteter++;
@@ -196,13 +201,17 @@ function renderMatrix() {
     const filteredKeys = keys.filter(key => {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
-        const aktivitetGruppe = info.gruppe || 'Alle';
+        
+        // OPPDATERT: Setter umerkede historiske økter til 'Historikk' i stedet for fellesbetegnelsen 'Alle'
+        const aktivitetGruppe = info.gruppe || 'Historikk';
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
 
         const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
-        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Alle' || aktivitetGruppe === valgtLag);
+        
+        // Loggikksjekk for kolonnevisning basert på lagvelgeren
+        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || (valgtLag !== 'Alle' && aktivitetGruppe === 'Alle'));
 
         return matcherMåned && matcherLag;
     });
@@ -212,7 +221,7 @@ function renderMatrix() {
     filteredKeys.forEach(key => {
         const info = attendanceData[key]?.info || {};
         const type = info.type || 'Trening';
-        const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
+        const typeClass = type === 'Camp' ? 'day-type-match' : 'day-type-training';
         const isoDate = getIsoDateFromKey(key, attendanceData);
         
         const dParts = isoDate.split('-');
