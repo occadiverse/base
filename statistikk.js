@@ -287,7 +287,7 @@ function renderTestTab() {
                 }).join('')}
             </div>
             <button onclick="event.stopPropagation(); window.toggleRealList('${extraId}', this)" class="show-all-btn">
-                VIS ALLE (${sortert.length} SPILLERE)
+                VIS ALLE (${sortert.length} SPILLERE) <i class="fa-solid fa-chevron-down"></i>
             </button>`;
     }
 
@@ -317,10 +317,10 @@ window.toggleRealList = function(id, btn) {
     const div = document.getElementById(id);
     if (div.style.display === 'none') {
         div.style.display = 'block';
-        btn.innerText = "VIS FÆRRE";
+        btn.innerHTML = `VIS FÆRRE <i class="fa-solid fa-chevron-up"></i>`;
     } else {
         div.style.display = 'none';
-        btn.innerText = `VIS ALLE (${lagretStatsArray.length} SPILLERE)`;
+        btn.innerHTML = `VIS ALLE (${lagretStatsArray.length} SPILLERE) <i class="fa-solid fa-chevron-down"></i>`;
     }
 };
 
