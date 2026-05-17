@@ -113,28 +113,26 @@
 <body>
 
     <header class="top-bar">
-        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span id="logo-lag-navn">LAG A</span></a>
+        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
         <h1 id="section-title" class="section-title">Tropp</h1>
         
-        <div class="filter-wrapper" style="display: flex; gap: 8px;">
-            <!-- Globalt Sesongsfilter -->
-            <div class="filter-container">
-                <i class="fa-solid fa-calendar-days"></i>
-                <select id="statPeriodSelect" class="base-select"></select>
+        <div class="filter-wrapper" style="display: flex; gap: 6px;">
+            <!-- 1. Ren årstallsvelger (Uten ikon og ordet 'Sesong') -->
+            <div class="filter-container" style="padding-left: 8px;">
+                <select id="statPeriodSelect" class="base-select" style="padding: 6px 4px; font-weight: 700;"></select>
             </div>
 
-            <!-- Dynamisk lagfilter -->
-            <div class="filter-container">
-                <i class="fa-solid fa-filter"></i>
-                <select id="lagFilterSelect" class="base-select">
-                    <option value="Alle">ALLE LAG</option>
+            <!-- 2. Ren lagvelger (Uten ikon, og 'ALLE LAG' er forkortet til 'ALLE') -->
+            <div class="filter-container" style="padding-left: 8px;">
+                <select id="lagFilterSelect" class="base-select" style="padding: 6px 4px; font-weight: 700;">
+                    <option value="Alle">ALLE</option>
                     <option value="Lag A">LAG A</option>
                     <option value="Lag B">LAG B</option>
                 </select>
             </div>
         </div>
     </header>
-
+    
     <aside id="sidebar" class="sidebar"></aside>
 
     <nav class="bottom-nav">
