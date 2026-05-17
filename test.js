@@ -5,7 +5,7 @@ const attendanceHeader = document.getElementById('attendanceHeader');
 const attendanceBody = document.getElementById('attendanceBody');
 const attendanceForm = document.getElementById('attendanceForm');
 const monthFilter = document.getElementById('monthFilter');
-const lagFilter = document.getElementById('lagFilter');
+const lagFilterSelect = document.getElementById('lagFilterSelect'); // Henter den nye ID-en fra headeren
 const scrollContainer = document.querySelector('.table-container');
 
 let players = {};
@@ -14,7 +14,7 @@ let keys = [];
 const valgtÅr = "2026";
 const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
 
-// HELPER: Henter ut lag og status for en spiller i et spesifikt år
+// HELPER: Sjekker spillerens tilhørighet for sesongen 2026
 function hentSpillerSesongData(spiller, valgtÅr) {
     if (spiller.historikk && spiller.historikk[valgtÅr]) {
         return {
@@ -39,7 +39,7 @@ function getIsoDateFromKey(key, data) {
     return '1970-01-01';
 }
 
-// Henter live-data fra Firebase root
+// Live-oppdatering fra Firebase
 onValue(ref(db, '/'), (snapshot) => {
     const root = snapshot.val() || {};
     players = root.players || {};
@@ -51,16 +51,35 @@ onValue(ref(db, '/'), (snapshot) => {
         return dateA - dateB;
     });
     
+    updateMonthDropdown();
     renderMatrix();
     updateHeroStats(); 
     
     setTimeout(scrollToCurrentDate, 300);
 });
 
-// --- DYNAMISK UTREGNING AV STATS ---
+// Event listener for den nye lagvelgeren i headeren
+if (lagFilterSelect) {
+    lagFilterSelect.addEventListener('change', () => {
+        renderMatrix();
+        updateHeroStats();
+        setTimeout(scrollToCurrentDate, 100);
+    });
+}
+
+// Event listener for månedvelgeren i headeren
+if (monthFilter) {
+    monthFilter.addEventListener('change', () => {
+        renderMatrix();
+        updateHeroStats();
+        setTimeout(scrollToCurrentDate, 100);
+    });
+}
+
+// --- UPPDATERER TALLENE I HERO-BOKSEN ---
 function updateHeroStats() {
-    const valgtLag = lagFilter ? lagFilter.value : 'Alle';
-    const valgtMåned = monthFilter ? monthFilter.value : 'Alle';
+    const valgtLag = lagFilterSelect ? lagFilterSelect.value : 'Alle';
+    const selectedMonthYear = monthFilter ? monthFilter.value : 'Alle';
 
     let totalAttendancePoints = 0;
     let potentialPoints = 0;
@@ -70,12 +89,11 @@ function updateHeroStats() {
     keys.forEach(key => {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
-        const aktivitetGruppe = info.gruppe || 'Alle'; // Fallback til 'Alle'
+        const aktivitetGruppe = info.gruppe || 'Alle';
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
-        const aktivitetMåned = parts[1];
 
-        const matcherMåned = (valgtMåned === 'Alle' || aktivitetMåned === valgtMåned);
+        const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
         const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Alle' || aktivitetGruppe === valgtLag);
 
         if (matcherMåned && matcherLag) {
@@ -108,6 +126,43 @@ function updateHeroStats() {
     if (elTop) elTop.innerText = topAttendance;
 }
 
+// --- GENERERER MÅNEDENE I DROP-DOWN ---
+function updateMonthDropdown() {
+    if (!monthFilter) return;
+    
+    const monthsFound = new Set();
+    keys.forEach(key => {
+        const isoDate = getIsoDateFromKey(key, attendanceData);
+        const parts = isoDate.split('-'); 
+        if (parts.length === 3) {
+            monthsFound.add(`${parts[1]}-${parts[0]}`); 
+        }
+    });
+
+    const sortedMonths = Array.from(monthsFound).sort((a, b) => {
+        const [mA, yA] = a.split('-');
+        const [mB, yB] = b.split('-');
+        return new Date(yA, mA - 1) - new Date(yB, mB - 1);
+    });
+
+    const currentMonthYear = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
+    const previousSelection = monthFilter.value;
+
+    let filterHTML = '<option value="Alle">HELE SESONGEN</option>';
+    sortedMonths.forEach(mY => {
+        const [m, y] = mY.split('-');
+        filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1].toUpperCase()} ${y}</option>`;
+    });
+    
+    monthFilter.innerHTML = filterHTML;
+
+    if (previousSelection && Array.from(monthFilter.options).some(opt => opt.value === previousSelection)) {
+        monthFilter.value = previousSelection;
+    } else if (monthsFound.has(currentMonthYear)) {
+        monthFilter.value = currentMonthYear;
+    }
+}
+
 function scrollToCurrentDate() {
     if (!scrollContainer) return;
     const today = new Date();
@@ -130,14 +185,14 @@ function scrollToCurrentDate() {
     }
 }
 
-// --- RENDERING AV OPPMØTE-MATRISEN ---
+// --- RENDERING AV TABELLEN/MATRISEN ---
 function renderMatrix() {
-    if (!attendanceHeader || !attendanceBody || !monthFilter || !lagFilter) return;
+    if (!attendanceHeader || !attendanceBody || !monthFilter || !lagFilterSelect) return;
 
-    const valgtMåned = monthFilter.value;
-    const valgtLag = lagFilter.value;
+    const selectedMonthYear = monthFilter.value;
+    const valgtLag = lagFilterSelect.value;
 
-    // Filtrer kolonnene (aktivitetene) ut fra lag og måned
+    // Filtrer øktene (kolonnene)
     const filteredKeys = keys.filter(key => {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
@@ -145,24 +200,21 @@ function renderMatrix() {
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
-        const aktivitetMåned = parts[1];
 
-        const matcherMåned = (valgtMåned === 'Alle' || aktivitetMåned === valgtMåned);
+        const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
         const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Alle' || aktivitetGruppe === valgtLag);
 
         return matcherMåned && matcherLag;
     });
 
-    // Tegn opp overskriftsraden (Datoer)
+    // Tegn header-raden
     let headerRow = `<tr><th class="name-col">SPILLER</th>`;
     filteredKeys.forEach(key => {
         const info = attendanceData[key]?.info || {};
         const type = info.type || 'Trening';
-        
-        let typeClass = 'day-type-training';
-        if (type === 'Kamp') typeClass = 'day-type-match';
-
+        const typeClass = type === 'Kamp' ? 'day-type-match' : 'day-type-training';
         const isoDate = getIsoDateFromKey(key, attendanceData);
+        
         const dParts = isoDate.split('-');
         const datoOverskrift = `${dParts[2]}.${dParts[1]}`;
         
@@ -180,7 +232,7 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // Sorter og filtrer spillerne alfabetisk
+    // Sorter og filtrer spiller-radene rent ALFABETISK
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => {
             const sData = hentSpillerSesongData(p, valgtÅr);
@@ -197,7 +249,7 @@ function renderMatrix() {
         })
         .sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
 
-    // Tegn opp radene for spillerne
+    // Tegn radene for hver enkelt spiller
     let bodyHTML = '';
     sortedPlayers.forEach((p) => {
         let row = `<tr>
@@ -227,18 +279,6 @@ function getStatusIcon(status) {
         : '<i class="fa-regular fa-circle status-none"></i>';
 }
 
-window.filterByMonth = (monthValue) => {
-    renderMatrix();
-    updateHeroStats();
-    setTimeout(scrollToCurrentDate, 100);
-};
-
-window.filterByLag = (lagValue) => {
-    renderMatrix();
-    updateHeroStats();
-    setTimeout(scrollToCurrentDate, 100);
-};
-
 window.toggleStatus = (key, pId, currentStatus) => {
     const nextStatus = currentStatus === 'K' ? '' : 'K';
     const cell = document.querySelector(`[data-date="${key}"][data-player="${pId}"]`);
@@ -263,7 +303,7 @@ window.deleteDate = (key) => {
     }
 };
 
-// --- INNSENDING AV NY AKTIVITET ---
+// --- INNSENDING AV NY AKTIVITET (MED NYTT TYPE- OG GRUPPEVALG) ---
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawDate = document.getElementById('eventDate').value; 
