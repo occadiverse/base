@@ -90,16 +90,16 @@ function updateHeroStats() {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
         
-        // OPPDATERT: Gammel historikk som mangler merking får verdien 'Historikk' i minnet
-        const aktivitetGruppe = info.gruppe || 'Historikk'; 
+        // OPPDATERT FALLBACK: Gammel historikk uten merking tolkes som 'Lag A'
+        const aktivitetGruppe = info.gruppe || 'Lag A'; 
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
 
         const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
         
-        // Loggikksjekk for lag: 'Alle' viser alt. 'Lag A' / 'Lag B' viser spesifikke eller nye fellesøkter ('Alle')
-        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || (valgtLag !== 'Alle' && aktivitetGruppe === 'Alle'));
+        // Sjekker om økten matcher lag-filteret (Vis alt på 'Alle', ellers match spesifikt lag eller fellesøkten 'Alle')
+        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || aktivitetGruppe === 'Alle');
 
         if (matcherMåned && matcherLag) {
             antallAktiviteter++;
@@ -202,16 +202,16 @@ function renderMatrix() {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
         
-        // OPPDATERT: Setter umerkede historiske økter til 'Historikk' i stedet for fellesbetegnelsen 'Alle'
-        const aktivitetGruppe = info.gruppe || 'Historikk';
+        // OPPDATERT FALLBACK: Hvis økten mangler gruppe (gammel historikk), tolker vi den som 'Lag A'
+        const aktivitetGruppe = info.gruppe || 'Lag A';
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
 
         const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
         
-        // Loggikksjekk for kolonnevisning basert på lagvelgeren
-        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || (valgtLag !== 'Alle' && aktivitetGruppe === 'Alle'));
+        // Sjekker om kolonnen skal vises ut fra valgt lag i header-filteret
+        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || aktivitetGruppe === 'Alle');
 
         return matcherMåned && matcherLag;
     });
