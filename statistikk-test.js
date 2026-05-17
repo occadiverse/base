@@ -200,20 +200,21 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
         });
 }
 
-// --- OPPDATERT VISNINGSFUNKSJON MED TO DESIMALER OG "POENG" ---
+// --- OPPDATERT VISNINGSFUNKSJON FOR BÅDE MVP OG LAG ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
 
     let nøkkel = 'mål';
     let tekst = 'mål';
-    let visMedDesimaler = false; // Flag for å styre om vi skal tvinge fram desimaler
+    let visMedDesimaler = false; 
 
     if (currentActiveTab === 'assist') { nøkkel = 'assist'; tekst = 'assists'; }
     else if (currentActiveTab === 'trening') { nøkkel = 'treninger'; tekst = 'treninger'; }
     else if (currentActiveTab === 'kamp') { nøkkel = 'kamperOppmøte'; tekst = 'kamper'; }
     else if (currentActiveTab === 'mvpkamp') { nøkkel = 'mvpKamp'; tekst = 'poeng'; visMedDesimaler = true; }
-    else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'pts'; visMedDesimaler = true; }
+    // NÅ OPPDATERT: Bruker "poeng" og tvinger fram to desimaler for LAG også
+    else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'poeng'; visMedDesimaler = true; }
 
     const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
 
@@ -227,7 +228,6 @@ function renderTestTab() {
 
     let html = '';
     topp5.forEach((s, i) => {
-        // Tvinger fram to desimaler hvis det er MVP eller LAG, ellers vises heltall (mål/treninger)
         const verdiVisning = visMedDesimaler ? Number(s[nøkkel]).toFixed(2) : s[nøkkel];
 
         html += `
