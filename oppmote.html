@@ -200,27 +200,31 @@
 </style></head>
 <body>
 
-    <header class="top-bar">
-        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
-        <h1 id="section-title" class="section-title">Oppmøte</h1>
-        
-        <div class="filter-wrapper">
-            <!-- 1. Årstallsvelger -->
-            <div class="filter-container">
-                <select id="statPeriodSelect" class="base-select"></select>
-            </div>
-
-            <!-- 2. Lagvelger -->
-            <div class="filter-container">
-                <select id="lagFilterSelect" class="base-select">
-                    <option value="Alle">ALLE</option>
-                    <option value="Lag A">LAG A</option>
-                    <option value="Lag B">LAG B</option>
-                </select>
-            </div>
+<header class="top-bar">
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
+    <h1 id="section-title" class="section-title">Oppmøte</h1>
+    <div class="filter-wrapper">
+        <div class="filter-container">
+            <i class="fa-solid fa-calendar-days"></i>
+            <select id="monthFilter" class="base-select" onchange="window.filterByMonth(this.value)">
+                <option value="Alle">HELE SESONGEN</option>
+                <option value="0">JANUAR</option>
+                <option value="1">FEBRUAR</option>
+                <option value="2">MARS</option>
+                <option value="3">APRIL</option>
+                <option value="4">MAI</option>
+                <option value="5">JUNI</option>
+                <option value="6">JULI</option>
+                <option value="7">AUGUST</option>
+                <option value="8">SEPTEMBER</option>
+                <option value="9">OKTOBER</option>
+                <option value="10">NOVEMBER</option>
+                <option value="11">DESEMBER</option>
+            </select>
         </div>
-    </header>
-    
+    </div>
+</header>
+
 <div class="sidebar" id="sidebar"></div>
 
 <nav class="bottom-nav">
@@ -250,7 +254,7 @@
     <section class="kamper-hero">
         <div class="hero-content">
             <p class="hero-intro-text">
-                I sesongen <span id="stat-aar-tekst">2026</span> har <strong id="stat-lag-navn" style="color: var(--bsk-yellow);">hele troppen</strong> gjennomført <strong id="stat-total-events">0</strong> økter. 
+                Troppen har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
                 Gjennomsnittlig oppmøte ligger på <strong id="stat-avg-attendance">0%</strong>, 
                 og vår mest aktive spiller har vært med på <strong id="stat-top-attendance">0</strong> økter.
             </p>
@@ -269,27 +273,17 @@
     <i class="fa-solid fa-calendar-plus"></i>
 </button>
 
-<!-- OPPDATERT REGISTRERINGSMODAL -->
 <div id="attendanceModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="color: var(--bsk-blue); margin:0;">Ny økt / Aktivitet</h3>
+            <h3 style="color: var(--bsk-blue); margin:0;">Ny treningsøkt</h3>
             <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
         </div>
         <form id="attendanceForm">
             <div class="form-row">
-                <div class="form-group">
+                <div class="form-group" style="flex: 1;">
                     <label>Dato</label>
                     <input type="date" id="eventDate" required class="form-control">
-                </div>
-                <!-- NYTT: Hvilket lag gjelder denne økten for? -->
-                <div class="form-group">
-                    <label>Ansvarlig lag</label>
-                    <select id="eventLag" class="form-control">
-                        <option value="Felles">Fellesøkt (Alle)</option>
-                        <option value="Lag A">Lag A</option>
-                        <option value="Lag B">Lag B</option>
-                    </select>
                 </div>
             </div>
 
@@ -302,7 +296,7 @@
 </div>
 
 <script src="navigation.js"></script>
-<script type="module" src="oppmote.js"></script>
+<script type="module" src="oppmote.js?v=clean"></script>
 
 <script>
     window.openAttendanceModal = () => {
@@ -320,6 +314,17 @@
             closeAttendanceModal();
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const monthFilter = document.getElementById('monthFilter');
+        if (monthFilter) {
+            const currentMonth = new Date().getMonth().toString();
+            monthFilter.value = currentMonth;
+            setTimeout(() => {
+                if (window.filterByMonth) window.filterByMonth(currentMonth);
+            }, 800);
+        }
+    });
 </script>
 
 </body>
