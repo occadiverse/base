@@ -57,7 +57,7 @@ onValue(ref(db, '/'), (snapshot) => {
     setTimeout(scrollToCurrentDate, 300);
 });
 
-// --- DYNAMISK UTREGNING AV STATS BASERT PÅ VALGT FILTER ---
+// --- DYNAMISK UTREGNING AV STATS ---
 function updateHeroStats() {
     const valgtLag = lagFilter ? lagFilter.value : 'Alle';
     const valgtMåned = monthFilter ? monthFilter.value : 'Alle';
@@ -70,23 +70,19 @@ function updateHeroStats() {
     keys.forEach(key => {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
-        const aktivitetGruppe = info.gruppe || 'Begge';
+        const aktivitetGruppe = info.gruppe || 'Alle'; // Fallback til 'Alle'
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
-        const aktivitetMåned = parts[1]; // f.eks "05"
+        const aktivitetMåned = parts[1];
 
-        // Sjekk om aktiviteten matcher måned- og lagfilteret
         const matcherMåned = (valgtMåned === 'Alle' || aktivitetMåned === valgtMåned);
-        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Begge' || aktivitetGruppe === valgtLag);
+        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Alle' || aktivitetGruppe === valgtLag);
 
         if (matcherMåned && matcherLag) {
             antallAktiviteter++;
 
             Object.entries(players).forEach(([id, p]) => {
                 const sData = hentSpillerSesongData(p, valgtÅr);
-                
-                // Spilleren må være aktiv i klubben, og hvis vi har valgt et spesifikt lagfilter,
-                // må spilleren tilhøre det laget for å telles med i statistikken
                 const spillerMatcherFilter = sData.status !== 'Passiv' && (valgtLag === 'Alle' || sData.lag === valgtLag);
 
                 if (spillerMatcherFilter) {
@@ -141,18 +137,18 @@ function renderMatrix() {
     const valgtMåned = monthFilter.value;
     const valgtLag = lagFilter.value;
 
-    // 1. Filtrer kolonnene (aktivitetene) ut fra lag og måned
+    // Filtrer kolonnene (aktivitetene) ut fra lag og måned
     const filteredKeys = keys.filter(key => {
         const dayData = attendanceData[key] || {};
         const info = dayData.info || {};
-        const aktivitetGruppe = info.gruppe || 'Begge'; // Gammel data faller tilbake på fellesøkten 'Begge'
+        const aktivitetGruppe = info.gruppe || 'Alle';
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
         const aktivitetMåned = parts[1];
 
         const matcherMåned = (valgtMåned === 'Alle' || aktivitetMåned === valgtMåned);
-        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Begge' || aktivitetGruppe === valgtLag);
+        const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === 'Alle' || aktivitetGruppe === valgtLag);
 
         return matcherMåned && matcherLag;
     });
@@ -163,10 +159,8 @@ function renderMatrix() {
         const info = attendanceData[key]?.info || {};
         const type = info.type || 'Trening';
         
-        // Dynamisk stylingklasse basert på aktivitetstype
         let typeClass = 'day-type-training';
         if (type === 'Kamp') typeClass = 'day-type-match';
-        if (type === 'Annet') typeClass = 'day-type-other';
 
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const dParts = isoDate.split('-');
@@ -186,25 +180,22 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // 2. Sorter og filtrer spillerne ALFABETISK i stedet for etter oppmøtepoeng
+    // Sorter og filtrer spillerne alfabetisk
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => {
             const sData = hentSpillerSesongData(p, valgtÅr);
-            if (sData.status === 'Passiv') return false; // Skjul passive spillere
-            
-            // Hvis vi har valgt et spesifikt lagfilter, vis kun spillerne som tilhører det laget
+            if (sData.status === 'Passiv') return false;
             if (valgtLag !== 'Alle') return sData.lag === valgtLag;
             return true;
         })
         .map(([id, p]) => {
-            // Regner ut oppmøtepoeng (kun innenfor de synlige/filtrerte aktivitetene)
             const totalCount = filteredKeys.reduce((acc, key) => {
                 return acc + (attendanceData[key][id] === 'K' ? 1 : 0);
             }, 0);
 
             return { id, navn: p.navn, totalCount };
         })
-        .sort((a, b) => a.navn.localeCompare(b.navn, 'nb')); // Rent alfabetisk sortering
+        .sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
 
     // Tegn opp radene for spillerne
     let bodyHTML = '';
@@ -236,7 +227,6 @@ function getStatusIcon(status) {
         : '<i class="fa-regular fa-circle status-none"></i>';
 }
 
-// Globale filterhandlinger koblet til HTML dropdown-menyene
 window.filterByMonth = (monthValue) => {
     renderMatrix();
     updateHeroStats();
@@ -260,7 +250,7 @@ window.toggleStatus = (key, pId, currentStatus) => {
     }
     
     update(ref(db, `attendance/${key}`), { [pId]: nextStatus }).then(() => {
-        updateHeroStats(); // Oppdaterer tallene i heroboksen live når du krysser av folk
+        updateHeroStats();
     }).catch((error) => {
         console.error('Feil ved oppdatering:', error);
         if (cell) cell.style.opacity = '1';
@@ -273,7 +263,7 @@ window.deleteDate = (key) => {
     }
 };
 
-// --- INNSENDING AV NY AKTIVITET (MED GRUPPE OG TYPE) ---
+// --- INNSENDING AV NY AKTIVITET ---
 attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const rawDate = document.getElementById('eventDate').value; 
