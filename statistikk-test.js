@@ -200,19 +200,20 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
         });
 }
 
-// --- VISNINGSFUNKSJON FOR ENKELT-TABS ---
+// --- OPPDATERT VISNINGSFUNKSJON MED TO DESIMALER OG "POENG" ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
 
     let nøkkel = 'mål';
     let tekst = 'mål';
+    let visMedDesimaler = false; // Flag for å styre om vi skal tvinge fram desimaler
 
     if (currentActiveTab === 'assist') { nøkkel = 'assist'; tekst = 'assists'; }
     else if (currentActiveTab === 'trening') { nøkkel = 'treninger'; tekst = 'treninger'; }
     else if (currentActiveTab === 'kamp') { nøkkel = 'kamperOppmøte'; tekst = 'kamper'; }
-    else if (currentActiveTab === 'mvpkamp') { nøkkel = 'mvpKamp'; tekst = 'score'; }
-    else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'pts'; }
+    else if (currentActiveTab === 'mvpkamp') { nøkkel = 'mvpKamp'; tekst = 'poeng'; visMedDesimaler = true; }
+    else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'pts'; visMedDesimaler = true; }
 
     const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
 
@@ -226,13 +227,16 @@ function renderTestTab() {
 
     let html = '';
     topp5.forEach((s, i) => {
+        // Tvinger fram to desimaler hvis det er MVP eller LAG, ellers vises heltall (mål/treninger)
+        const verdiVisning = visMedDesimaler ? Number(s[nøkkel]).toFixed(2) : s[nøkkel];
+
         html += `
             <div class="stat-row" style="display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid #f1f5f9; font-weight:600; align-items:center;">
                 <span>
                     <span style="display:inline-block; width:28px; color:${i===0 ? '#eab308' : 'var(--text-muted)'}; font-weight:900; font-size:1.1rem;">${i + 1}</span>
                     <span style="color:var(--text-main); font-size:0.95rem;">${s.navn}</span>
                 </span>
-                <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${s[nøkkel]} ${tekst}</span>
+                <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${verdiVisning} ${tekst}</span>
             </div>`;
     });
 
@@ -240,14 +244,17 @@ function renderTestTab() {
         const extraId = `extra-test-${currentActiveTab}`;
         html += `
             <div id="${extraId}" style="display:none;">
-                ${resten.map((s, i) => `
+                ${resten.map((s, i) => {
+                    const verdiVisning = visMedDesimaler ? Number(s[nøkkel]).toFixed(2) : s[nøkkel];
+                    return `
                     <div class="stat-row" style="display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid #f1f5f9; font-weight:600; align-items:center;">
                         <span>
                             <span style="display:inline-block; width:28px; color:var(--text-muted); font-size:0.95rem;">${i + 6}</span>
                             <span style="color:var(--text-main); font-size:0.95rem;">${s.navn}</span>
                         </span>
-                        <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${s[nøkkel]} ${tekst}</span>
-                    </div>`).join('')}
+                        <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${verdiVisning} ${tekst}</span>
+                    </div>`;
+                }).join('')}
             </div>
             <button onclick="event.stopPropagation(); window.toggleTestList('${extraId}', this)" style="margin-top:20px; background:none; border:none; color:var(--bsk-blue); font-weight:800; width:100%; text-align:center; cursor:pointer; font-size:0.85rem; letter-spacing:0.02em;">
                 VIS ALLE (${sortert.length} SPILLERE)
