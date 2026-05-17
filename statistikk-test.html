@@ -3,61 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Test - Spillerstatistikk</title>
+    <title>Test Statistikk - BSK Fotball</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     
     <style>
-        .stat-tabs::-webkit-scrollbar {
-            display: none; /* Skjuler scrollbar på mobil for en cleanere look */
+        /* Sandkasse-stil for test-kortet */
+        .test-card {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 500px;
+            margin: 40px auto;
+        }
+
+        /* Den nye "Kampinfo"-inspirerte knappen */
+        .show-all-btn {
+            width: 100%;
+            background: var(--active-bg); /* Svak BSK-blå tone */
+            border: none;
+            color: var(--bsk-blue);
+            padding: 14px;
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            text-align: center;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .show-all-btn:active {
+            background: rgba(0, 86, 179, 0.16);
+            transform: scale(0.98);
         }
     </style>
 </head>
-<body>
+<body style="background:#f4f7f6; padding:10px;">
 
-    <header class="top-bar">
-        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>TEST</span></a>
-        <h1 class="section-title">Statistikk-Test</h1>
-        <div class="filter-wrapper">
-            <div class="filter-container">
-                <i class="fa-solid fa-calendar-days"></i>
-                <select id="statPeriodSelect" class="base-select">
-                    <option value="total">Laster filter...</option>
-                </select>
-            </div>
+    <div class="test-card">
+        <!-- Filter -->
+        <select id="statPeriodSelect" style="width:100%; padding:10px; margin-bottom:15px; font-weight:700; border-radius:8px; border:1px solid #dfe6e9;">
+            <option value="total">Sesong 2026</option>
+        </select>
+
+        <!-- Overskrift som viser valgt måned -->
+        <h2 style="font-size:1.1rem; font-weight:900; margin-bottom:15px; color:var(--text-main);">
+            Statistikk for <span id="stat-period-word" style="color:var(--bsk-blue);">Hele sesongen</span>
+        </h2>
+
+        <!-- De 6 app-knappene på én rad -->
+        <div class="stat-tabs" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 15px; width: 100%;">
+            <button class="tab-btn" onclick="window.switchStatTab('maal')" id="tab-maal" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bsk-blue); color: white;">MÅL</button>
+            <button class="tab-btn" onclick="window.switchStatTab('assist')" id="tab-assist" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted);">ASSIST</button>
+            <button class="tab-btn" onclick="window.switchStatTab('trening')" id="tab-trening" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted);">TREN</button>
+            <button class="tab-btn" onclick="window.switchStatTab('kamp')" id="tab-kamp" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted);">KAMP</button>
+            <button class="tab-btn" onclick="window.switchStatTab('mvpkamp')" id="tab-mvpkamp" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted);">MVP</button>
+            <button class="tab-btn" onclick="window.switchStatTab('mvplag')" id="tab-mvplag" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted);">LAG</button>
         </div>
-    </header>
 
-    <main class="main-content" style="padding-top: 100px;">
-        <div class="container" style="max-width: 600px; margin: 0 auto; padding: 0 15px;">
-            
-            <div class="stat-section-title" style="margin-bottom: 15px;">
-                <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin: 0;">
-                    <i class="fa-solid fa-users" style="color: var(--bsk-blue); margin-right: 8px;"></i> 
-                    Troppens Stats (<span id="stat-period-word">Hele sesongen</span>)
-                </h2>
-            </div>
-
-            <!-- Alle 6 faner på én fast rad uten scrolling med MVP på plass -->
-            <div class="stat-tabs" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 15px; width: 100%;">
-                <button class="tab-btn" onclick="window.switchStatTab('maal')" id="tab-maal" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bsk-blue); color: white; transition: 0.2s;">MÅL</button>
-                <button class="tab-btn" onclick="window.switchStatTab('assist')" id="tab-assist" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted); transition: 0.2s;">ASSIST</button>
-                <button class="tab-btn" onclick="window.switchStatTab('trening')" id="tab-trening" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted); transition: 0.2s;">TREN</button>
-                <button class="tab-btn" onclick="window.switchStatTab('kamp')" id="tab-kamp" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted); transition: 0.2s;">KAMP</button>
-                <button class="tab-btn" onclick="window.switchStatTab('mvpkamp')" id="tab-mvpkamp" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted); transition: 0.2s;">MVP</button>
-                <button class="tab-btn" onclick="window.switchStatTab('mvplag')" id="tab-mvplag" style="padding: 10px 0; border-radius: 6px; border: none; font-weight: 800; font-size: 0.65rem; text-align: center; cursor: pointer; background: var(--bg-light); color: var(--text-muted); transition: 0.2s;">LAG</button>
-            </div>
-
-            <!-- Selve containeren hvor listene dynamic felles inn -->
-            <div class="table-container dash-card" style="padding: 20px; background: white; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color);">
-                <div id="tabContentContainer">
-                    <div style="text-align:center; padding:20px; color:var(--text-muted);">Kobler til Firebase...</div>
-                </div>
-            </div>
-
-        </div>
-    </main>
+        <!-- Her kvernes listen inn -->
+        <div id="tabContentContainer"></div>
+    </div>
 
     <script type="module" src="statistikk-test.js"></script>
 </body>
