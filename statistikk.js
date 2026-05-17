@@ -3,6 +3,8 @@ import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 
 const periodSelect = document.getElementById('statPeriodSelect');
 let globalData = null;
+let currentActiveTab = 'maal'; 
+let lagretStatsArray = [];     
 
 const manederTekst = [
     "Januar", "Februar", "Mars", "April", "Mai", "Juni", 
@@ -11,21 +13,17 @@ const manederTekst = [
 
 // --- DATO-HÅNDTERING ---
 
-// NY: Hjelpefunksjon for å finne riktig filter-periode (MM-YYYY) uavhengig av om nøkkelen er en dato eller en Kamp-ID
 function hentPeriodeFraNokkel(nøkkel, attendance) {
     if (!nøkkel) return "";
-    
     const info = attendance[nøkkel]?.info || {};
     if (info.date) {
         const deler = info.date.split('-');
-        return `${deler[1]}-${deler[0]}`; // Returnerer MM-YYYY
+        return `${deler[1]}-${deler[0]}`; 
     }
-    
     if (nøkkel.includes('-') && nøkkel.split('-')[0].length === 2) {
         const deler = nøkkel.split('-');
-        return `${deler[1]}-${deler[2]}`; // Returnerer MM-YYYY
+        return `${deler[1]}-${deler[2]}`; 
     }
-    
     return "";
 }
 
@@ -49,15 +47,21 @@ function matchDatoer(dato1, dato2) {
 // --- INITIALISERING ---
 
 onValue(ref(db, '/'), (snapshot) => {
-    globalData = snapshot.val() || {};
-    genererDynamiskFilter();
-    oppdaterStatistikk();
+    try {
+        globalData = snapshot.val() || {};
+        genererDynamiskFilter();
+        oppdaterStatistikk();
+    } catch (err) {
+        console.error("Feil under lasting av Firebase-data:", err);
+    }
 });
 
-periodSelect.addEventListener('change', () => {
-    periodSelect.setAttribute('data-user-selected', 'true');
-    oppdaterStatistikk();
-});
+if (periodSelect) {
+    periodSelect.addEventListener('change', () => {
+        periodSelect.setAttribute('data-user-selected', 'true');
+        oppdaterStatistikk();
+    });
+}
 
 function genererDynamiskFilter() {
     const attendance = globalData.attendance || {};
@@ -69,193 +73,258 @@ function genererDynamiskFilter() {
 
     const nå = new Date();
     const innevarende = `${String(nå.getMonth() + 1).padStart(2, '0')}-${nå.getFullYear()}`;
-    let valgt = periodSelect.value;
-    if (!periodSelect.hasAttribute('data-user-selected') && unikePerioder.has(innevarende)) valgt = innevarende;
+    let valgt = periodSelect?.value;
+    if (periodSelect && !periodSelect.hasAttribute('data-user-selected') && unikePerioder.has(innevarende)) valgt = innevarende;
 
-    periodSelect.innerHTML = '<option value="total">Sesong 2026</option>';
-    Array.from(unikePerioder).sort().reverse().forEach(p => {
-        const [m, a] = p.split('-');
-        periodSelect.innerHTML += `<option value="${p}">${manederTekst[parseInt(m)-1]} ${a}</option>`;
-    });
-    if (valgt) periodSelect.value = valgt;
+    if (periodSelect) {
+        periodSelect.innerHTML = '<option value="total">Sesong 2026</option>';
+        Array.from(unikePerioder).sort().reverse().forEach(p => {
+            const [m, a] = p.split('-');
+            periodSelect.innerHTML += `<option value="${p}">${manederTekst[parseInt(m)-1]} ${a}</option>`;
+        });
+        if (valgt) periodSelect.value = valgt;
+    }
 }
 
 function oppdaterStatistikk() {
     if (!globalData) return;
     
-    // Henter ut den faktiske teksten i filteret og oppdaterer den gule heroteksten i sanntid
     const periodWordEl = document.getElementById('stat-period-word');
     if (periodSelect && periodWordEl) {
-        const valgtTekst = periodSelect.options[periodSelect.selectedIndex].text;
-        periodWordEl.innerText = valgtTekst;
+        periodWordEl.innerText = periodSelect.options[periodSelect.selectedIndex].text;
     }
 
-    const stats = beregnLogikk(globalData.players || {}, globalData.attendance || {}, globalData.matches || {}, periodSelect.value);
-    renderTopplister(stats);
-    oppdaterLagStats(globalData.matches || {}, stats, periodSelect.value);
+    const valgtPeriode = periodSelect ? periodSelect.value : 'total';
+    lagretStatsArray = kvernRaaData(globalData.players || {}, globalData.attendance || {}, globalData.matches || {}, valgtPeriode);
+    
+    renderTestTab(); 
+    oppdaterLagStats(globalData.matches || {}, lagretStatsArray, valgtPeriode);
 }
 
-function beregnLogikk(players, attendance, matches, periodeValg) {
+// --- SIKKER DATAKVERNING MED SKUDDSIKKER NAVNESJEKK ---
+function kvernRaaData(players, attendance, matches, periodeValg) {
+    const naa = new Date();
+    const dagensDatoTall = Number(`${naa.getFullYear()}${String(naa.getMonth() + 1).padStart(2, '0')}${String(naa.getDate()).padStart(2, '0')}`);
+
     return Object.entries(players)
         .filter(([id, p]) => p.status !== 'Passiv')
         .map(([id, pData]) => {
             const navn = (pData.navn || pData.name || "").trim();
-            let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0, totalRatingScore = 0, antallRatings = 0;
-            let mvpLagScore = 0;
+            let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0;
+            let totalRatingScore = 0, antallRatings = 0, mvpLagScore = 0;
 
             const relevanteNøkler = Object.keys(attendance).filter(key => periodeValg === 'total' || hentPeriodeFraNokkel(key, attendance) === periodeValg);
-            const totaltMulige = relevanteNøkler.length;
 
             relevanteNøkler.forEach(key => {
                 if (attendance[key][id] === 'K') {
                     const info = attendance[key].info || {};
                     const type = info.type || 'Trening';
+                    
+                    const oektDatoStr = info.date || (key.includes('-') ? key : "");
+                    let oektDatoTall = 0;
+                    if (oektDatoStr) {
+                        const deler = oektDatoStr.split('-');
+                        oektDatoTall = deler[0].length === 4 ? Number(`${deler[0]}${deler[1]}${deler[2]}`) : Number(`${deler[2]}${deler[1]}${deler[0]}`);
+                    }
 
-                    if (type === 'Kamp') {
-                        kamperOppmøte++;
+                    if (type === 'Camp' || type === 'Kamp') {
+                        const tilhørendeKamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
                         
-                        // Sjekker om kampen finnes direkte under Kamp-ID, eller om den må søkes opp på dato (gammel struktur)
-                        const kamp = matches[key] || Object.values(matches).find(m => matchDatoer(m.date, key));
-
-                        if (kamp && kamp.result) {
-                            const scores = kamp.result.replace(/\s/g, "").split('-');
+                        if (tilhørendeKamp && tilhørendeKamp.result && tilhørendeKamp.result !== '-') {
+                            kamperOppmøte++;
                             
+                            const scores = tilhørendeKamp.result.replace(/\s/g, "").split('-');
                             let pRating = null;
-                            if (kamp.playerRatings) {
-                                const rKey = Object.keys(kamp.playerRatings).find(k => k.trim() === navn);
-                                if (rKey) pRating = kamp.playerRatings[rKey];
+                            if (tilhørendeKamp.playerRatings) {
+                                const rKey = Object.keys(tilhørendeKamp.playerRatings).find(k => k.trim().toLowerCase() === navn.toLowerCase() || navn.toLowerCase().includes(k.trim().toLowerCase()));
+                                if (rKey) pRating = tilhørendeKamp.playerRatings[rKey];
                             }
 
                             if (scores.length === 2 && pRating) {
                                 const vi = Number(scores[0]);
                                 const dem = Number(scores[1]);
-
                                 const offVal = Number(pRating.off || 0);
                                 const defVal = Number(pRating.def || 0);
 
-                                if (offVal === 2) {
-                                    mvpLagScore += 0.5;
-                                    if (vi >= 3) mvpLagScore += 0.5;
-                                } else if (offVal === 1) {
-                                    mvpLagScore += 0.25;
-                                    if (vi >= 3) mvpLagScore += 0.25;
-                                }
+                                if (offVal === 2) { mvpLagScore += 0.5; if (vi >= 3) mvpLagScore += 0.5; }
+                                else if (offVal === 1) { mvpLagScore += 0.25; if (vi >= 3) mvpLagScore += 0.25; }
 
-                                if (defVal === 2) {
-                                    mvpLagScore += 0.5;
-                                    if (dem === 0) mvpLagScore += 0.5;
-                                } else if (defVal === 1) {
-                                    mvpLagScore += 0.25;
-                                    if (dem === 0) mvpLagScore += 0.25;
-                                }
+                                if (defVal === 2) { mvpLagScore += 0.5; if (dem === 0) mvpLagScore += 0.5; }
+                                else if (defVal === 1) { mvpLagScore += 0.25; if (dem === 0) mvpLagScore += 0.25; }
                             }
                         }
-                    } else treninger++;
+                    } else {
+                        if (oektDatoTall === 0 || oektDatoTall <= dagensDatoTall) {
+                            treninger++;
+                        }
+                    }
                 }
             });
 
             Object.entries(matches).forEach(([mId, m]) => {
-                // Sjekker om kampen tilhører den valgte perioden i filteret (via Kamp-ID eller dato)
                 const tilhorerPerioden = periodeValg === 'total' || 
                                          (attendance[mId] && hentPeriodeFraNokkel(mId, attendance) === periodeValg) ||
                                          (m.date && m.date.includes('-') && `${m.date.split('-')[1]}-${m.date.split('-')[0]}` === periodeValg);
                 
                 if (!tilhorerPerioden) return;
 
-                if (m.goalScorers) mål += m.goalScorers.split(',').filter(s => s.trim() === navn).length;
-                if (m.assists) assist += m.assists.split(',').filter(a => a.trim() === navn).length;
-                if (m.playerRatings) {
-                    const rKey = Object.keys(m.playerRatings).find(k => k.trim() === navn);
-                    if (rKey) {
-                        const r = m.playerRatings[rKey];
-                        totalRatingScore += (Number(r.off || 0) + Number(r.def || 0));
-                        antallRatings++;
+                if (m.result && m.result !== '-') {
+                    if (m.goalScorers) {
+                        mål += m.goalScorers.split(',').filter(s => {
+                            const scName = s.trim().toLowerCase();
+                            return scName && (navn.toLowerCase().includes(scName) || scName.includes(navn.toLowerCase()));
+                        }).length;
+                    }
+                    
+                    if (m.assists) {
+                        assist += m.assists.split(',').filter(a => {
+                            const asName = a.trim().toLowerCase();
+                            return asName && (navn.toLowerCase().includes(asName) || asName.includes(navn.toLowerCase()));
+                        }).length;
+                    }
+                    
+                    if (m.playerRatings) {
+                        const rKey = Object.keys(m.playerRatings).find(k => k.trim().toLowerCase() === navn.toLowerCase() || navn.toLowerCase().includes(k.trim().toLowerCase()));
+                        if (rKey) {
+                            const r = m.playerRatings[rKey];
+                            totalRatingScore += (Number(r.off || 0) + Number(r.def || 0));
+                            antallRatings++;
+                        }
                     }
                 }
             });
 
             const snittRating = antallRatings > 0 ? (totalRatingScore / (antallRatings * 4)) : 0;
             const pPk = kamperOppmøte > 0 ? ((mål + assist) / kamperOppmøte) : 0;
-            const mvpKampScore = parseFloat((snittRating * 7) + (pPk * 1.5)).toFixed(2);
+            const komplettScore = kamperOppmøte > 0 ? parseFloat((snittRating * 7) + (pPk * 1.5)).toFixed(2) : "0.00";
 
             return { 
                 navn, 
-                lagPoeng: parseFloat(mvpLagScore).toFixed(1),
-                komplettScore: mvpKampScore, 
-                prosent: totaltMulige > 0 ? Math.round(((treninger + kamperOppmøte) / totaltMulige) * 100) : 0,
-                kamperOppmøte, mål
+                kamperOppmøte, 
+                treninger, 
+                mål, 
+                assist,
+                mvpKamp: Number(komplettScore),
+                mvpLag: Number(parseFloat(mvpLagScore).toFixed(2))
             };
         });
 }
 
-// --- VISUALISERING ---
+// --- VISNINGSFUNKSJON FOR ALL STATISTIKK ---
+function renderTestTab() {
+    const container = document.getElementById('tabContentContainer');
+    const infoSpan = document.getElementById('infoTextSpan');
+    if (!container) return;
 
-function renderTopplister(statsArray) {
-    const configs = [
-        { key: 'lagPoeng', winnerEl: 'winnerPoeng', listEl: 'listPoengContainer', suffix: ' pts', minOppmote: 0 },
-        { key: 'komplettScore', winnerEl: 'winnerKomplett', listEl: 'listKomplettContainer', suffix: '', minOppmote: 1 },
-        { key: 'prosent', winnerEl: 'winnerOppmote', listEl: 'listOppmoteContainer', suffix: '%', minOppmote: 0 }
-    ];
+    let nøkkel = 'mål';
+    let tekst = 'mål';
+    let visMedDesimaler = false; 
 
-    configs.forEach(conf => {
-        const allSorted = [...statsArray]
-            .filter(s => s.kamperOppmøte >= conf.minOppmote)
-            .sort((a, b) => Number(b[conf.key]) - Number(a[conf.key]));
+    // Oppdaterer tekster, sorteringsnøkler og det dynamiske infofeltet i bunn
+    if (currentActiveTab === 'maal') {
+        nøkkel = 'mål'; tekst = 'mål';
+        if (infoSpan) infoSpan.innerHTML = "Viser oversikt over lagets toppscorere i valgt periode.";
+    }
+    else if (currentActiveTab === 'assist') { 
+        nøkkel = 'assist'; tekst = 'assists'; 
+        if (infoSpan) infoSpan.innerHTML = "Viser hvem som har servert flest målgivende pasninger i valgt periode.";
+    }
+    else if (currentActiveTab === 'trening') { 
+        nøkkel = 'treninger'; tekst = 'treninger'; 
+        if (infoSpan) infoSpan.innerHTML = "Viser antall gjennomførte treningsøkter. Fremtidige økter telles ikke med.";
+    }
+    else if (currentActiveTab === 'kamp') { 
+        nøkkel = 'kamperOppmøte'; tekst = 'kamper'; 
+        if (infoSpan) infoSpan.innerHTML = "Antall offisielle kamper spilt (kamper med registrert resultat).";
+    }
+    else if (currentActiveTab === 'mvpkamp') { 
+        nøkkel = 'mvpKamp'; tekst = 'poeng'; visMedDesimaler = true; 
+        if (infoSpan) infoSpan.innerHTML = "<strong>MVP Kamp:</strong> Vektet score basert på personlige karakterer (0-2) kombinert med mål og assists per kamp.";
+    }
+    else if (currentActiveTab === 'mvplag') { 
+        nøkkel = 'mvpLag'; tekst = 'poeng'; visMedDesimaler = true; 
+        if (infoSpan) infoSpan.innerHTML = "<strong>MVP Lag:</strong> Viser taktisk lojalitet. Poeng (0-2) tildeles for bidrag til offensive/defensiv mål, samt lagbonuser.";
+    }
 
-        const winner = allSorted[0];
-        const top10 = allSorted.slice(1, 10);
-        const resten = allSorted.slice(10);
-        
-        const winnerEl = document.getElementById(conf.winnerEl);
-        const listEl = document.getElementById(conf.listEl);
-        
-        if (winnerEl) {
-            winnerEl.innerHTML = winner ? `
-                <div class="stat-row">
-                    <span><span class="rank">1</span><span class="player-name">${winner.navn}</span></span>
-                    <span class="score-val">${winner[conf.key]}${conf.suffix}</span>
-                </div>` : "";
-        }
+    const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
 
-        if (listEl) {
-            let listHTML = top10.map((s, i) => `
-                <div class="stat-row">
-                    <span><span class="rank">${i + 2}</span><span class="player-name">${s.navn}</span></span>
-                    <span class="score-val">${s[conf.key]}${conf.suffix}</span>
-                </div>`).join('');
+    if (sortert.length === 0 || sortert[0][nøkkel] === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:30px; font-weight:600;">Ingen registrerte data i denne perioden.</div>`;
+        return;
+    }
 
-            if (resten.length > 0) {
-                const extraId = `extra-${conf.key}`;
-                listHTML += `
-                    <div id="${extraId}" class="hidden-list">
-                        ${resten.map((s, i) => `
-                            <div class="stat-row">
-                                <span><span class="rank">${i + 11}</span><span class="player-name">${s.navn}</span></span>
-                                <span class="score-val">${s[conf.key]}${conf.suffix}</span>
-                            </div>`).join('')}
-                    </div>
-                    <button onclick="event.stopPropagation(); toggleFullList('${extraId}', this)" class="show-all-btn">
-                        Vis alle (${allSorted.length} spillere)
-                    </button>
-                `;
-            }
-            listEl.innerHTML = listHTML;
-        }
+    const topp5 = sortert.slice(0, 5);
+    const resten = sortert.slice(5);
+
+    let html = '';
+    topp5.forEach((s, i) => {
+        const verdiVisning = visMedDesimaler ? Number(s[nøkkel]).toFixed(2) : s[nøkkel];
+
+        html += `
+            <div class="stat-row">
+                <span>
+                    <span style="display:inline-block; width:28px; color:${i===0 ? '#eab308' : 'var(--text-muted)'}; font-weight:900; font-size:1.1rem;">${i + 1}</span>
+                    <span style="color:var(--text-main); font-size:0.95rem;">${s.navn}</span>
+                </span>
+                <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${verdiVisning} ${tekst}</span>
+            </div>`;
     });
+
+    if (resten.length > 0) {
+        const extraId = `extra-real-${currentActiveTab}`;
+        html += `
+            <div id="${extraId}" style="display:none;">
+                ${resten.map((s, i) => {
+                    const verdiVisning = visMedDesimaler ? Number(s[nøkkel]).toFixed(2) : s[nøkkel];
+                    return `
+                    <div class="stat-row">
+                        <span>
+                            <span style="display:inline-block; width:28px; color:var(--text-muted); font-size:0.95rem;">${i + 6}</span>
+                            <span style="color:var(--text-main); font-size:0.95rem;">${s.navn}</span>
+                        </span>
+                        <span style="color:var(--bsk-blue); font-weight:800; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size:0.85rem;">${verdiVisning} ${tekst}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+            <button onclick="event.stopPropagation(); window.toggleRealList('${extraId}', this)" class="show-all-btn">
+                VIS ALLE (${sortert.length} SPILLERE)
+            </button>`;
+    }
+
+    container.innerHTML = html;
 }
 
-window.toggleFullList = function(id, btn) {
-    const extraDiv = document.getElementById(id);
+// --- GLOBAL NETTVERKSSTYRING FOR FANER ---
+
+window.switchStatTab = function(tabName) {
+    currentActiveTab = tabName;
     
-    if (!extraDiv.classList.contains('show')) {
-        extraDiv.classList.add('show');
-        btn.innerText = "Vis færre";
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.style.background = 'var(--bg-light)';
+        btn.style.color = 'var(--text-muted)';
+    });
+    
+    const aktivKnapp = document.getElementById(`tab-${tabName}`);
+    if (aktivKnapp) {
+        aktivKnapp.style.background = 'var(--bsk-blue)';
+        aktivKnapp.style.color = 'white';
+    }
+
+    renderTestTab();
+};
+
+window.toggleRealList = function(id, btn) {
+    const div = document.getElementById(id);
+    if (div.style.display === 'none') {
+        div.style.display = 'block';
+        btn.innerText = "VIS FÆRRE";
     } else {
-        extraDiv.classList.remove('show');
-        btn.innerText = "Vis alle";
+        div.style.display = 'none';
+        btn.innerText = `VIS ALLE (${lagretStatsArray.length} SPILLERE)`;
     }
 };
 
+// --- HERO-OPPDATERING FOR LAGSTATISTIKK ---
 function oppdaterLagStats(matches, statsArray, periode) {
     const kampListe = Object.values(matches).filter(m => {
         if (!m.result || m.result === '-') return false;
