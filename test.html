@@ -2,129 +2,43 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>BSK Test - Hybrid Design</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSK App - Sandkasse Test</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body style="padding: 20px; background: var(--bg-light, #f8fafc);">
 
-    <!-- TOP BAR (Alltid synlig) -->
-    <header class="top-bar">
-        <div class="logo-brand">
-            <i class="fa-solid fa-shield-halved"></i> 
-            BSK <span>A-LAG</span>
+    <div style="max-width: 600px; margin: 0 auto;">
+        <h2 style="color: var(--bsk-blue, #1e3a8a); margin-bottom: 10px;">
+            <i class="fa-solid fa-flask"></i> Utvikler-sandkasse
+        </h2>
+        <p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin-bottom: 20px;">
+            Dette er en sikker testside for eksperimentering med ny funksjonalitet (f.eks. oppdeling av flere lag). Sjekk nettleser-konsollen (F12) for loggmeldinger.
+        </p>
+
+        <!-- TEST-KNAPPER -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button id="btnTestLogg" class="show-all-btn" style="margin: 0; flex: 1;">
+                <i class="fa-solid fa-terminal"></i> Logg spillere i konsoll
+            </button>
+            <button id="btnTestLag" class="show-all-btn" style="margin: 0; flex: 1; background: var(--bsk-blue, #1e3a8a); color: white;">
+                <i class="fa-solid fa-filter"></i> Test Lag-oppdeling
+            </button>
         </div>
-        
-        <!-- Tittelen fylles automatisk av navigation.js -->
-        <h1 class="section-title"></h1>
 
-        <div class="filter-wrapper">
-            <select class="base-select" id="period-filter">
-                <option value="total">2026</option>
-                <option value="05">Mai</option>
-            </select>
-        </div>
-    </header>
-
-    <!-- SIDEBAR (Vises kun på PC via style.css) -->
-    <aside id="sidebar" class="sidebar">
-        <!-- Innholdet genereres av navigation.js -->
-    </aside>
-
-    <!-- BUNNMENY (Vises kun på MOBIL via style.css) -->
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fa-solid fa-house"></i>
-            <span>Hjem</span>
-        </a>
-        <a href="oppmote.html" class="nav-item">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Oppmøte</span>
-        </a>
-        <a href="kamper.html" class="nav-item">
-            <i class="fa-solid fa-soccer-ball"></i>
-            <span>Kamper</span>
-        </a>
-        <a href="spillere.html" class="nav-item">
-            <i class="fa-solid fa-users"></i>
-            <span>Tropp</span>
-        </a>
-        <a href="statistikk.html" class="nav-item active">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Stats</span>
-        </a>
-    </nav>
-
-    <!-- HOVEDINNHOLD -->
-    <main class="main-content">
-        <section class="welcome-hero">
-            <div class="hero-content">
-                <h2>Hybrid System Test</h2>
-                <p>Resiz vinduet på PC-en for å se menyen flytte seg fra siden til bunnen. Dette er ekte app-følelse!</p>
-            </div>
-        </section>
-
-        <div class="dashboard-grid">
-            <div class="dash-card">
-                <div class="dash-icon"><i class="fa-solid fa-hands-holding-circle"></i></div>
-                <div class="dash-info">
-                    <h3>Beste Duo</h3>
-                    <p>Sebastian & Viktor (92%)</p>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </div>
-
-            <!-- Tabell med de nye kolonnene -->
-            <div class="table-container" style="grid-column: 1 / -1; margin-top: 20px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="name-col">Spiller</th>
-                            <th>K</th>
-                            <th>M</th>
-                            <th>A</th>
-                            <th>MVP</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="name-col">Sebastian Mørken</td>
-                            <td>12</td>
-                            <td>5</td>
-                            <td>3</td>
-                            <td><span class="status-pill" style="width: 35px; height: 35px; font-size: 0.8rem;">1.5</span></td>
-                        </tr>
-                        <tr>
-                            <td class="name-col">Peder Vegsund</td>
-                            <td>10</td>
-                            <td>2</td>
-                            <td>8</td>
-                            <td><span class="status-pill" style="width: 35px; height: 35px; font-size: 0.8rem;">1.2</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- ENKEL TEST-UTDATABOKS -->
+        <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1rem; color: var(--text-main, #1e293b);">
+                Utskrift fra testmiljø:
+            </h3>
+            <div id="testOutput" style="font-family: monospace; font-size: 0.85rem; color: #334155; white-space: pre-wrap; background: #f1f5f9; padding: 15px; border-radius: 8px; min-height: 100px;">
+                Venter på at du trykker på en knapp...
             </div>
         </div>
-    </main>
+    </div>
 
-    <script src="navigation.js"></script>
-    <script>
-        // Enkel sjekk for å markere aktiv side i bunn-menyen manuelt i denne testen
-        const path = window.location.pathname;
-        const page = path.split("/").pop() || 'index.html';
-        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-            if(item.getAttribute('href') === page) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    </script>
+    <!-- SCRIPT-LASTING -->
+    <script type="module" src="test.js"></script>
 </body>
 </html>
