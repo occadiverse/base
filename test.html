@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TEST - Oppmøte BSK</title>
+    <title>Oppmøte - BSK Fotball</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
@@ -22,18 +22,6 @@
 
     .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
     .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
-
-    /* Indikator for testmiljø */
-    .test-banner-oppmote {
-        background: #fff3cd;
-        color: #856404;
-        padding: 12px 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #ffeeba;
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
 
     /* Tabell-container og struktur */
     .table-container {
@@ -80,7 +68,7 @@
         white-space: nowrap;
     }
 
-    /* Minimalistiske og stilrene økt-merker (K og T) */
+    /* Minimalistiske og stilrene økt-merker (K, T og A) */
     .day-type {
         padding: 3px 8px;
         border-radius: 6px;
@@ -97,6 +85,10 @@
     .day-type-match { 
         background: #dbeafe; 
         color: var(--bsk-blue); 
+    }
+    .day-type-other {
+        background: #fef3c7;
+        color: #d97706;
     }
 
     /* Diskret slett-ikon i toppen */
@@ -140,7 +132,7 @@
         background-color: #f8fbff;
     }
 
-    /* Elegante og stilrene status-ikoner som matcher appens farger */
+    /* Elegante og stilrene status-ikoner */
     .status-present { 
         color: var(--bsk-blue); 
         font-size: 1.1rem; 
@@ -159,6 +151,32 @@
         padding: 3px 8px;
         border-radius: 6px;
         border: 1px solid rgba(0, 86, 179, 0.15);
+    }
+
+    /* Form-row for modaljustering */
+    .form-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .form-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-main);
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        outline: none;
+        font-family: inherit;
     }
 
     /* FAB Button */
@@ -213,25 +231,37 @@
 <body>
 
 <header class="top-bar">
-    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>TEST</span></a>
-    <h1 id="section-title" class="section-title">Oppmøte (TEST)</h1>
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
+    <h1 id="section-title" class="section-title">Oppmøte</h1>
+    
     <div class="filter-wrapper">
+        <!-- Filter for Gruppe/Lag -->
+        <div class="filter-container">
+            <i class="fa-solid fa-users"></i>
+            <select id="lagFilter" class="base-select" onchange="window.filterByLag(this.value)">
+                <option value="Alle">ALLE GRUPPER</option>
+                <option value="Lag A">LAG A</option>
+                <option value="Lag B">LAG B</option>
+            </select>
+        </div>
+
+        <!-- Filter for Måned -->
         <div class="filter-container">
             <i class="fa-solid fa-calendar-days"></i>
             <select id="monthFilter" class="base-select" onchange="window.filterByMonth(this.value)">
                 <option value="Alle">HELE SESONGEN</option>
-                <option value="0">JANUAR</option>
-                <option value="1">FEBRUAR</option>
-                <option value="2">MARS</option>
-                <option value="3">APRIL</option>
-                <option value="4">MAI</option>
-                <option value="5">JUNI</option>
-                <option value="6">JULI</option>
-                <option value="7">AUGUST</option>
-                <option value="8">SEPTEMBER</option>
-                <option value="9">OKTOBER</option>
-                <option value="10">NOVEMBER</option>
-                <option value="11">DESEMBER</option>
+                <option value="01">JANUAR</option>
+                <option value="02">FEBRUAR</option>
+                <option value="03">MARS</option>
+                <option value="04">APRIL</option>
+                <option value="05">MAI</option>
+                <option value="06">JUNI</option>
+                <option value="07">JULI</option>
+                <option value="08">AUGUST</option>
+                <option value="09">SEPTEMBER</option>
+                <option value="10">OKTOBER</option>
+                <option value="11">NOVEMBER</option>
+                <option value="12">DESEMBER</option>
             </select>
         </div>
     </div>
@@ -266,17 +296,12 @@
     <section class="kamper-hero">
         <div class="hero-content">
             <p class="hero-intro-text">
-                Troppen har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
+                Valgt gruppe har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
                 Gjennomsnittlig oppmøte ligger på <strong id="stat-avg-attendance">0%</strong>, 
                 og vår mest aktive spiller har vært med på <strong id="stat-top-attendance">0</strong> økter.
             </p>
         </div>
     </section>
-
-    <!-- TESTBANNER FOR VERIFISERING -->
-    <div class="test-banner-oppmote">
-        <i class="fa-solid fa-vial-circle-check"></i> Dette er testsiden. Åpne nettleser-konsollen (F12) for å verifisere hvilke spillere som har ferdigvasket database-historikk!
-    </div>
 
     <div class="table-container">
         <table id="attendanceTable" class="matrix-table">
@@ -293,7 +318,7 @@
 <div id="attendanceModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="color: var(--bsk-blue); margin:0;">Ny treningsøkt</h3>
+            <h3 style="color: var(--bsk-blue); margin:0;">Ny aktivitet</h3>
             <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
         </div>
         <form id="attendanceForm">
@@ -304,7 +329,27 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <!-- VALG FOR TYPE ØKT OG GRUPPE -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Type økt</label>
+                    <select id="eventType" class="form-control">
+                        <option value="Trening">Trening</option>
+                        <option value="Kamp">Kamp</option>
+                        <option value="Annet">Møte/Annet</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>For hvilket lag?</label>
+                    <select id="eventGroup" class="form-control">
+                        <option value="Begge">Begge lag (Felles)</option>
+                        <option value="Lag A">Lag A</option>
+                        <option value="Lag B">Lag B</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
                 <button type="submit" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE ØKT</button>
                 <button type="button" onclick="closeAttendanceModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
             </div>
@@ -313,8 +358,8 @@
 </div>
 
 <script src="navigation.js"></script>
-<!-- RETTET TIL Å SJEKKE DIN test.js FIL -->
-<script type="module" src="test.js?v=clean_test"></script>
+<!-- Vi peker direkte til oppmote.js nå som testsiden har verifisert alt -->
+<script type="module" src="oppmote.js?v=compact_groups"></script>
 
 <script>
     window.openAttendanceModal = () => {
@@ -336,11 +381,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         const monthFilter = document.getElementById('monthFilter');
         if (monthFilter) {
-            const currentMonth = new Date().getMonth().toString();
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
             monthFilter.value = currentMonth;
-            setTimeout(() => {
-                if (window.filterByMonth) window.filterByMonth(currentMonth);
-            }, 800);
+        }
+        const lagFilter = document.getElementById('lagFilter');
+        if (lagFilter) {
+            lagFilter.value = 'Alle';
         }
     });
 </script>
