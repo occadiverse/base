@@ -1,394 +1,160 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <title>Oppmøte - BSK Fotball</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Refererer kun til dine eksisterende stilark, akkurat som spillere.html -->
     <link rel="stylesheet" href="style.css?v=2">
-    <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-    /* BSK-blå Hero - Identisk med kamper.html */
-    .oppmote-hero {
-        background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
-        border-radius: 20px;
-        padding: 40px;
-        color: white;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
-    }
-
-    .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
-    .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
-
-    /* Tabell-container og struktur */
-    .table-container {
-        overflow-x: auto !important;
-        position: relative;
-        background: var(--white);
-        border-radius: 15px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        margin: 20px 0;
-    }
-
-    #attendanceTable {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    /* RYDDIG HEADER STYLING - Synkronisert med global th-stil */
-    #attendanceHeader th {
-        padding: 16px 12px;
-        background: #f8f9fa;
-        border-bottom: 2px solid var(--border-color);
-        border-right: 1px solid #eef2f6;
-        min-width: 75px;
-        vertical-align: top;
-    }
-
-    #attendanceHeader th.name-col {
-        vertical-align: middle !important;
-    }
-
-    .header-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .header-date {
-        font-size: 0.8rem;
-        font-weight: 800;
-        color: #1e293b;
-        white-space: nowrap;
-    }
-
-    /* Minimalistiske og stilrene økt-merker (K, T og A) */
-    .day-type {
-        padding: 3px 8px;
-        border-radius: 6px;
-        font-weight: 800;
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-    }
-    .day-type-training { 
-        background: #e2e8f0; 
-        color: #475569; 
-    }
-    .day-type-match { 
-        background: #dbeafe; 
-        color: var(--bsk-blue); 
-    }
-    .day-type-other {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    /* Diskret slett-ikon i toppen */
-    .btn-delete-header {
-        background: transparent;
-        color: #94a3b8;
-        border: none;
-        padding: 2px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: color 0.2s;
-        margin-bottom: 2px;
-    }
-    .btn-delete-header:hover { 
-        color: #ef4444; 
-    }
-
-    /* Sticky navnekolonne som står bom fast */
-    .name-col {
-        position: sticky;
-        left: 0;
-        background: #f8f9fa !important;
-        z-index: 10;
-        min-width: 200px;
-        border-right: 2px solid var(--border-color) !important; 
-        padding: 0 20px !important;
-        text-align: left !important;
-    }
-
-    /* Cellene i tabell-kroppen */
-    #attendanceTable td {
-        vertical-align: middle;
-        border-bottom: 1px solid #f1f5f9;
-        border-right: 1px solid #f1f5f9;
-        padding: 14px 5px;
-        text-align: center;
-        cursor: pointer;
-    }
-
-    #attendanceTable tr:hover td:not(.name-col) {
-        background-color: #f8fbff;
-    }
-
-    /* Elegante og stilrene status-ikoner */
-    .status-present { 
-        color: var(--bsk-blue); 
-        font-size: 1.1rem; 
-    }
-    .status-none { 
-        color: #cbd5e1; 
-        font-size: 1.0rem; 
-        opacity: 0.4;
-    }
-    
-    .attendance-badge {
-        background: var(--active-bg);
-        color: var(--bsk-blue);
-        font-size: 0.75rem;
-        font-weight: 800;
-        padding: 3px 8px;
-        border-radius: 6px;
-        border: 1px solid rgba(0, 86, 179, 0.15);
-    }
-
-    /* Form-row for modaljustering */
-    .form-row {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-    .form-group {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    .form-group label {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: var(--text-main);
-    }
-    .form-control {
-        width: 100%;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1.5px solid var(--border-color);
-        outline: none;
-        font-family: inherit;
-    }
-
-    /* FAB Button */
-    .fab-btn {
-        position: fixed;
-        right: 25px;
-        bottom: 25px;
-        width: 60px;
-        height: 60px;
-        background: var(--bsk-blue);
-        color: var(--bsk-yellow);
-        border: 2px solid var(--bsk-yellow);
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-    }
-
-    /* --- SPESIFIKK MOBILHÅNDTERING FOR OPPMØTE-MATRISEN --- */
-    @media (max-width: 768px) {
-        .fab-btn { bottom: 85px; }
-
-        body div.table-container {
-            overflow-x: scroll !important;
-            display: block !important;
-            width: 100% !important;
-            padding: 0 !important;
-            -webkit-overflow-scrolling: touch !important;
-        }
-
-        #attendanceTable {
-            table-layout: auto !important;
-            width: max-content !important;
-        }
-
-        .matrix-table .name-col {
-            position: sticky !important;
-            left: 0 !important;
-            z-index: 25 !important;
-            background: #f8f9fa !important;
-            box-shadow: 3px 0 6px rgba(0, 0, 0, 0.08);
-        }
-
-        .matrix-table th:not(.name-col) {
-            min-width: 70px !important;
-            padding: 12px 6px !important;
-        }
-    }
-</style></head>
+        /* Kun den spesifikke fargen for kamp-merket i tabellheaderen */
+        .day-type-match { background: #dbeafe; color: var(--bsk-blue); }
+    </style>
+</head>
 <body>
 
-<header class="top-bar">
-    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
-    <h1 id="section-title" class="section-title">Oppmøte</h1>
+    <header class="top-bar">
+        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
+        <h1 id="section-title" class="section-title">Oppmøte</h1>
+        
+        <div class="filter-wrapper">
+            <!-- Dynamisk månedvelger fra databasen -->
+            <div class="filter-container">
+                <select id="monthFilter" class="base-select"></select>
+            </div>
+
+            <!-- Identisk lagvelger som på spillere.html -->
+            <div class="filter-container">
+                <select id="lagFilter" class="base-select">
+                    <option value="Alle">ALLE</option>
+                    <option value="Lag A">LAG A</option>
+                    <option value="Lag B">LAG B</option>
+                </select>
+            </div>
+        </div>
+    </header>
     
-    <div class="filter-wrapper">
-        <!-- Filter for Gruppe/Lag -->
-        <div class="filter-container">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Hjem</span>
+        </a>
+        <a href="oppmote.html" class="nav-item active">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Oppmøte</span>
+        </a>
+        <a href="kamper.html" class="nav-item">
+            <i class="fa-solid fa-soccer-ball"></i>
+            <span>Kamper</span>
+        </a>
+        <a href="spillere.html" class="nav-item">
             <i class="fa-solid fa-users"></i>
-            <select id="lagFilter" class="base-select" onchange="window.filterByLag(this.value)">
-                <option value="Alle">ALLE</option>
-                <option value="Lag A">LAG A</option>
-                <option value="Lag B">LAG B</option>
-            </select>
+            <span>Tropp</span>
+        </a>
+        <a href="statistikk.html" class="nav-item">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Stats</span>
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <!-- Bruker klassen oppmote-hero som styles via style.css -->
+        <section class="oppmote-hero">
+            <div class="hero-content">
+                <p class="hero-intro-text">
+                    Valgt gruppe har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
+                    Gjennomsnittlig oppmøte ligger på <strong id="stat-avg-attendance">0%</strong>, 
+                    og vår mest aktive spiller har vært med på <strong id="stat-top-attendance">0</strong> økter.
+                </p>
+            </div>
+        </section>
+
+        <div class="table-container">
+            <table id="attendanceTable" class="matrix-table">
+                <thead id="attendanceHeader"></thead>
+                <tbody id="attendanceBody"></tbody>
+            </table>
         </div>
+    </main>
 
-        <!-- Filter for Måned -->
-        <div class="filter-container">
-            <i class="fa-solid fa-calendar-days"></i>
-            <select id="monthFilter" class="base-select" onchange="window.filterByMonth(this.value)">
-                <option value="Alle">HELE SESONGEN</option>
-                <option value="01">JANUAR</option>
-                <option value="02">FEBRUAR</option>
-                <option value="03">MARS</option>
-                <option value="04">APRIL</option>
-                <option value="05">MAI</option>
-                <option value="06">JUNI</option>
-                <option value="07">JULI</option>
-                <option value="08">AUGUST</option>
-                <option value="09">SEPTEMBER</option>
-                <option value="10">OKTOBER</option>
-                <option value="11">NOVEMBER</option>
-                <option value="12">DESEMBER</option>
-            </select>
-        </div>
-    </div>
-</header>
+    <!-- Registrer ny økt -->
+    <button class="fab-btn" onclick="window.openAttendanceModal()" title="Registrer ny økt">
+        <i class="fa-solid fa-plus"></i>
+    </button>
 
-<div class="sidebar" id="sidebar"></div>
-
-<nav class="bottom-nav">
-    <a href="index.html" class="nav-item">
-        <i class="fa-solid fa-house"></i>
-        <span>Hjem</span>
-    </a>
-    <a href="oppmote.html" class="nav-item active">
-        <i class="fa-solid fa-calendar-check"></i>
-        <span>Oppmøte</span>
-    </a>
-    <a href="kamper.html" class="nav-item">
-        <i class="fa-solid fa-soccer-ball"></i>
-        <span>Kamper</span>
-    </a>
-    <a href="spillere.html" class="nav-item">
-        <i class="fa-solid fa-users"></i>
-        <span>Tropp</span>
-    </a>
-    <a href="statistikk.html" class="nav-item">
-        <i class="fa-solid fa-chart-line"></i>
-        <span>Stats</span>
-    </a>
-</nav>
-
-<main class="main-content">
-    <section class="kamper-hero">
-        <div class="hero-content">
-            <p class="hero-intro-text">
-                Valgt gruppe har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
-                Gjennomsnittlig oppmøte ligger på <strong id="stat-avg-attendance">0%</strong>, 
-                og vår mest aktive spiller har vært med på <strong id="stat-top-attendance">0</strong> økter.
-            </p>
-        </div>
-    </section>
-
-    <div class="table-container">
-        <table id="attendanceTable" class="matrix-table">
-            <thead id="attendanceHeader"></thead>
-            <tbody id="attendanceBody"></tbody>
-        </table>
-    </div>
-</main>
-
-<button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny treningsøkt">
-    <i class="fa-solid fa-calendar-plus"></i>
-</button>
-
-<div id="attendanceModal" class="modal">
-    <div class="modal-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="color: var(--bsk-blue); margin:0;">Ny aktivitet</h3>
-            <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
-        </div>
-        <form id="attendanceForm">
-            <div class="form-row">
-                <div class="form-group" style="flex: 1;">
-                    <label>Dato</label>
-                    <input type="date" id="eventDate" required class="form-control">
+    <!-- Modal for ny aktivitet - Strukturert med dine faste form-klasser -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: var(--bsk-blue); margin:0;">Ny aktivitet</h3>
+                <button onclick="window.closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
+            </div>
+            
+            <form id="attendanceForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Dato</label>
+                        <input type="date" id="eventDate" required class="form-control">
+                    </div>
                 </div>
-            </div>
 
-            <!-- VALG FOR TYPE ØKT OG GRUPPE -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Type økt</label>
-                    <select id="eventType" class="form-control">
-                        <option value="Trening">Trening</option>
-                        <option value="Kamp">Kamp</option>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type økt</label>
+                        <select id="eventType" class="form-control">
+                            <option value="Trening">Trening</option>
+                            <option value="Kamp">Kamp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>For hvilket lag?</label>
+                        <select id="eventGroup" class="form-control">
+                            <option value="Alle">Alle</option>
+                            <option value="Lag A">Lag A</option>
+                            <option value="Lag B">Lag B</option>
+                        </select>
+                    </div>
                 </div>
-            <div class="form-group">
-                    <label>For hvilket lag?</label>
-                    <select id="eventGroup" class="form-control">
-                        <option value="Alle">Alle</option>
-                        <option value="Lag A">Lag A</option>
-                        <option value="Lag B">Lag B</option>
-                    </select>
-            </div>
-            </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button type="submit" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE ØKT</button>
-                <button type="button" onclick="closeAttendanceModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
-            </div>
-        </form>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE ØKT</button>
+                    <button type="button" onclick="window.closeAttendanceModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script src="navigation.js"></script>
-<!-- Vi peker direkte til oppmote.js nå som testsiden har verifisert alt -->
-<script type="module" src="oppmote.js?v=compact_groups"></script>
+    <script src="navigation.js"></script>
+    <script type="module" src="oppmote.js"></script>
 
-<script>
-    window.openAttendanceModal = () => {
-        document.getElementById('attendanceModal').style.display = 'flex';
-        document.getElementById('eventDate').valueAsDate = new Date();
-    };
-    
-    window.closeAttendanceModal = () => {
-        document.getElementById('attendanceModal').style.display = 'none';
-        document.getElementById('attendanceForm').reset();
-    };
+    <script>
+        window.openAttendanceModal = () => {
+            document.getElementById('attendanceModal').style.display = 'flex';
+            document.getElementById('eventDate').valueAsDate = new Date();
+        };
+        
+        window.closeAttendanceModal = () => {
+            document.getElementById('attendanceModal').style.display = 'none';
+            document.getElementById('attendanceForm').reset();
+        };
 
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            closeAttendanceModal();
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const monthFilter = document.getElementById('monthFilter');
-        if (monthFilter) {
-            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-            monthFilter.value = currentMonth;
-        }
-        const lagFilter = document.getElementById('lagFilter');
-        if (lagFilter) {
-            lagFilter.value = 'Alle';
-        }
-    });
-</script>
-
+        window.onclick = function(event) {
+            const modal = document.getElementById('attendanceModal');
+            if (event.target === modal) {
+                window.closeAttendanceModal();
+            }
+        };
+    </script>
 </body>
 </html>
