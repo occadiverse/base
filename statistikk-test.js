@@ -6,22 +6,23 @@ let globalData = null;
 let currentActiveTab = 'maal'; 
 let lagretStatsArray = [];     
 
-const manederTekst = [
-    "Januar", "Februar", "Mars", "April", "Mai", "Juni", 
-    "Juli", "August", "September", "Oktober", "November", "Desember"
-];
+// --- DATO- OG SESONGHÅNDTERING ---
 
-// --- DATO-HÅNDTERING ---
-function hentPeriodeFraNokkel(nøkkel, attendance) {
+// Henter rent årstall ut fra øktens dato eller nøkkel
+function hentSesongFraNokkel(nøkkel, attendance) {
     if (!nøkkel) return "";
     const info = attendance[nøkkel]?.info || {};
+    
+    // Sjekker info.date først (formater: DD-MM-YYYY eller YYYY-MM-DD)
     if (info.date) {
         const deler = info.date.split('-');
-        return `${deler[1]}-${deler[0]}`; 
+        return deler[0].length === 4 ? deler[0] : deler[2];
     }
-    if (nøkkel.includes('-') && nøkkel.split('-')[0].length === 2) {
+    // Fallback hvis nøkkelen i seg selv er en dato (f.eks DD-MM-YYYY)
+    if (nøkkel.includes('-')) {
         const deler = nøkkel.split('-');
-        return `${deler[1]}-${deler[2]}`; 
+        if (deler[0].length === 2 && deler[2]?.length === 4) return deler[2];
+        if (deler[0].length === 4) return deler[0];
     }
     return "";
 }
@@ -35,10 +36,11 @@ function matchDatoer(dato1, dato2) {
 }
 
 // --- INITIALISERING ---
+
 onValue(ref(db, '/'), (snapshot) => {
     try {
         globalData = snapshot.val() || {};
-        genererDynamiskFilter();
+        genererSesongFilter();
         oppdaterTestStats();
     } catch (err) {
         console.error("Feil under lasting av Firebase-data:", err);
@@ -52,25 +54,39 @@ if (periodSelect) {
     });
 }
 
-function genererDynamiskFilter() {
+// Skanner databasen etter unike årstall og bygger rene sesongvalg
+function genererSesongFilter() {
     const attendance = globalData.attendance || {};
-    const unikePerioder = new Set();
+    const unikeSesonger = new Set();
+
     Object.keys(attendance).forEach(key => {
-        const p = hentPeriodeFraNokkel(key, attendance);
-        if (p) unikePerioder.add(p);
+        const aar = hentSesongFraNokkel(key, attendance);
+        if (aar && aar.length === 4) {
+            unikeSesonger.add(aar);
+        }
     });
 
-    const nå = new Date();
-    const innevarende = `${String(nå.getMonth() + 1).padStart(2, '0')}-${nå.getFullYear()}`;
+    const nåværendeÅr = new Date().getFullYear().toString();
+    
+    // Hvis databasen er tom, sørg for at nåværende sesong i hvert fall eksisterer
+    if (unikeSesonger.size === 0) {
+        unikeSesonger.add(nåværendeÅr);
+    }
+
     let valgt = periodSelect?.value;
-    if (periodSelect && !periodSelect.hasAttribute('data-user-selected') && unikePerioder.has(innevarende)) valgt = innevarende;
+    
+    // Hvis brukeren ikke har valgt noe manuelt ennå, sett inneværende år som standard
+    if (periodSelect && !periodSelect.hasAttribute('data-user-selected') && unikeSesonger.has(nåværendeÅr)) {
+        valgt = nåværendeÅr;
+    }
 
     if (periodSelect) {
-        periodSelect.innerHTML = '<option value="total">Sesong 2026</option>';
-        Array.from(unikePerioder).sort().reverse().forEach(p => {
-            const [m, a] = p.split('-');
-            periodSelect.innerHTML += `<option value="${p}">${manederTekst[parseInt(m)-1]} ${a}</option>`;
+        periodSelect.innerHTML = '';
+        // Sorterer sesongene slik at nyeste årstall kommer øverst i listen
+        Array.from(unikeSesonger).sort().reverse().forEach(aar => {
+            periodSelect.innerHTML += `<option value="${aar}">SESONG ${aar}</option>`;
         });
+        
         if (valgt) periodSelect.value = valgt;
     }
 }
@@ -83,14 +99,15 @@ function oppdaterTestStats() {
         periodWordEl.innerText = periodSelect.options[periodSelect.selectedIndex].text;
     }
 
-    const valgtPeriode = periodSelect ? periodSelect.value : 'total';
-    lagretStatsArray = kvernRaaData(globalData.players || {}, globalData.attendance || {}, globalData.matches || {}, valgtPeriode);
+    // Standardiserer til inneværende år hvis selecten feiler
+    const valgtSesong = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
+    lagretStatsArray = kvernRaaData(globalData.players || {}, globalData.attendance || {}, globalData.matches || {}, valgtSesong);
     
     renderTestTab(); 
 }
 
-// --- DEN NYE, SIKRE DATAKVERNINGEN NÅ OGSÅ PÅ TESTSIDEN ---
-function kvernRaaData(players, attendance, matches, periodeValg) {
+// --- OPTIMALISERT DATAKVERNING BASERT PÅ HELE SESONGER ---
+function kvernRaaData(players, attendance, matches, valgtSesong) {
     const naa = new Date();
     const dagensDatoTall = Number(`${naa.getFullYear()}${String(naa.getMonth() + 1).padStart(2, '0')}${String(naa.getDate()).padStart(2, '0')}`);
 
@@ -101,7 +118,8 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
             let treninger = 0, kamperOppmøte = 0, mål = 0, assist = 0;
             let totalRatingScore = 0, antallRatings = 0, mvpLagScore = 0;
 
-            const relevanteNøkler = Object.keys(attendance).filter(key => periodeValg === 'total' || hentPeriodeFraNokkel(key, attendance) === periodeValg);
+            // Filtrerer ut økter som kun tilhører det valgte året (sesongen)
+            const relevanteNøkler = Object.keys(attendance).filter(key => hentSesongFraNokkel(key, attendance) === valgtSesong);
 
             relevanteNøkler.forEach(key => {
                 if (attendance[key][id] === 'K') {
@@ -124,7 +142,6 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                             const scores = tilhørendeKamp.result.replace(/\s/g, "").split('-');
                             let pRating = null;
                             if (tilhørendeKamp.playerRatings) {
-                                // Siste skuddsikre navnesjekk flettet inn her:
                                 const rKey = Object.keys(tilhørendeKamp.playerRatings).find(k => k.trim().toLowerCase() === navn.toLowerCase() || navn.toLowerCase().includes(k.trim().toLowerCase()));
                                 if (rKey) pRating = tilhørendeKamp.playerRatings[rKey];
                             }
@@ -151,11 +168,11 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
             });
 
             Object.entries(matches).forEach(([mId, m]) => {
-                const tilhorerPerioden = periodeValg === 'total' || 
-                                         (attendance[mId] && hentPeriodeFraNokkel(mId, attendance) === periodeValg) ||
-                                         (m.date && m.date.includes('-') && `${m.date.split('-')[1]}-${m.date.split('-')[0]}` === periodeValg);
+                // Sjekker om kampen tilhører valgt sesong ut ifra oppmøtenøkkel eller kampdatoen selv
+                const tilhorerSesongen = (attendance[mId] && hentSesongFraNokkel(mId, attendance) === valgtSesong) ||
+                                         (m.date && m.date.includes('-') && (m.date.split('-')[0].length === 4 ? m.date.split('-')[0] : m.date.split('-')[2]) === valgtSesong);
                 
-                if (!tilhorerPerioden) return;
+                if (!tilhorerSesongen) return;
 
                 if (m.result && m.result !== '-') {
                     if (m.goalScorers) {
@@ -194,12 +211,12 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 mål, 
                 assist,
                 mvpKamp: Number(komplettScore),
-                mvpLag: Number(parseFloat(mvpLagScore).toFixed(2)) // Rettet til 2 desimaler i datagrunnlag
+                mvpLag: Number(parseFloat(mvpLagScore).toFixed(2))
             };
         });
 }
 
-// --- VISNINGSFUNKSJON FOR TESTMED TO DESIMALER PÅ MVP OG LAG ---
+// --- VISNINGSFUNKSJON MED TO DESIMALER PÅ MVP OG LAG ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
