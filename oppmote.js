@@ -11,6 +11,7 @@ const scrollContainer = document.querySelector('.table-container');
 let players = {};
 let attendanceData = {};
 let keys = []; 
+let temporaryPlayers = new Set(); // Holder på spillere som er hentet inn manuelt i denne økten
 let currentLagFilter = localStorage.getItem('currentLagFilter') || 'Alle';
 
 // --- SESONGDATA FOR SPILLER ---
@@ -53,17 +54,13 @@ onValue(ref(db, '/'), (snapshot) => {
     processKeys();
 });
 
-// Behandler, sorterer og filtrerer økter basert på valgene dine i headingen
 function processKeys() {
     const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
 
     keys = Object.keys(attendanceData).filter(key => {
         const isoDate = getIsoDateFromKey(key, attendanceData);
-        
-        // 1. Sesongfilter (Årstall)
         if (!isoDate.startsWith(valgtÅr)) return false;
 
-        // 2. Lagfilter på aktivitet
         const info = attendanceData[key]?.info || {};
         const eventLag = info.lag || 'Felles';
 
@@ -118,6 +115,7 @@ if (lagFilterSelect) {
     lagFilterSelect.addEventListener('change', (e) => {
         currentLagFilter = e.target.value;
         localStorage.setItem('currentLagFilter', currentLagFilter);
+        temporaryPlayers.clear(); // Nullstill midlertidige valg ved lagbytte
         processKeys();
     });
 }
@@ -144,7 +142,14 @@ function updateHeroStats() {
     const relevanteSpillere = Object.entries(players).filter(([id, p]) => {
         const sData = hentSpillerSesongData(p, valgtÅr);
         if (sData.status === 'Passiv') return false;
-        if (currentLagFilter !== 'Alle' && sData.lag !== currentLagFilter) return false;
+        
+        // Sjekk om spilleren tilhører laget, har hospitert tidligere (Alt A), eller er lagt til nå
+        const harOppmøteGjeldendeVisning = keys.some(key => attendanceData[key]?.[id] === 'K');
+        const erInnhentetNå = temporaryPlayers.has(id);
+        
+        if (currentLagFilter !== 'Alle' && sData.lag !== currentLagFilter && !harOppmøteGjeldendeVisning && !erInnhentetNå) {
+            return false;
+        }
         return true;
     });
 
@@ -198,7 +203,6 @@ function renderMatrix() {
 
     let headerRow = `<tr><th class="name-col">SPILLER</th>`;
     
-    // Viser alle økter som har overlevd processKeys-filtreringen
     keys.forEach(key => {
         const info = attendanceData[key]?.info || {};
         const type = info.type || 'Trening';
@@ -229,15 +233,24 @@ function renderMatrix() {
 
     const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
 
+    // 1. Filtrer ut hvilke spillere som skal vises på rader
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => {
             const sData = hentSpillerSesongData(p, valgtÅr);
             if (sData.status === 'Passiv') return false;
-            if (currentLagFilter !== 'Alle' && sData.lag !== currentLagFilter) return false;
+            
+            // Sjekk om spilleren har registrert kryss på minst én av de synlige øktene (Alternativ A)
+            const harOppmøteGjeldendeVisning = keys.some(key => attendanceData[key]?.[id] === 'K');
+            
+            // Sjekk om spilleren nettopp ble valgt fra rullegardinen
+            const erInnhentetNå = temporaryPlayers.has(id);
+
+            if (currentLagFilter !== 'Alle' && sData.lag !== currentLagFilter && !harOppmøteGjeldendeVisning && !erInnhentetNå) {
+                return false;
+            }
             return true;
         })
         .map(([id, p]) => {
-            // Teller totalt oppmøte basert på øktene som ligger i gjeldende visning
             const totalCount = keys.reduce((acc, key) => {
                 return acc + (attendanceData[key]?.[id] === 'K' ? 1 : 0);
             }, 0);
@@ -248,11 +261,6 @@ function renderMatrix() {
             if (b.totalCount !== a.totalCount) return b.totalCount - a.totalCount;
             return a.navn.localeCompare(b.navn, 'nb');
         });
-
-    if (sortedPlayers.length === 0) {
-        attendanceBody.innerHTML = `<tr><td class="name-col" style="padding:20px; color:var(--text-muted);">Ingen aktive spillere funnet.</td></tr>`;
-        return;
-    }
 
     let bodyHTML = '';
     sortedPlayers.forEach((p) => {
@@ -274,8 +282,62 @@ function renderMatrix() {
         row += `</tr>`;
         bodyHTML += row;
     });
+
+    // 2. NYTT: LEGG TIL HOSPITANT-RADEN HELT NEDERST I SPILLERLISTEN (Alternativ 2)
+    if (currentLagFilter !== 'Alle') {
+        // Finn alle spillere fra det ANDRE laget som ikke vises i listen allerede
+        const tilgjengeligeHospitanter = Object.entries(players).filter(([id, p]) => {
+            const sData = hentSpillerSesongData(p, valgtÅr);
+            const erAlleredeVist = sortedPlayers.some(sp => sp.id === id);
+            return sData.status !== 'Passiv' && sData.lag !== currentLagFilter && !erAlleredeVist;
+        }).map(([id, p]) => ({ id, navn: p.navn }));
+
+        if (tilgjengeligeHospitanter.length > 0) {
+            bodyHTML += `
+                <tr>
+                    <td class="name-col" style="background: #ffffff !important; padding: 10px 20px !important;">
+                        <div id="hospitantToggleBtn" onclick="window.toggleHospitantList(event)" style="color: var(--bsk-blue); font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px; -webkit-tap-highlight-color: transparent;">
+                            <i class="fa-solid fa-chevron-right" id="hospitantChevron" style="font-size: 0.75rem; transition: transform 0.2s;"></i> Legg til spiller >
+                        </div>
+                        <div id="hospitantDropdownList" style="display: none; flex-direction: column; gap: 4px; margin-top: 10px; max-height: 180px; overflow-y: auto; padding-left: 5px;">
+                            ${tilgjengeligeHospitanter.map(h => `
+                                <div onclick="window.velgHospitant('${h.id}')" style="padding: 8px 10px; background: var(--bg-light); border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-main); text-align: left; cursor: pointer; transition: background 0.1s;">
+                                    ${h.navn.toUpperCase()}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </td>
+                    ${keys.map(() => `<td style="background: #fafafa; cursor: not-allowed;"></td>`).join('')}
+                </tr>`;
+        }
+    }
+
     attendanceBody.innerHTML = bodyHTML;
 }
+
+// --- DROPDOWN LOGIKK FOR HOSPITANTER ---
+window.toggleHospitantList = (e) => {
+    e.stopPropagation();
+    const list = document.getElementById('hospitantDropdownList');
+    const chevron = document.getElementById('hospitantChevron');
+    const btnText = document.getElementById('hospitantToggleBtn');
+    
+    if (list.style.display === 'none' || list.style.display === '') {
+        list.style.display = 'flex';
+        chevron.style.transform = 'rotate(90deg)';
+        btnText.innerHTML = `<i class="fa-solid fa-chevron-right" id="hospitantChevron" style="font-size: 0.75rem; transform: rotate(90deg);"></i> Velg spiller v`;
+    } else {
+        list.style.display = 'none';
+        chevron.style.transform = 'rotate(0deg)';
+        btnText.innerHTML = `<i class="fa-solid fa-chevron-right" id="hospitantChevron" style="font-size: 0.75rem;"></i> Legg til spiller >`;
+    }
+};
+
+window.velgHospitant = (spillerId) => {
+    temporaryPlayers.add(spillerId); // Legg til i listen over aktive rader for denne økten
+    renderMatrix(); // Tegn tabellen på nytt umiddelbart
+    updateHeroStats();
+};
 
 function getStatusIcon(status) {
     return status === 'K' 
@@ -293,7 +355,12 @@ window.toggleStatus = (key, pId, currentStatus) => {
         cell.style.transition = '0.1s';
     }
     
-    update(ref(db, `attendance/${key}`), { [pId]: nextStatus }).catch((error) => {
+    update(ref(db, `attendance/${key}`), { [pId]: nextStatus }).then(() => {
+        // Hvis en midlertidig spiller får et kryss, vil Alternativ A overta, men vi beholder ham i temporary for sikkerhets skyld
+        if (temporaryPlayers.has(pId) && nextStatus === '') {
+            // Hvis man fjerner krysset igjen, og han ikke har flere kryss, kan han renses ut ved neste reload
+        }
+    }).catch((error) => {
         console.error('Feil ved oppdatering:', error);
         if (cell) cell.style.opacity = '1';
     });
