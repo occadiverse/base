@@ -478,3 +478,11 @@ table.match-table td:nth-child(2) {
     background: rgba(0, 86, 179, 0.16); /* Blir ørlite mørkere blå ved trykk */
     transform: scale(0.98); /* Synker litt inn i skjermen */
 }
+
+/* ================================================================
+9. AUTOMATISK FLERFILTER-AVSTAND
+================================================================
+*/
+.filter-wrapper .filter-container + .filter-container {
+    margin-left: 8px;
+}
