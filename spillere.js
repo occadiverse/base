@@ -25,7 +25,7 @@ const posMap = {
     '-': '-'
 };
 
-// --- GLOBALT SYNKRONISERT SESONGFILTER (Kompakt uten 'SESONG'-tekst) ---
+// --- GLOBALT SYNKRONISERT SESONGFILTER ---
 function genererSesongFilter() {
     if (!periodSelect) return;
     
@@ -39,7 +39,6 @@ function genererSesongFilter() {
 
     periodSelect.innerHTML = '';
     Array.from(unikeSesonger).sort().reverse().forEach(aar => {
-        // Viser nå kun det rene årstallet (f.eks. "2026") for å spare maksimalt med plass
         periodSelect.innerHTML += `<option value="${aar}">${aar}</option>`;
     });
     
@@ -54,7 +53,6 @@ if (periodSelect) {
     });
 }
 
-// Lytter på endringer i den kompakte lagvelgeren
 if (lagFilterSelect) {
     lagFilterSelect.addEventListener('change', (e) => {
         currentLagFilter = e.target.value;
@@ -63,7 +61,7 @@ if (lagFilterSelect) {
     });
 }
 
-// --- UTREKNING AV SESONGDATA ---
+// --- UTREKNING AV SESONGDATA (Standardisert etter databasevask) ---
 function hentSesongData(spiller, valgtÅr) {
     if (spiller.historikk && spiller.historikk[valgtÅr]) {
         return {
@@ -72,6 +70,7 @@ function hentSesongData(spiller, valgtÅr) {
             draktnummer: spiller.historikk[valgtÅr].draktnummer || '-'
         };
     }
+    // Fallback dersom historikkmappen mangler
     return {
         lag: spiller.lag === 'B-lag' ? 'Lag B' : (spiller.lag || 'Lag A'),
         status: spiller.status || 'Aktiv',
@@ -79,11 +78,10 @@ function hentSesongData(spiller, valgtÅr) {
     };
 }
 
-// --- OPPDATERER HERO-STATS (Inkluderer dynamisk lagbeskrivelse) ---
+// --- OPPDATERER HERO-STATS ---
 function updateHeroStats(liste) {
     const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
     
-    // Oppdaterer lag/gruppe-teksten inni den blå Hero-boksen dynamisk
     const lagTekstSpan = document.getElementById('stat-lag-navn');
     if (lagTekstSpan) {
         lagTekstSpan.innerText = currentLagFilter === 'Alle' ? 'hele troppen' : currentLagFilter;
@@ -184,9 +182,7 @@ function renderPlayers() {
             statusBadge = '<span style="font-size:0.7rem; color:var(--text-muted); margin-left:5px; font-weight:500;">(P)</span>';
         }
 
-        // Viser en liten 'B' hvis filteret står på 'ALLE' og spilleren er på Lag B denne sesongen
         const lagBadge = (sData.lag === 'Lag B' && currentLagFilter === 'Alle') ? '<span style="font-size:0.65rem; background:#e2e8f0; color:#334155; padding:2px 6px; border-radius:4px; margin-left:5px; font-weight:700;">B</span>' : '';
-
         const posisjonsVisning = n2 !== '-' ? `${n1} - ${n2}` : n1;
 
         return `
@@ -194,15 +190,10 @@ function renderPlayers() {
                 <td class="name-col" style="text-align: left;">
                     ${s.navn}${statusBadge}${lagBadge}
                 </td>
-                
                 <td style="text-align: center;">${sData.draktnummer || '-'}</td>
-                
                 <td style="text-align: center;">${posisjonsVisning}</td>
-                
                 <td style="text-align: center;">${fotVisning}</td>
-                
                 <td style="text-align: center;">${alder}</td>
-                
                 <td>
                     <div style="display: flex; gap: 8px; justify-content: center;">
                         <button class="action-btn btn-edit" onclick="event.stopPropagation(); window.editPlayer('${s.id}')">
@@ -235,6 +226,7 @@ window.editPlayer = function(id) {
     
     document.getElementById('draktnummer').value = sData.draktnummer === '-' ? '' : sData.draktnummer;
     document.getElementById('status').value = sData.status;
+    
     if (document.getElementById('spillerLag')) {
         document.getElementById('spillerLag').value = sData.lag;
     }
@@ -273,6 +265,7 @@ playerForm.addEventListener('submit', (e) => {
 
     if (editId) {
         const eksisterendeSpiller = spillerliste.find(s => s.id === editId);
+        // Bevarer eksisterende historikk for andre år hvis den finnes
         const oppdatertHistorikk = eksisterendeSpiller.historikk || {};
         
         oppdatertHistorikk[valgtÅr] = nySesongData;
