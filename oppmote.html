@@ -200,46 +200,27 @@
 </style></head>
 <body>
 
-<header class="top-bar">
-    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
-    <h1 id="section-title" class="section-title">Oppmøte</h1>
+    <header class="top-bar">
+        <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
+        <h1 id="section-title" class="section-title">Oppmøte</h1>
+        
+        <div class="filter-wrapper">
+            <!-- 1. Årstallsvelger -->
+            <div class="filter-container">
+                <select id="statPeriodSelect" class="base-select"></select>
+            </div>
+
+            <!-- 2. Lagvelger -->
+            <div class="filter-container">
+                <select id="lagFilterSelect" class="base-select">
+                    <option value="Alle">ALLE</option>
+                    <option value="Lag A">LAG A</option>
+                    <option value="Lag B">LAG B</option>
+                </select>
+            </div>
+        </div>
+    </header>
     
-    <div class="filter-wrapper">
-        <!-- 1. Månedsvelger -->
-        <div class="filter-container">
-            <select id="monthFilter" class="base-select">
-                <option value="Alle">HELE</option>
-                <option value="0">JAN</option>
-                <option value="1">FEB</option>
-                <option value="2">MAR</option>
-                <option value="3">APR</option>
-                <option value="4">MAI</option>
-                <option value="5">JUN</option>
-                <option value="6">JUL</option>
-                <option value="7">AUG</option>
-                <option value="8">SEP</option>
-                <option value="9">OKT</option>
-                <option value="10">NOV</option>
-                <option value="11">DES</option>
-            </select>
-        </div>
-
-        <!-- 2. Årstallsvelger (Genereres dynamisk av JS, nøyaktig lik troppsiden) -->
-        <div class="filter-container">
-            <select id="statPeriodSelect" class="base-select"></select>
-        </div>
-
-        <!-- 3. Lagvelger (Synkronisert med den kompakte stilen) -->
-        <div class="filter-container">
-            <select id="lagFilterSelect" class="base-select">
-                <option value="Alle">ALLE</option>
-                <option value="Lag A">LAG A</option>
-                <option value="Lag B">LAG B</option>
-            </select>
-        </div>
-    </div>
-</header>
-
 <div class="sidebar" id="sidebar"></div>
 
 <nav class="bottom-nav">
