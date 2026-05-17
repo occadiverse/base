@@ -4,7 +4,6 @@ import { ref, set, onValue, remove, update } from "https://www.gstatic.com/fireb
 const attendanceHeader = document.getElementById('attendanceHeader');
 const attendanceBody = document.getElementById('attendanceBody');
 const attendanceForm = document.getElementById('attendanceForm');
-const monthFilter = document.getElementById('monthFilter');
 const periodSelect = document.getElementById('statPeriodSelect');
 const lagFilterSelect = document.getElementById('lagFilterSelect');
 const scrollContainer = document.querySelector('.table-container');
@@ -13,9 +12,8 @@ let players = {};
 let attendanceData = {};
 let keys = []; 
 let currentLagFilter = localStorage.getItem('currentLagFilter') || 'Alle';
-const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
 
-// --- NY HJELPEFUNKSJON: Henter en spillers sesongdata med fallbacks ---
+// --- SESONGDATA FOR SPILLER ---
 function hentSpillerSesongData(spiller, valgtÅr) {
     if (spiller.historikk && spiller.historikk[valgtÅr]) {
         return {
@@ -29,16 +27,19 @@ function hentSpillerSesongData(spiller, valgtÅr) {
     };
 }
 
-// Hjelpefunksjon for å hente ut ren ISO-dato (YYYY-MM-DD) uavhengig av nøkkeltype
+// Konverterer DB-nøkkel (DD-MM-YYYY) til standard ISO-streng (YYYY-MM-DD)
 function getIsoDateFromKey(key, data) {
     const info = data[key]?.info || {};
     if (info.date) {
         return info.date.includes('-') ? info.date : info.date.split('.').reverse().join('-');
     }
-    if (key.includes('-') && key.split('-')[0].length === 2) {
-        return key.split('-').reverse().join('-');
+    if (key.includes('-')) {
+        const parts = key.split('-');
+        if (parts[0].length === 2) { 
+            return `${parts[2]}-${parts[1]}-${parts[0]}`; 
+        }
     }
-    return '1970-01-01';
+    return key; 
 }
 
 // --- HENT DATA FRA FIREBASE ---
@@ -52,16 +53,17 @@ onValue(ref(db, '/'), (snapshot) => {
     processKeys();
 });
 
-// Sorterer og behandler nøkler basert på gjeldende filtre
+// Behandler, sorterer og filtrerer økter basert på valgene dine i headingen
 function processKeys() {
     const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
 
     keys = Object.keys(attendanceData).filter(key => {
         const isoDate = getIsoDateFromKey(key, attendanceData);
-        // 1. Sesongfilter (Sjekker om aktiviteten tilhører det valgte året)
+        
+        // 1. Sesongfilter (Årstall)
         if (!isoDate.startsWith(valgtÅr)) return false;
 
-        // 2. Lagfilter på aktivitet (Viser fellesøkter ELLER økter øremerket spesifikt lag)
+        // 2. Lagfilter på aktivitet
         const info = attendanceData[key]?.info || {};
         const eventLag = info.lag || 'Felles';
 
@@ -70,12 +72,9 @@ function processKeys() {
         }
         return true;
     }).sort((a, b) => {
-        const dateA = new Date(getIsoDateFromKey(a, attendanceData));
-        const dateB = new Date(getIsoDateFromKey(b, attendanceData));
-        return dateA - dateB;
+        return new Date(getIsoDateFromKey(a, attendanceData)) - new Date(getIsoDateFromKey(b, attendanceData));
     });
     
-    updateMonthDropdown();
     renderMatrix();
     updateHeroStats(); 
     
@@ -103,7 +102,6 @@ function genererSesongFilter() {
     localStorage.setItem('currentSeasonFilter', valgt);
 }
 
-// --- SYNKRONISER OG LYTT PÅ DROPDOWNS ---
 function synkroniserLagDropdown() {
     if (!lagFilterSelect) return;
     lagFilterSelect.value = currentLagFilter;
@@ -120,36 +118,17 @@ if (lagFilterSelect) {
     lagFilterSelect.addEventListener('change', (e) => {
         currentLagFilter = e.target.value;
         localStorage.setItem('currentLagFilter', currentLagFilter);
-        
-        // Oppdaterer Hero-teksten flytende med en gang
-        const lagTekstSpan = document.getElementById('stat-lag-navn');
-        if (lagTekstSpan) {
-            lagTekstSpan.innerText = currentLagFilter === 'Alle' ? 'hele troppen' : currentLagFilter;
-        }
-        
         processKeys();
     });
 }
 
-if (monthFilter) {
-    monthFilter.addEventListener('change', () => {
-        renderMatrix();
-        setTimeout(scrollToCurrentDate, 100);
-    });
-}
-
-// --- DYNAMISK HERO-INFORMASJON ---
+// --- DYNAMISK HERO-STATS ---
 function updateHeroStats() {
     const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
     const totalEvents = keys.length;
 
-    // Oppdaterer årstall og lagnavn i teksten
-    if (document.getElementById('stat-aar-tekst')) {
-        document.getElementById('stat-aar-tekst').innerText = valgtÅr;
-    }
-    if (document.getElementById('stat-lag-navn')) {
-        document.getElementById('stat-lag-navn').innerText = currentLagFilter === 'Alle' ? 'hele troppen' : currentLagFilter;
-    }
+    if (document.getElementById('stat-aar-tekst')) document.getElementById('stat-aar-tekst').innerText = valgtÅr;
+    if (document.getElementById('stat-lag-navn')) document.getElementById('stat-lag-navn').innerText = currentLagFilter === 'Alle' ? 'hele troppen' : currentLagFilter;
 
     if (totalEvents === 0) {
         if (document.getElementById('stat-total-events')) document.getElementById('stat-total-events').innerText = '0';
@@ -162,7 +141,6 @@ function updateHeroStats() {
     let potentialPoints = 0;
     let playerAttendanceCounts = {};
 
-    // Sorterer ut spillere som er aktuelle for gjeldende sesong og lagfilter
     const relevanteSpillere = Object.entries(players).filter(([id, p]) => {
         const sData = hentSpillerSesongData(p, valgtÅr);
         if (sData.status === 'Passiv') return false;
@@ -186,46 +164,12 @@ function updateHeroStats() {
         : 0;
     const avgPercent = potentialPoints > 0 ? Math.round((totalAttendancePoints / potentialPoints) * 100) : 0;
 
-    const elTotal = document.getElementById('stat-total-events');
-    const elAvg = document.getElementById('stat-avg-attendance');
-    const elTop = document.getElementById('stat-top-attendance');
-
-    if (elTotal) elTotal.innerText = totalEvents;
-    if (elAvg) elAvg.innerText = avgPercent + '%';
-    if (elTop) elTop.innerText = topAttendance;
+    if (document.getElementById('stat-total-events')) document.getElementById('stat-total-events').innerText = totalEvents;
+    if (document.getElementById('stat-avg-attendance')) document.getElementById('stat-avg-attendance').innerText = avgPercent + '%';
+    if (document.getElementById('stat-top-attendance')) document.getElementById('stat-top-attendance').innerText = topAttendance;
 }
 
-// --- LAG MÅNEDSVELGER ---
-function updateMonthDropdown() {
-    if (!monthFilter) return;
-    
-    const monthsFound = new Set();
-    keys.forEach(key => {
-        const isoDate = getIsoDateFromKey(key, attendanceData);
-        const parts = isoDate.split('-'); 
-        if (parts.length === 3) {
-            monthsFound.add(parts[1]); // Henter ut kun månedens nummer (MM)
-        }
-    });
-
-    const previousSelection = monthFilter.value;
-    let filterHTML = '<option value="Alle">HELE</option>';
-    
-    // Generer faste måneder, men vis bare de som faktisk har registrerte økter
-    Array.from(monthsFound).sort((a, b) => parseInt(a) - parseInt(b)).forEach(m => {
-        filterHTML += `<option value="${m}">${monthNames[parseInt(m) - 1].toUpperCase().substring(0, 3)}</option>`;
-    });
-    
-    monthFilter.innerHTML = filterHTML;
-
-    if (previousSelection && Array.from(monthFilter.options).some(opt => opt.value === previousSelection)) {
-        monthFilter.value = previousSelection;
-    } else {
-        monthFilter.value = "Alle";
-    }
-}
-
-// --- AUTO-FOKUS (SCROLL) ---
+// --- AUTO-FOKUS SCROLL ---
 function scrollToCurrentDate() {
     if (!scrollContainer) return;
     const today = new Date();
@@ -248,24 +192,14 @@ function scrollToCurrentDate() {
     }
 }
 
-// --- TEGN TABELL ---
+// --- TEGN TABELL-MATRISEN ---
 function renderMatrix() {
-    if (!attendanceHeader || !attendanceBody || !monthFilter) return;
-
-    const selectedMonth = monthFilter.value;
-    const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
-
-    // Endelig filtrering av økter som skal vises i kolonnene
-    const filteredKeys = keys.filter(key => {
-        if (selectedMonth === 'Alle') return true;
-        const isoDate = getIsoDateFromKey(key, attendanceData);
-        const parts = isoDate.split('-'); 
-        return parts[1] === selectedMonth;
-    });
+    if (!attendanceHeader || !attendanceBody) return;
 
     let headerRow = `<tr><th class="name-col">SPILLER</th>`;
     
-    filteredKeys.forEach(key => {
+    // Viser alle økter som har overlevd processKeys-filtreringen
+    keys.forEach(key => {
         const info = attendanceData[key]?.info || {};
         const type = info.type || 'Trening';
         const eventLag = info.lag || 'Felles';
@@ -275,7 +209,6 @@ function renderMatrix() {
         const dParts = isoDate.split('-');
         const datoOverskrift = `${dParts[2]}.${dParts[1]}`;
         
-        // Viser en liten diskret 'B' eller 'A' over datoen hvis man ser på "ALLE" og økten er lagspesifikk
         const lagSubBadge = (currentLagFilter === 'Alle' && eventLag !== 'Felles') 
             ? `<span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 800;">(${eventLag.replace('Lag ', '')})</span>` 
             : '';
@@ -294,7 +227,8 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // Filtrer ut og sorter spillere basert på hvem som tilhører valgt lag/status i valgt sesong
+    const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
+
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => {
             const sData = hentSpillerSesongData(p, valgtÅr);
@@ -303,8 +237,8 @@ function renderMatrix() {
             return true;
         })
         .map(([id, p]) => {
-            // Regner ut totalt oppmøte KUN for de øktene som vises i gjeldende visning
-            const totalCount = filteredKeys.reduce((acc, key) => {
+            // Teller totalt oppmøte basert på øktene som ligger i gjeldende visning
+            const totalCount = keys.reduce((acc, key) => {
                 return acc + (attendanceData[key]?.[id] === 'K' ? 1 : 0);
             }, 0);
 
@@ -316,7 +250,7 @@ function renderMatrix() {
         });
 
     if (sortedPlayers.length === 0) {
-        attendanceBody.innerHTML = `<tr><td class="name-col" style="padding:20px; color:var(--text-muted);">Ingen aktive spillere registrert på dette utvalget.</td></tr>`;
+        attendanceBody.innerHTML = `<tr><td class="name-col" style="padding:20px; color:var(--text-muted);">Ingen aktive spillere funnet.</td></tr>`;
         return;
     }
 
@@ -330,7 +264,7 @@ function renderMatrix() {
                 </div>
             </td>`;
         
-        filteredKeys.forEach(key => {
+        keys.forEach(key => {
             const dateData = attendanceData[key] || {};
             const status = dateData[p.id] || '';
             row += `<td class="attendance-cell" data-date="${key}" data-player="${p.id}" onclick="window.toggleStatus('${key}', '${p.id}', '${status}')">
@@ -371,20 +305,24 @@ window.deleteDate = (key) => {
     }
 };
 
-attendanceForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const rawDate = document.getElementById('eventDate').value; 
-    const eventLagValg = document.getElementById('eventLag').value; // Sjekker hvilket lag økten er tilskrevet
-    if (!rawDate) return;
+// --- LAGRING AV NY ØKT ---
+if (attendanceForm) {
+    attendanceForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const rawDate = document.getElementById('eventDate').value; 
+        const type = document.getElementById('eventType').value; 
+        const eventLagValg = document.getElementById('eventLag').value; 
+        if (!rawDate) return;
 
-    const parts = rawDate.split('-');
-    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; 
+        const parts = rawDate.split('-');
+        const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; 
 
-    set(ref(db, `attendance/${formattedDate}/info`), {
-        type: 'Trening', // Standardisert eller utvidbart
-        lag: eventLagValg,
-        timestamp: Date.now()
-    }).then(() => {
-        if (window.closeAttendanceModal) window.closeAttendanceModal();
+        set(ref(db, `attendance/${formattedDate}/info`), {
+            type: type,
+            lag: eventLagValg,
+            timestamp: Date.now()
+        }).then(() => {
+            if (window.closeAttendanceModal) window.closeAttendanceModal();
+        });
     });
-});
+}
