@@ -123,13 +123,13 @@
                 <select id="statPeriodSelect" class="base-select"></select>
             </div>
 
-            <!-- 2. DET NYE LAGFILTERET FOR LIVE-VISNING -->
+            <!-- 2. DET NYE LAGFILTERET FOR LIVE-VISNING (Oppdatert til Lag A / Lag B) -->
             <div class="filter-container">
                 <i class="fa-solid fa-filter"></i>
                 <select id="lagFilterSelect" class="base-select">
                     <option value="Alle">ALLE LAG</option>
-                    <option value="A-lag">A-LAG</option>
-                    <option value="B-lag">B-LAG</option>
+                    <option value="Lag A">LAG A</option>
+                    <option value="Lag B">LAG B</option>
                 </select>
             </div>
         </div>
@@ -164,8 +164,8 @@
         <section class="spiller-hero">
             <div class="hero-content">
                 <p class="hero-intro-text">
-                    I sesongen 2026 består valgt tropp av <strong id="stat-total-players">0 spillere</strong> med en gjennomsnittsalder på 
-                    <strong id="stat-avg-age">0 år</strong>. Vi har for øyeblikket <strong id="stat-total-rekrutt">0 rekrutter</strong> tilknyttet troppen. 
+                    I valgt sesong består troppen av <strong id="stat-total-players">0 spillere</strong> med en gjennomsnittsalder på 
+                    <strong id="stat-avg-age">0 år</strong>. Vi have for øyeblikket <strong id="stat-total-rekrutt">0 rekrutter</strong> tilknyttet troppen. 
                 </p>
             </div>
         </section>
@@ -227,13 +227,13 @@
                     </div>
                 </div>
 
-                <!-- NYTT RADFELT: Tildeling av lag til spilleren -->
+                <!-- RADFELT: Tildeling av Lag A eller Lag B til spilleren -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="spillerLag">Tilhører lag</label>
                         <select id="spillerLag" class="form-control">
-                            <option value="A-lag">A-lag</option>
-                            <option value="B-lag">B-lag</option>
+                            <option value="Lag A">Lag A</option>
+                            <option value="Lag B">Lag B</option>
                         </select>
                     </div>
                 </div>
@@ -293,7 +293,6 @@
     </div>
 
     <script src="navigation.js"></script>
-    <!-- Kjører trygt mot sandkasse-skriptet -->
     <script type="module" src="test.js"></script>
 </body>
 </html>
