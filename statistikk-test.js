@@ -11,8 +11,7 @@ const manederTekst = [
     "Juli", "August", "September", "Oktober", "November", "Desember"
 ];
 
-// --- DATODETEKTORER OG HJELPEFUNKSJONER ---
-
+// --- DATO-HÅNDTERING ---
 function hentPeriodeFraNokkel(nøkkel, attendance) {
     if (!nøkkel) return "";
     const info = attendance[nøkkel]?.info || {};
@@ -35,8 +34,7 @@ function matchDatoer(dato1, dato2) {
     return d1 === d2 || d1 === d2_alt;
 }
 
-// --- INITIALISERING AV FIREBASE ---
-
+// --- INITIALISERING ---
 onValue(ref(db, '/'), (snapshot) => {
     try {
         globalData = snapshot.val() || {};
@@ -91,7 +89,7 @@ function oppdaterTestStats() {
     renderTestTab(); 
 }
 
-// --- MATEMATISK DATAKVERNING MED ALT-I-ETT SIKRING ---
+// --- DEN NYE, SIKRE DATAKVERNINGEN NÅ OGSÅ PÅ TESTSIDEN ---
 function kvernRaaData(players, attendance, matches, periodeValg) {
     const naa = new Date();
     const dagensDatoTall = Number(`${naa.getFullYear()}${String(naa.getMonth() + 1).padStart(2, '0')}${String(naa.getDate()).padStart(2, '0')}`);
@@ -126,6 +124,7 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                             const scores = tilhørendeKamp.result.replace(/\s/g, "").split('-');
                             let pRating = null;
                             if (tilhørendeKamp.playerRatings) {
+                                // Siste skuddsikre navnesjekk flettet inn her:
                                 const rKey = Object.keys(tilhørendeKamp.playerRatings).find(k => k.trim().toLowerCase() === navn.toLowerCase() || navn.toLowerCase().includes(k.trim().toLowerCase()));
                                 if (rKey) pRating = tilhørendeKamp.playerRatings[rKey];
                             }
@@ -195,25 +194,24 @@ function kvernRaaData(players, attendance, matches, periodeValg) {
                 mål, 
                 assist,
                 mvpKamp: Number(komplettScore),
-                mvpLag: Number(parseFloat(mvpLagScore).toFixed(2))
+                mvpLag: Number(parseFloat(mvpLagScore).toFixed(2)) // Rettet til 2 desimaler i datagrunnlag
             };
         });
 }
 
-// --- OPPDATERT VISNINGSFUNKSJON FOR BÅDE MVP OG LAG ---
+// --- VISNINGSFUNKSJON FOR TESTMED TO DESIMALER PÅ MVP OG LAG ---
 function renderTestTab() {
     const container = document.getElementById('tabContentContainer');
     if (!container) return;
 
     let nøkkel = 'mål';
     let tekst = 'mål';
-    let visMedDesimaler = false; 
+    let visMedDesimaler = false;
 
     if (currentActiveTab === 'assist') { nøkkel = 'assist'; tekst = 'assists'; }
     else if (currentActiveTab === 'trening') { nøkkel = 'treninger'; tekst = 'treninger'; }
     else if (currentActiveTab === 'kamp') { nøkkel = 'kamperOppmøte'; tekst = 'kamper'; }
     else if (currentActiveTab === 'mvpkamp') { nøkkel = 'mvpKamp'; tekst = 'poeng'; visMedDesimaler = true; }
-    // NÅ OPPDATERT: Bruker "poeng" og tvinger fram to desimaler for LAG også
     else if (currentActiveTab === 'mvplag') { nøkkel = 'mvpLag'; tekst = 'poeng'; visMedDesimaler = true; }
 
     const sortert = [...lagretStatsArray].sort((a, b) => b[nøkkel] - a[nøkkel]);
@@ -229,7 +227,6 @@ function renderTestTab() {
     let html = '';
     topp5.forEach((s, i) => {
         const verdiVisning = visMedDesimaler ? Number(s[nøkkel]).toFixed(2) : s[nøkkel];
-
         html += `
             <div class="stat-row" style="display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid #f1f5f9; font-weight:600; align-items:center;">
                 <span>
@@ -256,15 +253,13 @@ function renderTestTab() {
                     </div>`;
                 }).join('')}
             </div>
-            <button onclick="event.stopPropagation(); window.toggleTestList('${extraId}', this)" style="margin-top:20px; background:none; border:none; color:var(--bsk-blue); font-weight:800; width:100%; text-align:center; cursor:pointer; font-size:0.85rem; letter-spacing:0.02em;">
-                VIS ALLE (${sortert.length} SPILLERE)
+            <button onclick="event.stopPropagation(); window.toggleTestList('${extraId}', this)" class="show-all-btn">
+                VIS ALLE (${sortert.length} SPILLERE) <i class="fa-solid fa-chevron-down"></i>
             </button>`;
     }
 
     container.innerHTML = html;
 }
-
-// --- FANESTYRINGSMETODER ---
 
 window.switchStatTab = function(tabName) {
     currentActiveTab = tabName;
@@ -287,9 +282,9 @@ window.toggleTestList = function(id, btn) {
     const div = document.getElementById(id);
     if (div.style.display === 'none') {
         div.style.display = 'block';
-        btn.innerText = "VIS FÆRRE";
+        btn.innerHTML = `VIS FÆRRE <i class="fa-solid fa-chevron-up"></i>`;
     } else {
         div.style.display = 'none';
-        btn.innerText = `VIS ALLE (${lagretStatsArray.length} SPILLERE)`;
+        btn.innerHTML = `VIS ALLE (${lagretStatsArray.length} SPILLERE) <i class="fa-solid fa-chevron-down"></i>`;
     }
 };
