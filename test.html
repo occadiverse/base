@@ -3,85 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TEST - Databasevask Sjekk</title>
+    <title>TEST - Oppmøte BSK</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="modals.css?v=2">
     
     <style>
-        .test-banner {
-            background: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ffeeba;
-            font-weight: 600;
-            font-size: 0.9rem;
-            line-height: 1.5;
+    /* BSK-blå Hero - Identisk med kamper.html */
+    .oppmote-hero {
+        background: linear-gradient(135deg, var(--bsk-blue) 0%, #003366 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
+    }
+
+    .hero-intro-text { font-size: 1.2rem; opacity: 0.9; max-width: 800px; line-height: 1.6; margin: 0; }
+    .hero-intro-text strong { color: var(--bsk-yellow); font-weight: 800; }
+
+    /* Indikator for testmiljø */
+    .test-banner-oppmote {
+        background: #fff3cd;
+        color: #856404;
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ffeeba;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* Tabell-container og struktur */
+    .table-container {
+        overflow-x: auto !important;
+        position: relative;
+        background: var(--white);
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        margin: 20px 0;
+    }
+
+    #attendanceTable {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    /* RYDDIG HEADER STYLING - Synkronisert med global th-stil */
+    #attendanceHeader th {
+        padding: 16px 12px;
+        background: #f8f9fa;
+        border-bottom: 2px solid var(--border-color);
+        border-right: 1px solid #eef2f6;
+        min-width: 75px;
+        vertical-align: top;
+    }
+
+    #attendanceHeader th.name-col {
+        vertical-align: middle !important;
+    }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .header-date {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #1e293b;
+        white-space: nowrap;
+    }
+
+    /* Minimalistiske og stilrene økt-merker (K og T) */
+    .day-type {
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-block;
+    }
+    .day-type-training { 
+        background: #e2e8f0; 
+        color: #475569; 
+    }
+    .day-type-match { 
+        background: #dbeafe; 
+        color: var(--bsk-blue); 
+    }
+
+    /* Diskret slett-ikon i toppen */
+    .btn-delete-header {
+        background: transparent;
+        color: #94a3b8;
+        border: none;
+        padding: 2px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: color 0.2s;
+        margin-bottom: 2px;
+    }
+    .btn-delete-header:hover { 
+        color: #ef4444; 
+    }
+
+    /* Sticky navnekolonne som står bom fast */
+    .name-col {
+        position: sticky;
+        left: 0;
+        background: #f8f9fa !important;
+        z-index: 10;
+        min-width: 200px;
+        border-right: 2px solid var(--border-color) !important; 
+        padding: 0 20px !important;
+        text-align: left !important;
+    }
+
+    /* Cellene i tabell-kroppen */
+    #attendanceTable td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        border-right: 1px solid #f1f5f9;
+        padding: 14px 5px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    #attendanceTable tr:hover td:not(.name-col) {
+        background-color: #f8fbff;
+    }
+
+    /* Elegante og stilrene status-ikoner som matcher appens farger */
+    .status-present { 
+        color: var(--bsk-blue); 
+        font-size: 1.1rem; 
+    }
+    .status-none { 
+        color: #cbd5e1; 
+        font-size: 1.0rem; 
+        opacity: 0.4;
+    }
+    
+    .attendance-badge {
+        background: var(--active-bg);
+        color: var(--bsk-blue);
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 86, 179, 0.15);
+    }
+
+    /* FAB Button */
+    .fab-btn {
+        position: fixed;
+        right: 25px;
+        bottom: 25px;
+        width: 60px;
+        height: 60px;
+        background: var(--bsk-blue);
+        color: var(--bsk-yellow);
+        border: 2px solid var(--bsk-yellow);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+    }
+
+    /* --- SPESIFIKK MOBILHÅNDTERING FOR OPPMØTE-MATRISEN --- */
+    @media (max-width: 768px) {
+        .fab-btn { bottom: 85px; }
+
+        body div.table-container {
+            overflow-x: scroll !important;
+            display: block !important;
+            width: 100% !important;
+            padding: 0 !important;
+            -webkit-overflow-scrolling: touch !important;
         }
-        .vasket-badge {
-            background: #d4edda !important;
-            color: #155724 !important;
-            border: 1px solid #c3e6cb;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 6px;
+
+        #attendanceTable {
+            table-layout: auto !important;
+            width: max-content !important;
         }
-        .uvasket-badge {
-            background: #f8d7da !important;
-            color: #721c24 !important;
-            border: 1px solid #f5c6cb;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 6px;
+
+        .matrix-table .name-col {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 25 !important;
+            background: #f8f9fa !important;
+            box-shadow: 3px 0 6px rgba(0, 0, 0, 0.08);
         }
-        .table-container { 
-            overflow-x: auto; 
-            background: white; 
-            border-radius: 15px; 
-            margin: 20px 0;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+
+        .matrix-table th:not(.name-col) {
+            min-width: 70px !important;
+            padding: 12px 6px !important;
         }
-        #attendanceTable { width: 100%; border-collapse: collapse; }
-        #attendanceTable th, #attendanceTable td { padding: 14px; border-bottom: 1px solid #eef2f6; text-align: left; }
-        #attendanceTable th { background: #f8f9fa; font-weight: 800; color: #1e293b; }
-        .name-col { font-weight: 700; color: var(--text-main); }
-    </style>
-</head>
+    }
+</style></head>
 <body>
 
-<main class="main-content" style="padding: 20px; max-width: 800px; margin: 0 auto;">
-    <div class="test-banner">
-        <i class="fa-solid fa-flask" style="color: #e6a23c; font-size: 1.1rem;"></i> <strong>TESTSIDE: Verifisering av databasevask</strong><br>
-        • <span style="color: #155724;">Grønne spillere</span> har fått 2026-historikk i Firebase.<br>
-        • <span style="color: #721c24;">Røde spillere</span> mangler mappen, og koden må foreløpig "gjette" lagtilhørighet.
+<header class="top-bar">
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>TEST</span></a>
+    <h1 id="section-title" class="section-title">Oppmøte (TEST)</h1>
+    <div class="filter-wrapper">
+        <div class="filter-container">
+            <i class="fa-solid fa-calendar-days"></i>
+            <select id="monthFilter" class="base-select" onchange="window.filterByMonth(this.value)">
+                <option value="Alle">HELE SESONGEN</option>
+                <option value="0">JANUAR</option>
+                <option value="1">FEBRUAR</option>
+                <option value="2">MARS</option>
+                <option value="3">APRIL</option>
+                <option value="4">MAI</option>
+                <option value="5">JUNI</option>
+                <option value="6">JULI</option>
+                <option value="7">AUGUST</option>
+                <option value="8">SEPTEMBER</option>
+                <option value="9">OKTOBER</option>
+                <option value="10">NOVEMBER</option>
+                <option value="11">DESEMBER</option>
+            </select>
+        </div>
+    </div>
+</header>
+
+<div class="sidebar" id="sidebar"></div>
+
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span>Hjem</span>
+    </a>
+    <a href="oppmote.html" class="nav-item active">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Oppmøte</span>
+    </a>
+    <a href="kamper.html" class="nav-item">
+        <i class="fa-solid fa-soccer-ball"></i>
+        <span>Kamper</span>
+    </a>
+    <a href="spillere.html" class="nav-item">
+        <i class="fa-solid fa-users"></i>
+        <span>Tropp</span>
+    </a>
+    <a href="statistikk.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Stats</span>
+    </a>
+</nav>
+
+<main class="main-content">
+    <section class="kamper-hero">
+        <div class="hero-content">
+            <p class="hero-intro-text">
+                Troppen har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
+                Gjennomsnittlig oppmøte ligger på <strong id="stat-avg-attendance">0%</strong>, 
+                og vår mest aktive spiller har vært med på <strong id="stat-top-attendance">0</strong> økter.
+            </p>
+        </div>
+    </section>
+
+    <!-- TESTBANNER FOR VERIFISERING -->
+    <div class="test-banner-oppmote">
+        <i class="fa-solid fa-vial-circle-check"></i> Dette er testsiden. Åpne nettleser-konsollen (F12) for å verifisere hvilke spillere som har ferdigvasket database-historikk!
     </div>
 
     <div class="table-container">
-        <table id="attendanceTable">
-            <thead>
-                <tr>
-                    <th>Spiller i troppen</th>
-                    <th>Registrert Gruppe (2026)</th>
-                    <th>Status i systemet</th>
-                </tr>
-            </thead>
-            <tbody id="testBody">
-                <tr>
-                    <td colspan="3" style="text-align:center; color:var(--text-muted);">Kobler til Firebase...</td>
-                </tr>
-            </tbody>
+        <table id="attendanceTable" class="matrix-table">
+            <thead id="attendanceHeader"></thead>
+            <tbody id="attendanceBody"></tbody>
         </table>
     </div>
-    
-    <a href="oppmote.html" style="display:inline-block; margin-top:20px; background:var(--bsk-blue); color:white; padding:12px 20px; border-radius:10px; text-decoration:none; font-weight:700; font-size:0.9rem;">
-        <i class="fa-solid fa-arrow-left"></i> Tilbake til live oppmøte
-    </a>
 </main>
 
-<!-- HUSK: Endre filnavnet under hvis test-js-filen din heter noe annet -->
-<script type="module" src="test-oppmote.js?v=1"></script>
+<button class="fab-btn" onclick="openAttendanceModal()" title="Legg til ny treningsøkt">
+    <i class="fa-solid fa-calendar-plus"></i>
+</button>
+
+<div id="attendanceModal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--bsk-blue); margin:0;">Ny treningsøkt</h3>
+            <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        <form id="attendanceForm">
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Dato</label>
+                    <input type="date" id="eventDate" required class="form-control">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE ØKT</button>
+                <button type="button" onclick="closeAttendanceModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="navigation.js"></script>
+<!-- RETTET TIL Å SJEKKE DIN test.js FIL -->
+<script type="module" src="test.js?v=clean_test"></script>
+
+<script>
+    window.openAttendanceModal = () => {
+        document.getElementById('attendanceModal').style.display = 'flex';
+        document.getElementById('eventDate').valueAsDate = new Date();
+    };
+    
+    window.closeAttendanceModal = () => {
+        document.getElementById('attendanceModal').style.display = 'none';
+        document.getElementById('attendanceForm').reset();
+    };
+
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            closeAttendanceModal();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const monthFilter = document.getElementById('monthFilter');
+        if (monthFilter) {
+            const currentMonth = new Date().getMonth().toString();
+            monthFilter.value = currentMonth;
+            setTimeout(() => {
+                if (window.filterByMonth) window.filterByMonth(currentMonth);
+            }, 800);
+        }
+    });
+</script>
+
 </body>
 </html>
