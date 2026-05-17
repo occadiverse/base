@@ -3,11 +3,11 @@ import { ref, set, onValue, push, remove } from "https://www.gstatic.com/firebas
 
 const tableBody = document.getElementById('playerTableBody');
 const playerForm = document.getElementById('playerForm');
-const periodSelect = document.getElementById('statPeriodSelect');
-const lagFilterSelect = document.getElementById('lagFilterSelect'); // Det nye lagfilteret i headeren
+const periodSelect = document.getElementById('statPeriodSelect'); // Styrer valgt sesongårstall (f.eks "2026")
+const lagFilterSelect = document.getElementById('lagFilterSelect'); // Styrer valgt lag (Alle, Lag A, Lag B)
 
 let spillerliste = [];
-let currentLagFilter = 'Alle'; // Standard filterverdi
+let currentLagFilter = 'Alle';
 
 // --- OVERSETTER FOR POSISJONSNUMRE ---
 const posMap = {
@@ -25,7 +25,7 @@ const posMap = {
     '-': '-'
 };
 
-// --- GLOBALT SYNKRONISERT SESONGFILTER FOR HEADINGEN ---
+// --- GLOBALT SYNKRONISERT SESONGFILTER ---
 function genererSesongFilter() {
     if (!periodSelect) return;
     
@@ -45,13 +45,16 @@ function genererSesongFilter() {
     if (valgt) periodSelect.value = valgt;
 }
 
+// Hvis brukeren bytter sesong, må vi regne ut alder, status og lag på nytt for det året
 if (periodSelect) {
     periodSelect.addEventListener('change', () => {
         periodSelect.setAttribute('data-user-selected', 'true');
+        updateHeroStats(spillerliste);
+        renderPlayers();
     });
 }
 
-// Lytter på endringer i lagvelgeren i headeren
+// Hvis brukeren bytter lagfilter
 if (lagFilterSelect) {
     lagFilterSelect.addEventListener('change', (e) => {
         currentLagFilter = e.target.value;
@@ -60,22 +63,45 @@ if (lagFilterSelect) {
     });
 }
 
-// --- OPPDATERER HERO-STATS (Tar hensyn til valgt lag) ---
-function updateHeroStats(liste) {
-    // Filtrerer listen basert på valgt lag først, slik at snittalder og antall oppdateres live
-    const lagFiltrert = liste.filter(s => currentLagFilter === 'Alle' || (s.lag || 'A-lag') === currentLagFilter);
+// --- UTREKNING AV SESONGDATA (Hjelpefunksjon) ---
+// Henter ut status, lag og draktnummer for en spesifikk sesong med trygge fallbacks
+function hentSesongData(spiller, valgtÅr) {
+    if (spiller.historikk && spiller.historikk[valgtÅr]) {
+        return {
+            lag: spiller.historikk[valgtÅr].lag || 'Lag A',
+            status: spiller.historikk[valgtÅr].status || 'Aktiv',
+            draktnummer: spiller.historikk[valgtÅr].draktnummer || '-'
+        };
+    }
+    // Fallback-logikk for eksisterende flate data (bakoverkompatibelt for sesong 2026)
+    return {
+        lag: spiller.lag === 'B-lag' ? 'Lag B' : (spiller.lag || 'Lag A'),
+        status: spiller.status || 'Aktiv',
+        draktnummer: spiller.draktnummer || '-'
+    };
+}
 
-    const aktive = lagFiltrert.filter(s => s.status === 'Aktiv');
-    const rekrutter = lagFiltrert.filter(s => s.status === 'Rekrutt');
+// --- OPPDATERER HERO-STATS ---
+function updateHeroStats(liste) {
+    const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
     
-    const relevante = [...aktive, ...rekrutter];
-    const currentYear = new Date().getFullYear();
-    const totalAlder = relevante.reduce((acc, s) => acc + (s.fodselsaar ? (currentYear - s.fodselsaar) : 0), 0);
+    // Filtrer listen basert på hvem som tilhører valgt lag i den valgte sesongen
+    const relevanteForSesongOgLag = liste.filter(s => {
+        const sData = hentSesongData(s, valgtÅr);
+        if (currentLagFilter === 'Alle') return true;
+        return sData.lag === currentLagFilter;
+    });
+
+    // Finn aktive og rekrutter for det spesifikke året
+    const aktive = relevanteForSesongOgLag.filter(s => hentSesongData(s, valgtÅr).status === 'Aktiv');
+    const rekrutter = relevanteForSesongOgLag.filter(s => hentSesongData(s, valgtÅr).status === 'Rekrutt');
     
-    const snittAlder = relevante.length > 0 ? (totalAlder / relevante.length).toFixed(1) : 0;
+    const relevanteStats = [...aktive, ...rekrutter];
+    const totalAlder = relevanteStats.reduce((acc, s) => acc + (s.fodselsaar ? (Number(valgtÅr) - s.fodselsaar) : 0), 0);
+    const snittAlder = relevanteStats.length > 0 ? (totalAlder / relevanteStats.length).toFixed(1) : 0;
 
     if (document.getElementById('stat-total-players')) {
-        document.getElementById('stat-total-players').innerText = `${relevante.length} spillere`;
+        document.getElementById('stat-total-players').innerText = `${relevanteStats.length} spillere`;
     }
     if (document.getElementById('stat-avg-age')) {
         document.getElementById('stat-avg-age').innerText = `${snittAlder} år`;
@@ -85,7 +111,7 @@ function updateHeroStats(liste) {
     }
 }
 
-// --- HENT DATA FRA FIREBASE (Alfabetisk sortering bevart) ---
+// --- HENT DATA FRA FIREBASE ---
 onValue(ref(db, 'players'), (snapshot) => {
     try {
         const data = snapshot.val() || {};
@@ -117,7 +143,6 @@ window.closePlayerModal = () => {
     document.getElementById('editId').value = '';
 };
 
-// Lukk modal hvis man klikker på utsiden
 window.onclick = function(event) {
     const modal = document.getElementById('playerModal');
     if (event.target === modal) {
@@ -129,31 +154,40 @@ window.onclick = function(event) {
 function renderPlayers() {
     if (!tableBody) return;
     
-    // Filtrerer ut spillerne som skal på skjermen. Mangler de lag-feltet i db, faller de tilbake til 'A-lag'
-    const filtrertListe = spillerliste.filter(s => currentLagFilter === 'Alle' || (s.lag || 'A-lag') === currentLagFilter);
+    const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
+
+    // Filtrer spillere basert på lagtilhørighet i den valgte sesongen
+    const filtrertListe = spillerliste.filter(s => {
+        const sData = hentSesongData(s, valgtÅr);
+        if (currentLagFilter === 'Alle') return true;
+        return sData.lag === currentLagFilter;
+    });
 
     if (filtrertListe.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" style="padding:20px; text-align:center; color:var(--text-muted);">Ingen spillere funnet for ${currentLagFilter}.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" style="padding:20px; text-align:center; color:var(--text-muted);">Ingen spillere registrert på ${currentLagFilter} i denne sesongen.</td></tr>`;
         return;
     }
 
-    const currentYear = new Date().getFullYear();
-
     tableBody.innerHTML = filtrertListe.map(s => {
-        const alder = s.fodselsaar ? (currentYear - s.fodselsaar) : '-';
+        // Dynamisk alder regnet ut fra den valgte sesongen i stedet for dagens dato!
+        const alder = s.fodselsaar ? (Number(valgtÅr) - s.fodselsaar) : '-';
+        
         const n1 = posMap[s.pos1] || '?';
         const n2 = posMap[s.pos2] || '-';
         const fotVisning = s.fot === 'Begge' ? 'B' : (s.fot === 'Venstre' ? 'V' : 'H');
 
+        // Hent sesongspesifikke verdier
+        const sData = hentSesongData(s, valgtÅr);
+
         let statusBadge = '';
-        if (s.status === 'Rekrutt') {
+        if (sData.status === 'Rekrutt') {
             statusBadge = '<span style="font-size:0.7rem; color:var(--bsk-blue); margin-left:5px; font-weight:800;">(R)</span>';
-        } else if (s.status === 'Passiv') {
+        } else if (sData.status === 'Passiv') {
             statusBadge = '<span style="font-size:0.7rem; color:var(--text-muted); margin-left:5px; font-weight:500;">(P)</span>';
         }
 
-        // Viser en liten subtil indikator ved siden av navnet om man ser på "ALLE" og spilleren er på B-laget
-        const lagBadge = (s.lag === 'B-lag' && currentLagFilter === 'Alle') ? '<span style="font-size:0.65rem; background:#e2e8f0; color:#334155; padding:2px 6px; border-radius:4px; margin-left:5px; font-weight:700;">B</span>' : '';
+        // Viser en liten 'B' hvis man har filteret stående på 'ALLE' og spilleren er registrert på Lag B i denne sesongen
+        const lagBadge = (sData.lag === 'Lag B' && currentLagFilter === 'Alle') ? '<span style="font-size:0.65rem; background:#e2e8f0; color:#334155; padding:2px 6px; border-radius:4px; margin-left:5px; font-weight:700;">B</span>' : '';
 
         const posisjonsVisning = n2 !== '-' ? `${n1} - ${n2}` : n1;
 
@@ -163,7 +197,7 @@ function renderPlayers() {
                     ${s.navn}${statusBadge}${lagBadge}
                 </td>
                 
-                <td style="text-align: center;">${s.draktnummer || '-'}</td>
+                <td style="text-align: center;">${sData.draktnummer || '-'}</td>
                 
                 <td style="text-align: center;">${posisjonsVisning}</td>
                 
@@ -191,28 +225,31 @@ window.editPlayer = function(id) {
     const spiller = spillerliste.find(s => s.id === id);
     if (!spiller) return;
 
+    const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
+    const sData = hentSesongData(spiller, valgtÅr);
+
     document.getElementById('editId').value = id;
     document.getElementById('navn').value = spiller.navn || '';
     document.getElementById('fodselsaar').value = spiller.fodselsaar || '';
     document.getElementById('pos1').value = spiller.pos1 || 'Keeper';
     document.getElementById('pos2').value = spiller.pos2 || '-';
     document.getElementById('fot').value = spiller.fot || 'Høyre';
-    document.getElementById('draktnummer').value = spiller.draktnummer || '';
-    document.getElementById('status').value = spiller.status || 'Aktiv';
     
-    // Setter skjemafeltet for lag til riktig verdi (med fallback til A-lag)
+    // Fyller feltene basert på historisk status for akkurat dette valgte året!
+    document.getElementById('draktnummer').value = sData.draktnummer === '-' ? '' : sData.draktnummer;
+    document.getElementById('status').value = sData.status;
     if (document.getElementById('spillerLag')) {
-        document.getElementById('spillerLag').value = spiller.lag || 'A-lag';
+        document.getElementById('spillerLag').value = sData.lag;
     }
 
-    document.getElementById('formTitle').innerText = 'Rediger spiller';
+    document.getElementById('formTitle').innerText = `Rediger spiller (${valgtÅr})`;
     document.getElementById('submitBtn').innerText = 'OPPDATER SPILLER';
     document.getElementById('playerModal').style.display = 'flex';
 };
 
 // --- SLETT SPILLER ---
 window.deletePlayer = function(id) {
-    if (confirm('Vil du slette denne spilleren fra stallen?')) {
+    if (confirm('Vil du slette denne spilleren fullstendig fra hele databasen (inkludert all historikk)?')) {
         remove(ref(db, `players/${id}`));
     }
 };
@@ -221,22 +258,50 @@ window.deletePlayer = function(id) {
 playerForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const editId = document.getElementById('editId').value;
+    const valgtÅr = periodSelect ? periodSelect.value : new Date().getFullYear().toString();
     
-    const spillerData = {
+    // 1. Hent ut verdier som ALLTID er faste for spilleren uansett årstall
+    const fastSpillerData = {
         navn: document.getElementById('navn').value,
         fodselsaar: parseInt(document.getElementById('fodselsaar').value) || '',
         pos1: document.getElementById('pos1').value,
         pos2: document.getElementById('pos2').value,
-        fot: document.getElementById('fot').value,
-        draktnummer: document.getElementById('draktnummer').value || '-',
+        fot: document.getElementById('fot').value
+    };
+
+    // 2. Gjør klar de sesongavhengige dataene
+    const nySesongData = {
+        lag: document.getElementById('spillerLag') ? document.getElementById('spillerLag').value : 'Lag A',
         status: document.getElementById('status').value,
-        lag: document.getElementById('spillerLag') ? document.getElementById('spillerLag').value : 'A-lag' // Lagrer lag-valget
+        draktnummer: document.getElementById('draktnummer').value || '-'
     };
 
     if (editId) {
-        set(ref(db, `players/${editId}`), spillerData).then(() => window.closePlayerModal());
+        // Hvis vi redigerer en eksisterende spiller, må vi hente med oss den gamle historikken 
+        // fra andre årstall så vi ikke overskriver tidslinjen deres!
+        const eksisterendeSpiller = spillerliste.find(s => s.id === editId);
+        const oppdatertHistorikk = eksisterendeSpiller.historikk || {};
+        
+        // Oppdater eller opprett noden for akkurat dette året
+        oppdatertHistorikk[valgtÅr] = nySesongData;
+
+        const komplettSpillerData = {
+            ...fastSpillerData,
+            historikk: oppdatertHistorikk
+        };
+
+        set(ref(db, `players/${editId}`), komplettSpillerData).then(() => window.closePlayerModal());
     } else {
+        // Ny spiller får opprettet sin første historikk-node under det valgte årstallet
+        const nyHistorikk = {};
+        nyHistorikk[valgtÅr] = nySesongData;
+
+        const komplettSpillerData = {
+            ...fastSpillerData,
+            historikk: nyHistorikk
+        };
+
         const newRef = push(ref(db, 'players'));
-        set(newRef, spillerData).then(() => window.closePlayerModal());
+        set(newRef, komplettSpillerData).then(() => window.closePlayerModal());
     }
 });
