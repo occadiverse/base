@@ -445,3 +445,36 @@ table.match-table td:nth-child(2) {
         display: none !important;
     }
 }
+
+/* ================================================================
+8. GLOBALE APP-KNAPPER (NY)
+================================================================
+*/
+.show-all-btn {
+    width: 100%;
+    background: var(--active-bg); /* Svak BSK-blå gjennomsiktig farge */
+    border: none;
+    color: var(--bsk-blue); /* Mørkeblå tekst */
+    padding: 14px; /* God tommel-størrelse for mobil */
+    border-radius: 10px; /* Samme deilige avrunding som Kampinfo på forsiden */
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 800; /* Ekstra fet tekst */
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-align: center;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Taktil tilbakemelding når tommelen trykker ned på knappen */
+.show-all-btn:active {
+    background: rgba(0, 86, 179, 0.16); /* Blir ørlite mørkere blå ved trykk */
+    transform: scale(0.98); /* Synker litt inn i skjermen */
+}
