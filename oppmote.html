@@ -200,26 +200,21 @@
 </style></head>
 <body>
 
+<!-- HEADER: Helt identisk oppbygning og klasser som spillere.html -->
 <header class="top-bar">
-    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
+    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
     <h1 id="section-title" class="section-title">Oppmøte</h1>
+    
     <div class="filter-wrapper">
         <div class="filter-container">
-            <i class="fa-solid fa-calendar-days"></i>
-            <select id="monthFilter" class="base-select" onchange="window.filterByMonth(this.value)">
-                <option value="Alle">HELE SESONGEN</option>
-                <option value="0">JANUAR</option>
-                <option value="1">FEBRUAR</option>
-                <option value="2">MARS</option>
-                <option value="3">APRIL</option>
-                <option value="4">MAI</option>
-                <option value="5">JUNI</option>
-                <option value="6">JULI</option>
-                <option value="7">AUGUST</option>
-                <option value="8">SEPTEMBER</option>
-                <option value="9">OKTOBER</option>
-                <option value="10">NOVEMBER</option>
-                <option value="11">DESEMBER</option>
+            <select id="monthFilter" class="base-select"></select>
+        </div>
+
+        <div class="filter-container">
+            <select id="lagFilterSelect" class="base-select">
+                <option value="Alle">ALLE</option>
+                <option value="Lag A">LAG A</option>
+                <option value="Lag B">LAG B</option>
             </select>
         </div>
     </div>
@@ -251,7 +246,7 @@
 </nav>
 
 <main class="main-content">
-    <section class="kamper-hero">
+    <section class="oppmote-hero">
         <div class="hero-content">
             <p class="hero-intro-text">
                 Troppen har gjennomført <strong id="stat-total-events">0</strong> økter denne sesongen. 
@@ -276,7 +271,7 @@
 <div id="attendanceModal" class="modal">
     <div class="modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="color: var(--bsk-blue); margin:0;">Ny treningsøkt</h3>
+            <h3 style="color: var(--bsk-blue); margin:0;">Ny aktivitet</h3>
             <button onclick="closeAttendanceModal()" style="background:none; border:none; font-size: 24px; cursor:pointer; color: var(--text-muted);">&times;</button>
         </div>
         <form id="attendanceForm">
@@ -284,6 +279,25 @@
                 <div class="form-group" style="flex: 1;">
                     <label>Dato</label>
                     <input type="date" id="eventDate" required class="form-control">
+                </div>
+            </div>
+
+            <!-- Rullegardiner for type økt og lag i modal -->
+            <div class="form-row" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Type økt</label>
+                    <select id="eventType" class="form-control">
+                        <option value="Trening">Trening</option>
+                        <option value="Kamp">Kamp</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>For hvilket lag?</label>
+                    <select id="eventGroup" class="form-control">
+                        <option value="Alle">Alle</option>
+                        <option value="Lag A">Lag A</option>
+                        <option value="Lag B">Lag B</option>
+                    </select>
                 </div>
             </div>
 
@@ -296,7 +310,8 @@
 </div>
 
 <script src="navigation.js"></script>
-<script type="module" src="oppmote.js?v=clean"></script>
+<!-- Sørg for at denne peker på oppmote.js i prod -->
+<script type="module" src="oppmote.js"></script>
 
 <script>
     window.openAttendanceModal = () => {
@@ -314,17 +329,6 @@
             closeAttendanceModal();
         }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const monthFilter = document.getElementById('monthFilter');
-        if (monthFilter) {
-            const currentMonth = new Date().getMonth().toString();
-            monthFilter.value = currentMonth;
-            setTimeout(() => {
-                if (window.filterByMonth) window.filterByMonth(currentMonth);
-            }, 800);
-        }
-    });
 </script>
 
 </body>
