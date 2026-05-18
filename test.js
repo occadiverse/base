@@ -182,28 +182,16 @@ function scrollToCurrentDate() {
     }
 
     if (target) {
-        // Bruk setTimeout for å være 100% sikker på at tabellen er tegnet ferdig på mobilen
-        setTimeout(() => {
-            // Finn bredden på den låste spillerlisten
-            const nameCol = document.querySelector('#attendanceHeader .name-col');
-            const nameColWidth = nameCol ? nameCol.getBoundingClientRect().width : 0;
+        const nameCol = document.querySelector('#attendanceHeader .name-col');
+        const nameColWidth = nameCol ? nameCol.offsetWidth : 0;
+        
+        // Vi trekker fra bredden på navnekolonnen pluss 10 piksler ekstra margin
+        const finalScrollLeft = target.offsetLeft - nameColWidth - 10;
 
-            // Finn den fysiske posisjonen til datokolonnen i forhold til scroll-beholderen
-            const containerRect = scrollContainer.getBoundingClientRect();
-            const targetRect = target.getBoundingClientRect();
-
-            // Regn ut hvor mye beholderen må scrolles sidelengs
-            const currentScroll = scrollContainer.scrollLeft;
-            const relativeOffset = targetRect.left - containerRect.left;
-            
-            // Vi legger til nåværende scroll, legger til forskyvningen, og trekker fra den låste spalten
-            const finalScrollLeft = currentScroll + relativeOffset - nameColWidth;
-
-            scrollContainer.scrollTo({
-                left: finalScrollLeft,
-                behavior: 'smooth'
-            });
-        }, 50); // En ørliten forsinkelse som gjør at mobilen rekker å oppfatte verdiene
+        scrollContainer.scrollTo({
+            left: finalScrollLeft,
+            behavior: 'smooth'
+        });
     }
 }
 
