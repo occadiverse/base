@@ -107,11 +107,20 @@
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
     <h1 id="section-title" class="section-title">Kamper</h1>
     <div class="filter-wrapper">
+        <!-- LAGVELGER (Lik oppmøte-siden) -->
+        <div class="filter-container">
+            <i class="fa-solid fa-people-group"></i>
+            <select class="base-select" id="lagFilterSelect">
+                <option value="Alle">Alle lag</option>
+                <option value="Lag A">Lag A</option>
+                <option value="Lag B">Lag B</option>
+            </select>
+        </div>
+        <!-- ÅRSTALL/SESONGVELGER (Genereres dynamisk av JS) -->
         <div class="filter-container">
             <i class="fa-solid fa-calendar-check"></i>
-            <select class="base-select">
-                <option>SESONG 2026</option>
-                <option>ARKIV</option>
+            <select class="base-select" id="monthFilter">
+                <!-- Årstallene spyttes inn her automatisk -->
             </select>
         </div>
     </div>
@@ -193,11 +202,19 @@
                         <option value="Treningskamp">Treningskamp</option>
                     </select>
                 </div>
+                <!-- NYTT FELT: Slik at du kan velge om det er A- eller B-kamp -->
+                <div class="form-group">
+                    <label>Lag</label>
+                    <select id="matchGroup" class="form-control">
+                        <option value="Lag A">Lag A</option>
+                        <option value="Lag B">Lag B</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Resultat (valgfritt)</label>
                     <input type="text" id="result" placeholder="f.eks. 3-1" class="form-control">
                 </div>
-            </div>
+            </div> 
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button type="submit" id="saveBtn" style="flex:2; background: var(--bsk-blue); color: white; padding:14px; border:none; border-radius:12px; font-weight:700; cursor: pointer;">LAGRE KAMP</button>
                 <button type="button" onclick="window.closeMatchModal()" style="flex:1; background: var(--bg-light); padding:14px; border:none; border-radius:12px; font-weight:600; cursor: pointer;">AVBRYT</button>
