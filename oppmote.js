@@ -249,7 +249,7 @@ function renderMatrix() {
     headerRow += `</tr>`;
     attendanceHeader.innerHTML = headerRow;
 
-    // Sorter og filtrer spiller-radene rent ALFABETISK
+    // Sorter og filtrer spiller-radene basert på TOTALT OPPMØTE (Høyest først)
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => {
             const sData = hentSpillerSesongData(p, valgtÅr);
@@ -264,7 +264,14 @@ function renderMatrix() {
 
             return { id, navn: p.navn, totalCount };
         })
-        .sort((a, b) => a.navn.localeCompare(b.navn, 'nb'));
+        .sort((a, b) => {
+            // 1. Sorter etter totalt oppmøte (høyest tall først)
+            if (b.totalCount !== a.totalCount) {
+                return b.totalCount - a.totalCount;
+            }
+            // 2. Hvis oppmøtet er helt likt, sorter alfabetisk på navn
+            return a.navn.localeCompare(b.navn, 'nb');
+        });
 
     // Tegn radene for hver enkelt spiller
     let bodyHTML = '';
