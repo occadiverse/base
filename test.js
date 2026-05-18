@@ -54,7 +54,8 @@ onValue(ref(db, '/'), (snapshot) => {
     renderMatrix();
     updateHeroStats(); 
     
-    setTimeout(scrollToCurrentDate, 300);
+    // Økt fra 300 til 600ms for å gi mobilnettlesere nok tid til å rendre ferdig
+    setTimeout(scrollToCurrentDate, 600);
 });
 
 // Event listener for lagvelgeren i headeren
@@ -62,7 +63,8 @@ if (lagFilterSelect) {
     lagFilterSelect.addEventListener('change', () => {
         renderMatrix();
         updateHeroStats();
-        setTimeout(scrollToCurrentDate, 100);
+        // Økt fra 100 til 300ms så filterbytte ikke trigger for tidlig scroll på mobil
+        setTimeout(scrollToCurrentDate, 300);
     });
 }
 
@@ -71,7 +73,8 @@ if (monthFilter) {
     monthFilter.addEventListener('change', () => {
         renderMatrix();
         updateHeroStats();
-        setTimeout(scrollToCurrentDate, 100);
+        // Økt fra 100 til 300ms så filterbytte ikke trigger for tidlig scroll på mobil
+        setTimeout(scrollToCurrentDate, 300);
     });
 }
 
@@ -185,7 +188,7 @@ function scrollToCurrentDate() {
         const nameCol = document.querySelector('#attendanceHeader .name-col');
         const nameColWidth = nameCol ? nameCol.offsetWidth : 0;
         
-        // Vi trekker fra bredden på navnekolonnen pluss 10 piksler ekstra margin
+        // Regner ut nøyaktig stoppunkt i forhold til den låste spalten på venstre side
         const finalScrollLeft = target.offsetLeft - nameColWidth - 10;
 
         scrollContainer.scrollTo({
