@@ -107,20 +107,21 @@
     <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>A-LAG</span></a>
     <h1 id="section-title" class="section-title">Kamper</h1>
     <div class="filter-wrapper">
-        <!-- LAGVELGER (Lik oppmøte-siden) -->
+        <!-- 1. ÅRSTALL/SESONGVELGER (Først, med kalender-ikon) -->
+        <div class="filter-container">
+            <i class="fa-solid fa-calendar-check"></i>
+            <select class="base-select" id="monthFilter">
+                <!-- Årstallene spyttes inn her automatisk -->
+            </select>
+        </div>
+
+        <!-- 2. LAGVELGER (Sist, med gruppe-ikon) -->
         <div class="filter-container">
             <i class="fa-solid fa-people-group"></i>
             <select class="base-select" id="lagFilterSelect">
                 <option value="Alle">Alle lag</option>
                 <option value="Lag A">Lag A</option>
                 <option value="Lag B">Lag B</option>
-            </select>
-        </div>
-        <!-- ÅRSTALL/SESONGVELGER (Genereres dynamisk av JS) -->
-        <div class="filter-container">
-            <i class="fa-solid fa-calendar-check"></i>
-            <select class="base-select" id="monthFilter">
-                <!-- Årstallene spyttes inn her automatisk -->
             </select>
         </div>
     </div>
