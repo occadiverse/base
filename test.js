@@ -169,6 +169,7 @@ function scrollToCurrentDate() {
     const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
     let target = null;
 
+    // Finn første økt som er i dag eller i fremtiden
     for (let th of headers) {
         const thDate = new Date(th.dataset.date);
         if (thDate >= today) {
@@ -177,9 +178,18 @@ function scrollToCurrentDate() {
         }
     }
 
+    // Hvis vi ikke fant noen fremtidige økter, sjekk siste økt som har vært (så slipper vi tom skjerm)
+    if (!target && headers.length > 0) {
+        target = headers[headers.length - 1];
+    }
+
+    // NY OG BEDRE MOBILSCRULL:
     if (target) {
-        const offset = target.offsetLeft - (scrollContainer.offsetWidth / 2) + (target.offsetWidth / 2);
-        scrollContainer.scrollTo({ left: offset, behavior: 'smooth' });
+        target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',   // Ikke scroll opp/ned på siden
+            inline: 'center'    // Sentrer kolonnen i skjermbildet på mobilen
+        });
     }
 }
 
