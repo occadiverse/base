@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMatchAssists = [];
     let currentTroopNames = [];
 
-    // --- DYNAMISK ÅRSTALL-DROPDOWN (Lik oppmøtematrisen) ---
+    // --- DYNAMISK ÅRSTALL-DROPDOWN (Helt identisk med oppmøtesiden, uten ARKIV) ---
     function updateYearDropdown(matches) {
         if (!monthFilter) return;
         
@@ -47,13 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filterHTML = '';
         sortedYears.forEach(year => {
-            filterHTML += `<option value="${year}">SESONG ${year}</option>`;
+            filterHTML += `<option value="${year}">${year}</option>`;
         });
         
         if (sortedYears.length === 0) {
-            filterHTML = `<option value="${currentYear}">SESONG ${currentYear}</option>`;
+            filterHTML = `<option value="${currentYear}">${currentYear}</option>`;
         }
-        filterHTML += `<option value="Arkiv">ARKIV (ALLE)</option>`;
         
         monthFilter.innerHTML = filterHTML;
 
