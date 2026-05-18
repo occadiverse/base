@@ -168,23 +168,30 @@ function scrollToCurrentDate() {
     if (!scrollContainer) return;
     
     const today = new Date();
-    // LEGG TIL DAGER: Dette gjør at scrollen sikter på en økt litt frem i tid,
-    // som tvinger tabellen lenger mot høyre slik at 20.05 blir fullt synlig.
-    today.setDate(today.getDate() + 2); 
     today.setHours(0,0,0,0);
 
     const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
+    if (headers.length === 0) return;
+
     let target = null;
+    let minDiff = Infinity;
 
-    for (let th of headers) {
+    // Leter gjennom alle datoene for å finne den som er nærmest i dag
+    headers.forEach(th => {
         const thDate = new Date(th.dataset.date);
-        if (thDate >= today) {
+        thDate.setHours(0,0,0,0);
+        
+        // Regner ut tidsforskjellen i millisekunder (uavhengig av om det er før eller etter i dag)
+        const diff = Math.abs(thDate - today);
+        
+        if (diff < minDiff) {
+            minDiff = diff;
             target = th;
-            break;
         }
-    }
+    });
 
-    if (!target && headers.length > 0) {
+    // Fallback til siste kolonne hvis noe uforutsett skjer
+    if (!target) {
         target = headers[headers.length - 1];
     }
 
@@ -192,7 +199,7 @@ function scrollToCurrentDate() {
         const nameCol = document.querySelector('#attendanceHeader .name-col');
         const nameColWidth = nameCol ? nameCol.offsetWidth : 0;
         
-        // Ren, stabil standardposisjon uten manuelle piksler
+        // Går tilbake til den trygge, rene standarden
         const finalScrollLeft = target.offsetLeft - nameColWidth;
 
         scrollContainer.scrollTo({
