@@ -83,6 +83,10 @@ function updateHeroStats() {
     const valgtLag = lagFilterSelect ? lagFilterSelect.value : 'Alle';
     const selectedYear = monthFilter ? monthFilter.value : new Date().getFullYear().toString();
 
+    // LAG EN NY SJEKK FOR DAGENS DATO:
+    const naatid = new Date();
+    naatid.setHours(23, 59, 59, 999); // Setter tiden til slutten av dagen i dag, så kveldens økt telles med
+
     let totalAttendancePoints = 0;
     let potentialPoints = 0;
     let playerAttendanceCounts = {};
@@ -98,8 +102,13 @@ function updateHeroStats() {
 
         const matcherÅr = (parts[0] === selectedYear);
         const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || aktivitetGruppe === 'Alle');
+        
+        // SJEKKER OM AKTIVITETEN HAR VÆRT (ELLER ER I DAG):
+        const aktivitetDato = new Date(isoDate);
+        const erHistoriskEllerIDag = aktivitetDato <= naatid;
 
-        if (matcherÅr && matcherLag) {
+        // Vi legger til "erHistoriskEllerIDag" i kravlisten vår:
+        if (matcherÅr && matcherLag && erHistoriskEllerIDag) {
             antallAktiviteter++;
 
             Object.entries(players).forEach(([id, p]) => {
@@ -128,7 +137,6 @@ function updateHeroStats() {
     if (elAvg) elAvg.innerText = avgPercent + '%';
     if (elTop) elTop.innerText = topAttendance;
 }
-
 // --- GENERERER ÅRENE I DROP-DOWN ---
 function updateYearDropdown() {
     if (!monthFilter) return;
