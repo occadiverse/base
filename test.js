@@ -178,17 +178,28 @@ function scrollToCurrentDate() {
         }
     }
 
-    // Hvis vi ikke fant noen fremtidige økter, sjekk siste økt som har vært (så slipper vi tom skjerm)
+    // Fallback til siste økt hvis ingen er i fremtiden
     if (!target && headers.length > 0) {
         target = headers[headers.length - 1];
     }
 
-    // NY OG BEDRE MOBILSCRULL:
     if (target) {
-        target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',   // Ikke scroll opp/ned på siden
-            inline: 'center'    // Sentrer kolonnen i skjermbildet på mobilen
+        // 1. Finn ut hvor mye datokolonnen er forskjøvet fra venstrekant
+        const targetOffsetLeft = target.offsetLeft;
+
+        // 2. Finn bredden på den låste spillerkolonnen (finner første th med klassen 'name-col')
+        const nameCol = document.querySelector('#attendanceHeader .name-col');
+        const nameColWidth = nameCol ? nameCol.offsetWidth : 0;
+
+        // 3. Regn ut nøyaktig scroll-posisjon:
+        // Vi tar kolonnens posisjon og trekker fra bredden på spillernavnet, 
+        // slik at datoen legger seg perfekt synlig akkurat der den åpne scrolleren starter.
+        const finalScrollLeft = targetOffsetLeft - nameColWidth;
+
+        // 4. Utfør scrollen i beholderen
+        scrollContainer.scrollTo({
+            left: finalScrollLeft,
+            behavior: 'smooth'
         });
     }
 }
