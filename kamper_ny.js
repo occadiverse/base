@@ -19,18 +19,70 @@ window.showMatchInfo = (id, date, opponent, time, pitch) => {
 document.addEventListener('DOMContentLoaded', () => {
     const matchTableBody = document.getElementById('matchTableBody');
     const matchForm = document.getElementById('matchForm');
+    const lagFilterSelect = document.getElementById('lagFilterSelect'); 
+    const monthFilter = document.getElementById('monthFilter'); 
 
     let allMatches = []; 
     let currentMatchGoals = [];
     let currentMatchAssists = [];
     let currentTroopNames = [];
 
-    // --- FIKSET HERO-STATS LOGIKK ---
+    // --- DYNAMISK ÅRSTALL-DROPDOWN (Lik oppmøtematrisen) ---
+    function updateYearDropdown(matches) {
+        if (!monthFilter) return;
+        
+        const yearsFound = new Set();
+        matches.forEach(m => {
+            if (m.date) {
+                const year = m.date.split('-')[0];
+                if (year && year !== '1970') {
+                    yearsFound.add(year);
+                }
+            }
+        });
+
+        const sortedYears = Array.from(yearsFound).sort((a, b) => b - a);
+        const currentYear = new Date().getFullYear().toString();
+        const previousSelection = monthFilter.value;
+
+        let filterHTML = '';
+        sortedYears.forEach(year => {
+            filterHTML += `<option value="${year}">SESONG ${year}</option>`;
+        });
+        
+        if (sortedYears.length === 0) {
+            filterHTML = `<option value="${currentYear}">SESONG ${currentYear}</option>`;
+        }
+        filterHTML += `<option value="Arkiv">ARKIV (ALLE)</option>`;
+        
+        monthFilter.innerHTML = filterHTML;
+
+        if (previousSelection && Array.from(monthFilter.options).some(opt => opt.value === previousSelection)) {
+            monthFilter.value = previousSelection;
+        } else if (yearsFound.has(currentYear)) {
+            monthFilter.value = currentYear;
+        } else {
+            monthFilter.value = sortedYears[0] || currentYear;
+        }
+    }
+
+    // --- HERO-STATS LOGIKK MED FILTER ---
     function updateMatchHeroStats(matches) {
         const nå = new Date();
         nå.setHours(0, 0, 0, 0);
 
-        const kommende = matches
+        const valgtLag = lagFilterSelect ? lagFilterSelect.value : 'Alle';
+        const valgtSesong = monthFilter ? monthFilter.value : new Date().getFullYear().toString();
+
+        // Filtrer ut kampene som matcher valgene i headeren
+        const filtrerteKamper = matches.filter(m => {
+            const kampÅr = m.date ? m.date.split('-')[0] : '';
+            const matcherLag = (valgtLag === 'Alle' || m.gruppe === valgtLag);
+            const matcherSesong = (valgtSesong === 'Arkiv' || kampÅr === valgtSesong);
+            return matcherLag && matcherSesong;
+        });
+
+        const kommende = filtrerteKamper
             .filter(m => new Date(m.date + "T23:59:59") >= nå)
             .sort((a, b) => new Date(a.date) - new Date(b.date));
         
@@ -41,12 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = new Date(kommende[0].date);
             nesteKampDato = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
             nesteMotstander = kommende[0].opponent;
+            if (kommende[0].gruppe) {
+                nesteMotstander += ` (${kommende[0].gruppe})`; // Viser hvilket lag det gjelder i heroboksen
+            }
         }
 
         let totalSeire = 0;
         let totalMaal = 0;
 
-        matches.forEach(m => {
+        filtrerteKamper.forEach(m => {
             if (m.result && m.result.includes('-')) {
                 const scores = m.result.split('-').map(s => parseInt(s.trim()));
                 if (scores.length === 2 && !isNaN(scores[0])) {
@@ -83,15 +138,26 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('postMatchStats').style.display = 'none';
     };
 
-    // --- OPPDATERT TABELLVISNING MED SLETTE-KNAPP OG NY REKKEFØLGE ---
+    // --- TABELLVISNING MED FILTER ---
     function renderTable() {
         if (!matchTableBody) return;
         matchTableBody.innerHTML = '';
         const nå = new Date();
         nå.setHours(0, 0, 0, 0);
 
-        const kommende = allMatches.filter(m => new Date(m.date + "T23:59:59") >= nå);
-        const tidligere = allMatches.filter(m => new Date(m.date + "T23:59:59") < nå);
+        const valgtLag = lagFilterSelect ? lagFilterSelect.value : 'Alle';
+        const valgtSesong = monthFilter ? monthFilter.value : new Date().getFullYear().toString();
+
+        // Filtrer kampsamlingen
+        const filtrerteKamper = allMatches.filter(m => {
+            const kampÅr = m.date ? m.date.split('-')[0] : '';
+            const matcherLag = (valgtLag === 'Alle' || m.gruppe === valgtLag);
+            const matcherSesong = (valgtSesong === 'Arkiv' || kampÅr === valgtSesong);
+            return matcherLag && matcherSesong;
+        });
+
+        const kommende = filtrerteKamper.filter(m => new Date(m.date + "T23:59:59") >= nå);
+        const tidligere = filtrerteKamper.filter(m => new Date(m.date + "T23:59:59") < nå);
 
         kommende.sort((a, b) => new Date(a.date) - new Date(b.date));
         tidligere.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -99,13 +165,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const lagRadHTML = (match, erTidligere) => {
             const d = new Date(match.date);
             const shortDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+            const visningsNavn = match.gruppe && valgtLag === 'Alle' ? `${match.opponent} (${match.gruppe})` : match.opponent;
             
             return `
             <tr class="match-row" style="${erTidligere ? 'opacity: 0.8;' : ''}" 
                 onclick="window.showMatchInfo('${match.id}', '${match.date}', '${match.opponent}', '${match.time}', '${match.pitch}')">
                 
                 <td class="name-col" style="text-align: left;">
-                    ${match.opponent}
+                    ${visningsNavn}
                 </td>
                 
                 <td style="text-align: center;">${shortDate}</td>
@@ -128,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <td class="desktop-only">
                     <div style="display: flex; justify-content: center; gap: 8px;">
-                        <button onclick="event.stopPropagation(); window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}')" class="action-btn btn-edit">
+                        <button onclick="event.stopPropagation(); window.openEditMatch('${match.id}', '${match.date}', '${match.time}', '${match.opponent}', '${match.pitch}', '${match.type}', '${match.result}', '${match.gruppe || 'Lag A'}')" class="action-btn btn-edit">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <button onclick="event.stopPropagation(); window.deleteMatch('${match.id}')" class="action-btn btn-delete">
@@ -147,6 +214,21 @@ document.addEventListener('DOMContentLoaded', () => {
             matchTableBody.innerHTML += `<tr class="table-divider"><td colspan="7" style="text-align:center; font-weight:800; background:#f8f9fa; font-size:0.7rem; color:#666; padding:12px;">TIDLIGERE RESULTATER</td></tr>`;
             tidligere.forEach(m => matchTableBody.innerHTML += lagRadHTML(m, true));
         }
+    }
+
+    // --- EVENT LISTENERS FOR DE NYE FILTRENE ---
+    if (lagFilterSelect) {
+        lagFilterSelect.addEventListener('change', () => {
+            updateMatchHeroStats(allMatches);
+            renderTable();
+        });
+    }
+
+    if (monthFilter) {
+        monthFilter.addEventListener('change', () => {
+            updateMatchHeroStats(allMatches);
+            renderTable();
+        });
     }
 
     function prepareStatsForm(matchData, troop) {
@@ -267,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${goalScorerHtml}
 
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; gap: 8px;">
-                    <button onclick="window.closeMatchInfo(); window.openEditMatch('${id}', '${date}', '${time}', '${opponent}', '${pitch}', '${matchData?.type || ''}', '${matchData?.result || '-'}')" 
+                    <button onclick="window.closeMatchInfo(); window.openEditMatch('${id}', '${date}', '${time}', '${opponent}', '${pitch}', '${matchData?.type || ''}', '${matchData?.result || '-'}', '${matchData?.gruppe || 'Lag A'}')" 
                             style="flex: 1; background: #eee; border: none; padding: 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer;">
                         <i class="fa-solid fa-pen"></i> Rediger kamp
                     </button>
@@ -325,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { onlyOnce: true });
     });
 
-    window.openEditMatch = (id, date, time, opponent, pitch, type, result) => {
+    window.openEditMatch = (id, date, time, opponent, pitch, type, result, gruppe) => {
         document.getElementById('modalTitle').innerText = 'Rediger kamp';
         document.getElementById('editMatchId').value = id;
         document.getElementById('matchDate').value = date;
@@ -334,16 +416,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('pitch').value = pitch === 'Ikke satt' ? '' : pitch;
         document.getElementById('matchType').value = type;
         document.getElementById('result').value = result === '-' ? '' : result;
+        
+        // Setter riktig lag i modalen hvis vi redigerer
+        const matchGroupField = document.getElementById('matchGroup');
+        if (matchGroupField) matchGroupField.value = gruppe || 'Lag A';
+
         document.getElementById('matchModal').style.display = 'flex';
     };
 
-    // --- STEG 1: OPPDATERT FOR SEAMLESS KOPPLING MOT ATTENDANCE ---
+    // --- OPPDATERT FOR SESONG- OG LAG-LAGRING ---
     matchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
         let matchId = document.getElementById('editMatchId').value;
         const kampDato = document.getElementById('matchDate').value;
         const motstander = document.getElementById('opponent').value;
+        const valgtGruppe = document.getElementById('matchGroup') ? document.getElementById('matchGroup').value : 'Lag A';
 
         if (!matchId) {
             matchId = window.dbPush(window.dbRef(window.db, 'matches')).key;
@@ -355,7 +443,8 @@ document.addEventListener('DOMContentLoaded', () => {
             opponent: motstander,
             pitch: document.getElementById('pitch').value || 'Ikke satt',
             type: document.getElementById('matchType').value,
-            result: document.getElementById('result').value || '-'
+            result: document.getElementById('result').value || '-',
+            gruppe: valgtGruppe // Lagrer hvilket lag kampen tilhører
         };
 
         window.dbSet(window.dbRef(window.db, `matches/${matchId}`), matchData).then(() => {
@@ -363,7 +452,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const oppmoteInfoData = {
                 type: "Kamp",
                 date: kampDato,
-                opponent: motstander
+                opponent: motstander,
+                gruppe: valgtGruppe // Speiler lag-tilhørighet til oppmøte-grenen også
             };
 
             window.dbSet(window.dbRef(window.db, oppmoteInfoPath), oppmoteInfoData).then(() => {
@@ -372,14 +462,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- FIREBASE LIVE-STRØM ---
     window.dbOnValue(window.dbRef(window.db, 'matches'), (snapshot) => {
         const data = snapshot.val();
         allMatches = data ? Object.entries(data).map(([id, match]) => ({ id, ...match })) : [];
+        
+        updateYearDropdown(allMatches); // Lager årstallene dynamisk
         updateMatchHeroStats(allMatches);
         renderTable(); 
     });
 
-    window.deleteMatch = (id) => { if(confirm('Slette kampen?')) window.dbRemove(window.dbRef(window.db, `matches/${id}`)); };
+    window.deleteMatch = (id) => { 
+        if(confirm('Vil du slette kampen permanent? Dette sletter også oppmøtedata koblet til kampen.')) {
+            window.dbRemove(window.dbRef(window.db, `matches/${id}`));
+            window.dbRemove(window.dbRef(window.db, `attendance/${id}`)); // Sletter matrisekoblingen ryddig
+        }
+    };
 
     // --- AUTOTRIGGER MODAL VED ID FRA NETTADRESSE ---
     const urlParams = new URLSearchParams(window.location.search);
