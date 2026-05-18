@@ -199,8 +199,8 @@ function scrollToCurrentDate() {
         });
         
         // Siden 'inline: start' legger den helt til venstre under spillerlisten, 
-        // dytter vi scrolleren bittelitt tilbake (150px) så den blir synlig:
-        scrollContainer.scrollLeft += 80;
+        // dytter vi scrolleren bittelitt tilbake (100px) så den blir synlig:
+        scrollContainer.scrollLeft -= 100;
     }
 }
 
