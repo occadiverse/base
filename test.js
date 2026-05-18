@@ -169,7 +169,6 @@ function scrollToCurrentDate() {
     const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
     let target = null;
 
-    // Finn første økt som er i dag eller i fremtiden
     for (let th of headers) {
         const thDate = new Date(th.dataset.date);
         if (thDate >= today) {
@@ -178,29 +177,33 @@ function scrollToCurrentDate() {
         }
     }
 
-    // Fallback til siste økt hvis ingen er i fremtiden
     if (!target && headers.length > 0) {
         target = headers[headers.length - 1];
     }
 
     if (target) {
-        // 1. Finn ut hvor mye datokolonnen er forskjøvet fra venstrekant
-        const targetOffsetLeft = target.offsetLeft;
+        // Bruk setTimeout for å være 100% sikker på at tabellen er tegnet ferdig på mobilen
+        setTimeout(() => {
+            // Finn bredden på den låste spillerlisten
+            const nameCol = document.querySelector('#attendanceHeader .name-col');
+            const nameColWidth = nameCol ? nameCol.getBoundingClientRect().width : 0;
 
-        // 2. Finn bredden på den låste spillerkolonnen (finner første th med klassen 'name-col')
-        const nameCol = document.querySelector('#attendanceHeader .name-col');
-        const nameColWidth = nameCol ? nameCol.offsetWidth : 0;
+            // Finn den fysiske posisjonen til datokolonnen i forhold til scroll-beholderen
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
 
-        // 3. Regn ut nøyaktig scroll-posisjon:
-        // Vi tar kolonnens posisjon og trekker fra bredden på spillernavnet, 
-        // slik at datoen legger seg perfekt synlig akkurat der den åpne scrolleren starter.
-        const finalScrollLeft = targetOffsetLeft - nameColWidth;
+            // Regn ut hvor mye beholderen må scrolles sidelengs
+            const currentScroll = scrollContainer.scrollLeft;
+            const relativeOffset = targetRect.left - containerRect.left;
+            
+            // Vi legger til nåværende scroll, legger til forskyvningen, og trekker fra den låste spalten
+            const finalScrollLeft = currentScroll + relativeOffset - nameColWidth;
 
-        // 4. Utfør scrollen i beholderen
-        scrollContainer.scrollTo({
-            left: finalScrollLeft,
-            behavior: 'smooth'
-        });
+            scrollContainer.scrollTo({
+                left: finalScrollLeft,
+                behavior: 'smooth'
+            });
+        }, 50); // En ørliten forsinkelse som gjør at mobilen rekker å oppfatte verdiene
     }
 }
 
