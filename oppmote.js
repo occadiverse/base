@@ -265,6 +265,10 @@ function renderMatrix() {
     attendanceHeader.innerHTML = headerRow;
 
     // Sorter og filtrer spiller-radene basert på TOTALT OPPMØTE (Høyest først)
+    // Sorter og filtrer spiller-radene basert på TOTALT OPPMØTE (Kun historisk + i dag)
+    const naatid = new Date();
+    naatid.setHours(23, 59, 59, 999); // Setter grensen til slutten av dagen i dag
+
     const sortedPlayers = Object.entries(players)
         .filter(([id, p]) => {
             const sData = hentSpillerSesongData(p, valgtÅr);
@@ -273,8 +277,15 @@ function renderMatrix() {
             return true;
         })
         .map(([id, p]) => {
+            // Teller kun 'K' hvis økten faktisk har funnet sted (eller er i dag)
             const totalCount = filteredKeys.reduce((acc, key) => {
-                return acc + (attendanceData[key][id] === 'K' ? 1 : 0);
+                const isoDate = getIsoDateFromKey(key, attendanceData);
+                const aktivitetDato = new Date(isoDate);
+                
+                if (aktivitetDato <= naatid && attendanceData[key][id] === 'K') {
+                    return acc + 1;
+                }
+                return acc;
             }, 0);
 
             return { id, navn: p.navn, totalCount };
@@ -287,7 +298,7 @@ function renderMatrix() {
             // 2. Hvis oppmøtet er helt likt, sorter alfabetisk på navn
             return a.navn.localeCompare(b.navn, 'nb');
         });
-
+    
     // Tegn radene for hver enkelt spiller
     let bodyHTML = '';
     sortedPlayers.forEach((p) => {
