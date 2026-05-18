@@ -172,6 +172,9 @@ function scrollToCurrentDate() {
     const headers = document.querySelectorAll('#attendanceHeader th[data-date]');
     let target = null;
 
+    // Fjern gammel markering først
+    headers.forEach(th => th.classList.remove('idag-fokus'));
+
     for (let th of headers) {
         const thDate = new Date(th.dataset.date);
         if (thDate >= today) {
@@ -185,16 +188,19 @@ function scrollToCurrentDate() {
     }
 
     if (target) {
-        const nameCol = document.querySelector('#attendanceHeader .name-col');
-        const nameColWidth = nameCol ? nameCol.offsetWidth : 0;
-        
-        // Regner ut nøyaktig stoppunkt i forhold til den låste spalten på venstre side
-        const finalScrollLeft = target.offsetLeft - nameColWidth - 10;
+        // Legger på en klasse så vi kan se hvem den prøver å scrolle til
+        target.classList.add('idag-fokus');
 
-        scrollContainer.scrollTo({
-            left: finalScrollLeft,
-            behavior: 'smooth'
+        // CSS-trikset som overstyrer alt av sticky-feil på mobil:
+        target.scrollIntoView({
+            behavior: 'auto', // 'auto' i stedet for 'smooth' fungerer 10 Heck-ganger bedre på mobil
+            block: 'nearest',
+            inline: 'start'   // 'start' i stedet for 'center' tvinger den til venstrekant (rett ved siden av spillerlisten)
         });
+        
+        // Siden 'inline: start' legger den helt til venstre under spillerlisten, 
+        // dytter vi scrolleren bittelitt tilbake (100px) så den blir synlig:
+        scrollContainer.scrollLeft -= 100;
     }
 }
 
