@@ -11,7 +11,7 @@ const scrollContainer = document.querySelector('.table-container');
 let players = {};
 let attendanceData = {};
 let keys = []; 
-const valgtÅr = "2026";
+const valgtÅr = new Date().getFullYear().toString(); //  sjekker hvilket år det er nå
 
 // HELPER: Sjekker spillerens tilhørighet for sesongen 2026
 function hentSpillerSesongData(spiller, valgtÅr) {
