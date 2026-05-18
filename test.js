@@ -4,7 +4,7 @@ import { ref, set, onValue, remove, update } from "https://www.gstatic.com/fireb
 const attendanceHeader = document.getElementById('attendanceHeader');
 const attendanceBody = document.getElementById('attendanceBody');
 const attendanceForm = document.getElementById('attendanceForm');
-const monthFilter = document.getElementById('monthFilter');
+const monthFilter = document.getElementById('monthFilter'); // Beholder referansen til HTML-elementet
 const lagFilterSelect = document.getElementById('lagFilterSelect'); // Henter den nye ID-en fra headeren
 const scrollContainer = document.querySelector('.table-container');
 
@@ -12,7 +12,6 @@ let players = {};
 let attendanceData = {};
 let keys = []; 
 const valgtÅr = "2026";
-const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
 
 // HELPER: Sjekker spillerens tilhørighet for sesongen 2026
 function hentSpillerSesongData(spiller, valgtÅr) {
@@ -51,7 +50,7 @@ onValue(ref(db, '/'), (snapshot) => {
         return dateA - dateB;
     });
     
-    updateMonthDropdown();
+    updateYearDropdown(); // OPPDATERT: Genererer årstall i stedet for måneder
     renderMatrix();
     updateHeroStats(); 
     
@@ -67,7 +66,7 @@ if (lagFilterSelect) {
     });
 }
 
-// Event listener for månedvelgeren i headeren
+// Event listener for årvelgeren (bruker eksisterende HTML-element)
 if (monthFilter) {
     monthFilter.addEventListener('change', () => {
         renderMatrix();
@@ -79,7 +78,8 @@ if (monthFilter) {
 // --- UPPDATERER TALLENE I HERO-BOKSEN ---
 function updateHeroStats() {
     const valgtLag = lagFilterSelect ? lagFilterSelect.value : 'Alle';
-    const selectedMonthYear = monthFilter ? monthFilter.value : 'Alle';
+    // OPPDATERT: Henter det valgte året fra dropdownen, setter inneværende år som fallback
+    const selectedYear = monthFilter ? monthFilter.value : new Date().getFullYear().toString();
 
     let totalAttendancePoints = 0;
     let potentialPoints = 0;
@@ -94,14 +94,13 @@ function updateHeroStats() {
         const aktivitetGruppe = info.gruppe || 'Lag A'; 
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
-        const parts = isoDate.split('-'); 
+        const parts = isoDate.split('-'); // parts[0] er årstallet (yyyy)
 
-        const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
-        
-        // Sjekker om økten matcher lag-filteret (Vis alt på 'Alle', ellers match spesifikt lag eller fellesøkten 'Alle')
+        // OPPDATERT: Sjekker om økten tilhører det valgte året
+        const matcherÅr = (parts[0] === selectedYear);
         const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || aktivitetGruppe === 'Alle');
 
-        if (matcherMåned && matcherLag) {
+        if (matcherÅr && matcherLag) {
             antallAktiviteter++;
 
             Object.entries(players).forEach(([id, p]) => {
@@ -131,40 +130,40 @@ function updateHeroStats() {
     if (elTop) elTop.innerText = topAttendance;
 }
 
-// --- GENERERER MÅNEDENE I DROP-DOWN ---
-function updateMonthDropdown() {
+// --- GENERERER ÅRENE I DROP-DOWN (OPPDATERT) ---
+function updateYearDropdown() {
     if (!monthFilter) return;
     
-    const monthsFound = new Set();
+    const yearsFound = new Set();
     keys.forEach(key => {
         const isoDate = getIsoDateFromKey(key, attendanceData);
         const parts = isoDate.split('-'); 
-        if (parts.length === 3) {
-            monthsFound.add(`${parts[1]}-${parts[0]}`); 
+        if (parts.length === 3 && parts[0] !== '1970') {
+            yearsFound.add(parts[0]); // Samler kun unike årstall (f.eks. "2026")
         }
     });
 
-    const sortedMonths = Array.from(monthsFound).sort((a, b) => {
-        const [mA, yA] = a.split('-');
-        const [mB, yB] = b.split('-');
-        return new Date(yA, mA - 1) - new Date(yB, mB - 1);
-    });
-
-    const currentMonthYear = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
+    // Sorterer årene kronologisk med nyeste år først
+    const sortedYears = Array.from(yearsFound).sort((a, b) => b - a);
+    const currentYear = new Date().getFullYear().toString();
     const previousSelection = monthFilter.value;
 
-    let filterHTML = '<option value="Alle">HELE SESONGEN</option>';
-    sortedMonths.forEach(mY => {
-        const [m, y] = mY.split('-');
-        filterHTML += `<option value="${mY}">${monthNames[parseInt(m) - 1].toUpperCase()} ${y}</option>`;
+    let filterHTML = '';
+    sortedYears.forEach(year => {
+        filterHTML += `<option value="${year}">SESONGEN ${year}</option>`;
     });
+    
+    // Fallback hvis databasen skulle være helt tom under oppstart
+    if (sortedYears.length === 0) {
+        filterHTML = `<option value="${currentYear}">SESONGEN ${currentYear}</option>`;
+    }
     
     monthFilter.innerHTML = filterHTML;
 
     if (previousSelection && Array.from(monthFilter.options).some(opt => opt.value === previousSelection)) {
         monthFilter.value = previousSelection;
-    } else if (monthsFound.has(currentMonthYear)) {
-        monthFilter.value = currentMonthYear;
+    } else if (yearsFound.has(currentYear)) {
+        monthFilter.value = currentYear;
     }
 }
 
@@ -194,7 +193,8 @@ function scrollToCurrentDate() {
 function renderMatrix() {
     if (!attendanceHeader || !attendanceBody || !monthFilter || !lagFilterSelect) return;
 
-    const selectedMonthYear = monthFilter.value;
+    // OPPDATERT: selectedYear inneholder nå årstallet (f.eks. "2026")
+    const selectedYear = monthFilter.value;
     const valgtLag = lagFilterSelect.value;
 
     // Filtrer øktene (kolonnene)
@@ -206,14 +206,13 @@ function renderMatrix() {
         const aktivitetGruppe = info.gruppe || 'Lag A';
         
         const isoDate = getIsoDateFromKey(key, attendanceData);
-        const parts = isoDate.split('-'); 
-
-        const matcherMåned = (selectedMonthYear === 'Alle' || `${parts[1]}-${parts[0]}` === selectedMonthYear);
+        const parts = isoDate.split('-'); // parts[0] er årstallet (yyyy)
         
-        // Sjekker om kolonnen skal vises ut fra valgt lag i header-filteret
+        // OPPDATERT: Sjekker om øktens årstall matcher det valgte året i dropdownen
+        const matcherÅr = (parts[0] === selectedYear);
         const matcherLag = (valgtLag === 'Alle' || aktivitetGruppe === valgtLag || aktivitetGruppe === 'Alle');
 
-        return matcherMåned && matcherLag;
+        return matcherÅr && matcherLag;
     });
 
     // Tegn header-raden
