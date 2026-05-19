@@ -995,23 +995,22 @@
         let firebaseEnabled = false;
 
         try {
-            // Logger inn anonymt
             await signInAnonymously(auth);
 
-            // Sjekk at db faktisk finnes før vi lager referanser
-            if (db) {
-                activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
-                activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
-                activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
-                activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
-                
-                firebaseEnabled = true;
-                console.log("Firebase lastet inn via firestore-config.js! 🎉");
-            } else {
-                throw new Error("DB er ikke initialisert");
-            }
+            // Vi sjekker eksplisitt at db ikke er null
+            if (!db) throw new Error("Database-objektet (db) er undefined!");
+
+            activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
+            activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
+            activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+            activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
+            
+            firebaseEnabled = true;
+            console.log("Firebase lastet inn via firestore-config.js! 🎉");
         } catch (err) {
-            console.warn("Firebase offline. Falling back to LocalStorage.", err);
+            console.error("Firebase feil:", err); // Bruk console.error for å se detaljer
+            firebaseEnabled = false;
+            loadAllFromLocalStorage(); // Fallback
         }
 
         function syncMatches(matchesData) {
