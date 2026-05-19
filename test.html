@@ -1,93 +1,53 @@
 <!DOCTYPE html>
 <html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin - BSK Fotball</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=2">
-    
-    <style>
-        .admin-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        .admin-section h3 {
-            color: var(--bsk-blue);
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #f1f2f6;
-            padding-bottom: 10px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .form-group label {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: var(--text-main);
-        }
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1.5px solid var(--border-color);
-            outline: none;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        .btn-admin {
-            background: var(--bsk-blue);
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-admin:hover {
-            opacity: 0.9;
-        }
-        .dynamic-list {
-            list-style: none;
-            padding: 0;
-            margin: 15px 0 0 0;
-        }
-        .dynamic-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-weight: 600;
-            border: 1px solid var(--border-color);
-        }
-        .btn-delete-list {
-            background: none;
-            border: none;
-            color: #d63031;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-    </style>
-</head>
+<!-- Desktop Sidebar Navigation -->
+    <aside class="hidden md:flex flex-col w-64 bg-bsk-blue text-white p-6 justify-between shrink-0">
+        <div>
+            <!-- BSK Logo Area -->
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="bg-bsk-yellow text-bsk-blue p-2.5 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-lg tracking-tight leading-none">BSK <span class="text-bsk-yellow">FOTBALL</span></h2>
+                    <span class="text-xs text-slate-300 font-medium">Kamp- & spillerportal</span>
+                </div>
+            </div>
+
+            <!-- Main Nav Links -->
+            <nav class="space-y-2">
+                <a href="#" id="sidebar-hjem" onclick="switchTab('hjem')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl bg-bsk-blueLight text-white font-semibold transition-all shadow-md">
+                    <i class="fa-solid fa-house text-bsk-yellow w-5 text-center"></i>
+                    <span>Hjem</span>
+                </a>
+                <a href="#" id="sidebar-kamper" onclick="switchTab('kamper')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
+                    <i class="fa-solid fa-calendar-days w-5 text-center"></i>
+                    <span>Terminliste</span>
+                </a>
+                <a href="#" id="sidebar-oppmote" onclick="switchTab('oppmote')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
+                    <i class="fa-solid fa-calendar text-center w-5"></i>
+                    <span>Kalender & Oppmøte</span>
+                </a>
+                <a href="#" id="sidebar-spillere" onclick="switchTab('spillere')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
+                    <i class="fa-solid fa-star w-5 text-center"></i>
+                    <span>Spillerbørs</span>
+                </a>
+                <a href="#" id="sidebar-tropp" onclick="switchTab('tropp')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
+                    <i class="fa-solid fa-users w-5 text-center"></i>
+                    <span>Spillerstall</span>
+                </a>
+                <a href="#" id="sidebar-statistikk" onclick="switchTab('statistikk')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
+                    <i class="fa-solid fa-chart-simple w-5 text-center"></i>
+                    <span>Statistikk</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="border-t border-slate-700 pt-4 text-xs text-slate-400">
+            <p class="font-semibold">Bækkelagets Sportsklub</p>
+            <p>© 2026 App Utvikling</p>
+        </div>
+    </aside>
 <body>
 
 <header class="top-bar">
