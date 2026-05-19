@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kamper - BSK Fotball</title>
     
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Custom Tailwind Configuration to match BSK Colors -->
     <script>
         tailwind.config = {
             theme: {
@@ -61,10 +58,8 @@
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
 
-    <!-- Desktop Sidebar Navigation -->
     <aside class="hidden md:flex flex-col w-64 bg-bsk-blue text-white p-6 justify-between shrink-0">
         <div>
-            <!-- BSK Logo Area -->
             <div class="flex items-center space-x-3 mb-8">
                 <div class="bg-bsk-yellow text-bsk-blue p-2.5 rounded-xl shadow-lg">
                     <i class="fa-solid fa-shield-halved text-xl"></i>
@@ -75,7 +70,6 @@
                 </div>
             </div>
 
-            <!-- Main Nav Links -->
             <nav class="space-y-2">
                 <a href="#" id="sidebar-hjem" onclick="switchTab('hjem')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl bg-bsk-blueLight text-white font-semibold transition-all shadow-md">
                     <i class="fa-solid fa-house text-bsk-yellow w-5 text-center"></i>
@@ -110,7 +104,6 @@
         </div>
     </aside>
 
-    <!-- Mobile Top Bar -->
     <header class="md:hidden bg-bsk-blue text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md h-14">
         <div class="flex items-center space-x-2">
             <div class="bg-bsk-yellow text-bsk-blue p-1.5 rounded-lg shadow-sm">
@@ -123,19 +116,15 @@
         </button>
     </header>
 
-    <!-- Main Scrollable Area -->
     <div class="flex-1 flex flex-col min-w-0 pb-20 md:pb-0 overflow-y-auto">
         
-        <!-- Action bar with filters -->
         <div id="action-bar-container" class="bg-white border-b border-slate-200 px-4 py-3 md:px-8 md:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sticky top-0 z-30">
             <div>
                 <h2 class="text-xl md:text-2xl font-bold text-slate-900" id="current-tab-title">Forside</h2>
             </div>
 
             <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <!-- Filters Layout -->
                 <div id="filter-controls-area" class="flex items-center gap-2 w-full sm:w-auto hidden">
-                    <!-- Month Filter -->
                     <div class="relative flex-1 sm:flex-none" id="month-filter-container">
                         <select id="monthFilter" onchange="applyFilters()" class="w-full sm:w-40 appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue cursor-pointer">
                             <option value="Alle">ALLE MÅNEDER</option>
@@ -155,7 +144,6 @@
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                     </div>
 
-                    <!-- Team Filter -->
                     <select id="lagFilterSelect" onchange="applyFilters(); handleTeamFilterChange();" class="w-full sm:w-40 appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue cursor-pointer">
                         <option value="Alle">ALLE LAG</option>
                     </select>
@@ -163,18 +151,14 @@
                 </div>
             </div>
 
-            <!-- Desktop Admin Gear -->
             <button onclick="switchTab('admin')" class="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-bsk-blue transition hover:rotate-90 duration-300 shadow-sm shrink-0" title="Admin / Innstillinger">
                 <i class="fa-solid fa-gear text-lg"></i>
             </button>
         </div>
     
-        <!-- Main Dynamic View Container -->
         <main class="flex-1 p-4 md:p-8 space-y-6 w-full" id="main-view">
             
-            <!-- Tab: Hjem (Forside / Dashboard) -->
             <div id="view-hjem" class="space-y-6">
-                <!-- Welcome Banner -->
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
                     <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
                         <i class="fa-solid fa-shield-halved text-[15rem]"></i>
@@ -191,48 +175,38 @@
                     </div>
                 </section>
 
-                <!-- Form Guide / Siste fem kamper -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-chart-line text-bsk-blue"></i>
                         Formkurve (Siste 5 spilte kamper)
                     </h3>
                     
-                    <!-- Dynamic form guide pills (Simple S/U/T circles only) -->
                     <div class="flex items-center gap-3 pt-1" id="hjem-form-guide-container">
-                        <!-- Populated dynamically via JS -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Next Matches and Next Events Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Next Match Widget -->
                     <div class="space-y-3">
                         <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-calendar-day text-bsk-blue"></i>
                             Neste Oppsatte Kamp
                         </h3>
                         <div id="hjem-next-match-container">
-                            <!-- Populated dynamically -->
-                        </div>
+                            </div>
                     </div>
 
-                    <!-- Next Activity Widget (calendar events) -->
                     <div class="space-y-3">
                         <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
                             <i class="fa-regular fa-calendar-check text-bsk-blue"></i>
                             Neste Klubbaktivitet
                         </h3>
                         <div id="hjem-next-event-container">
-                            <!-- Populated dynamically -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Tab: Kamper -->
             <div id="view-kamper" class="hidden space-y-6">
-                <!-- BSK Hero Stats -->
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
                     <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
                         <i class="fa-solid fa-shield-halved text-[15rem]"></i>
@@ -261,7 +235,6 @@
                     </div>
                 </section>
 
-                <!-- Match List Table Container -->
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse" id="matchTable">
@@ -278,8 +251,7 @@
                                 </tr>
                             </thead>
                             <tbody id="matchTableBody" class="divide-y divide-slate-100 text-sm">
-                                <!-- Generated Dynamically -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                     <div id="no-matches-view" class="hidden py-16 px-4 text-center text-slate-400">
@@ -290,12 +262,9 @@
                 </div>
             </div>
 
-            <!-- Tab: Oppmøte & Kjemi -->
             <div id="view-oppmote" class="hidden space-y-6">
                 
-                <!-- Calendar & Today's Events Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Visual Month Calendar -->
                     <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                             <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
@@ -313,7 +282,6 @@
                             </div>
                         </div>
 
-                        <!-- Days of Week labels -->
                         <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <div>Man</div>
                             <div>Tis</div>
@@ -324,12 +292,9 @@
                             <div>Søn</div>
                         </div>
 
-                        <!-- Calendar Days Grid -->
                         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
-                            <!-- Populated dynamically via JS -->
-                        </div>
+                            </div>
                         
-                        <!-- Calendar Legend -->
                         <div class="flex flex-wrap gap-4 pt-2 border-t border-slate-100 text-[10px] font-bold text-slate-500 uppercase">
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -350,7 +315,6 @@
                         </div>
                     </div>
 
-                    <!-- Selected Day Inspector -->
                     <div class="bg-gradient-to-br from-slate-550 to-slate-100 border border-slate-200 bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
                         <div class="space-y-4">
                             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -359,8 +323,7 @@
                             </div>
 
                             <div id="daily-events-list" class="space-y-2.5 overflow-y-auto max-h-[220px] pr-1">
-                                <!-- Populated based on selection -->
-                            </div>
+                                </div>
                         </div>
 
                         <div class="pt-4 border-t border-slate-100 flex gap-2">
@@ -380,7 +343,6 @@
                     </div>
                 </div>
 
-                <!-- Overview Statistics Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
                         <div class="p-3 bg-blue-100 text-bsk-blue rounded-xl text-xl">
@@ -411,9 +373,7 @@
                     </div>
                 </div>
 
-                <!-- Chemistry Section / Radarpar -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Kjemi Duos -->
                     <div class="lg:col-span-2 bg-gradient-to-br from-bsk-blue to-bsk-blueDark text-white p-6 rounded-2xl shadow-md space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="font-extrabold text-lg flex items-center gap-2">
@@ -427,11 +387,9 @@
                         </p>
                         
                         <div class="space-y-3 pt-2" id="top-chemistry-duos">
-                            <!-- Populated dynamically -->
-                        </div>
+                            </div>
                     </div>
 
-                    <!-- Individual Chemistry Checker -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
                         <div class="space-y-4">
                             <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
@@ -441,8 +399,7 @@
                             <div class="space-y-1">
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Velg spiller</label>
                                 <select id="chemistryPlayerSelect" onchange="checkIndividualChemistry()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
-                                    <!-- Populated dynamically -->
-                                </select>
+                                    </select>
                             </div>
 
                             <div id="individual-chemistry-result" class="hidden text-center py-4 space-y-3">
@@ -466,9 +423,7 @@
                     </div>
                 </div>
 
-                <!-- Event list and Player Ranking -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Attendance list table -->
                     <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <div class="p-5 border-b border-slate-150 flex justify-between items-center">
                             <h3 class="font-extrabold text-sm text-slate-900">Event-logg og registrering</h3>
@@ -489,8 +444,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="eventTableBody" class="divide-y divide-slate-100 text-xs">
-                                    <!-- Dynamic rows -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                         <div id="no-events-view" class="hidden py-12 text-center text-slate-400">
@@ -500,7 +454,6 @@
                         </div>
                     </div>
 
-                    <!-- Player Reliability / Loyalty list -->
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <div class="p-5 border-b border-slate-150">
                             <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
@@ -509,44 +462,36 @@
                             </h3>
                         </div>
                         <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="player-loyalty-list">
-                            <!-- Dynamic records -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab: Spillere (Spillerbørs) -->
             <div id="view-spillere" class="hidden space-y-6">
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <p class="text-xs text-slate-500 mb-6">Velg en kamp fra terminlisten for å gi karakterer og registrere målscorere for de ulike spillerne.</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Top Scorers Card -->
                         <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
                             <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-fire text-amber-500"></i> Toppscorere
                             </h4>
                             <div class="space-y-3" id="top-scorers-list">
-                                <!-- Dynamically loaded top scorers -->
-                            </div>
+                                </div>
                         </div>
 
-                        <!-- Highest Rated Players Card -->
                         <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
                             <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-star text-yellow-500"></i> Høyest Snittkarakter
                             </h4>
                             <div class="space-y-3" id="top-rated-list">
-                                <!-- Dynamically loaded player ratings -->
-                            </div>
+                                </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab: Tropp (Spillerstall) -->
             <div id="view-tropp" class="hidden space-y-6">
-                <!-- Spiller-stall Hero Stats -->
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
                     <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
                         <i class="fa-solid fa-users text-[15rem]"></i>
@@ -564,7 +509,6 @@
                     </div>
                 </section>
 
-                <!-- Players Roster Table Container -->
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse" id="playerTable">
@@ -580,14 +524,12 @@
                                 </tr>
                             </thead>
                             <tbody id="playerTableBody" class="divide-y divide-slate-100 text-sm">
-                                <!-- Generated Dynamically -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab: Statistikk -->
             <div id="view-statistikk" class="hidden space-y-6">
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <h3 class="font-bold text-lg text-slate-900 mb-2">Sesongstatistikk</h3>
@@ -614,9 +556,7 @@
                 </div>
             </div>
 
-            <!-- Tab: Admin -->
             <div id="view-admin" class="hidden space-y-6">
-                <!-- PIN-Password Gate -->
                 <div id="admin-gate" class="bg-white border border-slate-200 rounded-2xl p-8 max-w-md mx-auto text-center shadow-md">
                     <div class="bg-bsk-yellow/15 text-bsk-blue inline-flex p-4 rounded-full mb-4">
                         <i class="fa-solid fa-lock text-3xl"></i>
@@ -628,7 +568,6 @@
                     <p class="text-[10px] text-slate-400 mt-4">Hint: BSK ble stiftet i 1908!</p>
                 </div>
 
-                <!-- Admin Content -->
                 <div id="admin-panel-content" class="hidden space-y-6">
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -642,8 +581,7 @@
                             </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="admin-teams-list">
-                            <!-- Populated Dynamically with team info cards -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -651,7 +589,6 @@
         </main>
     </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-bsk-blue text-slate-300 border-t border-slate-700 flex justify-around items-center h-16 z-40">
         <button onclick="switchTab('hjem')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition active-nav text-bsk-yellow">
             <i class="fa-solid fa-house text-base mb-0.5"></i>
@@ -675,12 +612,10 @@
         </button>
     </nav>
 
-    <!-- Floating Action Trigger -->
     <button id="floating-action-btn" class="fixed right-6 bottom-20 md:bottom-8 w-14 h-14 bg-bsk-yellow hover:bg-bsk-yellowDark text-bsk-blue font-black rounded-full shadow-xl flex items-center justify-center text-xl transition active:scale-95 hover:scale-105 z-30 hidden" onclick="handleFloatingAction()" title="Registrer ny oppføring">
         <i id="floating-btn-icon" class="fa-solid fa-plus"></i>
     </button>
 
-    <!-- Custom Premium Confirmation Modal (Replaces native confirm dialogs) -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center space-y-4">
             <div class="bg-amber-100 text-amber-800 inline-flex p-3 rounded-full">
@@ -695,7 +630,6 @@
         </div>
     </div>
 
-    <!-- Modal: Register / Edit Match -->
     <div id="matchModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -743,8 +677,7 @@
                     <div class="col-span-1">
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velg Lag</label>
                         <select id="matchGroup" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
-                            <!-- Dynamic selector loaded from active teams -->
-                        </select>
+                            </select>
                     </div>
                     <div class="col-span-1">
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Resultat (Valgfritt)</label>
@@ -764,7 +697,6 @@
         </div>
     </div>
 
-    <!-- Modal: Register / Edit Event (Attendance event) -->
     <div id="eventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -797,8 +729,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">For hvilket lag</label>
                         <select id="eventTeam" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
-                            <!-- Populated dynamically -->
-                        </select>
+                            </select>
                     </div>
                 </div>
 
@@ -819,7 +750,6 @@
         </div>
     </div>
 
-    <!-- Modal: Mark Attendance Check-list -->
     <div id="attendanceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -832,10 +762,8 @@
                 </button>
             </div>
 
-            <!-- Attendance checkboxes container -->
             <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="attendance-players-list">
-                <!-- Loaded dynamically -->
-            </div>
+                </div>
 
             <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
                 <button onclick="saveAttendanceRegistry()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
@@ -848,7 +776,6 @@
         </div>
     </div>
 
-    <!-- Modal: Register / Edit Player -->
     <div id="playerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -892,8 +819,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tilhører lag</label>
                     <select id="playerTeamInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
-                        <!-- Loaded dynamically with active teams -->
-                    </select>
+                        </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -952,7 +878,6 @@
         </div>
     </div>
 
-    <!-- Modal: Register / Edit Team -->
     <div id="teamModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -999,7 +924,6 @@
         </div>
     </div>
 
-    <!-- Modal: Match Details & Quick Ratings -->
     <div id="matchInfoModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -1009,12 +933,9 @@
                 </button>
             </div>
 
-            <!-- Key Match Metadata Info -->
             <div id="matchInfoDetails" class="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100 text-sm">
-                <!-- Dynamically loaded indicators -->
-            </div>
+                </div>
 
-            <!-- Expandable Registrations Section -->
             <div class="mt-4">
                 <button onclick="toggleStatsSection()" class="w-full flex justify-between items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-xl transition-all">
                     <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
@@ -1024,11 +945,9 @@
                     <i id="statsChevron" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
                 </button>
 
-                <!-- Hidden form container opened via accordion toggle -->
                 <div id="postMatchStatsSection" class="hidden border border-t-0 border-slate-200 rounded-b-xl p-4 bg-white max-h-60 overflow-y-auto divide-y divide-slate-100">
                     <div id="playerRatingFormList">
-                        <!-- Populated dynamic player registers -->
-                    </div>
+                        </div>
                     <div class="pt-4 mt-2">
                         <button onclick="savePlayerMatchStats()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-xs py-2.5 rounded-xl transition">
                             Lagre Matchstatistikk & Karakterbørs
@@ -1037,7 +956,6 @@
                 </div>
             </div>
 
-            <!-- Admin specific editing and deleting controls -->
             <div class="mt-6 flex gap-2 justify-end">
                 <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
                     <i class="fa-solid fa-pen"></i> Rediger kamp
@@ -1049,7 +967,6 @@
         </div>
     </div>
 
-    <!-- Initialize Global States Immediately -->
     <script>
         window.activeMatches = [];
         window.activeTeams = [];
@@ -1059,14 +976,14 @@
         window.selectedCalendarDateStr = "2026-05-19";
     </script>
 
-    <!-- Firebase System Module Integration -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const DEFAULT_APP_ID = "bsk-fotball-app";
-        const appId = typeof __app_id !== 'undefined' ? __app_id : DEFAULT_APP_ID;
+        // Importer databasen og autentiseringen fra din eksterne fil
+        import { db, auth } from './firestore-config.js';
+
+        const appId = "bsk-fotball-app";
         
         // Initial Mock Databases
         const initialMockPlayers = [
@@ -1141,8 +1058,6 @@
             }
         ];
 
-        let db = null;
-        let auth = null;
         let activeMatchesCollectionRef = null;
         let activeTeamsCollectionRef = null;
         let activePlayersCollectionRef = null;
@@ -1150,21 +1065,16 @@
         let firebaseEnabled = false;
 
         try {
-            if (typeof __firebase_config !== 'undefined') {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+            // Siden db og auth nå kommer fra firestore-config.js, logger vi inn anonymt
+            await signInAnonymously(auth);
 
-                await signInAnonymously(auth);
-
-                activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
-                activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
-                activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
-                activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
-                firebaseEnabled = true;
-                console.log("Firebase loaded successfully.");
-            }
+            activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
+            activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
+            activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+            activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
+            
+            firebaseEnabled = true;
+            console.log("Firebase lastet inn via firestore-config.js! 🎉");
         } catch (err) {
             console.warn("Firebase offline. Falling back to LocalStorage.", err);
         }
@@ -1368,7 +1278,6 @@
         };
     </script>
 
-    <!-- App Flow Scripts -->
     <script>
         // Reusable custom confirmation modal implementation (replaces confirm)
         let customConfirmCallback = null;
@@ -2202,7 +2111,7 @@
             infoModal.classList.add('flex');
         }
 
-        window.closeMatchInfo = function() {
+        function closeMatchInfo() {
             const infoModal = document.getElementById('matchInfoModal');
             infoModal.classList.add('hidden');
             infoModal.classList.remove('flex');
@@ -2714,13 +2623,13 @@
             }
         }
 
-        window.navigateCalendar = function(direction) {
+        function navigateCalendar(direction) {
             const current = window.currentCalendarDate;
             window.currentCalendarDate = new Date(current.getFullYear(), current.getMonth() + direction, 1);
             renderCalendar();
         };
 
-        window.renderCalendar = function() {
+        function renderCalendar() {
             const grid = document.getElementById('calendar-days-grid');
             if (!grid) return;
 
@@ -2792,12 +2701,12 @@
             updateDailySchedule();
         };
 
-        window.selectCalendarDate = function(dateStr) {
+        function selectCalendarDate(dateStr) {
             window.selectedCalendarDateStr = dateStr;
             renderCalendar();
         };
 
-        window.updateDailySchedule = function() {
+        function updateDailySchedule() {
             const listContainer = document.getElementById('daily-events-list');
             const headerDate = document.getElementById('selected-calendar-date');
             if (!listContainer) return;
@@ -2867,7 +2776,7 @@
             });
         };
 
-        window.quickAddEvent = function(type) {
+        function quickAddEvent(type) {
             if (type === 'Kamp') {
                 window.openMatchModal();
                 document.getElementById('matchDate').value = window.selectedCalendarDateStr;
