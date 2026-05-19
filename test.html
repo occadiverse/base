@@ -1,6 +1,67 @@
 <!DOCTYPE html>
-<html lang="no">
-<!-- Desktop Sidebar Navigation -->
+<html lang="no" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kamper - BSK Fotball</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Configuration to match BSK Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bsk: {
+                            blue: '#003366',      // Klassisk mørkeblå BSK-farge
+                            blueLight: '#004488', 
+                            blueDark: '#002244',
+                            yellow: '#ffd700',    // BSK Gulgull
+                            yellowDark: '#e0be00',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .active-nav {
+            color: #ffd700 !important;
+            border-top: 3px solid #ffd700;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen text-slate-800">
+
+    <!-- Desktop Sidebar Navigation -->
     <aside class="hidden md:flex flex-col w-64 bg-bsk-blue text-white p-6 justify-between shrink-0">
         <div>
             <!-- BSK Logo Area -->
@@ -48,55 +109,2990 @@
             <p>© 2026 App Utvikling</p>
         </div>
     </aside>
-<body>
 
-<header class="top-bar">
-    <a href="index.html" class="logo-brand"><i class="fa-solid fa-shield-halved"></i>BSK <span>Fotball</span></a>
-    <h1 class="section-title">Konfigurasjon</h1>
-    <div class="filter-wrapper"></div> <!-- Holdes tom og ren -->
-</header>
-
-<div class="sidebar" id="sidebar"></div>
-<nav class="bottom-nav"></nav>
-
-<main class="main-content">
-    
-    <!-- SEKSJON 1: KLUBB & TRENERINFO -->
-    <section class="admin-section">
-        <h3><i class="fa-solid fa-circle-info"></i> Trener & Laginfo</h3>
-        <form id="clubInfoForm">
-            <div class="form-group">
-                <label>Hovedtrener</label>
-                <input type="text" id="coachName" placeholder="F.eks. Christian" class="form-control">
+    <!-- Mobile Top Bar -->
+    <header class="md:hidden bg-bsk-blue text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md h-14">
+        <div class="flex items-center space-x-2">
+            <div class="bg-bsk-yellow text-bsk-blue p-1.5 rounded-lg shadow-sm">
+                <i class="fa-solid fa-shield-halved text-sm"></i>
             </div>
-            <div class="form-group">
-                <label>Klubbnavn / Divisjon</label>
-                <input type="text" id="clubDivision" placeholder="F.eks. BSK - 5. divisjon" class="form-control">
-            </div>
-            <button type="submit" class="btn-admin"><i class="fa-solid fa-floppy-disk"></i> Lagre innstillinger</button>
-        </form>
-    </section>
+            <span class="font-black text-base tracking-tight leading-none">BSK <span class="text-bsk-yellow">FOTBALL</span></span>
+        </div>
+        <button onclick="switchTab('admin')" class="text-slate-300 hover:text-white transition hover:rotate-90 duration-300" title="Innstillinger / Admin">
+            <i class="fa-solid fa-gear text-xl"></i>
+        </button>
+    </header>
 
-    <!-- SEKSJON 2: DYNAMISK LAGADMINISTRASJON -->
-    <section class="admin-section">
-        <h3><i class="fa-solid fa-people-group"></i> Administrer Lag i Troppen</h3>
-        <form id="addTeamForm" style="display: flex; gap: 10px; align-items: flex-end;">
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                <label>Nytt lagnavn</label>
-                <input type="text" id="newTeamName" placeholder="F.eks. Lag C eller G19" required class="form-control">
-            </div>
-            <button type="submit" class="btn-admin" style="height: 46px;"><i class="fa-solid fa-plus"></i> Legg til</button>
-        </form>
+    <!-- Main Scrollable Area -->
+    <div class="flex-1 flex flex-col min-w-0 pb-20 md:pb-0 overflow-y-auto">
         
-        <ul id="teamListDisplay" class="dynamic-list">
-            <!-- Her strømmes lagene ut live fra Firebase -->
-        </ul>
-    </section>
+        <!-- Action bar with filters -->
+        <div id="action-bar-container" class="bg-white border-b border-slate-200 px-4 py-3 md:px-8 md:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sticky top-0 z-30">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold text-slate-900" id="current-tab-title">Forside</h2>
+            </div>
 
-</main>
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <!-- Filters Layout -->
+                <div id="filter-controls-area" class="flex items-center gap-2 w-full sm:w-auto hidden">
+                    <!-- Month Filter -->
+                    <div class="relative flex-1 sm:flex-none" id="month-filter-container">
+                        <select id="monthFilter" onchange="applyFilters()" class="w-full sm:w-40 appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue cursor-pointer">
+                            <option value="Alle">ALLE MÅNEDER</option>
+                            <option value="0">Januar</option>
+                            <option value="1">Februar</option>
+                            <option value="2">Mars</option>
+                            <option value="3">April</option>
+                            <option value="4">Mai</option>
+                            <option value="5">Juni</option>
+                            <option value="6">Juli</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">Oktober</option>
+                            <option value="10">November</option>
+                            <option value="11">Desember</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
 
-<script type="module" src="test.js"></script>
-<script src="navigation.js"></script>
+                    <!-- Team Filter -->
+                    <select id="lagFilterSelect" onchange="applyFilters(); handleTeamFilterChange();" class="w-full sm:w-40 appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue cursor-pointer">
+                        <option value="Alle">ALLE LAG</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                </div>
+            </div>
 
+            <!-- Desktop Admin Gear -->
+            <button onclick="switchTab('admin')" class="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-bsk-blue transition hover:rotate-90 duration-300 shadow-sm shrink-0" title="Admin / Innstillinger">
+                <i class="fa-solid fa-gear text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+        <!-- Main Dynamic View Container -->
+        <main class="flex-1 p-4 md:p-8 space-y-6 max-w-6xl w-full mx-auto" id="main-view">
+            
+            <!-- Tab: Hjem (Forside / Dashboard) -->
+            <div id="view-hjem" class="space-y-6">
+                <!-- Welcome Banner -->
+                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
+                        <i class="fa-solid fa-shield-halved text-[15rem]"></i>
+                    </div>
+                    <div class="relative z-10 space-y-3">
+                        <div class="inline-flex items-center space-x-2 bg-bsk-yellow/10 text-bsk-yellow px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                            <i class="fa-solid fa-futbol text-[10px]"></i>
+                            <span>Klubb-Dashboard</span>
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black text-white">Velkommen til Portal-Forsiden!</h3>
+                        <p class="text-xs md:text-sm text-slate-200 max-w-2xl font-medium leading-relaxed">
+                            Her finner du en rask oversikt over det som skjer i Bækkelagets Sportsklub. Følg med på kommende økter, formkurve og resultater for dine valgte lag.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Form Guide / Siste fem kamper -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-bsk-blue"></i>
+                        Formkurve (Siste 5 spilte kamper)
+                    </h3>
+                    
+                    <!-- Dynamic form guide pills (Simple S/U/T circles only) -->
+                    <div class="flex items-center gap-3 pt-1" id="hjem-form-guide-container">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Next Matches and Next Events Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Next Match Widget -->
+                    <div class="space-y-3">
+                        <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-day text-bsk-blue"></i>
+                            Neste Oppsatte Kamp
+                        </h3>
+                        <div id="hjem-next-match-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Next Activity Widget (calendar events) -->
+                    <div class="space-y-3">
+                        <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                            <i class="fa-regular fa-calendar-check text-bsk-blue"></i>
+                            Neste Klubbaktivitet
+                        </h3>
+                        <div id="hjem-next-event-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: Kamper -->
+            <div id="view-kamper" class="hidden space-y-6">
+                <!-- BSK Hero Stats -->
+                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
+                        <i class="fa-solid fa-shield-halved text-[15rem]"></i>
+                    </div>
+                    <div class="relative z-10 space-y-4">
+                        <div class="inline-flex items-center space-x-2 bg-bsk-yellow/10 text-bsk-yellow px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                            <i class="fa-solid fa-circle-play text-[8px] animate-pulse"></i>
+                            <span>LIVE-STUDIO</span>
+                        </div>
+                        <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
+                            Neste kamp er mot <span class="text-bsk-yellow font-bold underline" id="stat-next-opponent">Laster...</span> den 
+                            <span class="text-white font-bold" id="stat-next-match">Laster...</span>. 
+                            Sesongen så langt har gitt oss <span class="text-bsk-yellow font-black" id="stat-wins">0 seire</span> 
+                            og totalt har vi hamret inn <span class="text-bsk-yellow font-black" id="stat-goals">0 scorede mål</span>!
+                        </p>
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <div class="bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl text-center min-w-[100px]">
+                                <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-300">Kamper Spilt</span>
+                                <span class="text-xl font-extrabold text-white" id="stat-total-played">0</span>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl text-center min-w-[100px]">
+                                <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-300">Uavgjort / Tap</span>
+                                <span class="text-xl font-extrabold text-white" id="stat-draws-losses">0 / 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Match List Table Container -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="matchTable">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-4 md:px-6">Lag</th>
+                                    <th class="py-4 px-4 md:px-6">Motstander</th> 
+                                    <th class="py-4 px-4 text-center w-24">Dato</th>
+                                    <th class="py-4 px-2 text-center w-16">Kl.</th>
+                                    <th class="py-4 px-4 text-center w-20">Resultat</th>
+                                    <th class="py-4 px-6 text-left hidden lg:table-cell">Bane</th>
+                                    <th class="py-4 px-6 text-left hidden lg:table-cell">Type</th>
+                                    <th class="py-4 px-6 text-right w-24">Detaljer</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matchTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Generated Dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="no-matches-view" class="hidden py-16 px-4 text-center text-slate-400">
+                        <i class="fa-solid fa-futbol text-4xl mb-3 text-slate-300"></i>
+                        <p class="font-bold text-slate-600">Ingen kamper funnet</p>
+                        <p class="text-xs mt-1">Prøv å endre på filtrene dine, eller registrer et nytt lag/kamp under Admin.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Oppmøte & Kjemi -->
+            <div id="view-oppmote" class="hidden space-y-6">
+                
+                <!-- Calendar & Today's Events Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Visual Month Calendar -->
+                    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-calendar text-bsk-blue"></i>
+                                Klubbkalender & Terminbok
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <button onclick="navigateCalendar(-1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <span id="calendar-month-year" class="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Mai 2026</span>
+                                <button onclick="navigateCalendar(1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Days of Week labels -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <div>Man</div>
+                            <div>Tis</div>
+                            <div>Ons</div>
+                            <div>Tor</div>
+                            <div>Fre</div>
+                            <div>Lør</div>
+                            <div>Søn</div>
+                        </div>
+
+                        <!-- Calendar Days Grid -->
+                        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Calendar Legend -->
+                        <div class="flex flex-wrap gap-4 pt-2 border-t border-slate-100 text-[10px] font-bold text-slate-500 uppercase">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span>Kamper</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                <span>Treninger</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                                <span>Sosialt</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <span>Dugnad / Annet</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Day Inspector -->
+                    <div class="bg-gradient-to-br from-slate-550 to-slate-100 border border-slate-200 bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                                <h4 class="font-extrabold text-xs text-slate-400 uppercase tracking-wider">Dagens Program</h4>
+                                <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/15 px-2.5 py-1 rounded-full">19. mai 2026</span>
+                            </div>
+
+                            <div id="daily-events-list" class="space-y-2.5 overflow-y-auto max-h-[220px] pr-1">
+                                <!-- Populated based on selection -->
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100 flex gap-2">
+                            <button onclick="quickAddEvent('Trening')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
+                                <i class="fa-solid fa-person-running text-blue-500 text-sm"></i>
+                                <span>Ny Trening</span>
+                            </button>
+                            <button onclick="quickAddEvent('Kamp')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
+                                <i class="fa-solid fa-futbol text-emerald-500 text-sm"></i>
+                                <span>Ny Kamp</span>
+                            </button>
+                            <button onclick="quickAddEvent('Sosialt')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
+                                <i class="fa-solid fa-cake-candles text-purple-500 text-sm"></i>
+                                <span>Sosialt / Fest</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-blue-100 text-bsk-blue rounded-xl text-xl">
+                            <i class="fa-solid fa-users-rectangle"></i>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Førte eventer</span>
+                            <span class="text-2xl font-black text-slate-900" id="total-events-count">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-100 text-emerald-800 rounded-xl text-xl">
+                            <i class="fa-solid fa-check-double"></i>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Snitt oppmøte</span>
+                            <span class="text-2xl font-black text-slate-900" id="avg-attendance-rate">0%</span>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-yellow-100 text-yellow-800 rounded-xl text-xl">
+                            <i class="fa-solid fa-hands-holding-child"></i>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Beste Lagkjemi</span>
+                            <span class="text-2xl font-black text-slate-900" id="best-team-chemistry">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chemistry Section / Radarpar -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Kjemi Duos -->
+                    <div class="lg:col-span-2 bg-gradient-to-br from-bsk-blue to-bsk-blueDark text-white p-6 rounded-2xl shadow-md space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-extrabold text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-flask text-bsk-yellow"></i>
+                                Kjemi-koblinger &amp; Radarpar
+                            </h3>
+                            <span class="bg-white/10 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider text-bsk-yellow">Basert på felles oppmøte</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Når spillere deltar på samme treninger, kamper og lag-eventer, øker kjemiscoren deres. Her ser du hvem som danner lagets sterkeste forbindelser akkurat nå.
+                        </p>
+                        
+                        <div class="space-y-3 pt-2" id="top-chemistry-duos">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Individual Chemistry Checker -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-nodes text-bsk-blue"></i>
+                                Sjekk din partner
+                            </h3>
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Velg spiller</label>
+                                <select id="chemistryPlayerSelect" onchange="checkIndividualChemistry()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div id="individual-chemistry-result" class="hidden text-center py-4 space-y-3">
+                                <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
+                                    <svg class="w-full h-full transform -rotate-90">
+                                        <circle cx="48" cy="48" r="40" stroke="#f1f5f9" stroke-width="8" fill="transparent" />
+                                        <circle id="chem-circle-progress" cx="48" cy="48" r="40" stroke="#ffd700" stroke-width="8" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round" class="transition-all duration-1000" />
+                                    </svg>
+                                    <span class="absolute text-lg font-black text-slate-800" id="individual-chem-pct">0%</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Perfekt Kjemimatch</p>
+                                    <h4 class="font-extrabold text-bsk-blue text-sm mt-0.5" id="individual-partner-name">-</h4>
+                                    <p class="text-[10px] text-slate-500 italic mt-1" id="individual-partner-desc">Har trent 0 økter sammen</p>
+                                </div>
+                            </div>
+                            <div id="individual-chemistry-empty" class="text-center py-8 text-slate-400 text-xs italic">
+                                Legg til spillere og før oppmøte for å se kjemipartneren din.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event list and Player Ranking -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Attendance list table -->
+                    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-150 flex justify-between items-center">
+                            <h3 class="font-extrabold text-sm text-slate-900">Event-logg og registrering</h3>
+                            <button onclick="openEventModal()" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-[11px] font-bold px-3 py-2 rounded-xl flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-bsk-yellow"></i>
+                                Nytt Event
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                                        <th class="py-3 px-4">Event</th>
+                                        <th class="py-3 px-4">Type</th>
+                                        <th class="py-3 px-4 text-center">Dato</th>
+                                        <th class="py-3 px-4 text-center">Tilstede</th>
+                                        <th class="py-3 px-6 text-right">Handlinger</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventTableBody" class="divide-y divide-slate-100 text-xs">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="no-events-view" class="hidden py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-calendar-xmark text-3xl mb-2 text-slate-300"></i>
+                            <p class="font-bold text-slate-600">Ingen eventer registrert</p>
+                            <p class="text-[10px] mt-0.5">Opprett et event (f.eks. en trening) for å starte registrering.</p>
+                        </div>
+                    </div>
+
+                    <!-- Player Reliability / Loyalty list -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-150">
+                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-award text-yellow-500"></i>
+                                Innsats og Jernmenn
+                            </h3>
+                        </div>
+                        <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="player-loyalty-list">
+                            <!-- Dynamic records -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Spillere (Spillerbørs) -->
+            <div id="view-spillere" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <p class="text-xs text-slate-500 mb-6">Velg en kamp fra terminlisten for å gi karakterer og registrere målscorere for de ulike spillerne.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Top Scorers Card -->
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-fire text-amber-500"></i> Toppscorere
+                            </h4>
+                            <div class="space-y-3" id="top-scorers-list">
+                                <!-- Dynamically loaded top scorers -->
+                            </div>
+                        </div>
+
+                        <!-- Highest Rated Players Card -->
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-star text-yellow-500"></i> Høyest Snittkarakter
+                            </h4>
+                            <div class="space-y-3" id="top-rated-list">
+                                <!-- Dynamically loaded player ratings -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Tropp (Spillerstall) -->
+            <div id="view-tropp" class="hidden space-y-6">
+                <!-- Spiller-stall Hero Stats -->
+                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
+                        <i class="fa-solid fa-users text-[15rem]"></i>
+                    </div>
+                    <div class="relative z-10 space-y-4">
+                        <div class="inline-flex items-center space-x-2 bg-bsk-yellow/10 text-bsk-yellow px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                            <i class="fa-solid fa-users-viewfinder text-[10px]"></i>
+                            <span>SPILLERSTALL</span>
+                        </div>
+                        <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
+                            I den valgte troppen har vi totalt registrert <span class="text-bsk-yellow font-black" id="stat-total-players">0 spillere</span> 
+                            med en gjennomsnittsalder på <span class="text-bsk-yellow font-black" id="stat-avg-age">0 år</span>. 
+                            For øyeblikket har vi <span class="text-bsk-yellow font-black" id="stat-total-rekrutt">0 rekrutter</span> tilknyttet troppen.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Players Roster Table Container -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="playerTable">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-4 md:px-6">Navn</th>
+                                    <th class="py-4 px-4 text-center w-20"># (Drakt)</th>
+                                    <th class="py-4 px-4">Posisjon (Hoved / Sekundær)</th>
+                                    <th class="py-4 px-4 text-center w-24">Fot</th>
+                                    <th class="py-4 px-4 text-center w-24">Alder</th>
+                                    <th class="py-4 px-4 text-center w-24">Status</th>
+                                    <th class="py-4 px-6 text-right w-24">Handlinger</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playerTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Generated Dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Statistikk -->
+            <div id="view-statistikk" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-900 mb-2">Sesongstatistikk</h3>
+                    <p class="text-xs text-slate-500 mb-6">Her ser du en oppsummering av lagets prestasjoner totalt.</p>
+                    
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-emerald-700 uppercase">Seire</span>
+                            <span class="text-3xl font-black text-emerald-800" id="stats-page-wins">0</span>
+                        </div>
+                        <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-amber-700 uppercase">Uavgjorte</span>
+                            <span class="text-3xl font-black text-amber-800" id="stats-page-draws">0</span>
+                        </div>
+                        <div class="p-4 bg-rose-50 border border-rose-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-rose-700 uppercase">Tap</span>
+                            <span class="text-3xl font-black text-rose-800" id="stats-page-losses">0</span>
+                        </div>
+                        <div class="p-4 bg-sky-50 border border-sky-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-sky-700 uppercase">Mål Scoret</span>
+                            <span class="text-3xl font-black text-sky-800" id="stats-page-goals">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Admin -->
+            <div id="view-admin" class="hidden space-y-6">
+                <!-- PIN-Password Gate -->
+                <div id="admin-gate" class="bg-white border border-slate-200 rounded-2xl p-8 max-w-md mx-auto text-center shadow-md">
+                    <div class="bg-bsk-yellow/15 text-bsk-blue inline-flex p-4 rounded-full mb-4">
+                        <i class="fa-solid fa-lock text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Skriv PIN-kode for Admin</h3>
+                    <p class="text-xs text-slate-500 mb-6">Skriv stiftelsesåret til Bækkelagets Sportsklub (4 siffer) for å få tilgang.</p>
+                    <input type="password" id="adminPinInput" maxlength="4" placeholder="••••" class="w-32 text-center text-2xl tracking-widest border-2 border-slate-200 rounded-xl py-2 px-3 focus:border-bsk-blue focus:outline-none mb-4">
+                    <button onclick="verifyAdminPin()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold py-3 px-6 rounded-xl transition duration-150">Lås opp</button>
+                    <p class="text-[10px] text-slate-400 mt-4">Hint: BSK ble stiftet i 1908!</p>
+                </div>
+
+                <!-- Admin Content -->
+                <div id="admin-panel-content" class="hidden space-y-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="font-extrabold text-lg text-slate-950">Administrasjon av lag</h3>
+                                <p class="text-xs text-slate-500">Opprett flere lag, legg til lagleder, trenerinfo og beskrivelser.</p>
+                            </div>
+                            <button onclick="openTeamModal()" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-2 shadow-sm transition">
+                                <i class="fa-solid fa-plus text-bsk-yellow"></i>
+                                Opprett nytt lag
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="admin-teams-list">
+                            <!-- Populated Dynamically with team info cards -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-bsk-blue text-slate-300 border-t border-slate-700 flex justify-around items-center h-16 z-40">
+        <button onclick="switchTab('hjem')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition active-nav text-bsk-yellow">
+            <i class="fa-solid fa-house text-base mb-0.5"></i>
+            <span>Hjem</span>
+        </button>
+        <button onclick="switchTab('kamper')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
+            <i class="fa-solid fa-calendar-days text-base mb-0.5"></i>
+            <span>Kamper</span>
+        </button>
+        <button onclick="switchTab('oppmote')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
+            <i class="fa-solid fa-calendar text-base mb-0.5"></i>
+            <span>Kalender</span>
+        </button>
+        <button onclick="switchTab('spillere')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
+            <i class="fa-solid fa-star text-base mb-0.5"></i>
+            <span>Børs</span>
+        </button>
+        <button onclick="switchTab('tropp')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
+            <i class="fa-solid fa-users text-base mb-0.5"></i>
+            <span>Tropp</span>
+        </button>
+    </nav>
+
+    <!-- Floating Action Trigger -->
+    <button id="floating-action-btn" class="fixed right-6 bottom-20 md:bottom-8 w-14 h-14 bg-bsk-yellow hover:bg-bsk-yellowDark text-bsk-blue font-black rounded-full shadow-xl flex items-center justify-center text-xl transition active:scale-95 hover:scale-105 z-30 hidden" onclick="handleFloatingAction()" title="Registrer ny oppføring">
+        <i id="floating-btn-icon" class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- Custom Premium Confirmation Modal (Replaces native confirm dialogs) -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center space-y-4">
+            <div class="bg-amber-100 text-amber-800 inline-flex p-3 rounded-full">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+            </div>
+            <h3 class="font-extrabold text-lg text-bsk-blue" id="confirmTitle">Bekreft handling</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" id="confirmMessage">Er du sikker på at du ønsker å utføre denne handlingen?</p>
+            <div class="flex gap-3 pt-2">
+                <button id="confirmYesBtn" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-2.5 px-4 rounded-xl text-xs transition">JA, UTØR</button>
+                <button id="confirmNoBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs transition">AVBRYT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Register / Edit Match -->
+    <div id="matchModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="modalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Kamp
+                </h3>
+                <button onclick="window.closeMatchModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="matchForm" onsubmit="saveMatch(event)" class="space-y-4">
+                <input type="hidden" id="editMatchId">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dato</label>
+                        <input type="date" id="matchDate" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Klokkeslett</label>
+                        <input type="time" id="matchTime" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Motstander</label>
+                    <input type="text" id="opponent" placeholder="Navn på motstanderlag" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Bane / Sted</label>
+                    <input type="text" id="pitch" placeholder="F.eks. Ekeberg Kunstgress, Sportsplassen..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kamp-type</label>
+                        <select id="matchType" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-medium">
+                            <option value="Serie">Serie</option>
+                            <option value="Cup">Cup</option>
+                            <option value="Treningskamp">Trening</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velg Lag</label>
+                        <select id="matchGroup" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                            <!-- Dynamic selector loaded from active teams -->
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Resultat (Valgfritt)</label>
+                        <input type="text" id="result" placeholder="f.eks. 3-1" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        LAGRE KAMP
+                    </button>
+                    <button type="button" onclick="window.closeMatchModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Register / Edit Event (Attendance event) -->
+    <div id="eventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="eventModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-bsk-yellow"></i> Opprett Event / Trening
+                </h3>
+                <button onclick="closeEventModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="eventForm" onsubmit="saveEvent(event)" class="space-y-4">
+                <input type="hidden" id="editEventId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tittel / Navn</label>
+                    <input type="text" id="eventTitle" placeholder="F.eks. Tirsdagstrening, Dugnad, Lagfest..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Type event</label>
+                        <select id="eventType" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-semibold text-slate-700">
+                            <option value="Trening">Trening 🏃</option>
+                            <option value="Kamp">Kamp ⚽</option>
+                            <option value="Sosialt">Lagfest / Sosialt 🎉</option>
+                            <option value="Dugnad">Dugnad / Annet 🧹</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">For hvilket lag</label>
+                        <select id="eventTeam" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dato</label>
+                    <input type="date" id="eventDate" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        OPPRETT EVENT
+                    </button>
+                    <button type="button" onclick="closeEventModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Mark Attendance Check-list -->
+    <div id="attendanceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <div>
+                    <h3 id="attendanceModalTitle" class="font-extrabold text-lg text-bsk-blue">Oppmøteregistrering</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5" id="attendanceModalSub">Laster...</p>
+                </div>
+                <button onclick="closeAttendanceModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Attendance checkboxes container -->
+            <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="attendance-players-list">
+                <!-- Loaded dynamically -->
+            </div>
+
+            <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
+                <button onclick="saveAttendanceRegistry()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    LAGRE OPPMØTE
+                </button>
+                <button type="button" onclick="closeAttendanceModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                    AVBRYT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Register / Edit Player -->
+    <div id="playerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="playerFormTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Spiller
+                </h3>
+                <button onclick="window.closePlayerModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="playerForm" onsubmit="savePlayer(event)" class="space-y-4">
+                <input type="hidden" id="editPlayerId">
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fullt navn</label>
+                        <input type="text" id="playerNameInput" placeholder="Navn Navnesen" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Draktnr #</label>
+                        <input type="number" id="playerJerseyInput" placeholder="00" min="1" max="99" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fødselsår</label>
+                        <input type="number" id="playerBirthYearInput" placeholder="F.eks. 1998" min="1950" max="2026" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status</label>
+                        <select id="playerStatusInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-semibold text-slate-700">
+                            <option value="Aktiv">Aktiv</option>
+                            <option value="Rekrutt">Rekrutt</option>
+                            <option value="Passiv">Passiv</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tilhører lag</label>
+                    <select id="playerTeamInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                        <!-- Loaded dynamically with active teams -->
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Hovedposisjon</label>
+                        <select id="playerPos1Input" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50">
+                            <option value="Keeper">Keeper</option>
+                            <option value="Høyre bekk">Høyre bekk</option>
+                            <option value="Venstre bekk">Venstre bekk</option>
+                            <option value="Høyre stopper">Høyre stopper</option>
+                            <option value="Venstre stopper">Venstre stopper</option>
+                            <option value="Defensiv midtbane">Defensiv midtbane</option>
+                            <option value="Høyre kant">Høyre kant</option>
+                            <option value="Offensiv midtbane">Offensiv midtbane</option>
+                            <option value="Spiss">Spiss</option>
+                            <option value="Playmaker">Playmaker</option>
+                            <option value="Venstre kant">Venstre kant</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Sekundærposisjon</label>
+                        <select id="playerPos2Input" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50">
+                            <option value="-">- Ingen -</option>
+                            <option value="Høyre bekk">Høyre bekk</option>
+                            <option value="Venstre bekk">Venstre bekk</option>
+                            <option value="Høyre stopper">Høyre stopper</option>
+                            <option value="Venstre stopper">Venstre stopper</option>
+                            <option value="Defensiv midtbane">Defensiv midtbane</option>
+                            <option value="Høyre kant">Høyre kant</option>
+                            <option value="Offensiv midtbane">Offensiv midtbane</option>
+                            <option value="Spiss">Spiss</option>
+                            <option value="Playmaker">Playmaker</option>
+                            <option value="Venstre kant">Venstre kant</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Foretrukket fot</label>
+                    <select id="playerFootInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 text-slate-700 font-semibold">
+                        <option value="Høyre">Høyre</option>
+                        <option value="Venstre">Venstre</option>
+                        <option value="Begge">Begge</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        LAGRE SPILLER
+                    </button>
+                    <button type="button" onclick="window.closePlayerModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Register / Edit Team -->
+    <div id="teamModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="teamModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-users text-bsk-yellow"></i> Opprett Lag
+                </h3>
+                <button onclick="window.closeTeamModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="teamForm" onsubmit="saveTeam(event)" class="space-y-4">
+                <input type="hidden" id="editTeamId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lagsnavn</label>
+                    <input type="text" id="teamName" placeholder="F.eks. Gutter 2012 A, Jenter 15, Herrer A..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Trener / Lagleder</label>
+                    <input type="text" id="teamCoach" placeholder="Navn på trener" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kontaktinfo Trener</label>
+                    <input type="text" id="teamCoachContact" placeholder="Tlf: 900 00 000 / e-post..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kort Beskrivelse / Laginfo</label>
+                    <textarea id="teamDesc" rows="3" placeholder="Beskrivelse av laget, treninger eller divisjon..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none resize-none"></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        LAGRE LAG
+                    </button>
+                    <button type="button" onclick="window.closeTeamModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Match Details & Quick Ratings -->
+    <div id="matchInfoModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="infoTitle" class="font-extrabold text-lg text-bsk-blue">Kamp mot ...</h3>
+                <button onclick="window.closeMatchInfo()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Key Match Metadata Info -->
+            <div id="matchInfoDetails" class="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100 text-sm">
+                <!-- Dynamically loaded indicators -->
+            </div>
+
+            <!-- Expandable Registrations Section -->
+            <div class="mt-4">
+                <button onclick="toggleStatsSection()" class="w-full flex justify-between items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-xl transition-all">
+                    <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-star text-bsk-yellow"></i>
+                        Registrer Mål & Spillerbørs (Karakterer)
+                    </span>
+                    <i id="statsChevron" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
+                </button>
+
+                <!-- Hidden form container opened via accordion toggle -->
+                <div id="postMatchStatsSection" class="hidden border border-t-0 border-slate-200 rounded-b-xl p-4 bg-white max-h-60 overflow-y-auto divide-y divide-slate-100">
+                    <div id="playerRatingFormList">
+                        <!-- Populated dynamic player registers -->
+                    </div>
+                    <div class="pt-4 mt-2">
+                        <button onclick="savePlayerMatchStats()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-xs py-2.5 rounded-xl transition">
+                            Lagre Matchstatistikk & Karakterbørs
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin specific editing and deleting controls -->
+            <div class="mt-6 flex gap-2 justify-end">
+                <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
+                    <i class="fa-solid fa-pen"></i> Rediger kamp
+                </button>
+                <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
+                    <i class="fa-solid fa-trash"></i> Slett kamp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Global States Immediately -->
+    <script>
+        window.activeMatches = [];
+        window.activeTeams = [];
+        window.activePlayers = [];
+        window.activeEvents = [];
+        window.currentCalendarDate = new Date(2026, 4, 19); // Defaults to May 19, 2026
+        window.selectedCalendarDateStr = "2026-05-19";
+    </script>
+
+    <!-- Firebase System Module Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const DEFAULT_APP_ID = "bsk-fotball-app";
+        const appId = typeof __app_id !== 'undefined' ? __app_id : DEFAULT_APP_ID;
+        
+        // Initial Mock Databases
+        const initialMockPlayers = [
+            { id: "p-1", navn: "Tobias Berg", draktnummer: 10, fodselsaar: 1998, status: "Aktiv", spillerLag: "Lag A", pos1: "Spiss", pos2: "Høyre kant", fot: "Høyre" },
+            { id: "p-2", navn: "Henrik Lunde", draktnummer: 1, fodselsaar: 1995, status: "Aktiv", spillerLag: "Lag A", pos1: "Keeper", pos2: "-", fot: "Høyre" },
+            { id: "p-3", navn: "Sander Nilsen", draktnummer: 4, fodselsaar: 1999, status: "Aktiv", spillerLag: "Lag A", pos1: "Høyre stopper", pos2: "Venstre stopper", fot: "Begge" },
+            { id: "p-4", navn: "Mathias Solberg", draktnummer: 8, fodselsaar: 1997, status: "Aktiv", spillerLag: "Lag A", pos1: "Defensiv midtbane", pos2: "Playmaker", fot: "Høyre" },
+            { id: "p-5", navn: "Eirik Kristiansen", draktnummer: 7, fodselsaar: 2001, status: "Aktiv", spillerLag: "Lag B", pos1: "Venstre kant", pos2: "Offensiv midtbane", fot: "Venstre" },
+            { id: "p-6", navn: "Marius Holmen", draktnummer: 9, fodselsaar: 2002, status: "Aktiv", spillerLag: "Lag B", pos1: "Spiss", pos2: "-", fot: "Høyre" },
+            { id: "p-7", navn: "Kristian Ruud", draktnummer: 14, fodselsaar: 2003, status: "Rekrutt", spillerLag: "Lag B", pos1: "Høyre bekk", pos2: "-", fot: "Høyre" },
+            { id: "p-8", navn: "Jonas Myhre", draktnummer: 11, fodselsaar: 1999, status: "Aktiv", spillerLag: "Lag A", pos1: "Offensiv midtbane", pos2: "Venstre kant", fot: "Venstre" },
+            { id: "p-9", navn: "Magnus Sæther", draktnummer: 5, fodselsaar: 2000, status: "Aktiv", spillerLag: "Lag A", pos1: "Venstre bekk", pos2: "Venstre stopper", fot: "Venstre" },
+            { id: "p-10", navn: "Andreas Bakke", draktnummer: 6, fodselsaar: 1996, status: "Aktiv", spillerLag: "Lag A", pos1: "Defensiv midtbane", pos2: "-", fot: "Høyre" }
+        ];
+
+        const initialMockTeams = [
+            { id: "team-1", name: "Lag A", coachName: "Morten Olsen", coachContact: "912 34 567", description: "BSK A-lag herrer. Spiller i 4. divisjon Oslo." },
+            { id: "team-2", name: "Lag B", coachName: "Jens Petter", coachContact: "415 62 819", description: "BSK Rekruttlag herrer. Fokus på utvikling av juniorspillere." }
+        ];
+
+        const initialMockMatches = [
+            {
+                id: "mock-1",
+                opponent: "Nordstrand IF",
+                date: "2026-05-15",
+                time: "18:30",
+                pitch: "NIF Arena",
+                matchType: "Serie",
+                matchGroup: "Lag A",
+                result: "3-1",
+                scorers: { "Tobias Berg": 2, "Mathias Solberg": 1 },
+                ratings: { "Tobias Berg": 9, "Henrik Lunde": 8, "Sander Nilsen": 7, "Mathias Solberg": 8 }
+            },
+            {
+                id: "mock-2",
+                opponent: "Kfum-Kameratene",
+                date: "2026-05-24",
+                time: "19:00",
+                pitch: "Sportsplassen (Ekeberg)",
+                matchType: "Serie",
+                matchGroup: "Lag A",
+                result: "",
+                scorers: {},
+                ratings: {}
+            }
+        ];
+
+        const initialMockEvents = [
+            {
+                id: "event-1",
+                title: "Fysisk økt & Spillsekvens",
+                type: "Trening",
+                team: "Lag A",
+                date: "2026-05-10",
+                attendance: { "Tobias Berg": true, "Henrik Lunde": true, "Sander Nilsen": true, "Mathias Solberg": true, "Jonas Myhre": false, "Magnus Sæther": true, "Andreas Bakke": true }
+            },
+            {
+                id: "event-2",
+                title: "Taktisk trening og dødball",
+                type: "Trening",
+                team: "Lag A",
+                date: "2026-05-20",
+                attendance: { "Tobias Berg": true, "Henrik Lunde": true, "Sander Nilsen": false, "Mathias Solberg": true, "Jonas Myhre": true, "Magnus Sæther": true, "Andreas Bakke": true }
+            },
+            {
+                id: "event-3",
+                title: "Sosial Pizzakveld",
+                type: "Sosialt",
+                team: "Lag A",
+                date: "2026-05-25",
+                attendance: { "Tobias Berg": true, "Henrik Lunde": true, "Sander Nilsen": true, "Mathias Solberg": true, "Jonas Myhre": true, "Magnus Sæther": false, "Andreas Bakke": true }
+            }
+        ];
+
+        let db = null;
+        let auth = null;
+        let activeMatchesCollectionRef = null;
+        let activeTeamsCollectionRef = null;
+        let activePlayersCollectionRef = null;
+        let activeEventsCollectionRef = null;
+        let firebaseEnabled = false;
+
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                await signInAnonymously(auth);
+
+                activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
+                activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
+                activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+                activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
+                firebaseEnabled = true;
+                console.log("Firebase loaded successfully.");
+            }
+        } catch (err) {
+            console.warn("Firebase offline. Falling back to LocalStorage.", err);
+        }
+
+        function syncMatches(matchesData) {
+            window.activeMatches = matchesData;
+            window.localStorage.setItem('bsk_local_matches', JSON.stringify(matchesData));
+            if (typeof window.updateDashboard === 'function') window.updateDashboard();
+            if (typeof window.applyFilters === 'function') window.applyFilters();
+        }
+
+        function syncTeams(teamsData) {
+            window.activeTeams = teamsData;
+            window.localStorage.setItem('bsk_local_teams', JSON.stringify(teamsData));
+            if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
+            if (typeof window.renderAdminTeamsList === 'function') window.renderAdminTeamsList();
+        }
+
+        function syncPlayers(playersData) {
+            window.activePlayers = playersData;
+            window.localStorage.setItem('bsk_local_players', JSON.stringify(playersData));
+            if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
+            if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+        }
+
+        function syncEvents(eventsData) {
+            window.activeEvents = eventsData;
+            window.localStorage.setItem('bsk_local_events', JSON.stringify(eventsData));
+            if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        }
+
+        if (firebaseEnabled && auth.currentUser) {
+            function handleSyncError(key, syncFn, mockData, error) {
+                console.warn(`Database-tilgang avvist for ${key} (Faller tilbake til lokal lagring):`, error.message);
+                const cached = window.localStorage.getItem('bsk_local_' + key);
+                syncFn(cached ? JSON.parse(cached) : mockData);
+            }
+
+            onSnapshot(activeMatchesCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockMatches.forEach(async (m) => { try { await setDoc(doc(activeMatchesCollectionRef, m.id), m); } catch(e){} });
+                } else { syncMatches(fb); }
+            }, (error) => handleSyncError('matches', syncMatches, initialMockMatches, error));
+
+            onSnapshot(activeTeamsCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
+                } else { syncTeams(fb); }
+            }, (error) => handleSyncError('teams', syncTeams, initialMockTeams, error));
+
+            onSnapshot(activePlayersCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
+                } else { syncPlayers(fb); }
+            }, (error) => handleSyncError('players', syncPlayers, initialMockPlayers, error));
+
+            onSnapshot(activeEventsCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
+                } else { syncEvents(fb); }
+            }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
+        } else {
+            loadAllFromLocalStorage();
+        }
+
+        function loadAllFromLocalStorage() {
+            const cachedMatches = window.localStorage.getItem('bsk_local_matches');
+            syncMatches(cachedMatches ? JSON.parse(cachedMatches) : initialMockMatches);
+
+            const cachedTeams = window.localStorage.getItem('bsk_local_teams');
+            syncTeams(cachedTeams ? JSON.parse(cachedTeams) : initialMockTeams);
+
+            const cachedPlayers = window.localStorage.getItem('bsk_local_players');
+            syncPlayers(cachedPlayers ? JSON.parse(cachedPlayers) : initialMockPlayers);
+
+            const cachedEvents = window.localStorage.getItem('bsk_local_events');
+            syncEvents(cachedEvents ? JSON.parse(cachedEvents) : initialMockEvents);
+        }
+
+        window.saveMatchToDatabase = async function(matchObject) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    const id = matchObject.id || crypto.randomUUID();
+                    matchObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activeMatches];
+            const idx = current.findIndex(m => m.id === matchObject.id);
+            if (idx > -1) { current[idx] = matchObject; } else { matchObject.id = matchObject.id || crypto.randomUUID(); current.push(matchObject); }
+            syncMatches(current);
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            return true;
+        };
+
+        window.deleteMatchFromDatabase = async function(matchId) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', matchId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activeMatches.filter(m => m.id !== matchId);
+            syncMatches(current);
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            return true;
+        };
+
+        window.saveTeamToDatabase = async function(teamObject) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    const id = teamObject.id || crypto.randomUUID();
+                    teamObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', id), teamObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activeTeams];
+            const idx = current.findIndex(t => t.id === teamObject.id);
+            if (idx > -1) { current[idx] = teamObject; } else { teamObject.id = teamObject.id || crypto.randomUUID(); current.push(teamObject); }
+            syncTeams(current);
+            return true;
+        };
+
+        window.deleteTeamFromDatabase = async function(teamId) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', teamId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activeTeams.filter(t => t.id !== teamId);
+            syncTeams(current);
+            return true;
+        };
+
+        window.savePlayerToDatabase = async function(playerObject) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    const id = playerObject.id || crypto.randomUUID();
+                    playerObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id), playerObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activePlayers];
+            const idx = current.findIndex(p => p.id === playerObject.id);
+            if (idx > -1) { current[idx] = playerObject; } else { playerObject.id = playerObject.id || crypto.randomUUID(); current.push(playerObject); }
+            syncPlayers(current);
+            return true;
+        };
+
+        window.deletePlayerFromDatabase = async function(playerId) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activePlayers.filter(p => p.id !== playerId);
+            syncPlayers(current);
+            return true;
+        };
+
+        window.saveEventToDatabase = async function(eventObject) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    const id = eventObject.id || crypto.randomUUID();
+                    eventObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activeEvents];
+            const idx = current.findIndex(ev => ev.id === eventObject.id);
+            if (idx > -1) { current[idx] = eventObject; } else { eventObject.id = eventObject.id || crypto.randomUUID(); current.push(eventObject); }
+            syncEvents(current);
+            return true;
+        };
+
+        window.deleteEventFromDatabase = async function(eventId) {
+            if (firebaseEnabled && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activeEvents.filter(ev => ev.id !== eventId);
+            syncEvents(current);
+            return true;
+        };
+    </script>
+
+    <!-- App Flow Scripts -->
+    <script>
+        // Reusable custom confirmation modal implementation (replaces confirm)
+        let customConfirmCallback = null;
+        function customConfirm(title, message, callback) {
+            customConfirmCallback = callback;
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        document.getElementById('confirmYesBtn').onclick = function() {
+            if (customConfirmCallback) customConfirmCallback();
+            closeConfirmModal();
+        };
+
+        document.getElementById('confirmNoBtn').onclick = function() {
+            closeConfirmModal();
+        };
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            customConfirmCallback = null;
+        }
+
+        let currentTab = 'hjem';
+        let isAdminUnlocked = false;
+
+        function verifyAdminPin() {
+            const input = document.getElementById('adminPinInput').value;
+            if (input === '1908') {
+                isAdminUnlocked = true;
+                document.getElementById('admin-gate').classList.add('hidden');
+                document.getElementById('admin-panel-content').classList.remove('hidden');
+                renderAdminTeamsList();
+            } else {
+                document.getElementById('adminPinInput').value = '';
+                document.getElementById('adminPinInput').placeholder = "FEIL!";
+                document.getElementById('adminPinInput').classList.add('border-rose-500');
+                setTimeout(() => {
+                    document.getElementById('adminPinInput').placeholder = "••••";
+                    document.getElementById('adminPinInput').classList.remove('border-rose-500');
+                }, 1500);
+            }
+        }
+
+        function updateDynamicSelectors() {
+            const filterSelect = document.getElementById('lagFilterSelect');
+            const formSelect = document.getElementById('matchGroup');
+            const playerTeamSelect = document.getElementById('playerTeamInput');
+            const eventTeamSelect = document.getElementById('eventTeam');
+            
+            if (!filterSelect || !formSelect || !playerTeamSelect || !eventTeamSelect) return;
+
+            const selectedFilterValue = filterSelect.value || 'Alle';
+
+            filterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
+            formSelect.innerHTML = '';
+            playerTeamSelect.innerHTML = '';
+            eventTeamSelect.innerHTML = '';
+
+            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+            teams.forEach(t => {
+                const optFilter = document.createElement('option');
+                optFilter.value = t.name;
+                optFilter.innerText = t.name.toUpperCase();
+                filterSelect.appendChild(optFilter);
+
+                const optForm = document.createElement('option');
+                optForm.value = t.name;
+                optForm.innerText = t.name;
+                formSelect.appendChild(optForm);
+
+                const optPlayer = document.createElement('option');
+                optPlayer.value = t.name;
+                optPlayer.innerText = t.name;
+                playerTeamSelect.appendChild(optPlayer);
+
+                const optEvent = document.createElement('option');
+                optEvent.value = t.name;
+                optEvent.innerText = t.name;
+                eventTeamSelect.appendChild(optEvent);
+            });
+
+            if (teams.some(t => t.name === selectedFilterValue)) {
+                filterSelect.value = selectedFilterValue;
+            } else {
+                filterSelect.value = 'Alle';
+            }
+        }
+
+        function renderAdminTeamsList() {
+            const listContainer = document.getElementById('admin-teams-list');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = '';
+            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+
+            if (teams.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="col-span-2 py-8 text-center text-slate-400 text-xs italic bg-slate-50 border border-dashed rounded-xl">
+                        Ingen lag opprettet ennå. Klikk på "Opprett nytt lag" for å begynne.
+                    </div>
+                `;
+                return;
+            }
+
+            teams.forEach(t => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:border-bsk-blueLight transition";
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-extrabold text-bsk-blue text-base">${t.name}</h4>
+                            <div class="flex gap-1">
+                                <button onclick="openTeamModal('${t.id}')" class="text-slate-500 hover:text-bsk-blue p-1" title="Rediger">
+                                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                </button>
+                                <button onclick="promptDeleteTeam('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Slett">
+                                    <i class="fa-solid fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
+                            <p><strong class="text-slate-800">Trener:</strong> ${t.coachName || 'Uoppgitt'}</p>
+                            <p><strong class="text-slate-800">Kontaktinfo:</strong> ${t.coachContact || 'Uoppgitt'}</p>
+                        </div>
+                        <p class="text-xs text-slate-500 italic line-clamp-2">${t.description || 'Ingen lagbeskrivelse.'}</p>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function handleTeamFilterChange() {
+            renderPlayerRoster();
+            recalculateOppmoteAndKjemi();
+        }
+
+        function renderPlayerRoster() {
+            const tableBody = document.getElementById('playerTableBody');
+            if (!tableBody) return;
+
+            const filterLag = document.getElementById('lagFilterSelect').value;
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+
+            const filteredPlayers = players.filter(p => {
+                return (filterLag === 'Alle' || p.spillerLag === filterLag);
+            });
+
+            const currentYear = 2026;
+            let totalAge = 0;
+            let countRekrutt = 0;
+
+            filteredPlayers.forEach(p => {
+                const age = currentYear - parseInt(p.fodselsaar || 2000);
+                totalAge += age;
+                if (p.status === 'Rekrutt') countRekrutt++;
+            });
+
+            const avgAge = filteredPlayers.length > 0 ? (totalAge / filteredPlayers.length).toFixed(1) : 0;
+
+            const statPlayersEl = document.getElementById('stat-total-players');
+            const statAvgAgeEl = document.getElementById('stat-avg-age');
+            const statRekruttEl = document.getElementById('stat-total-rekrutt');
+
+            if (statPlayersEl) statPlayersEl.innerText = `${filteredPlayers.length} spillere`;
+            if (statAvgAgeEl) statAvgAgeEl.innerText = `${avgAge} år`;
+            if (statRekruttEl) statRekruttEl.innerText = `${countRekrutt} rekrutter`;
+
+            tableBody.innerHTML = '';
+
+            if (filteredPlayers.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-users text-4xl mb-2 block text-slate-200"></i>
+                            Ingen spillere funnet i dette laget.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const sorted = [...filteredPlayers].sort((a, b) => a.navn.localeCompare(b.navn));
+
+            sorted.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/70 transition-all border-b border-slate-100";
+                
+                const age = currentYear - parseInt(p.fodselsaar || 2000);
+                const jersey = p.draktnummer ? `#${p.draktnummer}` : '-';
+                const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
+                
+                let statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600">${p.status}</span>`;
+                if (p.status === 'Aktiv') {
+                    statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">${p.status}</span>`;
+                } else if (p.status === 'Rekrutt') {
+                    statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">${p.status}</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">${p.navn}</td>
+                    <td class="py-3.5 px-4 text-center font-semibold text-slate-600">${jersey}</td>
+                    <td class="py-3.5 px-4 text-slate-700 font-medium">${posStr}</td>
+                    <td class="py-3.5 px-4 text-center text-slate-600">${p.fot}</td>
+                    <td class="py-3.5 px-4 text-center font-bold text-slate-800">${age} år</td>
+                    <td class="py-3.5 px-4 text-center">${statusBadge}</td>
+                    <td class="py-3.5 px-6 text-right">
+                        <div class="flex justify-end gap-1">
+                            <button onclick="window.openPlayerModal('${p.id}')" class="text-slate-500 hover:text-bsk-blue p-1.5" title="Rediger">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="promptDeletePlayer('${p.id}')" class="text-slate-400 hover:text-rose-600 p-1.5" title="Slett">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            document.getElementById('view-hjem').classList.add('hidden');
+            document.getElementById('view-kamper').classList.add('hidden');
+            document.getElementById('view-oppmote').classList.add('hidden');
+            document.getElementById('view-spillere').classList.add('hidden');
+            document.getElementById('view-tropp').classList.add('hidden');
+            document.getElementById('view-statistikk').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+            const floatingBtn = document.getElementById('floating-action-btn');
+            const floatingIcon = document.getElementById('floating-btn-icon');
+            
+            if (tabId === 'kamper') {
+                floatingBtn.classList.remove('hidden');
+                floatingIcon.className = "fa-solid fa-plus";
+                floatingBtn.title = "Registrer ny kamp";
+            } else if (tabId === 'oppmote') {
+                floatingBtn.classList.remove('hidden');
+                floatingIcon.className = "fa-solid fa-calendar-plus";
+                floatingBtn.title = "Opprett nytt event";
+            } else if (tabId === 'tropp') {
+                floatingBtn.classList.remove('hidden');
+                floatingIcon.className = "fa-solid fa-user-plus";
+                floatingBtn.title = "Registrer ny spiller";
+            } else {
+                floatingBtn.classList.add('hidden');
+            }
+
+            const titles = {
+                hjem: { title: "Forside" },
+                kamper: { title: "Terminliste" },
+                oppmote: { title: "Kalender & Oppmøte" },
+                spillere: { title: "Spillerbørs" },
+                tropp: { title: "Spillerstall" },
+                statistikk: { title: "Sesongstatistikk" },
+                admin: { title: "Admin-panel" }
+            };
+
+            document.getElementById('current-tab-title').innerText = titles[tabId].title;
+
+            const filterControls = document.getElementById('filter-controls-area');
+            const monthFilterContainer = document.getElementById('month-filter-container');
+            
+            if (tabId === 'kamper' || tabId === 'oppmote' || tabId === 'spillere' || tabId === 'tropp') {
+                filterControls.classList.remove('hidden');
+                filterControls.classList.add('flex');
+                if (tabId === 'tropp' || tabId === 'oppmote') {
+                    monthFilterContainer.classList.add('hidden');
+                } else {
+                    monthFilterContainer.classList.remove('hidden');
+                }
+            } else {
+                filterControls.classList.add('hidden');
+                filterControls.classList.remove('flex');
+            }
+
+            // Sync Desktop Sidebar Visual State
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
+                link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
+            });
+
+            // Target correct element if clicked
+            const sidebarBtn = document.getElementById(`sidebar-${tabId}`);
+            if (sidebarBtn) {
+                sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
+                sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
+            }
+
+            // Sync Mobile Bottom Navigation State
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active-nav'));
+            const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, spillere: 3, tropp: 4 };
+            document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]]?.classList?.add('active-nav');
+
+            if (tabId === 'oppmote') {
+                recalculateOppmoteAndKjemi();
+            } else if (tabId === 'spillere') {
+                renderSpillerbors();
+            } else if (tabId === 'tropp') {
+                renderPlayerRoster();
+            } else if (tabId === 'statistikk') {
+                renderStatistikkSide();
+            } else if (tabId === 'admin' && isAdminUnlocked) {
+                renderAdminTeamsList();
+            } else if (tabId === 'hjem') {
+                updateDashboard();
+            }
+        }
+
+        function handleFloatingAction() {
+            if (currentTab === 'kamper') {
+                window.openMatchModal();
+            } else if (currentTab === 'oppmote') {
+                openEventModal();
+            } else if (currentTab === 'tropp') {
+                window.openPlayerModal();
+            }
+        }
+
+        function parseScore(resultStr) {
+            if (!resultStr || !resultStr.includes('-')) return null;
+            const pts = resultStr.split('-').map(x => parseInt(x.trim()));
+            if (pts.length !== 2 || isNaN(pts[0]) || isNaN(pts[1])) return null;
+            return { bsk: pts[0], opponent: pts[1] };
+        }
+
+        function getFormGuide() {
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            const playedMatches = matches.filter(m => m.result && m.result.includes('-'));
+            
+            // Sort chronic desc to slice last 5, then reverse so oldest of the five is left
+            playedMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const last5 = playedMatches.slice(0, 5);
+            last5.reverse();
+
+            return last5.map(m => {
+                const score = parseScore(m.result);
+                if (!score) return { m, form: 'U', class: 'bg-amber-500', text: 'U', tooltip: `Registrert: ${m.result}` };
+                
+                if (score.bsk > score.opponent) {
+                    return { m, form: 'S', class: 'bg-emerald-500 text-white', text: 'S', tooltip: `Seier vs ${m.opponent} (${m.result}) den ${new Date(m.date).toLocaleDateString('no-NO')}` };
+                } else if (score.bsk === score.opponent) {
+                    return { m, form: 'U', class: 'bg-amber-500 text-white', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result}) den ${new Date(m.date).toLocaleDateString('no-NO')}` };
+                } else {
+                    return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result}) den ${new Date(m.date).toLocaleDateString('no-NO')}` };
+                }
+            });
+        }
+
+        function updateDashboard() {
+            let upcoming = [];
+            let totalGoals = 0;
+            let wins = 0;
+            let played = 0;
+            let draws = 0;
+            let losses = 0;
+
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            matches.forEach(m => {
+                const score = parseScore(m.result);
+
+                if (score !== null) {
+                    played++;
+                    totalGoals += score.bsk;
+                    if (score.bsk > score.opponent) {
+                        wins++;
+                    } else if (score.bsk === score.opponent) {
+                        draws++;
+                    } else {
+                        losses++;
+                    }
+                } else {
+                    upcoming.push(m);
+                }
+            });
+
+            upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const statNextOpponent = document.getElementById('stat-next-opponent');
+            const statNextMatch = document.getElementById('stat-next-match');
+            const statWins = document.getElementById('stat-wins');
+            const statGoals = document.getElementById('stat-goals');
+
+            if (upcoming.length > 0) {
+                const next = upcoming[0];
+                if (statNextOpponent) statNextOpponent.innerText = next.opponent;
+                const formattedDate = new Date(next.date).toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+                if (statNextMatch) statNextMatch.innerText = `${formattedDate} ${next.time ? 'kl. ' + next.time : ''}`;
+            } else {
+                if (statNextOpponent) statNextOpponent.innerText = "Ingen oppsatt";
+                if (statNextMatch) statNextMatch.innerText = "TBA";
+            }
+
+            if (statWins) statWins.innerText = `${wins} seire`;
+            if (statGoals) statGoals.innerText = `${totalGoals} scorede mål`;
+
+            const totalPlayedEl = document.getElementById('stat-total-played');
+            const drawsLossesEl = document.getElementById('stat-draws-losses');
+            if (totalPlayedEl) totalPlayedEl.innerText = played;
+            if (drawsLossesEl) drawsLossesEl.innerText = `${draws} / ${losses}`;
+
+            // RENDER FORSIDE/HJEM SPECIFICS
+            const formGuide = getFormGuide();
+            const formContainer = document.getElementById('hjem-form-guide-container');
+            if (formContainer) {
+                formContainer.innerHTML = '';
+                if (formGuide.length === 0) {
+                    formContainer.innerHTML = `<span class="text-xs text-slate-400 italic font-medium">Ingen spilte kamper registrert i sesongen</span>`;
+                } else {
+                    formGuide.forEach(item => {
+                        const pill = document.createElement('div');
+                        pill.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-md transition hover:scale-110 cursor-help ${item.class}`;
+                        pill.title = item.tooltip;
+                        pill.innerHTML = `<span>${item.text}</span>`;
+                        formContainer.appendChild(pill);
+                    });
+                }
+            }
+
+            // Next Match Widget on Forside
+            const nextMatchHjem = document.getElementById('hjem-next-match-container');
+            if (nextMatchHjem) {
+                if (upcoming.length > 0) {
+                    const nm = upcoming[0];
+                    const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+                    nextMatchHjem.innerHTML = `
+                        <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">NESTE KAMP</span>
+                                <span class="text-xs text-slate-200 font-bold">${nm.time || 'TBA'}</span>
+                            </div>
+                            <h4 class="font-extrabold text-lg text-white">vs ${nm.opponent}</h4>
+                            <div class="space-y-1 text-xs text-slate-300 font-medium">
+                                <p><i class="fa-regular fa-calendar mr-1.5 text-bsk-yellow"></i> ${d}</p>
+                                <p><i class="fa-solid fa-location-dot mr-1.5 text-rose-400"></i> ${nm.pitch || 'Ikke fastsatt'}</p>
+                                <p><i class="fa-solid fa-users mr-1.5 text-sky-300"></i> ${nm.matchGroup}</p>
+                            </div>
+                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
+                                Se Kampdetaljer
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    nextMatchHjem.innerHTML = `
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400">
+                            <i class="fa-solid fa-futbol text-2xl mb-2 text-slate-300"></i>
+                            <p class="text-xs font-bold text-slate-500">Ingen kommende kamper</p>
+                            <p class="text-[10px] text-slate-400 mt-1">Nye kamper kan planlegges under terminlisten.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Next Event/Activity Widget on Forside
+            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+            const upcomingEvents = events.filter(e => new Date(e.date) >= new Date().setHours(0,0,0,0));
+            upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const nextEventHjem = document.getElementById('hjem-next-event-container');
+            
+            if (nextEventHjem) {
+                if (upcomingEvents.length > 0) {
+                    const ne = upcomingEvents[0];
+                    const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+                    let typeColor = "from-blue-600 to-blue-800";
+                    let icon = "fa-person-running";
+                    if (ne.type === 'Sosialt') { typeColor = "from-purple-600 to-purple-800"; icon = "fa-cake-candles"; }
+                    else if (ne.type === 'Dugnad') { typeColor = "from-amber-600 to-amber-800"; icon = "fa-broom"; }
+                    
+                    nextEventHjem.innerHTML = `
+                        <div class="bg-gradient-to-br ${typeColor} text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${ne.type}</span>
+                                <span class="text-[10px] text-slate-200 font-bold">${ne.team}</span>
+                            </div>
+                            <h4 class="font-extrabold text-lg text-white"><i class="fa-solid ${icon} mr-1.5 text-bsk-yellow"></i> ${ne.title}</h4>
+                            <div class="space-y-1 text-xs text-slate-300 font-medium">
+                                <p><i class="fa-regular fa-calendar mr-1.5"></i> ${d}</p>
+                                <p><i class="fa-solid fa-check-double mr-1.5 text-emerald-300"></i> Oppmøteregistrering tilgjengelig</p>
+                            </div>
+                            <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
+                                Gå til Oppmøte
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    nextEventHjem.innerHTML = `
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400">
+                            <i class="fa-regular fa-calendar-check text-2xl mb-2 text-slate-300"></i>
+                            <p class="text-xs font-bold text-slate-500">Ingen kommende økter</p>
+                            <p class="text-[10px] text-slate-400 mt-1">Flere treninger og eventer kan opprettes i kalenderen.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function applyFilters() {
+            const monthVal = document.getElementById('monthFilter').value;
+            const lagVal = document.getElementById('lagFilterSelect').value;
+            const tableBody = document.getElementById('matchTableBody');
+            const noMatchesView = document.getElementById('no-matches-view');
+
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const filtered = sortedMatches.filter(m => {
+                const dateObj = new Date(m.date);
+                const matchMonth = dateObj.getMonth().toString();
+
+                const passMonth = (monthVal === 'Alle' || matchMonth === monthVal);
+                const passLag = (lagVal === 'Alle' || m.matchGroup === lagVal);
+
+                return passMonth && passLag;
+            });
+
+            tableBody.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                noMatchesView.classList.remove('hidden');
+                return;
+            } else {
+                noMatchesView.classList.add('hidden');
+            }
+
+            filtered.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/70 transition-all border-b border-slate-100";
+
+                const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
+                
+                let resultBadge = `<span class="text-slate-400 font-medium">-</span>`;
+                if (m.result) {
+                    const score = parseScore(m.result);
+                    if (score) {
+                        if (score.bsk > score.opponent) {
+                            resultBadge = `<span class="inline-flex items-center justify-center bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">${m.result}</span>`;
+                        } else if (score.bsk === score.opponent) {
+                            resultBadge = `<span class="inline-flex items-center justify-center bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-200">${m.result}</span>`;
+                        } else {
+                            resultBadge = `<span class="inline-flex items-center justify-center bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-rose-200">${m.result}</span>`;
+                        }
+                    } else {
+                        resultBadge = `<span class="text-slate-600 font-bold">${m.result}</span>`;
+                    }
+                }
+
+                const isAteam = m.matchGroup?.toLowerCase().includes('lag a') || m.matchGroup?.toLowerCase().includes('herrer a') || m.matchGroup?.toLowerCase().includes('gutter 2012 a');
+                const teamLabel = isAteam 
+                    ? `<span class="bg-bsk-blue text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase">${m.matchGroup || 'LAG A'}</span>`
+                    : `<span class="bg-amber-500 text-bsk-blue text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase">${m.matchGroup || 'LAG B'}</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 md:px-6 font-bold text-slate-800">${teamLabel}</td>
+                    <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">
+                        <div class="flex flex-col">
+                            <span>${m.opponent}</span>
+                            <span class="text-[10px] text-slate-400 font-normal lg:hidden">${m.pitch || 'Ingen bane'}</span>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-center text-slate-600 font-semibold">${dateFormatted}</td>
+                    <td class="py-3.5 px-2 text-center text-slate-500 font-medium text-xs">${m.time || '--:--'}</td>
+                    <td class="py-3.5 px-4 text-center">${resultBadge}</td>
+                    <td class="py-3.5 px-6 text-left hidden lg:table-cell text-slate-600">${m.pitch || '<span class="text-slate-300">Ikke oppgitt</span>'}</td>
+                    <td class="py-3.5 px-6 text-left hidden lg:table-cell">
+                        <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span>
+                    </td>
+                    <td class="py-3.5 px-6 text-right">
+                        <button class="text-bsk-blue hover:text-bsk-blueLight p-1" onclick="showMatchDetails('${m.id}')">
+                            <i class="fa-solid fa-circle-arrow-right text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        window.openMatchModal = function(editId = null) {
+            const modal = document.getElementById('matchModal');
+            const form = document.getElementById('matchForm');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            form.reset();
+            document.getElementById('editMatchId').value = '';
+
+            updateDynamicSelectors();
+
+            if (editId) {
+                const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+                const matchObj = matches.find(m => m.id === editId);
+                if (matchObj) {
+                    modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-bsk-yellow"></i> Rediger Kamp`;
+                    document.getElementById('editMatchId').value = matchObj.id;
+                    document.getElementById('matchDate').value = matchObj.date;
+                    document.getElementById('matchTime').value = matchObj.time || '';
+                    document.getElementById('opponent').value = matchObj.opponent;
+                    document.getElementById('pitch').value = matchObj.pitch || '';
+                    document.getElementById('matchType').value = matchObj.matchType;
+                    document.getElementById('matchGroup').value = matchObj.matchGroup || 'Lag A';
+                    document.getElementById('result').value = matchObj.result || '';
+                }
+            } else {
+                modalTitle.innerHTML = `<i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Ny Kamp`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeMatchModal = function() {
+            const modal = document.getElementById('matchModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.openPlayerModal = function(editPlayerId = null) {
+            const modal = document.getElementById('playerModal');
+            const form = document.getElementById('playerForm');
+            const titleEl = document.getElementById('playerFormTitle');
+
+            form.reset();
+            document.getElementById('editPlayerId').value = '';
+
+            updateDynamicSelectors();
+
+            if (editPlayerId) {
+                const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+                const pObj = players.find(p => p.id === editPlayerId);
+                if (pObj) {
+                    titleEl.innerHTML = `<i class="fa-solid fa-user-pen text-bsk-yellow"></i> Rediger Spiller`;
+                    document.getElementById('editPlayerId').value = pObj.id;
+                    document.getElementById('playerNameInput').value = pObj.navn;
+                    document.getElementById('playerJerseyInput').value = pObj.draktnummer || '';
+                    document.getElementById('playerBirthYearInput').value = pObj.fodselsaar;
+                    document.getElementById('playerStatusInput').value = pObj.status;
+                    document.getElementById('playerTeamInput').value = pObj.spillerLag || 'Lag A';
+                    document.getElementById('playerPos1Input').value = pObj.pos1;
+                    document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
+                    document.getElementById('playerFootInput').value = pObj.fot || 'Høyre';
+                }
+            } else {
+                titleEl.innerHTML = `<i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Ny Spiller`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closePlayerModal = function() {
+            const modal = document.getElementById('playerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.openTeamModal = function(editTeamId = null) {
+            const modal = document.getElementById('teamModal');
+            const form = document.getElementById('teamForm');
+            const titleEl = document.getElementById('teamModalTitle');
+
+            form.reset();
+            document.getElementById('editTeamId').value = '';
+
+            if (editTeamId) {
+                const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+                const team = teams.find(t => t.id === editTeamId);
+                if (team) {
+                    titleEl.innerHTML = `<i class="fa-solid fa-users text-bsk-yellow"></i> Rediger Lag`;
+                    document.getElementById('editTeamId').value = team.id;
+                    document.getElementById('teamName').value = team.name;
+                    document.getElementById('teamCoach').value = team.coachName || '';
+                    document.getElementById('teamCoachContact').value = team.coachContact || '';
+                    document.getElementById('teamDesc').value = team.description || '';
+                }
+            } else {
+                titleEl.innerHTML = `<i class="fa-solid fa-users text-bsk-yellow"></i> Opprett Lag`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeTeamModal = function() {
+            const modal = document.getElementById('teamModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        async function saveTeam(event) {
+            event.preventDefault();
+            const teamId = document.getElementById('editTeamId').value || null;
+
+            const teamData = {
+                id: teamId,
+                name: document.getElementById('teamName').value,
+                coachName: document.getElementById('teamCoach').value,
+                coachContact: document.getElementById('teamCoachContact').value,
+                description: document.getElementById('teamDesc').value
+            };
+
+            await window.saveTeamToDatabase(teamData);
+            window.closeTeamModal();
+            updateDynamicSelectors();
+            renderAdminTeamsList();
+        }
+
+        function promptDeleteTeam(id) {
+            customConfirm("Slette lag?", "Er du sikker på at du ønsker å slette dette laget permanent?", async () => {
+                await window.deleteTeamFromDatabase(id);
+                updateDynamicSelectors();
+                renderAdminTeamsList();
+            });
+        }
+
+        async function savePlayer(event) {
+            event.preventDefault();
+            const playerId = document.getElementById('editPlayerId').value || null;
+
+            const playerData = {
+                id: playerId,
+                navn: document.getElementById('playerNameInput').value,
+                draktnummer: document.getElementById('playerJerseyInput').value ? parseInt(document.getElementById('playerJerseyInput').value) : '',
+                fodselsaar: parseInt(document.getElementById('playerBirthYearInput').value),
+                status: document.getElementById('playerStatusInput').value,
+                spillerLag: document.getElementById('playerTeamInput').value,
+                pos1: document.getElementById('playerPos1Input').value,
+                pos2: document.getElementById('playerPos2Input').value,
+                fot: document.getElementById('playerFootInput').value
+            };
+
+            await window.savePlayerToDatabase(playerData);
+            window.closePlayerModal();
+            renderPlayerRoster();
+        }
+
+        function promptDeletePlayer(id) {
+            customConfirm("Slette spiller?", "Er du sikker på at du vil slette denne spilleren fra troppen permanent?", async () => {
+                await window.deletePlayerFromDatabase(id);
+                renderPlayerRoster();
+            });
+        }
+
+        async function saveMatch(event) {
+            event.preventDefault();
+            
+            const matchId = document.getElementById('editMatchId').value || null;
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            const existingMatch = matchId ? matches.find(m => m.id === matchId) : null;
+
+            const matchData = {
+                id: matchId,
+                date: document.getElementById('matchDate').value,
+                time: document.getElementById('matchTime').value,
+                opponent: document.getElementById('opponent').value,
+                pitch: document.getElementById('pitch').value,
+                matchType: document.getElementById('matchType').value,
+                matchGroup: document.getElementById('matchGroup').value,
+                result: document.getElementById('result').value,
+                scorers: existingMatch ? (existingMatch.scorers || {}) : {},
+                ratings: existingMatch ? (existingMatch.ratings || {}) : {}
+            };
+
+            await window.saveMatchToDatabase(matchData);
+            window.closeMatchModal();
+            window.closeMatchInfo();
+        }
+
+        let activeDetailsId = null;
+        function showMatchDetails(id) {
+            activeDetailsId = id;
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            const match = matches.find(m => m.id === id);
+            if (!match) return;
+
+            document.getElementById('infoTitle').innerHTML = `Kamp mot ${match.opponent}`;
+            
+            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+            const matchingTeamObj = teams.find(t => t.name === match.matchGroup);
+            let teamMetaInfoHtml = '';
+            if (matchingTeamObj) {
+                teamMetaInfoHtml = `
+                    <div class="col-span-2 space-y-1 bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs text-slate-600">
+                        <p class="font-bold text-slate-800"><i class="fa-solid fa-users text-bsk-blue mr-1"></i> ${matchingTeamObj.name} info:</p>
+                        <p><strong class="text-slate-700">Trener:</strong> ${matchingTeamObj.coachName || 'Ingen'} (${matchingTeamObj.coachContact || 'Ingen kontaktinfo'})</p>
+                        <p class="italic text-slate-500 pt-1">${matchingTeamObj.description || ''}</p>
+                    </div>
+                `;
+            }
+            
+            const container = document.getElementById('matchInfoDetails');
+            const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            container.innerHTML = `
+                <div class="col-span-2 space-y-1">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kamptidspunkt</span>
+                    <span class="font-bold text-slate-800 text-sm"><i class="fa-regular fa-clock text-bsk-blue mr-1"></i> ${dateFormatted} kl. ${match.time || '--:--'}</span>
+                </div>
+                <div class="space-y-1 border-t border-slate-150 pt-2">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Spillearena</span>
+                    <span class="font-semibold text-slate-700"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i> ${match.pitch || 'Ikke fastsatt'}</span>
+                </div>
+                <div class="space-y-1 border-t border-slate-150 pt-2">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kampgruppe / Type</span>
+                    <span class="font-semibold text-slate-700">${match.matchGroup} (${match.matchType})</span>
+                </div>
+                <div class="col-span-2 space-y-1 border-t border-slate-150 pt-2">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Sluttresultat</span>
+                    <span class="text-base font-black ${match.result ? 'text-slate-800' : 'text-slate-400'}">
+                        <i class="fa-solid fa-square-poll-horizontal text-emerald-600 mr-1"></i> ${match.result || 'Ikke ferdigspilt'}
+                    </span>
+                </div>
+                ${teamMetaInfoHtml}
+            `;
+
+            document.getElementById('btnEditMatch').onclick = () => window.openMatchModal(match.id);
+            document.getElementById('btnDeleteMatch').onclick = () => promptDeleteMatch(match.id);
+
+            renderPlayerRowForm(match);
+
+            const infoModal = document.getElementById('matchInfoModal');
+            infoModal.classList.remove('hidden');
+            infoModal.classList.add('flex');
+        }
+
+        window.closeMatchInfo = function() {
+            const infoModal = document.getElementById('matchInfoModal');
+            infoModal.classList.add('hidden');
+            infoModal.classList.remove('flex');
+            const statsSection = document.getElementById('postMatchStatsSection');
+            const chevron = document.getElementById('statsChevron');
+            statsSection.classList.add('hidden');
+            chevron.classList.remove('rotate-180');
+        };
+
+        function promptDeleteMatch(id) {
+            customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
+                await window.deleteMatchFromDatabase(id);
+                window.closeMatchInfo();
+            });
+        }
+
+        function toggleStatsSection() {
+            const statsSection = document.getElementById('postMatchStatsSection');
+            const chevron = document.getElementById('statsChevron');
+            
+            if (statsSection.classList.contains('hidden')) {
+                statsSection.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                statsSection.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        function renderPlayerRowForm(match) {
+            const formList = document.getElementById('playerRatingFormList');
+            formList.innerHTML = '';
+
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+            const sortedPlayers = [...players].sort((a, b) => a.navn.localeCompare(b.navn));
+
+            sortedPlayers.forEach(playerObj => {
+                const player = playerObj.navn;
+                const prevGoals = match.scorers ? (match.scorers[player] || 0) : 0;
+                const prevRating = match.ratings ? (match.ratings[player] || 0) : 0;
+
+                const div = document.createElement('div');
+                div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
+                div.innerHTML = `
+                    <span class="font-bold text-slate-800 text-xs">${player} <span class="text-[10px] text-slate-400">(${playerObj.spillerLag || 'Uten lag'})</span></span>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                        <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
+                            <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Mål:</span>
+                            <button type="button" onclick="changeCount(this, -1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">-</button>
+                            <span class="w-6 text-center font-extrabold text-slate-800 text-xs text-goal-val">${prevGoals}</span>
+                            <input type="hidden" class="player-goals-input" data-player="${player}" value="${prevGoals}">
+                            <button type="button" onclick="changeCount(this, 1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">+</button>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <span class="text-[9px] uppercase font-bold text-slate-400">Børs:</span>
+                            <select class="player-rating-select bg-slate-100 border border-slate-200 text-xs font-bold rounded-lg px-2 py-1 outline-none text-slate-800" data-player="${player}">
+                                <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
+                                ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                `;
+                formList.appendChild(div);
+            });
+        }
+
+        function changeCount(btn, amount) {
+            const container = btn.parentElement;
+            const span = container.querySelector('.text-goal-val');
+            const hidden = container.querySelector('.player-goals-input');
+            let current = parseInt(span.innerText);
+            current = Math.max(0, current + amount);
+            span.innerText = current;
+            hidden.value = current;
+        }
+
+        async function savePlayerMatchStats() {
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            const match = matches.find(m => m.id === activeDetailsId);
+            if (!match) return;
+
+            const scorers = {};
+            const ratings = {};
+
+            document.querySelectorAll('.player-goals-input').forEach(input => {
+                const val = parseInt(input.value);
+                if (val > 0) scorers[input.dataset.player] = val;
+            });
+
+            document.querySelectorAll('.player-rating-select').forEach(select => {
+                const val = parseInt(select.value);
+                if (val > 0) ratings[select.dataset.player] = val;
+            });
+
+            match.scorers = scorers;
+            match.ratings = ratings;
+
+            const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
+            if (!match.result && totalBskGoals > 0) {
+                match.result = `${totalBskGoals}-0`;
+            }
+
+            await window.saveMatchToDatabase(match);
+            window.closeMatchInfo();
+            applyFilters();
+        }
+
+        function openEventModal() {
+            const modal = document.getElementById('eventModal');
+            const form = document.getElementById('eventForm');
+            
+            form.reset();
+            document.getElementById('editEventId').value = '';
+            
+            // Set default date to the selected calendar day
+            document.getElementById('eventDate').value = window.selectedCalendarDateStr;
+            updateDynamicSelectors();
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEventModal() {
+            const modal = document.getElementById('eventModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function saveEvent(event) {
+            event.preventDefault();
+
+            const eventData = {
+                id: document.getElementById('editEventId').value || crypto.randomUUID(),
+                title: document.getElementById('eventTitle').value,
+                type: document.getElementById('eventType').value,
+                team: document.getElementById('eventTeam').value,
+                date: document.getElementById('eventDate').value,
+                attendance: {} // Starts empty, filled in separately
+            };
+
+            await window.saveEventToDatabase(eventData);
+            closeEventModal();
+            recalculateOppmoteAndKjemi();
+            if (typeof renderCalendar === 'function') renderCalendar();
+        }
+
+        let activeAttendanceEventId = null;
+        function openAttendanceModal(eventId) {
+            activeAttendanceEventId = eventId;
+            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+            const ev = events.find(e => e.id === eventId);
+            if (!ev) return;
+
+            document.getElementById('attendanceModalTitle').innerText = `${ev.title}`;
+            document.getElementById('attendanceModalSub').innerText = `${ev.type} for ${ev.team} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
+
+            const container = document.getElementById('attendance-players-list');
+            container.innerHTML = '';
+
+            // Filter players belonging to this event's team
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+            const teamPlayers = players.filter(p => p.spillerLag === ev.team);
+
+            if (teamPlayers.length === 0) {
+                container.innerHTML = `
+                    <div class="py-6 text-center text-slate-400 text-xs italic">
+                        Ingen spillere er registrert på ${ev.team} enda. Gå til "Spillerstall" for å legge til spillere.
+                    </div>
+                `;
+            } else {
+                teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
+                    const isPresent = ev.attendance && ev.attendance[p.navn] !== undefined ? ev.attendance[p.navn] : true;
+                    
+                    const div = document.createElement('div');
+                    div.className = "py-3 flex justify-between items-center";
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-slate-800 text-xs">${p.navn}</span>
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">${p.pos1}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button type="button" onclick="setAttendancePill(this, true)" class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${isPresent ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-400'}" data-player="${p.navn}" data-status="true">
+                                TILSTEDE ✅
+                            </button>
+                            <button type="button" onclick="setAttendancePill(this, false)" class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${!isPresent ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-400'}" data-player="${p.navn}" data-status="false">
+                                FORFALL ❌
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            const modal = document.getElementById('attendanceModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function setAttendancePill(btn, status) {
+            const row = btn.parentElement;
+            row.querySelectorAll('.attendance-pill').forEach(b => {
+                b.classList.remove('bg-emerald-100', 'border-emerald-300', 'text-emerald-800', 'bg-rose-100', 'border-rose-300', 'text-rose-800');
+                b.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-400');
+            });
+
+            if (status) {
+                btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-400');
+                btn.classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-800');
+            } else {
+                btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-400');
+                btn.classList.add('bg-rose-100', 'border-rose-300', 'text-rose-800');
+            }
+        }
+
+        function closeAttendanceModal() {
+            const modal = document.getElementById('attendanceModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            activeAttendanceEventId = null;
+        }
+
+        async function saveAttendanceRegistry() {
+            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+            const ev = events.find(e => e.id === activeAttendanceEventId);
+            if (!ev) return;
+
+            const attMap = {};
+            const container = document.getElementById('attendance-players-list');
+            
+            container.querySelectorAll('.attendance-pill').forEach(btn => {
+                const isSelected = btn.classList.contains('bg-emerald-100') || btn.classList.contains('bg-rose-100');
+                if (isSelected) {
+                    const player = btn.getAttribute('data-player');
+                    const status = btn.getAttribute('data-status') === 'true';
+                    attMap[player] = status;
+                }
+            });
+
+            ev.attendance = attMap;
+            await window.saveEventToDatabase(ev);
+            closeAttendanceModal();
+            recalculateOppmoteAndKjemi();
+        }
+
+        function promptDeleteEvent(id) {
+            customConfirm("Slette event?", "Er du sikker på at du ønsker å slette dette oppmøte-eventet permanent?", async () => {
+                await window.deleteEventFromDatabase(id);
+                recalculateOppmoteAndKjemi();
+            });
+        }
+
+        function recalculateOppmoteAndKjemi() {
+            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+
+            // Filter events based on selected team
+            const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
+            const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+
+            // Paint Events list
+            const tableBody = document.getElementById('eventTableBody');
+            const emptyView = document.getElementById('no-events-view');
+
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                if (filteredEvents.length === 0) {
+                    if (emptyView) emptyView.classList.remove('hidden');
+                } else {
+                    if (emptyView) emptyView.classList.add('hidden');
+                    const sortedEvents = [...filteredEvents].sort((a,b) => new Date(b.date) - new Date(a.date));
+                    
+                    sortedEvents.forEach(e => {
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                        
+                        const dateStr = new Date(e.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
+                        
+                        // Count present
+                        const presentCount = Object.values(e.attendance || {}).filter(v => v === true).length;
+                        const totalRegistered = Object.keys(e.attendance || {}).length;
+                        const ratioStr = totalRegistered > 0 ? `${presentCount}/${totalRegistered}` : 'Ingen data';
+
+                        let typeBadge = '';
+                        if (e.type === 'Trening') typeBadge = '<span class="bg-blue-100 text-bsk-blue px-2 py-0.5 rounded-full font-bold">Trening 🏃</span>';
+                        else if (e.type === 'Kamp') typeBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Kamp ⚽</span>';
+                        else if (e.type === 'Sosialt') typeBadge = '<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-bold">Sosialt 🎉</span>';
+                        else typeBadge = '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Dugnad 🧹</span>';
+
+                        const teamBadge = `<span class="bg-bsk-yellow/20 text-bsk-blue text-[9px] px-1.5 py-0.5 rounded font-bold">${e.team}</span>`;
+
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-bold text-slate-800">
+                                <div class="flex flex-col">
+                                    <span>${e.title}</span>
+                                    <span class="mt-0.5">${teamBadge}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-4">${typeBadge}</td>
+                            <td class="py-3 px-4 text-center text-slate-500 font-semibold">${dateStr}</td>
+                            <td class="py-3 px-4 text-center font-bold text-slate-700">${ratioStr}</td>
+                            <td class="py-3 px-6 text-right">
+                                <div class="flex justify-end gap-1.5">
+                                    <button onclick="openAttendanceModal('${e.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-2.5 py-1.5 rounded-lg transition" title="Før oppmøte">
+                                        FØR ✅
+                                    </button>
+                                    <button onclick="promptDeleteEvent('${e.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Slett">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            }
+
+            // Compute statistics for dashboard counters
+            let totalEventTicks = 0;
+            let totalPossibleTicks = 0;
+
+            filteredEvents.forEach(e => {
+                if (e.attendance) {
+                    Object.values(e.attendance).forEach(val => {
+                        totalPossibleTicks++;
+                        if (val === true) totalEventTicks++;
+                    });
+                }
+            });
+
+            const avgRate = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
+            
+            const totalEventsCountEl = document.getElementById('total-events-count');
+            const avgAttendanceRateEl = document.getElementById('avg-attendance-rate');
+            if (totalEventsCountEl) totalEventsCountEl.innerText = filteredEvents.length;
+            if (avgAttendanceRateEl) avgAttendanceRateEl.innerText = `${avgRate}%`;
+
+            // Compute Player Loyalty rates and Loyalty Streak badges
+            const playerStats = {};
+            teamPlayers.forEach(p => {
+                playerStats[p.navn] = { present: 0, total: 0, streak: 0 };
+            });
+
+            // Sort events chronically to calculate streaks
+            const chronoEvents = [...filteredEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            chronoEvents.forEach(e => {
+                if (e.attendance) {
+                    Object.entries(e.attendance).forEach(([player, present]) => {
+                        if (playerStats[player]) {
+                            playerStats[player].total++;
+                            if (present) {
+                                playerStats[player].present++;
+                                playerStats[player].streak++;
+                            } else {
+                                playerStats[player].streak = 0; // reset streak
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Paint player loyalty cards
+            const loyaltyContainer = document.getElementById('player-loyalty-list');
+            if (loyaltyContainer) {
+                loyaltyContainer.innerHTML = '';
+                
+                const sortedLoyalty = Object.entries(playerStats).map(([name, data]) => {
+                    const rate = data.total > 0 ? Math.round((data.present / data.total) * 100) : 0;
+                    return { name, rate, ...data };
+                }).sort((a,b) => b.rate - a.rate);
+
+                if (sortedLoyalty.length === 0) {
+                    loyaltyContainer.innerHTML = `<p class="p-6 text-center text-xs text-slate-400 italic">Ingen spillere i listen.</p>`;
+                } else {
+                    sortedLoyalty.forEach(item => {
+                        let loyaltyBadge = '';
+                        if (item.rate >= 90) loyaltyBadge = '<span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase">JERNMANN 🏆</span>';
+                        else if (item.rate >= 70) loyaltyBadge = '<span class="bg-blue-100 text-bsk-blue text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">STABIL ⚡</span>';
+                        else if (item.rate > 0) loyaltyBadge = '<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">SLAPPER 💤</span>';
+                        else loyaltyBadge = '<span class="bg-slate-100 text-slate-400 text-[9px] font-medium px-1.5 py-0.5 rounded-md">INGEN DATA</span>';
+
+                        const streakIndicator = item.streak >= 3 ? `<span class="text-rose-500 text-[10px] font-black"><i class="fa-solid fa-fire animate-pulse"></i> ${item.streak} på rad</span>` : '';
+
+                        const div = document.createElement('div');
+                        div.className = "p-4 flex justify-between items-center hover:bg-slate-50/50 transition";
+                        div.innerHTML = `
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-slate-800 text-xs">${item.name}</span>
+                                    ${streakIndicator}
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    ${loyaltyBadge}
+                                    <span class="text-[10px] text-slate-400">${item.present}/${item.total} økter</span>
+                                </div>
+                            </div>
+                            <span class="text-sm font-black text-slate-900">${item.rate}%</span>
+                        `;
+                        loyaltyContainer.appendChild(div);
+                    });
+                }
+            }
+
+            // COMPUTE CHEMISTRY CONNECTIONS (Radarpar!)
+            const pairsMap = {};
+            for (let i = 0; i < teamPlayers.length; i++) {
+                for (let j = i + 1; j < teamPlayers.length; j++) {
+                    const p1 = teamPlayers[i].navn;
+                    const p2 = teamPlayers[j].navn;
+                    const key = [p1, p2].sort().join(" & ");
+                    
+                    pairsMap[key] = { sharedPresent: 0, eitherPresent: 0, list: [] };
+                }
+            }
+
+            filteredEvents.forEach(e => {
+                if (e.attendance) {
+                    Object.entries(pairsMap).forEach(([pairKey, scoreData]) => {
+                        const [p1, p2] = pairKey.split(" & ");
+                        const p1Present = e.attendance[p1] === true;
+                        const p2Present = e.attendance[p2] === true;
+
+                        if (p1Present || p2Present) {
+                            scoreData.eitherPresent++;
+                        }
+                        if (p1Present && p2Present) {
+                            scoreData.sharedPresent++;
+                        }
+                    });
+                }
+            });
+
+            const sortedDuos = Object.entries(pairsMap).map(([pairKey, data]) => {
+                const score = data.eitherPresent > 0 ? Math.round((data.sharedPresent / data.eitherPresent) * 100) : 0;
+                return { pairKey, score, shared: data.sharedPresent };
+            }).sort((a,b) => b.score - a.score);
+
+            const duosContainer = document.getElementById('top-chemistry-duos');
+            if (duosContainer) {
+                duosContainer.innerHTML = '';
+                
+                const top3 = sortedDuos.filter(d => d.shared > 0).slice(0, 3);
+                const bestTeamChemistryEl = document.getElementById('best-team-chemistry');
+
+                if (top3.length === 0) {
+                    duosContainer.innerHTML = `
+                        <div class="py-6 text-center text-slate-400 text-xs italic bg-white/5 border border-white/10 rounded-xl">
+                            Ikke nok felles oppmøtedata til å beregne lagkjemi enda.
+                        </div>
+                    `;
+                    if (bestTeamChemistryEl) bestTeamChemistryEl.innerText = '0%';
+                } else {
+                    if (bestTeamChemistryEl) bestTeamChemistryEl.innerText = `${top3[0].score}%`;
+
+                    top3.forEach((duo, idx) => {
+                        let chemBadge = "God tone";
+                        let progressColor = "bg-amber-400";
+                        if (duo.score >= 90) { chemBadge = "Radarpar! ⭐"; progressColor = "bg-bsk-yellow"; }
+                        else if (duo.score >= 70) { chemBadge = "Utsøkt kjemi"; progressColor = "bg-emerald-400"; }
+                        
+                        const div = document.createElement('div');
+                        div.className = "bg-white/5 border border-white/10 p-3.5 rounded-xl space-y-2";
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="text-bsk-yellow font-black">${idx + 1}.</span>
+                                    <span class="font-bold text-white">${duo.pairKey}</span>
+                                </div>
+                                <span class="bg-white/10 text-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">${chemBadge}</span>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                                    <div class="${progressColor} h-full rounded-full transition-all duration-1000" style="width: ${duo.score}%"></div>
+                                </div>
+                                <div class="flex justify-between text-[9px] text-slate-400">
+                                    <span>Felles oppmøtescore: ${duo.score}%</span>
+                                    <span>${duo.shared} økter sammen</span>
+                                </div>
+                            </div>
+                        `;
+                        duosContainer.appendChild(div);
+                    });
+                }
+            }
+
+            // Populate dropdown for Chemistry Sjekker
+            const checkerSelect = document.getElementById('chemistryPlayerSelect');
+            if (checkerSelect) {
+                const currentSelected = checkerSelect.value;
+                checkerSelect.innerHTML = `<option value="">-- VELG SPILLER --</option>`;
+                
+                teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.navn;
+                    opt.innerText = p.navn.toUpperCase();
+                    checkerSelect.appendChild(opt);
+                });
+
+                if (teamPlayers.some(p => p.navn === currentSelected)) {
+                    checkerSelect.value = currentSelected;
+                    checkIndividualChemistry();
+                } else {
+                    const resultEl = document.getElementById('individual-chemistry-result');
+                    const emptyEl = document.getElementById('individual-chemistry-empty');
+                    if (resultEl) resultEl.classList.add('hidden');
+                    if (emptyEl) emptyEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        window.navigateCalendar = function(direction) {
+            const current = window.currentCalendarDate;
+            window.currentCalendarDate = new Date(current.getFullYear(), current.getMonth() + direction, 1);
+            renderCalendar();
+        };
+
+        window.renderCalendar = function() {
+            const grid = document.getElementById('calendar-days-grid');
+            if (!grid) return;
+
+            const date = window.currentCalendarDate;
+            const year = date.getFullYear();
+            const month = date.getMonth();
+
+            const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
+            const monthYearEl = document.getElementById('calendar-month-year');
+            if (monthYearEl) monthYearEl.innerText = `${monthNames[month]} ${year}`;
+
+            grid.innerHTML = '';
+
+            const firstDayIndex = new Date(year, month, 1).getDay(); 
+            const startOffset = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            // Render preceding empty blocks
+            for (let i = 0; i < startOffset; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = "bg-slate-100/40 rounded-lg min-h-[40px]";
+                grid.appendChild(emptyCell);
+            }
+
+            // Render actual days
+            for (let day = 1; day <= totalDays; day++) {
+                const dayDate = new Date(year, month, day);
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                const isSelected = window.selectedCalendarDateStr === dateStr;
+                const isToday = new Date().toDateString() === dayDate.toDateString();
+
+                const cell = document.createElement('div');
+                cell.className = `border border-slate-100 rounded-xl p-1.5 min-h-[44px] flex flex-col justify-between cursor-pointer transition active:scale-95 ${
+                    isSelected ? 'bg-bsk-blue text-white shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                } ${isToday && !isSelected ? 'ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
+                
+                cell.onclick = () => selectCalendarDate(dateStr);
+
+                const matches = (window.activeMatches || []).filter(m => m.date === dateStr);
+                const events = (window.activeEvents || []).filter(e => e.date === dateStr);
+
+                let dotContainer = document.createElement('div');
+                dotContainer.className = "flex gap-1 justify-center mt-1";
+
+                events.forEach(e => {
+                    const dot = document.createElement('span');
+                    dot.className = "w-2 h-2 rounded-full " + (
+                        e.type === 'Trening' ? 'bg-blue-500' :
+                        e.type === 'Sosialt' ? 'bg-purple-500' :
+                        e.type === 'Dugnad' ? 'bg-amber-500' : 'bg-slate-400'
+                    );
+                    dotContainer.appendChild(dot);
+                });
+
+                matches.forEach(() => {
+                    const dot = document.createElement('span');
+                    dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                    dotContainer.appendChild(dot);
+                });
+
+                cell.innerHTML = `
+                    <span class="text-[10px] font-extrabold ${isSelected ? 'text-bsk-yellow' : 'text-slate-500'}">${day}</span>
+                `;
+                cell.appendChild(dotContainer);
+                grid.appendChild(cell);
+            }
+
+            updateDailySchedule();
+        };
+
+        window.selectCalendarDate = function(dateStr) {
+            window.selectedCalendarDateStr = dateStr;
+            renderCalendar();
+        };
+
+        window.updateDailySchedule = function() {
+            const listContainer = document.getElementById('daily-events-list');
+            const headerDate = document.getElementById('selected-calendar-date');
+            if (!listContainer) return;
+
+            const parsedDate = new Date(window.selectedCalendarDateStr);
+            const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' });
+            if (headerDate) headerDate.innerText = formattedDate;
+
+            listContainer.innerHTML = '';
+
+            const dateStr = window.selectedCalendarDateStr;
+            const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+            const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
+
+            if (dayMatches.length === 0 && dayEvents.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="py-10 text-center text-slate-400 text-xs italic font-medium leading-relaxed">
+                        <i class="fa-regular fa-calendar-plus text-2xl mb-2 text-slate-300 block"></i>
+                        Ingen hendelser planlagt. <br>Klikk på knappene under for å planlegge!
+                    </div>
+                `;
+                return;
+            }
+
+            // Append matches
+            dayMatches.forEach(m => {
+                const item = document.createElement('div');
+                item.className = "p-3 bg-emerald-50 border border-emerald-100 rounded-xl space-y-1";
+                item.innerHTML = `
+                    <div class="flex justify-between items-start text-xs font-bold text-emerald-800">
+                        <span>⚽ Kamp mot ${m.opponent}</span>
+                        <span>${m.time || 'TBA'}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-medium">Spilles på: ${m.pitch || 'Ikke satt'} (${m.matchGroup})</p>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            // Append events
+            dayEvents.forEach(e => {
+                const item = document.createElement('div');
+                const isTrening = e.type === 'Trening';
+                const isSosialt = e.type === 'Sosialt';
+                const isDugnad = e.type === 'Dugnad';
+                
+                let bgClass = "bg-slate-50 border-slate-200 text-slate-800";
+                let titlePrefix = "📋 ";
+
+                if (isTrening) { bgClass = "bg-blue-50 border-blue-100 text-blue-900"; titlePrefix = "🏃 Trening: "; }
+                else if (isSosialt) { bgClass = "bg-purple-50 border-purple-100 text-purple-900"; titlePrefix = "🎉 Sosialt: "; }
+                else if (isDugnad) { bgClass = "bg-amber-50 border-amber-100 text-amber-900"; titlePrefix = "🧹 Dugnad: "; }
+
+                item.className = `p-3 border rounded-xl space-y-1.5 ${bgClass}`;
+                item.innerHTML = `
+                    <div class="flex justify-between items-start text-xs font-bold">
+                        <span>${titlePrefix}${e.title}</span>
+                        <span class="text-[9px] bg-white/65 px-1.5 py-0.5 rounded">${e.team}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1 border-t border-black/5">
+                        <span class="text-[9px] text-slate-500 font-medium">Møt opp og hold kjemien på topp!</span>
+                        <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg">
+                            Før oppmøte ✅
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        };
+
+        window.quickAddEvent = function(type) {
+            if (type === 'Kamp') {
+                window.openMatchModal();
+                document.getElementById('matchDate').value = window.selectedCalendarDateStr;
+            } else {
+                openEventModal();
+                document.getElementById('eventType').value = type;
+                document.getElementById('eventDate').value = window.selectedCalendarDateStr;
+            }
+        };
+
+        function checkIndividualChemistry() {
+            const selectedPlayer = document.getElementById('chemistryPlayerSelect').value;
+            const resContainer = document.getElementById('individual-chemistry-result');
+            const emptyContainer = document.getElementById('individual-chemistry-empty');
+
+            if (!selectedPlayer) {
+                if (resContainer) resContainer.classList.add('hidden');
+                if (emptyContainer) emptyContainer.classList.remove('hidden');
+                return;
+            }
+
+            if (resContainer) resContainer.classList.remove('hidden');
+            if (emptyContainer) emptyContainer.classList.add('hidden');
+
+            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+            const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+
+            let bestPartner = null;
+            let bestScore = -1;
+            let bestSharedCount = 0;
+
+            teamPlayers.forEach(p => {
+                if (p.navn === selectedPlayer) return;
+
+                let sharedPresent = 0;
+                let eitherPresent = 0;
+
+                events.forEach(e => {
+                    if (filterLag !== 'Alle' && e.team !== filterLag) return;
+                    if (e.attendance) {
+                        const p1Present = e.attendance[selectedPlayer] === true;
+                        const p2Present = e.attendance[p.navn] === true;
+
+                        if (p1Present || p2Present) eitherPresent++;
+                        if (p1Present && p2Present) sharedPresent++;
+                    }
+                });
+
+                const score = eitherPresent > 0 ? Math.round((sharedPresent / eitherPresent) * 100) : 0;
+                
+                if (score > bestScore && sharedPresent > 0) {
+                    bestScore = score;
+                    bestPartner = p.navn;
+                    bestSharedCount = sharedPresent;
+                }
+            });
+
+            const circle = document.getElementById('chem-circle-progress');
+            const pctText = document.getElementById('individual-chem-pct');
+            const partnerNameText = document.getElementById('individual-partner-name');
+            const partnerDescText = document.getElementById('individual-partner-desc');
+
+            if (bestPartner) {
+                if (pctText) pctText.innerText = `${bestScore}%`;
+                if (partnerNameText) partnerNameText.innerText = bestPartner;
+                if (partnerDescText) partnerDescText.innerText = `Har stilt opp sammen på ${bestSharedCount} eventer i sesongen.`;
+                
+                const offset = 251.2 - (251.2 * bestScore) / 100;
+                if (circle) circle.style.strokeDashoffset = offset;
+            } else {
+                if (pctText) pctText.innerText = `0%`;
+                if (partnerNameText) partnerNameText.innerText = "Ingen match";
+                if (partnerDescText) partnerDescText.innerText = "Ikke nok felles oppmøtedata registrert.";
+                if (circle) circle.style.strokeDashoffset = 251.2;
+            }
+        }
+
+        function renderSpillerbors() {
+            const scoresMap = {};
+            const ratingsSum = {};
+            const ratingsCount = {};
+
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+            players.forEach(p => {
+                scoresMap[p.navn] = 0;
+                ratingsSum[p.navn] = 0;
+                ratingsCount[p.navn] = 0;
+            });
+
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            matches.forEach(m => {
+                if (m.scorers) {
+                    Object.entries(m.scorers).forEach(([player, goals]) => {
+                        if (scoresMap[player] !== undefined) scoresMap[player] += goals;
+                    });
+                }
+                if (m.ratings) {
+                    Object.entries(m.ratings).forEach(([player, val]) => {
+                        if (ratingsSum[player] !== undefined && val > 0) {
+                            ratingsSum[player] += val;
+                            ratingsCount[player]++;
+                        }
+                    });
+                }
+            });
+
+            const sortedScorers = Object.entries(scoresMap)
+                .filter(([_, goals]) => goals > 0)
+                .sort((a, b) => b[1] - a[1]);
+
+            const sortedRatings = Object.entries(ratingsSum)
+                .map(([player, sum]) => {
+                    const count = ratingsCount[player];
+                    const avg = count > 0 ? (sum / count).toFixed(1) : 0;
+                    return { player, avg: parseFloat(avg), count };
+                })
+                .filter(item => item.count > 0)
+                .sort((a, b) => b.avg - a.avg);
+
+            const scorersContainer = document.getElementById('top-scorers-list');
+            if (scorersContainer) {
+                scorersContainer.innerHTML = '';
+                if (sortedScorers.length === 0) {
+                    scorersContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 italic font-medium">Ingen mål registrert enda denne sesongen.</p>`;
+                } else {
+                    sortedScorers.forEach(([player, goals], idx) => {
+                        scorersContainer.innerHTML += `
+                            <div class="flex justify-between items-center py-2 border-b border-slate-150">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400 font-bold text-xs">${idx + 1}.</span>
+                                    <span class="font-bold text-slate-800 text-xs">${player}</span>
+                                </div>
+                                <span class="bg-bsk-blue text-bsk-yellow font-black text-xs px-2.5 py-1 rounded-full">${goals} mål</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            const ratingsContainer = document.getElementById('top-rated-list');
+            if (ratingsContainer) {
+                ratingsContainer.innerHTML = '';
+                if (sortedRatings.length === 0) {
+                    ratingsContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 italic font-medium">Ingen spillervurderinger foretatt enda.</p>`;
+                } else {
+                    sortedRatings.forEach((item, idx) => {
+                        ratingsContainer.innerHTML += `
+                            <div class="flex justify-between items-center py-2 border-b border-slate-150">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400 font-bold text-xs">${idx + 1}.</span>
+                                    <span class="font-bold text-slate-800 text-xs">${item.player}</span>
+                                    <span class="text-[10px] text-slate-400">(${item.count} kamper)</span>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-800 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> ${item.avg}
+                                </span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+        }
+
+        function renderStatistikkSide() {
+            let wins = 0;
+            let draws = 0;
+            let losses = 0;
+            let goals = 0;
+
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            matches.forEach(m => {
+                const score = parseScore(m.result);
+                if (score !== null) {
+                    goals += score.bsk;
+                    if (score.bsk > score.opponent) {
+                        wins++;
+                    } else if (score.bsk === score.opponent) {
+                        draws++;
+                    } else {
+                        losses++;
+                    }
+                }
+            });
+
+            const pWins = document.getElementById('stats-page-wins');
+            const pDraws = document.getElementById('stats-page-draws');
+            const pLosses = document.getElementById('stats-page-losses');
+            const pGoals = document.getElementById('stats-page-goals');
+
+            if (pWins) pWins.innerText = wins;
+            if (pDraws) pDraws.innerText = draws;
+            if (pLosses) pLosses.innerText = losses;
+            if (pGoals) pGoals.innerText = goals;
+        }
+
+        // Close modals on viewport click
+        window.onclick = function(event) {
+            const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'eventModal', 'attendanceModal', 'confirmModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    if(modalId === 'matchModal') window.closeMatchModal();
+                    if(modalId === 'teamModal') window.closeTeamModal();
+                    if(modalId === 'playerModal') window.closePlayerModal();
+                    if(modalId === 'matchInfoModal') window.closeMatchInfo();
+                    if(modalId === 'eventModal') closeEventModal();
+                    if(modalId === 'attendanceModal') closeAttendanceModal();
+                    if(modalId === 'confirmModal') closeConfirmModal();
+                }
+            });
+        };
+
+        setTimeout(() => {
+            updateDynamicSelectors();
+            applyFilters();
+            updateDashboard();
+            renderPlayerRoster();
+            recalculateOppmoteAndKjemi();
+            renderCalendar();
+            switchTab('hjem');
+        }, 300);
+
+    </script>
 </body>
 </html>
