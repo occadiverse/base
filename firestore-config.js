@@ -17,4 +17,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app); 
 const auth = getAuth(app);
 
+console.log("DB fra config:", db); // LEGG TIL DENNE!
+
 export { db, auth };
