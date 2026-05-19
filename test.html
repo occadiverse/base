@@ -980,10 +980,14 @@
         // Importer kun funksjonene vi trenger for å manipulere data
         import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // HER ER ENDRINGEN: Vi henter db og auth fra din nye fil
         import { db, auth } from './firestore-config.js';
 
+        // 2. Definer mock-dataene dine rett under (hvis de ikke allerede er definert her)
+        const initialMockMatches = window.initialMockMatches || [];
+        const initialMockTeams = window.initialMockTeams || [];
+        const initialMockPlayers = window.initialMockPlayers || [];
+        const initialMockEvents = window.initialMockEvents || [];
+       
         const appId = "bsk-fotball-app";
         
         // ... (behold resten av mock-dataene dine: initialMockPlayers, initialMockTeams osv.) ...
