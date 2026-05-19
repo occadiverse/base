@@ -1,6 +1,6 @@
 // firestore-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -13,10 +13,8 @@ const firebaseConfig = {
     appId: "1:4752321901:web:089814e4faefbdeff9be64"
 };
 
-// Initialiser Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getDatabase(app); 
 const auth = getAuth(app);
 
-// Eksporter db og auth slik at test.html kan bruke dem direkte
 export { db, auth };
