@@ -976,87 +976,17 @@
         window.selectedCalendarDateStr = "2026-05-19";
     </script>
 
-    <script type="module">
+   <script type="module">
+        // Importer kun funksjonene vi trenger for å manipulere data
         import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Importer databasen og autentiseringen fra din eksterne fil
+        // HER ER ENDRINGEN: Vi henter db og auth fra din nye fil
         import { db, auth } from './firestore-config.js';
 
         const appId = "bsk-fotball-app";
         
-        // Initial Mock Databases
-        const initialMockPlayers = [
-            { id: "p-1", navn: "Tobias Berg", draktnummer: 10, fodselsaar: 1998, status: "Aktiv", spillerLag: "Lag A", pos1: "Spiss", pos2: "Høyre kant", fot: "Høyre" },
-            { id: "p-2", navn: "Henrik Lunde", draktnummer: 1, fodselsaar: 1995, status: "Aktiv", spillerLag: "Lag A", pos1: "Keeper", pos2: "-", fot: "Høyre" },
-            { id: "p-3", navn: "Sander Nilsen", draktnummer: 4, fodselsaar: 1999, status: "Aktiv", spillerLag: "Lag A", pos1: "Høyre stopper", pos2: "Venstre stopper", fot: "Begge" },
-            { id: "p-4", navn: "Mathias Solberg", draktnummer: 8, fodselsaar: 1997, status: "Aktiv", spillerLag: "Lag A", pos1: "Defensiv midtbane", pos2: "Playmaker", fot: "Høyre" },
-            { id: "p-5", navn: "Eirik Kristiansen", draktnummer: 7, fodselsaar: 2001, status: "Aktiv", spillerLag: "Lag B", pos1: "Venstre kant", pos2: "Offensiv midtbane", fot: "Venstre" },
-            { id: "p-6", navn: "Marius Holmen", draktnummer: 9, fodselsaar: 2002, status: "Aktiv", spillerLag: "Lag B", pos1: "Spiss", pos2: "-", fot: "Høyre" },
-            { id: "p-7", navn: "Kristian Ruud", draktnummer: 14, fodselsaar: 2003, status: "Rekrutt", spillerLag: "Lag B", pos1: "Høyre bekk", pos2: "-", fot: "Høyre" },
-            { id: "p-8", navn: "Jonas Myhre", draktnummer: 11, fodselsaar: 1999, status: "Aktiv", spillerLag: "Lag A", pos1: "Offensiv midtbane", pos2: "Venstre kant", fot: "Venstre" },
-            { id: "p-9", navn: "Magnus Sæther", draktnummer: 5, fodselsaar: 2000, status: "Aktiv", spillerLag: "Lag A", pos1: "Venstre bekk", pos2: "Venstre stopper", fot: "Venstre" },
-            { id: "p-10", navn: "Andreas Bakke", draktnummer: 6, fodselsaar: 1996, status: "Aktiv", spillerLag: "Lag A", pos1: "Defensiv midtbane", pos2: "-", fot: "Høyre" }
-        ];
-
-        const initialMockTeams = [
-            { id: "team-1", name: "Lag A", coachName: "Morten Olsen", coachContact: "912 34 567", description: "BSK A-lag herrer. Spiller i 4. divisjon Oslo." },
-            { id: "team-2", name: "Lag B", coachName: "Jens Petter", coachContact: "415 62 819", description: "BSK Rekruttlag herrer. Fokus på utvikling av juniorspillere." }
-        ];
-
-        const initialMockMatches = [
-            {
-                id: "mock-1",
-                opponent: "Nordstrand IF",
-                date: "2026-05-15",
-                time: "18:30",
-                pitch: "NIF Arena",
-                matchType: "Serie",
-                matchGroup: "Lag A",
-                result: "3-1",
-                scorers: { "Tobias Berg": 2, "Mathias Solberg": 1 },
-                ratings: { "Tobias Berg": 9, "Henrik Lunde": 8, "Sander Nilsen": 7, "Mathias Solberg": 8 }
-            },
-            {
-                id: "mock-2",
-                opponent: "Kfum-Kameratene",
-                date: "2026-05-24",
-                time: "19:00",
-                pitch: "Sportsplassen (Ekeberg)",
-                matchType: "Serie",
-                matchGroup: "Lag A",
-                result: "",
-                scorers: {},
-                ratings: {}
-            }
-        ];
-
-        const initialMockEvents = [
-            {
-                id: "event-1",
-                title: "Fysisk økt & Spillsekvens",
-                type: "Trening",
-                team: "Lag A",
-                date: "2026-05-10",
-                attendance: { "Tobias Berg": true, "Henrik Lunde": true, "Sander Nilsen": true, "Mathias Solberg": true, "Jonas Myhre": false, "Magnus Sæther": true, "Andreas Bakke": true }
-            },
-            {
-                id: "event-2",
-                title: "Taktisk trening og dødball",
-                type: "Trening",
-                team: "Lag A",
-                date: "2026-05-20",
-                attendance: { "Tobias Berg": true, "Henrik Lunde": true, "Sander Nilsen": false, "Mathias Solberg": true, "Jonas Myhre": true, "Magnus Sæther": true, "Andreas Bakke": true }
-            },
-            {
-                id: "event-3",
-                title: "Sosial Pizzakveld",
-                type: "Sosialt",
-                team: "Lag A",
-                date: "2026-05-25",
-                attendance: { "Tobias Berg": true, "Henrik Lunde": true, "Sander Nilsen": true, "Mathias Solberg": true, "Jonas Myhre": true, "Magnus Sæther": false, "Andreas Bakke": true }
-            }
-        ];
+        // ... (behold resten av mock-dataene dine: initialMockPlayers, initialMockTeams osv.) ...
 
         let activeMatchesCollectionRef = null;
         let activeTeamsCollectionRef = null;
@@ -1065,7 +995,7 @@
         let firebaseEnabled = false;
 
         try {
-            // Siden db og auth nå kommer fra firestore-config.js, logger vi inn anonymt
+            // Siden db og auth nå kommer fra din egen fil, er det bare å logge inn:
             await signInAnonymously(auth);
 
             activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
@@ -1078,6 +1008,8 @@
         } catch (err) {
             console.warn("Firebase offline. Falling back to LocalStorage.", err);
         }
+
+        // ... (resten av koden din kan være akkurat som før)
 
         function syncMatches(matchesData) {
             window.activeMatches = matchesData;
