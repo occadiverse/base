@@ -198,16 +198,18 @@
     </section>
 
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        
         <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex">
             <div class="inline-flex bg-slate-200/70 p-0.5 rounded-xl text-xs font-bold font-sans">
-                <button onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm">
+                <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm">
                     Kommende
                 </button>
-                <button onclick="setMatchTimeFilter('spilte')" id="btn-filter-spilte" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
                     Tidligere
                 </button>
             </div>
         </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse" id="matchTable">
                 <thead>
@@ -219,8 +221,7 @@
                         <th class="py-4 px-4 text-center w-20">Resultat</th>
                         <th class="py-4 px-6 text-left hidden lg:table-cell">Bane</th>
                         <th class="py-4 px-6 text-left hidden lg:table-cell">Type</th>
-                        <th class="py-4 px-4 md:px-6 w-12"></th>
-                    </tr>
+                        <th class="py-4 px-4 md:px-6 w-12"></th> </tr>
                 </thead>
                 <tbody id="matchTableBody" class="divide-y divide-slate-100 text-sm">
                     </tbody>
@@ -1689,100 +1690,128 @@
             }
         }
 
-        function applyFilters() {
-            const tableBody = document.getElementById('matchTableBody');
-            const noMatchesView = document.getElementById('no-matches-view');
+        // 1. Global variabel for tidsfilteret
+if (typeof window.activeTimeFilter === 'undefined') {
+    window.activeTimeFilter = 'kommende'; 
+}
 
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
-
-            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
-            
-            // Definer start- og slutten på "i dag" for en presis sjekk
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            // Filtrer basert på om kampen er historisk eller i fremtiden
-            const filtered = matches.filter(m => {
-                const matchDate = new Date(m.date);
-                matchDate.setHours(0, 0, 0, 0);
-
-                if (activeTimeFilter === 'kommende') {
-                    // Vis kamper i dag eller frem i tid
-                    return matchDate >= today;
-                } else {
-                    // Vis kamper som har vært (før i dag)
-                    return matchDate < today;
-                }
-            });
-
-            // Sortering: Kommende sorteres eldste først (neste kamp øverst). Spilte sorteres nyeste først.
-            const sortedMatches = [...filtered].sort((a, b) => {
-                if (activeTimeFilter === 'kommende') {
-                    return new Date(a.date) - new Date(b.date);
-                } else {
-                    return new Date(b.date) - new Date(a.date);
-                }
-            });
-            
-            if (sortedMatches.length === 0) {
-                if (noMatchesView) noMatchesView.classList.remove('hidden');
-                return;
-            } else {
-                if (noMatchesView) noMatchesView.classList.add('hidden');
-            }
-
-            // Tegn opp tabellen
-            sortedMatches.forEach(m => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/70 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
-                tr.onclick = () => showMatchDetails(m.id);
-
-                const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
-                
-                let resultBadge = `<span class="text-slate-400 font-medium">-</span>`;
-                if (m.result) {
-                    const score = parseScore(m.result);
-                    if (score) {
-                        if (score.bsk > score.opponent) {
-                            resultBadge = `<span class="inline-flex items-center justify-center bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">${m.result}</span>`;
-                        } else if (score.bsk === score.opponent) {
-                            resultBadge = `<span class="inline-flex items-center justify-center bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-200">${m.result}</span>`;
-                        } else {
-                            resultBadge = `<span class="inline-flex items-center justify-center bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-rose-200">${m.result}</span>`;
-                        }
-                    } else {
-                        resultBadge = `<span class="text-slate-600 font-bold">${m.result}</span>`;
-                    }
-                }
-
-                const isAteam = m.matchGroup?.toLowerCase().includes('lag a') || m.matchGroup?.toLowerCase().includes('herrer a') || m.matchGroup?.toLowerCase().includes('gutter 2012 a');
-                const teamLabel = isAteam 
-                    ? `<span class="bg-bsk-blue text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase">${m.matchGroup || 'LAG A'}</span>`
-                    : `<span class="bg-amber-500 text-bsk-blue text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase">${m.matchGroup || 'LAG B'}</span>`;
-
-                tr.innerHTML = `
-                    <td class="py-3.5 px-4 md:px-6 font-bold text-slate-800">${teamLabel}</td>
-                    <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">
-                        <div class="flex flex-col">
-                            <span>${m.opponent}</span>
-                            <span class="text-[10px] text-slate-400 font-normal lg:hidden">${m.pitch || 'Ingen bane'}</span>
-                        </div>
-                    </td>
-                    <td class="py-3.5 px-4 text-center text-slate-600 font-semibold">${dateFormatted}</td>
-                    <td class="py-3.5 px-2 text-center text-slate-500 font-medium text-xs">${m.time || '--:--'}</td>
-                    <td class="py-3.5 px-4 text-center">${resultBadge}</td>
-                    <td class="py-3.5 px-6 text-left hidden lg:table-cell text-slate-600">${m.pitch || '<span class="text-slate-300">Ikke oppgitt</span>'}</td>
-                    <td class="py-3.5 px-6 text-left hidden lg:table-cell">
-                        <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span>
-                    </td>
-                    <td class="py-3.5 px-4 md:px-6 text-right text-slate-400">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
+// 2. Funksjon som styrer den visuelle stilen på knappene
+function setMatchTimeFilter(filterType) {
+    window.activeTimeFilter = filterType;
+    
+    const btnKommende = document.getElementById('btn-filter-kommende');
+    const btnTidligere = document.getElementById('btn-filter-tidligere'); 
+    
+    if (btnKommende && btnTidligere) {
+        if (filterType === 'kommende') {
+            btnKommende.className = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm";
+            btnTidligere.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800";
+        } else {
+            btnTidligere.className = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm";
+            btnKommende.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800";
         }
+    }
+    
+    // Kjør filtreringen på nytt
+    applyFilters();
+}
+
+// 3. Hovedfunksjon for å filtrere og tegne kampene
+function applyFilters() {
+    const tableBody = document.getElementById('matchTableBody');
+    const noMatchesView = document.getElementById('no-matches-view');
+
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    const currentFilter = window.activeTimeFilter || 'kommende';
+
+    // Sett "i dag" til midnatt for en nøyaktig datosjekk
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Filtrer kampene basert på datoen
+    const filtered = matches.filter(m => {
+        if (!m.date) return false;
+        const matchDate = new Date(m.date);
+        matchDate.setHours(0, 0, 0, 0);
+
+        if (currentFilter === 'kommende') {
+            return matchDate >= today;
+        } else {
+            return matchDate < today;
+        }
+    });
+
+    // Sorter: Kommende (neste kamp først). Tidligere (siste spilte kamp øverst).
+    const sortedMatches = [...filtered].sort((a, b) => {
+        if (currentFilter === 'kommende') {
+            return new Date(a.date) - new Date(b.date);
+        } else {
+            return new Date(b.date) - new Date(a.date);
+        }
+    });
+    
+    // Vis beskjed hvis listen er helt tom
+    if (sortedMatches.length === 0) {
+        if (noMatchesView) noMatchesView.classList.remove('hidden');
+        return;
+    } else {
+        if (noMatchesView) noMatchesView.classList.add('hidden');
+    }
+
+    // Tegn opp radene i tabellen med klikkbar rad og bane under motstander på mobil
+    sortedMatches.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/70 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
+        tr.onclick = () => showMatchDetails(m.id);
+
+        const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
+        
+        let resultBadge = `<span class="text-slate-400 font-medium">-</span>`;
+        if (m.result) {
+            const score = parseScore(m.result);
+            if (score) {
+                if (score.bsk > score.opponent) {
+                    resultBadge = `<span class="inline-flex items-center justify-center bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">${m.result}</span>`;
+                } else if (score.bsk === score.opponent) {
+                    resultBadge = `<span class="inline-flex items-center justify-center bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-200">${m.result}</span>`;
+                } else {
+                    resultBadge = `<span class="inline-flex items-center justify-center bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-rose-200">${m.result}</span>`;
+                }
+            } else {
+                resultBadge = `<span class="text-slate-600 font-bold">${m.result}</span>`;
+            }
+        }
+
+        const isAteam = m.matchGroup?.toLowerCase().includes('lag a') || m.matchGroup?.toLowerCase().includes('herrer a') || m.matchGroup?.toLowerCase().includes('gutter 2012 a');
+        const teamLabel = isAteam 
+            ? `<span class="bg-bsk-blue text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase">${m.matchGroup || 'LAG A'}</span>`
+            : `<span class="bg-amber-500 text-bsk-blue text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase">${m.matchGroup || 'LAG B'}</span>`;
+
+        tr.innerHTML = `
+            <td class="py-3.5 px-4 md:px-6 font-bold text-slate-800">${teamLabel}</td>
+            <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">
+                <div class="flex flex-col">
+                    <span>${m.opponent}</span>
+                    <span class="text-[10px] text-slate-400 font-normal lg:hidden">${m.pitch || 'Ingen bane'}</span>
+                </div>
+            </td>
+            <td class="py-3.5 px-4 text-center text-slate-600 font-semibold">${dateFormatted}</td>
+            <td class="py-3.5 px-2 text-center text-slate-500 font-medium text-xs">${m.time || '--:--'}</td>
+            <td class="py-3.5 px-4 text-center">${resultBadge}</td>
+            <td class="py-3.5 px-6 text-left hidden lg:table-cell text-slate-600">${m.pitch || '<span class="text-slate-300">Ikke oppgitt</span>'}</td>
+            <td class="py-3.5 px-6 text-left hidden lg:table-cell">
+                <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span>
+            </td>
+            <td class="py-3.5 px-4 md:px-6 text-right text-slate-400">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
 
         window.openMatchModal = function(editId = null) {
             const modal = document.getElementById('matchModal');
