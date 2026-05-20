@@ -2206,28 +2206,37 @@ function applyFilters() {
         let activeAttendanceEventId = null;
        function openAttendanceModal(eventId) {
     activeAttendanceEventId = eventId;
-    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
-    const ev = events.find(e => e.id === eventId);
-    if (!ev) return;
+    let ev = null;
 
-    document.getElementById('attendanceModalTitle').innerText = ev.title;
-    document.getElementById('attendanceModalSub').innerText = `${ev.type} for ${ev.team} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
+    // Sjekk om det er en kamp (har 'match_' prefix) eller et vanlig event
+    if (eventId.startsWith('match_')) {
+        const realId = eventId.replace('match_', '');
+        ev = (window.activeMatches || []).find(m => m.id === realId);
+    } else {
+        ev = (window.activeEvents || []).find(e => e.id === eventId);
+    }
+
+    if (!ev) {
+        console.error("Fant ikke aktivitet med ID:", eventId);
+        return;
+    }
+
+    // Sett tittel og sub-tittel (Håndterer både kamp- og event-objekter)
+    document.getElementById('attendanceModalTitle').innerText = ev.title || ("Kamp mot " + ev.opponent);
+    document.getElementById('attendanceModalSub').innerText = `${ev.type || 'Kamp'} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
 
     const container = document.getElementById('attendance-players-list');
     container.innerHTML = '';
 
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
-    const teamPlayers = players.filter(p => p.spillerLag === ev.team);
+    
+    // Hvis det er en kamp, bruker vi ev.team hvis det finnes, ellers filter på alt
+    const teamPlayers = players.filter(p => p.spillerLag === (ev.team || ev.matchGroup));
 
     if (teamPlayers.length === 0) {
-        container.innerHTML = `
-            <div class="py-6 text-center text-slate-400 text-xs italic">
-                Ingen spillere er registrert på ${ev.team} enda.
-            </div>
-        `;
+        container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen spillere funnet for dette laget.</div>`;
     } else {
         teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
-            // Sjekk status: ev.attendance[navn] kan være true, false, eller undefined
             const status = ev.attendance ? ev.attendance[p.navn] : undefined;
             
             const div = document.createElement('div');
@@ -2240,7 +2249,7 @@ function applyFilters() {
                 </div>
                 <div class="flex items-center space-x-1">
                     <button type="button" onclick="setAttendancePill(this, true)" 
-                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition bg-white border-slate-200 text-slate-400" 
+                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === true ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-400'}" 
                         data-player="${p.navn}" data-status="true">
                         OK ✅
                     </button>
@@ -2288,27 +2297,47 @@ function applyFilters() {
         }
 
         async function saveAttendanceRegistry() {
-            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
-            const ev = events.find(e => e.id === activeAttendanceEventId);
-            if (!ev) return;
+    // 1. Identifiser om det er kamp eller vanlig event
+    const isMatch = activeAttendanceEventId.startsWith('match_');
+    const realId = isMatch ? activeAttendanceEventId.replace('match_', '') : activeAttendanceEventId;
+    
+    // 2. Finn riktig objekt i riktig liste
+    const ev = isMatch 
+        ? (window.activeMatches || []).find(m => m.id === realId) 
+        : (window.activeEvents || []).find(e => e.id === realId);
+    
+    if (!ev) {
+        console.error("Fant ikke aktivitet for lagring:", activeAttendanceEventId);
+        return;
+    }
 
-            const attMap = {};
-            const container = document.getElementById('attendance-players-list');
-            
-            container.querySelectorAll('.attendance-pill').forEach(btn => {
-                const isSelected = btn.classList.contains('bg-emerald-100') || btn.classList.contains('bg-rose-100');
-                if (isSelected) {
-                    const player = btn.getAttribute('data-player');
-                    const status = btn.getAttribute('data-status') === 'true';
-                    attMap[player] = status;
-                }
-            });
-
-            ev.attendance = attMap;
-            await window.saveEventToDatabase(ev);
-            closeAttendanceModal();
-            recalculateOppmoteAndKjemi();
+    // 3. Bygg opp attMap fra modal-knappene
+    const attMap = {};
+    const container = document.getElementById('attendance-players-list');
+    
+    container.querySelectorAll('.attendance-pill').forEach(btn => {
+        // Sjekk om knappen har en aktiv statusfarge
+        const isSelected = btn.classList.contains('bg-emerald-100') || btn.classList.contains('bg-rose-100');
+        if (isSelected) {
+            const player = btn.getAttribute('data-player');
+            const status = btn.getAttribute('data-status') === 'true';
+            attMap[player] = status;
         }
+    });
+
+    // 4. Oppdater objektet og lagre i riktig database
+    ev.attendance = attMap;
+    
+    if (isMatch) {
+        await window.saveMatchToDatabase(ev); // Sørg for at du har denne funksjonen
+    } else {
+        await window.saveEventToDatabase(ev);
+    }
+
+    // 5. Rydd opp
+    closeAttendanceModal();
+    recalculateOppmoteAndKjemi();
+}
 
         function promptDeleteEvent(id) {
             customConfirm("Slette event?", "Er du sikker på at du ønsker å slette dette oppmøte-eventet permanent?", async () => {
@@ -2960,16 +2989,15 @@ function applyFilters() {
     const noEventsView = document.getElementById('no-events-view');
     
     if (!tableBody) return;
-
     tableBody.innerHTML = '';
     
-    // 1. Hent begge lister og slå dem sammen
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
     
-    // Vi mapper kamper til samme format som events for å kunne vise dem i samme tabell
+    // Vi merker kampene med prefix 'match_' så vi vet hvor de kommer fra
     const formattedMatches = matches.map(m => ({
-        id: m.id,
+        id: 'match_' + m.id, // Unik ID
+        originalId: m.id,
         title: "Kamp: " + m.opponent,
         type: "Kamp",
         date: m.date,
@@ -2984,12 +3012,10 @@ function applyFilters() {
     }
     if (noEventsView) noEventsView.classList.add('hidden');
 
-    // 2. Sorterer den samlede listen etter dato (nyeste øverst)
     combinedList.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition-colors";
         
-        // Hent antall som har svart JA på oppmøte
         const attendanceCount = ev.attendance ? Object.values(ev.attendance).filter(v => v === true).length : 0;
         
         tr.innerHTML = `
