@@ -1600,12 +1600,16 @@
             const formContainer = document.getElementById('hjem-form-guide-container');
             if (formContainer) {
                 formContainer.innerHTML = '';
+                // NYTT: Sørger for at containeren pakker de små sirklene tettere sammen
+                formContainer.className = "flex flex-wrap gap-1.5 items-center";
+
                 if (formGuide.length === 0) {
                     formContainer.innerHTML = `<span class="text-xs text-slate-400 italic font-medium">Ingen spilte kamper registrert i sesongen</span>`;
                 } else {
                     formGuide.forEach(item => {
                         const pill = document.createElement('div');
-                        pill.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-md transition hover:scale-110 cursor-help ${item.class}`;
+                        // OPPDATERT: Krympet fra w-10 h-10 text-sm til w-7 h-7 text-xs
+                        pill.className = `w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shadow-sm transition hover:scale-110 cursor-help ${item.class}`;
                         pill.title = item.tooltip;
                         pill.innerHTML = `<span>${item.text}</span>`;
                         formContainer.appendChild(pill);
