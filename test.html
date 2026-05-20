@@ -198,6 +198,16 @@
     </section>
 
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex">
+            <div class="inline-flex bg-slate-200/70 p-0.5 rounded-xl text-xs font-bold font-sans">
+                <button onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm">
+                    Kommende
+                </button>
+                <button onclick="setMatchTimeFilter('spilte')" id="btn-filter-spilte" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                    Tidligere
+                </button>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse" id="matchTable">
                 <thead>
@@ -1680,8 +1690,6 @@
         }
 
         function applyFilters() {
-            const filterLagEl = document.getElementById('lagFilterSelect');
-            const lagVal = filterLagEl ? filterLagEl.value : 'Alle';
             const tableBody = document.getElementById('matchTableBody');
             const noMatchesView = document.getElementById('no-matches-view');
 
@@ -1689,26 +1697,45 @@
             tableBody.innerHTML = '';
 
             const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
-            const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Definer start- og slutten på "i dag" for en presis sjekk
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            const filtered = sortedMatches.filter(m => {
-                const passLag = (lagVal === 'Alle' || m.matchGroup === lagVal);
-                return passLag;
+            // Filtrer basert på om kampen er historisk eller i fremtiden
+            const filtered = matches.filter(m => {
+                const matchDate = new Date(m.date);
+                matchDate.setHours(0, 0, 0, 0);
+
+                if (activeTimeFilter === 'kommende') {
+                    // Vis kamper i dag eller frem i tid
+                    return matchDate >= today;
+                } else {
+                    // Vis kamper som har vært (før i dag)
+                    return matchDate < today;
+                }
+            });
+
+            // Sortering: Kommende sorteres eldste først (neste kamp øverst). Spilte sorteres nyeste først.
+            const sortedMatches = [...filtered].sort((a, b) => {
+                if (activeTimeFilter === 'kommende') {
+                    return new Date(a.date) - new Date(b.date);
+                } else {
+                    return new Date(b.date) - new Date(a.date);
+                }
             });
             
-            if (filtered.length === 0) {
+            if (sortedMatches.length === 0) {
                 if (noMatchesView) noMatchesView.classList.remove('hidden');
                 return;
             } else {
                 if (noMatchesView) noMatchesView.classList.add('hidden');
             }
 
-            filtered.forEach(m => {
+            // Tegn opp tabellen
+            sortedMatches.forEach(m => {
                 const tr = document.createElement('tr');
-                // NYTT: Lagt til 'cursor-pointer' og 'active:bg-slate-100' for en fin trykke-effekt på mobil
                 tr.className = "hover:bg-slate-50/70 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
-                
-                // NYTT: Gjør hele raden klikkbar
                 tr.onclick = () => showMatchDetails(m.id);
 
                 const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
