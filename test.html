@@ -1423,6 +1423,7 @@
             // 2. Vis aktiv side
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
 
+            // 3. Flytende handlingsknapp (Pluss-tegnet)
             const floatingBtn = document.getElementById('floating-action-btn');
             const floatingIcon = document.getElementById('floating-btn-icon');
             
@@ -1442,6 +1443,7 @@
                 floatingBtn.classList.add('hidden');
             }
 
+            // 4. Oppdater tittel i topplinjen (for PC)
             const titles = {
                 hjem: { title: "Forside" },
                 kamper: { title: "Terminliste" },
@@ -1451,16 +1453,12 @@
                 statistikk: { title: "Sesongstatistikk" },
                 admin: { title: "Admin-panel" }
             };
-
             document.getElementById('current-tab-title').innerText = titles[tabId].title;
 
-            // --- Slettet if/else-logikken for filterControls herfra ---
-
-            // --- 3. OPPDATERT SIDEBAR (PC) ---
+            // 5. Oppdater Sidebar-farger (PC)
             document.querySelectorAll('.tab-link').forEach(link => {
                 link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
                 link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-                // Fjerner gulfarge fra alle ikoner
                 const icon = link.querySelector('i');
                 if (icon) icon.classList.remove('text-bsk-yellow');
             });
@@ -1469,24 +1467,21 @@
             if (sidebarBtn) {
                 sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
                 sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-                // Legger til gulfarge kun på det aktive ikonet
                 const activeIcon = sidebarBtn.querySelector('i');
                 if (activeIcon) activeIcon.classList.add('text-bsk-yellow');
             }
 
-            // --- 4. OPPDATERT MENY I BUNN (MOBIL) ---
+            // 6. Oppdater Meny i bunn (Mobil)
             document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
-                // Fjerner gulfargen fra alle mobil-knapper
                 btn.classList.remove('active-nav', 'text-bsk-yellow');
             });
             const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, spillere: 3, tropp: 4 };
             const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
             if (activeMobileBtn) {
-                // Legger til gulfarge kun på den aktive mobil-knappen
                 activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
             }
 
-            // 5. Kjører funksjoner basert på valgt fane
+            // 7. Last inn og beregn data for aktiv fane
             if (tabId === 'oppmote') {
                 recalculateOppmoteAndKjemi();
             } else if (tabId === 'spillere') {
