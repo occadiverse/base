@@ -1694,11 +1694,8 @@
             tableBody.innerHTML = '';
 
             const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
-            
-            // Sorter kamper kronologisk etter dato
             const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            // Filtrer kampene basert på lag (hvis filteret mot formodning skulle være aktivt)
             const filtered = sortedMatches.filter(m => {
                 const passLag = (lagVal === 'Alle' || m.matchGroup === lagVal);
                 return passLag;
@@ -1711,10 +1708,13 @@
                 if (noMatchesView) noMatchesView.classList.add('hidden');
             }
 
-            // Tegn opp tabellen med din originale layout
             filtered.forEach(m => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/70 transition-all border-b border-slate-100";
+                // NYTT: Lagt til 'cursor-pointer' og 'active:bg-slate-100' for en fin trykke-effekt på mobil
+                tr.className = "hover:bg-slate-50/70 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
+                
+                // NYTT: Gjør hele raden klikkbar
+                tr.onclick = () => showMatchDetails(m.id);
 
                 const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
                 
@@ -1754,10 +1754,8 @@
                     <td class="py-3.5 px-6 text-left hidden lg:table-cell">
                         <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span>
                     </td>
-                    <td class="py-3.5 px-6 text-right">
-                        <button class="text-bsk-blue hover:text-bsk-blueLight p-1" onclick="showMatchDetails('${m.id}')">
-                            <i class="fa-solid fa-circle-arrow-right text-lg"></i>
-                        </button>
+                    <td class="py-3.5 px-4 md:px-6 text-right text-slate-400">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
                     </td>
                 `;
                 tableBody.appendChild(tr);
