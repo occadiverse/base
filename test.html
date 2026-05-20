@@ -293,17 +293,17 @@
                         </div>
 
                         <div class="pt-4 border-t border-slate-100 flex gap-2">
-                            <button onclick="quickAddEvent('Trening')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
-                                <i class="fa-solid fa-person-running text-blue-500 text-sm"></i>
-                                <span>Ny Trening</span>
+                            <button onclick="openActivityModal('Trening')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-person-running text-blue-500 text-sm"></i>
+                            <span>Ny Trening</span>
                             </button>
-                            <button onclick="quickAddEvent('Kamp')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
-                                <i class="fa-solid fa-futbol text-emerald-500 text-sm"></i>
-                                <span>Ny Kamp</span>
+                            <button onclick="openActivityModal('Kamp')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-futbol text-emerald-500 text-sm"></i>
+                            <span>Ny Kamp</span>
                             </button>
-                            <button onclick="quickAddEvent('Sosialt')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
-                                <i class="fa-solid fa-cake-candles text-purple-500 text-sm"></i>
-                                <span>Sosialt / Fest</span>
+                            <button onclick="openActivityModal('Sosialt')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-cake-candles text-purple-500 text-sm"></i>
+                            <span>Sosialt / Fest</span>
                             </button>
                         </div>
                     </div>
@@ -393,7 +393,7 @@
                     <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <div class="p-5 border-b border-slate-150 flex justify-between items-center">
                             <h3 class="font-extrabold text-sm text-slate-900">Event-logg og registrering</h3>
-                            <button onclick="openEventModal()" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-[11px] font-bold px-3 py-2 rounded-xl flex items-center gap-1">
+                            <button onclick="openActivityModal('Trening')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-[11px] font-bold px-3 py-2 rounded-xl flex items-center gap-1">
                                 <i class="fa-solid fa-plus text-bsk-yellow"></i>
                                 Nytt Event
                             </button>
@@ -3033,6 +3033,133 @@ function applyFilters() {
         tableBody.appendChild(tr);
     });
 }
+
+        // Åpner modalen (Du kan sende med 'Trening' eller 'Kamp' fra hurtigknappene dine)
+function openActivityModal(defaultType = 'Trening') {
+    document.getElementById('activityType').value = defaultType;
+    updateActivityTitlePlaceholder();
+    
+    // Sett dagens dato som standard
+    document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('activityTitle').value = '';
+    
+    const modal = document.getElementById('activityModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeActivityModal() {
+    const modal = document.getElementById('activityModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Endrer placeholder-teksten slik at det føles intuitivt
+function updateActivityTitlePlaceholder() {
+    const type = document.getElementById('activityType').value;
+    const titleInput = document.getElementById('activityTitle');
+    if (type === 'Kamp') {
+        titleInput.placeholder = "Hvem spiller vi mot? (f.eks. BSK - KFUM)";
+    } else if (type === 'Trening') {
+        titleInput.placeholder = "F.eks. Taktisk trening / Intervaller";
+    } else {
+        titleInput.placeholder = "Kort beskrivelse...";
+    }
+}
+
+// Hovedfunksjonen for lagring
+async function saveNewActivity() {
+    const type = document.getElementById('activityType').value;
+    const title = document.getElementById('activityTitle').value;
+    const date = document.getElementById('activityDate').value;
+    const time = document.getElementById('activityTime').value;
+
+    if (!title || !date || !time) {
+        alert("Fyll inn alle feltene!");
+        return;
+    }
+
+    // 1. Bygg det standardiserte "Aktivitet"-objektet
+    const newActivity = {
+        id: Date.now().toString(), // Unik ID
+        type: type,
+        title: title,
+        date: date,
+        time: time,
+        attendance: {} // Tomt oppmøte til å begynne med
+    };
+
+    // 2. Legg til i lokalt minne (vi bruker bare activeEvents fra nå av)
+    if (!window.activeEvents) window.activeEvents = [];
+    window.activeEvents.push(newActivity);
+
+    // 3. Lagre til Firebase (Bruk din eksisterende save-funksjon her)
+    if (typeof window.saveEventToDatabase === 'function') {
+        await window.saveEventToDatabase(newActivity);
+    } else {
+        console.warn("Firebase-lagring mangler, men lagret lokalt!");
+    }
+
+    // 4. Lukk vinduet og oppdater grensesnittet umiddelbart!
+    closeActivityModal();
+    
+    // Oppdater oppmøteloggen (hvis vi er på den fanen)
+    if (typeof renderEvents === 'function') renderEvents();
+}
+        
     </script>
+
+<div id="activityModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+        <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+            <div>
+                <h3 class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet
+                </h3>
+            </div>
+            <button onclick="closeActivityModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <form id="activityForm" class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hva skal dere?</label>
+                <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                    <option value="Trening">Trening</option>
+                    <option value="Kamp">Kamp</option>
+                    <option value="Sosialt">Sosialt / Teambuilding</option>
+                    <option value="Dugnad / Annet">Dugnad / Annet</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tittel / Motstander</label>
+                <input type="text" id="activityTitle" placeholder="F.eks. BSK - KFUM" required
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Dato</label>
+                    <input type="date" id="activityDate" required
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tidspunkt</label>
+                    <input type="time" id="activityTime" value="18:00" required
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-4 border-t border-slate-100 mt-6">
+                <button type="button" onclick="saveNewActivity()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    OPPRETT AKTIVITET
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+    
 </body>
 </html>
