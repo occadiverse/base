@@ -232,6 +232,7 @@
                 
               <div class="grid grid-cols-1 gap-6">
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        
                         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                             <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                                 <i class="fa-solid fa-calendar text-bsk-blue"></i>
@@ -249,51 +250,36 @@
                         </div>
 
                         <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div>Man</div>
-                            <div>Tis</div>
-                            <div>Ons</div>
-                            <div>Tor</div>
-                            <div>Fre</div>
-                            <div>Lør</div>
-                            <div>Søn</div>
+                            <div>Man</div><div>Tis</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
                         </div>
 
                         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
                             </div>
                     
-                        <div class="flex flex-wrap gap-4 pt-2 border-t border-slate-100 text-[10px] font-bold text-slate-500 uppercase">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                                <span>Kamper</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                                <span>Treninger</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                                <span>Sosialt</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                                <span>Dugnad / Annet</span>
-                            </div>
+                        <div class="flex flex-wrap gap-4 pt-2 text-[10px] font-bold text-slate-500 uppercase">
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Kamper</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Treninger</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span><span>Sosialt</span></div>
                         </div>
                     
-                        <div class="pt-4 border-t border-slate-100 flex gap-2">
-                            <button onclick="openActivityModal('Trening')" class="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
-                                <i class="fa-solid fa-person-running text-blue-500 text-sm"></i>
-                                <span>Ny Trening</span>
+                        <div class="mt-4 pt-4 border-t border-slate-100 bg-slate-50 rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider">Aktivitetsdetaljer</h4>
+                                <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/20 px-2.5 py-1 rounded-full">Velg en dato</span>
+                            </div>
+                            <div id="daily-events-list" class="space-y-2">
+                                </div>
+                        </div>
+
+                        <div class="pt-2 flex gap-2">
+                            <button onclick="openActivityModal('Trening')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2 rounded-xl transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-person-running text-blue-500"></i> Ny Trening
                             </button>
-                            <button onclick="openActivityModal('Kamp')" class="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
-                                <i class="fa-solid fa-futbol text-emerald-500 text-sm"></i>
-                                <span>Ny Kamp</span>
-                            </button>
-                            <button onclick="openActivityModal('Sosialt')" class="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-[10px] font-black py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1">
-                                <i class="fa-solid fa-cake-candles text-purple-500 text-sm"></i>
-                                <span>Sosialt / Fest</span>
+                            <button onclick="openActivityModal('Campaign')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black py-2 rounded-xl transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-futbol text-emerald-500"></i> Ny Kamp
                             </button>
                         </div>
+
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -2675,74 +2661,60 @@ function applyFilters() {
         };
 
         function updateDailySchedule() {
-            const listContainer = document.getElementById('daily-events-list');
-            const headerDate = document.getElementById('selected-calendar-date');
-            if (!listContainer) return;
+    const listContainer = document.getElementById('daily-events-list');
+    const headerDate = document.getElementById('selected-calendar-date');
+    if (!listContainer) return;
 
-            const parsedDate = new Date(window.selectedCalendarDateStr);
-            const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' });
-            if (headerDate) headerDate.innerText = formattedDate;
+    const parsedDate = new Date(window.selectedCalendarDateStr);
+    const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+    if (headerDate) headerDate.innerText = formattedDate;
 
-            listContainer.innerHTML = '';
+    listContainer.innerHTML = '';
 
-            const dateStr = window.selectedCalendarDateStr;
-            const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
-            const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
+    const dateStr = window.selectedCalendarDateStr;
+    const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+    const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
 
-            if (dayMatches.length === 0 && dayEvents.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="py-10 text-center text-slate-400 text-xs italic font-medium leading-relaxed">
-                        <i class="fa-regular fa-calendar-plus text-2xl mb-2 text-slate-300 block"></i>
-                        Ingen hendelser planlagt. <br>Klikk på knappene under for å planlegge!
-                    </div>
-                `;
-                return;
-            }
+    if (dayMatches.length === 0 && dayEvents.length === 0) {
+        listContainer.innerHTML = `
+            <p class="text-[11px] text-slate-400 italic text-center py-2">Ingen aktiviteter planlagt denne dagen.</p>
+        `;
+        return;
+    }
 
-            // Append matches
-            dayMatches.forEach(m => {
-                const item = document.createElement('div');
-                item.className = "p-3 bg-emerald-50 border border-emerald-100 rounded-xl space-y-1";
-                item.innerHTML = `
-                    <div class="flex justify-between items-start text-xs font-bold text-emerald-800">
-                        <span>⚽ Kamp mot ${m.opponent}</span>
-                        <span>${m.time || 'TBA'}</span>
-                    </div>
-                    <p class="text-[10px] text-slate-500 font-medium">Spilles på: ${m.pitch || 'Ikke satt'} (${m.matchGroup})</p>
-                `;
-                listContainer.appendChild(item);
-            });
+    // Hvis det er kamp denne dagen:
+    dayMatches.forEach(m => {
+        const div = document.createElement('div');
+        div.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-emerald-100 p-3 rounded-xl gap-2 shadow-sm";
+        div.innerHTML = `
+            <div>
+                <span class="font-bold text-xs text-slate-800 block">⚽ Kamp mot ${m.opponent}</span>
+                <span class="text-[10px] text-slate-400">${m.time || 'TBA'} • ${m.pitch || 'Ikke satt'}</span>
+            </div>
+            <button onclick="openAttendanceModal('match_${m.id}')" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-3 py-1.5 rounded-lg transition">
+                FØR OPPMØTE ✅
+            </button>
+        `;
+        listContainer.appendChild(div);
+    });
 
-            // Append events
-            dayEvents.forEach(e => {
-                const item = document.createElement('div');
-                const isTrening = e.type === 'Trening';
-                const isSosialt = e.type === 'Sosialt';
-                const isDugnad = e.type === 'Dugnad';
-                
-                let bgClass = "bg-slate-50 border-slate-200 text-slate-800";
-                let titlePrefix = "📋 ";
-
-                if (isTrening) { bgClass = "bg-blue-50 border-blue-100 text-blue-900"; titlePrefix = "🏃 Trening: "; }
-                else if (isSosialt) { bgClass = "bg-purple-50 border-purple-100 text-purple-900"; titlePrefix = "🎉 Sosialt: "; }
-                else if (isDugnad) { bgClass = "bg-amber-50 border-amber-100 text-amber-900"; titlePrefix = "🧹 Dugnad: "; }
-
-                item.className = `p-3 border rounded-xl space-y-1.5 ${bgClass}`;
-                item.innerHTML = `
-                    <div class="flex justify-between items-start text-xs font-bold">
-                        <span>${titlePrefix}${e.title}</span>
-                        <span class="text-[9px] bg-white/65 px-1.5 py-0.5 rounded">${e.team}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-1 border-t border-black/5">
-                        <span class="text-[9px] text-slate-500 font-medium">Møt opp og hold kjemien på topp!</span>
-                        <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg">
-                            Før oppmøte ✅
-                        </button>
-                    </div>
-                `;
-                listContainer.appendChild(item);
-            });
-        };
+    // Hvis det er trening/sosialt denne dagen:
+    dayEvents.forEach(e => {
+        const div = document.createElement('div');
+        let icon = e.type === 'Trening' ? '🏃' : '🎉';
+        div.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm";
+        div.innerHTML = `
+            <div>
+                <span class="font-bold text-xs text-slate-800 block">${icon} ${e.title}</span>
+                <span class="text-[10px] text-slate-400">${e.type} ${e.time ? 'kl. ' + e.time : ''}</span>
+            </div>
+            <button onclick="openAttendanceModal('${e.id}')" class="w-full sm:w-auto bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-3 py-1.5 rounded-lg transition">
+                FØR OPPMØTE ✅
+            </button>
+        `;
+        listContainer.appendChild(div);
+    });
+};
 
         function quickAddEvent(type) {
             if (type === 'Kamp') {
