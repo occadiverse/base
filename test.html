@@ -54,19 +54,24 @@
             color: #ffd700 !important;
             border-top: 3px solid #ffd700;
         }
-        /* 1. Basis-nivå for alle modaler (gir dem samme utgangspunkt) */
-        .modal-base, #matchModal, #teamModal, #playerModal, #eventModal, #attendanceModal {
+        /* Basis for alle modaler */
+        .modal-base {
         z-index: 50 !important;
         }
 
-        /* 2. Informasjons-modalen (skal ligge litt over de andre) */
+        /* Informasjons-modal (Kampdetaljer) */
         #matchInfoModal {
         z-index: 60 !important;
         }
 
-        /* 3. Bekreftelses-modalen (skal alltid ligge øverst) */
+        /* Redigerings-modal (Må ligge over informasjons-modalen) */
+        #matchModal {
+        z-index: 70 !important;
+        }
+
+        /* Bekreftelses-modalen (Skal alltid være øverst) */
         #confirmModal {
-        z-index: 9999 !important;
+        z-index: 100 !important;
         }
     </style>
 </head>
