@@ -1407,93 +1407,94 @@
         }
 
       function switchTab(tabId) {
-            currentTab = tabId;
-            
-            // 1. Skjul alle sider
-            document.getElementById('view-hjem').classList.add('hidden');
-            document.getElementById('view-kamper').classList.add('hidden');
-            document.getElementById('view-oppmote').classList.add('hidden');
-            document.getElementById('view-spillere').classList.add('hidden');
-            document.getElementById('view-tropp').classList.add('hidden');
-            document.getElementById('view-statistikk').classList.add('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
-            
-            // 2. Vis aktiv side
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+    currentTab = tabId;
+    
+    // 1. Skjul alle sider
+    document.getElementById('view-hjem').classList.add('hidden');
+    document.getElementById('view-kamper').classList.add('hidden');
+    document.getElementById('view-oppmote').classList.add('hidden');
+    document.getElementById('view-spillere').classList.add('hidden');
+    document.getElementById('view-tropp').classList.add('hidden');
+    document.getElementById('view-statistikk').classList.add('hidden');
+    document.getElementById('view-admin').classList.add('hidden');
+    
+    // 2. Vis aktiv side
+    document.getElementById(`view-${tabId}`).classList.remove('hidden');
 
-            // 3. Flytende handlingsknapp (Pluss-tegnet)
-            const floatingBtn = document.getElementById('floating-action-btn');
-            const floatingIcon = document.getElementById('floating-btn-icon');
-            
-            if (tabId === 'kamper') {
-                floatingBtn.classList.remove('hidden');
-                floatingIcon.className = "fa-solid fa-plus";
-                floatingBtn.title = "Registrer ny kamp";
-            } else if (tabId === 'oppmote') {
-                floatingBtn.classList.remove('hidden');
-                floatingIcon.className = "fa-solid fa-calendar-plus";
-                floatingBtn.title = "Opprett nytt event";
-            } else if (tabId === 'tropp') {
-                floatingBtn.classList.remove('hidden');
-                floatingIcon.className = "fa-solid fa-user-plus";
-                floatingBtn.title = "Registrer ny spiller";
-            } else {
-                floatingBtn.classList.add('hidden');
-            }
+    // 3. Flytende handlingsknapp (Pluss-tegnet)
+    const floatingBtn = document.getElementById('floating-action-btn');
+    const floatingIcon = document.getElementById('floating-btn-icon');
+    
+    if (tabId === 'kamper') {
+        floatingBtn.classList.remove('hidden');
+        floatingIcon.className = "fa-solid fa-plus";
+        floatingBtn.title = "Registrer ny kamp";
+    } else if (tabId === 'oppmote') {
+        floatingBtn.classList.remove('hidden');
+        floatingIcon.className = "fa-solid fa-calendar-plus";
+        floatingBtn.title = "Opprett nytt event";
+    } else if (tabId === 'tropp') {
+        floatingBtn.classList.remove('hidden');
+        floatingIcon.className = "fa-solid fa-user-plus";
+        floatingBtn.title = "Registrer ny spiller";
+    } else {
+        floatingBtn.classList.add('hidden');
+    }
 
-            // 4. Oppdater tittel i topplinjen (for PC)
-            const titles = {
-                hjem: { title: "Forside" },
-                kamper: { title: "Terminliste" },
-                oppmote: { title: "Kalender & Oppmøte" },
-                spillere: { title: "Spillerbørs" },
-                tropp: { title: "Spillerstall" },
-                statistikk: { title: "Sesongstatistikk" },
-                admin: { title: "Admin-panel" }
-            };
-            document.getElementById('current-tab-title').innerText = titles[tabId].title;
+    // 4. Oppdater tittel i topplinjen (for PC)
+    const titles = {
+        hjem: { title: "Forside" },
+        kamper: { title: "Terminliste" },
+        oppmote: { title: "Kalender & Oppmøte" },
+        spillere: { title: "Spillerbørs" },
+        tropp: { title: "Spillerstall" },
+        statistikk: { title: "Sesongstatistikk" },
+        admin: { title: "Admin-panel" }
+    };
+    document.getElementById('current-tab-title').innerText = titles[tabId].title;
 
-            // 5. Oppdater Sidebar-farger (PC)
-            document.querySelectorAll('.tab-link').forEach(link => {
-                link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
-                link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-                const icon = link.querySelector('i');
-                if (icon) icon.classList.remove('text-bsk-yellow');
-            });
+    // 5. Oppdater Sidebar-farger (PC)
+    document.querySelectorAll('.tab-link').forEach(link => {
+        link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
+        link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
+        const icon = link.querySelector('i');
+        if (icon) icon.classList.remove('text-bsk-yellow');
+    });
 
-            const sidebarBtn = document.getElementById(`sidebar-${tabId}`);
-            if (sidebarBtn) {
-                sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
-                sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-                const activeIcon = sidebarBtn.querySelector('i');
-                if (activeIcon) activeIcon.classList.add('text-bsk-yellow');
-            }
+    const sidebarBtn = document.getElementById(`sidebar-${tabId}`);
+    if (sidebarBtn) {
+        sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
+        sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
+        const activeIcon = sidebarBtn.querySelector('i');
+        if (activeIcon) activeIcon.classList.add('text-bsk-yellow');
+    }
 
-            // 6. Oppdater Meny i bunn (Mobil)
-            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
-                btn.classList.remove('active-nav', 'text-bsk-yellow');
-            });
-            const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, spillere: 3, tropp: 4 };
-            const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
-            if (activeMobileBtn) {
-                activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
-            }
+    // 6. Oppdater Meny i bunn (Mobil)
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        btn.classList.remove('active-nav', 'text-bsk-yellow');
+    });
+    const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, spillere: 3, tropp: 4 };
+    const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
+    if (activeMobileBtn) {
+        activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
+    }
 
-            // 7. Last inn og beregn data for aktiv fane
-            if (tabId === 'oppmote') {
-                recalculateOppmoteAndKjemi();
-            } else if (tabId === 'spillere') {
-                renderSpillerbors();
-            } else if (tabId === 'tropp') {
-                renderPlayerRoster();
-            } else if (tabId === 'statistikk') {
-                renderStatistikkSide();
-            } else if (tabId === 'admin' && isAdminUnlocked) {
-                renderAdminTeamsList();
-            } else if (tabId === 'hjem') {
-                updateDashboard();
-            }
-        }
+    // 7. Last inn og beregn data for aktiv fane
+    if (tabId === 'oppmote') {
+        renderEvents(); // <--- HER ER DEN!
+        recalculateOppmoteAndKjemi();
+    } else if (tabId === 'spillere') {
+        renderSpillerbors();
+    } else if (tabId === 'tropp') {
+        renderPlayerRoster();
+    } else if (tabId === 'statistikk') {
+        renderStatistikkSide();
+    } else if (tabId === 'admin' && isAdminUnlocked) {
+        renderAdminTeamsList();
+    } else if (tabId === 'hjem') {
+        updateDashboard();
+    }
+}
 
         function handleFloatingAction() {
             if (currentTab === 'kamper') {
@@ -2954,6 +2955,45 @@ function applyFilters() {
             switchTab('hjem');
         }, 300);
 
+        function renderEvents() {
+    const tableBody = document.getElementById('eventTableBody');
+    const noEventsView = document.getElementById('no-events-view');
+    
+    // Sikring: Hvis tabellen ikke finnes på siden, gjør ingenting
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+    
+    if (events.length === 0) {
+        if (noEventsView) noEventsView.classList.remove('hidden');
+        return;
+    }
+    if (noEventsView) noEventsView.classList.add('hidden');
+
+    // Sorterer etter dato (nyeste øverst)
+    events.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors";
+        
+        // Hent antall som har svart JA på oppmøte
+        const attendanceCount = ev.attendance ? Object.values(ev.attendance).filter(v => v === true).length : 0;
+        
+        tr.innerHTML = `
+            <td class="py-3 px-4 font-bold text-slate-800">${ev.title || 'Uten navn'}</td>
+            <td class="py-3 px-4 text-slate-500">${ev.type || '-'}</td>
+            <td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td>
+            <td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td>
+            <td class="py-3 px-6 text-right">
+                <button onclick="openAttendanceModal('${ev.id}')" 
+                    class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-1.5 px-3 rounded-lg text-[10px] transition shadow-sm">
+                    REGISTRER
+                </button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
     </script>
 </body>
 </html>
