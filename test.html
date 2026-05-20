@@ -54,6 +54,15 @@
             color: #ffd700 !important;
             border-top: 3px solid #ffd700;
         }
+        /* Sørg for at hovedmodaler ligger på nivå 50 */
+        #matchModal, #teamModal, #playerModal, #matchInfoModal, #eventModal, #attendanceModal {
+        z-index: 50 !important;
+        }
+
+        /* Bekreftelsesmodalen tvinges alltid til å ligge øverst */
+        #confirmModal {
+        z-index: 9999 !important;
+        }
     </style>
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
