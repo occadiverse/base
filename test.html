@@ -2203,56 +2203,61 @@ function applyFilters() {
         }
 
         let activeAttendanceEventId = null;
-        function openAttendanceModal(eventId) {
-            activeAttendanceEventId = eventId;
-            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
-            const ev = events.find(e => e.id === eventId);
-            if (!ev) return;
+       function openAttendanceModal(eventId) {
+    activeAttendanceEventId = eventId;
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
 
-            document.getElementById('attendanceModalTitle').innerText = `${ev.title}`;
-            document.getElementById('attendanceModalSub').innerText = `${ev.type} for ${ev.team} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
+    document.getElementById('attendanceModalTitle').innerText = ev.title;
+    document.getElementById('attendanceModalSub').innerText = `${ev.type} for ${ev.team} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
 
-            const container = document.getElementById('attendance-players-list');
-            container.innerHTML = '';
+    const container = document.getElementById('attendance-players-list');
+    container.innerHTML = '';
 
-            // Filter players belonging to this event's team
-            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
-            const teamPlayers = players.filter(p => p.spillerLag === ev.team);
+    const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+    const teamPlayers = players.filter(p => p.spillerLag === ev.team);
 
-            if (teamPlayers.length === 0) {
-                container.innerHTML = `
-                    <div class="py-6 text-center text-slate-400 text-xs italic">
-                        Ingen spillere er registrert på ${ev.team} enda. Gå til "Spillerstall" for å legge til spillere.
-                    </div>
-                `;
-            } else {
-                teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
-                    const isPresent = ev.attendance && ev.attendance[p.navn] !== undefined ? ev.attendance[p.navn] : true;
-                    
-                    const div = document.createElement('div');
-                    div.className = "py-3 flex justify-between items-center";
-                    div.innerHTML = `
-                        <div class="flex items-center space-x-2">
-                            <span class="font-semibold text-slate-800 text-xs">${p.navn}</span>
-                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">${p.pos1}</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <button type="button" onclick="setAttendancePill(this, true)" class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${isPresent ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-400'}" data-player="${p.navn}" data-status="true">
-                                TILSTEDE ✅
-                            </button>
-                            <button type="button" onclick="setAttendancePill(this, false)" class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${!isPresent ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-400'}" data-player="${p.navn}" data-status="false">
-                                FORFALL ❌
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            }
+    if (teamPlayers.length === 0) {
+        container.innerHTML = `
+            <div class="py-6 text-center text-slate-400 text-xs italic">
+                Ingen spillere er registrert på ${ev.team} enda.
+            </div>
+        `;
+    } else {
+        teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
+            // Sjekk status: ev.attendance[navn] kan være true, false, eller undefined
+            const status = ev.attendance ? ev.attendance[p.navn] : undefined;
+            
+            const div = document.createElement('div');
+            div.className = "py-3 flex justify-between items-center border-b border-slate-50";
+            
+            div.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <span class="font-semibold text-slate-800 text-xs">${p.navn}</span>
+                    <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">${p.pos1 || '-'}</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button type="button" onclick="setAttendancePill(this, true)" 
+                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === true ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-400'}" 
+                        data-player="${p.navn}" data-status="true">
+                        OK ✅
+                    </button>
+                    <button type="button" onclick="setAttendancePill(this, false)" 
+                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === false ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-white border-slate-200 text-slate-400'}" 
+                        data-player="${p.navn}" data-status="false">
+                        X ❌
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
 
-            const modal = document.getElementById('attendanceModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
+    const modal = document.getElementById('attendanceModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
 
         function setAttendancePill(btn, status) {
             const row = btn.parentElement;
