@@ -118,25 +118,28 @@
 
     <div class="flex-1 flex flex-col min-w-0 pb-20 md:pb-0 overflow-y-auto">
         
-        <div id="action-bar-container" class="bg-white/80 backdrop-blur-sm border-b border-slate-200 px-4 py-3 md:px-8 md:py-3 flex flex-col sm:flex-row justify-between items-center gap-3 sticky top-0 z-30 shadow-sm">
-    <div class="flex items-center gap-3 w-full sm:w-auto">
+        <div id="action-bar-container" class="bg-white/80 backdrop-blur-sm border-b border-slate-200 px-4 py-2.5 md:px-8 md:py-3 hidden md:flex justify-between items-center sticky top-0 z-30 shadow-sm transition-all">
+    
+    <div class="hidden md:flex items-center gap-3">
         <h2 class="text-xs font-black text-slate-800 uppercase tracking-[0.2em]" id="current-tab-title">Forside</h2>
-        <span class="w-1.5 h-1.5 rounded-full bg-bsk-yellow hidden sm:block"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-bsk-yellow"></span>
     </div>
 
-    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-        <div id="filter-controls-area" class="flex items-center gap-2 w-full sm:w-auto hidden">
-            <select id="lagFilterSelect" onchange="applyFilters(); handleTeamFilterChange();" class="w-full sm:w-40 appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-[10px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue cursor-pointer">
-                <option value="Alle">ALLE LAG</option>
-            </select>
-            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[8px] pointer-events-none"></i>
+    <div class="flex items-center justify-end w-full md:w-auto gap-3">
+        <div id="filter-controls-area" class="flex items-center gap-2 w-full md:w-auto hidden">
+            <div class="relative w-full md:w-auto">
+                <select id="lagFilterSelect" onchange="applyFilters(); handleTeamFilterChange();" class="w-full md:w-40 appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-[10px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue cursor-pointer">
+                    <option value="Alle">ALLE LAG</option>
+                </select>
+                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[8px] pointer-events-none"></i>
+            </div>
         </div>
 
         <button onclick="switchTab('admin')" class="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-bsk-blue transition hover:rotate-90 duration-300 shadow-sm shrink-0" title="Admin / Innstillinger">
             <i class="fa-solid fa-gear text-sm"></i>
         </button>
     </div>
-</div>    
+</div>
         <main class="flex-1 px-4 py-6 md:px-8 md:pt-6 md:pb-6 space-y-6 w-full" id="main-view">
             
             <div id="view-hjem" class="space-y-6">
@@ -1466,13 +1469,24 @@
             document.getElementById('current-tab-title').innerText = titles[tabId].title;
 
             const filterControls = document.getElementById('filter-controls-area');
+            const actionBar = document.getElementById('action-bar-container'); // Henter hele baren
             
             if (tabId === 'kamper' || tabId === 'oppmote' || tabId === 'spillere' || tabId === 'tropp') {
+                // Vis filter
                 filterControls.classList.remove('hidden');
                 filterControls.classList.add('flex');
+                
+                // Sørg for at hele baren vises på både mobil og PC
+                actionBar.classList.remove('hidden', 'md:flex');
+                actionBar.classList.add('flex');
             } else {
+                // Skjul filter
                 filterControls.classList.add('hidden');
                 filterControls.classList.remove('flex');
+                
+                // Smart triks: Skjul hele baren på mobil, men behold den (for tittelen) på PC
+                actionBar.classList.remove('flex');
+                actionBar.classList.add('hidden', 'md:flex');
             }
 
             // --- 3. OPPDATERT SIDEBAR (PC) ---
