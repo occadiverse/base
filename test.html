@@ -1419,9 +1419,10 @@
             });
         }
 
-        function switchTab(tabId) {
+      function switchTab(tabId) {
             currentTab = tabId;
             
+            // 1. Skjul alle sider
             document.getElementById('view-hjem').classList.add('hidden');
             document.getElementById('view-kamper').classList.add('hidden');
             document.getElementById('view-oppmote').classList.add('hidden');
@@ -1430,6 +1431,7 @@
             document.getElementById('view-statistikk').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
             
+            // 2. Vis aktiv side
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
 
             const floatingBtn = document.getElementById('floating-action-btn');
@@ -1464,47 +1466,46 @@
             document.getElementById('current-tab-title').innerText = titles[tabId].title;
 
             const filterControls = document.getElementById('filter-controls-area');
-            const monthFilterContainer = document.getElementById('month-filter-container');
             
             if (tabId === 'kamper' || tabId === 'oppmote' || tabId === 'spillere' || tabId === 'tropp') {
                 filterControls.classList.remove('hidden');
                 filterControls.classList.add('flex');
-                if (tabId === 'tropp' || tabId === 'oppmote') {
-                    monthFilterContainer.classList.add('hidden');
-                } else {
-                    monthFilterContainer.classList.remove('hidden');
-                }
             } else {
                 filterControls.classList.add('hidden');
                 filterControls.classList.remove('flex');
             }
 
-            // Sync Desktop Sidebar Visual State
+            // --- 3. OPPDATERT SIDEBAR (PC) ---
             document.querySelectorAll('.tab-link').forEach(link => {
                 link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
                 link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-                
-                // NYTT: Fjern gulfarge fra alle ikoner i menyen
+                // Fjerner gulfarge fra alle ikoner
                 const icon = link.querySelector('i');
                 if (icon) icon.classList.remove('text-bsk-yellow');
             });
 
-            // Target correct element if clicked
             const sidebarBtn = document.getElementById(`sidebar-${tabId}`);
             if (sidebarBtn) {
                 sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
                 sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-                
-                // NYTT: Legg til gulfarge KUN på det aktive ikonet
+                // Legger til gulfarge kun på det aktive ikonet
                 const activeIcon = sidebarBtn.querySelector('i');
                 if (activeIcon) activeIcon.classList.add('text-bsk-yellow');
             }
 
-            // Sync Mobile Bottom Navigation State
-            document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active-nav'));
+            // --- 4. OPPDATERT MENY I BUNN (MOBIL) ---
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                // Fjerner gulfargen fra alle mobil-knapper
+                btn.classList.remove('active-nav', 'text-bsk-yellow');
+            });
             const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, spillere: 3, tropp: 4 };
-            document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]]?.classList?.add('active-nav');
+            const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
+            if (activeMobileBtn) {
+                // Legger til gulfarge kun på den aktive mobil-knappen
+                activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
+            }
 
+            // 5. Kjører funksjoner basert på valgt fane
             if (tabId === 'oppmote') {
                 recalculateOppmoteAndKjemi();
             } else if (tabId === 'spillere') {
