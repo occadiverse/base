@@ -1502,6 +1502,10 @@
             document.querySelectorAll('.tab-link').forEach(link => {
                 link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
                 link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
+                
+                // NYTT: Fjern gulfarge fra alle ikoner i menyen
+                const icon = link.querySelector('i');
+                if (icon) icon.classList.remove('text-bsk-yellow');
             });
 
             // Target correct element if clicked
@@ -1509,6 +1513,10 @@
             if (sidebarBtn) {
                 sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
                 sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
+                
+                // NYTT: Legg til gulfarge KUN på det aktive ikonet
+                const activeIcon = sidebarBtn.querySelector('i');
+                if (activeIcon) activeIcon.classList.add('text-bsk-yellow');
             }
 
             // Sync Mobile Bottom Navigation State
