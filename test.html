@@ -2955,24 +2955,37 @@ function applyFilters() {
             switchTab('hjem');
         }, 300);
 
-        function renderEvents() {
+      function renderEvents() {
     const tableBody = document.getElementById('eventTableBody');
     const noEventsView = document.getElementById('no-events-view');
     
-    // Sikring: Hvis tabellen ikke finnes på siden, gjør ingenting
     if (!tableBody) return;
 
     tableBody.innerHTML = '';
-    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     
-    if (events.length === 0) {
+    // 1. Hent begge lister og slå dem sammen
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    
+    // Vi mapper kamper til samme format som events for å kunne vise dem i samme tabell
+    const formattedMatches = matches.map(m => ({
+        id: m.id,
+        title: "Kamp: " + m.opponent,
+        type: "Kamp",
+        date: m.date,
+        attendance: m.attendance || {}
+    }));
+
+    const combinedList = [...events, ...formattedMatches];
+    
+    if (combinedList.length === 0) {
         if (noEventsView) noEventsView.classList.remove('hidden');
         return;
     }
     if (noEventsView) noEventsView.classList.add('hidden');
 
-    // Sorterer etter dato (nyeste øverst)
-    events.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
+    // 2. Sorterer den samlede listen etter dato (nyeste øverst)
+    combinedList.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition-colors";
         
