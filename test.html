@@ -1213,44 +1213,52 @@
         }
 
         function updateDynamicSelectors() {
-            const filterSelect = document.getElementById('lagFilterSelect');
-            const formSelect = document.getElementById('matchGroup');
-            const playerTeamSelect = document.getElementById('playerTeamInput');
-            const eventTeamSelect = document.getElementById('eventTeam');
-            
-            // Sjekker kun at boksene i popup-modalene eksisterer
-            if (!formSelect || !playerTeamSelect || !eventTeamSelect) return;
+    const filterSelect = document.getElementById('lagFilterSelect');
+    const formSelect = document.getElementById('matchGroup');
+    const playerTeamSelect = document.getElementById('playerTeamInput');
+    const eventTeamSelect = document.getElementById('eventTeam');
+    const activityTeamSelect = document.getElementById('activityTeam'); // Den nye velgeren
+    
+    if (filterSelect) filterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
+    if (formSelect) formSelect.innerHTML = '';
+    if (playerTeamSelect) playerTeamSelect.innerHTML = '';
+    if (eventTeamSelect) eventTeamSelect.innerHTML = '';
+    if (activityTeamSelect) activityTeamSelect.innerHTML = ''; 
 
-            if (filterSelect) filterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
-            formSelect.innerHTML = '';
-            playerTeamSelect.innerHTML = '';
-            eventTeamSelect.innerHTML = '';
-
-            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
-            teams.forEach(t => {
-                if (filterSelect) {
-                    const optFilter = document.createElement('option');
-                    optFilter.value = t.name;
-                    optFilter.innerText = t.name.toUpperCase();
-                    filterSelect.appendChild(optFilter);
-                }
-
-                const optForm = document.createElement('option');
-                optForm.value = t.name;
-                optForm.innerText = t.name;
-                formSelect.appendChild(optForm);
-
-                const optPlayer = document.createElement('option');
-                optPlayer.value = t.name;
-                optPlayer.innerText = t.name;
-                playerTeamSelect.appendChild(optPlayer);
-
-                const optEvent = document.createElement('option');
-                optEvent.value = t.name;
-                optEvent.innerText = t.name;
-                eventTeamSelect.appendChild(optEvent);
-            });
+    const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+    teams.forEach(t => {
+        if (filterSelect) {
+            const optFilter = document.createElement('option');
+            optFilter.value = t.name;
+            optFilter.innerText = t.name.toUpperCase();
+            filterSelect.appendChild(optFilter);
         }
+        if (formSelect) {
+            const optForm = document.createElement('option');
+            optForm.value = t.name;
+            optForm.innerText = t.name;
+            formSelect.appendChild(optForm);
+        }
+        if (playerTeamSelect) {
+            const optPlayer = document.createElement('option');
+            optPlayer.value = t.name;
+            optPlayer.innerText = t.name;
+            playerTeamSelect.appendChild(optPlayer);
+        }
+        if (eventTeamSelect) {
+            const optEvent = document.createElement('option');
+            optEvent.value = t.name;
+            optEvent.innerText = t.name;
+            eventTeamSelect.appendChild(optEvent);
+        }
+        if (activityTeamSelect) { // Legger lagene inn i den nye aktivitetsmodalen
+            const optAct = document.createElement('option');
+            optAct.value = t.name;
+            optAct.innerText = t.name;
+            activityTeamSelect.appendChild(optAct);
+        }
+    });
+}
 
         function renderAdminTeamsList() {
             const listContainer = document.getElementById('admin-teams-list');
@@ -3038,26 +3046,22 @@ async function saveNewActivity() {
     const title = document.getElementById('activityTitle').value;
     const date = document.getElementById('activityDate').value;
     const time = document.getElementById('activityTime').value;
+    const selectedTeam = document.getElementById('activityTeam').value; // Henter laget du faktisk valgte!
 
-    if (!title || !date || !time) {
+    if (!title || !date || !time || !selectedTeam) {
         alert("Fyll inn alle feltene!");
         return;
     }
 
-    // Finn ut hvilket lag vi er på, hvis filteret finnes
-    const filterLagEl = document.getElementById('lagFilterSelect');
-    const currentTeam = filterLagEl && filterLagEl.value !== 'Alle' ? filterLagEl.value : 'Lag A';
-
     if (type === 'Kamp') {
-        // 1. Hvis det er en kamp, bygg formatet Terminlisten forventer!
         const newMatch = {
             id: Date.now().toString(),
             date: date,
             time: time,
-            opponent: title, // Vi bruker tittel-feltet som motstander
+            opponent: title, 
             pitch: 'Ikke satt',
             matchType: 'Treningskamp',
-            matchGroup: currentTeam,
+            matchGroup: selectedTeam, // Lagres på riktig valgt lag
             result: '',
             attendance: {},
             scorers: {},
@@ -3068,14 +3072,13 @@ async function saveNewActivity() {
             await window.saveMatchToDatabase(newMatch);
         }
     } else {
-        // 2. Hvis det er alt annet, lagre det som et Event
         const newActivity = {
             id: Date.now().toString(),
             type: type,
             title: title,
             date: date,
             time: time,
-            team: currentTeam,
+            team: selectedTeam, // Lagres på riktig valgt lag
             attendance: {}
         };
         
@@ -3084,10 +3087,10 @@ async function saveNewActivity() {
         }
     }
 
-    // 3. Lukk vinduet og oppdater ALLE lister så ingenting "forsvinner"
     closeActivityModal();
-    if (typeof applyFilters === 'function') applyFilters(); // Oppdaterer Terminlisten
-    if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); // Oppdaterer Oppmøte
+    if (typeof applyFilters === 'function') applyFilters(); 
+    if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi();
+    if (typeof renderCalendar === 'function') renderCalendar();
 }
         
     </script>
@@ -3105,7 +3108,7 @@ async function saveNewActivity() {
             </button>
         </div>
 
-        <form id="activityForm" class="space-y-4">
+<form id="activityForm" class="space-y-4">
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hva skal dere?</label>
                 <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
@@ -3114,6 +3117,12 @@ async function saveNewActivity() {
                     <option value="Sosialt">Sosialt / Teambuilding</option>
                     <option value="Dugnad / Annet">Dugnad / Annet</option>
                 </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hvilket lag gjelder dette?</label>
+                <select id="activityTeam" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-bsk-blue outline-none focus:ring-2 focus:ring-bsk-blue">
+                    </select>
             </div>
 
             <div>
