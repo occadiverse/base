@@ -3079,32 +3079,50 @@ async function saveNewActivity() {
         return;
     }
 
-    // 1. Bygg det standardiserte "Aktivitet"-objektet
-    const newActivity = {
-        id: Date.now().toString(), // Unik ID
-        type: type,
-        title: title,
-        date: date,
-        time: time,
-        attendance: {} // Tomt oppmøte til å begynne med
-    };
+    // Finn ut hvilket lag vi er på, hvis filteret finnes
+    const filterLagEl = document.getElementById('lagFilterSelect');
+    const currentTeam = filterLagEl && filterLagEl.value !== 'Alle' ? filterLagEl.value : 'Lag A';
 
-    // 2. Legg til i lokalt minne (vi bruker bare activeEvents fra nå av)
-    if (!window.activeEvents) window.activeEvents = [];
-    window.activeEvents.push(newActivity);
-
-    // 3. Lagre til Firebase (Bruk din eksisterende save-funksjon her)
-    if (typeof window.saveEventToDatabase === 'function') {
-        await window.saveEventToDatabase(newActivity);
+    if (type === 'Kamp') {
+        // 1. Hvis det er en kamp, bygg formatet Terminlisten forventer!
+        const newMatch = {
+            id: Date.now().toString(),
+            date: date,
+            time: time,
+            opponent: title, // Vi bruker tittel-feltet som motstander
+            pitch: 'Ikke satt',
+            matchType: 'Treningskamp',
+            matchGroup: currentTeam,
+            result: '',
+            attendance: {},
+            scorers: {},
+            ratings: {}
+        };
+        
+        if (typeof window.saveMatchToDatabase === 'function') {
+            await window.saveMatchToDatabase(newMatch);
+        }
     } else {
-        console.warn("Firebase-lagring mangler, men lagret lokalt!");
+        // 2. Hvis det er alt annet, lagre det som et Event
+        const newActivity = {
+            id: Date.now().toString(),
+            type: type,
+            title: title,
+            date: date,
+            time: time,
+            team: currentTeam,
+            attendance: {}
+        };
+        
+        if (typeof window.saveEventToDatabase === 'function') {
+            await window.saveEventToDatabase(newActivity);
+        }
     }
 
-    // 4. Lukk vinduet og oppdater grensesnittet umiddelbart!
+    // 3. Lukk vinduet og oppdater ALLE lister så ingenting "forsvinner"
     closeActivityModal();
-    
-    // Oppdater oppmøteloggen (hvis vi er på den fanen)
-    if (typeof renderEvents === 'function') renderEvents();
+    if (typeof applyFilters === 'function') applyFilters(); // Oppdaterer Terminlisten
+    if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); // Oppdaterer Oppmøte
 }
         
     </script>
