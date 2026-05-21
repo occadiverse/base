@@ -2209,8 +2209,9 @@ function applyFilters() {
             if (typeof renderCalendar === 'function') renderCalendar();
         }
 
-        let activeAttendanceEventId = null;
-       function openAttendanceModal(eventId) {
+  let activeAttendanceEventId = null;
+
+function openAttendanceModal(eventId) {
     activeAttendanceEventId = eventId;
     let ev = null;
 
@@ -2235,13 +2236,22 @@ function applyFilters() {
     container.innerHTML = '';
 
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+    const teamName = ev.team || ev.matchGroup;
     
-    // Hvis det er en kamp, bruker vi ev.team hvis det finnes, ellers filter på alt
-    const teamPlayers = players.filter(p => p.spillerLag === (ev.team || ev.matchGroup));
+    // 1. Forsøk å filtrere på det spesifikke lagnavnet
+    let teamPlayers = players.filter(p => p.spillerLag === teamName);
 
+    // 2. FALLBACK: Hvis filteret over ga 0 spillere, henter vi hele troppen i stedet
     if (teamPlayers.length === 0) {
-        container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen spillere funnet for dette laget.</div>`;
+        console.log(`Fallback aktivert: Fant ingen spillere på lag '${teamName}'. Henter alle aktive spillere.`);
+        teamPlayers = players;
+    }
+
+    // 3. Sjekk om vi fortsatt har 0 spillere (altså at hele databasen er tom)
+    if (teamPlayers.length === 0) {
+        container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen spillere registrert i systemet.</div>`;
     } else {
+        // Sorterer alfabetisk og bygger opp listen
         teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
             const status = ev.attendance ? ev.attendance[p.navn] : undefined;
             
@@ -2269,6 +2279,11 @@ function applyFilters() {
             container.appendChild(div);
         });
     }
+
+    const modal = document.getElementById('attendanceModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
 
     const modal = document.getElementById('attendanceModal');
     modal.classList.remove('hidden');
@@ -2728,17 +2743,17 @@ function applyFilters() {
                     <span class="text-[10px] text-slate-400">${m.time || 'TBA'} • ${m.pitch || 'Ikke satt'}</span>
                 </div>
             </div>
-            <div class="flex gap-2 w-full">
-                <button onclick="openAttendanceModal('match_${m.id}')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] py-1.5 rounded-lg transition">
-                    FØR OPPMØTE ✅
-                </button>
-                <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-pen text-[10px]"></i>
-                </button>
-                <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-trash text-[10px]"></i>
-                </button>
-            </div>
+            <div class="flex gap-2 mt-2 w-full justify-start">
+    <button onclick="openAttendanceModal('match_${m.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
+        FØR OPPMØTE ✅
+    </button>
+    <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+        <i class="fa-solid fa-pen text-[10px]"></i>
+    </button>
+    <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+        <i class="fa-solid fa-trash text-[10px]"></i>
+    </button>
+</div>
         `;
         listContainer.appendChild(div);
     });
@@ -2756,17 +2771,17 @@ function applyFilters() {
                     <span class="text-[10px] text-slate-400">${e.type} ${e.time ? 'kl. ' + e.time : ''}</span>
                 </div>
             </div>
-            <div class="flex gap-2 w-full">
-                <button onclick="openAttendanceModal('${e.id}')" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] py-1.5 rounded-lg transition">
-                    FØR OPPMØTE ✅
-                </button>
-                <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-pen text-[10px]"></i>
-                </button>
-                <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-trash text-[10px]"></i>
-                </button>
-            </div>
+            <div class="flex gap-2 mt-2 w-full justify-start">
+    <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
+        FØR OPPMØTE ✅
+    </button>
+    <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+        <i class="fa-solid fa-pen text-[10px]"></i>
+    </button>
+    <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+        <i class="fa-solid fa-trash text-[10px]"></i>
+    </button>
+</div>
         `;
         listContainer.appendChild(div);
     });
