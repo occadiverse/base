@@ -2720,15 +2720,25 @@ function applyFilters() {
     // Hvis det er kamp denne dagen:
     dayMatches.forEach(m => {
         const div = document.createElement('div');
-        div.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-emerald-100 p-3 rounded-xl gap-2 shadow-sm";
+        div.className = "flex flex-col bg-white border border-emerald-100 p-3 rounded-xl gap-2 shadow-sm";
         div.innerHTML = `
-            <div>
-                <span class="font-bold text-xs text-slate-800 block">⚽ Kamp mot ${m.opponent}</span>
-                <span class="text-[10px] text-slate-400">${m.time || 'TBA'} • ${m.pitch || 'Ikke satt'}</span>
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="font-bold text-xs text-slate-800 block">⚽ Kamp mot ${m.opponent}</span>
+                    <span class="text-[10px] text-slate-400">${m.time || 'TBA'} • ${m.pitch || 'Ikke satt'}</span>
+                </div>
             </div>
-            <button onclick="openAttendanceModal('match_${m.id}')" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-3 py-1.5 rounded-lg transition">
-                FØR OPPMØTE ✅
-            </button>
+            <div class="flex gap-2 w-full">
+                <button onclick="openAttendanceModal('match_${m.id}')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] py-1.5 rounded-lg transition">
+                    FØR OPPMØTE ✅
+                </button>
+                <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-pen text-[10px]"></i>
+                </button>
+                <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                </button>
+            </div>
         `;
         listContainer.appendChild(div);
     });
@@ -3044,6 +3054,27 @@ function closeActivityModal() {
     const modal = document.getElementById('activityModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+}
+
+function editActivity(id) {
+    if (id.startsWith('match_')) {
+        window.openMatchModal(id.replace('match_', ''));
+    } else {
+        openActivityModal(); 
+        // Her kan du legge inn logikk for å fylle ut feltene i modalen hvis du vil at den skal være i "Edit mode"
+    }
+}
+
+function deleteActivity(id) {
+    customConfirm("Slette aktivitet?", "Er du sikker?", async () => {
+        if (id.startsWith('match_')) {
+            await window.deleteMatchFromDatabase(id.replace('match_', ''));
+        } else {
+            await window.deleteEventFromDatabase(id);
+        }
+        updateDailySchedule();
+        if (typeof renderEvents === 'function') renderEvents();
+    });
 }
 
 // Endrer placeholder-teksten slik at det føles intuitivt
