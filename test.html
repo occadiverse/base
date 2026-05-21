@@ -1434,36 +1434,48 @@
     // 2. Vis aktiv side
     document.getElementById(`view-${tabId}`).classList.remove('hidden');
 
-    // 3. Flytende handlingsknapp (Pluss-tegnet)
-    const floatingBtn = document.getElementById('floating-action-btn');
-    const floatingIcon = document.getElementById('floating-btn-icon');
+   // 3. Flytende handlingsknapp (Pluss-tegnet)
+const floatingBtn = document.getElementById('floating-action-btn');
+const floatingIcon = document.getElementById('floating-btn-icon');
+
+if (tabId === 'kamper') {
+    floatingBtn.classList.remove('hidden');
+    floatingIcon.className = "fa-solid fa-plus";
+    floatingBtn.title = "Registrer ny kamp";
+    // Hva knappen gjør når du trykker på den her:
+    floatingBtn.onclick = function() { window.openMatchModal(); };
     
-    if (tabId === 'kamper') {
-        floatingBtn.classList.remove('hidden');
-        floatingIcon.className = "fa-solid fa-plus";
-        floatingBtn.title = "Registrer ny kamp";
-    } else if (tabId === 'oppmote') {
-        floatingBtn.classList.remove('hidden');
-        floatingIcon.className = "fa-solid fa-calendar-plus";
-        floatingBtn.title = "Opprett nytt event";
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        
-        window.currentCalendarDate = d; // Oppdaterer selve kalendermåneden
-        window.selectedCalendarDateStr = `${y}-${m}-${day}`; // Setter blå markering på dagen i dag
-        
-        // Oppdaterer visningen på skjermen
-        if (typeof renderCalendar === 'function') renderCalendar();
-        if (typeof updateDailySchedule === 'function') updateDailySchedule();
-    } else if (tabId === 'tropp') {
-        floatingBtn.classList.remove('hidden');
-        floatingIcon.className = "fa-solid fa-user-plus";
-        floatingBtn.title = "Registrer ny spiller";
-    } else {
-        floatingBtn.classList.add('hidden');
-    }
+} else if (tabId === 'oppmote') {
+    floatingBtn.classList.remove('hidden');
+    floatingIcon.className = "fa-solid fa-calendar-plus";
+    floatingBtn.title = "Opprett nytt event";
+    
+    // Sørger for at kalenderen spretter til dagens dato
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    
+    window.currentCalendarDate = d;
+    window.selectedCalendarDateStr = `${y}-${m}-${day}`;
+    
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof updateDailySchedule === 'function') updateDailySchedule();
+    
+    // Hva knappen gjør når du trykker på den her:
+    floatingBtn.onclick = function() { openActivityModal(); }; // Evt. funksjonsnavnet du bruker for å åpne ny hendelse
+    
+} else if (tabId === 'tropp') {
+    floatingBtn.classList.remove('hidden');
+    floatingIcon.className = "fa-solid fa-user-plus";
+    floatingBtn.title = "Registrer ny spiller";
+    
+    // Hva knappen gjør når du trykker på den her:
+    floatingBtn.onclick = function() { document.getElementById('playerModal').classList.remove('hidden'); }; // Eller funksjonen din for ny spiller
+    
+} else {
+    floatingBtn.classList.add('hidden');
+}
 
     // 4. Oppdater tittel i topplinjen (for PC)
     const titles = {
