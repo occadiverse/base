@@ -3129,15 +3129,21 @@ function updateActivityTitlePlaceholder() {
 // Hovedfunksjonen for lagring
 async function saveNewActivity() {
     const type = document.getElementById('activityType').value;
-    const title = document.getElementById('activityTitle').value;
+    let title = document.getElementById('activityTitle').value; // Bruker 'let' så vi kan endre den
     const date = document.getElementById('activityDate').value;
     const time = document.getElementById('activityTime').value;
-    const selectedTeam = document.getElementById('activityTeam').value; // Henter laget du faktisk valgte!
-    const location = document.getElementById('activityLocation').value; // <-- NYTT: Henter verdien fra sted-feltet
+    const selectedTeam = document.getElementById('activityTeam').value;
+    const location = document.getElementById('activityLocation').value;
 
-    if (!title || !date || !time || !selectedTeam) {
-        alert("Fyll inn alle feltene!");
+    // 1. Sjekk kun det absolutte nødvendige (Dato og Lag)
+    if (!date || !selectedTeam) {
+        alert("Du må i hvert fall velge dato og lag!");
         return;
+    }
+
+    // 2. Smart fallback for tittel (hvis tom, bruk typen, f.eks. "Trening")
+    if (!title || title.trim() === '') {
+        title = type;
     }
 
     if (type === 'Kamp') {
@@ -3146,7 +3152,7 @@ async function saveNewActivity() {
             date: date,
             time: time,
             opponent: title, 
-            pitch: location || 'Ikke satt', // <-- NYTT: Bruker sted-feltet som bane. Fallback hvis tomt.
+            pitch: location || 'Ikke satt', 
             matchType: 'Treningskamp',
             matchGroup: selectedTeam, 
             result: '',
@@ -3165,7 +3171,7 @@ async function saveNewActivity() {
             title: title,
             date: date,
             time: time,
-            location: location, // <-- NYTT: Lagrer sted for trening, dugnad og sosialt
+            location: location || 'Ikke satt', // Sikrer at vi har en verdi
             team: selectedTeam, 
             attendance: {}
         };
