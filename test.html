@@ -933,13 +933,20 @@
     </div>
 
     <script>
-        window.activeMatches = [];
-        window.activeTeams = [];
-        window.activePlayers = [];
-        window.activeEvents = [];
-        window.currentCalendarDate = new Date(2026, 4, 19); // Defaults to May 19, 2026
-        window.selectedCalendarDateStr = "2026-05-19";
-    </script>
+    window.activeMatches = [];
+    window.activeTeams = [];
+    window.activePlayers = [];
+    window.activeEvents = [];
+    
+    // Finner dagens dato dynamisk
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    window.currentCalendarDate = today; 
+    window.selectedCalendarDateStr = `${year}-${month}-${day}`;
+</script>
 
    <script type="module">
         // Importer kun funksjonene vi trenger for å manipulere data
@@ -1439,6 +1446,17 @@
         floatingBtn.classList.remove('hidden');
         floatingIcon.className = "fa-solid fa-calendar-plus";
         floatingBtn.title = "Opprett nytt event";
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        
+        window.currentCalendarDate = d; // Oppdaterer selve kalendermåneden
+        window.selectedCalendarDateStr = `${y}-${m}-${day}`; // Setter blå markering på dagen i dag
+        
+        // Oppdaterer visningen på skjermen
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (typeof updateDailySchedule === 'function') updateDailySchedule();
     } else if (tabId === 'tropp') {
         floatingBtn.classList.remove('hidden');
         floatingIcon.className = "fa-solid fa-user-plus";
