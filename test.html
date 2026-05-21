@@ -3198,14 +3198,13 @@ async function saveNewActivity() {
 
         <form id="activityForm" class="space-y-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hva skal dere?</label>
-                <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
-                    <option value="Trening">Trening</option>
-                    <option value="Kamp">Kamp</option>
-                    <option value="Sosialt">Sosialt / Teambuilding</option>
-                    <option value="Dugnad / Annet">Dugnad / Annet</option>
-                </select>
-            </div>
+    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hva skal dere?</label>
+    <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+        <option value="Trening">Trening</option>
+        <option value="Kamp">Kamp</option>
+        <option value="Annet">Annet</option>
+    </select>
+</div>
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hvilket lag gjelder dette?</label>
