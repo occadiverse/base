@@ -3077,6 +3077,9 @@ function openActivityModal(defaultType = 'Trening') {
     // Sett dagens dato som standard
     document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('activityTitle').value = '';
+
+    // NY LINJE SOM TØMMER STED-FELTET:
+    document.getElementById('activityLocation').value = '';
     
     const modal = document.getElementById('activityModal');
     modal.classList.remove('hidden');
@@ -3130,6 +3133,7 @@ async function saveNewActivity() {
     const date = document.getElementById('activityDate').value;
     const time = document.getElementById('activityTime').value;
     const selectedTeam = document.getElementById('activityTeam').value; // Henter laget du faktisk valgte!
+    const location = document.getElementById('activityLocation').value; // <-- NYTT: Henter verdien fra sted-feltet
 
     if (!title || !date || !time || !selectedTeam) {
         alert("Fyll inn alle feltene!");
@@ -3142,9 +3146,9 @@ async function saveNewActivity() {
             date: date,
             time: time,
             opponent: title, 
-            pitch: 'Ikke satt',
+            pitch: location || 'Ikke satt', // <-- NYTT: Bruker sted-feltet som bane. Fallback hvis tomt.
             matchType: 'Treningskamp',
-            matchGroup: selectedTeam, // Lagres på riktig valgt lag
+            matchGroup: selectedTeam, 
             result: '',
             attendance: {},
             scorers: {},
@@ -3161,7 +3165,8 @@ async function saveNewActivity() {
             title: title,
             date: date,
             time: time,
-            team: selectedTeam, // Lagres på riktig valgt lag
+            location: location, // <-- NYTT: Lagrer sted for trening, dugnad og sosialt
+            team: selectedTeam, 
             attendance: {}
         };
         
@@ -3191,7 +3196,7 @@ async function saveNewActivity() {
             </button>
         </div>
 
-<form id="activityForm" class="space-y-4">
+        <form id="activityForm" class="space-y-4">
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hva skal dere?</label>
                 <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
@@ -3205,12 +3210,18 @@ async function saveNewActivity() {
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hvilket lag gjelder dette?</label>
                 <select id="activityTeam" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-bsk-blue outline-none focus:ring-2 focus:ring-bsk-blue">
-                    </select>
+                </select>
             </div>
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tittel / Motstander</label>
                 <input type="text" id="activityTitle" placeholder="F.eks. BSK - KFUM" required
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Sted / Bane</label>
+                <input type="text" id="activityLocation" placeholder="F.eks. BSK-banen, Valle Hovin..." 
                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
             </div>
 
