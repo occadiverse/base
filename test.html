@@ -999,47 +999,56 @@
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
         }
 
-        if (firebaseEnabled && auth.currentUser) {
-            function handleSyncError(key, syncFn, mockData, error) {
-                console.warn(`Database-tilgang avvist for ${key} (Faller tilbake til lokal lagring):`, error.message);
-                const cached = window.localStorage.getItem('bsk_local_' + key);
-                syncFn(cached ? JSON.parse(cached) : mockData);
-            }
+       if (firebaseEnabled && auth.currentUser) {
+    function handleSyncError(key, syncFn, mockData, error) {
+        console.warn(`Database-tilgang avvist for ${key} (Faller tilbake til lokal lagring):`, error.message);
+        const cached = window.localStorage.getItem('bsk_local_' + key);
+        syncFn(cached ? JSON.parse(cached) : mockData);
+    }
 
-            onSnapshot(activeMatchesCollectionRef, (snapshot) => {
-                const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
-                if (fb.length === 0) {
-                    initialMockMatches.forEach(async (m) => { try { await setDoc(doc(activeMatchesCollectionRef, m.id), m); } catch(e){} });
-                } else { syncMatches(fb); }
-            }, (error) => handleSyncError('matches', syncMatches, initialMockMatches, error));
-
-            onSnapshot(activeTeamsCollectionRef, (snapshot) => {
-                const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
-                if (fb.length === 0) {
-                    initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
-                } else { syncTeams(fb); }
-            }, (error) => handleSyncError('teams', syncTeams, initialMockTeams, error));
-
-            onSnapshot(activePlayersCollectionRef, (snapshot) => {
-                const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
-                if (fb.length === 0) {
-                    initialMockPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
-                } else { syncPlayers(fb); }
-            }, (error) => handleSyncError('players', syncPlayers, initialMockPlayers, error));
-
-            onSnapshot(activeEventsCollectionRef, (snapshot) => {
-                const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
-                if (fb.length === 0) {
-                    initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
-                } else { syncEvents(fb); }
-            }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
-        } else {
-            loadAllFromLocalStorage();
+    onSnapshot(activeMatchesCollectionRef, (snapshot) => {
+        const fb = [];
+        snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+        if (fb.length === 0) {
+            initialMockMatches.forEach(async (m) => { try { await setDoc(doc(activeMatchesCollectionRef, m.id), m); } catch(e){} });
+        } else { 
+            syncMatches(fb); 
+            // <-- NYTT: Oppdater forsiden når kamper er lastet inn
+            if (typeof updateDailySchedule === 'function') updateDailySchedule();
         }
+    }, (error) => handleSyncError('matches', syncMatches, initialMockMatches, error));
+
+    onSnapshot(activeTeamsCollectionRef, (snapshot) => {
+        const fb = [];
+        snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+        if (fb.length === 0) {
+            initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
+        } else { syncTeams(fb); }
+    }, (error) => handleSyncError('teams', syncTeams, initialMockTeams, error));
+
+    onSnapshot(activePlayersCollectionRef, (snapshot) => {
+        const fb = [];
+        snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+        if (fb.length === 0) {
+            initialMockPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
+        } else { syncPlayers(fb); }
+    }, (error) => handleSyncError('players', syncPlayers, initialMockPlayers, error));
+
+    onSnapshot(activeEventsCollectionRef, (snapshot) => {
+        const fb = [];
+        snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+        if (fb.length === 0) {
+            initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
+        } else { 
+            syncEvents(fb); 
+            // <-- NYTT: Oppdater forsiden når hendelser (trening/annet) er lastet inn
+            if (typeof updateDailySchedule === 'function') updateDailySchedule();
+            if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); // Greit å ha med her også
+        }
+    }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
+} else {
+    loadAllFromLocalStorage();
+}
 
         function loadAllFromLocalStorage() {
             const cachedMatches = window.localStorage.getItem('bsk_local_matches');
@@ -2720,6 +2729,11 @@ function openAttendanceModal(eventId) {
     const listContainer = document.getElementById('daily-events-list');
     const headerDate = document.getElementById('selected-calendar-date');
     if (!listContainer) return;
+
+    // NYTT: Hvis ingen dato er satt i minnet, sett den til i dag!
+    if (!window.selectedCalendarDateStr) {
+        window.selectedCalendarDateStr = new Date().toISOString().split('T')[0];
+    }
 
     const parsedDate = new Date(window.selectedCalendarDateStr);
     const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
