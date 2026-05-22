@@ -1035,17 +1035,19 @@
     }, (error) => handleSyncError('players', syncPlayers, initialMockPlayers, error));
 
     onSnapshot(activeEventsCollectionRef, (snapshot) => {
-        const fb = [];
-        snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
-        if (fb.length === 0) {
-            initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
-        } else { 
-            syncEvents(fb); 
-            // <-- NYTT: Oppdater forsiden når hendelser (trening/annet) er lastet inn
-            if (typeof updateDailySchedule === 'function') updateDailySchedule();
-            if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); // Greit å ha med her også
-        }
-    }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
+    const fb = [];
+    snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+    if (fb.length === 0) {
+        initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
+    } else { 
+        syncEvents(fb); 
+        
+        // <-- Oppdater visninger når hendelser (trening/annet) er lastet inn
+        if (typeof updateDailySchedule === 'function') updateDailySchedule();
+        if (typeof updateHjemWidget === 'function') updateHjemWidget(); // <--- HER ER DEN NYE!
+        if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); 
+    }
+}, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
 } else {
     loadAllFromLocalStorage();
 }
