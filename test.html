@@ -2726,77 +2726,174 @@ function openAttendanceModal(eventId) {
         };
 
  function updateDailySchedule() {
+
     const listContainer = document.getElementById('daily-events-list');
+
     const headerDate = document.getElementById('selected-calendar-date');
-    
-    // Failsafe: Vent litt hvis HTML ikke er ferdig lastet
-    if (!listContainer) {
-        setTimeout(updateDailySchedule, 100);
-        return;
+
+    if (!listContainer) return;
+
+
+
+    // NYTT: Hvis ingen dato er satt i minnet, sett den til i dag!
+
+    if (!window.selectedCalendarDateStr) {
+
+        window.selectedCalendarDateStr = new Date().toISOString().split('T')[0];
+
     }
 
-    // 1. Samle alle aktiviteter og sorter kronologisk
-    const alleAktiviteter = [
-        ...(window.activeMatches || []).map(m => ({ ...m, isMatch: true })), 
-        ...(window.activeEvents || []).map(e => ({ ...e, isMatch: false }))
-    ];
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    const kommende = alleAktiviteter
-        .filter(a => new Date(a.date) >= today)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // 2. Finn neste aktivitet
-    const neste = kommende[0];
+    const parsedDate = new Date(window.selectedCalendarDateStr);
 
-    // 3. Oppdater header og innhold
-    if (!neste) {
-        if (headerDate) headerDate.innerText = "Ingen kommende";
-        listContainer.innerHTML = `<p class="text-[11px] text-slate-400 italic text-center py-2">Ingen planlagte økter.</p>`;
-        return;
-    }
+    const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
 
-    const d = new Date(neste.date);
-    const formattedDate = d.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
     if (headerDate) headerDate.innerText = formattedDate;
+
+
 
     listContainer.innerHTML = '';
 
-    // 4. Tegn opp kortet (felles logikk for match/event)
-    const div = document.createElement('div');
-    div.className = `flex flex-col p-3 rounded-xl gap-2 shadow-sm border ${neste.isMatch ? 'bg-white border-emerald-100' : 'bg-white border-slate-150'}`;
-    
-    if (neste.isMatch) {
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <span class="font-bold text-xs text-slate-800 block">⚽ Kamp mot ${neste.opponent}</span>
-                    <span class="text-[10px] text-slate-400">${neste.time || 'TBA'} • ${neste.pitch || 'Ikke satt'}</span>
-                </div>
-            </div>
-            <div class="flex gap-2 mt-2 w-full justify-start">
-                <button onclick="openAttendanceModal('match_${neste.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">FØR OPPMØTE ✅</button>
-            </div>
-        `;
-    } else {
-        let icon = neste.type === 'Trening' ? '🏃' : (neste.type === 'Sosialt' ? '🎉' : '📌');
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <span class="font-bold text-xs text-slate-800 block">${icon} ${neste.title}</span>
-                    <span class="text-[10px] text-slate-400">${neste.type} ${neste.time ? 'kl. ' + neste.time : ''}</span>
-                </div>
-            </div>
-            <div class="flex gap-2 mt-2 w-full justify-start">
-                <button onclick="openAttendanceModal('${neste.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">FØR OPPMØTE ✅</button>
-            </div>
-        `;
-    }
-    listContainer.appendChild(div);
-}
 
+
+    const dateStr = window.selectedCalendarDateStr;
+
+    const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+
+         console.log("Datoen vi leter etter:", dateStr);
+
+        if (window.activeEvents.length > 0) {
+
+        console.log("Eksempel på dato fra Firebase:", window.activeEvents[0].date);
+
+        }
+
+    const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
+
+
+
+    if (dayMatches.length === 0 && dayEvents.length === 0) {
+
+        listContainer.innerHTML = `
+
+            <p class="text-[11px] text-slate-400 italic text-center py-2">Ingen aktiviteter planlagt denne dagen.</p>
+
+        `;
+
+        return;
+
+    }
+
+
+
+    // Hvis det er kamp denne dagen:
+
+    dayMatches.forEach(m => {
+
+        const div = document.createElement('div');
+
+        div.className = "flex flex-col bg-white border border-emerald-100 p-3 rounded-xl gap-2 shadow-sm";
+
+        div.innerHTML = `
+
+            <div class="flex justify-between items-start">
+
+                <div>
+
+                    <span class="font-bold text-xs text-slate-800 block">⚽ Kamp mot ${m.opponent}</span>
+
+                    <span class="text-[10px] text-slate-400">${m.time || 'TBA'} • ${m.pitch || 'Ikke satt'}</span>
+
+                </div>
+
+            </div>
+
+            <div class="flex gap-2 mt-2 w-full justify-start">
+
+    <button onclick="openAttendanceModal('match_${m.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
+
+        FØR OPPMØTE ✅
+
+    </button>
+
+    <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+
+        <i class="fa-solid fa-pen text-[10px]"></i>
+
+    </button>
+
+    <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+
+        <i class="fa-solid fa-trash text-[10px]"></i>
+
+    </button>
+
+</div>
+
+        `;
+
+        listContainer.appendChild(div);
+
+    });
+
+
+
+    // Hvis det er trening, sosialt eller dugnad denne dagen:
+
+    dayEvents.forEach(e => {
+
+        const div = document.createElement('div');
+
+        // Legger til et ekstra ikon for Dugnad/Annet også for sikkerhets skyld
+
+        let icon = e.type === 'Trening' ? '🏃' : (e.type === 'Sosialt' ? '🎉' : '🔧');
+
+        div.className = "flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm";
+
+        div.innerHTML = `
+
+            <div class="flex justify-between items-start">
+
+                <div>
+
+                    <span class="font-bold text-xs text-slate-800 block">${icon} ${e.title}</span>
+
+                    <span class="text-[10px] text-slate-400">${e.type} ${e.time ? 'kl. ' + e.time : ''}</span>
+
+                </div>
+
+            </div>
+
+            <div class="flex gap-2 mt-2 w-full justify-start">
+
+    <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
+
+        FØR OPPMØTE ✅
+
+    </button>
+
+    <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+
+        <i class="fa-solid fa-pen text-[10px]"></i>
+
+    </button>
+
+    <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+
+        <i class="fa-solid fa-trash text-[10px]"></i>
+
+    </button>
+
+</div>
+
+        `;
+
+        listContainer.appendChild(div);
+
+    });
+
+}; 
         function quickAddEvent(type) {
             if (type === 'Kamp') {
                 window.openMatchModal();
