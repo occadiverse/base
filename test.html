@@ -3203,9 +3203,8 @@ async function saveNewActivity() {
         return;
     }
 
-    if (!title || title.trim() === '') {
-        title = type;
-    }
+    // Logikken som overskrev tomme titler er nå fjernet.
+    // Hvis title-feltet er tomt, forblir det tomt.
 
     if (type === 'Kamp') {
         // Hent eksisterende kamp-data for å bevare resultater/scorere
