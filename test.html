@@ -1646,19 +1646,26 @@ if (tabId === 'kamper') {
                     const nm = upcoming[0];
                     const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
                     nextMatchHjem.innerHTML = `
-                        <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">NESTE KAMP</span>
-                                <span class="text-xs text-slate-200 font-bold">${nm.matchGroup}</span>
+                        <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 relative overflow-hidden">
+                            
+                            <div class="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-10 pointer-events-none z-0">
+                                <i class="fa-solid fa-futbol text-[15rem]"></i>
                             </div>
-                            <h4 class="font-extrabold text-lg text-white">vs ${nm.opponent}</h4>
-                            <div class="space-y-1 text-xs text-slate-300 font-medium">
-                                <p>${nm.time || 'TBA'} - ${d}</p>
-                                <p>${nm.pitch || 'Ikke fastsatt'}</p>
+
+                            <div class="relative z-10 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">NESTE KAMP</span>
+                                    <span class="text-xs text-slate-200 font-bold">${nm.matchGroup}</span>
+                                </div>
+                                <h4 class="font-extrabold text-lg text-white">vs ${nm.opponent}</h4>
+                                <div class="space-y-1 text-xs text-slate-300 font-medium">
+                                    <p>${nm.time || 'TBA'} - ${d}</p>
+                                    <p>${nm.pitch || 'Ikke fastsatt'}</p>
+                                </div>
+                                <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
+                                    Se Kampdetaljer
+                                </button>
                             </div>
-                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
-                                Se Kampdetaljer
-                            </button>
                         </div>
                     `;
                 } else {
@@ -1677,14 +1684,12 @@ if (tabId === 'kamper') {
         function updateHjemWidget() {
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     
-    // Henter dagens dato som YYYY-MM-DD for å unngå kluss med tidssoner
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const iDagStr = `${year}-${month}-${day}`;
     
-    // Filtrer på alt fra i dag og fremover, og sorter kronologisk
     const upcomingEvents = events.filter(e => e.date >= iDagStr);
     upcomingEvents.sort((a, b) => a.date.localeCompare(b.date));
     
@@ -1697,27 +1702,36 @@ if (tabId === 'kamper') {
         const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
         
         let badgeText = "NESTE TRENING";
+        let bgIcon = "fa-stopwatch"; // Stoppeklokke for trening
         if (ne.type === 'Annet') { 
             badgeText = "ANNET"; 
+            bgIcon = "fa-thumbtack"; // Knappenål for annet
         }
         
         nextEventHjem.innerHTML = `
-            <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
-                <div class="flex justify-between items-center">
-                    <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${badgeText}</span>
-                    <span class="text-xs text-slate-200 font-bold">${ne.team}</span>
+            <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 relative overflow-hidden">
+                
+                <div class="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-10 pointer-events-none z-0">
+                    <i class="fa-solid ${bgIcon} text-[15rem]"></i>
                 </div>
-                
-                <h4 class="font-extrabold text-lg text-white">${ne.title}</h4>
-                
-                <div class="space-y-1 text-xs text-slate-300 font-medium">
-                    <p>${ne.time || 'TBA'} - ${d}</p>
-                    <p>${ne.location || 'Ikke oppgitt'}</p>
+
+                <div class="relative z-10 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${badgeText}</span>
+                        <span class="text-xs text-slate-200 font-bold">${ne.team}</span>
+                    </div>
+                    
+                    <h4 class="font-extrabold text-lg text-white">${ne.title}</h4>
+                    
+                    <div class="space-y-1 text-xs text-slate-300 font-medium">
+                        <p>${ne.time || 'TBA'} - ${d}</p>
+                        <p>${ne.location || 'Ikke oppgitt'}</p>
+                    </div>
+                    
+                    <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
+                        Gå til Oppmøte
+                    </button>
                 </div>
-                
-                <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
-                    Gå til Oppmøte
-                </button>
             </div>
         `;
     } else {
