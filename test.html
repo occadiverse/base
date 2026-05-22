@@ -2735,31 +2735,9 @@ function updateDailySchedule() {
         window.selectedCalendarDateStr = new Date().toISOString().split('T')[0];
     }
 
-    let dateStr = window.selectedCalendarDateStr;
-    let dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
-    let dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
-
-    // --- NY SMART-SJEKK: Hvis dagen i dag er tom, finn neste kommende økt automatisk ---
-    if (dayMatches.length === 0 && dayEvents.length === 0) {
-        const alleAktiviteter = [...(window.activeMatches || []), ...(window.activeEvents || [])];
-        const iDagStr = new Date().toISOString().split('T')[0];
-
-        // Finn alle aktiviteter fra i dag og fremover i tid, sortert kronologisk
-        const fremtidige = alleAktiviteter
-            .filter(a => a.date >= iDagStr)
-            .sort((a, b) => a.date.localeCompare(b.date));
-
-        if (fremtidige.length > 0) {
-            // Endre datoen til den neste tilgjengelige økten (f.eks. 23.05)
-            dateStr = fremtidige[0].date;
-            window.selectedCalendarDateStr = dateStr;
-
-            // Hent ut kampene og treningene for denne nye datoen i stedet
-            dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
-            dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
-        }
-    }
-    // ---------------------------------------------------------------------------------
+    const dateStr = window.selectedCalendarDateStr;
+    const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+    const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
 
     const parsedDate = new Date(dateStr);
     const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
@@ -2774,7 +2752,7 @@ function updateDailySchedule() {
         return;
     }
 
-    // Hvis det er kamp denne dagen:
+   // Hvis det er kamp denne dagen:
     dayMatches.forEach(m => {
         const div = document.createElement('div');
         div.className = "flex flex-col bg-white border border-emerald-100 p-3 rounded-xl gap-2 shadow-sm";
@@ -2803,9 +2781,7 @@ function updateDailySchedule() {
     // Hvis det er trening eller annet denne dagen:
     dayEvents.forEach(e => {
         const div = document.createElement('div');
-        // Forenklet ikon-logikk: 🏃 for Trening, 📌 for alt Annet
         let icon = e.type === 'Trening' ? '🏃' : '📌'; 
-        
         div.className = "flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm";
         div.innerHTML = `
             <div class="flex justify-between items-start">
