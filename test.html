@@ -1674,6 +1674,7 @@ if (tabId === 'kamper') {
             }
         } // <--- HER ER DEN MAGISKE PARENTESEN SOM MANGLER! Denne lukker updateDashboard.
 
+        // Next event Widget on Forside
         function updateHjemWidget() {
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     
@@ -1696,37 +1697,38 @@ if (tabId === 'kamper') {
         const ne = upcomingEvents[0];
         const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
         
-        // Solid og fin farge på badgen som matcher strukturen til den oransje kamp-badgen
-        let badgeColor = "bg-blue-500 text-white";
+        // Vi bruker den gule BSK-badgen slik som kamp-widgeten gjør
+        let badgeText = "NESTE TRENING";
         if (ne.type === 'Annet') { 
-            badgeColor = "bg-slate-600 text-white"; 
+            badgeText = "ANNET"; 
         }
         
         nextEventHjem.innerHTML = `
-            <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800/60 space-y-3">
+            <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="${badgeColor} text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${ne.type}</span>
-                    <span class="text-[10px] text-slate-400 font-bold">${ne.team}</span>
+                    <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${badgeText}</span>
+                    <span class="text-xs text-slate-200 font-bold">${ne.time || 'TBA'}</span>
                 </div>
                 
                 <h4 class="font-extrabold text-lg text-white">${ne.title}</h4>
                 
-                <div class="space-y-1 text-xs text-slate-400 font-medium">
-                    <p><i class="fa-regular fa-calendar mr-1.5"></i> ${d}</p>
-                    <p><i class="fa-solid fa-check-double mr-1.5 text-emerald-500"></i> Oppmøteregistrering tilgjengelig</p>
+                <div class="space-y-1 text-xs text-slate-300 font-medium">
+                    <p><i class="fa-regular fa-calendar mr-1.5 text-bsk-yellow"></i> ${d}</p>
+                    <p><i class="fa-solid fa-location-dot mr-1.5 text-rose-400"></i> ${ne.location || 'Ikke oppgitt'}</p>
+                    <p><i class="fa-solid fa-users mr-1.5 text-sky-300"></i> ${ne.team}</p>
                 </div>
                 
-                <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/10 hover:bg-white/15 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
+                <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
                     Gå til Oppmøte
                 </button>
             </div>
         `;
     } else {
         nextEventHjem.innerHTML = `
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center text-slate-400">
-                <i class="fa-regular fa-calendar-check text-2xl mb-2 text-slate-600"></i>
-                <p class="text-xs font-bold text-slate-400">Ingen kommende økter</p>
-                <p class="text-[10px] text-slate-500 mt-1">Flere treninger og eventer kan opprettes i kalenderen.</p>
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400">
+                <i class="fa-regular fa-calendar-check text-2xl mb-2 text-slate-300"></i>
+                <p class="text-xs font-bold text-slate-500">Ingen kommende økter</p>
+                <p class="text-[10px] text-slate-400 mt-1">Flere treninger og eventer kan opprettes i kalenderen.</p>
             </div>
         `;
     }
