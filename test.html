@@ -485,62 +485,64 @@
         </div>
     </div>
 
-    <div class="px-4 lg:px-0 pb-12">
-        <div class="relative w-full max-w-lg mx-auto aspect-[3/4] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden">
-            
-            <div class="absolute top-[4%] w-full h-[2px] bg-white/30"></div> 
-            <div class="absolute top-[-11%] left-1/2 -translate-x-1/2 w-[40%] aspect-square rounded-full border-2 border-white/30"></div> 
-            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[22%] border-2 border-white/30 border-b-0"></div> 
-            <div class="absolute bottom-[22%] left-1/2 -translate-x-1/2 w-[30%] h-[12%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
-            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[8%] border-2 border-white/30 border-b-0"></div> 
+<div class="px-4 lg:px-0 pb-12">
+    <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
+        
+        <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
+        
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
+        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
 
-            <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
-                <line x1="35%" y1="55%" x2="50%" y2="22%" stroke="#34d399" stroke-width="4" class="opacity-90" />
-                <line x1="85%" y1="72%" x2="65%" y2="55%" stroke="#fbbf24" stroke-width="3" stroke-dasharray="4,4" class="opacity-80" />
-                <line x1="37%" y1="84%" x2="63%" y2="84%" stroke="#f43f5e" stroke-width="2" stroke-dasharray="2,4" class="opacity-60" />
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
+        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
+
+        <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
             </svg>
 
-            <div class="absolute top-[92%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-slate-800 text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-slate-500 hover:scale-110 hover:bg-slate-700 transition-all">
-                <span class="text-[10px] font-bold">GK</span>
-            </div>
+        <div class="player-node absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-slate-800 text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-slate-500 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('GK')">
+            <span class="text-[10px] font-bold">GK</span>
+        </div>
 
-            <div class="absolute top-[84%] left-[37%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">MS</span>
-            </div>
-            <div class="absolute top-[84%] left-[63%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">MS</span>
-            </div>
+        <div class="player-node absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('MS1')">
+            <span class="text-[10px] font-bold">MS</span>
+        </div>
+        <div class="player-node absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('MS2')">
+            <span class="text-[10px] font-bold">MS</span>
+        </div>
 
-            <div class="absolute top-[72%] left-[15%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">VB</span>
-            </div>
-            <div class="absolute top-[72%] left-[85%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">HB</span>
-            </div>
+        <div class="player-node absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VB')">
+            <span class="text-[10px] font-bold">VB</span>
+        </div>
+        <div class="player-node absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HB')">
+            <span class="text-[10px] font-bold">HB</span>
+        </div>
 
-            <div class="absolute top-[55%] left-[35%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">6</span>
-            </div>
-            <div class="absolute top-[55%] left-[65%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">8</span>
-            </div>
+        <div class="player-node absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('CM1')">
+            <span class="text-[10px] font-bold">6</span>
+        </div>
+        <div class="player-node absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('CM2')">
+            <span class="text-[10px] font-bold">8</span>
+        </div>
 
-            <div class="absolute top-[22%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-11 h-11 bg-bsk-yellow text-bsk-blue rounded-full flex items-center justify-center shadow-xl cursor-pointer z-10 border-2 border-white hover:scale-110 transition-all">
-                <span class="text-xs font-black">10</span>
-            </div>
+        <div class="player-node absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-11 h-11 bg-bsk-yellow text-bsk-blue rounded-full flex items-center justify-center shadow-xl cursor-pointer z-10 border-2 border-white hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('OMC')">
+            <span class="text-xs font-black">10</span>
+        </div>
 
-            <div class="absolute top-[12%] left-[12%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">VK</span>
-            </div>
-            <div class="absolute top-[12%] left-[88%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">HK</span>
-            </div>
+        <div class="player-node absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VK')">
+            <span class="text-[10px] font-bold">VK</span>
+        </div>
+        <div class="player-node absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HK')">
+            <span class="text-[10px] font-bold">HK</span>
+        </div>
 
-            <div class="absolute top-[6%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 hover:border-bsk-yellow transition-all">
-                <span class="text-[10px] font-bold">S</span>
-            </div>
+        <div class="player-node absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('ST')">
+            <span class="text-[10px] font-bold">S</span>
         </div>
     </div>
+</div>
 </div>
             
             <div id="view-admin" class="hidden space-y-6">
