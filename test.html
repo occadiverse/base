@@ -3125,10 +3125,23 @@ function closeActivityModal() {
 
 function editActivity(id) {
     if (id.startsWith('match_')) {
+        // Denne delen fungerte jo allerede
         window.openMatchModal(id.replace('match_', ''));
     } else {
-        openActivityModal(); 
-        // Her kan du legge inn logikk for å fylle ut feltene i modalen hvis du vil at den skal være i "Edit mode"
+        // HER må vi hente dataene først!
+        const ev = (window.activeEvents || []).find(e => e.id === id);
+        if (!ev) return;
+
+        // 1. Åpne modalen
+        openActivityModal(ev.type); // Vi sender med typen slik at modalen vet hva den skal vise
+
+        // 2. Fyll inn dataene i feltene
+        document.getElementById('editEventId').value = ev.id; // Viktig! Denne forteller "save" at vi redigerer
+        document.getElementById('activityTitle').value = ev.title;
+        document.getElementById('activityDate').value = ev.date;
+        document.getElementById('activityTime').value = ev.time || '';
+        document.getElementById('activityTeam').value = ev.team;
+        document.getElementById('activityLocation').value = ev.location || '';
     }
 }
 
@@ -3157,65 +3170,74 @@ function updateActivityTitlePlaceholder() {
     }
 }
 
-// Hovedfunksjonen for lagring
 async function saveNewActivity() {
+    const editId = document.getElementById('editEventId').value;
     const type = document.getElementById('activityType').value;
-    let title = document.getElementById('activityTitle').value; // Bruker 'let' så vi kan endre den
+    let title = document.getElementById('activityTitle').value;
     const date = document.getElementById('activityDate').value;
     const time = document.getElementById('activityTime').value;
     const selectedTeam = document.getElementById('activityTeam').value;
     const location = document.getElementById('activityLocation').value;
 
-    // 1. Sjekk kun det absolutte nødvendige (Dato og Lag)
     if (!date || !selectedTeam) {
         alert("Du må i hvert fall velge dato og lag!");
         return;
     }
 
-    // 2. Smart fallback for tittel (hvis tom, bruk typen, f.eks. "Trening")
     if (!title || title.trim() === '') {
         title = type;
     }
 
     if (type === 'Kamp') {
-        const newMatch = {
-            id: Date.now().toString(),
+        // Hent eksisterende kamp-data for å bevare resultater/scorere
+        const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+        const existingMatch = editId ? matches.find(m => m.id === editId) : null;
+
+        const matchData = {
+            id: editId || Date.now().toString(),
             date: date,
             time: time,
-            opponent: title, 
-            pitch: location || 'Ikke satt', 
-            matchType: 'Treningskamp',
-            matchGroup: selectedTeam, 
-            result: '',
-            attendance: {},
-            scorers: {},
-            ratings: {}
+            opponent: title,
+            pitch: location || 'Ikke satt',
+            matchType: existingMatch ? existingMatch.matchType : 'Treningskamp',
+            matchGroup: selectedTeam,
+            result: existingMatch ? existingMatch.result : '',
+            attendance: existingMatch ? (existingMatch.attendance || {}) : {},
+            scorers: existingMatch ? (existingMatch.scorers || {}) : {},
+            ratings: existingMatch ? (existingMatch.ratings || {}) : {}
         };
         
         if (typeof window.saveMatchToDatabase === 'function') {
-            await window.saveMatchToDatabase(newMatch);
+            await window.saveMatchToDatabase(matchData);
         }
     } else {
-        const newActivity = {
-            id: Date.now().toString(),
+        // Hent eksisterende event-data for å bevare oppmøte
+        const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+        const existingEvent = editId ? events.find(e => e.id === editId) : null;
+
+        const activityData = {
+            id: editId || Date.now().toString(),
             type: type,
             title: title,
             date: date,
             time: time,
-            location: location || 'Ikke satt', // Sikrer at vi har en verdi
-            team: selectedTeam, 
-            attendance: {}
+            location: location || 'Ikke satt',
+            team: selectedTeam,
+            attendance: existingEvent ? (existingEvent.attendance || {}) : {}
         };
         
         if (typeof window.saveEventToDatabase === 'function') {
-            await window.saveEventToDatabase(newActivity);
+            await window.saveEventToDatabase(activityData);
         }
     }
 
     closeActivityModal();
+    // Oppdater alle visninger
     if (typeof applyFilters === 'function') applyFilters(); 
     if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi();
     if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof updateDailySchedule === 'function') updateDailySchedule();
+    if (typeof updateHjemWidget === 'function') updateHjemWidget();
 }
         
     </script>
