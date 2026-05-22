@@ -2815,12 +2815,12 @@ function updateDailySchedule() {
                 <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">${e.type}</span>
             </div>
             
-            <div class="text-[10px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 flex gap-3">
-                <span><i class="fa-regular fa-clock mr-1"></i>${e.time || 'TBA'}</span>
-                <span><i class="fa-solid fa-location-dot mr-1"></i>${e.location || 'Ikke oppgitt'}</span>
+            <div class="text-[10px] text-slate-500 font-medium flex gap-4 ml-6">
+                <span><i class="fa-regular fa-clock mr-1.5"></i>${e.time || 'TBA'}</span>
+                <span><i class="fa-solid fa-location-dot mr-1.5"></i>${e.location || 'Ikke oppgitt'}</span>
             </div>
 
-            <div class="flex gap-2 mt-1 w-full justify-start">
+            <div class="flex gap-2 mt-1 w-full justify-start ml-6">
                 <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
                     FØR OPPMØTE ✅
                 </button>
