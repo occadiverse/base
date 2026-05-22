@@ -2725,7 +2725,7 @@ function openAttendanceModal(eventId) {
             renderCalendar();
         };
 
- function updateDailySchedule() {
+function updateDailySchedule() {
     const listContainer = document.getElementById('daily-events-list');
     const headerDate = document.getElementById('selected-calendar-date');
     if (!listContainer) return;
@@ -2800,10 +2800,12 @@ function openAttendanceModal(eventId) {
         listContainer.appendChild(div);
     });
 
-    // Hvis det er trening, sosialt eller dugnad denne dagen:
+    // Hvis det er trening eller annet denne dagen:
     dayEvents.forEach(e => {
         const div = document.createElement('div');
-        let icon = e.type === 'Trening' ? '🏃' : (e.type === 'Sosialt' ? '🎉' : '🔧');
+        // Forenklet ikon-logikk: 🏃 for Trening, 📌 for alt Annet
+        let icon = e.type === 'Trening' ? '🏃' : '📌'; 
+        
         div.className = "flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm";
         div.innerHTML = `
             <div class="flex justify-between items-start">
@@ -2826,64 +2828,7 @@ function openAttendanceModal(eventId) {
         `;
         listContainer.appendChild(div);
     });
-
-
-
-    // Hvis det er trening, sosialt eller dugnad denne dagen:
-
-    dayEvents.forEach(e => {
-
-        const div = document.createElement('div');
-
-        // Legger til et ekstra ikon for Dugnad/Annet også for sikkerhets skyld
-
-        let icon = e.type === 'Trening' ? '🏃' : (e.type === 'Sosialt' ? '🎉' : '🔧');
-
-        div.className = "flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm";
-
-        div.innerHTML = `
-
-            <div class="flex justify-between items-start">
-
-                <div>
-
-                    <span class="font-bold text-xs text-slate-800 block">${icon} ${e.title}</span>
-
-                    <span class="text-[10px] text-slate-400">${e.type} ${e.time ? 'kl. ' + e.time : ''}</span>
-
-                </div>
-
-            </div>
-
-            <div class="flex gap-2 mt-2 w-full justify-start">
-
-    <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
-
-        FØR OPPMØTE ✅
-
-    </button>
-
-    <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
-
-        <i class="fa-solid fa-pen text-[10px]"></i>
-
-    </button>
-
-    <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
-
-        <i class="fa-solid fa-trash text-[10px]"></i>
-
-    </button>
-
-</div>
-
-        `;
-
-        listContainer.appendChild(div);
-
-    });
-
-}; 
+}
         function quickAddEvent(type) {
             if (type === 'Kamp') {
                 window.openMatchModal();
