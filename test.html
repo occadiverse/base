@@ -3105,14 +3105,20 @@ function openActivityModal(defaultType = 'Trening') {
     document.getElementById('activityType').value = defaultType;
     updateActivityTitlePlaceholder();
     
-    // Sett dagens dato som standard
+    // NULLSTILL OVERSKRIFT OG KNAPP TIL STANDARD
+    const modal = document.getElementById('activityModal');
+    const header = modal.querySelector('h3');
+    const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
+
+    if (header) header.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet`;
+    if (submitBtn) submitBtn.innerText = "OPPRETT AKTIVITET";
+
+    // Nullstill alle felt
+    document.getElementById('editEventId').value = ''; // Viktig at denne tømmes!
     document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('activityTitle').value = '';
-
-    // NY LINJE SOM TØMMER STED-FELTET:
     document.getElementById('activityLocation').value = '';
     
-    const modal = document.getElementById('activityModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
@@ -3125,18 +3131,24 @@ function closeActivityModal() {
 
 function editActivity(id) {
     if (id.startsWith('match_')) {
-        // Denne delen fungerte jo allerede
         window.openMatchModal(id.replace('match_', ''));
     } else {
-        // HER må vi hente dataene først!
         const ev = (window.activeEvents || []).find(e => e.id === id);
         if (!ev) return;
 
-        // 1. Åpne modalen
-        openActivityModal(ev.type); // Vi sender med typen slik at modalen vet hva den skal vise
+        // 1. Åpne modalen som vanlig
+        openActivityModal(ev.type);
 
-        // 2. Fyll inn dataene i feltene
-        document.getElementById('editEventId').value = ev.id; // Viktig! Denne forteller "save" at vi redigerer
+        // 2. ENDRE OVERSKRIFT OG KNAPP (Siden HTML-en din ikke har ID på h3, bruker vi querySelector)
+        const modal = document.getElementById('activityModal');
+        const header = modal.querySelector('h3');
+        const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
+
+        if (header) header.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Endre Aktivitet`;
+        if (submitBtn) submitBtn.innerText = "OPPDATER AKTIVITET";
+
+        // 3. Fyll inn dataene
+        document.getElementById('editEventId').value = ev.id;
         document.getElementById('activityTitle').value = ev.title;
         document.getElementById('activityDate').value = ev.date;
         document.getElementById('activityTime').value = ev.time || '';
