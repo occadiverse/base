@@ -2798,11 +2798,11 @@ function updateDailySchedule() {
         listContainer.appendChild(div);
     });
 
-    // Hvis det er trening eller annet denne dagen:
+   // Hvis det er trening eller annet denne dagen:
     dayEvents.forEach(e => {
         const div = document.createElement('div');
         
-        // 1. Definer farge basert på type (samme som i renderCalendar)
+        // Definer farge basert på type
         let dotColor = e.type === 'Trening' ? 'bg-blue-500' : 
                        (e.type === 'Dugnad' ? 'bg-amber-500' : 'bg-slate-400');
         
@@ -2812,15 +2812,12 @@ function updateDailySchedule() {
             <div class="flex items-center gap-3">
                 <div class="w-3 h-3 rounded-full ${dotColor} shrink-0"></div>
                 
-                <div class="flex flex-col">
-                    <span class="font-bold text-xs text-slate-800">${e.title}</span>
-                    <span class="text-[10px] text-slate-400 font-medium">${e.type}</span>
-                </div>
+                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">${e.type}</span>
             </div>
             
-            <div class="text-[10px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 space-y-0.5">
-                <p><i class="fa-regular fa-clock mr-1"></i> ${e.time ? 'kl. ' + e.time : 'Tid ikke satt'}</p>
-                <p><i class="fa-solid fa-location-dot mr-1"></i> ${e.location || 'Sted ikke oppgitt'}</p>
+            <div class="text-[10px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 flex gap-3">
+                <span><i class="fa-regular fa-clock mr-1"></i>${e.time || 'TBA'}</span>
+                <span><i class="fa-solid fa-location-dot mr-1"></i>${e.location || 'Ikke oppgitt'}</span>
             </div>
 
             <div class="flex gap-2 mt-1 w-full justify-start">
