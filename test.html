@@ -1671,48 +1671,64 @@ if (tabId === 'kamper') {
                 }
             }
 
-            // Next Event/Activity Widget on Forside
-            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
-            const upcomingEvents = events.filter(e => new Date(e.date) >= new Date().setHours(0,0,0,0));
-            upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
-            const nextEventHjem = document.getElementById('hjem-next-event-container');
-            
-            if (nextEventHjem) {
-                if (upcomingEvents.length > 0) {
-                    const ne = upcomingEvents[0];
-                    const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
-                    let typeColor = "from-blue-600 to-blue-800";
-                    let icon = "fa-person-running";
-                    if (ne.type === 'Sosialt') { typeColor = "from-purple-600 to-purple-800"; icon = "fa-cake-candles"; }
-                    else if (ne.type === 'Dugnad') { typeColor = "from-amber-600 to-amber-800"; icon = "fa-broom"; }
-                    
-                    nextEventHjem.innerHTML = `
-                        <div class="bg-gradient-to-br ${typeColor} text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${ne.type}</span>
-                                <span class="text-[10px] text-slate-200 font-bold">${ne.team}</span>
-                            </div>
-                            <h4 class="font-extrabold text-lg text-white"><i class="fa-solid ${icon} mr-1.5 text-bsk-yellow"></i> ${ne.title}</h4>
-                            <div class="space-y-1 text-xs text-slate-300 font-medium">
-                                <p><i class="fa-regular fa-calendar mr-1.5"></i> ${d}</p>
-                                <p><i class="fa-solid fa-check-double mr-1.5 text-emerald-300"></i> Oppmøteregistrering tilgjengelig</p>
-                            </div>
-                            <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
-                                Gå til Oppmøte
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    nextEventHjem.innerHTML = `
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400">
-                            <i class="fa-regular fa-calendar-check text-2xl mb-2 text-slate-300"></i>
-                            <p class="text-xs font-bold text-slate-500">Ingen kommende økter</p>
-                            <p class="text-[10px] text-slate-400 mt-1">Flere treninger og eventer kan opprettes i kalenderen.</p>
-                        </div>
-                    `;
-                }
-            }
+            function updateHjemWidget() {
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+    
+    // Henter dagens dato som YYYY-MM-DD for å unngå kluss med tidssoner
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const iDagStr = `${year}-${month}-${day}`;
+    
+    // Filtrer på alt fra i dag og fremover, og sorter kronologisk
+    const upcomingEvents = events.filter(e => e.date >= iDagStr);
+    upcomingEvents.sort((a, b) => a.date.localeCompare(b.date));
+    
+    const nextEventHjem = document.getElementById('hjem-next-event-container');
+    
+    if (!nextEventHjem) return;
+
+    if (upcomingEvents.length > 0) {
+        const ne = upcomingEvents[0];
+        const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+        
+        // STANDARD: Trening (Blå)
+        let typeColor = "from-blue-600 to-blue-800";
+        let icon = "fa-person-running";
+        
+        // OPPDATERT: "Annet" (Nøytral grå/slate og knappenål)
+        if (ne.type === 'Annet') { 
+            typeColor = "from-slate-500 to-slate-700"; 
+            icon = "fa-thumbtack"; 
         }
+        
+        nextEventHjem.innerHTML = `
+            <div class="bg-gradient-to-br ${typeColor} text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${ne.type}</span>
+                    <span class="text-[10px] text-slate-200 font-bold">${ne.team}</span>
+                </div>
+                <h4 class="font-extrabold text-lg text-white"><i class="fa-solid ${icon} mr-1.5 text-bsk-yellow"></i> ${ne.title}</h4>
+                <div class="space-y-1 text-xs text-slate-300 font-medium">
+                    <p><i class="fa-regular fa-calendar mr-1.5"></i> ${d}</p>
+                    <p><i class="fa-solid fa-check-double mr-1.5 text-emerald-300"></i> Oppmøteregistrering tilgjengelig</p>
+                </div>
+                <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
+                    Gå til Oppmøte
+                </button>
+            </div>
+        `;
+    } else {
+        nextEventHjem.innerHTML = `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400">
+                <i class="fa-regular fa-calendar-check text-2xl mb-2 text-slate-300"></i>
+                <p class="text-xs font-bold text-slate-500">Ingen kommende økter</p>
+                <p class="text-[10px] text-slate-400 mt-1">Flere treninger og eventer kan opprettes i kalenderen.</p>
+            </div>
+        `;
+    }
+}
 
         // 1. Global variabel for tidsfilteret
 if (typeof window.activeTimeFilter === 'undefined') {
