@@ -370,36 +370,6 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                        <div class="p-5 border-b border-slate-150 flex justify-between items-center">
-                            <h3 class="font-extrabold text-sm text-slate-900">Event-logg og registrering</h3>
-                            <button onclick="openActivityModal('Trening')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-[11px] font-bold px-3 py-2 rounded-xl flex items-center gap-1">
-                                <i class="fa-solid fa-plus text-bsk-yellow"></i>
-                                Nytt Event
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                                        <th class="py-3 px-4">Event</th>
-                                        <th class="py-3 px-4">Type</th>
-                                        <th class="py-3 px-4 text-center">Dato</th>
-                                        <th class="py-3 px-4 text-center">Tilstede</th>
-                                        <th class="py-3 px-6 text-right">Handlinger</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="eventTableBody" class="divide-y divide-slate-100 text-xs">
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="no-events-view" class="hidden py-12 text-center text-slate-400">
-                            <i class="fa-solid fa-calendar-xmark text-3xl mb-2 text-slate-300"></i>
-                            <p class="font-bold text-slate-600">Ingen eventer registrert</p>
-                            <p class="text-[10px] mt-0.5">Opprett et event (f.eks. en trening) for å starte registrering.</p>
-                        </div>
-                    </div>
-
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <div class="p-5 border-b border-slate-150">
                             <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
@@ -2414,7 +2384,7 @@ function openAttendanceModal(eventId) {
             });
         }
 
-        function recalculateOppmoteAndKjemi() {
+function recalculateOppmoteAndKjemi() {
     const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
     
     // 1. Hent begge listene
@@ -2433,259 +2403,205 @@ function openAttendanceModal(eventId) {
     const events = [...rawEvents, ...mappedMatches];
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
-   // 4. Filtrer basert på valgt lag
-const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
-const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+    // 4. Filtrer basert på valgt lag
+    const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
+    const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
 
-            // Paint Events list
-            const tableBody = document.getElementById('eventTableBody');
-            const emptyView = document.getElementById('no-events-view');
+    // [HTML-TEGNING FOR EVENT-TABELL ER FJERNET HERFRA]
 
-            if (tableBody) {
-                tableBody.innerHTML = '';
-                if (filteredEvents.length === 0) {
-                    if (emptyView) emptyView.classList.remove('hidden');
-                } else {
-                    if (emptyView) emptyView.classList.add('hidden');
-                    const sortedEvents = [...filteredEvents].sort((a,b) => new Date(b.date) - new Date(a.date));
-                    
-                    sortedEvents.forEach(e => {
-                        const tr = document.createElement('tr');
-                        tr.className = "hover:bg-slate-50 border-b border-slate-100";
-                        
-                        const dateStr = new Date(e.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
-                        
-                        // Count present
-                        const presentCount = Object.values(e.attendance || {}).filter(v => v === true).length;
-                        const totalRegistered = Object.keys(e.attendance || {}).length;
-                        const ratioStr = totalRegistered > 0 ? `${presentCount}/${totalRegistered}` : 'Ingen data';
+    // Compute statistics for dashboard counters
+    let totalEventTicks = 0;
+    let totalPossibleTicks = 0;
 
-                        let typeBadge = '';
-                        if (e.type === 'Trening') typeBadge = '<span class="bg-blue-100 text-bsk-blue px-2 py-0.5 rounded-full font-bold">Trening 🏃</span>';
-                        else if (e.type === 'Kamp') typeBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Kamp ⚽</span>';
-                        else typeBadge = '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Annet 📌</span>';
-
-                        const teamBadge = `<span class="bg-bsk-yellow/20 text-bsk-blue text-[9px] px-1.5 py-0.5 rounded font-bold">${e.team}</span>`;
-
-                        tr.innerHTML = `
-                            <td class="py-3 px-4 font-bold text-slate-800">
-                                <div class="flex flex-col">
-                                    <span>${e.title}</span>
-                                    <span class="mt-0.5">${teamBadge}</span>
-                                </div>
-                            </td>
-                            <td class="py-3 px-4">${typeBadge}</td>
-                            <td class="py-3 px-4 text-center text-slate-500 font-semibold">${dateStr}</td>
-                            <td class="py-3 px-4 text-center font-bold text-slate-700">${ratioStr}</td>
-                            <td class="py-3 px-6 text-right">
-                                <div class="flex justify-end gap-1.5">
-                                    <button onclick="openAttendanceModal('${e.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-2.5 py-1.5 rounded-lg transition" title="Før oppmøte">
-                                        FØR ✅
-                                    </button>
-                                    <button onclick="promptDeleteEvent('${e.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Slett">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-                }
-            }
-
-            // Compute statistics for dashboard counters
-            let totalEventTicks = 0;
-            let totalPossibleTicks = 0;
-
-            filteredEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.values(e.attendance).forEach(val => {
-                        totalPossibleTicks++;
-                        if (val === true) totalEventTicks++;
-                    });
-                }
+    filteredEvents.forEach(e => {
+        if (e.attendance) {
+            Object.values(e.attendance).forEach(val => {
+                totalPossibleTicks++;
+                if (val === true) totalEventTicks++;
             });
-
-            const avgRate = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
-            
-            const totalEventsCountEl = document.getElementById('total-events-count');
-            const avgAttendanceRateEl = document.getElementById('avg-attendance-rate');
-            if (totalEventsCountEl) totalEventsCountEl.innerText = filteredEvents.length;
-            if (avgAttendanceRateEl) avgAttendanceRateEl.innerText = `${avgRate}%`;
-
-            // Compute Player Loyalty rates and Loyalty Streak badges
-            const playerStats = {};
-            teamPlayers.forEach(p => {
-                playerStats[p.navn] = { present: 0, total: 0, streak: 0 };
-            });
-
-            // Sort events chronically to calculate streaks
-            const chronoEvents = [...filteredEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
-
-            chronoEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.entries(e.attendance).forEach(([player, present]) => {
-                        if (playerStats[player]) {
-                            playerStats[player].total++;
-                            if (present) {
-                                playerStats[player].present++;
-                                playerStats[player].streak++;
-                            } else {
-                                playerStats[player].streak = 0; // reset streak
-                            }
-                        }
-                    });
-                }
-            });
-
-            // Paint player loyalty cards
-            const loyaltyContainer = document.getElementById('player-loyalty-list');
-            if (loyaltyContainer) {
-                loyaltyContainer.innerHTML = '';
-                
-                const sortedLoyalty = Object.entries(playerStats).map(([name, data]) => {
-                    const rate = data.total > 0 ? Math.round((data.present / data.total) * 100) : 0;
-                    return { name, rate, ...data };
-                }).sort((a,b) => b.rate - a.rate);
-
-                if (sortedLoyalty.length === 0) {
-                    loyaltyContainer.innerHTML = `<p class="p-6 text-center text-xs text-slate-400 italic">Ingen spillere i listen.</p>`;
-                } else {
-                    sortedLoyalty.forEach(item => {
-                        let loyaltyBadge = '';
-                        if (item.rate >= 90) loyaltyBadge = '<span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase">JERNMANN 🏆</span>';
-                        else if (item.rate >= 70) loyaltyBadge = '<span class="bg-blue-100 text-bsk-blue text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">STABIL ⚡</span>';
-                        else if (item.rate > 0) loyaltyBadge = '<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">SLAPPER 💤</span>';
-                        else loyaltyBadge = '<span class="bg-slate-100 text-slate-400 text-[9px] font-medium px-1.5 py-0.5 rounded-md">INGEN DATA</span>';
-
-                        const streakIndicator = item.streak >= 3 ? `<span class="text-rose-500 text-[10px] font-black"><i class="fa-solid fa-fire animate-pulse"></i> ${item.streak} på rad</span>` : '';
-
-                        const div = document.createElement('div');
-                        div.className = "p-4 flex justify-between items-center hover:bg-slate-50/50 transition";
-                        div.innerHTML = `
-                            <div class="space-y-1">
-                                <div class="flex items-center space-x-2">
-                                    <span class="font-bold text-slate-800 text-xs">${item.name}</span>
-                                    ${streakIndicator}
-                                </div>
-                                <div class="flex items-center space-x-1.5">
-                                    ${loyaltyBadge}
-                                    <span class="text-[10px] text-slate-400">${item.present}/${item.total} økter</span>
-                                </div>
-                            </div>
-                            <span class="text-sm font-black text-slate-900">${item.rate}%</span>
-                        `;
-                        loyaltyContainer.appendChild(div);
-                    });
-                }
-            }
-
-            // COMPUTE CHEMISTRY CONNECTIONS (Radarpar!)
-            const pairsMap = {};
-            for (let i = 0; i < teamPlayers.length; i++) {
-                for (let j = i + 1; j < teamPlayers.length; j++) {
-                    const p1 = teamPlayers[i].navn;
-                    const p2 = teamPlayers[j].navn;
-                    const key = [p1, p2].sort().join(" & ");
-                    
-                    pairsMap[key] = { sharedPresent: 0, eitherPresent: 0, list: [] };
-                }
-            }
-
-            filteredEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.entries(pairsMap).forEach(([pairKey, scoreData]) => {
-                        const [p1, p2] = pairKey.split(" & ");
-                        const p1Present = e.attendance[p1] === true;
-                        const p2Present = e.attendance[p2] === true;
-
-                        if (p1Present || p2Present) {
-                            scoreData.eitherPresent++;
-                        }
-                        if (p1Present && p2Present) {
-                            scoreData.sharedPresent++;
-                        }
-                    });
-                }
-            });
-
-            const sortedDuos = Object.entries(pairsMap).map(([pairKey, data]) => {
-                const score = data.eitherPresent > 0 ? Math.round((data.sharedPresent / data.eitherPresent) * 100) : 0;
-                return { pairKey, score, shared: data.sharedPresent };
-            }).sort((a,b) => b.score - a.score);
-
-            const duosContainer = document.getElementById('top-chemistry-duos');
-            if (duosContainer) {
-                duosContainer.innerHTML = '';
-                
-                const top3 = sortedDuos.filter(d => d.shared > 0).slice(0, 3);
-                const bestTeamChemistryEl = document.getElementById('best-team-chemistry');
-
-                if (top3.length === 0) {
-                    duosContainer.innerHTML = `
-                        <div class="py-6 text-center text-slate-400 text-xs italic bg-white/5 border border-white/10 rounded-xl">
-                            Ikke nok felles oppmøtedata til å beregne lagkjemi enda.
-                        </div>
-                    `;
-                    if (bestTeamChemistryEl) bestTeamChemistryEl.innerText = '0%';
-                } else {
-                    if (bestTeamChemistryEl) bestTeamChemistryEl.innerText = `${top3[0].score}%`;
-
-                    top3.forEach((duo, idx) => {
-                        let chemBadge = "God tone";
-                        let progressColor = "bg-amber-400";
-                        if (duo.score >= 90) { chemBadge = "Radarpar! ⭐"; progressColor = "bg-bsk-yellow"; }
-                        else if (duo.score >= 70) { chemBadge = "Utsøkt kjemi"; progressColor = "bg-emerald-400"; }
-                        
-                        const div = document.createElement('div');
-                        div.className = "bg-white/5 border border-white/10 p-3.5 rounded-xl space-y-2";
-                        div.innerHTML = `
-                            <div class="flex justify-between items-center text-xs">
-                                <div class="flex items-center space-x-1.5">
-                                    <span class="text-bsk-yellow font-black">${idx + 1}.</span>
-                                    <span class="font-bold text-white">${duo.pairKey}</span>
-                                </div>
-                                <span class="bg-white/10 text-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">${chemBadge}</span>
-                            </div>
-                            <div class="space-y-1">
-                                <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                                    <div class="${progressColor} h-full rounded-full transition-all duration-1000" style="width: ${duo.score}%"></div>
-                                </div>
-                                <div class="flex justify-between text-[9px] text-slate-400">
-                                    <span>Felles oppmøtescore: ${duo.score}%</span>
-                                    <span>${duo.shared} økter sammen</span>
-                                </div>
-                            </div>
-                        `;
-                        duosContainer.appendChild(div);
-                    });
-                }
-            }
-
-            // Populate dropdown for Chemistry Sjekker
-            const checkerSelect = document.getElementById('chemistryPlayerSelect');
-            if (checkerSelect) {
-                const currentSelected = checkerSelect.value;
-                checkerSelect.innerHTML = `<option value="">-- VELG SPILLER --</option>`;
-                
-                teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.navn;
-                    opt.innerText = p.navn.toUpperCase();
-                    checkerSelect.appendChild(opt);
-                });
-
-                if (teamPlayers.some(p => p.navn === currentSelected)) {
-                    checkerSelect.value = currentSelected;
-                    checkIndividualChemistry();
-                } else {
-                    const resultEl = document.getElementById('individual-chemistry-result');
-                    const emptyEl = document.getElementById('individual-chemistry-empty');
-                    if (resultEl) resultEl.classList.add('hidden');
-                    if (emptyEl) emptyEl.classList.remove('hidden');
-                }
-            }
         }
+    });
+
+    const avgRate = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
+    
+    const totalEventsCountEl = document.getElementById('total-events-count');
+    const avgAttendanceRateEl = document.getElementById('avg-attendance-rate');
+    if (totalEventsCountEl) totalEventsCountEl.innerText = filteredEvents.length;
+    if (avgAttendanceRateEl) avgAttendanceRateEl.innerText = `${avgRate}%`;
+
+    // Compute Player Loyalty rates and Loyalty Streak badges
+    const playerStats = {};
+    teamPlayers.forEach(p => {
+        playerStats[p.navn] = { present: 0, total: 0, streak: 0 };
+    });
+
+    // Sort events chronically to calculate streaks
+    const chronoEvents = [...filteredEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    chronoEvents.forEach(e => {
+        if (e.attendance) {
+            Object.entries(e.attendance).forEach(([player, present]) => {
+                if (playerStats[player]) {
+                    playerStats[player].total++;
+                    if (present) {
+                        playerStats[player].present++;
+                        playerStats[player].streak++;
+                    } else {
+                        playerStats[player].streak = 0; // reset streak
+                    }
+                }
+            });
+        }
+    });
+
+    // Paint player loyalty cards
+    const loyaltyContainer = document.getElementById('player-loyalty-list');
+    if (loyaltyContainer) {
+        loyaltyContainer.innerHTML = '';
+        
+        const sortedLoyalty = Object.entries(playerStats).map(([name, data]) => {
+            const rate = data.total > 0 ? Math.round((data.present / data.total) * 100) : 0;
+            return { name, rate, ...data };
+        }).sort((a,b) => b.rate - a.rate);
+
+        if (sortedLoyalty.length === 0) {
+            loyaltyContainer.innerHTML = `<p class="p-6 text-center text-xs text-slate-400 italic">Ingen spillere i listen.</p>`;
+        } else {
+            sortedLoyalty.forEach(item => {
+                let loyaltyBadge = '';
+                if (item.rate >= 90) loyaltyBadge = '<span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase">JERNMANN 🏆</span>';
+                else if (item.rate >= 70) loyaltyBadge = '<span class="bg-blue-100 text-bsk-blue text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">STABIL ⚡</span>';
+                else if (item.rate > 0) loyaltyBadge = '<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">SLAPPER 💤</span>';
+                else loyaltyBadge = '<span class="bg-slate-100 text-slate-400 text-[9px] font-medium px-1.5 py-0.5 rounded-md">INGEN DATA</span>';
+
+                const streakIndicator = item.streak >= 3 ? `<span class="text-rose-500 text-[10px] font-black"><i class="fa-solid fa-fire animate-pulse"></i> ${item.streak} på rad</span>` : '';
+
+                const div = document.createElement('div');
+                div.className = "p-4 flex justify-between items-center hover:bg-slate-50/50 transition";
+                div.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-800 text-xs">${item.name}</span>
+                            ${streakIndicator}
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            ${loyaltyBadge}
+                            <span class="text-[10px] text-slate-400">${item.present}/${item.total} økter</span>
+                        </div>
+                    </div>
+                    <span class="text-sm font-black text-slate-900">${item.rate}%</span>
+                `;
+                loyaltyContainer.appendChild(div);
+            });
+        }
+    }
+
+    // COMPUTE CHEMISTRY CONNECTIONS (Radarpar!)
+    const pairsMap = {};
+    for (let i = 0; i < teamPlayers.length; i++) {
+        for (let j = i + 1; j < teamPlayers.length; j++) {
+            const p1 = teamPlayers[i].navn;
+            const p2 = teamPlayers[j].navn;
+            const key = [p1, p2].sort().join(" & ");
+            
+            pairsMap[key] = { sharedPresent: 0, eitherPresent: 0, list: [] };
+        }
+    }
+
+    filteredEvents.forEach(e => {
+        if (e.attendance) {
+            Object.entries(pairsMap).forEach(([pairKey, scoreData]) => {
+                const [p1, p2] = pairKey.split(" & ");
+                const p1Present = e.attendance[p1] === true;
+                const p2Present = e.attendance[p2] === true;
+
+                if (p1Present || p2Present) {
+                    scoreData.eitherPresent++;
+                }
+                if (p1Present && p2Present) {
+                    scoreData.sharedPresent++;
+                }
+            });
+        }
+    });
+
+    const sortedDuos = Object.entries(pairsMap).map(([pairKey, data]) => {
+        const score = data.eitherPresent > 0 ? Math.round((data.sharedPresent / data.eitherPresent) * 100) : 0;
+        return { pairKey, score, shared: data.sharedPresent };
+    }).sort((a,b) => b.score - a.score);
+
+    const duosContainer = document.getElementById('top-chemistry-duos');
+    if (duosContainer) {
+        duosContainer.innerHTML = '';
+        
+        const top3 = sortedDuos.filter(d => d.shared > 0).slice(0, 3);
+        const bestTeamChemistryEl = document.getElementById('best-team-chemistry');
+
+        if (top3.length === 0) {
+            duosContainer.innerHTML = `
+                <div class="py-6 text-center text-slate-400 text-xs italic bg-white/5 border border-white/10 rounded-xl">
+                    Ikke nok felles oppmøtedata til å beregne lagkjemi enda.
+                </div>
+            `;
+            if (bestTeamChemistryEl) bestTeamChemistryEl.innerText = '0%';
+        } else {
+            if (bestTeamChemistryEl) bestTeamChemistryEl.innerText = `${top3[0].score}%`;
+
+            top3.forEach((duo, idx) => {
+                let chemBadge = "God tone";
+                let progressColor = "bg-amber-400";
+                if (duo.score >= 90) { chemBadge = "Radarpar! ⭐"; progressColor = "bg-bsk-yellow"; }
+                else if (duo.score >= 70) { chemBadge = "Utsøkt kjemi"; progressColor = "bg-emerald-400"; }
+                
+                const div = document.createElement('div');
+                div.className = "bg-white/5 border border-white/10 p-3.5 rounded-xl space-y-2";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-bsk-yellow font-black">${idx + 1}.</span>
+                            <span class="font-bold text-white">${duo.pairKey}</span>
+                        </div>
+                        <span class="bg-white/10 text-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">${chemBadge}</span>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                            <div class="${progressColor} h-full rounded-full transition-all duration-1000" style="width: ${duo.score}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] text-slate-400">
+                            <span>Felles oppmøtescore: ${duo.score}%</span>
+                            <span>${duo.shared} økter sammen</span>
+                        </div>
+                    </div>
+                `;
+                duosContainer.appendChild(div);
+            });
+        }
+    }
+
+    // Populate dropdown for Chemistry Sjekker
+    const checkerSelect = document.getElementById('chemistryPlayerSelect');
+    if (checkerSelect) {
+        const currentSelected = checkerSelect.value;
+        checkerSelect.innerHTML = `<option value="">-- VELG SPILLER --</option>`;
+        
+        teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.navn;
+            opt.innerText = p.navn.toUpperCase();
+            checkerSelect.appendChild(opt);
+        });
+
+        if (teamPlayers.some(p => p.navn === currentSelected)) {
+            checkerSelect.value = currentSelected;
+            checkIndividualChemistry();
+        } else {
+            const resultEl = document.getElementById('individual-chemistry-result');
+            const emptyEl = document.getElementById('individual-chemistry-empty');
+            if (resultEl) resultEl.classList.add('hidden');
+            if (emptyEl) emptyEl.classList.remove('hidden');
+        }
+    }
+}
 
         function navigateCalendar(direction) {
             const current = window.currentCalendarDate;
