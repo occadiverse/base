@@ -1649,13 +1649,12 @@ if (tabId === 'kamper') {
                         <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
                             <div class="flex justify-between items-center">
                                 <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">NESTE KAMP</span>
-                                <span class="text-xs text-slate-200 font-bold">${nm.time || 'TBA'}</span>
+                                <span class="text-xs text-slate-200 font-bold">${nm.matchGroup}</span>
                             </div>
                             <h4 class="font-extrabold text-lg text-white">vs ${nm.opponent}</h4>
                             <div class="space-y-1 text-xs text-slate-300 font-medium">
-                                <p><i class="fa-regular fa-calendar mr-1.5 text-bsk-yellow"></i> ${d}</p>
-                                <p><i class="fa-solid fa-location-dot mr-1.5 text-rose-400"></i> ${nm.pitch || 'Ikke fastsatt'}</p>
-                                <p><i class="fa-solid fa-users mr-1.5 text-sky-300"></i> ${nm.matchGroup}</p>
+                                <p>${nm.time || 'TBA'} - ${d}</p>
+                                <p>${nm.pitch || 'Ikke fastsatt'}</p>
                             </div>
                             <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
                                 Se Kampdetaljer
@@ -1697,7 +1696,6 @@ if (tabId === 'kamper') {
         const ne = upcomingEvents[0];
         const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
         
-        // Vi bruker den gule BSK-badgen slik som kamp-widgeten gjør
         let badgeText = "NESTE TRENING";
         if (ne.type === 'Annet') { 
             badgeText = "ANNET"; 
@@ -1707,15 +1705,14 @@ if (tabId === 'kamper') {
             <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">${badgeText}</span>
-                    <span class="text-xs text-slate-200 font-bold">${ne.time || 'TBA'}</span>
+                    <span class="text-xs text-slate-200 font-bold">${ne.team}</span>
                 </div>
                 
                 <h4 class="font-extrabold text-lg text-white">${ne.title}</h4>
                 
                 <div class="space-y-1 text-xs text-slate-300 font-medium">
-                    <p><i class="fa-regular fa-calendar mr-1.5 text-bsk-yellow"></i> ${d}</p>
-                    <p><i class="fa-solid fa-location-dot mr-1.5 text-rose-400"></i> ${ne.location || 'Ikke oppgitt'}</p>
-                    <p><i class="fa-solid fa-users mr-1.5 text-sky-300"></i> ${ne.team}</p>
+                    <p>${ne.time || 'TBA'} - ${d}</p>
+                    <p>${ne.location || 'Ikke oppgitt'}</p>
                 </div>
                 
                 <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">
