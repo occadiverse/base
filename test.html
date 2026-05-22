@@ -2726,115 +2726,105 @@ function openAttendanceModal(eventId) {
         };
 
  function updateDailySchedule() {
-
     const listContainer = document.getElementById('daily-events-list');
-
     const headerDate = document.getElementById('selected-calendar-date');
-
     if (!listContainer) return;
 
-
-
-    // NYTT: Hvis ingen dato er satt i minnet, sett den til i dag!
-
+    // Hvis ingen dato er satt i minnet, sett den til i dag!
     if (!window.selectedCalendarDateStr) {
-
         window.selectedCalendarDateStr = new Date().toISOString().split('T')[0];
-
     }
 
+    let dateStr = window.selectedCalendarDateStr;
+    let dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+    let dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
 
+    // --- NY SMART-SJEKK: Hvis dagen i dag er tom, finn neste kommende økt automatisk ---
+    if (dayMatches.length === 0 && dayEvents.length === 0) {
+        const alleAktiviteter = [...(window.activeMatches || []), ...(window.activeEvents || [])];
+        const iDagStr = new Date().toISOString().split('T')[0];
 
-    const parsedDate = new Date(window.selectedCalendarDateStr);
+        // Finn alle aktiviteter fra i dag og fremover i tid, sortert kronologisk
+        const fremtidige = alleAktiviteter
+            .filter(a => a.date >= iDagStr)
+            .sort((a, b) => a.date.localeCompare(b.date));
 
+        if (fremtidige.length > 0) {
+            // Endre datoen til den neste tilgjengelige økten (f.eks. 23.05)
+            dateStr = fremtidige[0].date;
+            window.selectedCalendarDateStr = dateStr;
+
+            // Hent ut kampene og treningene for denne nye datoen i stedet
+            dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+            dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
+        }
+    }
+    // ---------------------------------------------------------------------------------
+
+    const parsedDate = new Date(dateStr);
     const formattedDate = parsedDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
-
     if (headerDate) headerDate.innerText = formattedDate;
-
-
 
     listContainer.innerHTML = '';
 
-
-
-    const dateStr = window.selectedCalendarDateStr;
-
-    const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
-
-         console.log("Datoen vi leter etter:", dateStr);
-
-        if (window.activeEvents.length > 0) {
-
-        console.log("Eksempel på dato fra Firebase:", window.activeEvents[0].date);
-
-        }
-
-    const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
-
-
-
     if (dayMatches.length === 0 && dayEvents.length === 0) {
-
         listContainer.innerHTML = `
-
             <p class="text-[11px] text-slate-400 italic text-center py-2">Ingen aktiviteter planlagt denne dagen.</p>
-
         `;
-
         return;
-
     }
 
-
-
     // Hvis det er kamp denne dagen:
-
     dayMatches.forEach(m => {
-
         const div = document.createElement('div');
-
         div.className = "flex flex-col bg-white border border-emerald-100 p-3 rounded-xl gap-2 shadow-sm";
-
         div.innerHTML = `
-
             <div class="flex justify-between items-start">
-
                 <div>
-
                     <span class="font-bold text-xs text-slate-800 block">⚽ Kamp mot ${m.opponent}</span>
-
                     <span class="text-[10px] text-slate-400">${m.time || 'TBA'} • ${m.pitch || 'Ikke satt'}</span>
-
                 </div>
-
             </div>
-
             <div class="flex gap-2 mt-2 w-full justify-start">
-
-    <button onclick="openAttendanceModal('match_${m.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
-
-        FØR OPPMØTE ✅
-
-    </button>
-
-    <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
-
-        <i class="fa-solid fa-pen text-[10px]"></i>
-
-    </button>
-
-    <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
-
-        <i class="fa-solid fa-trash text-[10px]"></i>
-
-    </button>
-
-</div>
-
+                <button onclick="openAttendanceModal('match_${m.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
+                    FØR OPPMØTE ✅
+                </button>
+                <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-pen text-[10px]"></i>
+                </button>
+                <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                </button>
+            </div>
         `;
-
         listContainer.appendChild(div);
+    });
 
+    // Hvis det er trening, sosialt eller dugnad denne dagen:
+    dayEvents.forEach(e => {
+        const div = document.createElement('div');
+        let icon = e.type === 'Trening' ? '🏃' : (e.type === 'Sosialt' ? '🎉' : '🔧');
+        div.className = "flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm";
+        div.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="font-bold text-xs text-slate-800 block">${icon} ${e.title}</span>
+                    <span class="text-[10px] text-slate-400">${e.type} ${e.time ? 'kl. ' + e.time : ''}</span>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-2 w-full justify-start">
+                <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">
+                    FØR OPPMØTE ✅
+                </button>
+                <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-pen text-[10px]"></i>
+                </button>
+                <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                </button>
+            </div>
+        `;
+        listContainer.appendChild(div);
     });
 
 
