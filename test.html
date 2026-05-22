@@ -2433,12 +2433,9 @@ function openAttendanceModal(eventId) {
     const events = [...rawEvents, ...mappedMatches];
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
-    // Filter events based on selected team (Herfra og ned er koden din akkurat som før!)
-    const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
-
-            // Filter events based on selected team
-            const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
-            const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+   // 4. Filtrer basert på valgt lag
+const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
+const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
 
             // Paint Events list
             const tableBody = document.getElementById('eventTableBody');
