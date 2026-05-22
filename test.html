@@ -2743,6 +2743,10 @@ function openAttendanceModal(eventId) {
 
     const dateStr = window.selectedCalendarDateStr;
     const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
+         console.log("Datoen vi leter etter:", dateStr);
+        if (window.activeEvents.length > 0) {
+        console.log("Eksempel på dato fra Firebase:", window.activeEvents[0].date);
+        }
     const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
 
     if (dayMatches.length === 0 && dayEvents.length === 0) {
