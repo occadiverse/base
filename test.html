@@ -3183,12 +3183,14 @@ function deleteActivity(id) {
 function updateActivityTitlePlaceholder() {
     const type = document.getElementById('activityType').value;
     const titleInput = document.getElementById('activityTitle');
+    const titleLabel = document.getElementById('activityTitleLabel'); // Vi må gi labelen en ID
+
     if (type === 'Kamp') {
-        titleInput.placeholder = "Hvem spiller vi mot? (f.eks. BSK - KFUM)";
-    } else if (type === 'Trening') {
-        titleInput.placeholder = "F.eks. Taktisk trening / Intervaller";
+        if (titleLabel) titleLabel.innerText = "Motstander";
+        titleInput.placeholder = "F.eks. BSK - KFUM";
     } else {
-        titleInput.placeholder = "Kort beskrivelse...";
+        if (titleLabel) titleLabel.innerText = "Tittel";
+        titleInput.placeholder = "F.eks. Taktisk trening, Lagfest...";
     }
 }
 
