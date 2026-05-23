@@ -503,56 +503,50 @@
                     <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
                     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
         
-        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
-        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
-        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
+                    <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
 
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
-        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
+                    <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
 
-        <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
-            </svg>
+                    <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
+                        </svg>
 
-        <div class="player-node absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-slate-800 text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-slate-500 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('GK')">
-            <span class="text-[10px] font-bold">GK</span>
-        </div>
-
-        <div class="player-node absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('MS1')">
-            <span class="text-[10px] font-bold">MS</span>
-        </div>
-        <div class="player-node absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('MS2')">
-            <span class="text-[10px] font-bold">MS</span>
-        </div>
-
-        <div class="player-node absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VB')">
-            <span class="text-[10px] font-bold">VB</span>
-        </div>
-        <div class="player-node absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HB')">
-            <span class="text-[10px] font-bold">HB</span>
-        </div>
-
-        <div class="player-node absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('CM1')">
-            <span class="text-[10px] font-bold">6</span>
-        </div>
-        <div class="player-node absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('CM2')">
-            <span class="text-[10px] font-bold">8</span>
-        </div>
-
-        <div class="player-node absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-11 h-11 bg-bsk-yellow text-bsk-blue rounded-full flex items-center justify-center shadow-xl cursor-pointer z-10 border-2 border-white hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('OMC')">
-            <span class="text-xs font-black">10</span>
-        </div>
-
-        <div class="player-node absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VK')">
-            <span class="text-[10px] font-bold">VK</span>
-        </div>
-        <div class="player-node absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HK')">
-            <span class="text-[10px] font-bold">HK</span>
-        </div>
-
-        <div class="player-node absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('ST')">
-            <span class="text-[10px] font-bold">S</span>
-        </div>
+<div id="node-GK" class="player-node absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-slate-800 text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-slate-500 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('GK')">
+    <span class="text-[10px] font-bold">GK</span>
+</div>
+<div id="node-MS1" class="player-node absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('MS1')">
+    <span class="text-[10px] font-bold">MS</span>
+</div>
+<div id="node-MS2" class="player-node absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('MS2')">
+    <span class="text-[10px] font-bold">MS</span>
+</div>
+<div id="node-VB" class="player-node absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VB')">
+    <span class="text-[10px] font-bold">VB</span>
+</div>
+<div id="node-HB" class="player-node absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HB')">
+    <span class="text-[10px] font-bold">HB</span>
+</div>
+<div id="node-CM1" class="player-node absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('CM1')">
+    <span class="text-[10px] font-bold">6</span>
+</div>
+<div id="node-CM2" class="player-node absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('CM2')">
+    <span class="text-[10px] font-bold">8</span>
+</div>
+<div id="node-OMC" class="player-node absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-11 h-11 bg-bsk-yellow text-bsk-blue rounded-full flex items-center justify-center shadow-xl cursor-pointer z-10 border-2 border-white hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('OMC')">
+    <span class="text-xs font-black">10</span>
+</div>
+<div id="node-VK" class="player-node absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VK')">
+    <span class="text-[10px] font-bold">VK</span>
+</div>
+<div id="node-HK" class="player-node absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HK')">
+    <span class="text-[10px] font-bold">HK</span>
+</div>
+<div id="node-ST" class="player-node absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('ST')">
+    <span class="text-[10px] font-bold">S</span>
+</div>
     </div>
 </div>
 </div>
@@ -3351,7 +3345,88 @@ function setTacticalPhase(phaseId) {
         }
     }
 }
+   window.tacticalLineup = {}; 
+let currentSelectPos = null;
+
+function openPlayerSelect(posId) {
+    currentSelectPos = posId;
+    const modal = document.getElementById('tacticalPlayerModal');
+    const list = document.getElementById('tactical-player-list');
+    document.getElementById('tactical-pos-label').innerText = `Velger for: ${posId}`;
+    
+    list.innerHTML = '';
+
+    const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+    
+    players.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
+        const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
+
+        const div = document.createElement('div');
+        div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20'}`;
         
+        div.onclick = () => {
+            if(!isPlaying) choosePlayer(p, posId);
+            else alert(`${p.navn} er allerede plassert et annet sted på banen!`);
+        };
+        
+        div.innerHTML = `
+            <div>
+                <p class="font-bold text-slate-800 text-sm">${p.navn}</p>
+                <p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p>
+            </div>
+            ${isPlaying 
+                ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' 
+                : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}
+        `;
+        list.appendChild(div);
+    });
+
+    if (window.tacticalLineup[posId]) {
+        const clearDiv = document.createElement('div');
+        clearDiv.className = "p-3 mt-2 bg-rose-50 border border-rose-100 text-rose-600 font-bold text-xs text-center cursor-pointer hover:bg-rose-100 transition rounded-xl flex justify-center items-center gap-2";
+        clearDiv.onclick = () => choosePlayer(null, posId); 
+        clearDiv.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${posId}`;
+        list.appendChild(clearDiv);
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closePlayerSelect() {
+    const modal = document.getElementById('tacticalPlayerModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    currentSelectPos = null;
+}
+
+function choosePlayer(playerObj, posId) {
+    window.tacticalLineup[posId] = playerObj;
+    const node = document.getElementById('node-' + posId);
+    
+    if (node) {
+        if (playerObj === null) {
+            node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
+            node.className = `player-node absolute w-10 h-10 rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 hover:scale-110 transition-all duration-500 ${posId === 'GK' ? 'bg-slate-800 text-white border-slate-500' : 'bg-bsk-blue text-white border-bsk-yellow/60'}`;
+            node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11');
+            if(posId !== 'OMC') node.classList.add('w-10', 'h-10');
+            if(posId === 'OMC') node.classList.add('w-11', 'h-11');
+        } else {
+            const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+            const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
+            const firstName = playerObj.navn.split(' ')[0];
+            
+            node.innerHTML = `
+                <span class="text-[11px] font-black tracking-tighter">${displayName}</span>
+                <span class="absolute -bottom-5 text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/50 px-1.5 py-0.5 rounded-md">${firstName}</span>
+            `;
+            
+            node.classList.remove('bg-bsk-blue', 'bg-slate-800', 'text-white', 'border-slate-500', 'border-bsk-yellow/60');
+            node.classList.add('bg-bsk-yellow', 'text-bsk-blue', 'border-white');
+        }
+    }
+    closePlayerSelect();
+}     
     </script>
 
 <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
@@ -3414,6 +3489,24 @@ function setTacticalPhase(phaseId) {
                 </button>
             </div>
         </form>
+    </div>
+</div>
+    
+    <div id="tacticalPlayerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl relative flex flex-col max-h-[80vh]">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+            <div>
+                <h3 class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-shirt text-bsk-yellow"></i> Velg spiller
+                </h3>
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1" id="tactical-pos-label">POSISJON</p>
+            </div>
+            <button onclick="closePlayerSelect()" class="text-slate-400 hover:text-slate-600 p-2 bg-white rounded-xl shadow-sm border border-slate-200">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="overflow-y-auto flex-1 divide-y divide-slate-50 p-2" id="tactical-player-list">
+        </div>
     </div>
 </div>
     
