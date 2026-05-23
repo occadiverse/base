@@ -478,18 +478,30 @@
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6">
-    <div class="mb-2 flex justify-between items-end px-4 lg:px-0">
-        <div>
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Taktikk & Kjemi</h2>
-            <p class="text-xs text-slate-500 font-medium mt-1">4-2-4 Formasjon - Optimalisert på felles oppmøte</p>
-        </div>
-    </div>
+                <div class="mb-2 flex justify-between items-end px-4 lg:px-0">
+                    <div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Taktikk & Kjemi</h2>
+                    <p class="text-xs text-slate-500 font-medium mt-1">4-2-4 Formasjon - Optimalisert på felles oppmøte</p>
+                    </div>
+                </div>
 
-<div class="px-4 lg:px-0 pb-12">
-    <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
+                <div class="flex items-center justify-center gap-2 mb-6">
+                    <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="phase-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-bsk-blue text-white shadow-lg transition-all border-2 border-bsk-blue">
+                    Fase 1: Utspill
+                    </button>
+                    <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="phase-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-400 border-2 border-slate-200 transition-all">
+                    Fase 2: Etablering
+                    </button>
+                    <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="phase-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-400 border-2 border-slate-200 transition-all">
+                    Fase 3: Angrep
+                    </button>
+                </div>
+
+                <div class="px-4 lg:px-0 pb-12">
+                    <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
         
-        <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
+                    <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
         
         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
         <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
