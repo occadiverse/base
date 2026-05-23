@@ -3289,6 +3289,68 @@ async function saveNewActivity() {
     if (typeof updateDailySchedule === 'function') updateDailySchedule();
     if (typeof updateHjemWidget === 'function') updateHjemWidget();
 }
+
+    // Koordinater for hver fase (prosent av banen)
+const tacticalPhases = {
+    fase1: {
+        'GK': { top: '90%', left: '50%' },
+        'MS1': { top: '80%', left: '30%' },
+        'MS2': { top: '80%', left: '70%' },
+        'VB':  { top: '75%', left: '10%' },
+        'HB':  { top: '75%', left: '90%' },
+        'CM1': { top: '60%', left: '40%' },
+        'CM2': { top: '60%', left: '60%' },
+        'OMC': { top: '45%', left: '50%' },
+        'VK':  { top: '35%', left: '20%' },
+        'HK':  { top: '35%', left: '80%' },
+        'ST':  { top: '20%', left: '50%' }
+    },
+    fase2: { // Din etableringsfase
+        'GK': { top: '92%', left: '50%' },
+        'MS1': { top: '80%', left: '25%' },
+        'MS2': { top: '80%', left: '75%' },
+        'VB':  { top: '60%', left: '10%' },
+        'HB':  { top: '60%', left: '90%' },
+        'CM1': { top: '55%', left: '40%' },
+        'CM2': { top: '50%', left: '60%' },
+        'OMC': { top: '35%', left: '50%' },
+        'VK':  { top: '25%', left: '20%' },
+        'HK':  { top: '25%', left: '80%' },
+        'ST':  { top: '15%', left: '50%' }
+    },
+    fase3: { // Fullt angrep!
+        'GK': { top: '95%', left: '50%' },
+        'MS1': { top: '70%', left: '30%' },
+        'MS2': { top: '70%', left: '70%' },
+        'VB':  { top: '40%', left: '5%' },
+        'HB':  { top: '40%', left: '95%' },
+        'CM1': { top: '40%', left: '40%' },
+        'CM2': { top: '40%', left: '60%' },
+        'OMC': { top: '20%', left: '50%' },
+        'VK':  { top: '10%', left: '15%' },
+        'HK':  { top: '10%', left: '85%' },
+        'ST':  { top: '5%', left: '50%' }
+    }
+};
+
+function setTacticalPhase(phaseId) {
+    // 1. Oppdater knappe-styling
+    document.querySelectorAll('.phase-btn').forEach(btn => {
+        btn.classList.remove('bg-bsk-blue', 'text-white', 'border-bsk-blue');
+        btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
+    });
+    document.getElementById(`btn-${phaseId}`).classList.add('bg-bsk-blue', 'text-white', 'border-bsk-blue');
+
+    // 2. Flytt spillerne
+    const coords = tacticalPhases[phaseId];
+    for (const [nodeId, pos] of Object.entries(coords)) {
+        const node = document.getElementById('node-' + nodeId);
+        if (node) {
+            node.style.top = pos.top;
+            node.style.left = pos.left;
+        }
+    }
+}
         
     </script>
 
