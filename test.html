@@ -1573,7 +1573,7 @@ if (tabId === 'kamper') {
 
     // 7. Last inn og beregn data for aktiv fane
     if (tabId === 'oppmote') {
-        renderEvents(); // <--- HER ER DEN!
+        renderEvents(); 
         recalculateOppmoteAndKjemi();
     } else if (tabId === 'spillere') {
         renderSpillerbors();
@@ -1585,6 +1585,9 @@ if (tabId === 'kamper') {
         renderAdminTeamsList();
     } else if (tabId === 'hjem') {
         updateDashboard();
+    } else if (tabId === 'taktikk') {
+        // Tving tavlen til å starte i Fase 1 hver gang fanen åpnes!
+        setTacticalPhase('fase1');
     }
 }
 
@@ -3415,12 +3418,24 @@ function choosePlayer(playerObj, posId) {
     
     if (node) {
         if (playerObj === null) {
+            // TØM RUNDINGEN (Men behold posisjonen!)
             node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
-            node.className = `player-node absolute w-10 h-10 rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 hover:scale-110 transition-all duration-500 ${posId === 'GK' ? 'bg-slate-800 text-white border-slate-500' : 'bg-bsk-blue text-white border-bsk-yellow/60'}`;
+            
+            // Fjern "aktiv spiller"-farger
             node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11');
-            if(posId !== 'OMC') node.classList.add('w-10', 'h-10');
+            
+            // Sett tilbake standardstørrelse
             if(posId === 'OMC') node.classList.add('w-11', 'h-11');
+            else node.classList.add('w-10', 'h-10');
+
+            // Sett tilbake standardfarger
+            if (posId === 'GK') {
+                node.classList.add('bg-slate-800', 'text-white', 'border-slate-500');
+            } else {
+                node.classList.add('bg-bsk-blue', 'text-white', 'border-bsk-yellow/60');
+            }
         } else {
+            // FYLL RUNDINGEN MED SPILLER
             const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
             const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
             const firstName = playerObj.navn.split(' ')[0];
@@ -3430,12 +3445,13 @@ function choosePlayer(playerObj, posId) {
                 <span class="absolute -bottom-5 text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/50 px-1.5 py-0.5 rounded-md">${firstName}</span>
             `;
             
+            // Fjern standardfarger og legg til aktiv spiller-farger
             node.classList.remove('bg-bsk-blue', 'bg-slate-800', 'text-white', 'border-slate-500', 'border-bsk-yellow/60');
             node.classList.add('bg-bsk-yellow', 'text-bsk-blue', 'border-white');
         }
     }
     closePlayerSelect();
-} 
+}
 
         function clearTacticalBoard() {
     // Tømmer minnet
