@@ -497,6 +497,15 @@
                     </button>
                 </div>
 
+                <div class="mt-2 mb-6 flex flex-wrap justify-center gap-3">
+                    <button onclick="autoFillTeam()" class="bg-gradient-to-r from-bsk-yellow to-amber-400 hover:from-amber-400 hover:to-amber-500 text-bsk-blue font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 hover:scale-105 active:scale-95">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sm"></i> Autofullfør Ellever
+                    </button>
+                    <button onclick="clearTacticalBoard()" class="bg-white border border-slate-200 text-slate-500 hover:text-rose-500 hover:bg-rose-50 font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-eraser"></i> Tøm banen
+                    </button>
+                </div>
+
                 <div class="px-4 lg:px-0 pb-12">
                     <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
         
@@ -3426,7 +3435,72 @@ function choosePlayer(playerObj, posId) {
         }
     }
     closePlayerSelect();
-}     
+} 
+
+        function clearTacticalBoard() {
+    // Tømmer minnet
+    window.tacticalLineup = {};
+    
+    // Tilbakestiller alle de 11 posisjonene via choosePlayer-funksjonen vår
+    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'CM1', 'CM2', 'OMC', 'VK', 'HK', 'ST'];
+    positions.forEach(pos => choosePlayer(null, pos));
+}
+
+function autoFillTeam() {
+    clearTacticalBoard(); // Start alltid med blanke ark
+
+    const players = Array.isArray(window.activePlayers) ? [...window.activePlayers] : [];
+    
+    // Filtrer ut passive spillere (vi vil kun ha de som er tilgjengelige)
+    let availablePlayers = players.filter(p => p.status !== 'Passiv');
+
+    // Definerer nøyaktig hvilke strenger fra databasen som godtas i hver runding
+    const posRequirements = {
+        'GK':  { dbPositions: ['Keeper'], preferredFoot: null },
+        'VB':  { dbPositions: ['Venstre bekk'], preferredFoot: null },
+        'HB':  { dbPositions: ['Høyre bekk'], preferredFoot: null },
+        'VMS': { dbPositions: ['Venstre stopper', 'Høyre stopper'], preferredFoot: 'Venstre' },
+        'HMS': { dbPositions: ['Høyre stopper', 'Venstre stopper'], preferredFoot: 'Høyre' },
+        'CM1': { dbPositions: ['Defensiv midtbane', 'Playmaker', 'Offensiv midtbane'], preferredFoot: null },
+        'CM2': { dbPositions: ['Offensiv midtbane', 'Playmaker', 'Defensiv midtbane'], preferredFoot: null },
+        'OMC': { dbPositions: ['Playmaker', 'Offensiv midtbane', 'Spiss'], preferredFoot: null },
+        'VK':  { dbPositions: ['Venstre kant', 'Venstre bekk'], preferredFoot: null },
+        'HK':  { dbPositions: ['Høyre kant', 'Høyre bekk'], preferredFoot: null },
+        'ST':  { dbPositions: ['Spiss', 'Offensiv midtbane'], preferredFoot: null }
+    };
+
+    // Gå systematisk gjennom posisjonene på banen
+    for (const [nodeId, config] of Object.entries(posRequirements)) {
+        
+        // 1. Finn alle spillere som kan bekle rollen (sjekker både pos1 og pos2)
+        let candidates = availablePlayers.filter(p => 
+            config.dbPositions.includes(p.pos1) || config.dbPositions.includes(p.pos2)
+        );
+
+        if (candidates.length > 0) {
+            let selectedPlayer = null;
+
+            // 2. Hvis posisjonen bryr seg om foretrukket fot (som midtstoppere), prøv å optimalisere!
+            if (config.preferredFoot) {
+                const perfectFootMatch = candidates.find(p => p.fot === config.preferredFoot);
+                if (perfectFootMatch) {
+                    selectedPlayer = perfectFootMatch;
+                }
+            }
+
+            // Fallback: Hvis vi ikke fant perfekt fot, eller posisjonen ikke bryr seg, ta den første og beste
+            if (!selectedPlayer) {
+                selectedPlayer = candidates[0];
+            }
+
+            // 3. Plasser den utvalgte på banen
+            choosePlayer(selectedPlayer, nodeId);
+            
+            // 4. Fjern spilleren fra tilgjengelig-listen så han ikke blir plassert flere steder
+            availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
+        }
+    }
+}
     </script>
 
 <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
