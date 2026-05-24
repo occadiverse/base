@@ -3440,12 +3440,22 @@ function choosePlayer(playerObj, posId) {
             const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
             const firstName = playerObj.navn.split(' ')[0];
             
+            // HENT DEN NYE KJEMIVERDIEN DYNAMISK
+            const playerChem = calculatePlayerPerformanceChemistry(playerObj.navn);
+            
+            // Definer en fargekode for tallene basert på hvor god kjemien er
+            let chemColor = 'text-rose-400';
+            if (playerChem >= 75) chemColor = 'text-emerald-400';
+            else if (playerChem >= 50) chemColor = 'text-amber-400';
+            
             node.innerHTML = `
                 <span class="text-[11px] font-black tracking-tighter">${displayName}</span>
-                <span class="absolute -bottom-5 text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/50 px-1.5 py-0.5 rounded-md">${firstName}</span>
+                <div class="absolute -bottom-7 flex flex-col items-center pointer-events-none">
+                    <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${firstName}</span>
+                    <span class="text-[8px] font-black tracking-wide ${chemColor} drop-shadow-sm mt-0.5">${playerChem}% CHM</span>
+                </div>
             `;
             
-            // Fjern standardfarger og legg til aktiv spiller-farger
             node.classList.remove('bg-bsk-blue', 'bg-slate-800', 'text-white', 'border-slate-500', 'border-bsk-yellow/60');
             node.classList.add('bg-bsk-yellow', 'text-bsk-blue', 'border-white');
         }
@@ -3470,7 +3480,6 @@ function autoFillTeam() {
     // Filtrer ut passive spillere (vi vil kun ha de som er tilgjengelige)
     let availablePlayers = players.filter(p => p.status !== 'Passiv');
 
-    // Definerer nøyaktig hvilke strenger fra databasen som godtas i hver runding
     const posRequirements = {
         'GK':  { dbPositions: ['Keeper'], preferredFoot: null },
         'VB':  { dbPositions: ['Venstre bekk'], preferredFoot: null },
@@ -3485,37 +3494,96 @@ function autoFillTeam() {
         'ST':  { dbPositions: ['Spiss', 'Offensiv midtbane'], preferredFoot: null }
     };
 
-    // Gå systematisk gjennom posisjonene på banen
     for (const [nodeId, config] of Object.entries(posRequirements)) {
         
-        // 1. Finn alle spillere som kan bekle rollen (sjekker både pos1 og pos2)
         let candidates = availablePlayers.filter(p => 
             config.dbPositions.includes(p.pos1) || config.dbPositions.includes(p.pos2)
         );
 
         if (candidates.length > 0) {
-            let selectedPlayer = null;
+            
+            // SORTERINGSMOTOREN: Her regnes hvem som er best skikket!
+            candidates.sort((a, b) => {
+                // 1. Hent faktisk kjemiscore (0 - 100)
+                const chemA = calculatePlayerPerformanceChemistry(a.navn);
+                const chemB = calculatePlayerPerformanceChemistry(b.navn);
 
-            // 2. Hvis posisjonen bryr seg om foretrukket fot (som midtstoppere), prøv å optimalisere!
-            if (config.preferredFoot) {
-                const perfectFootMatch = candidates.find(p => p.fot === config.preferredFoot);
-                if (perfectFootMatch) {
-                    selectedPlayer = perfectFootMatch;
-                }
-            }
+                // 2. Sjekk om de får fot-bonus (15 poeng ekstra hvis foten matcher posisjonskravet)
+                const footBonus = 15;
+                const scoreA = chemA + (config.preferredFoot && a.fot === config.preferredFoot ? footBonus : 0);
+                const scoreB = chemB + (config.preferredFoot && b.fot === config.preferredFoot ? footBonus : 0);
 
-            // Fallback: Hvis vi ikke fant perfekt fot, eller posisjonen ikke bryr seg, ta den første og beste
-            if (!selectedPlayer) {
-                selectedPlayer = candidates[0];
-            }
+                // 3. Sorterer slik at den med høyest totalscore havner øverst (index 0)
+                return scoreB - scoreA; 
+            });
 
-            // 3. Plasser den utvalgte på banen
+            // Vi velger den spilleren som vant kåringen
+            const selectedPlayer = candidates[0];
+            
+            // Plasserer på banen (som også tegner opp kjemiscore-tallet visuelt)
             choosePlayer(selectedPlayer, nodeId);
             
-            // 4. Fjern spilleren fra tilgjengelig-listen så han ikke blir plassert flere steder
+            // Fjerner fra listen så han ikke spiller to posisjoner
             availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
         }
     }
+}
+
+        function calculatePlayerPerformanceChemistry(playerName) {
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    
+    // Slå sammen alt til en felles liste for oppmøte-sjekk
+    const mappedMatches = matches.map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }));
+    const allEvents = [...events, ...mappedMatches];
+    
+    let totalEventsForTeam = 0;
+    let attendedEvents = 0;
+    
+    // 1. Beregn oppmøte-score (Max 50 poeng)
+    allEvents.forEach(e => {
+        if (e.attendance && e.attendance[playerName] !== undefined) {
+            totalEventsForTeam++;
+            if (e.attendance[playerName] === true) {
+                attendedEvents++;
+            }
+        }
+    });
+    
+    const attendanceRate = totalEventsForTeam > 0 ? (attendedEvents / totalEventsForTeam) : 0;
+    let chemistryScore = attendanceRate * 50; // Gir mellom 0 og 50 poeng
+    
+    // 2. Beregn kamp- og prestasjonsbaserte bonuser
+    let matchPerformanceBonus = 0;
+    
+    matches.forEach(m => {
+        // Sjekk om spilleren faktisk spilte kampen
+        if (m.attendance && m.attendance[playerName] === true && m.result && m.result.includes('-')) {
+            const score = parseScore(m.result); // Gjenbruker din eksisterende parseScore-funksjon
+            
+            if (score) {
+                // Mål for og imot påvirker formen
+                matchPerformanceBonus += (score.bsk * 2);
+                matchPerformanceBonus -= (score.opponent * 2);
+                
+                // Bonus for å score mer enn 3 mål
+                if (score.bsk > 3) {
+                    matchPerformanceBonus += 5;
+                }
+                
+                // Bonus for å holde nullen (Clean Sheet)
+                if (score.opponent === 0) {
+                    matchPerformanceBonus += 10;
+                }
+            }
+        }
+    });
+    
+    // Legg sammen oppmøte og prestasjon
+    chemistryScore += matchPerformanceBonus;
+    
+    // Tving verdien til å holde seg innenfor 0 - 100%
+    return Math.max(0, Math.min(100, Math.round(chemistryScore)));
 }
     </script>
 
