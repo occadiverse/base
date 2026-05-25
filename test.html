@@ -3513,24 +3513,17 @@ function choosePlayer(playerObj, posId) {
     const node = document.getElementById('node-' + posId);
     
     if (node) {
+        // Vi fjerner alt av gamle farger og størrelser først for å ha helt blanke ark
+        node.classList.remove(
+            'bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11', 
+            'bg-slate-800', 'bg-bsk-blue', 'text-white', 'border-slate-500', 
+            'border-bsk-yellow/60', 'w-10', 'h-10'
+        );
+        
         if (playerObj === null) {
-            // TØM RUNDINGEN
+            // TØM RUNDINGEN: Nå blir absolutt alle posisjoner 100 % like
             node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
-            
-            // Fjern alle tenkelige farge- og størrelsesklasser for å unngå "kollisjon"
-            node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11', 'bg-slate-800', 'bg-bsk-blue', 'text-white', 'border-slate-500', 'border-bsk-yellow/60', 'w-10', 'h-10');
-            
-            // Sett på riktig design basert på posisjon
-            if (posId === 'PM') {
-                // Playmaker-design (Gul og litt større)
-                node.classList.add('w-11', 'h-11', 'bg-bsk-yellow', 'text-bsk-blue', 'border-white');
-            } else if (posId === 'GK') {
-                // Keeper-design (Mørkegrå)
-                node.classList.add('w-10', 'h-10', 'bg-slate-800', 'text-white', 'border-slate-500');
-            } else {
-                // Standard design for alle andre utespillere (Blå)
-                node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-bsk-yellow/60');
-            }
+            node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-bsk-yellow/60');
         } else {
             // FYLL RUNDINGEN MED AKTIV SPILLER
             const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
@@ -3551,8 +3544,7 @@ function choosePlayer(playerObj, posId) {
                 </div>
             `;
             
-            // Fjern alle farger og sett til felles "Aktiv Spiller"-design (Gult)
-            node.classList.remove('bg-bsk-blue', 'bg-slate-800', 'text-white', 'border-slate-500', 'border-bsk-yellow/60', 'w-10', 'h-10', 'w-11', 'h-11');
+            // Felles gult design for alle spillere som er valgt
             node.classList.add('w-10', 'h-10', 'bg-bsk-yellow', 'text-bsk-blue', 'border-white');
         }
     }
