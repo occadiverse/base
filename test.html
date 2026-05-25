@@ -3298,18 +3298,18 @@ async function saveNewActivity() {
 
     // Koordinater for hver fase (prosent av banen)
 const tacticalPhases = {
-    fase1: {
-        'GK': { top: '95%', left: '50%' },
-        'VMS': { top: '90%', left: '30%' },
-        'HMS': { top: '90%', left: '70%' },
-        'VB':  { top: '85%', left: '15%' },
-        'HB':  { top: '85%', left: '85%' },
-        'DM': { top: '60%', left: '40%' },
-        'OM': { top: '60%', left: '60%' },
-        'PM': { top: '45%', left: '50%' },
-        'VK':  { top: '35%', left: '20%' },
-        'HK':  { top: '35%', left: '80%' },
-        'SP':  { top: '20%', left: '50%' }
+    fase1: { // Utspill - Stoppere på 5-meter, Backer på 16-meter
+    'GK':  { top: '95%', left: '50%' }, // Keeper helt nederst
+    'VMS': { top: '85%', left: '35%' }, // Ned til 5-meterstreken, litt inn mot sentrum
+    'HMS': { top: '85%', left: '65%' }, // Ned til 5-meterstreken, litt inn mot sentrum
+    'VB':  { top: '70%', left: '25%' }, // Trakket inn til 16-meter
+    'HB':  { top: '70%', left: '75%' }, // Trakket inn til 16-meter
+    'DM':  { top: '60%', left: '50%' }, // Ankeret sentralt rett foran
+    'OM':  { top: '50%', left: '35%' },
+    'PM':  { top: '50%', left: '65%' }, // To 10-ere som møter
+    'VK':  { top: '35%', left: '20%' },
+    'HK':  { top: '35%', left: '80%' },
+    'SP':  { top: '20%', left: '50%' }
     },
     fase2: { // Din etableringsfase
         'GK': { top: '92%', left: '50%' },
