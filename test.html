@@ -3464,69 +3464,58 @@ function choosePlayer(playerObj, posId) {
 }
 
         function clearTacticalBoard() {
-    // Tømmer minnet
     window.tacticalLineup = {};
-    
-    // Tilbakestiller alle de 11 posisjonene via choosePlayer-funksjonen vår
-    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'CM1', 'CM2', 'OMC', 'VK', 'HK', 'ST'];
+    // Her er den oppdaterte listen med de norske posisjons-IDene:
+    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
     positions.forEach(pos => choosePlayer(null, pos));
 }
 
 function autoFillTeam() {
-    clearTacticalBoard(); // Start alltid med blanke ark
-
+    clearTacticalBoard(); 
+    const filterLagEl = document.getElementById('lagFilterSelect');
+    const filterLag = filterLagEl ? filterLagEl.value : 'Alle';
     const players = Array.isArray(window.activePlayers) ? [...window.activePlayers] : [];
-    
-    // Filtrer ut passive spillere (vi vil kun ha de som er tilgjengelige)
-    let availablePlayers = players.filter(p => p.status !== 'Passiv');
+    let availablePlayers = players.filter(p => p.status !== 'Passiv' && (filterLag === 'Alle' || p.spillerLag === filterLag));
 
-    const posRequirements = {
-        'GK':  { dbPositions: ['Keeper'], preferredFoot: null },
-        'VB':  { dbPositions: ['Venstre bekk'], preferredFoot: null },
-        'HB':  { dbPositions: ['Høyre bekk'], preferredFoot: null },
-        'VMS': { dbPositions: ['Venstre stopper', 'Høyre stopper'], preferredFoot: 'Venstre' },
-        'HMS': { dbPositions: ['Høyre stopper', 'Venstre stopper'], preferredFoot: 'Høyre' },
-        'CM1': { dbPositions: ['Defensiv midtbane', 'Playmaker', 'Offensiv midtbane'], preferredFoot: null },
-        'CM2': { dbPositions: ['Offensiv midtbane', 'Playmaker', 'Defensiv midtbane'], preferredFoot: null },
-        'OMC': { dbPositions: ['Playmaker', 'Offensiv midtbane', 'Spiss'], preferredFoot: null },
-        'VK':  { dbPositions: ['Venstre kant', 'Venstre bekk'], preferredFoot: null },
-        'HK':  { dbPositions: ['Høyre kant', 'Høyre bekk'], preferredFoot: null },
-        'ST':  { dbPositions: ['Spiss', 'Offensiv midtbane'], preferredFoot: null }
-    };
+    // Her er den oppdaterte Ryggraden med DM, OM, PM og SP
+    const priorityOrder = [
+        { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false },
+        { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true },
+        { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true },
+        { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false }, 
+        { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false }, 
+        { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false },         
+        { id: 'SP',  pos: ['Spiss'], foot: null, requireFoot: false },
+        { id: 'VB',  pos: ['Venstre bekk'], foot: null, requireFoot: true },
+        { id: 'HB',  pos: ['Høyre bekk'], foot: null, requireFoot: true },
+        { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: null, requireFoot: false },
+        { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: null, requireFoot: false }
+    ];
 
-    for (const [nodeId, config] of Object.entries(posRequirements)) {
-        
+    priorityOrder.forEach(req => {
         let candidates = availablePlayers.filter(p => 
-            config.dbPositions.includes(p.pos1) || config.dbPositions.includes(p.pos2)
+            req.pos.includes(p.pos1) || req.pos.includes(p.pos2)
         );
 
+        if (candidates.length === 0 && availablePlayers.length > 0) {
+            candidates = [...availablePlayers];
+        }
+
         if (candidates.length > 0) {
-            
-            // SORTERINGSMOTOREN: Her regnes hvem som er best skikket!
             candidates.sort((a, b) => {
-                // 1. Hent faktisk kjemiscore (0 - 100)
                 const chemA = calculatePlayerPerformanceChemistry(a.navn);
                 const chemB = calculatePlayerPerformanceChemistry(b.navn);
-
-                // 2. Sjekk om de får fot-bonus (15 poeng ekstra hvis foten matcher posisjonskravet)
                 const footBonus = 15;
-                const scoreA = chemA + (config.preferredFoot && a.fot === config.preferredFoot ? footBonus : 0);
-                const scoreB = chemB + (config.preferredFoot && b.fot === config.preferredFoot ? footBonus : 0);
-
-                // 3. Sorterer slik at den med høyest totalscore havner øverst (index 0)
+                const scoreA = chemA + (req.requireFoot && req.foot && a.fot === req.foot ? footBonus : 0);
+                const scoreB = chemB + (req.requireFoot && req.foot && b.fot === req.foot ? footBonus : 0);
                 return scoreB - scoreA; 
             });
 
-            // Vi velger den spilleren som vant kåringen
             const selectedPlayer = candidates[0];
-            
-            // Plasserer på banen (som også tegner opp kjemiscore-tallet visuelt)
-            choosePlayer(selectedPlayer, nodeId);
-            
-            // Fjerner fra listen så han ikke spiller to posisjoner
+            choosePlayer(selectedPlayer, req.id);
             availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
         }
-    }
+    });
 }
 
         function calculatePlayerPerformanceChemistry(playerName) {
