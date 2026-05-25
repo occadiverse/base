@@ -3514,32 +3514,31 @@ function choosePlayer(playerObj, posId) {
     
     if (node) {
         if (playerObj === null) {
-            // TØM RUNDINGEN (Men behold posisjonen!)
+            // TØM RUNDINGEN
             node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
             
-            // Fjern "aktiv spiller"-farger
-            node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11');
+            // Fjern alle tenkelige farge- og størrelsesklasser for å unngå "kollisjon"
+            node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11', 'bg-slate-800', 'bg-bsk-blue', 'text-white', 'border-slate-500', 'border-bsk-yellow/60', 'w-10', 'h-10');
             
-            // Sett tilbake standardstørrelse
-            if(posId === 'OMC') node.classList.add('w-11', 'h-11');
-            else node.classList.add('w-10', 'h-10');
-
-            // Sett tilbake standardfarger
-            if (posId === 'GK') {
-                node.classList.add('bg-slate-800', 'text-white', 'border-slate-500');
+            // Sett på riktig design basert på posisjon
+            if (posId === 'PM') {
+                // Playmaker-design (Gul og litt større)
+                node.classList.add('w-11', 'h-11', 'bg-bsk-yellow', 'text-bsk-blue', 'border-white');
+            } else if (posId === 'GK') {
+                // Keeper-design (Mørkegrå)
+                node.classList.add('w-10', 'h-10', 'bg-slate-800', 'text-white', 'border-slate-500');
             } else {
-                node.classList.add('bg-bsk-blue', 'text-white', 'border-bsk-yellow/60');
+                // Standard design for alle andre utespillere (Blå)
+                node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-bsk-yellow/60');
             }
         } else {
-            // FYLL RUNDINGEN MED SPILLER
+            // FYLL RUNDINGEN MED AKTIV SPILLER
             const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
             const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
             const firstName = playerObj.navn.split(' ')[0];
             
-            // HENT DEN NYE KJEMIVERDIEN DYNAMISK
             const playerChem = calculatePlayerPerformanceChemistry(playerObj.navn);
             
-            // Definer en fargekode for tallene basert på hvor god kjemien er
             let chemColor = 'text-rose-400';
             if (playerChem >= 75) chemColor = 'text-emerald-400';
             else if (playerChem >= 50) chemColor = 'text-amber-400';
@@ -3552,11 +3551,13 @@ function choosePlayer(playerObj, posId) {
                 </div>
             `;
             
-            node.classList.remove('bg-bsk-blue', 'bg-slate-800', 'text-white', 'border-slate-500', 'border-bsk-yellow/60');
-            node.classList.add('bg-bsk-yellow', 'text-bsk-blue', 'border-white');
+            // Fjern alle farger og sett til felles "Aktiv Spiller"-design (Gult)
+            node.classList.remove('bg-bsk-blue', 'bg-slate-800', 'text-white', 'border-slate-500', 'border-bsk-yellow/60', 'w-10', 'h-10', 'w-11', 'h-11');
+            node.classList.add('w-10', 'h-10', 'bg-bsk-yellow', 'text-bsk-blue', 'border-white');
         }
     }
-    // NYTT: Oppdater kjemistrekene hver gang en spiller plasseres!
+    
+    // Oppdater kjemistrekene hver gang en spiller plasseres
     drawChemistryLines();
     closePlayerSelect();
 }
