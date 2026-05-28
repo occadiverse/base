@@ -3637,55 +3637,65 @@ function autoFillTeam() {
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
     
-    // 1. Finn spilleren for å vite hvilket lag vi skal telle totaler for
     const playerObj = players.find(p => p.navn === playerName);
-    if (!playerObj) return 0; // Sikkerhetsnett
+    if (!playerObj) return 0;
     const spillerLag = playerObj.spillerLag;
 
-    // 2. Hent ALLE aktiviteter for dette spesifikke laget
     const allEvents = [...events, ...matches.map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
     const teamEvents = allEvents.filter(e => e.team === spillerLag);
     
-    // Totalen er nå lagets absolutte antall økter!
     const totalTeamEvents = teamEvents.length;
     let attendedEvents = 0;
     
-    // 3. Sjekk hvor mange av disse øktene spilleren faktisk var på
     teamEvents.forEach(e => {
         if (e.attendance && e.attendance[playerName] === true) {
             attendedEvents++;
         }
     });
 
-    // Beregn ren oppmøteprosent (Faktisk oppmøte delt på lagets totale antall)
     const attendanceRate = totalTeamEvents > 0 ? (attendedEvents / totalTeamEvents) : 0;
     
-    // Grunnlag: Gir mellom 0 og 50 poeng
-    let chemistryScore = attendanceRate * 50; 
+    // 1. Grunnlag: Gir opptil 70 poeng for feilfritt oppmøte (Økt fra 50)
+    let chemistryScore = attendanceRate * 70; 
     
-    // 4. Beregn kamp- og prestasjonsbaserte bonuser
     let matchPerformanceBonus = 0;
+    let disciplinePenalty = 0;
+    
     matches.forEach(m => {
-        // Vi sjekker kun kamper spilleren faktisk spilte
-        if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true && m.result && m.result.includes('-')) {
-            const score = parseScore(m.result);
-            if (score) {
-                // Pluss for mål fremover, minus for mål imot
-                matchPerformanceBonus += (score.bsk * 2);
-                matchPerformanceBonus -= (score.opponent * 2);
-                
-                // Bonus for storseier
-                if (score.bsk > 3) matchPerformanceBonus += 5;
-                
-                // Bonus for å holde nullen
-                if (score.opponent === 0) matchPerformanceBonus += 10;
+        if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
+            
+            // 2. Kamperfaring: +2 poeng bare for å være på banen og bygge relasjoner
+            matchPerformanceBonus += 2;
+
+            if (m.result && m.result.includes('-')) {
+                const score = parseScore(m.result);
+                if (score) {
+                    // 3. Mildere resultat-belønning/straff
+                    if (score.bsk > score.opponent) {
+                        matchPerformanceBonus += 3; // Seier
+                        if (score.bsk > 3) matchPerformanceBonus += 2; // Ekstra for storseier
+                    } else if (score.bsk === score.opponent) {
+                        matchPerformanceBonus += 1; // Uavgjort
+                    } else {
+                        matchPerformanceBonus -= 1; // Tap (Mild straff i stedet for minus per baklengs)
+                    }
+                    
+                    // Bonus for å holde nullen beholdes
+                    if (score.opponent === 0) matchPerformanceBonus += 5;
+                }
             }
+
+            // 4. Disiplin (Kort)
+            if (m.guleKort && m.guleKort.includes(playerName)) disciplinePenalty -= 5;
+            if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 15;
         }
     });
     
-    chemistryScore += matchPerformanceBonus;
+    // 5. Sett et "gulv" slik at en tapsrekke aldri spiser opp mer enn 10 oppmøte-poeng
+    matchPerformanceBonus = Math.max(-10, matchPerformanceBonus);
     
-    // Sørg for at vi aldri går under 0% eller over 100%
+    chemistryScore += matchPerformanceBonus + disciplinePenalty;
+    
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
 }
 
