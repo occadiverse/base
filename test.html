@@ -3655,8 +3655,13 @@ function autoFillTeam() {
 
     const attendanceRate = totalTeamEvents > 0 ? (attendedEvents / totalTeamEvents) : 0;
     
-    // 1. Grunnlag: Gir opptil 70 poeng for feilfritt oppmøte (Økt fra 50)
-    let chemistryScore = attendanceRate * 70; 
+    // 1. Grunnlag: Maks 60 poeng for feilfritt oppmøte
+    let chemistryScore = attendanceRate * 60; 
+    
+    // 2. Aktiv-bonus: Er du med, får du et bunn-tillegg på 15 poeng slik at scoren ikke er bekmørk
+    if (attendedEvents > 0) {
+        chemistryScore += 15;
+    }
     
     let matchPerformanceBonus = 0;
     let disciplinePenalty = 0;
@@ -3664,35 +3669,41 @@ function autoFillTeam() {
     matches.forEach(m => {
         if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
             
-            // 2. Kamperfaring: +2 poeng bare for å være på banen og bygge relasjoner
+            // 3. Kamperfaring: +2 poeng for å delta
             matchPerformanceBonus += 2;
 
             if (m.result && m.result.includes('-')) {
                 const score = parseScore(m.result);
                 if (score) {
-                    // 3. Mildere resultat-belønning/straff
                     if (score.bsk > score.opponent) {
                         matchPerformanceBonus += 3; // Seier
-                        if (score.bsk > 3) matchPerformanceBonus += 2; // Ekstra for storseier
+                        if (score.bsk > 3) matchPerformanceBonus += 2; 
                     } else if (score.bsk === score.opponent) {
                         matchPerformanceBonus += 1; // Uavgjort
                     } else {
-                        matchPerformanceBonus -= 1; // Tap (Mild straff i stedet for minus per baklengs)
+                        matchPerformanceBonus -= 1; // Tap
                     }
-                    
-                    // Bonus for å holde nullen beholdes
-                    if (score.opponent === 0) matchPerformanceBonus += 5;
+                    if (score.opponent === 0) matchPerformanceBonus += 3;
                 }
             }
 
-            // 4. Disiplin (Kort)
+            // 4. NYTT: INDIVIDUELL BØRS-KARAKTER (1-10)
+            // Lave karakterer gir direkte minuspoeng på kjemien, høye karakterer gir pluss!
+            if (m.ratings && m.ratings[playerName]) {
+                const rating = m.ratings[playerName]; // Karakter fra 1 til 10
+                const ratingBonus = (rating - 5) * 2; // Formel: 10 = +10p, 5 = 0p, 2 = -6p.
+                matchPerformanceBonus += ratingBonus;
+            }
+
+            // 5. Disiplin (Kort)
+            // Erstatt "guleKort" og "rodeKort" med de faktiske navnene hvis du har lagt det til i kamp-lagringen
             if (m.guleKort && m.guleKort.includes(playerName)) disciplinePenalty -= 5;
             if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 15;
         }
     });
     
-    // 5. Sett et "gulv" slik at en tapsrekke aldri spiser opp mer enn 10 oppmøte-poeng
-    matchPerformanceBonus = Math.max(-10, matchPerformanceBonus);
+    // Vi setter et gulv slik at total kampbonus (inkludert børs) aldri trekker ned mer enn 15 poeng
+    matchPerformanceBonus = Math.max(-15, matchPerformanceBonus);
     
     chemistryScore += matchPerformanceBonus + disciplinePenalty;
     
