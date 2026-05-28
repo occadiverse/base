@@ -451,11 +451,12 @@
             </div>
 
             <div id="view-statistikk" class="hidden space-y-6">
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                    <!-- Overskrift i blokk 1
-                    <h3 class="font-bold text-lg text-slate-900 mb-2">Sesongstatistikk</h3>
-                    <p class="text-xs text-slate-500 mb-6">Her ser du en oppsummering av lagets prestasjoner totalt.</p>
-                    -->
+                <div class="flex gap-2 mb-6 border-b border-slate-200 pb-4">
+                    <button onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition">Lagstatistikk</button>
+                    <button onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition">Spillerstatistikk</button>
+                </div>
+
+                <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
                             <span class="block text-xs font-semibold text-emerald-700 uppercase">Seire</span>
@@ -473,6 +474,27 @@
                             <span class="block text-xs font-semibold text-sky-700 uppercase">Mål Scoret</span>
                             <span class="text-3xl font-black text-sky-800" id="stats-page-goals">0</span>
                         </div>
+                    </div>
+                </div>
+
+                <div id="stat-view-spillere" class="bg-white border border-slate-200 rounded-2xl shadow-sm hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
+                        <p class="text-xs text-slate-500 italic">Trykk på overskriftene for å sortere etter kjemi, oppmøte eller kort.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-800 text-slate-300 cursor-pointer select-none border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 font-bold hover:text-white transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                                    <th class="p-4 font-bold text-center text-yellow-500 hover:text-yellow-400 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
+                                    <th class="p-4 font-bold text-center text-red-500 hover:text-red-400 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
+                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="stats-player-table-body" class="divide-y divide-slate-100">
+                                </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -3664,6 +3686,113 @@ function autoFillTeam() {
     
     // Sørg for at vi aldri går under 0% eller over 100%
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
+}
+
+        // --- LOGIKK FOR STATISTIKK-FANER OG SORTERING ---
+let currentStatSortCol = 'kjemi';
+let currentStatSortDesc = true;
+
+function switchStatTab(tabId) {
+    // 1. Skjul alt
+    document.getElementById('stat-view-lag').classList.add('hidden');
+    document.getElementById('stat-view-spillere').classList.add('hidden');
+    document.getElementById('stat-tab-lag').className = "stat-tab-btn px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition";
+    document.getElementById('stat-tab-spillere').className = "stat-tab-btn px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition";
+    
+    // 2. Vis det valgte
+    document.getElementById(`stat-view-${tabId}`).classList.remove('hidden');
+    document.getElementById(`stat-view-${tabId}`).classList.add('block');
+    document.getElementById(`stat-tab-${tabId}`).className = "stat-tab-btn px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition";
+
+    // 3. Generer tabell hvis spiller-fane
+    if (tabId === 'spillere') renderPlayerStatsTable();
+}
+
+window.sortStatsTable = function(column) {
+    if (currentStatSortCol === column) {
+        currentStatSortDesc = !currentStatSortDesc; 
+    } else {
+        currentStatSortCol = column;
+        currentStatSortDesc = true; 
+    }
+    renderPlayerStatsTable(); 
+};
+
+function renderPlayerStatsTable() {
+    const tableBody = document.getElementById('stats-player-table-body');
+    if (!tableBody) return;
+
+    const filterLagEl = document.getElementById('lagFilterSelect');
+    const filterLag = filterLagEl ? filterLagEl.value : 'Alle';
+    
+    const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    const allEvents = [...events, ...matches.map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+
+    const filteredPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+
+    let statsData = filteredPlayers.map(p => {
+        const teamEvents = allEvents.filter(e => e.team === p.spillerLag);
+        let attended = 0, yellow = 0, red = 0;
+
+        teamEvents.forEach(e => {
+            if (e.attendance && e.attendance[p.navn] === true) attended++;
+            if (e.guleKort && e.guleKort.includes(p.navn)) yellow++;
+            if (e.rodeKort && e.rodeKort.includes(p.navn)) red++;
+        });
+
+        return {
+            navn: p.navn,
+            pos1: p.pos1 || '',
+            oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
+            oppmoteStr: `${attended} / ${teamEvents.length}`,
+            gule: yellow,
+            rode: red,
+            kjemi: calculatePlayerPerformanceChemistry(p.navn)
+        };
+    });
+
+    statsData.sort((a, b) => {
+        let valA = a[currentStatSortCol];
+        let valB = b[currentStatSortCol];
+
+        if (typeof valA === 'string' && currentStatSortCol === 'navn') {
+            return currentStatSortDesc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        return currentStatSortDesc ? valB - valA : valA - valB;
+    });
+
+    // Oppdater pilene i overskriften
+    ['navn', 'oppmotePct', 'gule', 'rode', 'kjemi'].forEach(col => {
+        const iconEl = document.getElementById(`sort-icon-${col}`);
+        if(iconEl) {
+            if (col !== currentStatSortCol) iconEl.innerHTML = '';
+            else iconEl.innerHTML = currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-yellow"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-yellow"></i>';
+        }
+    });
+
+    let html = '';
+    statsData.forEach(stat => {
+        let chemColor = stat.kjemi >= 75 ? 'text-emerald-600' : stat.kjemi >= 50 ? 'text-amber-500' : 'text-rose-500';
+        html += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-4">
+                    <div class="font-bold text-slate-800">${stat.navn}</div>
+                    <div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div>
+                </td>
+                <td class="p-4 text-center">
+                    <div class="font-bold text-slate-700">${stat.oppmotePct}%</div>
+                    <div class="text-[10px] text-slate-400">${stat.oppmoteStr}</div>
+                </td>
+                <td class="p-4 text-center font-black ${stat.gule > 0 ? 'text-yellow-500 bg-yellow-50' : 'text-slate-300'}">${stat.gule > 0 ? stat.gule : '-'}</td>
+                <td class="p-4 text-center font-black ${stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300'}">${stat.rode > 0 ? stat.rode : '-'}</td>
+                <td class="p-4 text-center text-base font-black ${chemColor}">${stat.kjemi}%</td>
+            </tr>
+        `;
+    });
+
+    tableBody.innerHTML = html;
 }
     </script>
 
