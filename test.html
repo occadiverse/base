@@ -3821,7 +3821,9 @@ function renderPlayerStatsTable() {
 
     let html = '';
     statsData.forEach(stat => {
-        let chemColor = stat.kjemi >= 75 ? 'text-emerald-600' : stat.kjemi >= 50 ? 'text-amber-500' : 'text-rose-500';
+        // Ny logikk for stjernespillere (70%+)
+        const isStarPlayer = stat.kjemi >= 70;
+        let chemColor = isStarPlayer ? 'text-emerald-700' : (stat.kjemi >= 50 ? 'text-emerald-500' : 'text-rose-500');
         
         let bonusColor = stat.kampbonus > 0 ? 'text-emerald-500' : stat.kampbonus < 0 ? 'text-rose-500' : 'text-slate-400';
         let bonusText = stat.kampbonus > 0 ? `+${stat.kampbonus}` : stat.kampbonus;
@@ -3840,7 +3842,10 @@ function renderPlayerStatsTable() {
                 <td class="p-4 text-center font-black ${bonusColor}">${bonusText}</td>
                 <td class="p-4 text-center font-black ${stat.gule > 0 ? 'text-yellow-500 bg-yellow-50' : 'text-slate-300'}">${stat.gule > 0 ? stat.gule : '-'}</td>
                 <td class="p-4 text-center font-black ${stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300'}">${stat.rode > 0 ? stat.rode : '-'}</td>
-                <td class="p-4 text-center text-base font-black ${chemColor}">${stat.kjemi}%</td>
+                <td class="p-4 text-center text-base font-black ${chemColor}">
+                    ${stat.kjemi}% 
+                    ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}
+                </td>
             </tr>
         `;
     });
