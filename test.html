@@ -3494,6 +3494,8 @@ function drawChemistryLines() {
 
         let currentTacticalPhase = 'fase1'; // NY: Husker hvilken fase vi er i
         
+let currentTacticalPhase = 'fase1'; // Husker hvilken fase vi er i
+
 function setTacticalPhase(phaseId) {
     currentTacticalPhase = phaseId; // Oppdaterer den aktive fasen
     
@@ -3504,7 +3506,11 @@ function setTacticalPhase(phaseId) {
     });
     document.getElementById(`btn-${phaseId}`).classList.add('bg-bsk-blue', 'text-white', 'border-bsk-blue');
 
-    // 2. Flytt spillerne
+    // 2. Tøm tavla for gamle streker UMIDDELBART før spillerne begynner å løpe
+    const svgLayer = document.getElementById('chemistry-lines-layer');
+    if (svgLayer) svgLayer.innerHTML = '';
+
+    // 3. Gi spillerne sine nye koordinater (CSS-animasjonen starter her)
     const coords = tacticalPhases[phaseId];
     for (const [nodeId, pos] of Object.entries(coords)) {
         const node = document.getElementById('node-' + nodeId);
@@ -3513,8 +3519,9 @@ function setTacticalPhase(phaseId) {
             node.style.left = pos.left;
         }
     }
-    // Gi DOM-en 50 millisekunder på å oppdatere stilene, og tegn strekene
-    setTimeout(drawChemistryLines, 50);
+    
+    // 4. Vent i nøyaktig 500 millisekunder (til spillerne står i ro) før strekene tegnes
+    setTimeout(drawChemistryLines, 500); 
 }
    window.tacticalLineup = {}; 
 let currentSelectPos = null;
