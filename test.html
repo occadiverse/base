@@ -3656,69 +3656,56 @@ function autoFillTeam() {
 
     const attendanceRate = totalTeamEvents > 0 ? (attendedEvents / totalTeamEvents) : 0;
     
-    // 1. Grunnlag: Maks 60 poeng for oppmøte
-    let chemistryScore = attendanceRate * 60; 
+    // 1. Kvantitet (Oppmøte): Nedjustert! Maks 40 poeng totalt.
+    let chemistryScore = attendanceRate * 25; 
+    if (attendedEvents > 0) chemistryScore += 15; // Aktiv-bonus i bunn
     
-    // 2. Aktiv-bonus: 10 poeng i bunn hvis man er en aktiv del av laget
-    if (attendedEvents > 0) {
-        chemistryScore += 10;
-    }
-    
-    let totalMatchBonus = 0;
+    // 2. Kvalitet (Kampsnitt): Oppjustert! 
+    let totalMatchPoints = 0;
     let matchesPlayed = 0;
     let disciplinePenalty = 0;
     
     matches.forEach(m => {
         if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
-            matchesPlayed++; // Teller opp antall kamper for snittutregning
+            matchesPlayed++;
             
-            let currentMatchBonus = 2; // +2 for deltakelse i denne kampen
+            // Grunnpoeng for å i det hele tatt spille kampen
+            let currentMatchScore = 15; 
 
-            // --- LAG-RESULTAT ---
+            // Lag-prestasjon (Seier/Tap)
             if (m.result && m.result.includes('-')) {
                 const score = parseScore(m.result);
                 if (score) {
-                    if (score.bsk > score.opponent) {
-                        currentMatchBonus += 3; // Seier
-                        if (score.bsk > 3) currentMatchBonus += 2; // Storseier
-                    } else if (score.bsk === score.opponent) {
-                        currentMatchBonus += 1; // Uavgjort
-                    } else {
-                        currentMatchBonus -= 1; // Tap
-                    }
-                    if (score.opponent === 0) currentMatchBonus += 3; // Clean sheet
+                    if (score.bsk > score.opponent) currentMatchScore += 5; 
+                    else if (score.bsk === score.opponent) currentMatchScore += 2;
+                    else currentMatchScore -= 2; 
+                    
+                    if (score.opponent === 0) currentMatchScore += 3;
                 }
             }
 
-            // --- INDIVIDUELL BØRS ---
+            // Individuell Børs (Har nå den største påvirkningen på scoren!)
             if (m.ratings && m.ratings[playerName]) {
                 const rating = m.ratings[playerName]; 
-                if (rating > 5) {
-                    currentMatchBonus += (rating - 5) * 4; // +4 pr trinn opp (Max +20 for en 10-er)
-                } else if (rating < 5) {
-                    currentMatchBonus += (rating - 5) * 8; // -8 pr trinn ned (-16 for en 3-er)
-                }
+                // En 8-er gir +18 poeng. En 3-er gir -12 poeng.
+                currentMatchScore += (rating - 5) * 6; 
             }
 
-            // Legger kampens resultat til i totalpotten for spilleren
-            totalMatchBonus += currentMatchBonus;
+            totalMatchPoints += currentMatchScore;
 
-            // Disiplin (Går direkte på totalscoren, ikke på snittet)
+            // Kort (Straff)
             if (m.guleKort && m.guleKort.includes(playerName)) disciplinePenalty -= 5;
             if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 15;
         }
     });
     
-    // 3. REGN UT GJENNOMSNITTLIG KAMPBONUS
-    let avgMatchBonus = 0;
+    // REGNER UT SNITTET! 
+    let avgMatchScore = 0;
     if (matchesPlayed > 0) {
-        avgMatchBonus = totalMatchBonus / matchesPlayed;
+        avgMatchScore = totalMatchPoints / matchesPlayed;
     }
     
-    // Sett et gulv slik at snittbonusen aldri trekker ned mer enn 25 poeng totalt
-    avgMatchBonus = Math.max(-25, avgMatchBonus);
-    
-    chemistryScore += avgMatchBonus + disciplinePenalty;
+    chemistryScore += avgMatchScore + disciplinePenalty;
     
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
 }
