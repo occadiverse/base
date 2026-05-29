@@ -3671,6 +3671,7 @@ function autoFillTeam() {
     let totalMatchPoints = 0;
     let matchesPlayed = 0;
     let disciplinePenalty = 0;
+    let totalYellowCards = 0; // NY TELLER FOR GULE KORT
     
     matches.forEach(m => {
         if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
@@ -3691,17 +3692,16 @@ function autoFillTeam() {
                 }
             }
 
-            // Individuell Børs (Har nå den største påvirkningen på scoren!)
+            // Individuell Børs
             if (m.ratings && m.ratings[playerName]) {
                 const rating = m.ratings[playerName]; 
-                // En 8-er gir +18 poeng. En 3-er gir -12 poeng.
                 currentMatchScore += (rating - 5) * 6; 
             }
 
             totalMatchPoints += currentMatchScore;
 
-            // Kort (Straff)
-            if (m.guleKort && m.guleKort.includes(playerName)) disciplinePenalty -= 5;
+            // Kort - Henter bare dataene, regner ut straffen etterpå
+            if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
             if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 15;
         }
     });
@@ -3711,11 +3711,16 @@ function autoFillTeam() {
     if (matchesPlayed > 0) {
         avgMatchScore = totalMatchPoints / matchesPlayed;
     }
+
+    // NY LOGIKK FOR KARANTENE (4 gule kort)
+    const karantener = Math.floor(totalYellowCards / 4);
+    if (karantener > 0) {
+        disciplinePenalty -= (karantener * 20); // -20 poeng i straff for hver karantene
+    }
     
     chemistryScore += avgMatchScore + disciplinePenalty;
     
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
-}
 
         // --- LOGIKK FOR STATISTIKK-FANER OG SORTERING ---
 let currentStatSortCol = 'kjemi';
@@ -3995,8 +4000,8 @@ function renderPlayerStatsTable() {
             <div>
                 <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Disiplin (Direkte fratrekk)</h4>
                 <ul class="list-disc pl-5 space-y-1 text-rose-300">
-                    <li><strong class="text-rose-400">Gult kort:</strong> -5 poeng fra sluttsummen.</li>
-                    <li><strong class="text-rose-500">Rødt kort:</strong> -15 poeng fra sluttsummen.</li>
+                    <li><strong class="text-rose-400">Gult kort:</strong> Ingen straff for 1-3 kort. Hvert 4. gule kort (karantene) gir <strong class="text-white">-20 poeng</strong> fra sluttsummen!</li>
+                    <li><strong class="text-rose-500">Rødt kort:</strong> Direkte utvisning gir <strong class="text-white">-15 poeng</strong> fra sluttsummen.</li>
                 </ul>
             </div>
             
