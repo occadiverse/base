@@ -3403,13 +3403,20 @@ function drawChemistryLines() {
     
     svgLayer.innerHTML = ''; // Tømmer gamle streker først
     
-    // Her definerer vi hvem som har kjemibånd med hvem i din 4-2-4 / 4-3-3
+    // De nye, asymmetriske kjemibåndene
     const connections = [
-        ['VB', 'VMS'], ['VMS', 'HMS'], ['HMS', 'HB'], // Forsvarsrekka
-        ['VMS', 'DM'], ['HMS', 'DM'],                 // Oppspill til ankeret
-        ['DM', 'OM'], ['OM', 'PM'],                   // Den sentrale aksen
-        ['VK', 'PM'], ['HK', 'PM'],                   // Kantene inn mot Playmaker
-        ['PM', 'SP'], ['VK', 'SP'], ['HK', 'SP']      // Angrepsrekken
+        // Forsvarsrekka
+        ['VB', 'VMS'], ['VMS', 'HMS'], ['HMS', 'HB'], 
+        
+        // Den sentrale aksen og oppspill
+        ['VMS', 'DM'], ['HMS', 'DM'],                 
+        ['DM', 'OM'], ['OM', 'PM'], ['PM', 'SP'],     
+        
+        // Venstre kant (VK) sine relasjoner
+        ['VK', 'SP'], ['VK', 'OM'], ['VK', 'VB'],     
+        
+        // Høyre kant (HK) sine relasjoner
+        ['HK', 'PM'], ['HK', 'DM'], ['HK', 'HB']      
     ];
 
     connections.forEach(pair => {
@@ -3423,7 +3430,7 @@ function drawChemistryLines() {
         if (player1 && player2) {
             const chemScore = getDuoChemistry(player1.navn, player2.navn);
             
-            // Tegn bare strek hvis kjemien er brukbar (f.eks > 20%)
+            // Tegn bare strek hvis kjemien er over 20%
             if (chemScore > 20) {
                 const node1 = document.getElementById('node-' + pos1);
                 const node2 = document.getElementById('node-' + pos2);
@@ -3434,17 +3441,16 @@ function drawChemistryLines() {
                     const n2Top = parseFloat(node2.style.top);
                     const n2Left = parseFloat(node2.style.left);
                     
-                    // Standard: Svak, tynn strek
-                    let strokeColor = 'rgba(255, 255, 255, 0.15)'; 
-                    let strokeWidth = 1.5;
+                    // Fast tykkelse
+                    const strokeWidth = 3; 
                     
-                    // Kjemien avgjør farge og tykkelse!
-                    if (chemScore >= 80) {
-                        strokeColor = 'rgba(255, 215, 0, 0.8)'; // BSK Gull!
-                        strokeWidth = 3.5;
+                    // Trafikklys-system for fargene
+                    let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD for lav (20-49%)
+                    
+                    if (chemScore >= 75) {
+                        strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN for høy (75-100%)
                     } else if (chemScore >= 50) {
-                        strokeColor = 'rgba(52, 211, 153, 0.6)'; // Smaragdgrønn
-                        strokeWidth = 2.5;
+                        strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL for middels (50-74%)
                     }
 
                     // Opprett SVG-streken
@@ -3457,8 +3463,7 @@ function drawChemistryLines() {
                     line.setAttribute('stroke-width', strokeWidth);
                     line.setAttribute('stroke-linecap', 'round');
                     
-                    // Genial detalj: Denne klassen gjør at strekene animerer glatt 
-                    // PÅ LIK LINJE med spillerne når du bytter fase!
+                    // Animerer glatt når du bytter fase
                     line.setAttribute('class', 'transition-all duration-500'); 
                     
                     svgLayer.appendChild(line);
