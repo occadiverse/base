@@ -3406,10 +3406,12 @@ function drawChemistryLines() {
     // Definerer strekene for HVER fase separat!
     const phaseConnections = {
         fase1: [ // UTSPILL: Fokus på forsvarsrekke og anker
-            ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'],
+            ['VMS', 'HMS'],
             ['VMS', 'VB'], ['HMS', 'HB'], 
-            ['VMS', 'DM'], ['HMS', 'DM'],
-            ['VB', 'DM'], ['HB', 'DM']
+            ['VMS', 'OM'], ['HMS', 'DM'],
+            ['VB', 'OM'], ['VB', 'VK'], ['DM', 'OM'], 
+            ['HB', 'DM'], ['HB', 'HK'], ['OM', 'VK'], ['OM', 'SP'], 
+            ['VK', 'SP'], ['SP', 'PM'], ['PM', 'DM'], ['HK', 'DM'], ['HK', 'PM']
         ],
         fase2: [ // ETABLERING: Det store relasjonsnettverket ditt
             ['VMS', 'HMS'], 
