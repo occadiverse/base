@@ -631,9 +631,9 @@
         <i class="fa-solid fa-calendar text-base mb-0.5"></i>
         <span>Kalender</span>
     </button>
-    <button onclick="switchTab('spillere')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
-        <i class="fa-solid fa-star text-base mb-0.5"></i>
-        <span>Børs</span>
+    <button onclick="switchTab('statistikk')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
+        <i class="fa-solid fa-chart-simple text-base mb-0.5"></i>
+        <span>Stats</span>
     </button>
     <button onclick="switchTab('tropp')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[10px] font-medium transition hover:text-white">
         <i class="fa-solid fa-users text-base mb-0.5"></i>
@@ -1590,7 +1590,7 @@ if (tabId === 'kamper') {
     document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
         btn.classList.remove('active-nav', 'text-bsk-yellow');
     });
-    const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, spillere: 3, tropp: 4, taktikk: 5 }; // FIX: La til taktikk her
+    const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, statistikk: 3, tropp: 4, taktikk: 5 };
     const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
     if (activeMobileBtn) {
         activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
