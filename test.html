@@ -3426,7 +3426,7 @@ function drawChemistryLines() {
         ['HK', 'PM'], ['HK', 'DM'],
         
         // Playmaker (PM) (HK og HB er dekket over)
-        ['PM', 'SP'], ['PM', 'DM'], ['PM', 'OM'],
+        ['PM', 'SP'], ['PM', 'DM'], ['PM', 'OM'], // <--- Her er SP og PM!
         
         // Spiss (SP) (VK og PM er dekket over)
         ['SP', 'OM'], ['SP', 'DM']
@@ -3443,44 +3443,46 @@ function drawChemistryLines() {
         if (player1 && player2) {
             const chemScore = getDuoChemistry(player1.navn, player2.navn);
             
-            // Tegn bare strek hvis kjemien er over 20%
-            if (chemScore > 20) {
-                const node1 = document.getElementById('node-' + pos1);
-                const node2 = document.getElementById('node-' + pos2);
+            const node1 = document.getElementById('node-' + pos1);
+            const node2 = document.getElementById('node-' + pos2);
+            
+            if (node1 && node2 && node1.style.top && node2.style.top) {
+                const n1Top = parseFloat(node1.style.top);
+                const n1Left = parseFloat(node1.style.left);
+                const n2Top = parseFloat(node2.style.top);
+                const n2Left = parseFloat(node2.style.left);
                 
-                if (node1 && node2 && node1.style.top && node2.style.top) {
-                    const n1Top = parseFloat(node1.style.top);
-                    const n1Left = parseFloat(node1.style.left);
-                    const n2Top = parseFloat(node2.style.top);
-                    const n2Left = parseFloat(node2.style.left);
-                    
-                    // Fast tykkelse
-                    const strokeWidth = 3; 
-                    
-                    // Trafikklys-system for fargene
-                    let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD for lav (20-49%)
-                    
-                    if (chemScore >= 75) {
-                        strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN for høy (75-100%)
-                    } else if (chemScore >= 50) {
-                        strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL for middels (50-74%)
-                    }
-
-                    // Opprett SVG-streken
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', n1Left + '%');
-                    line.setAttribute('y1', n1Top + '%');
-                    line.setAttribute('x2', n2Left + '%');
-                    line.setAttribute('y2', n2Top + '%');
-                    line.setAttribute('stroke', strokeColor);
-                    line.setAttribute('stroke-width', strokeWidth);
-                    line.setAttribute('stroke-linecap', 'round');
-                    
-                    // Animerer glatt når du bytter fase
-                    line.setAttribute('class', 'transition-all duration-500'); 
-                    
-                    svgLayer.appendChild(line);
+                let strokeWidth = 3; 
+                let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (1 - 49%)
+                
+                if (chemScore >= 75) {
+                    strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
+                } else if (chemScore >= 50) {
+                    strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
+                } else if (chemScore === 0) {
+                    // Hvis de mangler data (0%), lager vi en svak, stiplet hvit linje
+                    strokeColor = 'rgba(255, 255, 255, 0.25)';
+                    strokeWidth = 1.5;
                 }
+
+                // Opprett SVG-streken
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', n1Left + '%');
+                line.setAttribute('y1', n1Top + '%');
+                line.setAttribute('x2', n2Left + '%');
+                line.setAttribute('y2', n2Top + '%');
+                line.setAttribute('stroke', strokeColor);
+                line.setAttribute('stroke-width', strokeWidth);
+                line.setAttribute('stroke-linecap', 'round');
+                
+                if (chemScore === 0) {
+                    line.setAttribute('stroke-dasharray', '5,5'); // Gjør linjen stiplet
+                }
+                
+                // Animerer glatt når du bytter fase
+                line.setAttribute('class', 'transition-all duration-500'); 
+                
+                svgLayer.appendChild(line);
             }
         }
     });
