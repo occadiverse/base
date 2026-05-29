@@ -3656,65 +3656,69 @@ function autoFillTeam() {
 
     const attendanceRate = totalTeamEvents > 0 ? (attendedEvents / totalTeamEvents) : 0;
     
-    // 1. Grunnlag: Maks 60 poeng for feilfritt oppmøte
+    // 1. Grunnlag: Maks 60 poeng for oppmøte
     let chemistryScore = attendanceRate * 60; 
     
-    // 2. Aktiv-bonus: Er du med, får du et bunn-tillegg på 15 poeng slik at scoren ikke er bekmørk
+    // 2. Aktiv-bonus: 10 poeng i bunn hvis man er en aktiv del av laget
     if (attendedEvents > 0) {
-        chemistryScore += 15;
+        chemistryScore += 10;
     }
     
-    let matchPerformanceBonus = 0;
+    let totalMatchBonus = 0;
+    let matchesPlayed = 0;
     let disciplinePenalty = 0;
     
     matches.forEach(m => {
         if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
+            matchesPlayed++; // Teller opp antall kamper for snittutregning
             
-            // 3. Kamperfaring: +2 poeng for å delta
-            matchPerformanceBonus += 2;
+            let currentMatchBonus = 2; // +2 for deltakelse i denne kampen
 
+            // --- LAG-RESULTAT ---
             if (m.result && m.result.includes('-')) {
                 const score = parseScore(m.result);
                 if (score) {
                     if (score.bsk > score.opponent) {
-                        matchPerformanceBonus += 3; // Seier
-                        if (score.bsk > 3) matchPerformanceBonus += 2; 
+                        currentMatchBonus += 3; // Seier
+                        if (score.bsk > 3) currentMatchBonus += 2; // Storseier
                     } else if (score.bsk === score.opponent) {
-                        matchPerformanceBonus += 1; // Uavgjort
+                        currentMatchBonus += 1; // Uavgjort
                     } else {
-                        matchPerformanceBonus -= 1; // Tap
+                        currentMatchBonus -= 1; // Tap
                     }
-                    if (score.opponent === 0) matchPerformanceBonus += 3;
+                    if (score.opponent === 0) currentMatchBonus += 3; // Clean sheet
                 }
             }
 
-            // 4. NYTT: EKSTREMT ASYMMETRISK BØRS-KARAKTER (1-10)
+            // --- INDIVIDUELL BØRS ---
             if (m.ratings && m.ratings[playerName]) {
                 const rating = m.ratings[playerName]; 
-                
-                let ratingBonus = 0;
                 if (rating > 5) {
-                    // Belønning for gode kamper (+4 pr trinn)
-                    ratingBonus = (rating - 5) * 4; 
+                    currentMatchBonus += (rating - 5) * 4; // +4 pr trinn opp (Max +20 for en 10-er)
                 } else if (rating < 5) {
-                    // Nådeløs straff for svake kamper (-16 pr trinn)
-                    ratingBonus = (rating - 5) * 16; 
+                    currentMatchBonus += (rating - 5) * 8; // -8 pr trinn ned (-16 for en 3-er)
                 }
-                
-                matchPerformanceBonus += ratingBonus;
             }
 
-            // 5. Disiplin (Kort)
-            // Erstatt "guleKort" og "rodeKort" med de faktiske navnene hvis du har lagt det til i kamp-lagringen
+            // Legger kampens resultat til i totalpotten for spilleren
+            totalMatchBonus += currentMatchBonus;
+
+            // Disiplin (Går direkte på totalscoren, ikke på snittet)
             if (m.guleKort && m.guleKort.includes(playerName)) disciplinePenalty -= 5;
             if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 15;
         }
     });
     
-    // Vi setter et lavere gulv slik at total kampbonus kan trekke ned hele 50 poeng
-    matchPerformanceBonus = Math.max(-50, matchPerformanceBonus);
+    // 3. REGN UT GJENNOMSNITTLIG KAMPBONUS
+    let avgMatchBonus = 0;
+    if (matchesPlayed > 0) {
+        avgMatchBonus = totalMatchBonus / matchesPlayed;
+    }
     
-    chemistryScore += matchPerformanceBonus + disciplinePenalty;
+    // Sett et gulv slik at snittbonusen aldri trekker ned mer enn 25 poeng totalt
+    avgMatchBonus = Math.max(-25, avgMatchBonus);
+    
+    chemistryScore += avgMatchBonus + disciplinePenalty;
     
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
 }
