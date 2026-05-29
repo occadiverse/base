@@ -3403,20 +3403,28 @@ function drawChemistryLines() {
     
     svgLayer.innerHTML = ''; // Tømmer gamle streker først
     
-    // De nye, asymmetriske kjemibåndene
+    // Det nye, avanserte taktiske relasjonsnettverket
     const connections = [
-        // Forsvarsrekka
-        ['VB', 'VMS'], ['VMS', 'HMS'], ['HMS', 'HB'], 
+        // Midtstoppernes grunnrelasjoner
+        ['VMS', 'HMS'], ['VMS', 'DM'], ['HMS', 'DM'], 
         
-        // Den sentrale aksen og oppspill
-        ['VMS', 'DM'], ['HMS', 'DM'],                 
-        ['DM', 'OM'], ['OM', 'PM'], ['PM', 'SP'],     
+        // Venstre back (VB) sine relasjoner
+        ['VB', 'VK'], ['VB', 'VMS'], ['VB', 'OM'], ['VB', 'DM'],
         
-        // Venstre kant (VK) sine relasjoner
-        ['VK', 'SP'], ['VK', 'OM'], ['VK', 'VB'],     
+        // Høyre back (HB) sine relasjoner
+        ['HB', 'HK'], ['HB', 'HMS'], ['HB', 'PM'], ['HB', 'DM'],
         
-        // Høyre kant (HK) sine relasjoner
-        ['HK', 'PM'], ['HK', 'DM'], ['HK', 'HB']      
+        // Venstre kant (VK) (SP og VB er allerede dekket over og under)
+        ['VK', 'OM'], 
+        
+        // Høyre kant (HK) (HB er dekket over)
+        ['HK', 'PM'], ['HK', 'DM'],
+        
+        // Playmaker (PM) (HK og HB er dekket over)
+        ['PM', 'DM'], ['PM', 'OM'],
+        
+        // Spiss (SP) sine relasjoner (PM er dekket over)
+        ['SP', 'VK'], ['SP', 'PM'], ['SP', 'OM'], ['SP', 'DM']
     ];
 
     connections.forEach(pair => {
