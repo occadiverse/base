@@ -3446,27 +3446,29 @@ function drawChemistryLines() {
             const chemScore = getDuoChemistry(player1.navn, player2.navn);
             
             // Tegn bare strek hvis kjemien er over 20% (eller mangler data = 0)
-            if (chemScore > 20 || chemScore === 0) {
-                const node1 = document.getElementById('node-' + pos1);
-                const node2 = document.getElementById('node-' + pos2);
+            if (player1 && player2) {
+            const chemScore = getDuoChemistry(player1.navn, player2.navn);
+            
+            const node1 = document.getElementById('node-' + pos1);
+            const node2 = document.getElementById('node-' + pos2);
+            
+            if (node1 && node2 && node1.style.top && node2.style.top) {
+                const n1Top = parseFloat(node1.style.top);
+                const n1Left = parseFloat(node1.style.left);
+                const n2Top = parseFloat(node2.style.top);
+                const n2Left = parseFloat(node2.style.left);
                 
-                if (node1 && node2 && node1.style.top && node2.style.top) {
-                    const n1Top = parseFloat(node1.style.top);
-                    const n1Left = parseFloat(node1.style.left);
-                    const n2Top = parseFloat(node2.style.top);
-                    const n2Left = parseFloat(node2.style.left);
-                    
-                    let strokeWidth = 3; 
-                    let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (21 - 49%)
-                    
-                    if (chemScore >= 75) {
-                        strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
-                    } else if (chemScore >= 50) {
-                        strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
-                    } else if (chemScore === 0) {
-                        strokeColor = 'rgba(255, 255, 255, 0.25)'; // HVIT STIPLET (0%)
-                        strokeWidth = 1.5;
-                    }
+                let strokeWidth = 3; 
+                let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (1 - 49%)
+                
+                if (chemScore >= 75) {
+                    strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
+                } else if (chemScore >= 50) {
+                    strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
+                } else if (chemScore === 0) {
+                    strokeColor = 'rgba(255, 255, 255, 0.25)'; // HVIT STIPLET (0%)
+                    strokeWidth = 1.5;
+                }
 
                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                     line.setAttribute('x1', n1Left + '%');
