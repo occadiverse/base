@@ -3769,13 +3769,13 @@ function renderPlayerStatsTable() {
     let statsData = filteredPlayers.map(p => {
         const teamEvents = allEvents.filter(e => e.team === p.spillerLag);
         let attended = 0, kamper = 0, yellow = 0, red = 0;
-        let totalMatchPoints = 0; // Ny variabel for å regne kampsnitt
+        let totalMatchPoints = 0;
 
         teamEvents.forEach(e => {
+            // Fiks på oppmøte-sjekken
             if (e.attendance && e.attendance[p.navn] === true) {
                 attended++;
                 
-                // Samme logikk for kampscore som i kjemimotoren!
                 if (e.type === 'Kamp') {
                     kamper++; 
                     let currentMatchScore = 15; 
@@ -3795,20 +3795,26 @@ function renderPlayerStatsTable() {
                     totalMatchPoints += currentMatchScore;
                 }
             }
-            if (e.guleKort && e.guleKort.includes(p.navn)) yellow++;
-            if (e.rodeKort && e.rodeKort.includes(p.navn)) red++;
+            
+            // Fiks på gult/rødt kort-sjekken slik at det telles for ALLE kamper, ikke bare når spilleren har møtt opp
+            if (e.type === 'Kamp') {
+                if (e.guleKort && e.guleKort.includes(p.navn)) yellow++;
+                if (e.rodeKort && e.rodeKort.includes(p.navn)) red++;
+            }
         });
 
-        // Regn ut snittet for tabellen
         let avgMatchScore = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+        
+        // Fiks på oppmøteprosenten (unngår Infinity hvis 0 treninger)
+        let oppmotePct = teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0;
 
         return {
             navn: p.navn,
             pos1: p.pos1 || '',
-            oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
+            oppmotePct: oppmotePct,
             oppmoteStr: `${attended} / ${teamEvents.length}`,
             kamper: kamper,
-            kampbonus: avgMatchScore, // NÅ viser vi det reelle kampsnittet!
+            kampbonus: avgMatchScore,
             gule: yellow,
             rode: red,
             kjemi: calculatePlayerPerformanceChemistry(p.navn)
@@ -3838,7 +3844,13 @@ function renderPlayerStatsTable() {
         const isStarPlayer = stat.kjemi >= 70;
         let chemColor = isStarPlayer ? 'text-emerald-700' : (stat.kjemi >= 50 ? 'text-emerald-500' : 'text-rose-500');
         
-        let bonusColor = stat.kampbonus > 15 ? 'text-emerald-500' : stat.kampbonus < 10 ? 'text-rose-500' : 'text-slate-400';
+        // Bonusfarge
+        let bonusColor = stat.kampbonus > 15 ? 'text-emerald-500' : (stat.kampbonus < 10 ? 'text-rose-500' : 'text-slate-400');
+        
+        // Vis gult kort advarsel hvis de nærmer seg karantene (3 gule)
+        let gulFarge = 'text-slate-300';
+        if (stat.gule > 0) gulFarge = 'text-yellow-500 bg-yellow-50';
+        if (stat.gule % 4 === 3) gulFarge = 'text-orange-600 bg-orange-100 animate-pulse'; // Faresone!
 
         html += `
             <tr class="hover:bg-slate-50 transition-colors">
@@ -3852,7 +3864,7 @@ function renderPlayerStatsTable() {
                 </td>
                 <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
                 <td class="p-4 text-center font-black ${bonusColor}">${stat.kampbonus}</td>
-                <td class="p-4 text-center font-black ${stat.gule > 0 ? 'text-yellow-500 bg-yellow-50' : 'text-slate-300'}">${stat.gule > 0 ? stat.gule : '-'}</td>
+                <td class="p-4 text-center font-black ${gulFarge}" title="${stat.gule % 4 === 3 ? 'FARE: Neste gule kort gir karantene og -20 poeng i kjemi!' : ''}">${stat.gule > 0 ? stat.gule : '-'}</td>
                 <td class="p-4 text-center font-black ${stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300'}">${stat.rode > 0 ? stat.rode : '-'}</td>
                 <td class="p-4 text-center text-base font-black ${chemColor}">
                     ${stat.kjemi}% 
