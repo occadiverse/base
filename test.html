@@ -3396,41 +3396,42 @@ function getDuoChemistry(playerA, playerB) {
     return either > 0 ? Math.round((shared / either) * 100) : 0;
 }
 
-// Tegner selve strekene på banen
+// Tegner selve strekene på banen basert på AKTIV FASE
 function drawChemistryLines() {
     const svgLayer = document.getElementById('chemistry-lines-layer');
     if (!svgLayer) return;
     
     svgLayer.innerHTML = ''; // Tømmer gamle streker først
     
-    // Det oppdaterte, komplette taktiske relasjonsnettverket!
-    const connections = [
-        // Keeper (GK / KP)
-        ['GK', 'VMS'], ['GK', 'HMS'],
+    // Definerer strekene for HVER fase separat!
+    const phaseConnections = {
+        fase1: [ // UTSPILL: Fokus på forsvarsrekke og anker
+            ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'],
+            ['VMS', 'VB'], ['HMS', 'HB'], 
+            ['VMS', 'DM'], ['HMS', 'DM'],
+            ['VB', 'DM'], ['HB', 'DM']
+        ],
+        fase2: [ // ETABLERING: Det store relasjonsnettverket ditt
+            ['VMS', 'HMS'], 
+            ['VMS', 'VB'], ['VMS', 'OM'], ['VMS', 'DM'], 
+            ['HMS', 'HB'], ['HMS', 'OM'], ['HMS', 'DM'],
+            ['VB', 'VK'], ['VB', 'OM'], ['VB', 'DM'],
+            ['HB', 'HK'], ['HB', 'PM'], ['HB', 'DM'],
+            ['VK', 'SP'], ['VK', 'OM'], 
+            ['HK', 'PM'], ['HK', 'DM'],
+            ['PM', 'SP'], ['PM', 'DM'], ['PM', 'OM'],
+            ['SP', 'OM'], ['SP', 'DM']
+        ],
+        fase3: [ // ANGREP: Fokus på siste tredjedel og dobling på kant
+            ['VB', 'VK'], ['HB', 'HK'], // Backer som overlapper/underlapper
+            ['VK', 'SP'], ['HK', 'SP'], ['HK', 'PM'], ['VK', 'OM'],
+            ['OM', 'SP'], ['PM', 'SP'], ['OM', 'PM'],
+            ['DM', 'OM'], ['DM', 'PM'] // Returrom
+        ]
+    };
 
-        // Midtstoppere
-        ['VMS', 'HMS'], 
-        ['VMS', 'VB'], ['VMS', 'OM'], ['VMS', 'DM'], 
-        ['HMS', 'HB'], ['HMS', 'OM'], ['HMS', 'DM'],
-
-        // Venstre back (VB) (VMS er allerede dekket over)
-        ['VB', 'VK'], ['VB', 'OM'], ['VB', 'DM'],
-        
-        // Høyre back (HB) (HMS er allerede dekket over)
-        ['HB', 'HK'], ['HB', 'PM'], ['HB', 'DM'],
-        
-        // Venstre kant (VK) (VB er dekket over)
-        ['VK', 'SP'], ['VK', 'OM'], 
-        
-        // Høyre kant (HK) (HB er dekket over)
-        ['HK', 'PM'], ['HK', 'DM'],
-        
-        // Playmaker (PM) (HK og HB er dekket over)
-        ['PM', 'SP'], ['PM', 'DM'], ['PM', 'OM'], // <--- Her er SP og PM!
-        
-        // Spiss (SP) (VK og PM er dekket over)
-        ['SP', 'OM'], ['SP', 'DM']
-    ];
+    // Hent strekene for den aktive fasen
+    const connections = phaseConnections[currentTacticalPhase] || phaseConnections.fase2;
 
     connections.forEach(pair => {
         const pos1 = pair[0];
@@ -3439,56 +3440,59 @@ function drawChemistryLines() {
         const player1 = window.tacticalLineup[pos1];
         const player2 = window.tacticalLineup[pos2];
         
-        // Vi tegner kun strek hvis BEGGE posisjonene er fylt med en spiller
         if (player1 && player2) {
             const chemScore = getDuoChemistry(player1.navn, player2.navn);
             
-            const node1 = document.getElementById('node-' + pos1);
-            const node2 = document.getElementById('node-' + pos2);
-            
-            if (node1 && node2 && node1.style.top && node2.style.top) {
-                const n1Top = parseFloat(node1.style.top);
-                const n1Left = parseFloat(node1.style.left);
-                const n2Top = parseFloat(node2.style.top);
-                const n2Left = parseFloat(node2.style.left);
+            // Tegn bare strek hvis kjemien er over 20% (eller mangler data = 0)
+            if (chemScore > 20 || chemScore === 0) {
+                const node1 = document.getElementById('node-' + pos1);
+                const node2 = document.getElementById('node-' + pos2);
                 
-                let strokeWidth = 3; 
-                let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (1 - 49%)
-                
-                if (chemScore >= 75) {
-                    strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
-                } else if (chemScore >= 50) {
-                    strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
-                } else if (chemScore === 0) {
-                    // Hvis de mangler data (0%), lager vi en svak, stiplet hvit linje
-                    strokeColor = 'rgba(255, 255, 255, 0.25)';
-                    strokeWidth = 1.5;
-                }
+                if (node1 && node2 && node1.style.top && node2.style.top) {
+                    const n1Top = parseFloat(node1.style.top);
+                    const n1Left = parseFloat(node1.style.left);
+                    const n2Top = parseFloat(node2.style.top);
+                    const n2Left = parseFloat(node2.style.left);
+                    
+                    let strokeWidth = 3; 
+                    let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (21 - 49%)
+                    
+                    if (chemScore >= 75) {
+                        strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
+                    } else if (chemScore >= 50) {
+                        strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
+                    } else if (chemScore === 0) {
+                        strokeColor = 'rgba(255, 255, 255, 0.25)'; // HVIT STIPLET (0%)
+                        strokeWidth = 1.5;
+                    }
 
-                // Opprett SVG-streken
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', n1Left + '%');
-                line.setAttribute('y1', n1Top + '%');
-                line.setAttribute('x2', n2Left + '%');
-                line.setAttribute('y2', n2Top + '%');
-                line.setAttribute('stroke', strokeColor);
-                line.setAttribute('stroke-width', strokeWidth);
-                line.setAttribute('stroke-linecap', 'round');
-                
-                if (chemScore === 0) {
-                    line.setAttribute('stroke-dasharray', '5,5'); // Gjør linjen stiplet
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', n1Left + '%');
+                    line.setAttribute('y1', n1Top + '%');
+                    line.setAttribute('x2', n2Left + '%');
+                    line.setAttribute('y2', n2Top + '%');
+                    line.setAttribute('stroke', strokeColor);
+                    line.setAttribute('stroke-width', strokeWidth);
+                    line.setAttribute('stroke-linecap', 'round');
+                    
+                    if (chemScore === 0) {
+                        line.setAttribute('stroke-dasharray', '5,5');
+                    }
+                    
+                    line.setAttribute('class', 'transition-all duration-500'); 
+                    
+                    svgLayer.appendChild(line);
                 }
-                
-                // Animerer glatt når du bytter fase
-                line.setAttribute('class', 'transition-all duration-500'); 
-                
-                svgLayer.appendChild(line);
             }
         }
     });
 }
+
+        let currentTacticalPhase = 'fase1'; // NY: Husker hvilken fase vi er i
         
 function setTacticalPhase(phaseId) {
+    currentTacticalPhase = phaseId; // Oppdaterer den aktive fasen
+    
     // 1. Oppdater knappe-styling
     document.querySelectorAll('.phase-btn').forEach(btn => {
         btn.classList.remove('bg-bsk-blue', 'text-white', 'border-bsk-blue');
@@ -3505,7 +3509,7 @@ function setTacticalPhase(phaseId) {
             node.style.left = pos.left;
         }
     }
-    // NYTT: Gi DOM-en 50 millisekunder på å oppdatere stilene, og tegn strekene
+    // Gi DOM-en 50 millisekunder på å oppdatere stilene, og tegn strekene
     setTimeout(drawChemistryLines, 50);
 }
    window.tacticalLineup = {}; 
