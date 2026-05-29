@@ -3688,11 +3688,19 @@ function autoFillTeam() {
                 }
             }
 
-            // 4. NYTT: INDIVIDUELL BØRS-KARAKTER (1-10)
-            // Lave karakterer gir direkte minuspoeng på kjemien, høye karakterer gir pluss!
+            // 4. NYTT: EKSTREMT ASYMMETRISK BØRS-KARAKTER (1-10)
             if (m.ratings && m.ratings[playerName]) {
-                const rating = m.ratings[playerName]; // Karakter fra 1 til 10
-                const ratingBonus = (rating - 5) * 2; // Formel: 10 = +10p, 5 = 0p, 2 = -6p.
+                const rating = m.ratings[playerName]; 
+                
+                let ratingBonus = 0;
+                if (rating > 5) {
+                    // Belønning for gode kamper (+4 pr trinn)
+                    ratingBonus = (rating - 5) * 4; 
+                } else if (rating < 5) {
+                    // Nådeløs straff for svake kamper (-16 pr trinn)
+                    ratingBonus = (rating - 5) * 16; 
+                }
+                
                 matchPerformanceBonus += ratingBonus;
             }
 
@@ -3703,8 +3711,8 @@ function autoFillTeam() {
         }
     });
     
-    // Vi setter et gulv slik at total kampbonus (inkludert børs) aldri trekker ned mer enn 15 poeng
-    matchPerformanceBonus = Math.max(-15, matchPerformanceBonus);
+    // Vi setter et lavere gulv slik at total kampbonus kan trekke ned hele 50 poeng
+    matchPerformanceBonus = Math.max(-50, matchPerformanceBonus);
     
     chemistryScore += matchPerformanceBonus + disciplinePenalty;
     
