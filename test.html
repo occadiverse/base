@@ -2891,10 +2891,19 @@
 
         window.setTacticalPhase = function(phaseId) {
             currentTacticalPhase = phaseId; 
+            
+            // Nullstill alle fase-knapper til å se ut som "Tøm"-knappen
             document.querySelectorAll('.phase-btn').forEach(btn => {
-                btn.classList.remove('bg-bsk-blue', 'text-white', 'border-bsk-blue'); btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
+                btn.classList.remove('bg-bsk-blue', 'text-white', 'border-bsk-blue', 'shadow-md'); 
+                btn.classList.add('bg-white', 'text-slate-500', 'border-slate-200', 'hover:text-bsk-blue', 'hover:bg-slate-50', 'shadow-sm');
             });
-            document.getElementById(`btn-${phaseId}`).classList.add('bg-bsk-blue', 'text-white', 'border-bsk-blue');
+            
+            // Aktiver den valgte knappen (gjør den solid blå)
+            const activeBtn = document.getElementById(`btn-${phaseId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'text-slate-500', 'border-slate-200', 'hover:text-bsk-blue', 'hover:bg-slate-50', 'shadow-sm');
+                activeBtn.classList.add('bg-bsk-blue', 'text-white', 'border-bsk-blue', 'shadow-md');
+            }
 
             const svgLayer = document.getElementById('chemistry-lines-layer');
             if (svgLayer) svgLayer.innerHTML = '';
