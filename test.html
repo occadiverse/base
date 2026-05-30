@@ -3718,23 +3718,30 @@ window.saveMatchTactics = function() {
     positions.forEach(pos => renderNodeVisually(window.tacticalLineup[pos], pos));
 };
 
-// Hjelpefunksjon: Oppdaterer grafikken til en enkelt runding på banen basert på kamp-roller
-function renderNodeVisually(playerObj, posId) {
+// 1. Denne gjør kun det visuelle – og sletter BARE farger, ikke form!
+window.renderNodeVisually = function(playerObj, posId) {
     const node = document.getElementById('node-' + posId);
     if (!node) return;
     
-    node.className = "player-node absolute -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer transition-all duration-500 hover:scale-110";
-    
-    if (playerObj === null) {
+    // Vi fjerner kun farge- og kantklasser, slik at formen og posisjonen forblir urørt!
+    node.classList.remove(
+        'bg-bsk-yellow', 'text-bsk-blue', 'border-white', // Gamle klasser
+        'bg-bsk-blue', 'text-white', 'border-2', 'border-[3px]', 'border-bsk-yellow/60',
+        'border-emerald-500', 'border-yellow-500', 'border-orange-500', 'border-rose-500'
+    );
+
+    if (playerObj === null || playerObj === undefined) {
+        // TØM RUNDINGEN
         node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
-        node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-2', 'border-bsk-yellow/60');
+        node.classList.add('bg-bsk-blue', 'text-white', 'border-2', 'border-bsk-yellow/60');
     } else {
+        // FYLL RUNDINGEN
         const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
         const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
         const firstName = playerObj.navn.split(' ')[0];
         const playerChem = calculatePlayerPerformanceChemistry(playerObj.navn);
         
-        // Sjekk om denne spesifikke spilleren har fått tildelt roller for AKKURAT DENNE kampen
+        // Hent roller for kampen
         const capValue = document.getElementById('role-captain') ? document.getElementById('role-captain').value : '';
         const penValue = document.getElementById('role-penalty') ? document.getElementById('role-penalty').value : '';
         const fkValue = document.getElementById('role-freekick') ? document.getElementById('role-freekick').value : '';
@@ -3745,8 +3752,18 @@ function renderNodeVisually(playerObj, posId) {
         if (penValue === playerObj.navn) badgesHtml += `<span class="bg-emerald-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Straffer">P</span>`;
         if (fkValue === playerObj.navn) badgesHtml += `<span class="bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Frispark">F</span>`;
         if (cornValue === playerObj.navn) badgesHtml += `<span class="bg-purple-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Cornere">📐</span>`;
+        
+        // Sjekk karantene
+        let totalYellowCards = 0;
+        (window.activeMatches || []).forEach(m => {
+            if (m.guleKort && m.guleKort.includes(playerObj.navn)) totalYellowCards++;
+        });
+        if (totalYellowCards > 0 && totalYellowCards % 4 === 3) {
+            badgesHtml += `<span class="bg-red-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900 animate-pulse" title="Karantenefare! 3 gule kort.">⚠️</span>`;
+        }
         badgesHtml += '</div>';
 
+        // Beregn trafikklys-fargen for kanten
         let borderClass = 'border-rose-500';
         let chemTextColor = 'text-rose-400';
         if (playerChem >= 80) { borderClass = 'border-emerald-500'; chemTextColor = 'text-emerald-400'; }
@@ -3761,59 +3778,26 @@ function renderNodeVisually(playerObj, posId) {
                 <span class="text-[8px] font-black tracking-wide ${chemTextColor} drop-shadow-sm mt-0.5">${playerChem}% CHM</span>
             </div>
         `;
-        node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);
+        node.classList.add('bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);
     }
-}
+};
         
-function choosePlayer(playerObj, posId) {
+// 2. Superkort choosePlayer som kun håndterer logikk
+window.choosePlayer = function(playerObj, posId) {
     window.tacticalLineup[posId] = playerObj;
-    const node = document.getElementById('node-' + posId);
     
-    if (node) {
-        // Vi fjerner alt av gamle farger og størrelser først for å ha helt blanke ark
-        node.classList.remove(
-            'bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'w-11', 'h-11', 
-            'bg-slate-800', 'bg-bsk-blue', 'text-white', 'border-slate-500', 
-            'border-bsk-yellow/60', 'w-10', 'h-10'
-        );
-        
-        if (playerObj === null) {
-            // TØM RUNDINGEN: Nå blir absolutt alle posisjoner 100 % like
-            node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
-            node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-bsk-yellow/60');
-        } else {
-            // FYLL RUNDINGEN MED AKTIV SPILLER
-            const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-            const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
-            const firstName = playerObj.navn.split(' ')[0];
-            
-            const playerChem = calculatePlayerPerformanceChemistry(playerObj.navn);
-            
-            let chemColor = 'text-rose-400';
-            if (playerChem >= 75) chemColor = 'text-emerald-400';
-            else if (playerChem >= 50) chemColor = 'text-amber-400';
-            
-            node.innerHTML = `
-                <span class="text-[11px] font-black tracking-tighter">${displayName}</span>
-                <div class="absolute -bottom-7 flex flex-col items-center pointer-events-none">
-                    <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${firstName}</span>
-                    <span class="text-[8px] font-black tracking-wide ${chemColor} drop-shadow-sm mt-0.5">${playerChem}% CHM</span>
-                </div>
-            `;
-            
-            // Felles gult design for alle spillere som er valgt
-            node.classList.add('w-10', 'h-10', 'bg-bsk-yellow', 'text-bsk-blue', 'border-white');
+    // Oppdater visuelt på tavla
+    renderNodeVisually(playerObj, posId);
+    drawChemistryLines();
+    closePlayerSelect();
+
+    // Lagre automatisk hvis du har valgt en kamp i rullegardinmenyen
+    if (document.getElementById('tacticalMatchSelect') && document.getElementById('tacticalMatchSelect').value) {
+        if (typeof window.saveMatchTactics === 'function') {
+            window.saveMatchTactics();
         }
     }
-    
-    // Oppdater kjemistrekene hver gang en spiller plasseres
-    drawChemistryLines();
-    // NYTT: Hvis en kamp er aktiv, lagrer vi det nye oppsettet umiddelbart!
-    if (document.getElementById('tacticalMatchSelect') && document.getElementById('tacticalMatchSelect').value) {
-        saveMatchTactics();
-    }
-    closePlayerSelect();
-}
+};
 
         function clearTacticalBoard() {
     window.tacticalLineup = {};
