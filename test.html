@@ -3010,7 +3010,7 @@
             if (typeof window.renderBench === 'function') window.renderBench();
         };
 
-        // NY VERSJON: Viser KUN spillere som er satt til KLAR (true) og ikke starter
+        // NY VERSJON: Viser KLAR-spillere, kjemiscore og individuell kampbonus
 window.renderBench = function() {
     const benchList = document.getElementById('tactical-bench-list');
     if (!benchList) return;
@@ -3030,7 +3030,6 @@ window.renderBench = function() {
 
     const startingPlayerNames = Object.values(window.tacticalLineup).filter(p => p !== null).map(p => p.navn);
 
-    // ENDRET: Filterer ut slik at spilleren MÅ være bekreftet KLAR (true) for å vises på benken
     const benchPlayers = teamPlayers.filter(p => {
         const starterIKampen = startingPlayerNames.includes(p.navn);
         const erBekreftetKlar = match.attendance && match.attendance[p.navn] === true;
@@ -3047,22 +3046,59 @@ window.renderBench = function() {
         return calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn);
     });
 
-    // Tegn opp den rene innbytterbenken
+    // Tegn opp den rene innbytterbenken med BONUS og KJEMI
     benchPlayers.forEach(p => {
+        // 1. Beregn Kjemi
         const playerChem = calculatePlayerPerformanceChemistry(p.navn);
-        
         let chemColor = 'text-rose-500'; 
         if (playerChem >= 75) chemColor = 'text-emerald-500';
         else if (playerChem >= 50) chemColor = 'text-amber-500';
         else if (playerChem === 0) chemColor = 'text-slate-400';
 
+        // 2. Beregn Kampbonus
+        let kamper = 0;
+        let totalMatchPoints = 0;
+        (window.activeMatches || []).forEach(m => {
+            if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
+                kamper++;
+                let currentMatchScore = 15;
+                if (m.result && m.result.includes('-')) {
+                    // Sjekker om parseScore er tilgjengelig, og regner ut seier/tap/nullen
+                    if (typeof parseScore === 'function') {
+                        const score = parseScore(m.result);
+                        if (score) {
+                            if (score.bsk > score.opponent) currentMatchScore += 5;
+                            else if (score.bsk === score.opponent) currentMatchScore += 2;
+                            else currentMatchScore -= 2;
+                            if (score.opponent === 0) currentMatchScore += 3;
+                        }
+                    }
+                }
+                if (m.ratings && m.ratings[p.navn]) {
+                    currentMatchScore += (m.ratings[p.navn] - 5) * 6;
+                }
+                totalMatchPoints += currentMatchScore;
+            }
+        });
+        
+        const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+        let bonusColor = kampbonus > 15 ? 'text-emerald-500' : (kampbonus < 10 && kampbonus > 0 ? 'text-rose-500' : 'text-slate-400');
+        const bonusIkon = kampbonus > 0 ? '<i class="fa-solid fa-fire text-amber-500 mr-0.5"></i>' : '';
+
+        // 3. Render Spillerkortet
         const div = document.createElement('div');
         div.className = "flex justify-between items-center bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl shadow-sm";
         div.innerHTML = `
             <div class="flex items-center min-w-0">
                 <span class="font-bold text-slate-800 truncate text-xs">${p.navn}</span>
             </div>
-            <span class="font-black text-xs ${chemColor} shrink-0 ml-2">${playerChem}%</span>
+            <div class="flex items-center gap-3 shrink-0 ml-2">
+                <span class="font-bold text-[11px] ${bonusColor}" title="Kampbonus (Form)">
+                    ${bonusIkon}${kampbonus > 0 ? kampbonus : '-'}
+                </span>
+                <div class="w-px h-3 bg-slate-300"></div>
+                <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
+            </div>
         `;
         benchList.appendChild(div);
     });
