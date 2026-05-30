@@ -2911,7 +2911,9 @@
             const select = document.getElementById('tacticalMatchSelect');
             if (!select) return;
             const currentSelectedValue = select.value;
-            select.innerHTML = '<option value="">-- 🧰 SANDKASSE (Uavhengig testmodus) --</option>';
+            
+            // Endret her til bare "Sandkasse"
+            select.innerHTML = '<option value="">Sandkasse</option>';
             
             const sortedMatches = [...(window.activeMatches || [])].sort((a,b) => a.date.localeCompare(b.date));
             sortedMatches.forEach(m => {
