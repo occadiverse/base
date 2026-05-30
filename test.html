@@ -594,6 +594,18 @@
                         </div>
                     </div>
 
+                    <div id="tactical-bench-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-users-rectangle text-slate-500"></i> Benken / Innbyttere
+                            </h3>
+                            <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Ikke i start-11er</span>
+                        </div>
+                        
+                        <div id="tactical-bench-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-medium text-slate-700">
+                        </div>
+                    </div>
+                    
                     <div id="tactical-roles-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
                             <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
@@ -2936,12 +2948,17 @@
         window.loadMatchTactics = function() {
             const matchId = document.getElementById('tacticalMatchSelect').value;
             const rolesCard = document.getElementById('tactical-roles-card');
+            const benchCard = document.getElementById('tactical-bench-card'); // <--- NY!
             
             if (!matchId) {
                 if (rolesCard) rolesCard.classList.add('hidden');
-                clearTacticalBoard(); return;
+                if (benchCard) benchCard.classList.add('hidden'); // <--- NY!
+                clearTacticalBoard();
+                return;
             }
+            
             if (rolesCard) rolesCard.classList.remove('hidden');
+            if (benchCard) benchCard.classList.remove('hidden'); // <--- NY!
             
             const match = (window.activeMatches || []).find(m => m.id === matchId);
             if (!match) return;
@@ -2952,7 +2969,8 @@
             positions.forEach(pos => { window.tacticalLineup[pos] = savedLineup[pos] || null; });
             
             const roles = ['captain', 'penalty', 'freekick', 'corners'];
-            const sortedPlayers = [...(window.activePlayers || [])].filter(p => p.status !== 'Passiv').sort((a,b) => a.navn.localeCompare(b.navn));
+            const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
+            const sortedPlayers = players.sort((a,b) => a.navn.localeCompare(b.navn));
             
             roles.forEach(roleId => {
                 const roleSelect = document.getElementById(`role-${roleId}`);
@@ -2966,6 +2984,9 @@
             });
             positions.forEach(pos => { renderNodeVisually(window.tacticalLineup[pos], pos); });
             drawChemistryLines();
+            
+            // NYTT: Tegn opp benken når kampen laster
+            if (typeof window.renderBench === 'function') window.renderBench();
         };
 
         window.saveMatchTactics = function() {
