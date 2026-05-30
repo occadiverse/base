@@ -3005,7 +3005,83 @@
             if (typeof window.saveMatchToDatabase === 'function') window.saveMatchToDatabase(match);
             
             ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'].forEach(pos => renderNodeVisually(window.tacticalLineup[pos], pos));
+            
+            // NYTT: Oppdater benken live når lagoppstillingen endrer seg
+            if (typeof window.renderBench === 'function') window.renderBench();
         };
+
+        // NY FUNKSJON: Finner og rendrer alle spillere som er på benken
+window.renderBench = function() {
+    const benchList = document.getElementById('tactical-bench-list');
+    if (!benchList) return;
+    benchList.innerHTML = '';
+
+    const matchId = document.getElementById('tacticalMatchSelect').value;
+    if (!matchId) return; // Ingen kamp valgt = ingen benk
+
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+
+    const teamName = match.matchGroup;
+    const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+    
+    // Hent alle spillere som tilhører dette laget og ikke er passive
+    let teamPlayers = players.filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
+    if (teamPlayers.length === 0) teamPlayers = players.filter(p => p.status !== 'Passiv'); // Fallback til hele troppen
+
+    // Hent ut ID-ene (eller navnene) på de 11 som starter på banen akkurat nå
+    const startingPlayerNames = Object.values(window.tacticalLineup).filter(p => p !== null).map(p => p.navn);
+
+    // Benken er alle spillere som IKKE er i startelleveren
+    const benchPlayers = teamPlayers.filter(p => !startingPlayerNames.includes(p.navn));
+
+    if (benchPlayers.length === 0) {
+        benchList.innerHTML = '<p class="text-xs text-slate-400 italic col-span-2 py-2">Ingen innbyttere på benken.</p>';
+        return;
+    }
+
+    // Sorter benken: Klar først, deretter uavklart/forfall. Sorter etter kjemiscore innad.
+    benchPlayers.sort((a, b) => {
+        const attA = match.attendance ? match.attendance[a.navn] : undefined;
+        const attB = match.attendance ? match.attendance[b.navn] : undefined;
+        const valA = attA === true ? 2 : (attA === false ? 0 : 1);
+        const valB = attB === true ? 2 : (attB === false ? 0 : 1);
+        
+        if (valA !== valB) return valB - valA; // Prioriter de som er klare
+        
+        // Jevnt? Sorter etter høyest kjemiscore
+        return calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn);
+    });
+
+    // Tegn opp spillerne på benken
+    benchPlayers.forEach(p => {
+        const playerChem = calculatePlayerPerformanceChemistry(p.navn);
+        
+        // Konsistent trafikklys-farge for kjemiscoren (75 / 50)
+        let chemColor = 'text-rose-500'; 
+        if (playerChem >= 75) chemColor = 'text-emerald-500';
+        else if (playerChem >= 50) chemColor = 'text-amber-500';
+        else if (playerChem === 0) chemColor = 'text-slate-400';
+
+        let attBadge = '';
+        if (match.attendance) {
+            const att = match.attendance[p.navn];
+            if (att === true) attBadge = '<span class="text-[9px] text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded font-bold ml-1.5">KLAR</span>';
+            else if (att === false) attBadge = '<span class="text-[9px] text-rose-600 bg-rose-50 px-1 py-0.5 rounded font-bold ml-1.5">FORFALL</span>';
+        }
+
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl shadow-sm";
+        div.innerHTML = `
+            <div class="flex items-center min-w-0">
+                <span class="font-bold text-slate-800 truncate text-xs">${p.navn}</span>
+                ${attBadge}
+            </div>
+            <span class="font-black text-xs ${chemColor} shrink-0 ml-2">${playerChem}%</span>
+        `;
+        benchList.appendChild(div);
+    });
+};
 
         window.renderNodeVisually = function(playerObj, posId) {
             const node = document.getElementById('node-' + posId);
