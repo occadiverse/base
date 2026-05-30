@@ -3011,7 +3011,7 @@
         };
 
         // NY VERSJON: Viser KLAR-spillere, kjemiscore og individuell kampbonus
-window.renderBench = function() {
+wwindow.renderBench = function() {
     const benchList = document.getElementById('tactical-bench-list');
     if (!benchList) return;
     benchList.innerHTML = '';
@@ -3063,7 +3063,6 @@ window.renderBench = function() {
                 kamper++;
                 let currentMatchScore = 15;
                 if (m.result && m.result.includes('-')) {
-                    // Sjekker om parseScore er tilgjengelig, og regner ut seier/tap/nullen
                     if (typeof parseScore === 'function') {
                         const score = parseScore(m.result);
                         if (score) {
@@ -3082,10 +3081,19 @@ window.renderBench = function() {
         });
         
         const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-        let bonusColor = kampbonus > 15 ? 'text-emerald-500' : (kampbonus < 10 && kampbonus > 0 ? 'text-rose-500' : 'text-slate-400');
-        const bonusIkon = kampbonus > 0 ? '<i class="fa-solid fa-fire text-amber-500 mr-0.5"></i>' : '';
+        // NYTT: Ekte trafikklys for kampsnittet
+        let bonusColor = 'text-slate-400'; // Standard grå for de som ikke har spilt
+        if (kampbonus > 15) {
+            bonusColor = 'text-emerald-500'; // Grønn
+        } else if (kampbonus >= 10) {
+            bonusColor = 'text-amber-500'; // Gul
+        } else if (kampbonus > 0) {
+            bonusColor = 'text-rose-500'; // Rød
+        }
+        
+        const bonusTekst = kamper > 0 ? kampbonus : '-';
 
-        // 3. Render Spillerkortet
+        // 3. Render Spillerkortet (Nå uten flammeikon)
         const div = document.createElement('div');
         div.className = "flex justify-between items-center bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl shadow-sm";
         div.innerHTML = `
@@ -3094,7 +3102,7 @@ window.renderBench = function() {
             </div>
             <div class="flex items-center gap-3 shrink-0 ml-2">
                 <span class="font-bold text-[11px] ${bonusColor}" title="Kampbonus (Form)">
-                    ${bonusIkon}${kampbonus > 0 ? kampbonus : '-'}
+                    ${kampbonus > 0 ? kampbonus : '-'}
                 </span>
                 <div class="w-px h-3 bg-slate-300"></div>
                 <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
@@ -3412,7 +3420,17 @@ window.renderBench = function() {
                     chemColor = 'text-slate-400'; // GRÅ (0% / mangler data)
                 }
 
-                let bonusColor = stat.kampbonus > 15 ? 'text-emerald-500' : (stat.kampbonus < 10 ? 'text-rose-500' : 'text-slate-400');
+                // Beholder fargekodingen med trafikklys!
+                let bonusColor = 'text-slate-400';
+                if (stat.kampbonus > 15) {
+                    bonusColor = 'text-emerald-500';
+                } else if (stat.kampbonus >= 10) {
+                    bonusColor = 'text-amber-500';
+                } else if (stat.kampbonus > 0) {
+                    bonusColor = 'text-rose-500';
+                }
+                
+                let bonusTekst = stat.kamper > 0 ? stat.kampbonus.toFixed(1) : '-';
                 let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-orange-600 bg-orange-100 animate-pulse' : 'text-yellow-500 bg-yellow-50') : 'text-slate-300';
 
                 return `
@@ -3421,7 +3439,7 @@ window.renderBench = function() {
                         <td class="p-4 text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
                         <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
                         <td class="p-4 text-center font-black text-amber-500">${stat.mal > 0 ? stat.mal : '-'}</td>
-                        <td class="p-4 text-center font-black ${bonusColor}">${stat.kampbonus}</td>
+                        <td class="p-4 text-center font-black ${bonusColor}">${bonusTekst}</td>
                         <td class="p-4 text-center font-black ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
                         <td class="p-4 text-center font-black ${stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300'}">${stat.rode > 0 ? stat.rode : '-'}</td>
                         <td class="p-4 text-center text-base font-black ${chemColor}">${stat.kjemi}% ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
