@@ -508,10 +508,16 @@
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6">
-                <div class="mb-2 flex justify-between items-end px-4 lg:px-0">
+                <div class="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 lg:px-0">
                     <div>
-                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Taktikk & Kjemi</h2>
-                    <p class="text-xs text-slate-500 font-medium mt-1">4-2-4 Formasjon - Optimalisert på felles oppmøte</p>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Taktikk &amp; Kampstrategi</h2>
+                    <p class="text-xs text-slate-500 font-medium mt-1">Planlegg formasjon, kampsquad og dødballroller per kamp</p>
+                    </div>
+                        <div class="w-full sm:w-auto">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Velg Kamp å planlegge for</label>
+                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="w-full sm:w-64 bg-white border-2 border-slate-200 rounded-xl px-3 py-2.5 text-xs font-black text-bsk-blue outline-none focus:ring-2 focus:ring-bsk-blue shadow-sm">
+                        <option value="">-- VELG KAMP FRA TERMINLISTE --</option>
+                        </select>
                     </div>
                 </div>
 
@@ -539,56 +545,84 @@
                 <div class="px-4 lg:px-0 pb-12">
                     <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
         
-                    <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
+                        <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
         
-                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
-                    <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
-                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
+                        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
 
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
-                    <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
+                        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
 
-                    <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
+                        <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
                         </svg>
 
-<div id="node-GK" class="player-node absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('GK')">
-    <span class="text-[10px] font-bold">GK</span>
-</div>
-<div id="node-VMS" class="player-node absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VMS')">
-    <span class="text-[10px] font-bold">VMS</span>
-</div>
-<div id="node-HMS" class="player-node absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HMS')">
-    <span class="text-[10px] font-bold">HMS</span>
-</div>
-<div id="node-VB" class="player-node absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VB')">
-    <span class="text-[10px] font-bold">VB</span>
-</div>
-<div id="node-HB" class="player-node absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HB')">
-    <span class="text-[10px] font-bold">HB</span>
-</div>
-<div id="node-DM" class="player-node absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('DM')">
-    <span class="text-[10px] font-bold">DM</span>
-</div>
-<div id="node-OM" class="player-node absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('OM')">
-    <span class="text-[10px] font-bold">OM</span>
-</div>
-<div id="node-PM" class="player-node absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('PM')">
-    <span class="text-[10px] font-bold">PM</span>
-</div>
-<div id="node-VK" class="player-node absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VK')">
-    <span class="text-[10px] font-bold">VK</span>
-</div>
-<div id="node-HK" class="player-node absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HK')">
-    <span class="text-[10px] font-bold">HK</span>
-</div>
-<div id="node-SP" class="player-node absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('SP')">
-    <span class="text-[10px] font-bold">SP</span>
-</div>
-    </div>
-</div>
-</div>
+                        <div id="node-GK" class="player-node absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('GK')">
+                            <span class="text-[10px] font-bold">GK</span>
+                        </div>
+                        <div id="node-VMS" class="player-node absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VMS')">
+                            <span class="text-[10px] font-bold">VMS</span>
+                        </div>
+                        <div id="node-HMS" class="player-node absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HMS')">
+                            <span class="text-[10px] font-bold">HMS</span>
+                        </div>
+                        <div id="node-VB" class="player-node absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VB')">
+                            <span class="text-[10px] font-bold">VB</span>
+                        </div>
+                        <div id="node-HB" class="player-node absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HB')">
+                            <span class="text-[10px] font-bold">HB</span>
+                        </div>
+                        <div id="node-DM" class="player-node absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('DM')">
+                            <span class="text-[10px] font-bold">DM</span>
+                        </div>
+                        <div id="node-OM" class="player-node absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('OM')">
+                            <span class="text-[10px] font-bold">OM</span>
+                        </div>
+                        <div id="node-PM" class="player-node absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('PM')">
+                            <span class="text-[10px] font-bold">PM</span>
+                        </div>
+                        <div id="node-VK" class="player-node absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VK')">
+                            <span class="text-[10px] font-bold">VK</span>
+                        </div>
+                        <div id="node-HK" class="player-node absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HK')">
+                            <span class="text-[10px] font-bold">HK</span>
+                        </div>
+                        <div id="node-SP" class="player-node absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('SP')">
+                            <span class="text-[10px] font-bold">SP</span>
+                        </div>
+                    </div>
+
+                    <div id="tactical-roles-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-bsk-blue"></i> Dødballtakere &amp; Lederroller
+                            </h3>
+                            <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Lagres på kampen</span>
+                        </div>
+                            
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium text-slate-700">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Lagkaptein ⚓</label>
+                                <select id="role-captain" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>                                
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Straffespark 🎯</label>
+                                <select id="role-penalty" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Frispark-spesialist 🚀</label>
+                                <select id="role-freekick" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cornere (Høyre / Venstre) 📐</label>
+                                <select id="role-corners" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                        </div>
+                    </div>        
+                </div>
+            </div>
             
             <div id="view-admin" class="hidden space-y-6">
                 <div id="admin-gate" class="bg-white border border-slate-200 rounded-2xl p-8 max-w-md mx-auto text-center shadow-md">
@@ -1616,8 +1650,9 @@ if (tabId === 'kamper') {
     } else if (tabId === 'hjem') {
         updateDashboard();
     } else if (tabId === 'taktikk') {
-        // Tving tavlen til å starte i Fase 1 hver gang fanen åpnes!
         setTacticalPhase('fase1');
+        // NYTT: Fyll opp kampvelgeren når vi åpner taktikksiden
+        if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
     }
 }
 
@@ -3576,6 +3611,160 @@ function closePlayerSelect() {
     currentSelectPos = null;
 }
 
+// 1. Fyller kamp-dropdownen på taktikksiden med kamper fra databasen
+window.updateTacticalMatchSelector = function() {
+    const select = document.getElementById('tacticalMatchSelect');
+    if (!select) return;
+    
+    const currentSelectedValue = select.value;
+    select.innerHTML = '<option value="">-- VELG KAMP FRA TERMINLISTE --</option>';
+    
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    // Sorterer slik at de nærmeste kommende kampene ligger øverst
+    const sortedMatches = [...matches].sort((a,b) => a.date.localeCompare(b.date));
+    
+    sortedMatches.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        const formattedDate = new Date(m.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'});
+        opt.innerText = `${formattedDate} - vs ${m.opponent} (${m.matchGroup || 'A-lag'})`;
+        select.appendChild(opt);
+    });
+    
+    if (currentSelectedValue) select.value = currentSelectedValue;
+};
+
+// 2. Henter lagret formasjon og roller for en spesifikk kamp fra databasen
+window.loadMatchTactics = function() {
+    const matchId = document.getElementById('tacticalMatchSelect').value;
+    const rolesCard = document.getElementById('tactical-roles-card');
+    
+    if (!matchId) {
+        if (rolesCard) rolesCard.classList.add('hidden');
+        clearTacticalBoard();
+        return;
+    }
+    
+    if (rolesCard) rolesCard.classList.remove('hidden');
+    
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+    
+    // Tømmer tavla før vi laster inn kampens unike oppsett
+    window.tacticalLineup = {};
+    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
+    
+    // Hvis kampen har en lagret tropp/lagoppstilling, bruk den, ellers start med blank bane
+    const savedLineup = match.lineup || {};
+    positions.forEach(pos => {
+        window.tacticalLineup[pos] = savedLineup[pos] || null;
+    });
+    
+    // Fyll opp dropdown-valgene for roller med ALLE aktive spillere i troppen din
+    const roles = ['captain', 'penalty', 'freekick', 'corners'];
+    const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
+    const sortedPlayers = players.sort((a,b) => a.navn.localeCompare(b.navn));
+    
+    roles.forEach(roleId => {
+        const roleSelect = document.getElementById(`role-${roleId}`);
+        if (roleSelect) {
+            roleSelect.innerHTML = '<option value="">-- Velg spiller --</option>';
+            sortedPlayers.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.navn;
+                opt.innerText = p.navn;
+                roleSelect.appendChild(opt);
+            });
+            // Sett lagret verdi hvis den finnes på kamp-objektet
+            roleSelect.value = match.roles ? (match.roles[roleId] || "") : "";
+        }
+    });
+    
+    // Tving frem visuell oppdatering av alle rundingene og strekene på banen
+    positions.forEach(pos => {
+        const playerObj = window.tacticalLineup[pos];
+        // Vi kjører en spesialvariant av uttegningen for å unngå modal-stenging
+        renderNodeVisually(playerObj, pos);
+    });
+};
+
+// 3. Lagrer lagoppstilling og tildelte roller på kampobjektet i Firebase
+window.saveMatchTactics = function() {
+    const matchId = document.getElementById('tacticalMatchSelect').value;
+    if (!matchId) return;
+    
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+    
+    // Hent ut valgte verdier fra dødball-panelet
+    const rolesMap = {
+        captain: document.getElementById('role-captain').value,
+        penalty: document.getElementById('role-penalty').value,
+        freekick: document.getElementById('role-freekick').value,
+        corners: document.getElementById('role-corners').value
+    };
+    
+    // Legg alt inn på kamp-objektet
+    match.lineup = window.tacticalLineup;
+    match.roles = rolesMap;
+    
+    // Send direkte til Firebase/LocalStorage via den eksisterende motoren din!
+    if (typeof window.saveMatchToDatabase === 'function') {
+        window.saveMatchToDatabase(match);
+    }
+    
+    // Tegn om nodene på banen for å umiddelbart vise nye roller (som f.eks kapteinsbind)
+    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
+    positions.forEach(pos => renderNodeVisually(window.tacticalLineup[pos], pos));
+};
+
+// Hjelpefunksjon: Oppdaterer grafikken til en enkelt runding på banen basert på kamp-roller
+function renderNodeVisually(playerObj, posId) {
+    const node = document.getElementById('node-' + posId);
+    if (!node) return;
+    
+    node.className = "player-node absolute -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer transition-all duration-500 hover:scale-110";
+    
+    if (playerObj === null) {
+        node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
+        node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-2', 'border-bsk-yellow/60');
+    } else {
+        const initials = playerObj.navn.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+        const displayName = playerObj.draktnummer ? playerObj.draktnummer : initials;
+        const firstName = playerObj.navn.split(' ')[0];
+        const playerChem = calculatePlayerPerformanceChemistry(playerObj.navn);
+        
+        // Sjekk om denne spesifikke spilleren har fått tildelt roller for AKKURAT DENNE kampen
+        const capValue = document.getElementById('role-captain') ? document.getElementById('role-captain').value : '';
+        const penValue = document.getElementById('role-penalty') ? document.getElementById('role-penalty').value : '';
+        const fkValue = document.getElementById('role-freekick') ? document.getElementById('role-freekick').value : '';
+        const cornValue = document.getElementById('role-corners') ? document.getElementById('role-corners').value : '';
+        
+        let badgesHtml = '<div class="absolute -top-2 flex gap-0.5 justify-center z-20 pointer-events-none">';
+        if (capValue === playerObj.navn) badgesHtml += `<span class="bg-amber-400 text-bsk-blue text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Kaptein">C</span>`;
+        if (penValue === playerObj.navn) badgesHtml += `<span class="bg-emerald-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Straffer">P</span>`;
+        if (fkValue === playerObj.navn) badgesHtml += `<span class="bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Frispark">F</span>`;
+        if (cornValue === playerObj.navn) badgesHtml += `<span class="bg-purple-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Cornere">📐</span>`;
+        badgesHtml += '</div>';
+
+        let borderClass = 'border-rose-500';
+        let chemTextColor = 'text-rose-400';
+        if (playerChem >= 80) { borderClass = 'border-emerald-500'; chemTextColor = 'text-emerald-400'; }
+        else if (playerChem >= 60) { borderClass = 'border-yellow-500'; chemTextColor = 'text-yellow-400'; }
+        else if (playerChem >= 40) { borderClass = 'border-orange-500'; chemTextColor = 'text-orange-400'; }
+
+        node.innerHTML = `
+            ${badgesHtml}
+            <span class="text-[12px] font-black tracking-tight z-10">${displayName}</span>
+            <div class="absolute -bottom-7 flex flex-col items-center pointer-events-none z-10">
+                <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${firstName}</span>
+                <span class="text-[8px] font-black tracking-wide ${chemTextColor} drop-shadow-sm mt-0.5">${playerChem}% CHM</span>
+            </div>
+        `;
+        node.classList.add('w-10', 'h-10', 'bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);
+    }
+}
+        
 function choosePlayer(playerObj, posId) {
     window.tacticalLineup[posId] = playerObj;
     const node = document.getElementById('node-' + posId);
@@ -3619,6 +3808,10 @@ function choosePlayer(playerObj, posId) {
     
     // Oppdater kjemistrekene hver gang en spiller plasseres
     drawChemistryLines();
+    // NYTT: Hvis en kamp er aktiv, lagrer vi det nye oppsettet umiddelbart!
+    if (document.getElementById('tacticalMatchSelect') && document.getElementById('tacticalMatchSelect').value) {
+        saveMatchTactics();
+    }
     closePlayerSelect();
 }
 
@@ -3675,6 +3868,10 @@ function autoFillTeam() {
             availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
         }
     });
+    // NYTT: Lagre automatisk etter at autofullfør har plassert troppen
+    if (document.getElementById('tacticalMatchSelect') && document.getElementById('tacticalMatchSelect').value) {
+        saveMatchTactics();
+    }
 }
 
         function calculatePlayerPerformanceChemistry(playerName) {
