@@ -2867,11 +2867,15 @@
                     
                     if (node1 && node2 && node1.style.top && node2.style.top) {
                         let strokeWidth = 3; 
-                        let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (< 40%)
-                        if (chemScore >= 80) strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN
-                        else if (chemScore >= 60) strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL
-                        else if (chemScore >= 40) strokeColor = 'rgba(251, 146, 60, 0.9)'; // ORANSJE
-                        else if (chemScore === 0) { strokeColor = 'rgba(255, 255, 255, 0.25)'; strokeWidth = 1.5; }
+                        let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (< 50%)               
+                        if (chemScore >= 75) {
+                            strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
+                        } else if (chemScore >= 50) {
+                            strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
+                        } else if (chemScore === 0) { 
+                            strokeColor = 'rgba(255, 255, 255, 0.25)'; // HVIT STIPLET
+                            strokeWidth = 1.5; 
+                        }
 
                         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                         line.setAttribute('x1', parseFloat(node1.style.left) + '%'); line.setAttribute('y1', parseFloat(node1.style.top) + '%');
@@ -3004,18 +3008,24 @@
                 }
                 badgesHtml += '</div>';
 
-                let borderClass = 'border-rose-500', chemTextColor = 'text-rose-400';
-                if (playerChem >= 80) { borderClass = 'border-emerald-500'; chemTextColor = 'text-emerald-400'; }
-                else if (playerChem >= 60) { borderClass = 'border-yellow-500'; chemTextColor = 'text-yellow-400'; }
-                else if (playerChem >= 40) { borderClass = 'border-orange-500'; chemTextColor = 'text-orange-400'; }
+                // Beregn trafikklys-fargen for kanten (Tre farger)
+                let borderClass = 'border-rose-500';
+                let chemTextColor = 'text-rose-400';
+                
+                if (playerChem >= 75) { 
+                    borderClass = 'border-emerald-500'; 
+                    chemTextColor = 'text-emerald-400'; 
+                } else if (playerChem >= 50) { 
+                    borderClass = 'border-yellow-500'; 
+                    chemTextColor = 'text-yellow-400'; 
+                }
 
                 node.innerHTML = `
                     ${badgesHtml}
                     <span class="text-[12px] font-black tracking-tight z-10">${displayName}</span>
-                    <div class="absolute -bottom-7 flex flex-col items-center pointer-events-none z-10">
-                        <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${firstName}</span>
-                        <span class="text-[8px] font-black tracking-wide ${chemTextColor} drop-shadow-sm mt-0.5">${playerChem}% CHM</span>
-                    </div>
+                <div class="absolute -bottom-5 flex flex-col items-center pointer-events-none z-10">
+                    <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${firstName}</span>
+                </div>
                 `;
                 node.classList.add('bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);
             }
