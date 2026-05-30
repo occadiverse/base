@@ -3270,8 +3270,19 @@
             });
 
             tableBody.innerHTML = statsData.map(stat => {
-                const isStarPlayer = stat.kjemi >= 70;
-                let chemColor = isStarPlayer ? 'text-emerald-700' : (stat.kjemi >= 50 ? 'text-emerald-500' : 'text-rose-500');
+                
+                // NY KONSISTENT FARGEKODING FOR KJEMI (75 / 50 / 0)
+                const isStarPlayer = stat.kjemi >= 75; // Stjernen dukker opp ved "Grønn"
+                let chemColor = 'text-rose-500'; // Standard RØD (1 - 49%)
+                
+                if (stat.kjemi >= 75) { 
+                    chemColor = 'text-emerald-500'; // GRØNN
+                } else if (stat.kjemi >= 50) { 
+                    chemColor = 'text-amber-500'; // GUL
+                } else if (stat.kjemi === 0) {
+                    chemColor = 'text-slate-400'; // GRÅ (0% / mangler data)
+                }
+
                 let bonusColor = stat.kampbonus > 15 ? 'text-emerald-500' : (stat.kampbonus < 10 ? 'text-rose-500' : 'text-slate-400');
                 let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-orange-600 bg-orange-100 animate-pulse' : 'text-yellow-500 bg-yellow-50') : 'text-slate-300';
 
