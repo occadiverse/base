@@ -3604,11 +3604,14 @@ window.renderBench = function() {
         
         let bonusTekst = stat.kamper > 0 ? stat.kampbonus.toFixed(1) : '-';
         
-        // Fikset fargekoding for Mål, Gule og Røde kort (Fjernet gul tekst og bakgrunn)
+        // Fikset fargekoding for Mål, Gule og Røde kort 
         let malFarge = stat.mal > 0 ? 'text-slate-800' : 'text-slate-300';
-        let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-rose-600 bg-rose-50 animate-pulse' : 'text-slate-800') : 'text-slate-300';
+        
+        // Endret pulsering fra rød til gul (og fjernet bakgrunnsfarge)
+        let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse' : 'text-slate-800') : 'text-slate-300';
         let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300';
 
+        // Fjernet text-base fra Kjemi for å gjøre størrelsen lik resten
         return `
             <tr class="hover:bg-slate-50 transition-colors">
                 <td class="p-4"><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
@@ -3618,11 +3621,10 @@ window.renderBench = function() {
                 <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
                 <td class="p-4 text-center font-bold ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
                 <td class="p-4 text-center font-bold ${rodFarge}">${stat.rode > 0 ? stat.rode : '-'}</td>
-                <td class="p-4 text-center text-base font-bold ${chemColor}">${stat.kjemi}% ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
+                <td class="p-4 text-center font-bold ${chemColor}">${stat.kjemi}% ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
             </tr>`;
     }).join('');
 }
-
         setTimeout(() => {
             updateDynamicSelectors(); applyFilters(); updateDashboard(); renderPlayerRoster();
             recalculateOppmoteAndKjemi(); renderCalendar(); switchTab('hjem');
