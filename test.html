@@ -3196,7 +3196,13 @@ window.renderBench = function() {
         node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
         node.classList.add('bg-bsk-blue', 'text-white', 'border-2', 'border-bsk-yellow/60');
     } else {
-        const firstName = playerObj.navn.split(' ')[0];
+        // Henter fornavn og legger til initialen fra etternavnet (uten punktum) hvis det finnes
+        const nameParts = playerObj.navn.split(' ');
+        let displayBottomName = nameParts[0];
+        if (nameParts.length > 1) {
+            displayBottomName += ' ' + nameParts[nameParts.length - 1].charAt(0);
+        }
+
         const playerChem = calculatePlayerPerformanceChemistry(playerObj.navn);
         
         // 1. BEREGN KAMPBONUS (Form i midten av rundingen)
@@ -3265,7 +3271,7 @@ window.renderBench = function() {
             ${badgesHtml}
             <span class="text-[14px] font-black tracking-tight z-10 ${bonusTextColor}" title="Kampbonus (Form)">${bonusTekst}</span>
             <div class="absolute -bottom-5 flex flex-col items-center pointer-events-none z-10">
-                <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${firstName}</span>
+                <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
             </div>
         `;
         node.classList.add('bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);
