@@ -3326,13 +3326,75 @@ window.renderBench = function() {
                     }
                 }
 
+                // 1. Beregn Kjemi
+                const playerChem = calculatePlayerPerformanceChemistry(p.navn);
+                let chemColor = 'text-rose-500'; 
+                if (playerChem >= 75) chemColor = 'text-emerald-500';
+                else if (playerChem >= 50) chemColor = 'text-amber-500';
+                else if (playerChem === 0) chemColor = 'text-slate-400';
+
+                // 2. Beregn Kampbonus (Form)
+                let kamper = 0;
+                let totalMatchPoints = 0;
+                (window.activeMatches || []).forEach(m => {
+                    if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
+                        kamper++;
+                        let currentMatchScore = 15;
+                        if (m.result && m.result.includes('-')) {
+                            if (typeof parseScore === 'function') {
+                                const score = parseScore(m.result);
+                                if (score) {
+                                    if (score.bsk > score.opponent) currentMatchScore += 5;
+                                    else if (score.bsk === score.opponent) currentMatchScore += 2;
+                                    else currentMatchScore -= 2;
+                                    if (score.opponent === 0) currentMatchScore += 3;
+                                }
+                            }
+                        }
+                        if (m.ratings && m.ratings[p.navn]) {
+                            currentMatchScore += (m.ratings[p.navn] - 5) * 6;
+                        }
+                        totalMatchPoints += currentMatchScore;
+                    }
+                });
+                
+                const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+                
+                // Trafikklys for kampbonus
+                let bonusColor = 'text-slate-400';
+                if (kampbonus > 15) bonusColor = 'text-emerald-500';
+                else if (kampbonus >= 10) bonusColor = 'text-amber-500';
+                else if (kampbonus > 0) bonusColor = 'text-rose-500';
+                
+                const bonusTekst = kamper > 0 ? kampbonus : '-';
+
                 const div = document.createElement('div');
                 div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
                 div.onclick = () => {
                     if (trengerBekreftelse && !confirm(`${p.navn} er ikke bekreftet til denne kampen. Vil du sette ham på banen likevel?`)) return;
                     if (!isPlaying) choosePlayer(p, posId); else alert(`${p.navn} er allerede plassert!`);
                 };
-                div.innerHTML = `<div><div class="flex items-center"><p class="font-bold text-slate-800 text-sm">${p.navn}</p>${attStatusHtml}</div><p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p></div>${isPlaying ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}`;
+                
+                // Ny HTML-struktur som inkluderer stats før pluss-tegnet
+                div.innerHTML = `
+                    <div class="flex-1 min-w-0 pr-2">
+                        <div class="flex items-center">
+                            <p class="font-bold text-slate-800 text-sm truncate">${p.navn}</p>
+                            ${attStatusHtml}
+                        </div>
+                        <p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 shrink-0 mr-3">
+                        <span class="font-black text-xs ${bonusColor}" title="Kampbonus (Form)">${bonusTekst}</span>
+                        <div class="w-px h-3 bg-slate-300"></div>
+                        <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
+                    </div>
+
+                    <div class="shrink-0">
+                        ${isPlaying ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}
+                    </div>
+                `;
                 list.appendChild(div);
             });
 
