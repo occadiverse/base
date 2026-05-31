@@ -961,13 +961,6 @@
                     </select>
                 </div>
 
-                <div class="flex items-center gap-2 pt-2 bg-slate-50 p-3 rounded-xl border border-slate-200 mt-4 mb-4">
-                    <input type="checkbox" id="playerIsCaptainInput" class="w-4 h-4 text-bsk-blue border-slate-300 rounded focus:ring-bsk-blue cursor-pointer">
-                    <label for="playerIsCaptainInput" class="text-xs font-bold text-slate-700 uppercase cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-id-badge text-bsk-blue"></i> Lagets Kaptein / Leder ⚓
-                    </label>
-                </div>
-
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
                     <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
                         LAGRE SPILLER
@@ -1997,7 +1990,6 @@
                     document.getElementById('playerPos1Input').value = pObj.pos1;
                     document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
                     document.getElementById('playerFootInput').value = pObj.fot || 'Høyre';
-                    document.getElementById('playerIsCaptainInput').checked = pObj.isCaptain || false;
                 }
             } else {
                 document.getElementById('playerFormTitle').innerHTML = `<i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Ny Spiller`;
@@ -2069,8 +2061,7 @@
                 spillerLag: document.getElementById('playerTeamInput').value,
                 pos1: document.getElementById('playerPos1Input').value,
                 pos2: document.getElementById('playerPos2Input').value,
-                fot: document.getElementById('playerFootInput').value,
-                isCaptain: document.getElementById('playerIsCaptainInput').checked
+                fot: document.getElementById('playerFootInput').value
             };
             await window.savePlayerToDatabase(playerData);
             window.closePlayerModal();
