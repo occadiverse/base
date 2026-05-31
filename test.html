@@ -3305,17 +3305,26 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             else bonusTextColor = 'text-rose-400'; // Rød/Dårlig form
         }
 
-        const capValue = document.getElementById('role-captain') ? document.getElementById('role-captain').value : '';
-        const penValue = document.getElementById('role-penalty') ? document.getElementById('role-penalty').value : '';
-        const fkValue = document.getElementById('role-freekick') ? document.getElementById('role-freekick').value : '';
-        const cornValue = document.getElementById('role-corners') ? document.getElementById('role-corners').value : '';
-        
+        // --- NYTT: Sjekk om vi er i sandkassen ---
+        const matchSelect = document.getElementById('tacticalMatchSelect');
+        const isSandbox = !matchSelect || matchSelect.value === '';
+
         let badgesHtml = '<div class="absolute -top-2 flex gap-0.5 justify-center z-20 pointer-events-none">';
-        if (capValue === playerObj.navn || (!capValue && playerObj.isCaptain)) badgesHtml += `<span class="bg-amber-400 text-bsk-blue text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Kaptein">C</span>`;
-        if (penValue === playerObj.navn) badgesHtml += `<span class="bg-emerald-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Straffer">P</span>`;
-        if (fkValue === playerObj.navn) badgesHtml += `<span class="bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Frispark">F</span>`;
-        if (cornValue === playerObj.navn) badgesHtml += `<span class="bg-purple-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Cornere">📐</span>`;
         
+        // Viser bare kaptein, straffe, frispark og corner hvis det ER en spesifikk kamp
+        if (!isSandbox) {
+            const capValue = document.getElementById('role-captain') ? document.getElementById('role-captain').value : '';
+            const penValue = document.getElementById('role-penalty') ? document.getElementById('role-penalty').value : '';
+            const fkValue = document.getElementById('role-freekick') ? document.getElementById('role-freekick').value : '';
+            const cornValue = document.getElementById('role-corners') ? document.getElementById('role-corners').value : '';
+            
+            if (capValue === playerObj.navn || (!capValue && playerObj.isCaptain)) badgesHtml += `<span class="bg-amber-400 text-bsk-blue text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Kaptein">C</span>`;
+            if (penValue === playerObj.navn) badgesHtml += `<span class="bg-emerald-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Straffer">P</span>`;
+            if (fkValue === playerObj.navn) badgesHtml += `<span class="bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Frispark">F</span>`;
+            if (cornValue === playerObj.navn) badgesHtml += `<span class="bg-purple-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Cornere">📐</span>`;
+        }
+
+        // Viser advarsler (gule/røde kort osv.) uavhengig om det er sandkasse eller kamp
         let totalYellowCards = 0;
         (window.activeMatches || []).forEach(m => { if (m.guleKort && m.guleKort.includes(playerObj.navn)) totalYellowCards++; });
         if (totalYellowCards > 0 && totalYellowCards % 4 === 3) {
