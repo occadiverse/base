@@ -544,7 +544,18 @@
 
                 <div class="px-4 lg:px-0 pb-12">
                     <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
-        
+
+                        <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-6 z-30 pointer-events-none">
+                            <div class="bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 text-center">
+                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider">Total Bonus</span>
+                                <span id="stat-total-bonus" class="text-xs font-black text-white">0</span>
+                            </div>
+                            <div class="bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 text-center">
+                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider">Snitt Kjemi</span>
+                                <span id="stat-avg-chem" class="text-xs font-black text-white">0%</span>
+                            </div>
+                        </div>
+                        
                         <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
                         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
         
@@ -3204,6 +3215,7 @@ window.renderBench = function() {
             window.tacticalLineup[posId] = playerObj;
             renderNodeVisually(playerObj, posId);
             drawChemistryLines();
+            window.updateTacticalBoardStats();
             closePlayerSelect();
 
             if (document.getElementById('tacticalMatchSelect') && document.getElementById('tacticalMatchSelect').value) {
@@ -3276,6 +3288,7 @@ window.renderBench = function() {
         window.clearTacticalBoard = function() {
             window.tacticalLineup = {};
             ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'].forEach(pos => choosePlayer(null, pos));
+            window.updateTacticalBoardStats();
         }
 
         window.autoFillTeam = function() {
@@ -3484,6 +3497,41 @@ window.renderBench = function() {
             recalculateOppmoteAndKjemi(); renderCalendar(); switchTab('hjem');
         }, 300);
 
+window.updateTacticalBoardStats = function() {
+    const totalBonusEl = document.getElementById('stat-total-bonus');
+    const avgChemEl = document.getElementById('stat-avg-chem');
+    
+    let totalBonus = 0;
+    let totalChem = 0;
+    let count = 0;
+    
+    // Gå gjennom spillerne som er satt i tacticalLineup
+    Object.values(window.tacticalLineup).forEach(playerObj => {
+        if (playerObj && playerObj.navn) {
+            count++;
+            
+            // 1. Beregn Bonus (samme logikk som på benken)
+            let kamper = 0;
+            let totalMatchPoints = 0;
+            (window.activeMatches || []).forEach(m => {
+                if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
+                    kamper++;
+                    let currentMatchScore = 15;
+                    if (m.ratings && m.ratings[playerObj.navn]) currentMatchScore += (m.ratings[playerObj.navn] - 5) * 6;
+                    totalMatchPoints += currentMatchScore;
+                }
+            });
+            totalBonus += kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+            
+            // 2. Beregn Kjemi
+            totalChem += calculatePlayerPerformanceChemistry(playerObj.navn);
+        }
+    });
+    
+    if (totalBonusEl) totalBonusEl.innerText = count > 0 ? totalBonus : '0';
+    if (avgChemEl) avgChemEl.innerText = count > 0 ? Math.round(totalChem / count) + '%' : '0%';
+};
+        
     </script>
 </body>
 </html>
