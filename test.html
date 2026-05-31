@@ -2179,54 +2179,54 @@
         }
 
         window.renderPlayerRowForm = function(match) {
-    const formList = document.getElementById('playerRatingFormList');
-    formList.innerHTML = '';
-    const sortedPlayers = [...(window.activePlayers || [])].sort((a, b) => a.navn.localeCompare(b.navn));
-
-    sortedPlayers.forEach(playerObj => {
-        const player = playerObj.navn;
-        const prevGoals = match.scorers ? (match.scorers[player] || 0) : 0;
-        const prevRating = match.ratings ? (match.ratings[player] || 0) : 0;
+            const formList = document.getElementById('playerRatingFormList');
+            formList.innerHTML = '';
+            
+            // NYTT: Filtrerer bort 'Passiv' her også, slik at listen blir ryddig
+            const sortedPlayers = [...(window.activePlayers || [])]
+                .filter(p => p.status !== 'Passiv')
+                .sort((a, b) => a.navn.localeCompare(b.navn));
         
-        // Sjekker om spilleren allerede har registrerte kort i denne kampen
-        const hasYellow = match.guleKort && match.guleKort.includes(player);
-        const hasRed = match.rodeKort && match.rodeKort.includes(player);
-
-        const div = document.createElement('div');
-        div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
-        div.innerHTML = `
-            <span class="font-bold text-slate-800 text-xs">${player}</span>
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            sortedPlayers.forEach(playerObj => {
+                const player = playerObj.navn;
+                const prevGoals = match.scorers ? (match.scorers[player] || 0) : 0;
+                const prevRating = match.ratings ? (match.ratings[player] || 0) : 0;
                 
-                <!-- Mål -->
-                <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Mål:</span>
-                    <button type="button" onclick="changeCount(this, -1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">-</button>
-                    <span class="w-5 text-center font-extrabold text-slate-800 text-xs text-goal-val">${prevGoals}</span>
-                    <input type="hidden" class="player-goals-input" data-player="${player}" value="${prevGoals}">
-                    <button type="button" onclick="changeCount(this, 1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">+</button>
-                </div>
-                
-                <!-- Børs -->
-                <div class="flex items-center space-x-1 ml-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Børs:</span>
-                    <select class="player-rating-select bg-slate-100 border border-slate-200 text-xs font-bold rounded-lg px-2 py-1 outline-none text-slate-800" data-player="${player}">
-                        <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
-                        ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
-                    </select>
-                </div>
-
-                <!-- Disiplin (Kort) -->
-                <div class="flex items-center space-x-1 border-l border-slate-200 pl-2 ml-1">
-                    <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-400 hover:border-yellow-200'}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
-                    <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                </div>
-
-            </div>
-        `;
-        formList.appendChild(div);
-    });
-}
+                const hasYellow = match.guleKort && match.guleKort.includes(player);
+                const hasRed = match.rodeKort && match.rodeKort.includes(player);
+        
+                const div = document.createElement('div');
+                div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
+                div.innerHTML = `
+                    <span class="font-bold text-slate-800 text-xs">${player}</span>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        
+                        <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
+                            <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Mål:</span>
+                            <button type="button" onclick="changeCount(this, -1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">-</button>
+                            <span class="w-5 text-center font-extrabold text-slate-800 text-xs text-goal-val">${prevGoals}</span>
+                            <input type="hidden" class="player-goals-input" data-player="${player}" value="${prevGoals}">
+                            <button type="button" onclick="changeCount(this, 1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">+</button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1 ml-1">
+                            <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Børs:</span>
+                            <select class="player-rating-select bg-slate-100 border border-slate-200 text-xs font-bold rounded-lg px-2 py-1 outline-none text-slate-800" data-player="${player}">
+                                <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
+                                ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
+                            </select>
+                        </div>
+        
+                        <div class="flex items-center space-x-1 border-l border-slate-200 pl-2 ml-1">
+                            <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-400 hover:border-yellow-200'}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
+                            <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
+                        </div>
+        
+                    </div>
+                `;
+                formList.appendChild(div);
+            });
+        }
 
         window.changeCount = function(btn, amount) {
             const container = btn.parentElement;
@@ -2345,19 +2345,21 @@
                 ev = (window.activeEvents || []).find(e => e.id === eventId);
             }
             if (!ev) return;
-
+        
             document.getElementById('attendanceModalTitle').innerText = ev.title || ("Kamp mot " + ev.opponent);
             document.getElementById('attendanceModalSub').innerText = `${ev.type || 'Kamp'} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
-
+        
             const container = document.getElementById('attendance-players-list');
             container.innerHTML = '';
-
+        
             const teamName = ev.team || ev.matchGroup;
-            let teamPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName);
-            if (teamPlayers.length === 0) teamPlayers = window.activePlayers || [];
-
+            
+            // NYTT: Filtrerer bort alle spillere som har status 'Passiv'
+            let teamPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
+            if (teamPlayers.length === 0) teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+        
             if (teamPlayers.length === 0) {
-                container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen spillere registrert i systemet.</div>`;
+                container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen aktive spillere registrert i systemet.</div>`;
             } else {
                 teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
                     const status = ev.attendance ? ev.attendance[p.navn] : undefined;
