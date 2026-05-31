@@ -3495,50 +3495,75 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         window.autoFillTeam = function() {
-            clearTacticalBoard(); 
-            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
-            const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
-            const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-            const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
+    clearTacticalBoard(); 
+    const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+    const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
+    const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
+    const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
 
-            let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-                if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
-                if (currentMatch && isAttendanceStarted && currentMatch.attendance[p.navn] !== true) return false;
-                return true;
-            });
+    let availablePlayers = [...(window.activePlayers || [])].filter(p => {
+        if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
+        if (currentMatch && isAttendanceStarted && currentMatch.attendance[p.navn] !== true) return false;
+        return true;
+    });
 
-            const priorityOrder = [
-                { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false },
-                { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true },
-                { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true },
-                { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false }, 
-                { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false }, 
-                { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false },         
-                { id: 'SP',  pos: ['Spiss'], foot: null, requireFoot: false },
-                { id: 'VB',  pos: ['Venstre bekk'], foot: null, requireFoot: true },
-                { id: 'HB',  pos: ['Høyre bekk'], foot: null, requireFoot: true },
-                { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: null, requireFoot: false },
-                { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: null, requireFoot: false }
-            ];
+    const priorityOrder = [
+        { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false },
+        { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true },
+        { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true },
+        { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false }, 
+        { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false }, 
+        { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false },         
+        { id: 'SP',  pos: ['Spiss'], foot: null, requireFoot: false },
+        { id: 'VB',  pos: ['Venstre bekk'], foot: null, requireFoot: true },
+        { id: 'HB',  pos: ['Høyre bekk'], foot: null, requireFoot: true },
+        { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: null, requireFoot: false },
+        { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: null, requireFoot: false }
+    ];
 
-            priorityOrder.forEach(req => {
-                let candidates = availablePlayers.filter(p => req.pos.includes(p.pos1) || req.pos.includes(p.pos2));
-                if (candidates.length === 0 && availablePlayers.length > 0) candidates = [...availablePlayers];
-
-                if (candidates.length > 0) {
-                    candidates.sort((a, b) => {
-                        const scoreA = calculatePlayerPerformanceChemistry(a.navn) + (req.requireFoot && req.foot && a.fot === req.foot ? 15 : 0);
-                        const scoreB = calculatePlayerPerformanceChemistry(b.navn) + (req.requireFoot && req.foot && b.fot === req.foot ? 15 : 0);
-                        return scoreB - scoreA; 
-                    });
-                    const selectedPlayer = candidates[0];
-                    choosePlayer(selectedPlayer, req.id);
-                    availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
+    // Hjelpefunksjon for å la tryllestaven beregne formen (kampbonus) til spillerne
+    const getKampbonus = (pObj) => {
+        let kamper = 0; let totalMatchPoints = 0;
+        (window.activeMatches || []).forEach(m => {
+            if (m.matchGroup === pObj.spillerLag && m.attendance && m.attendance[pObj.navn] === true) {
+                kamper++; let currentMatchScore = 15;
+                if (m.result && m.result.includes('-')) {
+                    if (typeof parseScore === 'function') {
+                        const score = parseScore(m.result);
+                        if (score) {
+                            if (score.bsk > score.opponent) currentMatchScore += 5;
+                            else if (score.bsk === score.opponent) currentMatchScore += 2;
+                            else currentMatchScore -= 2;
+                            if (score.opponent === 0) currentMatchScore += 3;
+                        }
+                    }
                 }
-            });
+                if (m.ratings && m.ratings[pObj.navn]) currentMatchScore += (m.ratings[pObj.navn] - 5) * 6;
+                totalMatchPoints += currentMatchScore;
+            }
+        });
+        return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+    };
 
-            if (matchId && typeof window.saveMatchTactics === 'function') window.saveMatchTactics();
-        };
+    priorityOrder.forEach(req => {
+        let candidates = availablePlayers.filter(p => req.pos.includes(p.pos1) || req.pos.includes(p.pos2));
+        if (candidates.length === 0 && availablePlayers.length > 0) candidates = [...availablePlayers];
+
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => {
+                // Legger sammen Kjemi + Kampbonus + Fot-bonus for å finne den beste spilleren
+                const scoreA = calculatePlayerPerformanceChemistry(a.navn) + getKampbonus(a) + (req.requireFoot && req.foot && a.fot === req.foot ? 15 : 0);
+                const scoreB = calculatePlayerPerformanceChemistry(b.navn) + getKampbonus(b) + (req.requireFoot && req.foot && b.fot === req.foot ? 15 : 0);
+                return scoreB - scoreA; 
+            });
+            const selectedPlayer = candidates[0];
+            choosePlayer(selectedPlayer, req.id);
+            availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
+        }
+    });
+
+    if (matchId && typeof window.saveMatchTactics === 'function') window.saveMatchTactics();
+};
 
         window.calculatePlayerPerformanceChemistry = function(playerName) {
             const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
