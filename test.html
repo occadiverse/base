@@ -2957,48 +2957,52 @@
         };
 
         window.loadMatchTactics = function() {
-            const matchId = document.getElementById('tacticalMatchSelect').value;
-            const rolesCard = document.getElementById('tactical-roles-card');
-            const benchCard = document.getElementById('tactical-bench-card'); // <--- NY!
-            
-            if (!matchId) {
-                if (rolesCard) rolesCard.classList.add('hidden');
-                if (benchCard) benchCard.classList.add('hidden'); // <--- NY!
-                clearTacticalBoard();
-                return;
-            }
-            
-            if (rolesCard) rolesCard.classList.remove('hidden');
-            if (benchCard) benchCard.classList.remove('hidden'); // <--- NY!
-            
-            const match = (window.activeMatches || []).find(m => m.id === matchId);
-            if (!match) return;
-            
-            window.tacticalLineup = {};
-            const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
-            const savedLineup = match.lineup || {};
-            positions.forEach(pos => { window.tacticalLineup[pos] = savedLineup[pos] || null; });
-            
-            const roles = ['captain', 'penalty', 'freekick', 'corners'];
-            const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
-            const sortedPlayers = players.sort((a,b) => a.navn.localeCompare(b.navn));
-            
-            roles.forEach(roleId => {
-                const roleSelect = document.getElementById(`role-${roleId}`);
-                if (roleSelect) {
-                    roleSelect.innerHTML = '<option value="">-- Velg spiller --</option>';
-                    sortedPlayers.forEach(p => {
-                        const opt = document.createElement('option'); opt.value = p.navn; opt.innerText = p.navn; roleSelect.appendChild(opt);
-                    });
-                    roleSelect.value = match.roles ? (match.roles[roleId] || "") : "";
-                }
+    const matchId = document.getElementById('tacticalMatchSelect').value;
+    const rolesCard = document.getElementById('tactical-roles-card');
+    const benchCard = document.getElementById('tactical-bench-card');
+    
+    if (!matchId) {
+        if (rolesCard) rolesCard.classList.add('hidden');
+        if (benchCard) benchCard.classList.add('hidden');
+        clearTacticalBoard();
+        return;
+    }
+    
+    if (rolesCard) rolesCard.classList.remove('hidden');
+    if (benchCard) benchCard.classList.remove('hidden');
+    
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+    
+    window.tacticalLineup = {};
+    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
+    const savedLineup = match.lineup || {};
+    positions.forEach(pos => { window.tacticalLineup[pos] = savedLineup[pos] || null; });
+    
+    const roles = ['captain', 'penalty', 'freekick', 'corners'];
+    const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
+    const sortedPlayers = players.sort((a,b) => a.navn.localeCompare(b.navn));
+    
+    roles.forEach(roleId => {
+        const roleSelect = document.getElementById(`role-${roleId}`);
+        if (roleSelect) {
+            roleSelect.innerHTML = '<option value="">-- Velg spiller --</option>';
+            sortedPlayers.forEach(p => {
+                const opt = document.createElement('option'); opt.value = p.navn; opt.innerText = p.navn; roleSelect.appendChild(opt);
             });
-            positions.forEach(pos => { renderNodeVisually(window.tacticalLineup[pos], pos); });
-            drawChemistryLines();
-            
-            // NYTT: Tegn opp benken når kampen laster
-            if (typeof window.renderBench === 'function') window.renderBench();
-        };
+            roleSelect.value = match.roles ? (match.roles[roleId] || "") : "";
+        }
+    });
+    
+    positions.forEach(pos => { renderNodeVisually(window.tacticalLineup[pos], pos); });
+    drawChemistryLines();
+    
+    if (typeof window.renderBench === 'function') window.renderBench();
+    
+    // NYTT: Dette er linjen som fikser problemet ditt! Den tvinger koden 
+    // til å oppdatere tallene øverst på banen i det kampen lastes inn.
+    if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
+};
 
         window.saveMatchTactics = function() {
             const matchId = document.getElementById('tacticalMatchSelect').value;
@@ -3505,22 +3509,41 @@ window.updateTacticalBoardStats = function() {
     let totalChem = 0;
     let count = 0;
     
-    // Gå gjennom spillerne som er satt i tacticalLineup
     Object.values(window.tacticalLineup).forEach(playerObj => {
         if (playerObj && playerObj.navn) {
             count++;
             
-            // 1. Beregn Bonus (samme logikk som på benken)
+            // 1. Beregn Bonus (Identisk logikk som på benken og spillerbørsen)
             let kamper = 0;
             let totalMatchPoints = 0;
+            
             (window.activeMatches || []).forEach(m => {
+                // Sjekk om spilleren var med i kampen
                 if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
                     kamper++;
                     let currentMatchScore = 15;
-                    if (m.ratings && m.ratings[playerObj.navn]) currentMatchScore += (m.ratings[playerObj.navn] - 5) * 6;
+                    
+                    // Sjekk seier/uavgjort/tap for bonus
+                    if (m.result && m.result.includes('-')) {
+                        if (typeof parseScore === 'function') {
+                            const score = parseScore(m.result);
+                            if (score) {
+                                if (score.bsk > score.opponent) currentMatchScore += 5;
+                                else if (score.bsk === score.opponent) currentMatchScore += 2;
+                                else currentMatchScore -= 2;
+                                if (score.opponent === 0) currentMatchScore += 3;
+                            }
+                        }
+                    }
+                    
+                    // Legg til spillerbørs
+                    if (m.ratings && m.ratings[playerObj.navn]) {
+                        currentMatchScore += (m.ratings[playerObj.navn] - 5) * 6;
+                    }
                     totalMatchPoints += currentMatchScore;
                 }
             });
+            
             totalBonus += kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
             
             // 2. Beregn Kjemi
@@ -3528,6 +3551,7 @@ window.updateTacticalBoardStats = function() {
         }
     });
     
+    // Oppdaterer HTML-elementene øverst på banen
     if (totalBonusEl) totalBonusEl.innerText = count > 0 ? totalBonus : '0';
     if (avgChemEl) avgChemEl.innerText = count > 0 ? Math.round(totalChem / count) + '%' : '0%';
 };
