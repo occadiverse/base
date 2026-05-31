@@ -1761,6 +1761,60 @@
             });
         }
 
+window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
+    const pastMatches = (window.activeMatches || [])
+        .filter(m => m.matchGroup === teamName && m.matchType === 'Serie' && m.date < upToDateStr)
+        .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    let playerStats = {}; 
+
+    pastMatches.forEach(m => {
+        Object.keys(playerStats).forEach(pName => {
+            if (playerStats[pName].isSuspended) {
+                if (!m.attendance || m.attendance[pName] !== true) {
+                    playerStats[pName].isSuspended = false;
+                    playerStats[pName].reason = '';
+                }
+            }
+        });
+
+        if (m.attendance) {
+            Object.keys(m.attendance).forEach(pName => {
+                if (m.attendance[pName] === true) {
+                    if (!playerStats[pName]) playerStats[pName] = { yellows: 0, reds: 0, isSuspended: false, isAtRisk: false, reason: '', cardType: '', displayNum: 0 };
+                    
+                    const gotYellow = m.guleKort && m.guleKort.includes(pName);
+                    const gotRed = m.rodeKort && m.rodeKort.includes(pName);
+
+                    if (gotRed) {
+                        playerStats[pName].reds++;
+                        playerStats[pName].isSuspended = true;
+                        playerStats[pName].reason = 'Rødt kort';
+                        playerStats[pName].cardType = 'red';
+                        playerStats[pName].displayNum = playerStats[pName].reds;
+                    }
+                    
+                    if (gotYellow) {
+                        playerStats[pName].yellows++;
+                        let y = playerStats[pName].yellows;
+                        playerStats[pName].isAtRisk = (y === 3 || (y > 3 && y % 2 === 1));
+                        
+                        if (y === 4 || (y > 4 && y % 2 === 0)) {
+                            playerStats[pName].isSuspended = true;
+                            playerStats[pName].isAtRisk = false;
+                            playerStats[pName].reason = `${y} gule kort`;
+                            playerStats[pName].cardType = 'yellow';
+                            playerStats[pName].displayNum = y;
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    return playerStats;
+}
+
         function updateDashboard() {
             let upcoming = [], totalGoals = 0, wins = 0, played = 0, draws = 0, losses = 0;
             const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
@@ -1812,26 +1866,44 @@
             const nextMatchHjem = document.getElementById('hjem-next-match-container');
             if (nextMatchHjem) {
                 if (upcoming.length > 0) {
-                    const nm = upcoming[0];
-                    const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
-                    nextMatchHjem.innerHTML = `
-                        <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 relative overflow-hidden">
-                            <div class="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-10 pointer-events-none z-0"><i class="fa-solid fa-futbol text-[15rem]"></i></div>
-                            <div class="relative z-10 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">NESTE KAMP</span>
-                                    <span class="text-xs text-slate-200 font-bold">${nm.matchGroup}</span>
-                                </div>
-                                <h4 class="font-extrabold text-lg text-white">vs ${nm.opponent}</h4>
-                                <div class="space-y-1 text-xs text-slate-300 font-medium">
-                                    <p>${nm.time || 'TBA'} - ${d}</p><p>${nm.pitch || 'Ikke fastsatt'}</p>
-                                </div>
-                                <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">Se Kampdetaljer</button>
-                            </div>
-                        </div>`;
-                } else {
-                    nextMatchHjem.innerHTML = `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400"><i class="fa-solid fa-futbol text-2xl mb-2 text-slate-300"></i><p class="text-xs font-bold text-slate-500">Ingen kommende kamper</p></div>`;
+                const nm = upcoming[0];
+                const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+                
+                // --- NYTT: Henter karantener for denne kampen ---
+                const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
+                const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
+                
+                let suspHtml = '';
+                if (suspendedPlayers.length > 0) {
+                    suspHtml = '<div class="mt-4 pt-3 border-t border-white/10 space-y-2"><p class="text-[9px] font-black text-rose-300 uppercase tracking-wider">Karantener / Utilgjengelig:</p><div class="flex flex-wrap gap-2">';
+                    suspendedPlayers.forEach(p => {
+                        const s = teamSuspensions[p];
+                        const bgColor = s.cardType === 'red' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-slate-900';
+                        suspHtml += `<div class="flex items-center gap-1.5 bg-white/10 border border-white/5 px-2 py-1 rounded-md text-[10px] font-bold text-white shadow-sm"><span class="${bgColor} px-1.5 py-0.5 rounded text-[9px] font-black">${s.displayNum}</span> ${p}</div>`;
+                    });
+                    suspHtml += '</div></div>';
                 }
+                // ------------------------------------------------
+
+                nextMatchHjem.innerHTML = `
+                    <div class="bg-gradient-to-br from-bsk-blue to-bsk-blueLight text-white rounded-2xl p-5 shadow-lg border border-white/10 relative overflow-hidden">
+                        <div class="absolute right-0 bottom-0 translate-y-4 translate-x-4 opacity-10 pointer-events-none z-0"><i class="fa-solid fa-futbol text-[15rem]"></i></div>
+                        <div class="relative z-10 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="bg-bsk-yellow text-bsk-blue text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">NESTE KAMP</span>
+                                <span class="text-xs text-slate-200 font-bold">${nm.matchGroup}</span>
+                            </div>
+                            <h4 class="font-extrabold text-lg text-white">vs ${nm.opponent}</h4>
+                            <div class="space-y-1 text-xs text-slate-300 font-medium">
+                                <p>${nm.time || 'TBA'} - ${d}</p><p>${nm.pitch || 'Ikke fastsatt'}</p>
+                            </div>
+                            ${suspHtml}
+                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs py-2.5 rounded-xl transition mt-2">Se Kampdetaljer</button>
+                        </div>
+                    </div>`;
+            } else {
+                nextMatchHjem.innerHTML = `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-400"><i class="fa-solid fa-futbol text-2xl mb-2 text-slate-300"></i><p class="text-xs font-bold text-slate-500">Ingen kommende kamper</p></div>`;
+            }
             }
         } 
 
@@ -3082,8 +3154,7 @@
             if (typeof window.renderBench === 'function') window.renderBench();
         };
 
-        // NY VERSJON: Viser KLAR-spillere, kjemiscore og individuell kampbonus
-window.renderBench = function() {
+        window.renderBench = function() {
     const benchList = document.getElementById('tactical-bench-list');
     if (!benchList) return;
     benchList.innerHTML = '';
@@ -3093,6 +3164,8 @@ window.renderBench = function() {
 
     const match = (window.activeMatches || []).find(m => m.id === matchId);
     if (!match) return;
+
+    const suspData = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(match.matchGroup, match.date) : {};
 
     const teamName = match.matchGroup;
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
@@ -3113,27 +3186,19 @@ window.renderBench = function() {
         return;
     }
 
-    // Sorterer tilgjengelige innbyttere etter høyest kjemiscore
-    benchPlayers.sort((a, b) => {
-        return calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn);
-    });
+    benchPlayers.sort((a, b) => calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn));
 
-    // Tegn opp den rene innbytterbenken med BONUS og KJEMI
     benchPlayers.forEach(p => {
-        // 1. Beregn Kjemi
         const playerChem = calculatePlayerPerformanceChemistry(p.navn);
         let chemColor = 'text-rose-500'; 
         if (playerChem >= 75) chemColor = 'text-emerald-500';
         else if (playerChem >= 50) chemColor = 'text-amber-500';
         else if (playerChem === 0) chemColor = 'text-slate-400';
 
-        // 2. Beregn Kampbonus
-        let kamper = 0;
-        let totalMatchPoints = 0;
+        let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
             if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
-                kamper++;
-                let currentMatchScore = 15;
+                kamper++; let currentMatchScore = 15;
                 if (m.result && m.result.includes('-')) {
                     if (typeof parseScore === 'function') {
                         const score = parseScore(m.result);
@@ -3145,38 +3210,37 @@ window.renderBench = function() {
                         }
                     }
                 }
-                if (m.ratings && m.ratings[p.navn]) {
-                    currentMatchScore += (m.ratings[p.navn] - 5) * 6;
-                }
+                if (m.ratings && m.ratings[p.navn]) currentMatchScore += (m.ratings[p.navn] - 5) * 6;
                 totalMatchPoints += currentMatchScore;
             }
         });
         
         const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-        
-        // Ekte trafikklys for kampsnittet
-        let bonusColor = 'text-slate-400'; // Standard grå for de som ikke har spilt
-        if (kampbonus > 15) {
-            bonusColor = 'text-emerald-500'; // Grønn
-        } else if (kampbonus >= 10) {
-            bonusColor = 'text-amber-500'; // Gul
-        } else if (kampbonus > 0) {
-            bonusColor = 'text-rose-500'; // Rød
-        }
-        
+        let bonusColor = 'text-slate-400'; 
+        if (kampbonus > 15) bonusColor = 'text-emerald-500'; 
+        else if (kampbonus >= 10) bonusColor = 'text-amber-500'; 
+        else if (kampbonus > 0) bonusColor = 'text-rose-500'; 
         const bonusTekst = kamper > 0 ? kampbonus : '-';
 
-        // 3. Render Spillerkortet med identisk font på begge tall
+        const pSusp = suspData[p.navn] || { isSuspended: false, isAtRisk: false };
+        let benchSuspBadge = '';
+        let borderClass = 'border-slate-200/60';
+        if (pSusp.isSuspended) {
+            benchSuspBadge = `<span class="text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded-full font-black ml-2 animate-pulse" title="${pSusp.reason}">KARANTENE</span>`;
+            borderClass = 'border-rose-300 bg-rose-50';
+        } else if (pSusp.isAtRisk) {
+            benchSuspBadge = `<span class="text-[8px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full font-black ml-2" title="Faresone: ${pSusp.yellows} gule">FARESONE</span>`;
+        }
+
         const div = document.createElement('div');
-        div.className = "flex justify-between items-center bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl shadow-sm";
+        div.className = `flex justify-between items-center bg-slate-50 border ${borderClass} p-2.5 rounded-xl shadow-sm`;
         div.innerHTML = `
             <div class="flex items-center min-w-0">
-                <span class="font-bold text-slate-800 truncate text-xs">${p.navn}</span>
+                <span class="font-bold ${pSusp.isSuspended ? 'text-rose-900' : 'text-slate-800'} truncate text-xs">${p.navn}</span>
+                ${benchSuspBadge}
             </div>
             <div class="flex items-center gap-3 shrink-0 ml-2">
-                <span class="font-black text-xs ${bonusColor}" title="Kampsnitt">
-                    ${bonusTekst}
-                </span>
+                <span class="font-black text-xs ${bonusColor}" title="Kampsnitt">${bonusTekst}</span>
                 <div class="w-px h-3 bg-slate-300"></div>
                 <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
             </div>
@@ -3291,122 +3355,123 @@ window.renderBench = function() {
         };
 
         window.openPlayerSelect = function(posId) {
-            currentSelectPos = posId;
-            const modal = document.getElementById('tacticalPlayerModal');
-            const list = document.getElementById('tactical-player-list');
-            document.getElementById('tactical-pos-label').innerText = `Velger for: ${posId}`;
-            list.innerHTML = '';
+    currentSelectPos = posId;
+    const modal = document.getElementById('tacticalPlayerModal');
+    const list = document.getElementById('tactical-player-list');
+    document.getElementById('tactical-pos-label').innerText = `Velger for: ${posId}`;
+    list.innerHTML = '';
 
-            const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
-            const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-            const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
+    const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
+    const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
+    const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
+    
+    // Hent disiplinærstatus for denne kampen
+    const suspData = (typeof window.getDisciplineStatusForTeam === 'function' && currentMatch) ? window.getDisciplineStatusForTeam(currentMatch.matchGroup, currentMatch.date) : {};
 
-            const sortedPlayers = [...(window.activePlayers || [])].sort((a,b) => {
-                if (currentMatch && currentMatch.attendance) {
-                    const valA = currentMatch.attendance[a.navn] === true ? 2 : (currentMatch.attendance[a.navn] === false ? 0 : 1);
-                    const valB = currentMatch.attendance[b.navn] === true ? 2 : (currentMatch.attendance[b.navn] === false ? 0 : 1);
-                    if (valA !== valB) return valB - valA;
-                }
-                return a.navn.localeCompare(b.navn);
-            });
+    const sortedPlayers = [...(window.activePlayers || [])].sort((a,b) => {
+        if (currentMatch && currentMatch.attendance) {
+            const valA = currentMatch.attendance[a.navn] === true ? 2 : (currentMatch.attendance[a.navn] === false ? 0 : 1);
+            const valB = currentMatch.attendance[b.navn] === true ? 2 : (currentMatch.attendance[b.navn] === false ? 0 : 1);
+            if (valA !== valB) return valB - valA;
+        }
+        return a.navn.localeCompare(b.navn);
+    });
 
-            sortedPlayers.forEach(p => {
-                const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
-                let attStatusHtml = '', opacityClass = isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20', trengerBekreftelse = false;
+    sortedPlayers.forEach(p => {
+        const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
+        let attStatusHtml = '', opacityClass = isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20', trengerBekreftelse = false;
 
-                if (currentMatch) {
-                    const att = currentMatch.attendance ? currentMatch.attendance[p.navn] : undefined;
-                    if (att === true) attStatusHtml = '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ KLAR</span>';
-                    else if (att === false) {
-                        attStatusHtml = '<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-2">❌ FORFALL</span>'; trengerBekreftelse = true;
-                        if (!isPlaying) opacityClass = 'opacity-50 grayscale bg-slate-50';
-                    } else if (isAttendanceStarted) {
-                        attStatusHtml = '<span class="text-[9px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold ml-2">❓ IKKE SVART</span>'; trengerBekreftelse = true;
-                        if (!isPlaying) opacityClass = 'opacity-50 bg-slate-50';
-                    }
-                }
+        const pSusp = suspData[p.navn] || { isSuspended: false, isAtRisk: false };
 
-                // 1. Beregn Kjemi
-                const playerChem = calculatePlayerPerformanceChemistry(p.navn);
-                let chemColor = 'text-rose-500'; 
-                if (playerChem >= 75) chemColor = 'text-emerald-500';
-                else if (playerChem >= 50) chemColor = 'text-amber-500';
-                else if (playerChem === 0) chemColor = 'text-slate-400';
+        if (pSusp.isSuspended) {
+            attStatusHtml += `<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black ml-2 animate-pulse shadow-sm" title="${pSusp.reason}">🚫 KARANTENE</span>`;
+            opacityClass = 'opacity-60 bg-rose-50 border border-rose-200';
+        } else if (pSusp.isAtRisk) {
+            attStatusHtml += `<span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="Faresone: ${pSusp.yellows} gule kort">⚠️ FARESONE</span>`;
+        }
 
-                // 2. Beregn Kampbonus (Form)
-                let kamper = 0;
-                let totalMatchPoints = 0;
-                (window.activeMatches || []).forEach(m => {
-                    if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
-                        kamper++;
-                        let currentMatchScore = 15;
-                        if (m.result && m.result.includes('-')) {
-                            if (typeof parseScore === 'function') {
-                                const score = parseScore(m.result);
-                                if (score) {
-                                    if (score.bsk > score.opponent) currentMatchScore += 5;
-                                    else if (score.bsk === score.opponent) currentMatchScore += 2;
-                                    else currentMatchScore -= 2;
-                                    if (score.opponent === 0) currentMatchScore += 3;
-                                }
-                            }
-                        }
-                        if (m.ratings && m.ratings[p.navn]) {
-                            currentMatchScore += (m.ratings[p.navn] - 5) * 6;
-                        }
-                        totalMatchPoints += currentMatchScore;
-                    }
-                });
-                
-                const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-                
-                // Trafikklys for kampbonus
-                let bonusColor = 'text-slate-400';
-                if (kampbonus > 15) bonusColor = 'text-emerald-500';
-                else if (kampbonus >= 10) bonusColor = 'text-amber-500';
-                else if (kampbonus > 0) bonusColor = 'text-rose-500';
-                
-                const bonusTekst = kamper > 0 ? kampbonus : '-';
-
-                const div = document.createElement('div');
-                div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
-                div.onclick = () => {
-                    if (trengerBekreftelse && !confirm(`${p.navn} er ikke bekreftet til denne kampen. Vil du sette ham på banen likevel?`)) return;
-                    if (!isPlaying) choosePlayer(p, posId); else alert(`${p.navn} er allerede plassert!`);
-                };
-                
-                // Ny HTML-struktur som inkluderer stats før pluss-tegnet
-                div.innerHTML = `
-                    <div class="flex-1 min-w-0 pr-2">
-                        <div class="flex items-center">
-                            <p class="font-bold text-slate-800 text-sm truncate">${p.navn}</p>
-                            ${attStatusHtml}
-                        </div>
-                        <p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p>
-                    </div>
-                    
-                    <div class="flex items-center gap-3 shrink-0 mr-3">
-                        <span class="font-black text-xs ${bonusColor}" title="Kampbonus (Form)">${bonusTekst}</span>
-                        <div class="w-px h-3 bg-slate-300"></div>
-                        <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
-                    </div>
-
-                    <div class="shrink-0">
-                        ${isPlaying ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-
-            if (window.tacticalLineup[posId]) {
-                const clearDiv = document.createElement('div');
-                clearDiv.className = "p-3 mt-2 bg-rose-50 border border-rose-100 text-rose-600 font-bold text-xs text-center cursor-pointer hover:bg-rose-100 transition rounded-xl flex justify-center items-center gap-2";
-                clearDiv.onclick = () => choosePlayer(null, posId); 
-                clearDiv.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${posId}`;
-                list.appendChild(clearDiv);
+        if (currentMatch) {
+            const att = currentMatch.attendance ? currentMatch.attendance[p.navn] : undefined;
+            if (att === true && !pSusp.isSuspended) attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ KLAR</span>';
+            else if (att === false) {
+                attStatusHtml += '<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-2">❌ FORFALL</span>'; trengerBekreftelse = true;
+                if (!isPlaying && !pSusp.isSuspended) opacityClass = 'opacity-50 grayscale bg-slate-50';
+            } else if (isAttendanceStarted) {
+                attStatusHtml += '<span class="text-[9px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold ml-2">❓ IKKE SVART</span>'; trengerBekreftelse = true;
+                if (!isPlaying && !pSusp.isSuspended) opacityClass = 'opacity-50 bg-slate-50';
             }
-            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
+        const playerChem = calculatePlayerPerformanceChemistry(p.navn);
+        let chemColor = 'text-rose-500'; 
+        if (playerChem >= 75) chemColor = 'text-emerald-500';
+        else if (playerChem >= 50) chemColor = 'text-amber-500';
+        else if (playerChem === 0) chemColor = 'text-slate-400';
+
+        let kamper = 0; let totalMatchPoints = 0;
+        (window.activeMatches || []).forEach(m => {
+            if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
+                kamper++; let currentMatchScore = 15;
+                if (m.result && m.result.includes('-')) {
+                    if (typeof parseScore === 'function') {
+                        const score = parseScore(m.result);
+                        if (score) {
+                            if (score.bsk > score.opponent) currentMatchScore += 5;
+                            else if (score.bsk === score.opponent) currentMatchScore += 2;
+                            else currentMatchScore -= 2;
+                            if (score.opponent === 0) currentMatchScore += 3;
+                        }
+                    }
+                }
+                if (m.ratings && m.ratings[p.navn]) currentMatchScore += (m.ratings[p.navn] - 5) * 6;
+                totalMatchPoints += currentMatchScore;
+            }
+        });
+        
+        const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+        let bonusColor = 'text-slate-400';
+        if (kampbonus > 15) bonusColor = 'text-emerald-500';
+        else if (kampbonus >= 10) bonusColor = 'text-amber-500';
+        else if (kampbonus > 0) bonusColor = 'text-rose-500';
+        const bonusTekst = kamper > 0 ? kampbonus : '-';
+
+        const div = document.createElement('div');
+        div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
+        div.onclick = () => {
+            if (pSusp.isSuspended && !confirm(`ADVARSEL! ${p.navn} har karantene (${pSusp.reason}). Vil du sette ham på banen likevel?`)) return;
+            else if (!pSusp.isSuspended && trengerBekreftelse && !confirm(`${p.navn} er ikke bekreftet til denne kampen. Vil du sette ham på banen likevel?`)) return;
+            if (!isPlaying) choosePlayer(p, posId); else alert(`${p.navn} er allerede plassert!`);
         };
+        
+        div.innerHTML = `
+            <div class="flex-1 min-w-0 pr-2">
+                <div class="flex items-center flex-wrap gap-y-1">
+                    <p class="font-bold text-slate-800 text-sm truncate mr-1">${p.navn}</p>
+                    ${attStatusHtml}
+                </div>
+                <p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0 mr-3">
+                <span class="font-black text-xs ${bonusColor}" title="Kampbonus (Form)">${bonusTekst}</span>
+                <div class="w-px h-3 bg-slate-300"></div>
+                <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
+            </div>
+            <div class="shrink-0">
+                ${isPlaying ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}
+            </div>
+        `;
+        list.appendChild(div);
+    });
+
+    if (window.tacticalLineup[posId]) {
+        const clearDiv = document.createElement('div');
+        clearDiv.className = "p-3 mt-2 bg-rose-50 border border-rose-100 text-rose-600 font-bold text-xs text-center cursor-pointer hover:bg-rose-100 transition rounded-xl flex justify-center items-center gap-2";
+        clearDiv.onclick = () => choosePlayer(null, posId); 
+        clearDiv.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${posId}`;
+        list.appendChild(clearDiv);
+    }
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+};
 
         window.closePlayerSelect = function() {
             document.getElementById('tacticalPlayerModal').classList.add('hidden');
