@@ -3539,9 +3539,12 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
         if (candidates.length > 0) {
             candidates.sort((a, b) => {
-                // Legger sammen Kjemi + Kampbonus + Fot-bonus for å finne den beste spilleren
-                const scoreA = calculatePlayerPerformanceChemistry(a.navn) + getKampbonus(a) + (req.requireFoot && req.foot && a.fot === req.foot ? 15 : 0);
-                const scoreB = calculatePlayerPerformanceChemistry(b.navn) + getKampbonus(b) + (req.requireFoot && req.foot && b.fot === req.foot ? 15 : 0);
+                // Gir -5 poeng i trekk hvis posisjonen krever en bestemt fot, og spilleren har feil fot (og ikke spiller med 'Begge')
+                    const penaltyA = (req.requireFoot && req.foot && a.fot !== req.foot && a.fot !== 'Begge') ? -5 : 0;
+                    const penaltyB = (req.requireFoot && req.foot && b.fot !== req.foot && b.fot !== 'Begge') ? -5 : 0;
+
+                    scoreA = calculatePlayerPerformanceChemistry(a.navn) + getKampbonus(a) + penaltyA;
+                    scoreB = calculatePlayerPerformanceChemistry(b.navn) + getKampbonus(b) + penaltyB;
                 return scoreB - scoreA; 
             });
             const selectedPlayer = candidates[0];
