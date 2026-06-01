@@ -543,14 +543,14 @@
                 <div class="px-4 lg:px-0 pb-12">
                     <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
 
-                        <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-6 z-30 pointer-events-none">
-                            <div class="bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 text-center">
-                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider">Total Bonus</span>
-                                <span id="stat-total-bonus" class="text-xs font-black text-white">0</span>
+                        <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
+                            <div class="bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-xl border border-white/10 text-center min-w-[100px] shadow-lg">
+                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider mb-0.5">Total Bonus</span>
+                                <span id="stat-total-bonus" class="text-xs font-black text-white tracking-wide">0/0</span>
                             </div>
-                            <div class="bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 text-center">
-                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider">Snitt Kjemi</span>
-                                <span id="stat-avg-chem" class="text-xs font-black text-white">0%</span>
+                            <div class="bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-xl border border-white/10 text-center min-w-[100px] shadow-lg">
+                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider mb-0.5">Total Kjemi</span>
+                                <span id="stat-avg-chem" class="text-xs font-black text-white tracking-wide">0/0</span>
                             </div>
                         </div>
                         
@@ -3797,36 +3797,118 @@ window.updateTacticalBoardStats = function() {
     const totalBonusEl = document.getElementById('stat-total-bonus');
     const avgChemEl = document.getElementById('stat-avg-chem');
     
-    let totalBonus = 0;
-    let totalChem = 0;
-    let count = 0;
+    // --- 1. BEREGN REELLE SNITT FOR DE SOM STÅR PÅ BRETTET ---
+    let realTotalBonus = 0;
+    let realTotalChem = 0;
+    let currentOnBoardCount = 0;
     
     Object.values(window.tacticalLineup).forEach(playerObj => {
         if (playerObj && playerObj.navn) {
-            count++;
+            currentOnBoardCount++;
             
+            // Reell kampbonus (snitt per spiller)
             let kamper = 0;
             let totalMatchPoints = 0;
-            
             (window.activeMatches || []).forEach(m => {
                 if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
                     kamper++;
-                    // Her var feilen! Nå legges det riktig i totalMatchPoints i stedet for rett i totalBonus
                     totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
                 }
             });
+            realTotalBonus += kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
             
-            // Finner snittet til spilleren og legger det til i lagets totalbonus
-            totalBonus += kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-            
-            // 2. Beregn Kjemi
-            totalChem += calculatePlayerPerformanceChemistry(playerObj.navn);
+            // Reell kjemi (0-100 per spiller)
+            realTotalChem += typeof calculatePlayerPerformanceChemistry === 'function' 
+                ? calculatePlayerPerformanceChemistry(playerObj.navn) 
+                : 0;
         }
     });
+
+    // Reelle snitt for de valgte spillerne
+    const realBonusSnitt = currentOnBoardCount > 0 ? Math.round(realTotalBonus / currentOnBoardCount) : 0;
+    const realChemSnitt = currentOnBoardCount > 0 ? Math.round(realTotalChem / currentOnBoardCount) : 0;
+
+    // --- 2. BEREGN MAKSIMALT MULIG SNITT (GULLREKKA) ---
+    const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+    const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
+    const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
+    const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
+
+    // Hent alle tilgjengelige spillere
+    let availablePlayers = [...(window.activePlayers || [])].filter(p => {
+        if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
+        if (currentMatch && isAttendanceStarted && currentMatch.attendance[p.navn] !== true) return false;
+        return true;
+    });
+
+    // Hjelpefunksjon for å hente spillerens kampsnitt
+    const getPlayerFormSnitt = (pObj) => {
+        let kamper = 0; let totalMatchPoints = 0;
+        (window.activeMatches || []).forEach(m => {
+            if (m.matchGroup === pObj.spillerLag && m.attendance && m.attendance[pObj.navn] === true) {
+                kamper++; 
+                totalMatchPoints += window.calculatePlayerMatchPoints(m, pObj.navn);
+            }
+        });
+        return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+    };
+
+    // Splitt i keepere og utespillere
+    let keepere = availablePlayers.filter(p => p.pos1 === 'Keeper' || (p.pos1 && p.pos1.toLowerCase().includes('keeper')));
+    let utespillere = availablePlayers.filter(p => p.pos1 !== 'Keeper' && !(p.pos1 && p.pos1.toLowerCase().includes('keeper')));
+
+    // Totalt antall plasser vi skal måle mot (maks 11, men mindre hvis troppen er liten)
+    let totalTargetPlayers = Math.min(11, availablePlayers.length);
+
+    // -- BEREGN MAKS KAMPBONUS-SNITT --
+    let maxBonusSum = 0;
+    let bonusCount = 0;
     
-    // Oppdaterer HTML-elementene øverst på banen
-    if (totalBonusEl) totalBonusEl.innerText = count > 0 ? totalBonus : '0';
-    if (avgChemEl) avgChemEl.innerText = count > 0 ? Math.round(totalChem / count) + '%' : '0%';
+    if (keepere.length > 0) {
+        const sortedKeepersByForm = [...keepere].sort((a, b) => getPlayerFormSnitt(b) - getPlayerFormSnitt(a));
+        maxBonusSum += getPlayerFormSnitt(sortedKeepersByForm[0]);
+        bonusCount++;
+    }
+    
+    const sortedOutfieldsByForm = [...utespillere].sort((a, b) => getPlayerFormSnitt(b) - getPlayerFormSnitt(a));
+    const targetOutfieldBonusCount = totalTargetPlayers - bonusCount;
+    
+    sortedOutfieldsByForm.slice(0, targetOutfieldBonusCount).forEach(p => {
+        maxBonusSum += getPlayerFormSnitt(p);
+        bonusCount++;
+    });
+    
+    const maxBonusSnitt = bonusCount > 0 ? Math.round(maxBonusSum / bonusCount) : 0;
+
+    // -- BEREGN MAKS KJEMI-SNITT --
+    let maxChemSum = 0;
+    let chemCount = 0;
+    
+    if (keepere.length > 0 && typeof calculatePlayerPerformanceChemistry === 'function') {
+        const sortedKeepersByChem = [...keepere].sort((a, b) => calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn));
+        maxChemSum += calculatePlayerPerformanceChemistry(sortedKeepersByChem[0].navn);
+        chemCount++;
+    }
+    
+    if (typeof calculatePlayerPerformanceChemistry === 'function') {
+        const sortedOutfieldsByChem = [...utespillere].sort((a, b) => calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn));
+        const targetOutfieldChemCount = totalTargetPlayers - chemCount;
+        
+        sortedOutfieldsByChem.slice(0, targetOutfieldChemCount).forEach(p => {
+            maxChemSum += calculatePlayerPerformanceChemistry(p.navn);
+            chemCount++;
+        });
+    }
+    
+    const maxChemSnitt = chemCount > 0 ? Math.round(maxChemSum / chemCount) : 0;
+
+    // --- 3. OPPDATER HTML PÅ SKJERMEN ---
+    if (totalBonusEl) {
+        totalBonusEl.innerText = `${realBonusSnitt}/${maxBonusSnitt}`;
+    }
+    if (avgChemEl) {
+        avgChemEl.innerText = `${realChemSnitt}/${maxChemSnitt}`;
+    }
 };
 
    window.getPlayerMatchPointsHistory = function(playerName) {
