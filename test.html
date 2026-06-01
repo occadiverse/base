@@ -3805,17 +3805,18 @@ window.updateTacticalBoardStats = function() {
         if (playerObj && playerObj.navn) {
             count++;
             
-            // 1. Beregn Bonus (Identisk logikk som på benken og spillerbørsen)
             let kamper = 0;
             let totalMatchPoints = 0;
             
             (window.activeMatches || []).forEach(m => {
                 if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
                     kamper++;
-                    totalBonus += window.calculatePlayerMatchPoints(m, playerObj.navn);
+                    // Her var feilen! Nå legges det riktig i totalMatchPoints i stedet for rett i totalBonus
+                    totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
                 }
             });
             
+            // Finner snittet til spilleren og legger det til i lagets totalbonus
             totalBonus += kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
             
             // 2. Beregn Kjemi
@@ -3828,7 +3829,7 @@ window.updateTacticalBoardStats = function() {
     if (avgChemEl) avgChemEl.innerText = count > 0 ? Math.round(totalChem / count) + '%' : '0%';
 };
 
-    window.getPlayerMatchPointsHistory = function(playerName) {
+   window.getPlayerMatchPointsHistory = function(playerName) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
     if (!playerObj) return [];
     
@@ -3837,12 +3838,8 @@ window.updateTacticalBoardStats = function() {
     (window.activeMatches || []).forEach(m => {
         // Sjekker kun kamper der spilleren faktisk møtte opp
         if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerName] === true) {
-            let baseScore = 15;
-            let resultBonus = 0;
-            let ratingBonus = 0;
-
-            // 1. Regner ut bonus for lagets resultat
-            if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerName] === true) {
+            
+            // Henter ut detaljert poengberegning fra motoren vår
             const ptsDetails = window.calculatePlayerMatchPoints(m, playerName, true);
             
             history.push({
@@ -3852,18 +3849,7 @@ window.updateTacticalBoardStats = function() {
                 result: m.result || 'Ikke spilt',
                 rating: m.ratings && m.ratings[playerName] ? m.ratings[playerName] : '-',
                 points: ptsDetails.total,
-                breakdown: `Start: ${ptsDetails.base} | Resultat & Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
-            });
-        }
-            
-            history.push({
-                matchId: m.id,
-                date: m.date,
-                opponent: m.opponent,
-                result: m.result || 'Ikke spilt',
-                rating: rating || '-',
-                points: totalPoints,
-                breakdown: `Start: 15 | Resultat: ${resultBonus} | Børs: ${ratingBonus}`
+                breakdown: `Start: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
             });
         }
     });
