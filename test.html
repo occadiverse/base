@@ -450,9 +450,10 @@
             </div>
 
             <div id="view-statistikk" class="hidden space-y-6">
-                <div class="flex gap-2 mb-6 border-b border-slate-200 pb-4">
-                    <button onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition">Lagstatistikk</button>
-                    <button onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition">Spillerstatistikk</button>
+                <div class="flex gap-2 mb-6 border-b border-slate-200 pb-4 overflow-x-auto">
+                    <button onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn shrink-0 px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition">Lagstatistikk</button>
+                    <button onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition">Spillerstatistikk</button>
+                    <button onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition">Formbørs (Poeng)</button>
                 </div>
 
                 <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
@@ -504,7 +505,7 @@
                         </table>
                     </div>
                 </div>
-
+                <div id="stat-view-poeng" class="hidden"></div>
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6">
@@ -3627,14 +3628,102 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         window.switchStatTab = function(tabId) {
             document.getElementById('stat-view-lag').classList.add('hidden');
             document.getElementById('stat-view-spillere').classList.add('hidden');
-            document.getElementById('stat-tab-lag').className = "stat-tab-btn px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition";
-            document.getElementById('stat-tab-spillere').className = "stat-tab-btn px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition";
+            document.getElementById('stat-view-poeng').classList.add('hidden');
+            
+            document.getElementById('stat-tab-lag').className = "stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition";
+            document.getElementById('stat-tab-spillere').className = "stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition";
+            document.getElementById('stat-tab-poeng').className = "stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition";
             
             document.getElementById(`stat-view-${tabId}`).classList.remove('hidden');
             document.getElementById(`stat-view-${tabId}`).classList.add('block');
-            document.getElementById(`stat-tab-${tabId}`).className = "stat-tab-btn px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition";
+            document.getElementById(`stat-tab-${tabId}`).className = "stat-tab-btn shrink-0 px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition";
+            
             if (tabId === 'spillere') renderPlayerStatsTable();
+            if (tabId === 'poeng') renderPointHistoryView();
         }
+
+        window.renderPointHistoryView = function() {
+            const container = document.getElementById('stat-view-poeng');
+            if(!container) return;
+            
+            // Bygger en nedtrekksmeny (filtrerer bort passive spillere)
+            const optionsHtml = (window.activePlayers || [])
+                .filter(p => p.status !== 'Passiv')
+                .sort((a,b) => a.navn.localeCompare(b.navn))
+                .map(p => `<option value="${p.navn}">${p.navn}</option>`)
+                .join('');
+                
+            let html = `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-lg font-black text-slate-800 mb-4">Poengutvikling Kamp for Kamp</h3>
+                    <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
+                        <label class="text-sm font-bold text-slate-500 shrink-0">Velg spiller:</label>
+                        <select id="poeng-player-select" onchange="showPlayerPointsTable()" class="w-full md:w-1/2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
+                            <option value="">-- Velg spiller --</option>
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div id="poeng-table-container">
+                        <div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        };
+
+        window.showPlayerPointsTable = function() {
+            const playerName = document.getElementById('poeng-player-select').value;
+            const container = document.getElementById('poeng-table-container');
+            
+            if(!playerName) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>';
+                return;
+            }
+            
+            const history = typeof getPlayerMatchPointsHistory === 'function' ? getPlayerMatchPointsHistory(playerName) : [];
+            
+            if(history.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spilte kamper registrert for denne spilleren.</div>';
+                return;
+            }
+            
+            let tableHtml = `
+                <div class="overflow-x-auto rounded-xl border border-slate-100">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
+                            <tr>
+                                <th class="p-4">Dato</th>
+                                <th class="p-4">Motstander</th>
+                                <th class="p-4">Res</th>
+                                <th class="p-4 text-center">Børs</th>
+                                <th class="p-4 text-right">Matchpoeng</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+            `;
+            
+            history.forEach(h => {
+                let pointColor = 'text-slate-700';
+                if (h.points >= 20) pointColor = 'text-emerald-500';
+                else if (h.points < 10) pointColor = 'text-rose-500';
+                
+                tableHtml += `
+                    <tr class="hover:bg-slate-50 transition cursor-help" title="${h.breakdown}">
+                        <td class="p-4 text-slate-500 font-medium">${new Date(h.date).toLocaleDateString('no-NO', {day: 'numeric', month: 'short'})}</td>
+                        <td class="p-4 font-bold text-slate-800">${h.opponent}</td>
+                        <td class="p-4 font-semibold text-slate-600">${h.result}</td>
+                        <td class="p-4 text-center">
+                            <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
+                        </td>
+                        <td class="p-4 text-right ${pointColor} font-black text-base">${h.points}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `</tbody></table></div>
+            <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se poengfordelingen.</p>`;
+            container.innerHTML = tableHtml;
+        };
 
         window.sortStatsTable = function(column) {
             if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc; 
@@ -3798,6 +3887,56 @@ window.updateTacticalBoardStats = function() {
     // Oppdaterer HTML-elementene øverst på banen
     if (totalBonusEl) totalBonusEl.innerText = count > 0 ? totalBonus : '0';
     if (avgChemEl) avgChemEl.innerText = count > 0 ? Math.round(totalChem / count) + '%' : '0%';
+};
+
+    window.getPlayerMatchPointsHistory = function(playerName) {
+    const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
+    if (!playerObj) return [];
+    
+    const history = [];
+    
+    (window.activeMatches || []).forEach(m => {
+        // Sjekker kun kamper der spilleren faktisk møtte opp
+        if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerName] === true) {
+            let baseScore = 15;
+            let resultBonus = 0;
+            let ratingBonus = 0;
+
+            // 1. Regner ut bonus for lagets resultat
+            if (m.result && m.result.includes('-')) {
+                if (typeof parseScore === 'function') {
+                    const score = parseScore(m.result);
+                    if (score) {
+                        if (score.bsk > score.opponent) resultBonus += 5; 
+                        else if (score.bsk === score.opponent) resultBonus += 2;
+                        else resultBonus -= 2; 
+                        if (score.opponent === 0) resultBonus += 3; // Null baklengs
+                    }
+                }
+            }
+            
+            // 2. Regner ut bonus for individuell børskarakter
+            const rating = m.ratings && m.ratings[playerName] ? m.ratings[playerName] : null;
+            if (rating !== null) {
+                ratingBonus = (rating - 5) * 6; 
+            }
+            
+            const totalPoints = baseScore + resultBonus + ratingBonus;
+            
+            history.push({
+                matchId: m.id,
+                date: m.date,
+                opponent: m.opponent,
+                result: m.result || 'Ikke spilt',
+                rating: rating || '-',
+                points: totalPoints,
+                breakdown: `Start: 15 | Resultat: ${resultBonus} | Børs: ${ratingBonus}`
+            });
+        }
+    });
+    
+    // Sorterer fra nyeste kamp til eldste
+    return history.sort((a, b) => new Date(b.date) - new Date(a.date));
 };
         
     </script>
