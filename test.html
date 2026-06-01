@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="no" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
@@ -1195,10 +1195,11 @@
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Disiplin (Direkte fratrekk)</h4>
-                    <ul class="list-disc pl-5 space-y-1 text-rose-300">
-                        <li><strong class="text-rose-400">Gult kort:</strong> Ingen straff for 1-3 kort. Karantene (ved 4, 6, 8 kort osv.) gir <strong class="text-white">-10 poeng</strong> fra sluttsummen!</li>
-                        <li><strong class="text-rose-500">Rødt kort:</strong> Direkte utvisning gir <strong class="text-white">-15 poeng</strong> fra sluttsummen.</li>
-                    </ul>
+                        <ul class="list-disc pl-5 space-y-1 text-rose-300">
+                            <li><strong class="text-rose-400">Gult kort:</strong> Ingen straff for 1-3 kort. Første karantene (ved 4, 6, 8 kort osv.) er "gratis".</li>
+                            <li><strong class="text-rose-400">Gjentatt karantene:</strong> Ved 2. karantene eller flere, gir hver utestengelse <strong class="text-white">-5 poeng</strong> i fratrekk.</li>
+                            <li><strong class="text-rose-500">Rødt kort:</strong> Direkte utvisning gir <strong class="text-white">-15 poeng</strong> fra sluttsummen.</li>
+</ul>
                 </div>
                 
             </div>
@@ -3604,13 +3605,17 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     
     if (matchesPlayed > 0) chemistryScore += (totalMatchPoints / matchesPlayed);
     
-    // --- NY NFF-LOGIKK FOR KJEMISTRAFF ---
+    // --- OPPDATERT NFF-LOGIKK FOR KJEMISTRAFF (MODELL 2: FIRST TIME FREE) ---
     let karantener = 0;
     if (totalYellowCards >= 4) {
-        // Regner ut 1 karantene for de første 4, og deretter 1 ekstra for annethvert kort
         karantener = 1 + Math.floor((totalYellowCards - 4) / 2);
     }
-    if (karantener > 0) disciplinePenalty -= (karantener * 10); 
+    
+    // Hvis karantener > 1, trekker vi for alle unntatt den første
+    if (karantener > 1) {
+        disciplinePenalty -= ((karantener - 1) * 5); 
+    }
+    // (Hvis karantener er nøyaktig 1, skjer ingenting - den er "gratis")
     
     chemistryScore += disciplinePenalty;
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
