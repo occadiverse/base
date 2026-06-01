@@ -3797,8 +3797,8 @@ window.updateTacticalBoardStats = function() {
     const totalBonusEl = document.getElementById('stat-total-bonus');
     const avgChemEl = document.getElementById('stat-avg-chem');
     
-    // --- 1. BEREGN REELLE SNITT FOR DE SOM STÅR PÅ BRETTET ---
-    let realTotalBonus = 0;
+    // --- 1. BEREGN FOR DE SOM FAKTISK STÅR PÅ BANEN NÅ ---
+    let realTotalBonus = 0; // Dette blir nå en REN SUM av spillernes individuelle kampsnitt
     let realTotalChem = 0;
     let currentOnBoardCount = 0;
     
@@ -3806,7 +3806,7 @@ window.updateTacticalBoardStats = function() {
         if (playerObj && playerObj.navn) {
             currentOnBoardCount++;
             
-            // Reell kampbonus (snitt per spiller)
+            // Kampbonus for denne spilleren (snitt per kamp)
             let kamper = 0;
             let totalMatchPoints = 0;
             (window.activeMatches || []).forEach(m => {
@@ -3815,7 +3815,10 @@ window.updateTacticalBoardStats = function() {
                     totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
                 }
             });
-            realTotalBonus += kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+            let playerFormSnitt = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+            
+            // NYTT: Summerer kampsnittet til alle som er valgt utpå banen
+            realTotalBonus += playerFormSnitt;
             
             // Reell kjemi (0-100 per spiller)
             realTotalChem += typeof calculatePlayerPerformanceChemistry === 'function' 
@@ -3824,24 +3827,23 @@ window.updateTacticalBoardStats = function() {
         }
     });
 
-    // Reelle snitt for de valgte spillerne
-    const realBonusSnitt = currentOnBoardCount > 0 ? Math.round(realTotalBonus / currentOnBoardCount) : 0;
+    // Kjemiscoren vises fortsatt som et rent lag-snitt (f.eks. 42/46)
     const realChemSnitt = currentOnBoardCount > 0 ? Math.round(realTotalChem / currentOnBoardCount) : 0;
 
-    // --- 2. BEREGN MAKSIMALT MULIG SNITT (GULLREKKA) ---
+    // --- 2. BEREGN REELL MAKS FOR TROPPEN (GULLREKKA BASERT PÅ TILGJENGELIGHET) ---
     const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
     const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
 
-    // Hent alle tilgjengelige spillere
+    // Hent alle tilgjengelige spillere til akkurat denne kampen/økten
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
         if (currentMatch && isAttendanceStarted && currentMatch.attendance[p.navn] !== true) return false;
         return true;
     });
 
-    // Hjelpefunksjon for å hente spillerens kampsnitt
+    // Hjelpefunksjon for å hente en spillers kampsnitt
     const getPlayerFormSnitt = (pObj) => {
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
@@ -3853,34 +3855,28 @@ window.updateTacticalBoardStats = function() {
         return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
     };
 
-    // Splitt i keepere og utespillere
+    // Splitt i keepere og utespillere for å låse keepervalget
     let keepere = availablePlayers.filter(p => p.pos1 === 'Keeper' || (p.pos1 && p.pos1.toLowerCase().includes('keeper')));
     let utespillere = availablePlayers.filter(p => p.pos1 !== 'Keeper' && !(p.pos1 && p.pos1.toLowerCase().includes('keeper')));
 
-    // Totalt antall plasser vi skal måle mot (maks 11, men mindre hvis troppen er liten)
-    let totalTargetPlayers = Math.min(11, availablePlayers.length);
-
-    // -- BEREGN MAKS KAMPBONUS-SNITT --
-    let maxBonusSum = 0;
-    let bonusCount = 0;
+    // -- BEREGN MAKS KAMPBONUS (SUMMEN AV DE 11 BESTE ENKELT-SNITTENE) --
+    let maxBonusSumPool = 0;
     
+    // 1. Finn og legg til den beste keeperen
     if (keepere.length > 0) {
         const sortedKeepersByForm = [...keepere].sort((a, b) => getPlayerFormSnitt(b) - getPlayerFormSnitt(a));
-        maxBonusSum += getPlayerFormSnitt(sortedKeepersByForm[0]);
-        bonusCount++;
+        maxBonusSumPool += getPlayerFormSnitt(sortedKeepersByForm[0]);
     }
     
+    // 2. Sorter utespillere etter kampsnitt og legg til de 10 beste
     const sortedOutfieldsByForm = [...utespillere].sort((a, b) => getPlayerFormSnitt(b) - getPlayerFormSnitt(a));
-    const targetOutfieldBonusCount = totalTargetPlayers - bonusCount;
+    let targetOutfieldBonusCount = keepere.length > 0 ? 10 : 11;
     
     sortedOutfieldsByForm.slice(0, targetOutfieldBonusCount).forEach(p => {
-        maxBonusSum += getPlayerFormSnitt(p);
-        bonusCount++;
+        maxBonusSumPool += getPlayerFormSnitt(p);
     });
-    
-    const maxBonusSnitt = bonusCount > 0 ? Math.round(maxBonusSum / bonusCount) : 0;
 
-    // -- BEREGN MAKS KJEMI-SNITT --
+    // -- BEREGN MAKS KJEMI-SNITT (FORTSATT SOM RENT LAGSNITT) --
     let maxChemSum = 0;
     let chemCount = 0;
     
@@ -3892,6 +3888,7 @@ window.updateTacticalBoardStats = function() {
     
     if (typeof calculatePlayerPerformanceChemistry === 'function') {
         const sortedOutfieldsByChem = [...utespillere].sort((a, b) => calculatePlayerPerformanceChemistry(b.navn) - calculatePlayerPerformanceChemistry(a.navn));
+        let totalTargetPlayers = Math.min(11, availablePlayers.length);
         const targetOutfieldChemCount = totalTargetPlayers - chemCount;
         
         sortedOutfieldsByChem.slice(0, targetOutfieldChemCount).forEach(p => {
@@ -3902,12 +3899,12 @@ window.updateTacticalBoardStats = function() {
     
     const maxChemSnitt = chemCount > 0 ? Math.round(maxChemSum / chemCount) : 0;
 
-    // --- 3. OPPDATER HTML PÅ SKJERMEN ---
+    // --- 3. OPPDATER SKJERMEN ---
     if (totalBonusEl) {
-        totalBonusEl.innerText = `${realBonusSnitt}/${maxBonusSnitt}`;
+        totalBonusEl.innerText = currentOnBoardCount > 0 ? `${realTotalBonus}/${maxBonusSumPool}` : `0/${maxBonusSumPool}`;
     }
     if (avgChemEl) {
-        avgChemEl.innerText = `${realChemSnitt}/${maxChemSnitt}`;
+        avgChemEl.innerText = currentOnBoardCount > 0 ? `${realChemSnitt}/${maxChemSnitt}` : `0/${maxChemSnitt}`;
     }
 };
 
