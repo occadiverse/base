@@ -509,15 +509,12 @@
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6">
-                <div class="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 lg:px-0">
-                    <div>
-                        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Taktikk & Kampstrategi</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-1">Planlegg formasjon og roller for kamper (eller bruk Sandkassen)</p>
-                    </div>
-                    <div class="w-full sm:w-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Velg Kamp</label>
-                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="w-full sm:w-64 bg-white border-2 border-slate-200 rounded-xl px-3 py-2.5 text-xs font-black text-bsk-blue outline-none focus:ring-2 focus:ring-bsk-blue shadow-sm">
-                            <option value="">Sandkasse</option>
+                <!-- Kampvelger flyttet opp og sentrert for å fjerne dobbel overskrift -->
+                <div class="mb-2 flex flex-col sm:flex-row justify-end items-center gap-4 px-4 lg:px-0">
+                    <div class="w-full sm:w-auto flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">Modus / Kamp:</label>
+                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="bg-transparent text-xs font-black text-bsk-blue outline-none min-w-[180px] cursor-pointer">
+                            <option value="">Sandkasse ⏳</option>
                         </select>
                     </div>
                 </div>
