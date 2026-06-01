@@ -3613,33 +3613,42 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         window.renderPointHistoryView = function() {
-            const container = document.getElementById('stat-view-poeng');
-            if(!container) return;
-            
-            // Bygger en nedtrekksmeny (filtrerer bort passive spillere)
-            const optionsHtml = (window.activePlayers || [])
-                .filter(p => p.status !== 'Passiv')
-                .sort((a,b) => a.navn.localeCompare(b.navn))
-                .map(p => `<option value="${p.navn}">${p.navn}</option>`)
-                .join('');
-                
-            let html = `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <h3 class="text-lg font-black text-slate-800 mb-4">Poengutvikling Kamp for Kamp</h3>
-                    <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
-                        <label class="text-sm font-bold text-slate-500 shrink-0">Velg spiller:</label>
-                        <select id="poeng-player-select" onchange="showPlayerPointsTable()" class="w-full md:w-1/2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
-                            <option value="">-- Velg spiller --</option>
-                            ${optionsHtml}
-                        </select>
-                    </div>
-                    <div id="poeng-table-container">
-                        <div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
-        };
+    const container = document.getElementById('stat-view-poeng');
+    if(!container) return;
+    
+    // Hjelpefunksjon for å sjekke om spilleren faktisk har spilt noen kamper
+    const harSpiltMinstEnKamp = (playerName, spillerLag) => {
+        return (window.activeMatches || []).some(m => 
+            m.matchGroup === spillerLag && 
+            m.attendance && 
+            m.attendance[playerName] === true
+        );
+    };
+
+    // Bygger nedtrekksmenyen: Filtrerer bort passive spillere OG spillere uten kamper
+    const optionsHtml = (window.activePlayers || [])
+        .filter(p => p.status !== 'Passiv' && harSpiltMinstEnKamp(p.navn, p.spillerLag))
+        .sort((a,b) => a.navn.localeCompare(b.navn))
+        .map(p => `<option value="${p.navn}">${p.navn}</option>`)
+        .join('');
+        
+    let html = `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+            <h3 class="text-lg font-black text-slate-800 mb-4">Poengutvikling Kamp for Kamp</h3>
+            <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
+                <label class="text-sm font-bold text-slate-500 shrink-0">Velg spiller:</label>
+                <select id="poeng-player-select" onchange="showPlayerPointsTable()" class="w-full md:w-1/2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
+                    <option value="">-- Velg spiller --</option>
+                    ${optionsHtml}
+                </select>
+            </div>
+            <div id="poeng-table-container">
+                <div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>
+            </div>
+        </div>
+    `;
+    container.innerHTML = html;
+};
 
         window.showPlayerPointsTable = function() {
             const playerName = document.getElementById('poeng-player-select').value;
