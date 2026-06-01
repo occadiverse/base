@@ -1173,11 +1173,13 @@
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
                             <strong class="block text-emerald-400 mb-2 pb-1 border-b border-slate-600">Lagets resultat</strong>
                             <ul class="space-y-1.5">
-                                <li class="flex justify-between"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
-                                <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
-                                <li class="flex justify-between"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
-                                <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">-2</span></li>
-                            </ul>
+    <li class="flex justify-between"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
+    <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
+    <li class="flex justify-between"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
+    <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">-2</span></li>
+    <li class="flex justify-between text-bsk-yellow"><span>Mål scoret (Mål for)</span> <span class="font-bold">+1 pr. mål</span></li>
+    <li class="flex justify-between text-rose-300"><span>Mål sluppet inn (Mål imot)</span> <span class="font-bold">-1 pr. mål</span></li>
+</ul>
                         </div>
                         
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
@@ -1816,6 +1818,38 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
     return playerStats;
 }
+
+        window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = false) {
+    let base = 15;
+    let resultBonus = 0;
+    let ratingBonus = 0;
+
+    if (m.result && m.result.includes('-')) {
+        const score = typeof parseScore === 'function' ? parseScore(m.result) : null;
+        if (score) {
+            // 1. Tradisjonell resultatbonus
+            if (score.bsk > score.opponent) resultBonus += 5;
+            else if (score.bsk === score.opponent) resultBonus += 2;
+            else resultBonus -= 2;
+            if (score.opponent === 0) resultBonus += 3; // Holdt nullen
+            
+            // 2. NYTT: Måleffektivitet (+1 per mål for, -1 per mål imot)
+            resultBonus += score.bsk * 1;
+            resultBonus -= score.opponent * 1;
+        }
+    }
+
+    // 3. Spillerbørs-justering
+    if (m.ratings && m.ratings[playerName]) {
+        ratingBonus = (m.ratings[playerName] - 5) * 6;
+    }
+
+    const total = base + resultBonus + ratingBonus;
+    if (returnDetails) {
+        return { total, base, resultBonus, ratingBonus };
+    }
+    return total;
+};
 
         function updateDashboard() {
             let upcoming = [], totalGoals = 0, wins = 0, played = 0, draws = 0, losses = 0;
@@ -3200,20 +3234,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
             if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
-                kamper++; let currentMatchScore = 15;
-                if (m.result && m.result.includes('-')) {
-                    if (typeof parseScore === 'function') {
-                        const score = parseScore(m.result);
-                        if (score) {
-                            if (score.bsk > score.opponent) currentMatchScore += 5;
-                            else if (score.bsk === score.opponent) currentMatchScore += 2;
-                            else currentMatchScore -= 2;
-                            if (score.opponent === 0) currentMatchScore += 3;
-                        }
-                    }
-                }
-                if (m.ratings && m.ratings[p.navn]) currentMatchScore += (m.ratings[p.navn] - 5) * 6;
-                totalMatchPoints += currentMatchScore;
+                kamper++; 
+                totalMatchPoints += window.calculatePlayerMatchPoints(m, p.navn);
             }
         });
         
@@ -3277,22 +3299,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         (window.activeMatches || []).forEach(m => {
             if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
                 kamper++;
-                let currentMatchScore = 15;
-                if (m.result && m.result.includes('-')) {
-                    if (typeof parseScore === 'function') {
-                        const score = parseScore(m.result);
-                        if (score) {
-                            if (score.bsk > score.opponent) currentMatchScore += 5;
-                            else if (score.bsk === score.opponent) currentMatchScore += 2;
-                            else currentMatchScore -= 2;
-                            if (score.opponent === 0) currentMatchScore += 3;
-                        }
-                    }
-                }
-                if (m.ratings && m.ratings[playerObj.navn]) {
-                    currentMatchScore += (m.ratings[playerObj.navn] - 5) * 6;
-                }
-                totalMatchPoints += currentMatchScore;
+                totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
             }
         });
         
@@ -3425,20 +3432,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
             if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
-                kamper++; let currentMatchScore = 15;
-                if (m.result && m.result.includes('-')) {
-                    if (typeof parseScore === 'function') {
-                        const score = parseScore(m.result);
-                        if (score) {
-                            if (score.bsk > score.opponent) currentMatchScore += 5;
-                            else if (score.bsk === score.opponent) currentMatchScore += 2;
-                            else currentMatchScore -= 2;
-                            if (score.opponent === 0) currentMatchScore += 3;
-                        }
-                    }
-                }
-                if (m.ratings && m.ratings[p.navn]) currentMatchScore += (m.ratings[p.navn] - 5) * 6;
-                totalMatchPoints += currentMatchScore;
+                kamper++; 
+                totalMatchPoints += window.calculatePlayerMatchPoints(m, p.navn);
             }
         });
         
@@ -3531,20 +3526,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
             if (m.matchGroup === pObj.spillerLag && m.attendance && m.attendance[pObj.navn] === true) {
-                kamper++; let currentMatchScore = 15;
-                if (m.result && m.result.includes('-')) {
-                    if (typeof parseScore === 'function') {
-                        const score = parseScore(m.result);
-                        if (score) {
-                            if (score.bsk > score.opponent) currentMatchScore += 5;
-                            else if (score.bsk === score.opponent) currentMatchScore += 2;
-                            else currentMatchScore -= 2;
-                            if (score.opponent === 0) currentMatchScore += 3;
-                        }
-                    }
-                }
-                if (m.ratings && m.ratings[pObj.navn]) currentMatchScore += (m.ratings[pObj.navn] - 5) * 6;
-                totalMatchPoints += currentMatchScore;
+                kamper++; 
+                totalMatchPoints += window.calculatePlayerMatchPoints(m, pObj.navn);
             }
         });
         return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
@@ -3588,20 +3571,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     (window.activeMatches || []).forEach(m => {
         if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
             matchesPlayed++;
-            let currentMatchScore = 15; 
-            if (m.result && m.result.includes('-')) {
-                if (typeof parseScore === 'function') {
-                    const score = parseScore(m.result);
-                    if (score) {
-                        if (score.bsk > score.opponent) currentMatchScore += 5; 
-                        else if (score.bsk === score.opponent) currentMatchScore += 2;
-                        else currentMatchScore -= 2; 
-                        if (score.opponent === 0) currentMatchScore += 3;
-                    }
-                }
-            }
-            if (m.ratings && m.ratings[playerName]) currentMatchScore += (m.ratings[playerName] - 5) * 6; 
-            totalMatchPoints += currentMatchScore;
+            totalMatchPoints += window.calculatePlayerMatchPoints(m, playerName);
             if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
             if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 10;
         }
@@ -3746,19 +3716,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 attended++;
                 if (e.type === 'Kamp') {
                     kamper++; 
-                    let currentMatchScore = 15; 
                     if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
-                    if (e.result && e.result.includes('-')) {
-                        const score = parseScore(e.result);
-                        if (score) {
-                            if (score.bsk > score.opponent) currentMatchScore += 5;
-                            else if (score.bsk === score.opponent) currentMatchScore += 2;
-                            else currentMatchScore -= 2;
-                            if (score.opponent === 0) currentMatchScore += 3;
-                        }
-                    }
-                    if (e.ratings && e.ratings[p.navn]) currentMatchScore += (e.ratings[p.navn] - 5) * 6;
-                    totalMatchPoints += currentMatchScore;
+                    totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
                 }
             }
             if (e.type === 'Kamp') {
@@ -3851,29 +3810,9 @@ window.updateTacticalBoardStats = function() {
             let totalMatchPoints = 0;
             
             (window.activeMatches || []).forEach(m => {
-                // Sjekk om spilleren var med i kampen
                 if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
                     kamper++;
-                    let currentMatchScore = 15;
-                    
-                    // Sjekk seier/uavgjort/tap for bonus
-                    if (m.result && m.result.includes('-')) {
-                        if (typeof parseScore === 'function') {
-                            const score = parseScore(m.result);
-                            if (score) {
-                                if (score.bsk > score.opponent) currentMatchScore += 5;
-                                else if (score.bsk === score.opponent) currentMatchScore += 2;
-                                else currentMatchScore -= 2;
-                                if (score.opponent === 0) currentMatchScore += 3;
-                            }
-                        }
-                    }
-                    
-                    // Legg til spillerbørs
-                    if (m.ratings && m.ratings[playerObj.navn]) {
-                        currentMatchScore += (m.ratings[playerObj.navn] - 5) * 6;
-                    }
-                    totalMatchPoints += currentMatchScore;
+                    totalBonus += window.calculatePlayerMatchPoints(m, playerObj.navn);
                 }
             });
             
@@ -3903,25 +3842,19 @@ window.updateTacticalBoardStats = function() {
             let ratingBonus = 0;
 
             // 1. Regner ut bonus for lagets resultat
-            if (m.result && m.result.includes('-')) {
-                if (typeof parseScore === 'function') {
-                    const score = parseScore(m.result);
-                    if (score) {
-                        if (score.bsk > score.opponent) resultBonus += 5; 
-                        else if (score.bsk === score.opponent) resultBonus += 2;
-                        else resultBonus -= 2; 
-                        if (score.opponent === 0) resultBonus += 3; // Null baklengs
-                    }
-                }
-            }
+            if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerName] === true) {
+            const ptsDetails = window.calculatePlayerMatchPoints(m, playerName, true);
             
-            // 2. Regner ut bonus for individuell børskarakter
-            const rating = m.ratings && m.ratings[playerName] ? m.ratings[playerName] : null;
-            if (rating !== null) {
-                ratingBonus = (rating - 5) * 6; 
-            }
-            
-            const totalPoints = baseScore + resultBonus + ratingBonus;
+            history.push({
+                matchId: m.id,
+                date: m.date,
+                opponent: m.opponent,
+                result: m.result || 'Ikke spilt',
+                rating: m.ratings && m.ratings[playerName] ? m.ratings[playerName] : '-',
+                points: ptsDetails.total,
+                breakdown: `Start: ${ptsDetails.base} | Resultat & Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
+            });
+        }
             
             history.push({
                 matchId: m.id,
