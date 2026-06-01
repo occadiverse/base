@@ -3378,14 +3378,17 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     // Hent disiplinærstatus for denne kampen
     const suspData = (typeof window.getDisciplineStatusForTeam === 'function' && currentMatch) ? window.getDisciplineStatusForTeam(currentMatch.matchGroup, currentMatch.date) : {};
 
-    const sortedPlayers = [...(window.activePlayers || [])].sort((a,b) => {
-        if (currentMatch && currentMatch.attendance) {
-            const valA = currentMatch.attendance[a.navn] === true ? 2 : (currentMatch.attendance[a.navn] === false ? 0 : 1);
-            const valB = currentMatch.attendance[b.navn] === true ? 2 : (currentMatch.attendance[b.navn] === false ? 0 : 1);
-            if (valA !== valB) return valB - valA;
-        }
-        return a.navn.localeCompare(b.navn);
-    });
+   // Henter alle spillere, FJERNER de passive, og sorterer deretter
+    const sortedPlayers = [...(window.activePlayers || [])]
+        .filter(p => p.status !== 'Passiv')
+        .sort((a,b) => {
+            if (currentMatch && currentMatch.attendance) {
+                const valA = currentMatch.attendance[a.navn] === true ? 2 : (currentMatch.attendance[a.navn] === false ? 0 : 1);
+                const valB = currentMatch.attendance[b.navn] === true ? 2 : (currentMatch.attendance[b.navn] === false ? 0 : 1);
+                if (valA !== valB) return valB - valA;
+            }
+            return a.navn.localeCompare(b.navn);
+        });
 
     sortedPlayers.forEach(p => {
         const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
