@@ -3754,58 +3754,78 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 };
 
         window.showPlayerPointsTable = function() {
-            const playerName = document.getElementById('poeng-player-select').value;
-            const container = document.getElementById('poeng-table-container');
-            
-            if(!playerName) {
-                container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>';
-                return;
-            }
-            
-            const history = typeof getPlayerMatchPointsHistory === 'function' ? getPlayerMatchPointsHistory(playerName) : [];
-            
-            if(history.length === 0) {
-                container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spilte kamper registrert for denne spilleren.</div>';
-                return;
-            }
-            
-            let tableHtml = `
-                <div class="overflow-x-auto rounded-xl border border-slate-100">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
-                            <tr>
-                                <th class="p-4">Dato</th>
-                                <th class="p-4">Motstander</th>
-                                <th class="p-4">Res</th>
-                                <th class="p-4 text-center">Børs</th>
-                                <th class="p-4 text-right">Matchpoeng</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-50">
-            `;
-            
-            history.forEach(h => {
-                let pointColor = 'text-slate-700';
-                if (h.points >= 20) pointColor = 'text-emerald-500';
-                else if (h.points < 10) pointColor = 'text-rose-500';
-                
-                tableHtml += `
-                    <tr class="hover:bg-slate-50 transition cursor-help" title="${h.breakdown}">
-                        <td class="p-4 text-slate-500 font-medium">${new Date(h.date).toLocaleDateString('no-NO', {day: 'numeric', month: 'short'})}</td>
-                        <td class="p-4 font-bold text-slate-800">${h.opponent}</td>
-                        <td class="p-4 font-semibold text-slate-600">${h.result}</td>
-                        <td class="p-4 text-center">
-                            <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
-                        </td>
-                        <td class="p-4 text-right ${pointColor} font-black text-base">${h.points}</td>
+    const playerName = document.getElementById('poeng-player-select').value;
+    const container = document.getElementById('poeng-table-container');
+    
+    if(!playerName) {
+        container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>';
+        return;
+    }
+    
+    const history = typeof getPlayerMatchPointsHistory === 'function' ? getPlayerMatchPointsHistory(playerName) : [];
+    
+    if(history.length === 0) {
+        container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spilte kamper registrert for denne spilleren.</div>';
+        return;
+    }
+    
+    let tableHtml = `
+        <div class="overflow-x-auto rounded-xl border border-slate-100">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
+                    <tr>
+                        <th class="p-4">Dato</th>
+                        <th class="p-4">Motstander</th>
+                        <th class="p-4">Res</th>
+                        <th class="p-4 text-center">Børs</th>
+                        <!-- NYE STATISTIKK-KOLONNER -->
+                        <th class="p-4 text-center">Mål</th>
+                        <th class="p-4 text-center">Gult</th>
+                        <th class="p-4 text-center">Rødt</th>
+                        <th class="p-4 text-right">Matchpoeng</th>
                     </tr>
-                `;
-            });
-            
-            tableHtml += `</tbody></table></div>
-            <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se poengfordelingen.</p>`;
-            container.innerHTML = tableHtml;
-        };
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+    `;
+    
+    history.forEach(h => {
+        let pointColor = 'text-slate-700';
+        if (h.points >= 20) pointColor = 'text-emerald-500';
+        else if (h.points < 10) pointColor = 'text-rose-500';
+        
+        // Hent kamp-objektet for å sjekke kort og mål live
+        const m = (window.activeMatches || []).find(match => match.id === h.matchId);
+        
+        const mål = m && m.scorers && m.scorers[playerName] ? m.scorers[playerName] : '-';
+        const gult = m && m.guleKort && m.guleKort.includes(playerName) ? '1 🟨' : '-';
+        const rødt = m && m.rodeKort && m.rodeKort.includes(playerName) ? '1 🟥' : '-';
+        
+        // Fargestyring for kort-kolonnene så det er lett å scanne
+        const gultKlasse = gult !== '-' ? 'text-amber-500 font-bold' : 'text-slate-300';
+        const rødtKlasse = rødt !== '-' ? 'text-rose-600 font-bold' : 'text-slate-300';
+        const målKlasse = mål !== '-' ? 'text-slate-800 font-bold' : 'text-slate-300';
+        
+        tableHtml += `
+            <tr class="hover:bg-slate-50 transition cursor-help" title="${h.breakdown}">
+                <td class="p-4 text-slate-500 font-medium">${new Date(h.date).toLocaleDateString('no-NO', {day: 'numeric', month: 'short'})}</td>
+                <td class="p-4 font-bold text-slate-800">${h.opponent}</td>
+                <td class="p-4 font-semibold text-slate-600">${h.result}</td>
+                <td class="p-4 text-center">
+                    <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
+                </td>
+                <!-- DYNAMISK DATA FOR KORT OG MÅL -->
+                <td class="p-4 text-center ${målKlasse}">${mål}</td>
+                <td class="p-4 text-center text-xs ${gultKlasse}">${gult}</td>
+                <td class="p-4 text-center text-xs ${rødtKlasse}">${rødt}</td>
+                <td class="p-4 text-right ${pointColor} font-black text-base">${h.points}</td>
+            </tr>
+        `;
+    });
+    
+    tableHtml += `</tbody></table></div>
+    <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se poengfordelingen.</p>`;
+    container.innerHTML = tableHtml;
+};
 
         window.sortStatsTable = function(column) {
             if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc; 
