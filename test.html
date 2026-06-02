@@ -2019,7 +2019,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
 
-    // 1. FORBERED TRENINGSDATA (Venstre blokk)
+    // 1. FORBERED TRENINGSDATA (Venstre blokk - UFORANDRET)
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
@@ -2079,11 +2079,10 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         `;
     }
 
-    // 2. FORBERED "UKENS MASKIN" (Høyre blokk)
+    // 2. FORBERED "UKENS MASKIN" (Høyre blokk - NÅ MED BÅDE RUNDING OG TRENINGSPROSENT)
     let topPlayer = null;
     let topScore = -1;
     
-    // Finner den aktive spilleren med høyest kjemiscore
     (window.activePlayers || []).filter(p => p.status !== 'Passiv').forEach(p => {
         const score = typeof calculatePlayerPerformanceChemistry === 'function' ? calculatePlayerPerformanceChemistry(p.navn) : 0;
         if (score > topScore) { topScore = score; topPlayer = p; }
@@ -2091,22 +2090,32 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
     let rightWidgetHtml = '';
     if (topPlayer && topScore > 0) {
-        // Hent ut litt kjapp og artig info for å pynte kortet
-        let kamper = 0, mal = 0;
-        (window.activeMatches || []).forEach(m => {
-            if (m.attendance && m.attendance[topPlayer.navn]) kamper++;
-            if (m.scorers && m.scorers[topPlayer.navn]) mal += m.scorers[topPlayer.navn];
+        let kamper = 0, mal = 0, attendedEvents = 0;
+        
+        // Hent alle eventer og tell opp
+        const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+        const teamEvents = allEvents.filter(e => e.team === topPlayer.spillerLag);
+        
+        teamEvents.forEach(e => { 
+            if (e.attendance && e.attendance[topPlayer.navn] === true) {
+                attendedEvents++;
+                if (e.type === 'Kamp') {
+                    kamper++;
+                    if (e.scorers && e.scorers[topPlayer.navn]) mal += e.scorers[topPlayer.navn];
+                }
+            } 
         });
 
-        // Et mørkt, eksklusivt "FUT"-inspirert kort
+        // Regner ut oppmøteprosenten
+        const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
+
         rightWidgetHtml = `
             <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-700 rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-xl">
-                <!-- Ikon i bakgrunnen som roterer sakte ved hover -->
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                     <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
                 </div>
                 
-                <div class="relative z-10 flex flex-col h-full">
+                <div class="relative z-10 flex flex-col h-full justify-between">
                     <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
                         <h3 class="font-black text-white text-sm flex items-center gap-2">
                             <i class="fa-solid fa-bolt text-amber-400"></i> Ukens Maskin
@@ -2114,21 +2123,29 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Hot Streak</span>
                     </div>
                     
-                    <div class="flex-1 flex items-center justify-between">
-                        <div class="space-y-1.5 min-w-0 pr-4">
+                    <div class="flex-1 flex items-center justify-between mb-2">
+                        <div class="space-y-1 min-w-0 pr-4">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1}</p>
                             <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.navn.split(' ')[0]}</h4>
-                            
-                            <div class="flex gap-4 pt-2">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block mb-0.5 leading-none">${kamper}</span> Kamper</div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block mb-0.5 leading-none">${mal}</span> Mål</div>
-                            </div>
                         </div>
                         
-                        <!-- Ringen med poengsum -->
+                        <!-- SIRKELEN STÅR NØYAKTIG SOM FØR -->
                         <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] transition-shadow duration-500">
                             <span class="text-2xl font-black text-bsk-yellow leading-none">${topScore}</span>
                             <span class="text-[8px] font-bold text-amber-200/70 uppercase tracking-wider mt-1">Form</span>
+                        </div>
+                    </div>
+
+                    <!-- REFORMERT STATS-RAD I BUNNEN: MÅL, KAMPER OG NY TRENING-PROSENT -->
+                    <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-800/60">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span class="text-white text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span class="text-white text-base block font-black mb-0.5 leading-none">${mal}</span> Mål
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-l border-slate-700 pl-4">
+                            <span class="text-bsk-yellow text-base block font-black mb-0.5 leading-none">${oppmotePct}%</span> Trening
                         </div>
                     </div>
                 </div>
@@ -2145,6 +2162,9 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             </div>
         `;
     }
+
+    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
+}
 
     // LIMER INN BEGGE BOKSENE I GRIDEN
     bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
