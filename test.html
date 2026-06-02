@@ -1970,29 +1970,42 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                             </div>
                         </div>
 
-                        <!-- FORBEDRET INFO-LINJE MED KONTROLLERTE BREDDER -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 max-w-4xl mx-auto text-xs font-medium text-slate-200">
-                            <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner">
-                                <i class="fa-regular fa-calendar text-bsk-yellow text-base shrink-0"></i>
-                                <div>
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Dato & Dag</p>
-                                    <p class="font-bold text-white capitalize">${d}</p>
+                        <!-- FLOTTERE OG MER VISUELL INFO-LINJE -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 max-w-4xl mx-auto text-xs">
+                            
+                            <!-- DATO-KORT -->
+                            <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
+                                <div class="w-10 h-10 rounded-xl bg-bsk-yellow/10 border border-bsk-yellow/20 flex items-center justify-center shrink-0">
+                                    <i class="fa-regular fa-calendar text-bsk-yellow text-lg"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Kampdato</p>
+                                    <p class="font-extrabold text-white text-sm capitalize truncate">${d}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner">
-                                <i class="fa-regular fa-clock text-bsk-yellow text-base shrink-0"></i>
-                                <div>
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Klokkeslett</p>
-                                    <p class="font-bold text-white">Kl. ${nm.time || 'TBA'}</p>
+
+                            <!-- KLOKKESLETT-KORT -->
+                            <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
+                                <div class="w-10 h-10 rounded-xl bg-bsk-yellow/10 border border-bsk-yellow/20 flex items-center justify-center shrink-0">
+                                    <i class="fa-regular fa-clock text-bsk-yellow text-lg"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Avspark</p>
+                                    <p class="font-extrabold text-white text-sm tracking-wide">Kl. ${nm.time || 'TBA'}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner">
-                                <i class="fa-solid fa-location-dot text-rose-400 text-base shrink-0"></i>
-                                <div>
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Spillested / Arena</p>
-                                    <p class="font-bold text-white truncate">${nm.pitch || 'Ikke fastsatt'}</p>
+
+                            <!-- ARENA-KORT -->
+                            <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-location-dot text-rose-400 text-lg"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Spillested</p>
+                                    <p class="font-extrabold text-white text-sm truncate" title="${nm.pitch || 'Ikke fastsatt'}">${nm.pitch || 'Ikke fastsatt'}</p>
                                 </div>
                             </div>
+
                         </div>
 
                         <div class="pt-2 flex justify-center md:justify-end max-w-4xl mx-auto">
