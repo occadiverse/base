@@ -2019,7 +2019,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
 
-    // 1. FORBERED TRENINGSDATA (Venstre blokk - UFORANDRET)
+    // 1. FORBERED TRENINGSDATA (Venstre blokk)
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
@@ -2079,7 +2079,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         `;
     }
 
-    // 2. FORBERED "UKENS MASKIN" (Høyre blokk - NÅ MED BÅDE RUNDING OG TRENINGSPROSENT)
+    // 2. FORBERED "UKENS MASKIN" (Høyre blokk)
     let topPlayer = null;
     let topScore = -1;
     
@@ -2092,7 +2092,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     if (topPlayer && topScore > 0) {
         let kamper = 0, mal = 0, attendedEvents = 0;
         
-        // Hent alle eventer og tell opp
         const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
         const teamEvents = allEvents.filter(e => e.team === topPlayer.spillerLag);
         
@@ -2106,7 +2105,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             } 
         });
 
-        // Regner ut oppmøteprosenten
         const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
 
         rightWidgetHtml = `
@@ -2129,14 +2127,12 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                             <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.navn.split(' ')[0]}</h4>
                         </div>
                         
-                        <!-- SIRKELEN STÅR NØYAKTIG SOM FØR -->
                         <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] transition-shadow duration-500">
                             <span class="text-2xl font-black text-bsk-yellow leading-none">${topScore}</span>
                             <span class="text-[8px] font-bold text-amber-200/70 uppercase tracking-wider mt-1">Form</span>
                         </div>
                     </div>
 
-                    <!-- REFORMERT STATS-RAD I BUNNEN: MÅL, KAMPER OG NY TRENING-PROSENT -->
                     <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-800/60">
                         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <span class="text-white text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper
@@ -2163,10 +2159,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         `;
     }
 
-    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
-}
-
-    // LIMER INN BEGGE BOKSENE I GRIDEN
     bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
 }
         function setMatchTimeFilter(filterType) {
