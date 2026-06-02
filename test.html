@@ -2023,8 +2023,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     } else {
                         formGuide.forEach(item => {
                             const pill = document.createElement('div');
-                            // Fikset klassenavnet (fjernet 'function') og satt faste dimensjoner (w-6 h-6)
-                            pill.className = `w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] cursor-help border border-white/10 shadow-sm transition hover:scale-110 ${item.class}`;
+                            // Gjør pillene litt mer kompakte (w-5 h-5) og teksten litt mindre (text-[9px])
+                            pill.className = `w-5 h-5 rounded-md flex items-center justify-center font-black text-[9px] cursor-help border border-white/10 shadow-sm transition hover:scale-110 ${item.class}`;
                             pill.title = item.tooltip; 
                             pill.innerHTML = `<span>${item.text}</span>`;
                             heroFormContainer.appendChild(pill);
