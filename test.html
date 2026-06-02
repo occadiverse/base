@@ -1939,9 +1939,9 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 }
             }
 
-            // HTML for det oppdaterte, balanserte kjempebanneret
+            // HTML for det rensede hero-banneret med formkurve og diskret navigasjon
             heroContainer.innerHTML = `
-                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border-b-4 border-bsk-yellow">
+                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border-b-4 border-bsk-yellow group">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0">
                         <i class="fa-solid fa-shield-halved text-[22rem]"></i>
                     </div>
@@ -1952,28 +1952,44 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                                 <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
                                 <span>NESTE KAMP SATT</span>
                             </div>
-                            <span class="text-xs font-black text-bsk-yellow tracking-wider bg-white/10 px-3 py-1 rounded-xl border border-white/10 shadow-inner">${nm.matchGroup.toUpperCase()}</span>
+                            
+                            <!-- DISKRET APNE-KNAPP UPPE I HJØRNET -->
+                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-slate-400 hover:text-bsk-yellow transition-colors text-xs font-bold flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl shadow-sm hover:bg-white/10" title="Åpne kampdetaljer">
+                                <span>Kampinfo</span> <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
+                            </button>
                         </div>
 
-                        <!-- BALANSERT OG SENTRERT VS-VISNING -->
-                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 py-4 max-w-3xl mx-auto">
-                            <div class="text-center md:text-right flex-1 w-full">
-                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Hjemmelag</span>
-                                <h2 class="text-xl md:text-3xl font-black text-white tracking-tight drop-shadow-md truncate">BÆKKELAGETS SK</h2>
+                        <!-- BALANSERT KAMPVISNING MED FORMKURVE I MIDTEN -->
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
+                            
+                            <!-- HJEMMELAG -->
+                            <div class="text-center md:text-right flex-1 w-full md:max-w-[280px]">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-0.5">Hjemmelag</span>
+                                <h2 class="text-xl md:text-2xl font-black text-white tracking-tight drop-shadow-md truncate">BÆKKELAGETS SK</h2>
                             </div>
                             
-                            <div class="bg-bsk-yellow text-bsk-blue px-3 py-1.5 rounded-xl text-xs font-black shadow-md tracking-wider uppercase shrink-0 transform md:scale-110 my-2 md:my-0 border border-amber-300">VS</div>
+                            <!-- MIDTSEKSJON: VS + LAGETS FORMKURVE -->
+                            <div class="flex flex-col items-center gap-3 shrink-0 my-2 md:my-0 px-4">
+                                <div class="bg-bsk-yellow text-bsk-blue px-3 py-1 rounded-xl text-[11px] font-black shadow-md tracking-wider uppercase border border-amber-300">VS</div>
+                                
+                                <!-- STILREN FORMKURVE INTEGRERT I HERO -->
+                                <div class="flex gap-1 bg-black/30 backdrop-blur-sm p-1 rounded-lg border border-white/5 shadow-inner" id="hero-form-pills-container">
+                                    <!-- Form-pillene dyttes inn her av JS rett nedenfor -->
+                                </div>
+                            </div>
                             
-                            <div class="text-center md:text-left flex-1 w-full">
-                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Motstander</span>
-                                <h2 class="text-xl md:text-3xl font-black text-bsk-yellow tracking-tight drop-shadow-md truncate uppercase">${nm.opponent}</h2>
+                            <!-- MOTSTANDER (KLIKKBAR LENKE I STEDET FOR STOR KNAPP) -->
+                            <div class="text-center md:text-left flex-1 w-full md:max-w-[280px]">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-0.5">Motstander</span>
+                                <h2 onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-yellow tracking-tight drop-shadow-md uppercase cursor-pointer hover:text-amber-300 transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
+                                    <span>${nm.opponent}</span>
+                                    <i class="fa-solid fa-circle-chevron-right text-xs opacity-40 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-white"></i>
+                                </h2>
                             </div>
                         </div>
 
-                        <!-- FLOTTERE OG MER VISUELL INFO-LINJE -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 max-w-4xl mx-auto text-xs">
-                            
-                            <!-- DATO-KORT -->
+                        <!-- FLOTTERE INFO-LINJE -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 max-w-4xl mx-auto text-xs">
                             <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
                                 <div class="w-10 h-10 rounded-xl bg-bsk-yellow/10 border border-bsk-yellow/20 flex items-center justify-center shrink-0">
                                     <i class="fa-regular fa-calendar text-bsk-yellow text-lg"></i>
@@ -1984,7 +2000,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                                 </div>
                             </div>
 
-                            <!-- KLOKKESLETT-KORT -->
                             <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
                                 <div class="w-10 h-10 rounded-xl bg-bsk-yellow/10 border border-bsk-yellow/20 flex items-center justify-center shrink-0">
                                     <i class="fa-regular fa-clock text-bsk-yellow text-lg"></i>
@@ -1995,7 +2010,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                                 </div>
                             </div>
 
-                            <!-- ARENA-KORT -->
                             <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
                                 <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-location-dot text-rose-400 text-lg"></i>
@@ -2005,17 +2019,29 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                                     <p class="font-extrabold text-white text-sm truncate" title="${nm.pitch || 'Ikke fastsatt'}">${nm.pitch || 'Ikke fastsatt'}</p>
                                 </div>
                             </div>
-
                         </div>
 
-                        <div class="pt-2 flex justify-center md:justify-end max-w-4xl mx-auto">
-                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full sm:w-auto bg-white hover:bg-bsk-yellow text-bsk-blue font-black text-xs px-5 py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
-                                <i class="fa-solid fa-clipboard-user"></i> Åpne kampen og gi karakterer
-                            </button>
-                        </div>
                     </div>
                 </section>
             `;
+
+            // --- NYTT: Dytter form-pillene direkte inn under VS-boksen i Hero-en ---
+            const heroFormContainer = document.getElementById('hero-form-pills-container');
+            if (heroFormContainer) {
+                heroFormContainer.innerHTML = '';
+                if (formGuide.length === 0) {
+                    heroFormContainer.innerHTML = `<span class="text-[9px] text-slate-400 px-2 py-0.5 italic">Ingen spilte kamper</span>`;
+                } else {
+                    formGuide.forEach(item => {
+                        const pill = document.createElement('div');
+                        // Kompakte og stilrene piller som passer perfekt inn i det mørke banneret
+                        pill.className = `w-5 function h-5 rounded flex items-center justify-center font-black text-[9px] cursor-help border border-white/5 shadow-sm transition hover:scale-110 ${item.class}`;
+                        pill.title = item.tooltip; 
+                        pill.innerHTML = `<span>${item.text}</span>`;
+                        heroFormContainer.appendChild(pill);
+                    });
+                }
+            }
         } else {
             heroContainer.innerHTML = `
                 <div class="bg-slate-100 border border-slate-200 rounded-2xl p-10 text-center text-slate-400 shadow-inner">
