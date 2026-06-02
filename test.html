@@ -1916,15 +1916,15 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 }
             }
 
-            // MINIMALISTISK KARANTENEVARSEL TIL HERO-KORTET (Kun ikon + antall som pulserer)
+            // --- NOTIFICATION BADGE FOR KARANTENER (Rød sirkel oppe i hjørnet) ---
             let herosuspensionBadgeHtml = '';
             if (suspendedPlayers.length > 0) {
                 const suspNamesStr = suspendedPlayers.join(', ');
+                // Denne badgen plasseres absolutt i forhold til forelderen, som må ha 'relative'
                 herosuspensionBadgeHtml = `
-                    <div class="inline-flex items-center gap-1 text-rose-400 font-black text-xs cursor-help animate-pulse ml-1" title="Karantene: ${suspNamesStr}">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
-                        <span>${suspendedPlayers.length}</span>
-                    </div>
+                    <span class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse border border-white/20 cursor-help z-20" title="Karantene: ${suspNamesStr}">
+                        ${suspendedPlayers.length}
+                    </span>
                 `;
             }
 
@@ -1938,11 +1938,12 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     <div class="relative z-10 space-y-6 max-w-5xl mx-auto">
                         <div class="flex justify-between items-center border-b border-white/10 pb-3">
                             <div class="flex items-center gap-2">
-                                <div class="inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-md">
+                                <!-- VI HAR LAGT TIL 'relative' HER SÅ BADGEN PASSER PERFEKT -->
+                                <div class="relative inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-md">
                                     <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
                                     <span>NESTE KAMP SATT</span>
+                                    ${herosuspensionBadgeHtml}
                                 </div>
-                                ${herosuspensionBadgeHtml}
                             </div>
                             
                             <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-slate-400 hover:text-bsk-yellow transition-colors text-xs font-bold flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl shadow-sm hover:bg-white/10" title="Åpne kampdetaljer">
