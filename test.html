@@ -2012,23 +2012,26 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 </section>
             `;
 
-            // --- NYTT: Dytter form-pillene direkte inn under VS-boksen i Hero-en ---
-            const heroFormContainer = document.getElementById('hero-form-pills-container');
-            if (heroFormContainer) {
-                heroFormContainer.innerHTML = '';
-                if (formGuide.length === 0) {
-                    heroFormContainer.innerHTML = `<span class="text-[9px] text-slate-400 px-2 py-0.5 italic">Ingen spilte kamper</span>`;
-                } else {
-                    formGuide.forEach(item => {
-                        const pill = document.createElement('div');
-                        // Kompakte og stilrene piller som passer perfekt inn i det mørke banneret
-                        pill.className = `w-5 function h-5 rounded flex items-center justify-center font-black text-[9px] cursor-help border border-white/5 shadow-sm transition hover:scale-110 ${item.class}`;
-                        pill.title = item.tooltip; 
-                        pill.innerHTML = `<span>${item.text}</span>`;
-                        heroFormContainer.appendChild(pill);
-                    });
+            // --- OPPDATERT: Dytter form-pillene direkte inn under VS-boksen i Hero-en ---
+            // Vi bruker et lite setTimeout her for å være 100% sikre på at HTML-en er tegnet først
+            setTimeout(() => {
+                const heroFormContainer = document.getElementById('hero-form-pills-container');
+                if (heroFormContainer) {
+                    heroFormContainer.innerHTML = '';
+                    if (formGuide.length === 0) {
+                        heroFormContainer.innerHTML = `<span class="text-[9px] text-slate-400 px-2 py-0.5 italic">Ingen spilte kamper</span>`;
+                    } else {
+                        formGuide.forEach(item => {
+                            const pill = document.createElement('div');
+                            // Fikset klassenavnet (fjernet 'function') og satt faste dimensjoner (w-6 h-6)
+                            pill.className = `w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] cursor-help border border-white/10 shadow-sm transition hover:scale-110 ${item.class}`;
+                            pill.title = item.tooltip; 
+                            pill.innerHTML = `<span>${item.text}</span>`;
+                            heroFormContainer.appendChild(pill);
+                        });
+                    }
                 }
-            }
+            }, 50);
         } else {
             heroContainer.innerHTML = `
                 <div class="bg-slate-100 border border-slate-200 rounded-2xl p-10 text-center text-slate-400 shadow-inner">
