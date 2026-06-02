@@ -1939,15 +1939,15 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 }
             }
 
-            // HTML for selve kjempebanneret
+            // HTML for det oppdaterte, balanserte kjempebanneret
             heroContainer.innerHTML = `
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border-b-4 border-bsk-yellow">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0">
                         <i class="fa-solid fa-shield-halved text-[22rem]"></i>
                     </div>
                     
-                    <div class="relative z-10 space-y-6">
-                        <div class="flex justify-between items-center">
+                    <div class="relative z-10 space-y-6 max-w-5xl mx-auto">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-3">
                             <div class="inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-md">
                                 <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
                                 <span>NESTE KAMP SATT</span>
@@ -1955,39 +1955,39 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                             <span class="text-xs font-black text-bsk-yellow tracking-wider bg-white/10 px-3 py-1 rounded-xl border border-white/10 shadow-inner">${nm.matchGroup.toUpperCase()}</span>
                         </div>
 
-                        <!-- MASSIV VS-VISNING -->
-                        <div class="flex flex-col md:flex-row items-center justify-between gap-6 py-2">
-                            <div class="text-center md:text-left space-y-1">
-                                <span class="text-[10px] uppercase font-black text-slate-300 tracking-wider">Hjemmelag / Kampgruppe</span>
-                                <h2 class="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-md">BÆKKELAGETS SK</h2>
+                        <!-- BALANSERT OG SENTRERT VS-VISNING -->
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 py-4 max-w-3xl mx-auto">
+                            <div class="text-center md:text-right flex-1 w-full">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Hjemmelag</span>
+                                <h2 class="text-xl md:text-3xl font-black text-white tracking-tight drop-shadow-md truncate">BÆKKELAGETS SK</h2>
                             </div>
                             
-                            <div class="text-center bg-white/10 border border-white/10 backdrop-blur-md px-4 py-1 rounded-2xl text-xs font-black text-bsk-yellow shadow-md tracking-wider uppercase">VS</div>
+                            <div class="bg-bsk-yellow text-bsk-blue px-3 py-1.5 rounded-xl text-xs font-black shadow-md tracking-wider uppercase shrink-0 transform md:scale-110 my-2 md:my-0 border border-amber-300">VS</div>
                             
-                            <div class="text-center md:text-right space-y-1">
-                                <span class="text-[10px] uppercase font-black text-slate-300 tracking-wider">Motstander</span>
-                                <h2 class="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-md uppercase text-bsk-yellow">${nm.opponent}</h2>
+                            <div class="text-center md:text-left flex-1 w-full">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Motstander</span>
+                                <h2 class="text-xl md:text-3xl font-black text-bsk-yellow tracking-tight drop-shadow-md truncate uppercase">${nm.opponent}</h2>
                             </div>
                         </div>
 
-                        <!-- KAMPINFO-LINJE MED STORE IKONER -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-white/10 text-xs font-medium text-slate-200">
+                        <!-- FORBEDRET INFO-LINJE MED KONTROLLERTE BREDDER -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 max-w-4xl mx-auto text-xs font-medium text-slate-200">
                             <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner">
-                                <i class="fa-regular fa-calendar text-bsk-yellow text-lg shrink-0"></i>
+                                <i class="fa-regular fa-calendar text-bsk-yellow text-base shrink-0"></i>
                                 <div>
                                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Dato & Dag</p>
                                     <p class="font-bold text-white capitalize">${d}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner">
-                                <i class="fa-regular fa-clock text-bsk-yellow text-lg shrink-0"></i>
+                                <i class="fa-regular fa-clock text-bsk-yellow text-base shrink-0"></i>
                                 <div>
                                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Klokkeslett</p>
                                     <p class="font-bold text-white">Kl. ${nm.time || 'TBA'}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner col-span-1 sm:col-span-2 md:col-span-1">
-                                <i class="fa-solid fa-location-dot text-rose-400 text-lg shrink-0"></i>
+                            <div class="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-inner">
+                                <i class="fa-solid fa-location-dot text-rose-400 text-base shrink-0"></i>
                                 <div>
                                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Spillested / Arena</p>
                                     <p class="font-bold text-white truncate">${nm.pitch || 'Ikke fastsatt'}</p>
@@ -1995,8 +1995,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                             </div>
                         </div>
 
-                        <div class="pt-2 flex justify-end">
-                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="bg-white hover:bg-bsk-yellow text-bsk-blue hover:text-bsk-blue font-black text-xs px-5 py-3 rounded-xl transition shadow-md flex items-center gap-2 hover:scale-105 active:scale-95">
+                        <div class="pt-2 flex justify-center md:justify-end max-w-4xl mx-auto">
+                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="w-full sm:w-auto bg-white hover:bg-bsk-yellow text-bsk-blue font-black text-xs px-5 py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
                                 <i class="fa-solid fa-clipboard-user"></i> Åpne kampen og gi karakterer
                             </button>
                         </div>
