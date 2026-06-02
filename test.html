@@ -157,33 +157,21 @@
             
             <!-- FORSIDE / DASHBOARD REDESIGN -->
             <div id="view-hjem" class="space-y-6">
-                
                 <div id="hjem-hero-match-container">
-                    </div>
-
-                    <!-- OPPDATERT TRENINGSPANEL MED KORT OVERSKRIFT -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                    <div class="flex justify-between items-center border-b border-slate-150 pb-4 mb-4">
-                        <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-stopwatch text-blue-600 text-base"></i>
-                            Neste trening / Event
-                        </h3>
-                        <button onclick="switchTab('oppmote')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-1.5 rounded-xl transition">
-                            <i class="fa-regular fa-calendar-days mr-1"></i> Kalender & Oppmøte
-                        </button>
-                    </div>
-                    
-                    <div id="hjem-next-event-container"></div>
                 </div>
-            </div>
-            
+                <!-- BUNNSEKSJON: TRENING & ENGASJEMENT (50/50 SPLITT) -->
+                <div id="hjem-bottom-widgets" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Det nye, delte innholdet genereres automatisk av JavaScript her -->
+                </div>
+            </div> <!-- Dette er den lukkende taggen for view-hjem -->
+                        
             <div id="view-kamper" class="hidden space-y-6">
-    <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-        <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
-            <i class="fa-solid fa-shield-halved text-[15rem]"></i>
-        </div>
-        <div class="relative z-10 space-y-4">
-            <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
+                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
+                    <i class="fa-solid fa-shield-halved text-[15rem]"></i>
+                </div>
+                <div class="relative z-10 space-y-4">
+                    <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
                 Neste kamp er mot <span class="text-bsk-yellow font-bold underline" id="stat-next-opponent">Laster...</span> den 
                 <span class="text-white font-bold" id="stat-next-match">Laster...</span>. 
                 Sesongen så langt har gitt oss <span class="text-bsk-yellow font-black" id="stat-wins">0 seire</span> 
@@ -2028,100 +2016,138 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 }
 
        function updateHjemWidget() {
+    const bottomContainer = document.getElementById('hjem-bottom-widgets');
+    if (!bottomContainer) return;
+
+    // 1. FORBERED TRENINGSDATA (Venstre blokk)
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-    
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
-    const nextEventHjem = document.getElementById('hjem-next-event-container');
-    if (!nextEventHjem) return;
-
+    
+    let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
         const ne = upcomingEvents[0];
         const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
         
-        let påmeldtAntall = 0;
-        let forfallAntall = 0;
-        let forfallNavn = [];
-
+        let påmeldtAntall = 0, forfallAntall = 0;
         if (ne.attendance) {
-            Object.entries(ne.attendance).forEach(([navn, status]) => {
+            Object.values(ne.attendance).forEach(status => {
                 if (status === true) påmeldtAntall++;
-                if (status === false) {
-                    forfallNavn.push(navn.split(' ')[0]);
-                    forfallAntall++;
-                }
+                if (status === false) forfallAntall++;
             });
         }
 
-        const forfallTekst = forfallNavn.length > 0 ? forfallNavn.join(', ') : 'Ingen forfall meldt';
-
-        // Stilrent, lyst design med en svak, sofistikert bakgrunnstone (bg-slate-150/40)
-        nextEventHjem.innerHTML = `
-            <div class="bg-slate-100/70 border border-slate-200/60 rounded-xl p-5 shadow-inner mt-2">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        leftWidgetHtml = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full transition hover:shadow-md">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                    <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-blue-500"></i> Neste økt
+                    </h3>
+                    <span class="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">${ne.type}</span>
+                </div>
+                
+                <div class="flex-1 space-y-4">
+                    <div>
+                        <h4 class="font-black text-slate-800 text-lg leading-tight truncate">${ne.title}</h4>
+                        <p class="text-xs font-bold text-slate-500 mt-1"><i class="fa-regular fa-clock text-slate-400 mr-1.5 w-3 text-center"></i> ${d} kl. ${ne.time || 'TBA'}</p>
+                        <p class="text-xs font-bold text-slate-500 mt-0.5 truncate"><i class="fa-solid fa-location-dot text-slate-400 mr-1.5 w-3 text-center"></i> ${ne.location || 'Ikke oppgitt'}</p>
+                    </div>
                     
-                    <!-- VENSTRE: DETALJER MED KORT MERKELAPP -->
-                    <div class="md:col-span-2 space-y-4">
-                        <div class="space-y-1">
-                            <div class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-200/60 font-black text-[9px] px-2.5 py-0.5 rounded uppercase tracking-wider">
-                                <i class="fa-solid fa-person-running"></i> Trening
-                            </div>
-                            <h4 class="font-black text-slate-800 text-xl tracking-tight">${ne.title}</h4>
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
+                        <div class="text-xs font-bold text-slate-500">Troppstatus:</div>
+                        <div class="flex gap-2">
+                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black">${påmeldtAntall} klar</span>
+                            <span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-black">${forfallAntall} forfall</span>
                         </div>
-                        
-                        <!-- RENE, HVITE INFOBOKSER -->
-                        <div class="flex flex-col sm:flex-row gap-3 text-xs">
-                            <div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3 flex-1 shadow-sm">
-                                <div class="w-9 h-9 rounded-lg bg-blue-50/80 flex items-center justify-center shrink-0">
-                                    <i class="fa-regular fa-clock text-blue-600 text-base"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-wider">Tidspunkt</p>
-                                    <p class="font-bold text-slate-700 capitalize">${d} kl. ${ne.time || 'TBA'}</p>
-                                </div>
-                            </div>
+                    </div>
+                </div>
+                
+                <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="mt-5 w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-3 rounded-xl transition shadow-sm hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-check text-bsk-yellow"></i> Registrer oppmøte
+                </button>
+            </div>
+        `;
+    } else {
+        leftWidgetHtml = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
+                <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-calendar-xmark text-xl text-slate-300"></i>
+                </div>
+                <h3 class="font-black text-slate-700 text-sm">Kalenderen er tom</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Det er ingen kommende aktiviteter planlagt.</p>
+            </div>
+        `;
+    }
+
+    // 2. FORBERED "UKENS MASKIN" (Høyre blokk)
+    let topPlayer = null;
+    let topScore = -1;
+    
+    // Finner den aktive spilleren med høyest kjemiscore
+    (window.activePlayers || []).filter(p => p.status !== 'Passiv').forEach(p => {
+        const score = typeof calculatePlayerPerformanceChemistry === 'function' ? calculatePlayerPerformanceChemistry(p.navn) : 0;
+        if (score > topScore) { topScore = score; topPlayer = p; }
+    });
+
+    let rightWidgetHtml = '';
+    if (topPlayer && topScore > 0) {
+        // Hent ut litt kjapp og artig info for å pynte kortet
+        let kamper = 0, mal = 0;
+        (window.activeMatches || []).forEach(m => {
+            if (m.attendance && m.attendance[topPlayer.navn]) kamper++;
+            if (m.scorers && m.scorers[topPlayer.navn]) mal += m.scorers[topPlayer.navn];
+        });
+
+        // Et mørkt, eksklusivt "FUT"-inspirert kort
+        rightWidgetHtml = `
+            <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-700 rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-xl">
+                <!-- Ikon i bakgrunnen som roterer sakte ved hover -->
+                <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                    <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
+                </div>
+                
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                        <h3 class="font-black text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Ukens Maskin
+                        </h3>
+                        <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Hot Streak</span>
+                    </div>
+                    
+                    <div class="flex-1 flex items-center justify-between">
+                        <div class="space-y-1.5 min-w-0 pr-4">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1}</p>
+                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.navn.split(' ')[0]}</h4>
                             
-                            <div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3 flex-1 shadow-sm">
-                                <div class="w-9 h-9 rounded-lg bg-rose-50/80 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-location-dot text-rose-500 text-base"></i>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-wider">Felt / Bane</p>
-                                    <p class="font-bold text-slate-700 truncate">${ne.location || 'Ikke oppgitt'}</p>
-                                </div>
+                            <div class="flex gap-4 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block mb-0.5 leading-none">${kamper}</span> Kamper</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block mb-0.5 leading-none">${mal}</span> Mål</div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- HØYRE: PÅMELDINGSPANEL -->
-                    <div class="bg-white border border-slate-200 p-4 rounded-xl flex flex-col justify-between gap-4 h-full shadow-sm">
-                        <div class="space-y-1.5 text-xs">
-                            <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 font-bold text-slate-400 uppercase text-[9px] tracking-wider">
-                                <span>Troppstatus</span>
-                                <div class="flex gap-1.5 font-black normal-case">
-                                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[10px]">${påmeldtAntall} klar</span>
-                                    <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[10px]">${forfallAntall} ut</span>
-                                </div>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium truncate w-full" title="${forfallTekst}">
-                                <span class="font-bold text-slate-600">Forfall:</span> ${forfallTekst}
-                            </p>
                         </div>
                         
-                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]">
-                            <i class="fa-solid fa-user-check text-bsk-yellow"></i> Registrer økt
-                        </button>
+                        <!-- Ringen med poengsum -->
+                        <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] transition-shadow duration-500">
+                            <span class="text-2xl font-black text-bsk-yellow leading-none">${topScore}</span>
+                            <span class="text-[8px] font-bold text-amber-200/70 uppercase tracking-wider mt-1">Form</span>
+                        </div>
                     </div>
-
                 </div>
             </div>
         `;
     } else {
-        nextEventHjem.innerHTML = `
-            <div class="p-8 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
-                <p class="text-xs font-bold text-slate-500">Ingen kommende treninger planlagt</p>
-            </div>`;
+        rightWidgetHtml = `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
+                <div class="w-12 h-12 bg-white rounded-full border border-slate-100 flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-bolt text-xl text-slate-300"></i>
+                </div>
+                <h3 class="font-black text-slate-700 text-sm">Ingen data enda</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Før oppmøte og karakterer for å kåre Ukens Maskin.</p>
+            </div>
+        `;
     }
+
+    // LIMER INN BEGGE BOKSENE I GRIDEN
+    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
 }
         function setMatchTimeFilter(filterType) {
             window.activeTimeFilter = filterType;
