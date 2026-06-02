@@ -1916,13 +1916,14 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 }
             }
 
-            // --- NOTIFICATION BADGE FOR KARANTENER (Rød sirkel oppe i hjørnet) ---
+            // --- OPPGRADERTE KLIKKBAR BADGE (Tar deg rett til kampen) ---
             let herosuspensionBadgeHtml = '';
             if (suspendedPlayers.length > 0) {
-                const suspNamesStr = suspendedPlayers.join(', ');
-                // Denne badgen plasseres absolutt i forhold til forelderen, som må ha 'relative'
+                // Vi har lagt til onclick, cursor-pointer og fjernet den gamle title-teksten
                 herosuspensionBadgeHtml = `
-                    <span class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse border border-white/20 cursor-help z-20" title="Karantene: ${suspNamesStr}">
+                    <span onclick="event.stopPropagation(); switchTab('kamper'); showMatchDetails('${nm.id}')" 
+                          class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse border border-white/20 cursor-pointer z-20 hover:bg-red-700 hover:scale-115 transition-all" 
+                          title="Karantene registrert! Klikk for å se hvem.">
                         ${suspendedPlayers.length}
                     </span>
                 `;
