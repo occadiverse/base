@@ -69,6 +69,11 @@
         z-index: 70 !important;
         }
 
+        /* NY: Oppmøte-modal (Skal sprette opp over kampinfo) */
+        #attendanceModal {
+        z-index: 80 !important;
+        }
+
         /* Bekreftelses-modalen (Skal alltid være øverst) */
         #confirmModal {
         z-index: 100 !important;
@@ -2714,6 +2719,20 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         window.closeAttendanceModal = function() {
             document.getElementById('attendanceModal').classList.add('hidden');
             document.getElementById('attendanceModal').classList.remove('flex');
+            
+            // SJEKK OM VI KOM FRA EN KAMP (Da skal vi hoppe tilbake)
+            if (activeAttendanceEventId && activeAttendanceEventId.startsWith('match_')) {
+                const matchId = activeAttendanceEventId.replace('match_', '');
+                
+                // Kjør showMatchDetails etter et bittelite delay, ellers kræsjer animasjonene
+                setTimeout(() => {
+                    if (typeof window.showMatchDetails === 'function') {
+                        window.showMatchDetails(matchId);
+                    }
+                }, 100);
+            }
+            
+            // Nullstill ID-en til slutt
             activeAttendanceEventId = null;
         }
 
