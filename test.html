@@ -1034,16 +1034,25 @@
             </div>
 
             <div class="mt-6 flex flex-wrap gap-2 justify-between items-center border-t border-slate-100 pt-4">
-                <button id="btnManageSquad" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-sm border border-blue-500/30">
-                    <i class="fa-solid fa-users-gear text-bsk-yellow"></i> Administrer tropp 🏃
-                </button>
                 
-                <div class="flex gap-2">
+                <!-- VENSTRE SIDE: TROPPSSTYRING OG TAKTIKK -->
+                <div class="flex flex-wrap gap-2">
+                    <button id="btnManageSquad" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-sm border border-blue-500/30">
+                        <i class="fa-solid fa-users-gear text-bsk-yellow"></i> Administrer tropp
+                    </button>
+                    <!-- NY TEKST: KAMPPLAN -->
+                    <button id="btnGoToTactics" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-sm border border-emerald-500/30">
+                        <i class="fa-solid fa-clipboard-list text-emerald-200"></i> Kampplan 📋
+                    </button>
+                </div>
+                
+                <!-- HØYRE SIDE: REDIGER OG SLETT -->
+                <div class="flex gap-2 mt-2 sm:mt-0">
                     <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
-                        <i class="fa-solid fa-pen"></i> Rediger kamp
+                        <i class="fa-solid fa-pen"></i> Rediger
                     </button>
                     <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
-                        <i class="fa-solid fa-trash"></i> Slett kamp
+                        <i class="fa-solid fa-trash"></i> Slett
                     </button>
                 </div>
             </div>
@@ -2420,60 +2429,76 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         window.showMatchDetails = function(id) {
-            activeDetailsId = id;
-            const match = (window.activeMatches || []).find(m => m.id === id);
-            if (!match) return;
+    activeDetailsId = id;
+    const match = (window.activeMatches || []).find(m => m.id === id);
+    if (!match) return;
 
-            document.getElementById('infoTitle').innerHTML = `Kamp mot ${match.opponent}`;
-            const matchingTeamObj = (window.activeTeams || []).find(t => t.name === match.matchGroup);
-            let teamMetaInfoHtml = '';
-            if (matchingTeamObj) {
-                teamMetaInfoHtml = `
-                    <div class="col-span-2 space-y-1 bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs text-slate-600">
-                        <p class="font-bold text-slate-800"><i class="fa-solid fa-users text-bsk-blue mr-1"></i> ${matchingTeamObj.name} info:</p>
-                        <p><strong class="text-slate-700">Trener:</strong> ${matchingTeamObj.coachName || 'Ingen'} (${matchingTeamObj.coachContact || 'Ingen kontaktinfo'})</p>
-                        <p class="italic text-slate-500 pt-1">${matchingTeamObj.description || ''}</p>
-                    </div>`;
-            }
-            
-            const container = document.getElementById('matchInfoDetails');
-            const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            container.innerHTML = `
-                <div class="col-span-2 space-y-1">
-                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kamptidspunkt</span>
-                    <span class="font-bold text-slate-800 text-sm"><i class="fa-regular fa-clock text-bsk-blue mr-1"></i> ${dateFormatted} kl. ${match.time || '--:--'}</span>
-                </div>
-                <div class="space-y-1 border-t border-slate-150 pt-2">
-                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Spillearena</span>
-                    <span class="font-semibold text-slate-700"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i> ${match.pitch || 'Ikke fastsatt'}</span>
-                </div>
-                <div class="space-y-1 border-t border-slate-150 pt-2">
-                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kampgruppe / Type</span>
-                    <span class="font-semibold text-slate-700">${match.matchGroup} (${match.matchType})</span>
-                </div>
-                <div class="col-span-2 space-y-1 border-t border-slate-150 pt-2">
-                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Sluttresultat</span>
-                    <span class="text-base font-black ${match.result ? 'text-slate-800' : 'text-slate-400'}">
-                        <i class="fa-solid fa-square-poll-horizontal text-emerald-600 mr-1"></i> ${match.result || 'Ikke ferdigspilt'}
-                    </span>
-                </div>
-                ${teamMetaInfoHtml}
-            `;
+    document.getElementById('infoTitle').innerHTML = `Kamp mot ${match.opponent}`;
+    const matchingTeamObj = (window.activeTeams || []).find(t => t.name === match.matchGroup);
+    let teamMetaInfoHtml = '';
+    if (matchingTeamObj) {
+        teamMetaInfoHtml = `
+            <div class="col-span-2 space-y-1 bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs text-slate-600">
+                <p class="font-bold text-slate-800"><i class="fa-solid fa-users text-bsk-blue mr-1"></i> ${matchingTeamObj.name} info:</p>
+                <p><strong class="text-slate-700">Trener:</strong> ${matchingTeamObj.coachName || 'Ingen'} (${matchingTeamObj.coachContact || 'Ingen kontaktinfo'})</p>
+                <p class="italic text-slate-500 pt-1">${matchingTeamObj.description || ''}</p>
+            </div>`;
+    }
+    
+    const container = document.getElementById('matchInfoDetails');
+    const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    container.innerHTML = `
+        <div class="col-span-2 space-y-1">
+            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kamptidspunkt</span>
+            <span class="font-bold text-slate-800 text-sm"><i class="fa-regular fa-clock text-bsk-blue mr-1"></i> ${dateFormatted} kl. ${match.time || '--:--'}</span>
+        </div>
+        <div class="space-y-1 border-t border-slate-150 pt-2">
+            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Spillearena</span>
+            <span class="font-semibold text-slate-700"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i> ${match.pitch || 'Ikke fastsatt'}</span>
+        </div>
+        <div class="space-y-1 border-t border-slate-150 pt-2">
+            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kampgruppe / Type</span>
+            <span class="font-semibold text-slate-700">${match.matchGroup} (${match.matchType})</span>
+        </div>
+        <div class="col-span-2 space-y-1 border-t border-slate-150 pt-2">
+            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Sluttresultat</span>
+            <span class="text-base font-black ${match.result ? 'text-slate-800' : 'text-slate-400'}">
+                <i class="fa-solid fa-square-poll-horizontal text-emerald-600 mr-1"></i> ${match.result || 'Ikke ferdigspilt'}
+            </span>
+        </div>
+        ${teamMetaInfoHtml}
+    `;
 
-            document.getElementById('btnEditMatch').onclick = () => window.openMatchModal(match.id);
-            document.getElementById('btnDeleteMatch').onclick = () => promptDeleteMatch(match.id);
-            // Kobler den nye knappen til å åpne oppmøte-modalen for denne spesifikke kampen
-            document.getElementById('btnManageSquad').onclick = () => {
-                if (typeof window.openAttendanceModal === 'function') {
-                    window.openAttendanceModal('match_' + match.id);
-                }
-            };
-            
-            renderPlayerRowForm(match);
-
-            const infoModal = document.getElementById('matchInfoModal');
-            infoModal.classList.remove('hidden'); infoModal.classList.add('flex');
+    document.getElementById('btnEditMatch').onclick = () => window.openMatchModal(match.id);
+    document.getElementById('btnDeleteMatch').onclick = () => promptDeleteMatch(match.id);
+    
+    // 1. Administrer tropp (Åpner oppmøtemodalen)
+    document.getElementById('btnManageSquad').onclick = () => {
+        window.closeMatchInfo(); 
+        if (typeof window.openAttendanceModal === 'function') {
+            window.openAttendanceModal('match_' + match.id);
         }
+    };
+    
+    // 2. Kampplan (Sveiper over til taktikkfanen og laster inn kampen)
+    document.getElementById('btnGoToTactics').onclick = () => {
+        window.closeMatchInfo(); 
+        window.switchTab('taktikk');
+        
+        setTimeout(() => {
+            const tacticalSelect = document.getElementById('tacticalMatchSelect');
+            if (tacticalSelect) {
+                tacticalSelect.value = match.id; 
+                window.loadMatchTactics(); 
+            }
+        }, 50);
+    };
+    
+    renderPlayerRowForm(match);
+
+    const infoModal = document.getElementById('matchInfoModal');
+    infoModal.classList.remove('hidden'); infoModal.classList.add('flex');
+}
 
         window.closeMatchInfo = function() {
             document.getElementById('matchInfoModal').classList.add('hidden');
@@ -2717,24 +2742,24 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         window.closeAttendanceModal = function() {
-            document.getElementById('attendanceModal').classList.add('hidden');
-            document.getElementById('attendanceModal').classList.remove('flex');
-            
-            // SJEKK OM VI KOM FRA EN KAMP (Da skal vi hoppe tilbake)
-            if (activeAttendanceEventId && activeAttendanceEventId.startsWith('match_')) {
-                const matchId = activeAttendanceEventId.replace('match_', '');
-                
-                // Kjør showMatchDetails etter et bittelite delay, ellers kræsjer animasjonene
-                setTimeout(() => {
-                    if (typeof window.showMatchDetails === 'function') {
-                        window.showMatchDetails(matchId);
-                    }
-                }, 100);
+    document.getElementById('attendanceModal').classList.add('hidden');
+    document.getElementById('attendanceModal').classList.remove('flex');
+    
+    // SJEKK OM VI KOM FRA EN KAMP (Da skal vi hoppe tilbake)
+    if (activeAttendanceEventId && activeAttendanceEventId.startsWith('match_')) {
+        const matchId = activeAttendanceEventId.replace('match_', '');
+        
+        // Kjør showMatchDetails etter et bittelite delay for myk overgang
+        setTimeout(() => {
+            if (typeof window.showMatchDetails === 'function') {
+                window.showMatchDetails(matchId);
             }
-            
-            // Nullstill ID-en til slutt
-            activeAttendanceEventId = null;
-        }
+        }, 100);
+    }
+    
+    // Nullstill ID-en til slutt
+    activeAttendanceEventId = null;
+}
 
         window.saveAttendanceRegistry = async function() {
             const isMatch = activeAttendanceEventId.startsWith('match_');
