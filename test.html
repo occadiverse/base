@@ -1035,24 +1035,21 @@
 
             <div class="mt-6 flex flex-wrap gap-2 justify-between items-center border-t border-slate-100 pt-4">
                 
-                <!-- VENSTRE SIDE: TROPPSSTYRING OG TAKTIKK -->
                 <div class="flex flex-wrap gap-2">
                     <button id="btnManageSquad" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-sm border border-blue-500/30">
-                        <i class="fa-solid fa-users-gear text-bsk-yellow"></i> Administrer tropp
+                        <i class="fa-solid fa-users-gear text-bsk-yellow"></i> Tropp
                     </button>
-                    <!-- NY TEKST: KAMPPLAN -->
-                    <button id="btnGoToTactics" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-sm border border-emerald-500/30">
-                        <i class="fa-solid fa-clipboard-list text-emerald-200"></i> Kampplan 📋
+                    <button id="btnGoToTactics" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-5 py-2.5 rounded-xl flex items-center justify-center transition shadow-sm border border-emerald-500/30">
+                        Kampplan
                     </button>
                 </div>
                 
-                <!-- HØYRE SIDE: REDIGER OG SLETT -->
                 <div class="flex gap-2 mt-2 sm:mt-0">
-                    <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
-                        <i class="fa-solid fa-pen"></i> Rediger
+                    <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm w-9 h-9 rounded-lg flex items-center justify-center transition shadow-sm" title="Rediger kamp">
+                        <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
-                        <i class="fa-solid fa-trash"></i> Slett
+                    <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 text-sm w-9 h-9 rounded-lg flex items-center justify-center transition shadow-sm" title="Slett kamp">
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
             </div>
@@ -2434,16 +2431,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     if (!match) return;
 
     document.getElementById('infoTitle').innerHTML = `Kamp mot ${match.opponent}`;
-    const matchingTeamObj = (window.activeTeams || []).find(t => t.name === match.matchGroup);
-    let teamMetaInfoHtml = '';
-    if (matchingTeamObj) {
-        teamMetaInfoHtml = `
-            <div class="col-span-2 space-y-1 bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs text-slate-600">
-                <p class="font-bold text-slate-800"><i class="fa-solid fa-users text-bsk-blue mr-1"></i> ${matchingTeamObj.name} info:</p>
-                <p><strong class="text-slate-700">Trener:</strong> ${matchingTeamObj.coachName || 'Ingen'} (${matchingTeamObj.coachContact || 'Ingen kontaktinfo'})</p>
-                <p class="italic text-slate-500 pt-1">${matchingTeamObj.description || ''}</p>
-            </div>`;
-    }
     
     const container = document.getElementById('matchInfoDetails');
     const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -2466,13 +2453,13 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 <i class="fa-solid fa-square-poll-horizontal text-emerald-600 mr-1"></i> ${match.result || 'Ikke ferdigspilt'}
             </span>
         </div>
-        ${teamMetaInfoHtml}
     `;
 
+    // Handling for rediger- og slett-knappene (kun ikoner)
     document.getElementById('btnEditMatch').onclick = () => window.openMatchModal(match.id);
     document.getElementById('btnDeleteMatch').onclick = () => promptDeleteMatch(match.id);
     
-    // 1. Administrer tropp (Åpner oppmøtemodalen)
+    // Tropp-knapp
     document.getElementById('btnManageSquad').onclick = () => {
         window.closeMatchInfo(); 
         if (typeof window.openAttendanceModal === 'function') {
@@ -2480,7 +2467,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
     };
     
-    // 2. Kampplan (Sveiper over til taktikkfanen og laster inn kampen)
+    // Kampplan-knapp (Sveiper til taktikk og forhåndsvelger matchen)
     document.getElementById('btnGoToTactics').onclick = () => {
         window.closeMatchInfo(); 
         window.switchTab('taktikk');
