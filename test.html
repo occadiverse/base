@@ -1028,13 +1028,19 @@
                 </div>
             </div>
 
-            <div class="mt-6 flex gap-2 justify-end">
-                <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
-                    <i class="fa-solid fa-pen"></i> Rediger kamp
+            <div class="mt-6 flex flex-wrap gap-2 justify-between items-center border-t border-slate-100 pt-4">
+                <button id="btnManageSquad" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-sm border border-blue-500/30">
+                    <i class="fa-solid fa-users-gear text-bsk-yellow"></i> Administrer tropp 🏃
                 </button>
-                <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
-                    <i class="fa-solid fa-trash"></i> Slett kamp
-                </button>
+                
+                <div class="flex gap-2">
+                    <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
+                        <i class="fa-solid fa-pen"></i> Rediger kamp
+                    </button>
+                    <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition">
+                        <i class="fa-solid fa-trash"></i> Slett kamp
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2451,7 +2457,13 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
             document.getElementById('btnEditMatch').onclick = () => window.openMatchModal(match.id);
             document.getElementById('btnDeleteMatch').onclick = () => promptDeleteMatch(match.id);
-
+            // Kobler den nye knappen til å åpne oppmøte-modalen for denne spesifikke kampen
+            document.getElementById('btnManageSquad').onclick = () => {
+                if (typeof window.openAttendanceModal === 'function') {
+                    window.openAttendanceModal('match_' + match.id);
+                }
+            };
+            
             renderPlayerRowForm(match);
 
             const infoModal = document.getElementById('matchInfoModal');
