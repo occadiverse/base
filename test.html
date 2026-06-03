@@ -2019,7 +2019,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
 
-    // 1. FORBERED TRENINGSDATA (Venstre blokk)
+    // 1. FORBERED TRENINGSDATA (Venstre blokk - NY MIDDELMØRK ELEGANT STIL)
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
@@ -2038,48 +2038,67 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         leftWidgetHtml = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full transition hover:shadow-md">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-                    <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-stopwatch text-blue-500"></i> Neste økt
-                    </h3>
-                    <span class="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">${ne.type}</span>
-                </div>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col justify-between h-full text-white relative overflow-hidden">
                 
-                <div class="flex-1 space-y-4">
-                    <div>
-                        <h4 class="font-black text-slate-800 text-lg leading-tight truncate">${ne.title}</h4>
-                        <p class="text-xs font-bold text-slate-500 mt-1"><i class="fa-regular fa-clock text-slate-400 mr-1.5 w-3 text-center"></i> ${d} kl. ${ne.time || 'TBA'}</p>
-                        <p class="text-xs font-bold text-slate-500 mt-0.5 truncate"><i class="fa-solid fa-location-dot text-slate-400 mr-1.5 w-3 text-center"></i> ${ne.location || 'Ikke oppgitt'}</p>
+                <div class="relative z-10 flex flex-col h-full justify-between space-y-4">
+                    
+                    <!-- TOPPRAD: TITTEL OG TYPE -->
+                    <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                        <h3 class="font-black text-slate-200 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-stopwatch text-blue-400"></i> Neste økt
+                        </h3>
+                        <span class="bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">${ne.type}</span>
                     </div>
                     
-                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                        <div class="text-xs font-bold text-slate-500">Troppstatus:</div>
-                        <div class="flex gap-2">
-                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black">${påmeldtAntall} klar</span>
-                            <span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-black">${forfallAntall} forfall</span>
+                    <!-- HOVEDINNHOLD -->
+                    <div class="space-y-3 flex-1 pt-1">
+                        <h4 class="font-black text-white text-xl tracking-tight truncate leading-tight">${ne.title}</h4>
+                        
+                        <!-- GLASS-KORT FOR TID OG STED -->
+                        <div class="space-y-2 pt-1">
+                            <p class="text-xs font-bold text-slate-300 flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl p-2.5 backdrop-blur-sm">
+                                <i class="fa-regular fa-clock text-bsk-yellow text-sm w-4 text-center"></i> 
+                                <span class="capitalize">${d} kl. ${ne.time || 'TBA'}</span>
+                            </p>
+                            <p class="text-xs font-bold text-slate-300 flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl p-2.5 backdrop-blur-sm truncate">
+                                <i class="fa-solid fa-location-dot text-rose-400 text-sm w-4 text-center"></i> 
+                                <span>${ne.location || 'Ikke oppgitt'}</span>
+                            </p>
                         </div>
                     </div>
+                    
+                    <!-- TROPPSTATUS & BUTTON RAD -->
+                    <div class="pt-3 border-t border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-auto">
+                        <div class="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-xl border border-white/5 justify-between sm:justify-start">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status:</span>
+                            <div class="flex gap-1.5 font-black">
+                                <span class="text-emerald-400 text-[11px]">${påmeldtAntall} klar</span>
+                                <span class="text-slate-500 text-[11px]">•</span>
+                                <span class="text-rose-400 text-[11px]">${forfallAntall} avbud</span>
+                            </div>
+                        </div>
+                        
+                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 border border-blue-500/30 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap">
+                            <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Svar her
+                        </button>
+                    </div>
+                    
                 </div>
-                
-                <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="mt-5 w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-3 rounded-xl transition shadow-sm hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-user-check text-bsk-yellow"></i> Registrer oppmøte
-                </button>
             </div>
         `;
     } else {
         leftWidgetHtml = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
-                <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-calendar-xmark text-xl text-slate-300"></i>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center text-center h-full min-h-[235px] text-white">
+                <div class="w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-calendar-xmark text-xl text-slate-400"></i>
                 </div>
-                <h3 class="font-black text-slate-700 text-sm">Kalenderen er tom</h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Det er ingen kommende aktiviteter planlagt.</p>
+                <h3 class="font-black text-slate-200 text-sm">Kalenderen er tom</h3>
+                <p class="text-xs text-slate-400 mt-1 max-w-[200px]">Det er ingen kommende aktiviteter planlagt.</p>
             </div>
         `;
     }
 
-    // 2. FORBERED "UKENS MASKIN" (Høyre blokk)
+    // 2. FORBERED "UKENS MASKIN" (Høyre blokk - STÅR NØYAKTIG SOM FØR)
     let topPlayer = null;
     let topScore = -1;
     
