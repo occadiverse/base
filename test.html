@@ -469,16 +469,17 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="bg-slate-800 text-slate-300 cursor-pointer select-none border-b border-slate-200">
+                            <!-- OPPDATERT: Her har vi byttet til bg-slate-50 og mørkegrå tekst på hover -->
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-100">
                                 <tr>
-                                    <th class="p-4 font-bold hover:text-white transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
-                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
-                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
-                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                                    <th class="p-4 font-bold text-center text-blue-400 hover:text-blue-300 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
-                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
-                                    <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
-                                    <th class="p-4 font-bold text-center hover:text-white transition-colors">
+                                    <th class="p-4 hover:text-slate-800 transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors">
                                         <span onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></span>
                                         <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Kjemiscore"></i>
                                     </th>
@@ -4184,6 +4185,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
             });
 
+            // Setter pilene til mørkeblå (text-bsk-blue) slik at de synes på den nye lyse bakgrunnen
             ['navn', 'oppmotePct', 'kamper', 'mal', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
                 const iconEl = document.getElementById(`sort-icon-${col}`);
                 if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
@@ -4198,16 +4200,19 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
                 let bonusColor = 'text-slate-400';
                 if (stat.kampbonus > 15) bonusColor = 'text-emerald-500';
-                else if (stat.kampbonus >= 10) bonusColor = 'text-amber-400';
+                else if (stat.kampbonus >= 10) bonusColor = 'text-amber-500';
                 else if (stat.kampbonus > 0) bonusColor = 'text-rose-500';
                 
                 let bonusTekst = stat.kamper > 0 ? stat.kampbonus.toFixed(1) : '-';
+                
+                // Formateringen matcher nå Kampstatistikk perfekt
                 let malFarge = stat.mal > 0 ? 'text-slate-800' : 'text-slate-300';
                 let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse' : 'text-slate-800') : 'text-slate-300';
                 let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300';
 
+                // Fjernet ekstra border-classes på <tr ...> for å la divide-y ta seg av rammene
                 return `
-                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
+                    <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-4"><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
                         <td class="p-4 text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
                         <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
