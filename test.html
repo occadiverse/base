@@ -4141,10 +4141,10 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     : '<span class="text-slate-300 font-bold">-</span>';
 
                 tableHtml += `
-                    <tr class="hover:bg-slate-50 transition cursor-help" title="${s.breakdown}">
+                    <tr class="hover:bg-slate-50 transition cursor-help border-b border-slate-100">
                         <td class="p-4 font-bold text-slate-800">${s.name}</td>
-                        <td class="p-4 text-center">${baseVis}</td>
-                        <td class="p-4 text-center bg-slate-50/50">${resultVis}</td>
+                        <td class="p-4 text-center font-bold text-slate-500">${baseVis}</td>
+                        <td class="p-4 text-center">${resultVis}</td>
                         <td class="p-4 text-center">${ratingVis}</td>
                         <td class="p-4 text-center">${goalVis}</td>
                         <td class="p-4 text-center text-xs">${yellowVis}</td>
