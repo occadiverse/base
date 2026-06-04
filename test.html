@@ -4147,7 +4147,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
         window.renderPlayerStatsTable = function() {
             const tableBody = document.getElementById('stats-player-table-body');
-            if (!tableBody) return;
+            const theadContainer = tableBody ? tableBody.previousElementSibling : null;
+            if (!tableBody || !theadContainer) return;
             
             const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
@@ -4183,11 +4184,31 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
             });
 
-            // Setter pilene til mørkeblå (text-bsk-blue) slik at de synes på den nye lyse bakgrunnen
+            // 1. TVINGER OVERSKRIFTEN TIL Å VÆRE LYSEGRÅ
+            theadContainer.className = "bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-200";
+            theadContainer.innerHTML = `
+                <tr>
+                    <th class="p-4 hover:text-slate-800 transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors">
+                        <span onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></span>
+                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Kjemiscore"></i>
+                    </th>
+                </tr>
+            `;
+
             ['navn', 'oppmotePct', 'kamper', 'mal', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
                 const iconEl = document.getElementById(`sort-icon-${col}`);
                 if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
             });
+
+            // 2. TVINGER TABELLKROPPEN TIL Å VÆRE HVIT
+            tableBody.className = "divide-y divide-slate-100 bg-white";
 
             tableBody.innerHTML = statsData.map(stat => {
                 const isStarPlayer = stat.kjemi >= 75; 
@@ -4202,22 +4223,20 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 else if (stat.kampbonus > 0) bonusColor = 'text-rose-500';
                 
                 let bonusTekst = stat.kamper > 0 ? stat.kampbonus.toFixed(1) : '-';
-                
-                // Formateringen matcher nå Kampstatistikk perfekt
-                let malFarge = stat.mal > 0 ? 'text-slate-800' : 'text-slate-300';
-                let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse' : 'text-slate-800') : 'text-slate-300';
-                let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50' : 'text-slate-300';
+                let malFarge = stat.mal > 0 ? 'text-slate-800 font-bold' : 'text-slate-300 font-bold';
+                let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse font-bold' : 'text-slate-800 font-bold') : 'text-slate-300 font-bold';
+                let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-300 font-bold';
 
-                // Fjernet ekstra border-classes på <tr ...> for å la divide-y ta seg av rammene
+                // 3. TVINGER HVER ENKELT RAD TIL Å VÆRE HVIT (`bg-white`)
                 return `
-                    <tr class="hover:bg-slate-50 transition-colors">
+                    <tr class="bg-white hover:bg-slate-50 transition-colors">
                         <td class="p-4"><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
                         <td class="p-4 text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
                         <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
-                        <td class="p-4 text-center font-bold ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
+                        <td class="p-4 text-center ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
                         <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
-                        <td class="p-4 text-center font-bold ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
-                        <td class="p-4 text-center font-bold ${rodFarge}">${stat.rode > 0 ? stat.rode : '-'}</td>
+                        <td class="p-4 text-center ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
+                        <td class="p-4 text-center ${rodFarge}">${stat.rode > 0 ? stat.rode : '-'}</td>
                         <td class="p-4 text-center font-bold ${chemColor}">${stat.kjemi}% ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
                     </tr>`;
             }).join('');
