@@ -4058,10 +4058,16 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 const goals = match.scorers && match.scorers[pName] ? match.scorers[pName] : 0;
                 const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
                 const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
+                
+                // Kjører beregningen for å hente ut base (Tropp), resultBonus og ratingBonus
                 const pointsDetails = window.calculatePlayerMatchPoints(match, pName, true);
 
                 return {
-                    name: pName, rating, goals, yellow, red, points: pointsDetails.total,
+                    name: pName, rating, goals, yellow, red, 
+                    points: pointsDetails.total,
+                    base: pointsDetails.base,
+                    resultBonus: pointsDetails.resultBonus,
+                    ratingBonus: pointsDetails.ratingBonus,
                     breakdown: `Start: ${pointsDetails.base} | Res/Mål: ${pointsDetails.resultBonus > 0 ? '+' + pointsDetails.resultBonus : pointsDetails.resultBonus} | Børs: ${pointsDetails.ratingBonus > 0 ? '+' + pointsDetails.ratingBonus : pointsDetails.ratingBonus}`
                 };
             });
@@ -4069,12 +4075,16 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             // Sorter på matchpoeng (banens beste øverst), deretter karakter, deretter mål
             stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals);
 
+            const matchResult = match.result || '?';
+
             let tableHtml = `
                 <div class="overflow-x-auto rounded-xl border border-slate-100">
                     <table class="w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
                             <tr>
                                 <th class="p-4">Spiller</th>
+                                <th class="p-4 text-center">Tropp</th>
+                                <th class="p-4 text-center">RES (${matchResult})</th>
                                 <th class="p-4 text-center">Børs</th>
                                 <th class="p-4 text-center">Mål</th>
                                 <th class="p-4 text-center">Gult</th>
@@ -4090,7 +4100,21 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 if (s.points >= 20) pointColor = 'text-emerald-500';
                 else if (s.points < 10) pointColor = 'text-rose-500';
 
-                const ratingVis = s.rating > 0 ? `<span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${s.rating}</span>` : '<span class="text-slate-300 font-bold">-</span>';
+                // Format: Tropp (Base-poeng)
+                const baseVis = `<span class="font-bold text-slate-500">(+${s.base})</span>`;
+
+                // Format: Resultat med fortegn
+                const resultStr = s.resultBonus > 0 ? `+${s.resultBonus}` : s.resultBonus;
+                const resultColor = s.resultBonus > 0 ? 'text-emerald-500' : (s.resultBonus < 0 ? 'text-rose-500' : 'text-slate-400');
+                const resultVis = `<span class="font-bold ${resultColor}">(${resultStr})</span>`;
+
+                // Format: Børs (Karakter + Bonuspoeng i parentes)
+                const ratingPointsStr = s.ratingBonus > 0 ? `+${s.ratingBonus}` : s.ratingBonus;
+                const ratingColor = s.ratingBonus > 0 ? 'text-emerald-500' : (s.ratingBonus < 0 ? 'text-rose-500' : 'text-slate-400');
+                const ratingVis = s.rating > 0 
+                    ? `<div class="flex items-center justify-center gap-1.5"><span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${s.rating}</span> <span class="text-[10px] font-bold ${ratingColor}">(${ratingPointsStr})</span></div>` 
+                    : `<span class="text-slate-400 font-bold">- (0)</span>`;
+
                 const goalVis = s.goals > 0 ? `<span class="text-slate-800 font-bold">${s.goals}</span>` : '<span class="text-slate-300 font-bold">-</span>';
                 const yellowVis = s.yellow > 0 ? `<span class="text-amber-500 font-bold">1 🟨</span>` : '<span class="text-slate-300 font-bold">-</span>';
                 const redVis = s.red > 0 ? `<span class="text-rose-600 font-bold">1 🟥</span>` : '<span class="text-slate-300 font-bold">-</span>';
@@ -4098,6 +4122,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 tableHtml += `
                     <tr class="hover:bg-slate-50 transition cursor-help" title="${s.breakdown}">
                         <td class="p-4 font-bold text-slate-800">${s.name}</td>
+                        <td class="p-4 text-center">${baseVis}</td>
+                        <td class="p-4 text-center bg-slate-50/50">${resultVis}</td>
                         <td class="p-4 text-center">${ratingVis}</td>
                         <td class="p-4 text-center">${goalVis}</td>
                         <td class="p-4 text-center text-xs">${yellowVis}</td>
@@ -4108,7 +4134,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             });
 
             tableHtml += `</tbody></table></div>
-            <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se poengfordelingen for spilleren.</p>`;
+            <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se detaljert poengfordeling for spilleren.</p>`;
             container.innerHTML = tableHtml;
         };
         
