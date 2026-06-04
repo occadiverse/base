@@ -3881,8 +3881,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             // Kjør tilhørende funksjoner hvis nødvendig
             if (tabId === 'spillere') renderPlayerStatsTable();
             if (tabId === 'poeng') renderPointHistoryView();
-            if (tabId === 'kampstat') {
-                // Her kan du kalle en funksjon for å tegne opp kampstatistikk senere!
+            if (tabId === 'kampstat') renderMatchStatsView(); // <-- NY KODE HER
             }
         }
 
@@ -3998,6 +3997,122 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     container.innerHTML = tableHtml;
 };
 
+        window.renderMatchStatsView = function() {
+            const container = document.getElementById('stat-view-kampstat');
+            if(!container) return;
+
+            // Filtrer ut kamper som er spilt (som har et resultat)
+            const playedMatches = (window.activeMatches || [])
+                .filter(m => m.result && m.result.includes('-'))
+                .sort((a,b) => new Date(b.date) - new Date(a.date)); // Nyeste øverst
+
+            // Bygg nedtrekksmenyen for kampene
+            const optionsHtml = playedMatches.map(m => {
+                const dateStr = new Date(m.date).toLocaleDateString('no-NO', {day: '2-digit', month: '2-digit', year: 'numeric'});
+                return `<option value="${m.id}">${dateStr} - vs ${m.opponent} (${m.matchGroup})</option>`;
+            }).join('');
+
+            let html = `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-lg font-black text-slate-800 mb-4">Spillerbørs og kampdetaljer</h3>
+                    <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
+                        <label class="text-sm font-bold text-slate-500 shrink-0">Velg kamp:</label>
+                        <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full md:w-1/2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
+                            <option value="">-- Velg kamp --</option>
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div id="kampstat-table-container">
+                        <div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk for spillerne som deltok.</div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        };
+
+        window.showMatchStatsTable = function() {
+            const matchId = document.getElementById('kampstat-match-select').value;
+            const container = document.getElementById('kampstat-table-container');
+
+            if(!matchId) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk for spillerne som deltok.</div>';
+                return;
+            }
+
+            const match = (window.activeMatches || []).find(m => m.id === matchId);
+            if(!match || !match.attendance) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen oppmøtedata registrert for denne kampen.</div>';
+                return;
+            }
+
+            // Hent kun spillerne som faktisk spilte kampen (møtte opp)
+            const attendingPlayers = Object.keys(match.attendance).filter(pName => match.attendance[pName] === true);
+
+            if(attendingPlayers.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spillere var registrert med oppmøte på denne kampen.</div>';
+                return;
+            }
+
+            // Hent ut statistikk for hver enkelt spiller i akkurat denne kampen
+            const stats = attendingPlayers.map(pName => {
+                const rating = match.ratings && match.ratings[pName] ? match.ratings[pName] : 0;
+                const goals = match.scorers && match.scorers[pName] ? match.scorers[pName] : 0;
+                const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
+                const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
+                const pointsDetails = window.calculatePlayerMatchPoints(match, pName, true);
+
+                return {
+                    name: pName, rating, goals, yellow, red, points: pointsDetails.total,
+                    breakdown: `Start: ${pointsDetails.base} | Res/Mål: ${pointsDetails.resultBonus > 0 ? '+' + pointsDetails.resultBonus : pointsDetails.resultBonus} | Børs: ${pointsDetails.ratingBonus > 0 ? '+' + pointsDetails.ratingBonus : pointsDetails.ratingBonus}`
+                };
+            });
+
+            // Sorter på matchpoeng (banens beste øverst), deretter karakter, deretter mål
+            stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals);
+
+            let tableHtml = `
+                <div class="overflow-x-auto rounded-xl border border-slate-100">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
+                            <tr>
+                                <th class="p-4">Spiller</th>
+                                <th class="p-4 text-center">Børs</th>
+                                <th class="p-4 text-center">Mål</th>
+                                <th class="p-4 text-center">Gult</th>
+                                <th class="p-4 text-center">Rødt</th>
+                                <th class="p-4 text-right">Matchpoeng</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+            `;
+
+            stats.forEach(s => {
+                let pointColor = 'text-slate-700';
+                if (s.points >= 20) pointColor = 'text-emerald-500';
+                else if (s.points < 10) pointColor = 'text-rose-500';
+
+                const ratingVis = s.rating > 0 ? `<span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${s.rating}</span>` : '<span class="text-slate-300 font-bold">-</span>';
+                const goalVis = s.goals > 0 ? `<span class="text-slate-800 font-bold">${s.goals}</span>` : '<span class="text-slate-300 font-bold">-</span>';
+                const yellowVis = s.yellow > 0 ? `<span class="text-amber-500 font-bold">1 🟨</span>` : '<span class="text-slate-300 font-bold">-</span>';
+                const redVis = s.red > 0 ? `<span class="text-rose-600 font-bold">1 🟥</span>` : '<span class="text-slate-300 font-bold">-</span>';
+
+                tableHtml += `
+                    <tr class="hover:bg-slate-50 transition cursor-help" title="${s.breakdown}">
+                        <td class="p-4 font-bold text-slate-800">${s.name}</td>
+                        <td class="p-4 text-center">${ratingVis}</td>
+                        <td class="p-4 text-center">${goalVis}</td>
+                        <td class="p-4 text-center text-xs">${yellowVis}</td>
+                        <td class="p-4 text-center text-xs">${redVis}</td>
+                        <td class="p-4 text-right ${pointColor} font-black text-base">${s.points}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table></div>
+            <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se poengfordelingen for spilleren.</p>`;
+            container.innerHTML = tableHtml;
+        };
+        
         window.sortStatsTable = function(column) {
             if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc; 
             else { currentStatSortCol = column; currentStatSortDesc = true; }
