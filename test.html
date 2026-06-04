@@ -3881,9 +3881,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             // Kjør tilhørende funksjoner hvis nødvendig
             if (tabId === 'spillere') renderPlayerStatsTable();
             if (tabId === 'poeng') renderPointHistoryView();
-            if (tabId === 'kampstat') renderMatchStatsView(); // <-- NY KODE HER
-            }
-        }
+            if (tabId === 'kampstat') renderMatchStatsView(); 
+        };
 
         window.renderPointHistoryView = function() {
     const container = document.getElementById('stat-view-poeng');
