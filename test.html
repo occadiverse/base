@@ -434,10 +434,12 @@
             </div>
 
             <div id="view-statistikk" class="hidden space-y-6">
+                
                 <div class="flex gap-2 mb-6 border-b border-slate-200 pb-4 overflow-x-auto">
-                    <button onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn shrink-0 px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition">Lagstatistikk</button>
-                    <button onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition">Spillerstatistikk</button>
-                    <button onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition">Formbørs (Poeng)</button>
+                    <button onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn shrink-0 px-4 h-9 bg-blue-100 text-bsk-blue border border-blue-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Lagstatistikk</button>
+                    <button onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Spillerstatistikk</button>
+                    <button onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Formbørs</button>
+                    <button onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Kampstatistikk</button>
                 </div>
 
                 <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
@@ -478,9 +480,7 @@
                                     <th class="p-4 font-bold text-center hover:text-white transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
                                     <th class="p-4 font-bold text-center hover:text-white transition-colors">
                                         <span onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></span>
-                                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" 
-                                           onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" 
-                                           title="Les mer om Kjemiscore"></i>
+                                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Kjemiscore"></i>
                                     </th>
                                 </tr>
                             </thead>
@@ -489,7 +489,17 @@
                         </table>
                     </div>
                 </div>
+
                 <div id="stat-view-poeng" class="hidden"></div>
+
+                <div id="stat-view-kampstat" class="hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400 shadow-sm">
+                        <i class="fa-solid fa-chart-line text-4xl mb-3 text-slate-300"></i>
+                        <h3 class="font-black text-slate-700 text-base">Kampstatistikk</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Her kan vi flette inn avansert kampdata, resultater eller lagoppstillinger etter hvert!</p>
+                    </div>
+                </div>
+
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6">
@@ -3847,20 +3857,33 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 }
 
         window.switchStatTab = function(tabId) {
-            document.getElementById('stat-view-lag').classList.add('hidden');
-            document.getElementById('stat-view-spillere').classList.add('hidden');
-            document.getElementById('stat-view-poeng').classList.add('hidden');
+            // Skjul alle fire innholdscontainerne
+            document.getElementById('stat-view-lag').className = "hidden";
+            document.getElementById('stat-view-spillere').className = "hidden";
+            document.getElementById('stat-view-poeng').className = "hidden";
+            document.getElementById('stat-view-kampstat').className = "hidden";
             
-            document.getElementById('stat-tab-lag').className = "stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition";
-            document.getElementById('stat-tab-spillere').className = "stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition";
-            document.getElementById('stat-tab-poeng').className = "stat-tab-btn shrink-0 px-4 py-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-xl text-xs font-bold transition";
+            // Felles mal for alle inaktive knapper
+            const inactiveStyle = "stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center";
             
-            document.getElementById(`stat-view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`stat-view-${tabId}`).classList.add('block');
-            document.getElementById(`stat-tab-${tabId}`).className = "stat-tab-btn shrink-0 px-4 py-2 bg-bsk-blue text-white rounded-xl text-xs font-bold transition";
+            // Nullstill alle fire knappene til grå stil
+            document.getElementById('stat-tab-lag').className = inactiveStyle;
+            document.getElementById('stat-tab-spillere').className = inactiveStyle;
+            document.getElementById('stat-tab-poeng').className = inactiveStyle;
+            document.getElementById('stat-tab-kampstat').className = inactiveStyle;
             
+            // Vis den containeren som ble trykket på
+            document.getElementById(`stat-view-${tabId}`).className = "block space-y-6";
+            
+            // Gi den aktive knappen den lekre, lyseblå aktive stilen
+            document.getElementById(`stat-tab-${tabId}`).className = "stat-tab-btn shrink-0 px-4 h-9 bg-blue-100 text-bsk-blue border border-blue-200 text-xs font-black rounded-lg shadow-sm transition flex items-center justify-center";
+            
+            // Kjør tilhørende funksjoner hvis nødvendig
             if (tabId === 'spillere') renderPlayerStatsTable();
             if (tabId === 'poeng') renderPointHistoryView();
+            if (tabId === 'kampstat') {
+                // Her kan du kalle en funksjon for å tegne opp kampstatistikk senere!
+            }
         }
 
         window.renderPointHistoryView = function() {
