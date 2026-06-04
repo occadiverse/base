@@ -4059,7 +4059,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
                 const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
                 
-                // Kjører beregningen for å hente ut base (Tropp), resultBonus og ratingBonus
+                // Henter detaljer fra poengmotoren
                 const pointsDetails = window.calculatePlayerMatchPoints(match, pName, true);
 
                 return {
@@ -4092,7 +4092,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                                 <th class="p-4 text-right">Matchpoeng</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-50">
+                        <tbody class="divide-y divide-slate-100">
             `;
 
             stats.forEach(s => {
@@ -4100,24 +4100,45 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 if (s.points >= 20) pointColor = 'text-emerald-500';
                 else if (s.points < 10) pointColor = 'text-rose-500';
 
-                // Format: Tropp (Base-poeng)
+                // 1. Tropp-kolonne (Viser bare poengsummen i parantes slik du ba om)
                 const baseVis = `<span class="font-bold text-slate-500">(+${s.base})</span>`;
 
-                // Format: Resultat med fortegn
+                // 2. Resultat-kolonne med fortegn og fargekode
                 const resultStr = s.resultBonus > 0 ? `+${s.resultBonus}` : s.resultBonus;
                 const resultColor = s.resultBonus > 0 ? 'text-emerald-500' : (s.resultBonus < 0 ? 'text-rose-500' : 'text-slate-400');
                 const resultVis = `<span class="font-bold ${resultColor}">(${resultStr})</span>`;
 
-                // Format: Børs (Karakter + Bonuspoeng i parentes)
+                // 3. Børs-kolonne (Matcher spillerstatistikk-stil med badge + poeng i parantes)
                 const ratingPointsStr = s.ratingBonus > 0 ? `+${s.ratingBonus}` : s.ratingBonus;
                 const ratingColor = s.ratingBonus > 0 ? 'text-emerald-500' : (s.ratingBonus < 0 ? 'text-rose-500' : 'text-slate-400');
                 const ratingVis = s.rating > 0 
                     ? `<div class="flex items-center justify-center gap-1.5"><span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${s.rating}</span> <span class="text-[10px] font-bold ${ratingColor}">(${ratingPointsStr})</span></div>` 
-                    : `<span class="text-slate-400 font-bold">- (0)</span>`;
+                    : `<span class="text-slate-300 font-bold">- (0)</span>`;
 
-                const goalVis = s.goals > 0 ? `<span class="text-slate-800 font-bold">${s.goals}</span>` : '<span class="text-slate-300 font-bold">-</span>';
-                const yellowVis = s.yellow > 0 ? `<span class="text-amber-500 font-bold">1 🟨</span>` : '<span class="text-slate-300 font-bold">-</span>';
-                const redVis = s.red > 0 ? `<span class="text-rose-600 font-bold">1 🟥</span>` : '<span class="text-slate-300 font-bold">-</span>';
+                // 4. Mål-kolonne (Rent tall eller bindestrek hvis null)
+                const goalVis = s.goals > 0 
+                    ? `<span class="text-slate-800 font-bold">${s.goals}</span>` 
+                    : '<span class="text-slate-300 font-bold">-</span>';
+
+                // 5. Gult kort-kolonne (Viser eventuelt poengtrekk bak hvis spilleren fikk karantene)
+                // (Modell 2: Første karantene gratis, påfølgende gir -5 poeng)
+                let yellowPointsStr = '';
+                if (s.yellow > 0) {
+                    let totalYellowsCount = 0;
+                    (window.activeMatches || []).forEach(m => { if (m.guleKort && m.guleKort.includes(s.name)) totalYellowsCount++; });
+                    let karantener = totalYellowsCount >= 4 ? 1 + Math.floor((totalYellowsCount - 4) / 2) : 0;
+                    if (karantener > 1 && match.guleKort && match.guleKort.includes(s.name)) {
+                        yellowPointsStr = ' <span class="text-[10px] text-rose-500 font-bold">(-5)</span>';
+                    }
+                }
+                const yellowVis = s.yellow > 0 
+                    ? `<div class="flex items-center justify-center gap-1"><span class="text-amber-500 font-bold">1 🟨</span>${yellowPointsStr}</div>` 
+                    : '<span class="text-slate-300 font-bold">-</span>';
+
+                // 6. Rødt kort-kolonne (Direkte rødt gir alltid -10 poeng)
+                const redVis = s.red > 0 
+                    ? `<div class="flex items-center justify-center gap-1"><span class="text-rose-600 font-bold">1 🟥</span> <span class="text-[10px] text-rose-500 font-bold">(-10)</span></div>` 
+                    : '<span class="text-slate-300 font-bold">-</span>';
 
                 tableHtml += `
                     <tr class="hover:bg-slate-50 transition cursor-help" title="${s.breakdown}">
