@@ -491,15 +491,9 @@
                 </div>
 
                 <div id="stat-view-poeng" class="hidden"></div>
+                <div id="stat-view-kampstat" class="hidden"></div>
 
-                <div id="stat-view-kampstat" class="hidden">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400 shadow-sm">
-                        <i class="fa-solid fa-chart-line text-4xl mb-3 text-slate-300"></i>
-                        <h3 class="font-black text-slate-700 text-base">Kampstatistikk</h3>
-                        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Her kan vi flette inn avansert kampdata, resultater eller lagoppstillinger etter hvert!</p>
-                    </div>
                 </div>
-
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6">
@@ -4059,7 +4053,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
                 const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
                 
-                // Henter detaljer fra poengmotoren
                 const pointsDetails = window.calculatePlayerMatchPoints(match, pName, true);
 
                 return {
@@ -4077,10 +4070,11 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 
             const matchResult = match.result || '?';
 
+            // Byttet til bg-white for å fjerne all uønsket gråfarge
             let tableHtml = `
-                <div class="overflow-x-auto rounded-xl border border-slate-100">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
+                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                    <table class="w-full text-left text-sm whitespace-nowrap bg-white">
+                        <thead class="bg-white text-slate-500 text-xs uppercase font-bold border-b border-slate-200">
                             <tr>
                                 <th class="p-4">Spiller</th>
                                 <th class="p-4 text-center">Tropp</th>
@@ -4092,7 +4086,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                                 <th class="p-4 text-right">Matchpoeng</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100 bg-white">
             `;
 
             stats.forEach(s => {
@@ -4100,28 +4094,24 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 if (s.points >= 20) pointColor = 'text-emerald-500';
                 else if (s.points < 10) pointColor = 'text-rose-500';
 
-                // 1. Tropp-kolonne (Viser bare poengsummen i parantes slik du ba om)
-                const baseVis = `<span class="font-bold text-slate-500">(+${s.base})</span>`;
+                // Tropp: Gråaktig parantes
+                const baseVis = `<span class="text-slate-400 font-semibold">(+${s.base})</span>`;
 
-                // 2. Resultat-kolonne med fortegn og fargekode
+                // Res: Fortegn i parantes (ingen bg-slate-50/50 her nå)
                 const resultStr = s.resultBonus > 0 ? `+${s.resultBonus}` : s.resultBonus;
                 const resultColor = s.resultBonus > 0 ? 'text-emerald-500' : (s.resultBonus < 0 ? 'text-rose-500' : 'text-slate-400');
                 const resultVis = `<span class="font-bold ${resultColor}">(${resultStr})</span>`;
 
-                // 3. Børs-kolonne (Matcher spillerstatistikk-stil med badge + poeng i parantes)
+                // Børs
                 const ratingPointsStr = s.ratingBonus > 0 ? `+${s.ratingBonus}` : s.ratingBonus;
                 const ratingColor = s.ratingBonus > 0 ? 'text-emerald-500' : (s.ratingBonus < 0 ? 'text-rose-500' : 'text-slate-400');
                 const ratingVis = s.rating > 0 
                     ? `<div class="flex items-center justify-center gap-1.5"><span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${s.rating}</span> <span class="text-[10px] font-bold ${ratingColor}">(${ratingPointsStr})</span></div>` 
-                    : `<span class="text-slate-300 font-bold">- (0)</span>`;
-
-                // 4. Mål-kolonne (Rent tall eller bindestrek hvis null)
-                const goalVis = s.goals > 0 
-                    ? `<span class="text-slate-800 font-bold">${s.goals}</span>` 
                     : '<span class="text-slate-300 font-bold">-</span>';
 
-                // 5. Gult kort-kolonne (Viser eventuelt poengtrekk bak hvis spilleren fikk karantene)
-                // (Modell 2: Første karantene gratis, påfølgende gir -5 poeng)
+                const goalVis = s.goals > 0 ? `<span class="text-slate-800 font-bold">${s.goals}</span>` : '<span class="text-slate-300 font-bold">-</span>';
+                
+                // Gule kort
                 let yellowPointsStr = '';
                 if (s.yellow > 0) {
                     let totalYellowsCount = 0;
@@ -4131,25 +4121,21 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         yellowPointsStr = ' <span class="text-[10px] text-rose-500 font-bold">(-5)</span>';
                     }
                 }
-                const yellowVis = s.yellow > 0 
-                    ? `<div class="flex items-center justify-center gap-1"><span class="text-amber-500 font-bold">1 🟨</span>${yellowPointsStr}</div>` 
-                    : '<span class="text-slate-300 font-bold">-</span>';
+                const yellowVis = s.yellow > 0 ? `<div class="flex items-center justify-center gap-1"><span class="text-amber-500 font-bold">1 🟨</span>${yellowPointsStr}</div>` : '<span class="text-slate-300 font-bold">-</span>';
 
-                // 6. Rødt kort-kolonne (Direkte rødt gir alltid -10 poeng)
-                const redVis = s.red > 0 
-                    ? `<div class="flex items-center justify-center gap-1"><span class="text-rose-600 font-bold">1 🟥</span> <span class="text-[10px] text-rose-500 font-bold">(-10)</span></div>` 
-                    : '<span class="text-slate-300 font-bold">-</span>';
+                const redVis = s.red > 0 ? `<div class="flex items-center justify-center gap-1"><span class="text-rose-600 font-bold">1 🟥</span> <span class="text-[10px] text-rose-500 font-bold">(-10)</span></div>` : '<span class="text-slate-300 font-bold">-</span>';
 
+                // Total matchpoeng har fått text-lg og font-black
                 tableHtml += `
-                    <tr class="hover:bg-slate-50 transition cursor-help border-b border-slate-100">
+                    <tr class="hover:bg-slate-50 transition cursor-help border-b border-slate-100 bg-white">
                         <td class="p-4 font-bold text-slate-800">${s.name}</td>
-                        <td class="p-4 text-center font-bold text-slate-500">${baseVis}</td>
+                        <td class="p-4 text-center">${baseVis}</td>
                         <td class="p-4 text-center">${resultVis}</td>
                         <td class="p-4 text-center">${ratingVis}</td>
                         <td class="p-4 text-center">${goalVis}</td>
                         <td class="p-4 text-center text-xs">${yellowVis}</td>
                         <td class="p-4 text-center text-xs">${redVis}</td>
-                        <td class="p-4 text-right ${pointColor} font-black text-base">${s.points}</td>
+                        <td class="p-4 text-right ${pointColor} font-black text-lg">${s.points}</td>
                     </tr>
                 `;
             });
