@@ -2662,14 +2662,30 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         window.openAttendanceModal = function(eventId) {
             activeAttendanceEventId = eventId;
             let ev = null;
-            if (eventId.startsWith('match_')) {
+            let isMatchClick = eventId.startsWith('match_');
+
+            if (isMatchClick) {
                 ev = (window.activeMatches || []).find(m => m.id === eventId.replace('match_', ''));
             } else {
                 ev = (window.activeEvents || []).find(e => e.id === eventId);
             }
             if (!ev) return;
         
-            document.getElementById('attendanceModalTitle').innerText = ev.title || ("Kamp mot " + ev.opponent);
+            // HELT RENSKAVET TITTEL: Sjekker om det er kamp, eller om aktiviteten har en tittel eller ikke
+            let modalTitleText = "";
+            if (isMatchClick || ev.type === 'Kamp') {
+                modalTitleText = `Kamp mot ${ev.opponent || 'Ukjent motstander'}`;
+            } else {
+                // Hvis den har en tittel (og tittelen ikke bare er tom), vis "Trening: Taktikk". 
+                // Hvis tittelen er tom, vis bare "Trening"
+                if (ev.title && ev.title.trim() !== "") {
+                    modalTitleText = `${ev.type || 'Trening'}: ${ev.title}`;
+                } else {
+                    modalTitleText = `${ev.type || 'Trening'}`;
+                }
+            }
+
+            document.getElementById('attendanceModalTitle').innerText = modalTitleText;
             document.getElementById('attendanceModalSub').innerText = `${ev.type || 'Kamp'} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
         
             const container = document.getElementById('attendance-players-list');
