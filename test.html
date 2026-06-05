@@ -2060,51 +2060,36 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         leftWidgetHtml = `
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col justify-between h-full text-white relative overflow-hidden">
+            <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-700 rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-xl">
+                <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                    <i class="fa-solid fa-stopwatch text-[14rem] text-blue-400"></i>
+                </div>
                 
-                <div class="relative z-10 flex flex-col h-full justify-between space-y-4">
-                    
-                    <!-- TOPPRAD: TITTEL OG TYPE -->
-                    <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                        <h3 class="font-black text-slate-200 text-sm flex items-center gap-2">
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                        <h3 class="font-black text-white text-sm flex items-center gap-2">
                             <i class="fa-solid fa-stopwatch text-blue-400"></i> Neste økt
                         </h3>
-                        <span class="bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">${ne.type}</span>
+                        <span class="bg-blue-400/10 border border-blue-400/20 text-blue-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">${d.split(' ')[0]} ${new Date(ne.date).getDate()}</span>
                     </div>
                     
-                    <!-- HOVEDINNHOLD -->
-                    <div class="space-y-3 flex-1 pt-1">
-                        <h4 class="font-black text-white text-xl tracking-tight truncate leading-tight">${ne.title}</h4>
+                    <div class="flex-1 flex items-center justify-between mb-2">
+                        <div class="space-y-1 min-w-0 pr-4">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${ne.time || 'TBA'} | ${ne.location || 'Ikke oppgitt'}</p>
+                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${ne.title || 'TRENING'}</h4>
+                        </div>
                         
-                        <!-- GLASS-KORT FOR TID OG STED -->
-                        <div class="space-y-2 pt-1">
-                            <p class="text-xs font-bold text-slate-300 flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl p-2.5 backdrop-blur-sm">
-                                <i class="fa-regular fa-clock text-bsk-yellow text-sm w-4 text-center"></i> 
-                                <span class="capitalize">${d} kl. ${ne.time || 'TBA'}</span>
-                            </p>
-                            <p class="text-xs font-bold text-slate-300 flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl p-2.5 backdrop-blur-sm truncate">
-                                <i class="fa-solid fa-location-dot text-rose-400 text-sm w-4 text-center"></i> 
-                                <span>${ne.location || 'Ikke oppgitt'}</span>
-                            </p>
+                        <div onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-blue-500/10 border border-blue-500/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.25)] transition-all duration-500 cursor-pointer hover:scale-105">
+                            <span class="text-2xl font-black text-blue-400 leading-none">${påmeldtAntall}</span>
+                            <span class="text-[8px] font-bold text-blue-200/70 uppercase tracking-wider mt-1">Klar</span>
                         </div>
                     </div>
-                    
-                    <!-- TROPPSTATUS & BUTTON RAD -->
-                    <div class="pt-3 border-t border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-auto">
-                        <div class="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-xl border border-white/5 justify-between sm:justify-start">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status:</span>
-                            <div class="flex gap-1.5 font-black">
-                                <span class="text-emerald-400 text-[11px]">${påmeldtAntall} klar</span>
-                                <span class="text-slate-500 text-[11px]">•</span>
-                                <span class="text-rose-400 text-[11px]">${forfallAntall} avbud</span>
-                            </div>
-                        </div>
-                        
-                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 border border-blue-500/30 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap">
-                            <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Svar her
+
+                    <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-800/60">
+                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 border border-blue-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                            <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
                         </button>
                     </div>
-                    
                 </div>
             </div>
         `;
