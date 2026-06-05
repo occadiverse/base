@@ -494,35 +494,39 @@
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6 max-w-5xl mx-auto w-full">
-                <!-- Kampvelger flyttet opp og sentrert for å fjerne dobbel overskrift -->
-                <div class="mb-2 flex flex-col sm:flex-row justify-end items-center gap-4 px-4 lg:px-0">
-                    <div class="w-full sm:w-auto flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+                
+                <!-- OPPDATERT: Her har menyene fått max-w-lg mx-auto, slik at de blir nøyaktig like brede som banen -->
+                <div class="max-w-lg mx-auto w-full px-4 lg:px-0 flex flex-col items-center gap-4 mb-2 mt-4">
+                    
+                    <!-- Kampvelger sentrert -->
+                    <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">Modus / Kamp:</label>
-                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="bg-transparent text-xs font-black text-bsk-blue outline-none min-w-[180px] cursor-pointer">
+                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="bg-transparent text-xs font-black text-bsk-blue outline-none min-w-[180px] cursor-pointer text-center">
                             <option value="">Sandkasse ⏳</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="flex flex-wrap items-center justify-center gap-2 mb-6">
-                    <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-bsk-blue text-white border border-bsk-blue shadow-md">
-                    F1
-                    </button>
-                    <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
-                    F2
-                    </button>
-                    <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
-                    F3
-                    </button>
+                    <!-- Faseknapper og verktøy sentrert rett over banen -->
+                    <div class="flex flex-wrap items-center justify-center gap-2">
+                        <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-bsk-blue text-white border border-bsk-blue shadow-md">
+                        F1
+                        </button>
+                        <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
+                        F2
+                        </button>
+                        <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
+                        F3
+                        </button>
 
-                    <div class="w-px h-6 bg-slate-300 mx-1 rounded"></div>
+                        <div class="w-px h-6 bg-slate-300 mx-1 rounded"></div>
 
-                    <button onclick="autoFillTeam()" title="Autofullfør ellever" class="bg-gradient-to-r from-bsk-yellow to-amber-400 hover:from-amber-400 hover:to-amber-500 text-bsk-blue w-10 h-10 rounded-xl shadow-md transition-all flex items-center justify-center hover:scale-105 active:scale-95">
-                        <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
-                    </button>
-                    <button onclick="clearTacticalBoard()" title="Tøm banen" class="bg-white border border-slate-200 text-slate-500 hover:text-rose-500 hover:bg-rose-50 w-10 h-10 rounded-xl shadow-sm transition-all flex items-center justify-center hover:scale-105 active:scale-95">
-                        <i class="fa-solid fa-eraser text-base"></i>
-                    </button>
+                        <button onclick="autoFillTeam()" title="Autofullfør ellever" class="bg-gradient-to-r from-bsk-yellow to-amber-400 hover:from-amber-400 hover:to-amber-500 text-bsk-blue w-10 h-10 rounded-xl shadow-md transition-all flex items-center justify-center hover:scale-105 active:scale-95">
+                            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                        </button>
+                        <button onclick="clearTacticalBoard()" title="Tøm banen" class="bg-white border border-slate-200 text-slate-500 hover:text-rose-500 hover:bg-rose-50 w-10 h-10 rounded-xl shadow-sm transition-all flex items-center justify-center hover:scale-105 active:scale-95">
+                            <i class="fa-solid fa-eraser text-base"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="px-4 lg:px-0 pb-12">
