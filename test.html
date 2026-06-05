@@ -101,11 +101,11 @@
                 </a>
                 <a href="#" id="sidebar-kamper" onclick="switchTab('kamper')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
                     <i class="fa-solid fa-calendar-days w-5 text-center"></i>
-                    <span>Terminliste</span>
+                    <span>Kamper</span>
                 </a>
                 <a href="#" id="sidebar-oppmote" onclick="switchTab('oppmote')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
                     <i class="fa-solid fa-calendar text-center w-5"></i>
-                    <span>Kalender & Oppmøte</span>
+                    <span>Kalender</span>
                 </a>
                 <a href="#" id="sidebar-spillere" onclick="switchTab('spillere')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
                     <i class="fa-solid fa-star w-5 text-center"></i>
@@ -113,7 +113,7 @@
                 </a>
                 <a href="#" id="sidebar-tropp" onclick="switchTab('tropp')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
                     <i class="fa-solid fa-users w-5 text-center"></i>
-                    <span>Spillerstall</span>
+                    <span>Spillertropp</span>
                 </a>
                 <a href="#" id="sidebar-statistikk" onclick="switchTab('statistikk')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
                     <i class="fa-solid fa-chart-simple w-5 text-center"></i>
@@ -402,7 +402,7 @@
                     <div class="relative z-10 space-y-4">
                         <div class="inline-flex items-center space-x-2 bg-bsk-yellow/10 text-bsk-yellow px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
                             <i class="fa-solid fa-users-viewfinder text-[10px]"></i>
-                            <span>SPILLERSTALL</span>
+                            <span>SPILLERTROPP</span>
                         </div>
                         <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
                             I den valgte troppen har vi totalt registrert <span class="text-bsk-yellow font-black" id="stat-total-players">0 spillere</span> 
@@ -1698,8 +1698,8 @@
             }
 
             const titles = {
-                hjem: "Forside", kamper: "Terminliste", oppmote: "Kalender & Oppmøte", 
-                spillere: "Spillerbørs", tropp: "Spillerstall", statistikk: "Statistikk", 
+                hjem: "Forside", kamper: "Kamper", oppmote: "Kalender", 
+                spillere: "Spillerbørs", tropp: "Spillertropp", statistikk: "Statistikk", 
                 taktikk: "Taktikk & Kjemi", admin: "Admin-panel"
             };
             document.getElementById('current-tab-title').innerText = titles[tabId];
