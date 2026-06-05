@@ -2676,18 +2676,14 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             if (isMatchClick || ev.type === 'Kamp') {
                 modalTitleText = `Kamp mot ${ev.opponent || 'Ukjent motstander'}`;
             } else {
-                // Hvis den har en tittel (og tittelen ikke bare er tom), vis "Trening: Taktikk". 
-                // Hvis tittelen er tom, vis bare "Trening"
-                if (ev.title && ev.title.trim() !== "") {
-                    modalTitleText = `${ev.type || 'Trening'}: ${ev.title}`;
-                } else {
-                    modalTitleText = `${ev.type || 'Trening'}`;
-                }
+                // Hvis økten har en spesifikk tittel, vis den. Hvis ikke, skriv bare "Trening"
+                modalTitleText = (ev.title && ev.title.trim() !== "") ? ev.title : "Trening";
             }
 
+            // Endre undertittelen til å vise lag/gruppe i stedet for å gjenta "Trening"
             document.getElementById('attendanceModalTitle').innerText = modalTitleText;
-            document.getElementById('attendanceModalSub').innerText = `${ev.type || 'Kamp'} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
-        
+            document.getElementById('attendanceModalSub').innerText = `${ev.team || 'Hele troppen'} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
+            
             const container = document.getElementById('attendance-players-list');
             container.innerHTML = '';
         
