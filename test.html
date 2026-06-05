@@ -435,11 +435,23 @@
 
             <div id="view-statistikk" class="hidden space-y-6">
                 
-                <div class="flex gap-2 mb-6 border-b border-slate-200 pb-4 overflow-x-auto">
-                    <button onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn shrink-0 px-4 h-9 bg-blue-100 text-bsk-blue border border-blue-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Lagstatistikk</button>
-                    <button onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Spillerstatistikk</button>
-                    <button onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Formbørs</button>
-                    <button onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center">Kampstatistikk</button>
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex overflow-x-auto">
+                        <div class="inline-flex bg-slate-200/70 p-0.5 rounded-xl text-xs font-bold font-sans whitespace-nowrap">
+                            <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm">
+                                Lagstatistikk
+                            </button>
+                            <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                                Spillerstatistikk
+                            </button>
+                            <button type="button" onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                                Formbørs
+                            </button>
+                            <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                                Kampstatistikk
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
@@ -3849,28 +3861,28 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
 }
 
         window.switchStatTab = function(tabId) {
-            // Skjul alle fire innholdscontainerne
+            // 1. Skjul alle de fire innholdscontainerne
             document.getElementById('stat-view-lag').className = "hidden";
             document.getElementById('stat-view-spillere').className = "hidden";
             document.getElementById('stat-view-poeng').className = "hidden";
             document.getElementById('stat-view-kampstat').className = "hidden";
             
-            // Felles mal for alle inaktive knapper
-            const inactiveStyle = "stat-tab-btn shrink-0 px-4 h-9 bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs font-bold rounded-lg shadow-sm transition flex items-center justify-center";
-            
-            // Nullstill alle fire knappene til grå stil
-            document.getElementById('stat-tab-lag').className = inactiveStyle;
-            document.getElementById('stat-tab-spillere').className = inactiveStyle;
-            document.getElementById('stat-tab-poeng').className = inactiveStyle;
-            document.getElementById('stat-tab-kampstat').className = inactiveStyle;
-            
-            // Vis den containeren som ble trykket på
+            // 2. Vis containeren som ble trykket på
             document.getElementById(`stat-view-${tabId}`).className = "block space-y-6";
             
-            // Gi den aktive knappen den lekre, lyseblå aktive stilen
-            document.getElementById(`stat-tab-${tabId}`).className = "stat-tab-btn shrink-0 px-4 h-9 bg-blue-100 text-bsk-blue border border-blue-200 text-xs font-black rounded-lg shadow-sm transition flex items-center justify-center";
+            // 3. Nullstill alle knappene til passiv grå stil
+            const inactiveClass = "stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800";
+            document.querySelectorAll('.stat-tab-btn').forEach(btn => {
+                btn.className = inactiveClass;
+            });
             
-            // Kjør tilhørende funksjoner hvis nødvendig
+            // 4. Gi den aktive knappen hvit bakgrunn, skygge og blå tekst
+            const activeBtn = document.getElementById(`stat-tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "stat-tab-btn px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm";
+            }
+            
+            // 5. Kjør tilhørende funksjoner for den aktuelle fanen
             if (tabId === 'spillere') renderPlayerStatsTable();
             if (tabId === 'poeng') renderPointHistoryView();
             if (tabId === 'kampstat') renderMatchStatsView(); 
