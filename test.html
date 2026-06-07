@@ -191,21 +191,26 @@
         </div>
     </section>
 
-    <div class="w-full flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 mt-2">
-                <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm shrink-0">
-                    <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
-                        Kommende
-                    </button>
-                    <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
-                        Tidligere
-                    </button>
-                </div>
+    <div class="w-full flex justify-center mb-6 mt-2">
+                <div class="flex items-center gap-2 max-w-full overflow-x-auto hide-scrollbar px-4 md:px-0">
+                    
+                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm shrink-0 h-10">
+                        <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 h-full rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
+                            Kommende
+                        </button>
+                        <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                            Tidligere
+                        </button>
+                    </div>
 
-                <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">Lag:</label>
-                    <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-bsk-blue outline-none cursor-pointer">
-                        <option value="Alle">ALLE LAG</option>
-                    </select>
+                    <div class="bg-white border border-slate-200 rounded-xl px-3 flex items-center shadow-sm shrink-0 h-10 hover:border-bsk-blueLight transition-colors">
+                        <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
+                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
+                            <option value="Alle">ALLE LAG</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
+                    </div>
+
                 </div>
             </div>
 
