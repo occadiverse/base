@@ -107,10 +107,6 @@
                     <i class="fa-solid fa-calendar text-center w-5"></i>
                     <span>Kalender</span>
                 </a>
-                <a href="#" id="sidebar-spillere" onclick="switchTab('spillere')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
-                    <i class="fa-solid fa-star w-5 text-center"></i>
-                    <span>Spillerbørs</span>
-                </a>
                 <a href="#" id="sidebar-tropp" onclick="switchTab('tropp')" class="tab-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-bsk-blueLight/50 text-slate-300 hover:text-white transition-all">
                     <i class="fa-solid fa-users w-5 text-center"></i>
                     <span>Spillertropp</span>
@@ -369,30 +365,6 @@
                     </div>
                 </div>
                 </div>
-
-            <div id="view-spillere" class="hidden space-y-6">
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                    <p class="text-xs text-slate-500 mb-6">Velg en kamp fra terminlisten for å gi karakterer og registrere målscorere for de ulike spillerne.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                            <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-fire text-amber-500"></i> Toppscorere
-                            </h4>
-                            <div class="space-y-3" id="top-scorers-list">
-                                </div>
-                        </div>
-
-                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                            <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-star text-yellow-500"></i> Høyest Snittkarakter
-                            </h4>
-                            <div class="space-y-3" id="top-rated-list">
-                                </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div id="view-tropp" class="hidden space-y-6">
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
@@ -1682,7 +1654,7 @@
         function switchTab(tabId) {
             currentTab = tabId;
             
-            ['hjem', 'kamper', 'oppmote', 'spillere', 'tropp', 'statistikk', 'admin', 'taktikk'].forEach(id => {
+            ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk'].forEach(id => {
                 document.getElementById(`view-${id}`).classList.add('hidden');
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
@@ -1710,7 +1682,7 @@
 
             const titles = {
                 hjem: "Forside", kamper: "Kamper", oppmote: "Kalender", 
-                spillere: "Spillerbørs", tropp: "Spillertropp", statistikk: "Statistikk", 
+                tropp: "Spillertropp", statistikk: "Statistikk", 
                 taktikk: "Taktikk & Kjemi", admin: "Admin-panel"
             };
             document.getElementById('current-tab-title').innerText = titles[tabId];
@@ -1734,7 +1706,6 @@
             if (activeMobileBtn) activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
 
             if (tabId === 'oppmote') { renderEvents(); recalculateOppmoteAndKjemi(); }
-            else if (tabId === 'spillere') { renderSpillerbors(); }
             else if (tabId === 'tropp') { renderPlayerRoster(); }
             else if (tabId === 'statistikk') { renderStatistikkSide(); }
             else if (tabId === 'admin' && isAdminUnlocked) { renderAdminTeamsList(); }
@@ -3091,40 +3062,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 if (document.getElementById('individual-partner-name')) document.getElementById('individual-partner-name').innerText = "Ingen match";
                 if (document.getElementById('individual-partner-desc')) document.getElementById('individual-partner-desc').innerText = "Ikke nok data registrert.";
                 if (document.getElementById('chem-circle-progress')) document.getElementById('chem-circle-progress').style.strokeDashoffset = 251.2;
-            }
-        }
-
-        window.renderSpillerbors = function() {
-            const scoresMap = {}, ratingsSum = {}, ratingsCount = {};
-            (window.activePlayers || []).forEach(p => { scoresMap[p.navn] = 0; ratingsSum[p.navn] = 0; ratingsCount[p.navn] = 0; });
-            (window.activeMatches || []).forEach(m => {
-                if (m.scorers) Object.entries(m.scorers).forEach(([player, goals]) => { if (scoresMap[player] !== undefined) scoresMap[player] += goals; });
-                if (m.ratings) Object.entries(m.ratings).forEach(([player, val]) => {
-                    if (ratingsSum[player] !== undefined && val > 0) { ratingsSum[player] += val; ratingsCount[player]++; }
-                });
-            });
-
-            const sortedScorers = Object.entries(scoresMap).filter(([_, goals]) => goals > 0).sort((a, b) => b[1] - a[1]);
-            const sortedRatings = Object.entries(ratingsSum).map(([player, sum]) => {
-                const count = ratingsCount[player]; return { player, avg: count > 0 ? parseFloat((sum / count).toFixed(1)) : 0, count };
-            }).filter(item => item.count > 0).sort((a, b) => b.avg - a.avg);
-
-            const scorersContainer = document.getElementById('top-scorers-list');
-            if (scorersContainer) {
-                scorersContainer.innerHTML = '';
-                if (sortedScorers.length === 0) scorersContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 italic font-medium">Ingen mål registrert enda denne sesongen.</p>`;
-                else sortedScorers.forEach(([player, goals], idx) => {
-                    scorersContainer.innerHTML += `<div class="flex justify-between items-center py-2 border-b border-slate-150"><div class="flex items-center gap-2"><span class="text-slate-400 font-bold text-xs">${idx + 1}.</span><span class="font-bold text-slate-800 text-xs">${player}</span></div><span class="bg-bsk-blue text-bsk-yellow font-black text-xs px-2.5 py-1 rounded-full">${goals} mål</span></div>`;
-                });
-            }
-
-            const ratingsContainer = document.getElementById('top-rated-list');
-            if (ratingsContainer) {
-                ratingsContainer.innerHTML = '';
-                if (sortedRatings.length === 0) ratingsContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 italic font-medium">Ingen spillervurderinger foretatt enda.</p>`;
-                else sortedRatings.forEach((item, idx) => {
-                    ratingsContainer.innerHTML += `<div class="flex justify-between items-center py-2 border-b border-slate-150"><div class="flex items-center gap-2"><span class="text-slate-400 font-bold text-xs">${idx + 1}.</span><span class="font-bold text-slate-800 text-xs">${item.player}</span><span class="text-[10px] text-slate-400">(${item.count} kamper)</span></div><span class="bg-emerald-100 text-emerald-800 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> ${item.avg}</span></div>`;
-                });
             }
         }
 
