@@ -411,6 +411,7 @@
                 </div>
 
                 <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
+                    
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
                             <span class="block text-xs font-semibold text-emerald-700 uppercase">Seire</span>
@@ -429,6 +430,31 @@
                             <span class="text-3xl font-black text-sky-800" id="stats-page-goals">0</span>
                         </div>
                     </div>
+
+                    <div class="mt-8 border-t border-slate-100 pt-6">
+                        <h4 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-users-viewfinder text-bsk-blue"></i> Troppsdata
+                        </h4>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Totalt i tropp</span>
+                                <span class="text-3xl font-black text-bsk-blue mt-1 block" id="stats-page-players">0</span>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Snittalder</span>
+                                <span class="text-3xl font-black text-bsk-blue mt-1 block" id="stats-page-age">0</span>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rekrutter</span>
+                                <span class="text-3xl font-black text-bsk-yellow mt-1 block drop-shadow-sm" id="stats-page-recruits">0</span>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Oppmøte</span>
+                                <span class="text-3xl font-black text-emerald-500 mt-1 block" id="stats-page-attendance">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div id="stat-view-spillere" class="bg-white border border-slate-200 rounded-2xl shadow-sm hidden">
@@ -3068,6 +3094,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         window.renderStatistikkSide = function() {
+            // 1. KAMP-STATISTIKK
             let wins = 0, draws = 0, losses = 0, goals = 0;
             (window.activeMatches || []).forEach(m => {
                 const score = parseScore(m.result);
@@ -3076,11 +3103,46 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     if (score.bsk > score.opponent) wins++; else if (score.bsk === score.opponent) draws++; else losses++;
                 }
             });
+            
             if (document.getElementById('stats-page-wins')) document.getElementById('stats-page-wins').innerText = wins;
             if (document.getElementById('stats-page-draws')) document.getElementById('stats-page-draws').innerText = draws;
             if (document.getElementById('stats-page-losses')) document.getElementById('stats-page-losses').innerText = losses;
             if (document.getElementById('stats-page-goals')) document.getElementById('stats-page-goals').innerText = goals;
-        }
+
+            // 2. TROPPSTATISTIKK (NY)
+            // Filtrerer bort passive spillere for å få reelle tall
+            const activePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+            let totalAge = 0;
+            let recruits = 0;
+
+            activePlayers.forEach(p => {
+                if (p.fodselsaar) totalAge += (2026 - parseInt(p.fodselsaar)); // Regner ut ifra året 2026
+                if (p.status === 'Rekrutt') recruits++;
+            });
+
+            // Regner ut gjennomsnittsalder med 1 desimal
+            const avgAge = activePlayers.length > 0 ? (totalAge / activePlayers.length).toFixed(1) : 0;
+
+            // Regner ut snitt oppmøte for hele troppen (Kamper + Treninger kombinert)
+            let totalEventTicks = 0, totalPossibleTicks = 0;
+            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+            
+            allEvents.forEach(e => {
+                if (e.attendance) {
+                    Object.values(e.attendance).forEach(val => {
+                        totalPossibleTicks++; 
+                        if (val === true) totalEventTicks++;
+                    });
+                }
+            });
+            const avgAttendance = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
+
+            // Oppdater de nye HTML-boksene
+            if (document.getElementById('stats-page-players')) document.getElementById('stats-page-players').innerText = activePlayers.length;
+            if (document.getElementById('stats-page-age')) document.getElementById('stats-page-age').innerText = avgAge;
+            if (document.getElementById('stats-page-recruits')) document.getElementById('stats-page-recruits').innerText = recruits;
+            if (document.getElementById('stats-page-attendance')) document.getElementById('stats-page-attendance').innerText = `${avgAttendance}%`;
+        };
 
         window.onclick = function(event) {
             const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'eventModal', 'attendanceModal', 'confirmModal', 'kjemi-info-modal', 'activityModal', 'tacticalPlayerModal'];
