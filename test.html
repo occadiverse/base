@@ -195,22 +195,21 @@
         </div>
     </section>
 
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        
-        <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex">
-            <div class="inline-flex bg-slate-200/70 p-0.5 rounded-xl text-xs font-bold font-sans">
-                <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm">
-                    Kommende
-                </button>
-                <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800">
-                    Tidligere
-                </button>
+    <div class="w-full flex justify-center items-center mb-6 mt-2">
+                <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm max-w-full overflow-x-auto hide-scrollbar">
+                    <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
+                        Kommende
+                    </button>
+                    <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                        Tidligere
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse" id="matchTable">
-                <thead>
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="matchTable">
+                    <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
                         <th class="py-4 px-4 md:px-6">Lag</th>
                         <th class="py-4 px-4 md:px-6">Motstander</th> 
@@ -219,8 +218,9 @@
                         <th class="py-4 px-4 text-center w-20">Resultat</th>
                         <th class="py-4 px-6 text-left hidden lg:table-cell">Bane</th>
                         <th class="py-4 px-6 text-left hidden lg:table-cell">Type</th>
-                        <th class="py-4 px-4 md:px-6 w-12"></th> </tr>
-                </thead>
+                        <th class="py-4 px-4 md:px-6 w-12"></th> 
+                    </tr>
+                    </thead>
                 <tbody id="matchTableBody" class="divide-y divide-slate-100 text-sm">
                     </tbody>
             </table>
@@ -2200,13 +2200,18 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             window.activeTimeFilter = filterType;
             const btnKommende = document.getElementById('btn-filter-kommende');
             const btnTidligere = document.getElementById('btn-filter-tidligere'); 
+            
+            // Faste klasser som sikrer at knappen holder formen på mobil (shrink-0)
+            const activeClass = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0";
+            const inactiveClass = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0";
+            
             if (btnKommende && btnTidligere) {
                 if (filterType === 'kommende') {
-                    btnKommende.className = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm";
-                    btnTidligere.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800";
+                    btnKommende.className = activeClass;
+                    btnTidligere.className = inactiveClass;
                 } else {
-                    btnTidligere.className = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm";
-                    btnKommende.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800";
+                    btnTidligere.className = activeClass;
+                    btnKommende.className = inactiveClass;
                 }
             }
             applyFilters();
