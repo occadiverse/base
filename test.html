@@ -167,52 +167,28 @@
             </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
             <div id="view-kamper" class="hidden space-y-6">
-                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-                <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
-                    <i class="fa-solid fa-shield-halved text-[15rem]"></i>
-                </div>
-                <div class="relative z-10 space-y-4">
-                    <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
-                Neste kamp er mot <span class="text-bsk-yellow font-bold underline" id="stat-next-opponent">Laster...</span> den 
-                <span class="text-white font-bold" id="stat-next-match">Laster...</span>. 
-                Sesongen så langt har gitt oss <span class="text-bsk-yellow font-black" id="stat-wins">0 seire</span> 
-                og totalt har vi hamret inn <span class="text-bsk-yellow font-black" id="stat-goals">0 scorede mål</span>!
-            </p>
-            <div class="flex flex-wrap gap-4 pt-2">
-                <div class="bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl text-center min-w-[100px]">
-                    <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-300">Kamper Spilt</span>
-                    <span class="text-xl font-extrabold text-white" id="stat-total-played">0</span>
-                </div>
-                <div class="bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl text-center min-w-[100px]">
-                    <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-300">Uavgjort / Tap</span>
-                    <span class="text-xl font-extrabold text-white" id="stat-draws-losses">0 / 0</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="w-full flex justify-center mb-6 mt-2">
-                <div class="flex items-center gap-2 max-w-full overflow-x-auto hide-scrollbar px-4 md:px-0">
+                <div class="w-full flex justify-center mb-6 mt-2">
+                    <div class="flex items-center gap-2 max-w-full overflow-x-auto hide-scrollbar px-4 md:px-0">
                     
-                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm shrink-0 h-10">
-                        <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 h-full rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
-                            Kommende
-                        </button>
-                        <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
-                            Tidligere
-                        </button>
-                    </div>
+                        <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm shrink-0 h-10">
+                            <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 h-full rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
+                                Kommende
+                            </button>
+                            <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                                Tidligere
+                            </button>
+                        </div>
 
-                    <div class="bg-white border border-slate-200 rounded-xl px-3 flex items-center shadow-sm shrink-0 h-10 hover:border-bsk-blueLight transition-colors">
-                        <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
-                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
-                            <option value="Alle">ALLE LAG</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
-                    </div>
+                        <div class="bg-white border border-slate-200 rounded-xl px-3 flex items-center shadow-sm shrink-0 h-10 hover:border-bsk-blueLight transition-colors">
+                            <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
+                            <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
+                                <option value="Alle">ALLE LAG</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
+                        </div>
 
+                    </div>
                 </div>
-            </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
