@@ -432,9 +432,6 @@
                     </div>
 
                     <div class="mt-8 border-t border-slate-100 pt-6">
-                        <h4 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-users-viewfinder text-bsk-blue"></i> Troppsdata
-                        </h4>
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
                                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Totalt i tropp</span>
@@ -3109,32 +3106,41 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             if (document.getElementById('stats-page-losses')) document.getElementById('stats-page-losses').innerText = losses;
             if (document.getElementById('stats-page-goals')) document.getElementById('stats-page-goals').innerText = goals;
 
-            // 2. TROPPSTATISTIKK (NY)
-            // Filtrerer bort passive spillere for å få reelle tall
+            // 2. TROPPSTATISTIKK
             const activePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
             let totalAge = 0;
             let recruits = 0;
 
             activePlayers.forEach(p => {
-                if (p.fodselsaar) totalAge += (2026 - parseInt(p.fodselsaar)); // Regner ut ifra året 2026
+                if (p.fodselsaar) totalAge += (2026 - parseInt(p.fodselsaar));
                 if (p.status === 'Rekrutt') recruits++;
             });
 
-            // Regner ut gjennomsnittsalder med 1 desimal
             const avgAge = activePlayers.length > 0 ? (totalAge / activePlayers.length).toFixed(1) : 0;
 
-            // Regner ut snitt oppmøte for hele troppen (Kamper + Treninger kombinert)
+            // RIKTIG LOGIKK FOR OPPMØTE: Tar utgangspunkt i lagets faktiske størrelse
             let totalEventTicks = 0, totalPossibleTicks = 0;
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             
             allEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.values(e.attendance).forEach(val => {
-                        totalPossibleTicks++; 
-                        if (val === true) totalEventTicks++;
-                    });
+                const eventTeam = e.team || 'Lag A'; // Finn hvilket lag eventet gjelder for
+                const teamPlayers = activePlayers.filter(p => p.spillerLag === eventTeam); // Hent de aktive spillerne for dette laget
+                
+                if (teamPlayers.length > 0) {
+                    // Antall spillere i troppen ER antall mulige oppmøter
+                    totalPossibleTicks += teamPlayers.length;
+                    
+                    if (e.attendance) {
+                        // Sjekker hver enkelt spiller i troppen om de fikk et kryss
+                        teamPlayers.forEach(p => {
+                            if (e.attendance[p.navn] === true) {
+                                totalEventTicks++;
+                            }
+                        });
+                    }
                 }
             });
+            
             const avgAttendance = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
 
             // Oppdater de nye HTML-boksene
