@@ -2353,6 +2353,11 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <i class="fa-solid fa-square-poll-horizontal mr-1.5"></i> ${match.result || 'Ikke ferdigspilt'}
                     </span>
                 </div>
+                <div class="col-span-1 sm:col-span-2 space-y-1 bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200 shadow-sm relative overflow-hidden mt-2">
+                    <i class="fa-solid fa-crown absolute -right-2 -bottom-4 text-amber-500 opacity-10 text-[5rem]"></i>
+                    <span class="text-amber-700 font-black block uppercase tracking-wide text-[10px]">Banens Beste (BB) 👑</span>
+                    <span class="text-lg font-black text-amber-900 relative z-10">${match.motm || '<span class="text-amber-600/50">Ikke kåret</span>'}</span>
+                </div>
             `;
 
             // Knapper
@@ -2392,6 +2397,24 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             // Siden det nå er en egen fane, gjør denne bare at vi går tilbake til terminlisten (hvis noen gammel kode prøver å bruke den)
             switchTab('kamper');
         };
+
+        window.toggleMotm = function(btn) {
+            const isActive = btn.getAttribute('data-active') === 'true';
+            
+            // Først: Skru av ALLE BB-knapper i hele listen
+            document.querySelectorAll('.player-motm-btn').forEach(b => {
+                b.setAttribute('data-active', 'false');
+                b.classList.remove('bg-amber-400', 'border-amber-500', 'text-white', 'shadow-inner', 'scale-95');
+                b.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-300');
+            });
+
+            // Hvis knappen IKKE var på fra før, skrur vi den på nå (slik at du kan angre og ta den av også)
+            if (!isActive) {
+                btn.setAttribute('data-active', 'true');
+                btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-300');
+                btn.classList.add('bg-amber-400', 'border-amber-500', 'text-white', 'shadow-inner', 'scale-95');
+            }
+        };
         
         window.renderPlayerRowForm = function(match) {
             const formList = document.getElementById('kampdetaljer-spillerbors');
@@ -2426,6 +2449,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 
                 const hasYellow = match.guleKort && match.guleKort.includes(player);
                 const hasRed = match.rodeKort && match.rodeKort.includes(player);
+                const isMotm = match.motm === player;
         
                 const div = document.createElement('div');
                 div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
@@ -2452,6 +2476,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <div class="flex items-center space-x-1 border-l border-slate-200 pl-2 ml-1">
                             <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-400 hover:border-yellow-200'}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
                             <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
+                            <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-amber-400 border-amber-500 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-200'}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
                         </div>
         
                     </div>
@@ -2494,49 +2519,58 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
         
         window.savePlayerMatchStats = async function() {
-    const match = (window.activeMatches || []).find(m => m.id === activeDetailsId);
-    if (!match) return;
+            const match = (window.activeMatches || []).find(m => m.id === activeDetailsId);
+            if (!match) return;
 
-    const scorers = {};
-    const ratings = {};
-    const guleKort = [];
-    const rodeKort = [];
+            const scorers = {};
+            const ratings = {};
+            const guleKort = [];
+            const rodeKort = [];
 
-    // Henter mål
-    document.querySelectorAll('.player-goals-input').forEach(input => {
-        const val = parseInt(input.value); 
-        if (val > 0) scorers[input.dataset.player] = val;
-    });
-    
-    // Henter børs
-    document.querySelectorAll('.player-rating-select').forEach(select => {
-        const val = parseInt(select.value); 
-        if (val > 0) ratings[select.dataset.player] = val;
-    });
+            // Henter mål
+            document.querySelectorAll('.player-goals-input').forEach(input => {
+                const val = parseInt(input.value); 
+                if (val > 0) scorers[input.dataset.player] = val;
+            });
+            
+            // Henter børs
+            document.querySelectorAll('.player-rating-select').forEach(select => {
+                const val = parseInt(select.value); 
+                if (val > 0) ratings[select.dataset.player] = val;
+            });
 
-    // Henter kort (NYTT)
-    document.querySelectorAll('.player-card-btn').forEach(btn => {
-        if (btn.getAttribute('data-active') === 'true') {
-            if (btn.getAttribute('data-type') === 'yellow') guleKort.push(btn.dataset.player);
-            if (btn.getAttribute('data-type') === 'red') rodeKort.push(btn.dataset.player);
-        }
-    });
+            // Henter kort
+            document.querySelectorAll('.player-card-btn').forEach(btn => {
+                if (btn.getAttribute('data-active') === 'true') {
+                    if (btn.getAttribute('data-type') === 'yellow') guleKort.push(btn.dataset.player);
+                    if (btn.getAttribute('data-type') === 'red') rodeKort.push(btn.dataset.player);
+                }
+            });
 
-    // Lagrer alt i match-objektet
-    match.scorers = scorers; 
-    match.ratings = ratings;
-    match.guleKort = guleKort;
-    match.rodeKort = rodeKort;
+            // Lagrer alt i match-objektet
+            match.scorers = scorers; 
+            match.ratings = ratings;
+            match.guleKort = guleKort;
+            match.rodeKort = rodeKort;
 
-    // Regner ut BSK sine mål totalt hvis resultatet mangler
-    const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
-    if (!match.result && totalBskGoals > 0) match.result = `${totalBskGoals}-0`;
+            // === HER SKAL DEN NYE BB-SNUTTEN INN ===
+            // Lagrer Banens Beste (Finner den ene knappen som er aktiv)
+            const activeMotmBtn = document.querySelector('.player-motm-btn[data-active="true"]');
+            match.motm = activeMotmBtn ? activeMotmBtn.getAttribute('data-player') : null;
+            // ======================================
 
-    await window.saveMatchToDatabase(match);
-            alert('Spillerbørs og kampstatistikk er oppdatert!'); 
+            // Regner ut BSK sine mål totalt hvis resultatet mangler
+            const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
+            if (!match.result && totalBskGoals > 0) match.result = `${totalBskGoals}-0`;
+
+            // Sender til databasen
+            await window.saveMatchToDatabase(match);
+            
+            // Gir en bekreftelse og oppdaterer visningen
+            alert('Spillerbørs, kort og Banens Beste er oppdatert! 🏆'); 
             applyFilters();
             if (typeof renderStatistikkSide === 'function') renderStatistikkSide();
-}
+        };
 
         // --- CALENDAR & EVENTS ---
         window.openEventModal = function() {
