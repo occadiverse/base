@@ -3966,7 +3966,16 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                         <tr class="hover:bg-slate-50">
                             <td class="p-4 font-bold text-slate-800">${p.name}</td>
                             <td class="p-4 text-center">${p.matches}</td>
-                            <td class="p-4 text-center font-black text-orange-600">${p.formLastFive.toFixed(1)}</td>
+                            <td class="p-4 text-center">
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-black ${
+                                    p.formLastFive >= 7 ? 'bg-orange-100 text-orange-700' :
+                                    p.formLastFive >= 6 ? 'bg-emerald-100 text-emerald-700' :
+                                    p.formLastFive > 0 ? 'bg-slate-100 text-slate-600' :
+                                    'bg-slate-50 text-slate-300'
+                                }">
+                                    ${p.formLastFive.toFixed(1)}
+                                </span>
+                            </td>
                             <td class="p-4 text-center font-bold">${p.goals}</td>
                             <td class="p-4 text-center font-bold text-indigo-600">${p.bb > 0 ? '+' + p.bb : '-'}</td>
                         </tr>
