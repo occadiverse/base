@@ -3794,17 +3794,21 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         if (h.points >= 20) pointColor = 'text-emerald-500';
         else if (h.points < 10) pointColor = 'text-rose-500';
         
-        // Hent kamp-objektet for å sjekke kort og mål live
         const m = (window.activeMatches || []).find(match => match.id === h.matchId);
         
         const mål = m && m.scorers && m.scorers[playerName] ? m.scorers[playerName] : '-';
         const gult = m && m.guleKort && m.guleKort.includes(playerName) ? '1 🟨' : '-';
         const rødt = m && m.rodeKort && m.rodeKort.includes(playerName) ? '1 🟥' : '-';
         
-        // Fargestyring for kort-kolonnene så det er lett å scanne
+        // NY LINJE: Sjekker om han ble kåret til BB i denne historiske kampen
+        const bleBb = m && m.motm === playerName ? '👑' : '-';
+        
         const gultKlasse = gult !== '-' ? 'text-amber-500 font-bold' : 'text-slate-300';
         const rødtKlasse = rødt !== '-' ? 'text-rose-600 font-bold' : 'text-slate-300';
         const målKlasse = mål !== '-' ? 'text-slate-800 font-bold' : 'text-slate-300';
+        
+        // NY LINJE: Stil for BB-prikken/kronen
+        const bbKlasse = bleBb !== '-' ? 'text-indigo-600 font-bold text-xs' : 'text-slate-300';
         
         tableHtml += `
             <tr class="hover:bg-slate-50 transition cursor-help" title="${h.breakdown}">
@@ -3814,11 +3818,10 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 <td class="p-4 text-center">
                     <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
                 </td>
-                <!-- DYNAMISK DATA FOR KORT OG MÅL -->
                 <td class="p-4 text-center ${målKlasse}">${mål}</td>
                 <td class="p-4 text-center text-xs ${gultKlasse}">${gult}</td>
                 <td class="p-4 text-center text-xs ${rødtKlasse}">${rødt}</td>
-                <td class="p-4 text-right ${pointColor} font-black text-base">${h.points}</td>
+                <td class="p-4 text-center ${bbKlasse}">${bleBb}</td> <td class="p-4 text-right ${pointColor} font-black text-base">${h.points}</td>
             </tr>
         `;
     });
@@ -3890,11 +3893,14 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 const goals = match.scorers && match.scorers[pName] ? match.scorers[pName] : 0;
                 const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
                 const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
+
+                const isBbInMatch = match.motm === pName;
                 
                 const pointsDetails = window.calculatePlayerMatchPoints(match, pName, true);
 
                 return {
-                    name: pName, rating, goals, yellow, red, 
+                    name: pName, rating, goals, yellow, red,
+                    isBbInMatch,
                     points: pointsDetails.total,
                     base: pointsDetails.base,
                     resultBonus: pointsDetails.resultBonus,
@@ -3914,16 +3920,17 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     <table class="w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
                             <tr>
-                                <th class="p-4">Spiller</th>
-                                <th class="p-4 text-center">Tropp</th>
-                                <th class="p-4 text-center">RES (${matchResult})</th>
+                                <th class="p-4">Dato</th>
+                                <th class="p-4">Motstander</th>
+                                <th class="p-4">Res</th>
                                 <th class="p-4 text-center">Børs</th>
                                 <th class="p-4 text-center">Mål</th>
                                 <th class="p-4 text-center">Gult</th>
                                 <th class="p-4 text-center">Rødt</th>
+                                <th class="p-4 text-center text-indigo-600">BB</th>
                                 <th class="p-4 text-right">Matchpoeng</th>
-                            </tr>
-                        </thead>
+                    </tr>
+                </thead>
                         <tbody class="divide-y divide-slate-50">
             `;
 
@@ -3962,7 +3969,9 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 // Forenklet overgang uten ekstra border-classes på raden, divide-y styrer kantene.
                 tableHtml += `
                     <tr class="hover:bg-slate-50 transition cursor-help">
-                        <td class="p-4 font-bold text-slate-800">${s.name}</td>
+                        <td class="p-4 font-bold text-slate-800">
+                            ${s.name} ${s.isBbInMatch ? '<span class="text-indigo-600 font-bold ml-1" title="Banens Beste">👑</span>' : ''}
+                        </td>
                         <td class="p-4 text-center">${baseVis}</td>
                         <td class="p-4 text-center">${resultVis}</td>
                         <td class="p-4 text-center">${ratingVis}</td>
@@ -3992,24 +4001,22 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
 
-            // 1. NYTT: Definerer dagens dato rett før vi begynner å regne på spillerne
             const todayForStats = new Date();
             todayForStats.setHours(0, 0, 0, 0);
 
             let statsData = (window.activePlayers || []).filter(p => filterLag === 'Alle' || p.spillerLag === filterLag).map(p => {
-                
-                // 2. NYTT: Filtrerer bort events fra fremtiden når vi henter teamEvents
                 const teamEvents = allEvents.filter(e => {
                     if (e.team !== p.spillerLag) return false;
                     if (e.date) {
                         const eventDate = new Date(e.date);
                         eventDate.setHours(0, 0, 0, 0);
-                        if (eventDate > todayForStats) return false; // Ignorerer fremtiden!
+                        if (eventDate > todayForStats) return false;
                     }
                     return true;
                 });
 
-                let attended = 0, kamper = 0, yellow = 0, red = 0, mal = 0, totalMatchPoints = 0;
+                // NYTT: Lagt til 'bb' i tellingen
+                let attended = 0, kamper = 0, yellow = 0, red = 0, mal = 0, totalMatchPoints = 0, bb = 0;
 
                 teamEvents.forEach(e => {
                     if (e.attendance && e.attendance[p.navn] === true) {
@@ -4018,6 +4025,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                             kamper++; 
                             if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
                             totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
+                            // NYTT: Sjekker om spilleren ble Banens Beste i denne kampen
+                            if (e.motm === p.navn) bb++;
                         }
                     }
                     if (e.type === 'Kamp') {
@@ -4029,7 +4038,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 return {
                     navn: p.navn, pos1: p.pos1 || '', oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
                     kamper: kamper, mal: mal, kampbonus: kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0,
-                    gule: yellow, rode: red, kjemi: calculatePlayerPerformanceChemistry(p.navn)
+                    gule: yellow, rode: red, kjemi: calculatePlayerPerformanceChemistry(p.navn),
+                    bb: bb // NYTT: Sender bb-antallet videre til visningen
                 };
             });
 
@@ -4038,7 +4048,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
             });
 
-            // 1. TVINGER OVERSKRIFTEN TIL Å VÆRE LYSEGRÅ
+            // NYTT: Lagt til BB-kolonne i tabellhodet (mellom Mål og Bonus)
             theadContainer.className = "bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-200";
             theadContainer.innerHTML = `
                 <tr>
@@ -4046,6 +4056,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                    <th class="p-4 text-center text-indigo-600 hover:text-indigo-800 transition-colors" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
                     <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
@@ -4056,12 +4067,12 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 </tr>
             `;
 
-            ['navn', 'oppmotePct', 'kamper', 'mal', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
+            // NYTT: Lagt til 'bb' i listen over kolonne-ikoner som oppdateres
+            ['navn', 'oppmotePct', 'kamper', 'mal', 'bb', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
                 const iconEl = document.getElementById(`sort-icon-${col}`);
                 if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
             });
 
-            // 2. TVINGER TABELLKROPPEN TIL Å VÆRE HVIT
             tableBody.className = "divide-y divide-slate-100 bg-white";
 
             tableBody.innerHTML = statsData.map(stat => {
@@ -4080,14 +4091,18 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 let malFarge = stat.mal > 0 ? 'text-slate-800 font-bold' : 'text-slate-300 font-bold';
                 let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse font-bold' : 'text-slate-800 font-bold') : 'text-slate-300 font-bold';
                 let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-300 font-bold';
+                
+                // NYTT: Fargestil for BB-kolonnen (Delikat lilla stil)
+                let bbFarge = stat.bb > 0 ? 'text-indigo-600 font-black text-sm' : 'text-slate-300 font-bold';
 
-                // 3. TVINGER HVER ENKELT RAD TIL Å VÆRE HVIT (`bg-white`)
+                // NYTT: Lagt til <td>-cellen for BB i raden
                 return `
                     <tr class="bg-white hover:bg-slate-50 transition-colors">
                         <td class="p-4"><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
                         <td class="p-4 text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
                         <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
                         <td class="p-4 text-center ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
+                        <td class="p-4 text-center ${bbFarge}">${stat.bb > 0 ? stat.bb : '-'}</td>
                         <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
                         <td class="p-4 text-center ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
                         <td class="p-4 text-center ${rodFarge}">${stat.rode > 0 ? stat.rode : '-'}</td>
