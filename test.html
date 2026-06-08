@@ -3865,12 +3865,14 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
         .slice(0, 8);
 
     const card = (label, value, sub, icon, colorClass) => `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between mb-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center justify-between mb-4">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${label}</span>
-                <i class="fa-solid ${icon} ${colorClass}"></i>
+                <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                    <i class="fa-solid ${icon} ${colorClass} text-lg"></i>
+                </div>
             </div>
-            <div class="text-xl font-black text-slate-900">${value || '-'}</div>
+            <div class="text-2xl font-black text-slate-900 leading-tight">${value || '-'}</div>
             <div class="text-xs text-slate-500 mt-1">${sub || ''}</div>
         </div>
     `;
