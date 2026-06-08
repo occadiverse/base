@@ -2395,11 +2395,28 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         
         window.renderPlayerRowForm = function(match) {
             const formList = document.getElementById('kampdetaljer-spillerbors');
+            if (!formList) return;
             formList.innerHTML = '';
             
-            // NYTT: Filtrerer bort 'Passiv' her også, slik at listen blir ryddig
+            // 1. Finner ut hvem som faktisk har møtt opp (er i kamptroppen)
+            const attendingPlayers = match.attendance 
+                ? Object.keys(match.attendance).filter(navn => match.attendance[navn] === true) 
+                : [];
+
+            // 2. Hvis ingen er krysset av som møtt, vis en vennlig beskjed
+            if (attendingPlayers.length === 0) {
+                formList.innerHTML = `
+                    <div class="py-8 text-center text-slate-500 text-sm">
+                        <i class="fa-solid fa-clipboard-user text-3xl text-slate-300 mb-3 block"></i>
+                        Ingen spillere er registrert med oppmøte på denne kampen enda.<br>
+                        <span class="text-xs mt-1 block">Trykk på <b>"Før Oppmøte / Tropp"</b> for å velge hvem som spilte!</span>
+                    </div>`;
+                return;
+            }
+            
+            // 3. Henter kun de som spilte, og sorterer alfabetisk
             const sortedPlayers = [...(window.activePlayers || [])]
-                .filter(p => p.status !== 'Passiv')
+                .filter(p => attendingPlayers.includes(p.navn))
                 .sort((a, b) => a.navn.localeCompare(b.navn));
         
             sortedPlayers.forEach(playerObj => {
@@ -2441,7 +2458,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 `;
                 formList.appendChild(div);
             });
-        }
+        };
 
         window.changeCount = function(btn, amount) {
             const container = btn.parentElement;
