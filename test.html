@@ -1937,7 +1937,7 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget();
 }
 
-       function updateHjemWidget() {
+       window.updateHjemWidget = function() {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
 
@@ -2103,7 +2103,7 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     }
 
     bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
-}
+};
         function setMatchTimeFilter(filterType) {
             window.activeTimeFilter = filterType;
             const btnKommende = document.getElementById('btn-filter-kommende');
