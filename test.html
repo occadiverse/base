@@ -3122,16 +3122,24 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             let totalEventTicks = 0, totalPossibleTicks = 0;
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             
+            // NYTT: Hent dagens dato for å stoppe "fremtidsstraff"
+            const todayForStats = new Date();
+            todayForStats.setHours(0, 0, 0, 0);
+
             allEvents.forEach(e => {
-                const eventTeam = e.team || 'Lag A'; // Finn hvilket lag eventet gjelder for
-                const teamPlayers = activePlayers.filter(p => p.spillerLag === eventTeam); // Hent de aktive spillerne for dette laget
+                // NYTT: Sjekk om hendelsen ligger i fremtiden. Hvis ja, hopp over!
+                if (e.date) {
+                    const eventDate = new Date(e.date);
+                    eventDate.setHours(0, 0, 0, 0);
+                    if (eventDate > todayForStats) return; 
+                }
+
+                const eventTeam = e.team || 'Lag A'; 
+                const teamPlayers = activePlayers.filter(p => p.spillerLag === eventTeam); 
                 
                 if (teamPlayers.length > 0) {
-                    // Antall spillere i troppen ER antall mulige oppmøter
                     totalPossibleTicks += teamPlayers.length;
-                    
                     if (e.attendance) {
-                        // Sjekker hver enkelt spiller i troppen om de fikk et kryss
                         teamPlayers.forEach(p => {
                             if (e.attendance[p.navn] === true) {
                                 totalEventTicks++;
@@ -4173,8 +4181,23 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
 
+            // 1. NYTT: Definerer dagens dato rett før vi begynner å regne på spillerne
+            const todayForStats = new Date();
+            todayForStats.setHours(0, 0, 0, 0);
+
             let statsData = (window.activePlayers || []).filter(p => filterLag === 'Alle' || p.spillerLag === filterLag).map(p => {
-                const teamEvents = allEvents.filter(e => e.team === p.spillerLag);
+                
+                // 2. NYTT: Filtrerer bort events fra fremtiden når vi henter teamEvents
+                const teamEvents = allEvents.filter(e => {
+                    if (e.team !== p.spillerLag) return false;
+                    if (e.date) {
+                        const eventDate = new Date(e.date);
+                        eventDate.setHours(0, 0, 0, 0);
+                        if (eventDate > todayForStats) return false; // Ignorerer fremtiden!
+                    }
+                    return true;
+                });
+
                 let attended = 0, kamper = 0, yellow = 0, red = 0, mal = 0, totalMatchPoints = 0;
 
                 teamEvents.forEach(e => {
