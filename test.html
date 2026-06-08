@@ -2027,7 +2027,8 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
         todayForChemistry.setHours(0, 0, 0, 0);
         
         const teamEvents = allEvents.filter(e => {
-            if (e.team !== spillerLag) return false;
+            // RETTET: La til topPlayer. foran spillerLag
+            if (e.team !== topPlayer.spillerLag) return false; 
         
             if (e.date) {
                 const eventDate = new Date(e.date);
