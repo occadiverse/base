@@ -348,6 +348,9 @@
                         <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
                             Kamp
                         </button>
+                        <button type="button" onclick="switchStatTab('analyse')" id="stat-tab-analyse" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                            Analyse
+                        </button>
                     </div>
                 </div>
 
@@ -423,6 +426,7 @@
                 </div>
                 <div id="stat-view-poeng" class="hidden"></div>
                 <div id="stat-view-kampstat" class="hidden"></div>
+                <div id="stat-view-analyse" class="hidden"></div>
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6 max-w-5xl mx-auto w-full">
@@ -3700,6 +3704,7 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
             document.getElementById('stat-view-spillere').className = "hidden";
             document.getElementById('stat-view-poeng').className = "hidden";
             document.getElementById('stat-view-kampstat').className = "hidden";
+            document.getElementById('stat-view-analyse').className = "hidden";
             
             // 2. Vis containeren som ble trykket på
             document.getElementById(`stat-view-${tabId}`).className = "block space-y-6";
@@ -3720,8 +3725,311 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
             if (tabId === 'spillere') renderPlayerStatsTable();
             if (tabId === 'poeng') renderPointHistoryView();
             if (tabId === 'kampstat') renderMatchStatsView(); 
+            if (tabId === 'analyse') renderAnalysisStatsView();
         };
 
+        window.renderAnalysisStatsView = function() {
+    const container = document.getElementById('stat-view-analyse');
+    if (!container) return;
+
+    const players = window.players || [];
+    const matches = (window.activeMatches || [])
+        .filter(m => m.result && m.result.includes('-'))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (!players.length || !matches.length) {
+        container.innerHTML = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+                <i class="fa-solid fa-chart-line text-4xl text-slate-300 mb-3"></i>
+                <h3 class="font-black text-slate-800 text-lg mb-1">Ikke nok data ennå</h3>
+                <p class="text-sm text-slate-500">Registrer kamper, oppmøte, mål, BB og spillerbørs for å bygge analysebildet.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const playerStats = players.map(player => {
+        const name = player.name || player.navn || player.fullName;
+        if (!name) return null;
+
+        const playerMatches = matches.filter(m => 
+            m.attendance && m.attendance[name] === true
+        );
+
+        let totalPoints = 0;
+        let goals = 0;
+        let bb = 0;
+        let yellow = 0;
+        let red = 0;
+        let ratings = [];
+
+        playerMatches.forEach(m => {
+            const points = typeof window.calculatePlayerMatchPoints === 'function'
+                ? window.calculatePlayerMatchPoints(m, name)
+                : 0;
+
+            totalPoints += points;
+
+            if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
+            if (m.motm === name) bb += 1;
+            if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
+            if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
+
+            if (m.ratings && m.ratings[name]) {
+                ratings.push({
+                    date: m.date,
+                    rating: Number(m.ratings[name]) || 0,
+                    opponent: m.opponent || ''
+                });
+            }
+        });
+
+        const lastFiveRatings = ratings
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+
+        const avgRating = ratings.length
+            ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+            : 0;
+
+        const formLastFive = lastFiveRatings.length
+            ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
+            : 0;
+
+        const pointsPerMatch = playerMatches.length
+            ? totalPoints / playerMatches.length
+            : 0;
+
+        return {
+            name,
+            matches: playerMatches.length,
+            totalPoints,
+            pointsPerMatch,
+            goals,
+            bb,
+            yellow,
+            red,
+            avgRating,
+            formLastFive
+        };
+    }).filter(Boolean);
+
+    const activeStats = playerStats.filter(p => p.matches > 0);
+
+    const topFormPlayer = [...activeStats].sort((a, b) => b.formLastFive - a.formLastFive)[0];
+    const bbLeader = [...activeStats].sort((a, b) => b.bb - a.bb)[0];
+    const topScorer = [...activeStats].sort((a, b) => b.goals - a.goals)[0];
+    const pointsLeader = [...activeStats].sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)[0];
+
+    const formTable = [...activeStats]
+        .sort((a, b) => b.formLastFive - a.formLastFive)
+        .slice(0, 8);
+
+    const bbTable = [...activeStats]
+        .filter(p => p.bb > 0)
+        .sort((a, b) => b.bb - a.bb || b.formLastFive - a.formLastFive)
+        .slice(0, 8);
+
+    const scorerTable = [...activeStats]
+        .filter(p => p.goals > 0)
+        .sort((a, b) => b.goals - a.goals || b.pointsPerMatch - a.pointsPerMatch)
+        .slice(0, 8);
+
+    const pointsTable = [...activeStats]
+        .sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)
+        .slice(0, 8);
+
+    const followUps = activeStats
+        .filter(p => p.red > 0 || p.yellow >= 3 || p.formLastFive < 5.5 || p.matches <= 2)
+        .map(p => {
+            let reason = [];
+
+            if (p.red > 0) reason.push('Rødt kort');
+            if (p.yellow >= 3) reason.push('Mange gule kort');
+            if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
+            if (p.matches <= 2) reason.push('Få kamper registrert');
+
+            return {
+                name: p.name,
+                reason: reason.join(', ')
+            };
+        })
+        .slice(0, 8);
+
+    const card = (label, value, sub, icon, colorClass) => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${label}</span>
+                <i class="fa-solid ${icon} ${colorClass}"></i>
+            </div>
+            <div class="text-xl font-black text-slate-900">${value || '-'}</div>
+            <div class="text-xs text-slate-500 mt-1">${sub || ''}</div>
+        </div>
+    `;
+
+    const smallTable = (title, subtitle, headers, rowsHtml) => `
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 bg-slate-50">
+                <h3 class="font-black text-slate-800 text-sm">${title}</h3>
+                <p class="text-xs text-slate-500 mt-1">${subtitle}</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
+                        <tr>${headers}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        ${rowsHtml || `
+                            <tr>
+                                <td colspan="5" class="p-5 text-center text-slate-400 italic text-xs">Ingen data ennå</td>
+                            </tr>
+                        `}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = `
+        <div class="space-y-6">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                ${card(
+                    'Formspiller',
+                    topFormPlayer ? topFormPlayer.name : '-',
+                    topFormPlayer ? `Snitt siste 5: ${topFormPlayer.formLastFive.toFixed(1)}` : 'Ingen formdata',
+                    'fa-fire',
+                    'text-orange-500'
+                )}
+
+                ${card(
+                    'BB-leder',
+                    bbLeader ? bbLeader.name : '-',
+                    bbLeader ? `${bbLeader.bb} BB-kåringer` : 'Ingen BB registrert',
+                    'fa-crown',
+                    'text-indigo-500'
+                )}
+
+                ${card(
+                    'Toppscorer',
+                    topScorer ? topScorer.name : '-',
+                    topScorer ? `${topScorer.goals} mål` : 'Ingen mål registrert',
+                    'fa-futbol',
+                    'text-emerald-500'
+                )}
+
+                ${card(
+                    'Poeng per kamp',
+                    pointsLeader ? pointsLeader.name : '-',
+                    pointsLeader ? `${pointsLeader.pointsPerMatch.toFixed(1)} poeng i snitt` : 'Ingen poengdata',
+                    'fa-chart-line',
+                    'text-bsk-blue'
+                )}
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                ${smallTable(
+                    'Form siste 5 kamper',
+                    'Sortert på snittbørs i spillerens siste registrerte kamper.',
+                    `
+                        <th class="p-4">Spiller</th>
+                        <th class="p-4 text-center">Kamper</th>
+                        <th class="p-4 text-center">Snittbørs</th>
+                        <th class="p-4 text-center">Mål</th>
+                        <th class="p-4 text-center">BB</th>
+                    `,
+                    formTable.map(p => `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                            <td class="p-4 text-center">${p.matches}</td>
+                            <td class="p-4 text-center font-black text-orange-600">${p.formLastFive.toFixed(1)}</td>
+                            <td class="p-4 text-center font-bold">${p.goals}</td>
+                            <td class="p-4 text-center font-bold text-indigo-600">${p.bb > 0 ? '+' + p.bb : '-'}</td>
+                        </tr>
+                    `).join('')
+                )}
+
+                ${smallTable(
+                    'Poeng per kamp',
+                    'Viser hvem som leverer mest når de faktisk spiller.',
+                    `
+                        <th class="p-4">Spiller</th>
+                        <th class="p-4 text-center">Kamper</th>
+                        <th class="p-4 text-center">Totalt</th>
+                        <th class="p-4 text-right">Snitt</th>
+                    `,
+                    pointsTable.map(p => `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                            <td class="p-4 text-center">${p.matches}</td>
+                            <td class="p-4 text-center">${Math.round(p.totalPoints)}</td>
+                            <td class="p-4 text-right font-black text-bsk-blue">${p.pointsPerMatch.toFixed(1)}</td>
+                        </tr>
+                    `).join('')
+                )}
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                ${smallTable(
+                    'BB-liga',
+                    'Antall ganger spilleren er kåret til banens beste.',
+                    `
+                        <th class="p-4">Spiller</th>
+                        <th class="p-4 text-center text-indigo-600">BB</th>
+                    `,
+                    bbTable.map(p => `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                            <td class="p-4 text-center font-black text-indigo-600">+${p.bb}</td>
+                        </tr>
+                    `).join('')
+                )}
+
+                ${smallTable(
+                    'Toppscorer',
+                    'Mål registrert på kampdetaljene.',
+                    `
+                        <th class="p-4">Spiller</th>
+                        <th class="p-4 text-center">Mål</th>
+                        <th class="p-4 text-right">Mål/kamp</th>
+                    `,
+                    scorerTable.map(p => `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                            <td class="p-4 text-center font-black text-emerald-600">${p.goals}</td>
+                            <td class="p-4 text-right">${p.matches ? (p.goals / p.matches).toFixed(2) : '0.00'}</td>
+                        </tr>
+                    `).join('')
+                )}
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-black text-slate-800 text-sm">Oppfølging</h3>
+                    <p class="text-xs text-slate-500 mt-1">Spillere som trenerteamet bør følge litt ekstra med på.</p>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    ${
+                        followUps.length
+                            ? followUps.map(p => `
+                                <div class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50">
+                                    <div class="font-bold text-slate-800">${p.name}</div>
+                                    <div class="text-xs text-slate-500 text-right">${p.reason}</div>
+                                </div>
+                            `).join('')
+                            : `
+                                <div class="p-6 text-center text-slate-400 italic text-xs">
+                                    Ingen tydelige varsler akkurat nå.
+                                </div>
+                            `
+                    }
+                </div>
+            </div>
+
+        </div>
+    `;
+};
+        
         window.renderPointHistoryView = function() {
     const container = document.getElementById('stat-view-poeng');
     if(!container) return;
@@ -3911,7 +4219,7 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                     base: pointsDetails.base,
                     resultBonus: pointsDetails.resultBonus,
                     ratingBonus: pointsDetails.ratingBonus,
-                    breakdown: `Start: ${pointsDetails.base} | Res/Mål: ${pointsDetails.resultBonus > 0 ? '+' + pointsDetails.resultBonus : pointsDetails.resultBonus} | Børs: ${pointsDetails.ratingBonus > 0 ? '+' + pointsDetails.ratingBonus : pointsDetails.ratingBonus}`
+                    breakdown: `Start: ${pointsDetails.base} | Res/Mål: ${pointsDetails.resultBonus > 0 ? '+' + pointsDetails.resultBonus : pointsDetails.resultBonus} | Børs: ${pointsDetails.ratingBonus > 0 ? '+' + pointsDetails.ratingBonus : pointsDetails.ratingBonus} | BB: ${pointsDetails.bbBonus > 0 ? '+' + pointsDetails.bbBonus : '-'}`
                 };
             });
 
