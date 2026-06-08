@@ -3977,7 +3977,13 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                                 </span>
                             </td>
                             <td class="p-4 text-center font-bold">${p.goals}</td>
-                            <td class="p-4 text-center font-bold text-indigo-600">${p.bb > 0 ? '+' + p.bb : '-'}</td>
+                            <td class="p-4 text-center">
+                                ${
+                                    p.bb > 0
+                                        ? `<span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">👑 +${p.bb}</span>`
+                                        : `<span class="text-slate-300 font-bold">-</span>`
+                                }
+                            </td>
                         </tr>
                     `).join('')
                 )}
@@ -4013,7 +4019,11 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                     bbTable.map(p => `
                         <tr class="hover:bg-slate-50">
                             <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-center font-black text-indigo-600">+${p.bb}</td>
+                            <td class="p-4 text-center">
+                                <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
+                                    👑 +${p.bb}
+                                </span>
+                            </td>
                         </tr>
                     `).join('')
                 )}
