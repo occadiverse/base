@@ -3731,6 +3731,13 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
         window.renderAnalysisStatsView = function() {
     const container = document.getElementById('stat-view-analyse');
     if (!container) return;
+        container.innerHTML = `
+        <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-bsk-blue mb-3"></i>
+            <h3 class="font-black text-slate-800 text-lg mb-1">Laster analyse</h3>
+            <p class="text-sm text-slate-500">Regner ut form, BB, mål og poeng per kamp...</p>
+        </div>
+    `;
 
     const players = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
 
