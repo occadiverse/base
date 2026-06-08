@@ -218,8 +218,7 @@
 </div>
 
             <div id="view-oppmote" class="hidden space-y-6">
-                
-              <div class="grid grid-cols-1 gap-6">
+                <div class="grid grid-cols-1 gap-6">
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
                         
                         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -243,7 +242,7 @@
                         </div>
 
                         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
-                            </div>
+                        </div>
                     
                         <div class="flex flex-wrap gap-4 pt-2 text-[10px] font-bold text-slate-500 uppercase">
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Kamper</span></div>
@@ -257,101 +256,11 @@
                                 <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/20 px-2.5 py-1 rounded-full">Velg en dato</span>
                             </div>
                             <div id="daily-events-list" class="space-y-2">
-                                </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
-                        <div class="p-3 bg-blue-100 text-bsk-blue rounded-xl text-xl">
-                            <i class="fa-solid fa-users-rectangle"></i>
-                        </div>
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Førte eventer</span>
-                            <span class="text-2xl font-black text-slate-900" id="total-events-count">0</span>
-                        </div>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
-                        <div class="p-3 bg-emerald-100 text-emerald-800 rounded-xl text-xl">
-                            <i class="fa-solid fa-check-double"></i>
-                        </div>
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Snitt oppmøte</span>
-                            <span class="text-2xl font-black text-slate-900" id="avg-attendance-rate">0%</span>
-                        </div>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center space-x-4">
-                        <div class="p-3 bg-yellow-100 text-yellow-800 rounded-xl text-xl">
-                            <i class="fa-solid fa-hands-holding-child"></i>
-                        </div>
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Beste Lagkjemi</span>
-                            <span class="text-2xl font-black text-slate-900" id="best-team-chemistry">0%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-gradient-to-br from-bsk-blue to-bsk-blueDark text-white p-6 rounded-2xl shadow-md space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="font-extrabold text-lg flex items-center gap-2">
-                                <i class="fa-solid fa-flask text-bsk-yellow"></i>
-                                Kjemi-koblinger &amp; Radarpar
-                            </h3>
-                            <span class="bg-white/10 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider text-bsk-yellow">Basert på felles oppmøte</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            Når spillere deltar på samme treninger, kamper og lag-eventer, øker kjemiscoren deres. Her ser du hvem som danner lagets sterkeste forbindelser akkurat nå.
-                        </p>
-                        
-                        <div class="space-y-3 pt-2" id="top-chemistry-duos">
-                        </div>
-                    </div>
-
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-                        <div class="space-y-4">
-                            <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-circle-nodes text-bsk-blue"></i>
-                                Sjekk din partner
-                            </h3>
-                            <div class="space-y-1">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Velg spiller</label>
-                                <select id="chemistryPlayerSelect" onchange="checkIndividualChemistry()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
-                                </select>
-                            </div>
-
-                            <div id="individual-chemistry-result" class="hidden text-center py-4 space-y-3">
-                                <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
-                                    <svg class="w-full h-full transform -rotate-90">
-                                        <circle cx="48" cy="48" r="40" stroke="#f1f5f9" stroke-width="8" fill="transparent" />
-                                        <circle id="chem-circle-progress" cx="48" cy="48" r="40" stroke="#ffd700" stroke-width="8" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round" class="transition-all duration-1000" />
-                                    </svg>
-                                    <span class="absolute text-lg font-black text-slate-800" id="individual-chem-pct">0%</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Perfekt Kjemimatch</p>
-                                    <h4 class="font-extrabold text-bsk-blue text-sm mt-0.5" id="individual-partner-name">-</h4>
-                                    <p class="text-[10px] text-slate-500 italic mt-1" id="individual-partner-desc">Har trent 0 økter sammen</p>
-                                </div>
-                            </div>
-                            <div id="individual-chemistry-empty" class="text-center py-8 text-slate-400 text-xs italic">
-                                Legg til spillere og før oppmøte for å se kjemipartneren din.
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                        <div class="p-5 border-b border-slate-150">
-                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-                                <i class="fa-solid fa-award text-yellow-500"></i>
-                                Innsats og Jernmenn
-                            </h3>
-                        </div>
-                        <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="player-loyalty-list">
-                        </div>
-                    </div>
-                </div>
-                </div>
+            </div>
 
             <div id="view-tropp" class="hidden space-y-6">
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
@@ -2788,139 +2697,8 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         }
 
         window.recalculateOppmoteAndKjemi = function() {
-            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
-            
-            const rawEvents = Array.isArray(window.activeEvents) ? window.activeEvents : [];
-            const mappedMatches = (window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', title: `Kamp mot ${m.opponent}`, team: m.matchGroup }));
-            const events = [...rawEvents, ...mappedMatches];
-            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
-
-            const filteredEvents = events.filter(e => filterLag === 'Alle' || e.team === filterLag);
-            const teamPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
-
-            let totalEventTicks = 0, totalPossibleTicks = 0;
-            filteredEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.values(e.attendance).forEach(val => {
-                        totalPossibleTicks++; if (val === true) totalEventTicks++;
-                    });
-                }
-            });
-
-            const avgRate = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
-            if (document.getElementById('total-events-count')) document.getElementById('total-events-count').innerText = filteredEvents.length;
-            if (document.getElementById('avg-attendance-rate')) document.getElementById('avg-attendance-rate').innerText = `${avgRate}%`;
-
-            const playerStats = {};
-            teamPlayers.forEach(p => { playerStats[p.navn] = { present: 0, total: 0, streak: 0 }; });
-
-            const chronoEvents = [...filteredEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
-            chronoEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.entries(e.attendance).forEach(([player, present]) => {
-                        if (playerStats[player]) {
-                            playerStats[player].total++;
-                            if (present) { playerStats[player].present++; playerStats[player].streak++; } 
-                            else playerStats[player].streak = 0;
-                        }
-                    });
-                }
-            });
-
-            const loyaltyContainer = document.getElementById('player-loyalty-list');
-            if (loyaltyContainer) {
-                loyaltyContainer.innerHTML = '';
-                const sortedLoyalty = Object.entries(playerStats).map(([name, data]) => {
-                    return { name, rate: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0, ...data };
-                }).sort((a,b) => b.rate - a.rate);
-
-                if (sortedLoyalty.length === 0) {
-                    loyaltyContainer.innerHTML = `<p class="p-6 text-center text-xs text-slate-400 italic">Ingen spillere i listen.</p>`;
-                } else {
-                    sortedLoyalty.forEach(item => {
-                        let loyaltyBadge = '<span class="bg-slate-100 text-slate-400 text-[9px] font-medium px-1.5 py-0.5 rounded-md">INGEN DATA</span>';
-                        if (item.rate >= 90) loyaltyBadge = '<span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase">JERNMANN 🏆</span>';
-                        else if (item.rate >= 70) loyaltyBadge = '<span class="bg-blue-100 text-bsk-blue text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">STABIL ⚡</span>';
-                        else if (item.rate > 0) loyaltyBadge = '<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase">SLAPPER 💤</span>';
-
-                        const streakIndicator = item.streak >= 3 ? `<span class="text-rose-500 text-[10px] font-black"><i class="fa-solid fa-fire animate-pulse"></i> ${item.streak} på rad</span>` : '';
-                        loyaltyContainer.innerHTML += `
-                            <div class="p-4 flex justify-between items-center hover:bg-slate-50/50 transition">
-                                <div class="space-y-1">
-                                    <div class="flex items-center space-x-2"><span class="font-bold text-slate-800 text-xs">${item.name}</span>${streakIndicator}</div>
-                                    <div class="flex items-center space-x-1.5">${loyaltyBadge}<span class="text-[10px] text-slate-400">${item.present}/${item.total} økter</span></div>
-                                </div>
-                                <span class="text-sm font-black text-slate-900">${item.rate}%</span>
-                            </div>`;
-                    });
-                }
-            }
-
-            const pairsMap = {};
-            for (let i = 0; i < teamPlayers.length; i++) {
-                for (let j = i + 1; j < teamPlayers.length; j++) {
-                    pairsMap[[teamPlayers[i].navn, teamPlayers[j].navn].sort().join(" & ")] = { sharedPresent: 0, eitherPresent: 0 };
-                }
-            }
-
-            filteredEvents.forEach(e => {
-                if (e.attendance) {
-                    Object.entries(pairsMap).forEach(([pairKey, scoreData]) => {
-                        const [p1, p2] = pairKey.split(" & ");
-                        const p1p = e.attendance[p1] === true; const p2p = e.attendance[p2] === true;
-                        if (p1p || p2p) scoreData.eitherPresent++;
-                        if (p1p && p2p) scoreData.sharedPresent++;
-                    });
-                }
-            });
-
-            const sortedDuos = Object.entries(pairsMap).map(([pairKey, data]) => {
-                return { pairKey, score: data.eitherPresent > 0 ? Math.round((data.sharedPresent / data.eitherPresent) * 100) : 0, shared: data.sharedPresent };
-            }).sort((a,b) => b.score - a.score);
-
-            const duosContainer = document.getElementById('top-chemistry-duos');
-            if (duosContainer) {
-                duosContainer.innerHTML = '';
-                const top3 = sortedDuos.filter(d => d.shared > 0).slice(0, 3);
-                if (document.getElementById('best-team-chemistry')) document.getElementById('best-team-chemistry').innerText = top3.length > 0 ? `${top3[0].score}%` : '0%';
-
-                if (top3.length === 0) {
-                    duosContainer.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic bg-white/5 border border-white/10 rounded-xl">Ikke nok felles oppmøtedata til å beregne lagkjemi enda.</div>`;
-                } else {
-                    top3.forEach((duo, idx) => {
-                        let chemBadge = "God tone", progressColor = "bg-amber-400";
-                        if (duo.score >= 90) { chemBadge = "Radarpar! ⭐"; progressColor = "bg-bsk-yellow"; }
-                        else if (duo.score >= 70) { chemBadge = "Utsøkt kjemi"; progressColor = "bg-emerald-400"; }
-                        duosContainer.innerHTML += `
-                            <div class="bg-white/5 border border-white/10 p-3.5 rounded-xl space-y-2">
-                                <div class="flex justify-between items-center text-xs">
-                                    <div class="flex items-center space-x-1.5"><span class="text-bsk-yellow font-black">${idx + 1}.</span><span class="font-bold text-white">${duo.pairKey}</span></div>
-                                    <span class="bg-white/10 text-slate-200 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">${chemBadge}</span>
-                                </div>
-                                <div class="space-y-1">
-                                    <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden"><div class="${progressColor} h-full rounded-full transition-all duration-1000" style="width: ${duo.score}%"></div></div>
-                                    <div class="flex justify-between text-[9px] text-slate-400"><span>Felles oppmøtescore: ${duo.score}%</span><span>${duo.shared} økter sammen</span></div>
-                                </div>
-                            </div>`;
-                    });
-                }
-            }
-
-            const checkerSelect = document.getElementById('chemistryPlayerSelect');
-            if (checkerSelect) {
-                const currentSelected = checkerSelect.value;
-                checkerSelect.innerHTML = `<option value="">-- VELG SPILLER --</option>`;
-                teamPlayers.sort((a,b) => a.navn.localeCompare(b.navn)).forEach(p => {
-                    const opt = document.createElement('option'); opt.value = p.navn; opt.innerText = p.navn.toUpperCase();
-                    checkerSelect.appendChild(opt);
-                });
-                if (teamPlayers.some(p => p.navn === currentSelected)) {
-                    checkerSelect.value = currentSelected; checkIndividualChemistry();
-                } else {
-                    if (document.getElementById('individual-chemistry-result')) document.getElementById('individual-chemistry-result').classList.add('hidden');
-                    if (document.getElementById('individual-chemistry-empty')) document.getElementById('individual-chemistry-empty').classList.remove('hidden');
-                }
-            }
+            // Funksjonen er bevisst tømt fordi statistikk-boksene er fjernet fra kalenderen.
+            // Vi beholder navnet slik at koden ikke krasjer når den kalles opp fra andre steder.
         };
 
         window.navigateCalendar = function(direction) {
