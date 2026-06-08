@@ -1052,13 +1052,14 @@
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
                             <strong class="block text-emerald-400 mb-2 pb-1 border-b border-slate-600">Lagets resultat</strong>
                             <ul class="space-y-1.5">
-    <li class="flex justify-between"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
-    <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
-    <li class="flex justify-between"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
-    <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">-2</span></li>
-    <li class="flex justify-between text-bsk-yellow"><span>Mål scoret (Mål for)</span> <span class="font-bold">+1 pr. mål</span></li>
-    <li class="flex justify-between text-rose-300"><span>Mål sluppet inn (Mål imot)</span> <span class="font-bold">-1 pr. mål</span></li>
-</ul>
+                                <li class="flex justify-between"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
+                                <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
+                                <li class="flex justify-between"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
+                                <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">-2</span></li>
+                                <li class="flex justify-between text-bsk-yellow"><span>Mål scoret (Mål for)</span> <span class="font-bold">+1 pr. mål</span></li>
+                                <li class="flex justify-between text-rose-300"><span>Mål sluppet inn (Mål imot)</span> <span class="font-bold">-1 pr. mål</span></li>
+                                <li class="flex justify-between text-indigo-300"><span>Banens beste</span><span class="font-bold">+1</span></li>
+                            </ul>
                         </div>
                         
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
@@ -2017,8 +2018,25 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     if (topPlayer && topScore > 0) {
         let kamper = 0, mal = 0, attendedEvents = 0;
         
-        const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-        const teamEvents = allEvents.filter(e => e.team === topPlayer.spillerLag);
+        const allEvents = [
+    ...(window.activeEvents || []),
+    ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))
+];
+
+        const todayForChemistry = new Date();
+        todayForChemistry.setHours(0, 0, 0, 0);
+        
+        const teamEvents = allEvents.filter(e => {
+            if (e.team !== spillerLag) return false;
+        
+            if (e.date) {
+                const eventDate = new Date(e.date);
+                eventDate.setHours(0, 0, 0, 0);
+                if (eventDate > todayForChemistry) return false;
+            }
+        
+            return true;
+        });
         
         teamEvents.forEach(e => { 
             if (e.attendance && e.attendance[topPlayer.navn] === true) {
