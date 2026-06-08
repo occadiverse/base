@@ -218,25 +218,24 @@
 </div>
 
             <div id="view-oppmote" class="hidden space-y-6">
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                        
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                            <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-calendar text-bsk-blue"></i>
-                                Kalender
-                            </h3>
-                            <div class="flex items-center gap-3">
-                                <button onclick="navigateCalendar(-1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition">
-                                    <i class="fa-solid fa-chevron-left text-xs"></i>
-                                </button>
-                                <span id="calendar-month-year" class="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Mai 2026</span>
-                                <button onclick="navigateCalendar(1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition">
-                                    <i class="fa-solid fa-chevron-right text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
+                
+                <div class="w-full flex justify-center mb-6 mt-2">
+                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex items-center text-xs font-bold shadow-sm h-10 shrink-0">
+                        <button onclick="navigateCalendar(-1)" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0 flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span id="calendar-month-year" class="px-4 text-bsk-blue font-black tracking-wider uppercase flex items-center justify-center pointer-events-none min-w-[120px]">
+                            Mai 2026
+                        </span>
+                        <button onclick="navigateCalendar(1)" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0 flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
 
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-sm space-y-4">
+                        
                         <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <div>Man</div><div>Tis</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
                         </div>
@@ -244,16 +243,17 @@
                         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
                         </div>
                     
-                        <div class="flex flex-wrap gap-4 pt-2 text-[10px] font-bold text-slate-500 uppercase">
-                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Kamper</span></div>
-                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Treninger</span></div>
-                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span>Annet</span></div>
+                        <div class="flex flex-wrap gap-4 pt-4 text-[10px] font-bold text-slate-500 uppercase justify-center">
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamper</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Treninger</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Dugnad</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
                         </div>
                     
                         <div class="mt-4 pt-4 border-t border-slate-100 bg-slate-50 rounded-xl p-4">
                             <div class="flex justify-between items-center mb-3">
                                 <h4 class="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider">Aktivitetsdetaljer</h4>
-                                <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/20 px-2.5 py-1 rounded-full">Velg en dato</span>
+                                <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/20 px-2.5 py-1 rounded-full shadow-sm">Velg en dato</span>
                             </div>
                             <div id="daily-events-list" class="space-y-2">
                             </div>
@@ -2778,35 +2778,41 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 return;
             }
 
+            // KAMPER
             dayMatches.forEach(m => {
                 const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
                 listContainer.innerHTML += `
                     <div class="flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm">
-                        <div class="flex items-center gap-3"><div class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></div><span class="font-bold text-xs text-slate-800">Kamp mot ${m.opponent}</span></div>
-                        <div class="text-[10px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 ml-6">
-                            <span><i class="fa-regular fa-clock mr-1.5"></i>${m.time || 'TBA'}</span><span><i class="fa-solid fa-location-dot mr-1.5"></i>${m.pitch || 'Ikke oppgitt'}</span><span><i class="fa-solid fa-user-check mr-1.5"></i>${presentCount} påmeldt</span>
+                        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div><span class="font-bold text-xs text-slate-800">Kamp mot ${m.opponent}</span></div>
+                        <div class="text-[10px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 ml-4">
+                            <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span><span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span><span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                         </div>
-                        <div class="flex gap-2 mt-1 w-full justify-start ml-6">
-                            <button onclick="openAttendanceModal('match_${m.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">FØR OPPMØTE ✅</button>
-                            <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                            <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                        <div class="flex gap-2 mt-1 w-full justify-start ml-4">
+                            <button onclick="openAttendanceModal('match_${m.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow-sm flex items-center">
+                                <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
+                            </button>
+                            <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                            <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
                         </div>
                     </div>`;
             });
             
+            // TRENINGER / ANDRE EVENTER
             dayEvents.forEach(e => {
-                const dotColor = e.type === 'Trening' ? 'bg-blue-500' : (e.type === 'Dugnad' ? 'bg-amber-500' : 'bg-slate-500');
+                const dotColor = e.type === 'Trening' ? 'bg-blue-500' : (e.type === 'Dugnad' ? 'bg-amber-500' : 'bg-slate-400');
                 const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
                 listContainer.innerHTML += `
                     <div class="flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm">
-                        <div class="flex items-center gap-3"><div class="w-3 h-3 rounded-full ${dotColor} shrink-0"></div><span class="font-bold text-xs text-slate-800">${e.type}</span></div>
-                        <div class="text-[10px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 ml-6">
-                            <span><i class="fa-regular fa-clock mr-1.5"></i>${e.time || 'TBA'}</span><span><i class="fa-solid fa-location-dot mr-1.5"></i>${e.location || 'Ikke oppgitt'}</span><span><i class="fa-solid fa-user-check mr-1.5"></i>${presentCount} påmeldt</span>
+                        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full ${dotColor} shrink-0"></div><span class="font-bold text-xs text-slate-800">${e.type} ${e.title ? '- ' + e.title : ''}</span></div>
+                        <div class="text-[10px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 ml-4">
+                            <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span><span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span><span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                         </div>
-                        <div class="flex gap-2 mt-1 w-full justify-start ml-6">
-                            <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-[10px] px-4 py-1.5 rounded-lg transition">FØR OPPMØTE ✅</button>
-                            <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                            <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                        <div class="flex gap-2 mt-1 w-full justify-start ml-4">
+                            <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow-sm flex items-center">
+                                <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
+                            </button>
+                            <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                            <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
                         </div>
                     </div>`;
             });
