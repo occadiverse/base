@@ -1706,35 +1706,41 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     return playerStats;
 }
 
-        window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = false) {
+window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = false) {
     let base = 15;
     let resultBonus = 0;
     let ratingBonus = 0;
+    let bbBonus = 0;
 
     if (m.result && m.result.includes('-')) {
         const score = typeof parseScore === 'function' ? parseScore(m.result) : null;
         if (score) {
-            // 1. Tradisjonell resultatbonus
             if (score.bsk > score.opponent) resultBonus += 5;
             else if (score.bsk === score.opponent) resultBonus += 2;
             else resultBonus -= 2;
-            if (score.opponent === 0) resultBonus += 3; // Holdt nullen
-            
-            // 2. NYTT: Måleffektivitet (+1 per mål for, -1 per mål imot)
+
+            if (score.opponent === 0) resultBonus += 3;
+
             resultBonus += score.bsk * 1;
             resultBonus -= score.opponent * 1;
         }
     }
 
-    // 3. Spillerbørs-justering
     if (m.ratings && m.ratings[playerName]) {
         ratingBonus = (m.ratings[playerName] - 5) * 6;
     }
 
-    const total = base + resultBonus + ratingBonus;
-    if (returnDetails) {
-        return { total, base, resultBonus, ratingBonus };
+    // Banens beste gir +1
+    if (m.motm === playerName) {
+        bbBonus = 1;
     }
+
+    const total = base + resultBonus + ratingBonus + bbBonus;
+
+    if (returnDetails) {
+        return { total, base, resultBonus, ratingBonus, bbBonus };
+    }
+
     return total;
 };
 
@@ -3779,7 +3785,6 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <th class="p-4">Motstander</th>
                         <th class="p-4">Res</th>
                         <th class="p-4 text-center">Børs</th>
-                        <!-- NYE STATISTIKK-KOLONNER -->
                         <th class="p-4 text-center">Mål</th>
                         <th class="p-4 text-center">Gult</th>
                         <th class="p-4 text-center">Rødt</th>
@@ -3802,7 +3807,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         const rødt = m && m.rodeKort && m.rodeKort.includes(playerName) ? '1 🟥' : '-';
         
         // NY LINJE: Sjekker om han ble kåret til BB i denne historiske kampen
-        const bleBb = m && m.motm === playerName ? '👑' : '-';
+        const bleBb = m && m.motm === playerName ? '+1' : '-';
         
         const gultKlasse = gult !== '-' ? 'text-amber-500 font-bold' : 'text-slate-300';
         const rødtKlasse = rødt !== '-' ? 'text-rose-600 font-bold' : 'text-slate-300';
@@ -3921,16 +3926,16 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                     <table class="w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
                             <tr>
-                                <th class="p-4">Dato</th>
-                                <th class="p-4">Motstander</th>
-                                <th class="p-4">Res</th>
+                                <th class="p-4">Spiller</th>
+                                <th class="p-4 text-center">Start</th>
+                                <th class="p-4 text-center">Resultat/Mål</th>
                                 <th class="p-4 text-center">Børs</th>
                                 <th class="p-4 text-center">Mål</th>
                                 <th class="p-4 text-center">Gult</th>
                                 <th class="p-4 text-center">Rødt</th>
                                 <th class="p-4 text-center text-indigo-600">BB</th>
                                 <th class="p-4 text-right">Matchpoeng</th>
-                    </tr>
+                            </tr>
                 </thead>
                         <tbody class="divide-y divide-slate-50">
             `;
@@ -3966,12 +3971,15 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                 const yellowVis = s.yellow > 0 ? `<div class="flex items-center justify-center gap-1"><span class="text-amber-500 font-bold">1 🟨</span>${yellowPointsStr}</div>` : '<span class="text-slate-300 font-bold">-</span>';
 
                 const redVis = s.red > 0 ? `<div class="flex items-center justify-center gap-1"><span class="text-rose-600 font-bold">1 🟥</span> <span class="text-[10px] text-rose-500 font-bold">(-10)</span></div>` : '<span class="text-slate-300 font-bold">-</span>';
+                const bbVis = s.isBbInMatch 
+                    ? '<span class="text-indigo-600 font-black">+1</span>' 
+                    : '<span class="text-slate-300 font-bold">-</span>';
 
                 // Forenklet overgang uten ekstra border-classes på raden, divide-y styrer kantene.
                 tableHtml += `
                     <tr class="hover:bg-slate-50 transition cursor-help">
                         <td class="p-4 font-bold text-slate-800">
-                            ${s.name} ${s.isBbInMatch ? '<span class="text-indigo-600 font-bold ml-1" title="Banens Beste">👑</span>' : ''}
+                            ${s.name}
                         </td>
                         <td class="p-4 text-center">${baseVis}</td>
                         <td class="p-4 text-center">${resultVis}</td>
@@ -3979,6 +3987,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <td class="p-4 text-center">${goalVis}</td>
                         <td class="p-4 text-center text-xs">${yellowVis}</td>
                         <td class="p-4 text-center text-xs">${redVis}</td>
+                        <td class="p-4 text-center">${bbVis}</td>
                         <td class="p-4 text-right ${pointColor} font-black text-lg">${s.points}</td>
                     </tr>
                 `;
