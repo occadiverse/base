@@ -216,6 +216,56 @@
         </div>
     </div>
 </div>
+            <div id="view-kampdetaljer" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+                <div class="flex items-center mb-2">
+                    <button onclick="switchTab('kamper')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-xl transition shadow-sm font-bold text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Tilbake til terminlisten
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 border-b border-slate-200 p-5 md:p-6 flex justify-between items-center">
+                        <h2 id="kampdetaljer-title" class="font-black text-xl md:text-2xl text-bsk-blue uppercase tracking-tight">Kamp mot ...</h2>
+                        <div class="flex gap-2">
+                            <button id="btnEditKampdetaljer" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-amber-500 w-10 h-10 rounded-xl transition shadow-sm flex items-center justify-center" title="Rediger">
+                                <i class="fa-solid fa-pen text-sm"></i>
+                            </button>
+                            <button id="btnDeleteKampdetaljer" class="bg-white border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-500 w-10 h-10 rounded-xl transition shadow-sm flex items-center justify-center" title="Slett">
+                                <i class="fa-solid fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="kampdetaljer-info" class="p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white">
+                        </div>
+                    
+                    <div class="p-5 md:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+                        <button id="btnKampdetaljerOppmote" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3.5 px-4 rounded-xl transition shadow-md flex items-center justify-center gap-2 border border-bsk-blueDark">
+                            <i class="fa-solid fa-user-check text-bsk-yellow text-sm"></i> Før Oppmøte / Tropp
+                        </button>
+                        <button id="btnKampdetaljerTaktikk" class="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black text-xs py-3.5 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-emerald-300">
+                            <i class="fa-solid fa-chess-board text-sm"></i> Sett Kampplan / Taktikk
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+                    <div class="p-5 border-b border-slate-100 bg-slate-50">
+                        <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-star text-bsk-yellow text-lg"></i> Registrer Mål, Kort & Spillerbørs
+                        </h3>
+                    </div>
+                    <div>
+                        <div id="kampdetaljer-spillerbors" class="divide-y divide-slate-100 px-5 bg-white">
+                            </div>
+                        <div class="p-5 bg-slate-50 border-t border-slate-100 mt-2">
+                            <button onclick="savePlayerMatchStats()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-xs py-4 rounded-xl transition shadow-md border border-bsk-blueDark">
+                                LAGRE KAMPSTATISTIKK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div id="view-oppmote" class="hidden space-y-6">
                 
@@ -888,61 +938,6 @@
         </div>
     </div>
 
-    <div id="matchInfoModal" class="modal-base hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
-                <h3 id="infoTitle" class="font-extrabold text-lg text-bsk-blue">Kamp mot ...</h3>
-                <button onclick="window.closeMatchInfo()" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-
-            <div id="matchInfoDetails" class="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100 text-sm">
-                </div>
-
-            <div class="mt-4">
-                <button onclick="toggleStatsSection()" class="w-full flex justify-between items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-xl transition-all">
-                    <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-star text-bsk-yellow"></i>
-                        Registrer Mål & Spillerbørs (Karakterer)
-                    </span>
-                    <i id="statsChevron" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
-                </button>
-
-                <div id="postMatchStatsSection" class="hidden border border-t-0 border-slate-200 rounded-b-xl p-4 bg-white max-h-60 overflow-y-auto divide-y divide-slate-100">
-                    <div id="playerRatingFormList">
-                        </div>
-                    <div class="pt-4 mt-2">
-                        <button onclick="savePlayerMatchStats()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-xs py-2.5 rounded-xl transition">
-                            Lagre Matchstatistikk & Karakterbørs
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex flex-wrap gap-2 justify-between items-center border-t border-slate-100 pt-4">
-                
-                <div class="flex flex-wrap gap-2">
-                    <button id="btnManageSquad" class="bg-blue-100 hover:bg-blue-200 text-bsk-blue text-xs font-bold w-24 h-9 rounded-lg flex items-center justify-center transition shadow-sm">
-                        Tropp
-                    </button>
-                    <button id="btnGoToTactics" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold w-24 h-9 rounded-lg flex items-center justify-center transition shadow-sm">
-                        Kampplan
-                    </button>
-                </div>
-                
-                <div class="flex gap-2 mt-2 sm:mt-0">
-                    <button id="btnEditMatch" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm w-9 h-9 rounded-lg flex items-center justify-center transition shadow-sm" title="Rediger kamp">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button id="btnDeleteMatch" class="bg-rose-100 hover:bg-rose-200 text-rose-800 text-sm w-9 h-9 rounded-lg flex items-center justify-center transition shadow-sm" title="Slett kamp">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
@@ -1562,10 +1557,15 @@
         function switchTab(tabId) {
             currentTab = tabId;
             
-            ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk'].forEach(id => {
-                document.getElementById(`view-${id}`).classList.add('hidden');
+            // 1. ALLTID SKJUL ALLE SIDER (kampdetaljer MÅ være med her, ellers forsvinner den aldri!)
+            ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer'].forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if (el) el.classList.add('hidden');
             });
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            
+            // 2. VIS DEN VALGTE SIDEN
+            const activeEl = document.getElementById(`view-${tabId}`);
+            if (activeEl) activeEl.classList.remove('hidden');
 
             const floatingBtn = document.getElementById('floating-action-btn');
             const floatingIcon = document.getElementById('floating-btn-icon');
@@ -1591,9 +1591,10 @@
             const titles = {
                 hjem: "Forside", kamper: "Kamper", oppmote: "Kalender", 
                 tropp: "Spillertropp", statistikk: "Statistikk", 
-                taktikk: "Taktikk & Kjemi", admin: "Admin-panel"
+                taktikk: "Taktikk & Kjemi", admin: "Admin-panel",
+                kampdetaljer: "Kampdetaljer" // Må med, ellers står det "undefined" på toppen
             };
-            document.getElementById('current-tab-title').innerText = titles[tabId];
+            document.getElementById('current-tab-title').innerText = titles[tabId] || "BSK Fotball";
 
             document.querySelectorAll('.tab-link').forEach(link => {
                 link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
@@ -2316,94 +2317,84 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
             window.closeMatchModal(); window.closeMatchInfo();
         }
 
-        window.showMatchDetails = function(id) {
-    activeDetailsId = id;
-    const match = (window.activeMatches || []).find(m => m.id === id);
-    if (!match) return;
-
-    document.getElementById('infoTitle').innerHTML = `Kamp mot ${match.opponent}`;
-    
-    const container = document.getElementById('matchInfoDetails');
-    const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-    container.innerHTML = `
-        <div class="col-span-2 space-y-1">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kamptidspunkt</span>
-            <span class="font-bold text-slate-800 text-sm"><i class="fa-regular fa-clock text-bsk-blue mr-1"></i> ${dateFormatted} kl. ${match.time || '--:--'}</span>
-        </div>
-        <div class="space-y-1 border-t border-slate-150 pt-2">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Spillearena</span>
-            <span class="font-semibold text-slate-700"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i> ${match.pitch || 'Ikke fastsatt'}</span>
-        </div>
-        <div class="space-y-1 border-t border-slate-150 pt-2">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Kampgruppe / Type</span>
-            <span class="font-semibold text-slate-700">${match.matchGroup} (${match.matchType})</span>
-        </div>
-        <div class="col-span-2 space-y-1 border-t border-slate-150 pt-2">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[9px]">Sluttresultat</span>
-            <span class="text-base font-black ${match.result ? 'text-slate-800' : 'text-slate-400'}">
-                <i class="fa-solid fa-square-poll-horizontal text-emerald-600 mr-1"></i> ${match.result || 'Ikke ferdigspilt'}
-            </span>
-        </div>
-    `;
-
-    // Handling for rediger- og slett-knappene (kun ikoner)
-    document.getElementById('btnEditMatch').onclick = () => window.openMatchModal(match.id);
-    document.getElementById('btnDeleteMatch').onclick = () => promptDeleteMatch(match.id);
-    
-    // Tropp-knapp
-    document.getElementById('btnManageSquad').onclick = () => {
-        window.closeMatchInfo(); 
-        if (typeof window.openAttendanceModal === 'function') {
-            window.openAttendanceModal('match_' + match.id);
-        }
-    };
-    
-    // Kampplan-knapp (Sveiper til taktikk og forhåndsvelger matchen)
-    document.getElementById('btnGoToTactics').onclick = () => {
-        window.closeMatchInfo(); 
-        window.switchTab('taktikk');
-        
-        setTimeout(() => {
-            const tacticalSelect = document.getElementById('tacticalMatchSelect');
-            if (tacticalSelect) {
-                tacticalSelect.value = match.id; 
-                window.loadMatchTactics(); 
-            }
-        }, 50);
-    };
-    
-    renderPlayerRowForm(match);
-
-    const infoModal = document.getElementById('matchInfoModal');
-    infoModal.classList.remove('hidden'); infoModal.classList.add('flex');
-}
-
-        window.closeMatchInfo = function() {
-            document.getElementById('matchInfoModal').classList.add('hidden');
-            document.getElementById('matchInfoModal').classList.remove('flex');
-            document.getElementById('postMatchStatsSection').classList.add('hidden');
-            document.getElementById('statsChevron').classList.remove('rotate-180');
-        };
-
-        window.promptDeleteMatch = function(id) {
+       window.promptDeleteMatch = function(id) {
             customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
                 await window.deleteMatchFromDatabase(id);
                 window.closeMatchInfo();
             });
         }
 
-        window.toggleStatsSection = function() {
-            const statsSection = document.getElementById('postMatchStatsSection');
-            const chevron = document.getElementById('statsChevron');
-            if (statsSection.classList.contains('hidden')) {
-                statsSection.classList.remove('hidden'); chevron.classList.add('rotate-180');
-            } else {
-                statsSection.classList.add('hidden'); chevron.classList.remove('rotate-180');
-            }
-        }
+        window.showMatchDetails = function(id) {
+            activeDetailsId = id;
+            const match = (window.activeMatches || []).find(m => m.id === id);
+            if (!match) return;
 
+            document.getElementById('kampdetaljer-title').innerHTML = `Kamp mot ${match.opponent}`;
+            
+            const container = document.getElementById('kampdetaljer-info');
+            const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            container.innerHTML = `
+                <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Kamptidspunkt</span>
+                    <span class="font-black text-slate-800 text-sm"><i class="fa-regular fa-clock text-bsk-blue mr-1.5"></i> ${dateFormatted} kl. ${match.time || '--:--'}</span>
+                </div>
+                <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Spillearena</span>
+                    <span class="font-black text-slate-800 text-sm"><i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i> ${match.pitch || 'Ikke fastsatt'}</span>
+                </div>
+                <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Lag og Type</span>
+                    <span class="font-black text-slate-800 text-sm"><i class="fa-solid fa-shield-halved text-bsk-yellow mr-1.5"></i> ${match.matchGroup} (${match.matchType})</span>
+                </div>
+                <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Sluttresultat</span>
+                    <span class="text-lg font-black ${match.result ? 'text-emerald-600' : 'text-slate-400'}">
+                        <i class="fa-solid fa-square-poll-horizontal mr-1.5"></i> ${match.result || 'Ikke ferdigspilt'}
+                    </span>
+                </div>
+            `;
+
+            // Knapper
+            document.getElementById('btnEditKampdetaljer').onclick = () => window.openMatchModal(match.id);
+            document.getElementById('btnDeleteKampdetaljer').onclick = () => {
+                customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
+                    await window.deleteMatchFromDatabase(match.id);
+                    switchTab('kamper');
+                });
+            };
+            
+            document.getElementById('btnKampdetaljerOppmote').onclick = () => {
+                if (typeof window.openAttendanceModal === 'function') {
+                    window.openAttendanceModal('match_' + match.id);
+                }
+            };
+            
+            document.getElementById('btnKampdetaljerTaktikk').onclick = () => {
+                window.switchTab('taktikk');
+                setTimeout(() => {
+                    const tacticalSelect = document.getElementById('tacticalMatchSelect');
+                    if (tacticalSelect) {
+                        tacticalSelect.value = match.id; 
+                        window.loadMatchTactics(); 
+                    }
+                }, 50);
+            };
+            
+            // Tegn spillerbørs-skjemaet inni det nye området
+            renderPlayerRowForm(match);
+
+            // Åpne selve siden
+            switchTab('kampdetaljer');
+        };
+
+        window.closeMatchInfo = function() {
+            // Siden det nå er en egen fane, gjør denne bare at vi går tilbake til terminlisten (hvis noen gammel kode prøver å bruke den)
+            switchTab('kamper');
+        };
+        
         window.renderPlayerRowForm = function(match) {
-            const formList = document.getElementById('playerRatingFormList');
+            const formList = document.getElementById('kampdetaljer-spillerbors');
             formList.innerHTML = '';
             
             // NYTT: Filtrerer bort 'Passiv' her også, slik at listen blir ryddig
@@ -2524,10 +2515,10 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
     if (!match.result && totalBskGoals > 0) match.result = `${totalBskGoals}-0`;
 
-    // Sender til databasen
     await window.saveMatchToDatabase(match);
-    window.closeMatchInfo(); 
-    applyFilters();
+            alert('Spillerbørs og kampstatistikk er oppdatert!'); 
+            applyFilters();
+            if (typeof renderStatistikkSide === 'function') renderStatistikkSide();
 }
 
         // --- CALENDAR & EVENTS ---
