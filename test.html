@@ -2353,10 +2353,10 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <i class="fa-solid fa-square-poll-horizontal mr-1.5"></i> ${match.result || 'Ikke ferdigspilt'}
                     </span>
                 </div>
-                <div class="col-span-1 sm:col-span-2 space-y-1 bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200 shadow-sm relative overflow-hidden mt-2">
-                    <i class="fa-solid fa-crown absolute -right-2 -bottom-4 text-amber-500 opacity-10 text-[5rem]"></i>
-                    <span class="text-amber-700 font-black block uppercase tracking-wide text-[10px]">Banens Beste (BB) 👑</span>
-                    <span class="text-lg font-black text-amber-900 relative z-10">${match.motm || '<span class="text-amber-600/50">Ikke kåret</span>'}</span>
+                <div class="col-span-1 sm:col-span-2 space-y-1 bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-200 shadow-sm relative overflow-hidden mt-2">
+                    <i class="fa-solid fa-crown absolute -right-2 -bottom-4 text-indigo-500 opacity-10 text-[5rem]"></i>
+                    <span class="text-indigo-700 font-black block uppercase tracking-wide text-[10px]">Banens Beste (BB) 👑</span>
+                    <span class="text-lg font-black text-indigo-950 relative z-10">${match.motm || '<span class="text-indigo-600/50">Ikke kåret</span>'}</span>
                 </div>
             `;
 
@@ -2401,18 +2401,21 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         window.toggleMotm = function(btn) {
             const isActive = btn.getAttribute('data-active') === 'true';
             
-            // Først: Skru av ALLE BB-knapper i hele listen og sett dem til passiv grå
+            // Først: Skru av ALLE BB-knapper i hele listen og sett dem tilbake til passiv grå
             document.querySelectorAll('.player-motm-btn').forEach(b => {
                 b.setAttribute('data-active', 'false');
-                b.classList.remove('bg-indigo-600', 'border-indigo-700', 'text-white', 'shadow-inner', 'scale-95');
+                // Fjerner de nye lyse klassene
+                b.classList.remove('bg-indigo-100', 'border-indigo-300', 'text-indigo-950', 'shadow-sm', 'scale-95');
+                // Legger til passiv grå
                 b.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-300');
             });
 
-            // Hvis knappen IKKE var på fra før, aktiverer vi den i konge-lilla nå
+            // Hvis knappen IKKE var på fra før, aktiverer vi den i den NYE lyse lilla looken
             if (!isActive) {
                 btn.setAttribute('data-active', 'true');
                 btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-300');
-                btn.classList.add('bg-indigo-600', 'border-indigo-700', 'text-white', 'shadow-inner', 'scale-95');
+                // Legger til de nye lyse klassene
+                btn.classList.add('bg-indigo-100', 'border-indigo-300', 'text-indigo-950', 'shadow-sm', 'scale-95');
             }
         };
         
@@ -2476,7 +2479,7 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
                         <div class="flex items-center space-x-1 border-l border-slate-200 pl-2 ml-1">
                             <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-400 hover:border-yellow-200'}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
                             <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                            <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-indigo-600 border-indigo-700 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
+                            <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-indigo-100 border-indigo-300 text-indigo-950 shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
                         </div>
         
                     </div>
