@@ -261,32 +261,15 @@
                 </div>
             </div>
 
-            <div id="view-tropp" class="hidden space-y-6">
-                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-                    <div class="absolute right-0 bottom-0 translate-y-6 translate-x-6 opacity-10 pointer-events-none">
-                        <i class="fa-solid fa-users text-[15rem]"></i>
-                    </div>
-                    <div class="relative z-10 space-y-4">
-                        <div class="inline-flex items-center space-x-2 bg-bsk-yellow/10 text-bsk-yellow px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
-                            <i class="fa-solid fa-users-viewfinder text-[10px]"></i>
-                            <span>SPILLERTROPP</span>
-                        </div>
-                        <p class="text-sm md:text-base leading-relaxed text-slate-200 font-medium max-w-2xl">
-                            I den valgte troppen har vi totalt registrert <span class="text-bsk-yellow font-black" id="stat-total-players">0 spillere</span> 
-                            med en gjennomsnittsalder på <span class="text-bsk-yellow font-black" id="stat-avg-age">0 år</span>. 
-                            For øyeblikket har vi <span class="text-bsk-yellow font-black" id="stat-total-rekrutt">0 rekrutter</span> tilknyttet troppen.
-                        </p>
-                    </div>
-                </section>
-
+            <div id="view-tropp" class="hidden space-y-6 mt-2">
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse" id="playerTable">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
                                     <th class="py-4 px-4 md:px-6">Navn</th>
-                                    <th class="py-4 px-4 text-center w-20"># (Drakt)</th>
-                                    <th class="py-4 px-4">Posisjon (Hoved / Sekundær)</th>
+                                    <th class="py-4 px-4 text-center w-20">Drakt</th>
+                                    <th class="py-4 px-4">Posisjon</th>
                                     <th class="py-4 px-4 text-center w-24">Fot</th>
                                     <th class="py-4 px-4 text-center w-24">Alder</th>
                                     <th class="py-4 px-4 text-center w-24">Status</th>
@@ -294,7 +277,7 @@
                                 </tr>
                             </thead>
                             <tbody id="playerTableBody" class="divide-y divide-slate-100 text-sm">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
