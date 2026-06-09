@@ -4602,19 +4602,29 @@ let html = `
                                 <span class="text-xs font-bold text-slate-500">👑 Banens beste</span>
                                 <span class="text-xs font-black text-slate-800 text-right">${bbPlayer ? bbPlayer.name : '-'}</span>
                             </div>
-                
+                        
                             <div class="flex items-center justify-between gap-3">
                                 <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
                                 <span class="text-xs font-black text-slate-800 text-right">
                                     ${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
                                 </span>
                             </div>
-                
+                        
                             <div class="flex items-center justify-between gap-3">
                                 <span class="text-xs font-bold text-slate-500">📈 Mest poeng</span>
                                 <span class="text-xs font-black text-slate-800 text-right">
                                     ${pointsLeader ? pointsLeader.name + ' · ' + pointsLeader.points + ' p' : '-'}
                                 </span>
+                            </div>
+                        
+                            <div class="pt-3">
+                                <button 
+                                    onclick="openTacticalPlanForMatch('${match.id}')"
+                                    class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-bsk-blueDark"
+                                >
+                                    <i class="fa-solid fa-chess-board text-bsk-yellow"></i>
+                                    Gå til kampplan
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -4625,6 +4635,24 @@ let html = `
     `;
     window.collapseKampSelectLabel();
 }; 
+
+        window.openTacticalPlanForMatch = function(matchId) {
+            switchTab('taktikk');
+        
+            setTimeout(() => {
+                const select = document.getElementById('tacticalMatchSelect');
+        
+                if (select) {
+                    select.value = matchId;
+        
+                    if (typeof window.loadMatchTactics === 'function') {
+                        window.loadMatchTactics();
+                    } else if (typeof loadMatchTactics === 'function') {
+                        loadMatchTactics();
+                    }
+                }
+            }, 100);
+        };
         
         window.sortStatsTable = function(column) {
             if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc; 
