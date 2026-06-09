@@ -3779,66 +3779,71 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     }
 
     const playerStats = players.map(player => {
-    const name = player.navn || player.name || player.fullName || player.spiller || '';
-    if (!name) return null;
+                const name = player.navn || player.name || player.fullName || player.spiller || '';
+                if (!name) return null;
 
-    const playerMatches = matches.filter(m => 
-        m.attendance && m.attendance[name] === true
-    );
+                const playerMatches = matches.filter(m =>
+                    m.attendance && m.attendance[name] === true
+                );
 
-    let totalPoints = 0;
-    let goals = 0;
-    let bb = 0;
-    let yellow = 0;
-    let red = 0;
-    let ratings = [];
+                let totalPoints = 0;
+                let goals = 0;
+                let bb = 0;
+                let yellow = 0;
+                let red = 0;
+                let ratings = [];
 
-    playerMatches.forEach(m => {
-        const points = typeof window.calculatePlayerMatchPoints === 'function'
-            ? window.calculatePlayerMatchPoints(m, name)
-            : 0;
+                playerMatches.forEach(m => {
+                    const points = typeof window.calculatePlayerMatchPoints === 'function'
+                        ? window.calculatePlayerMatchPoints(m, name)
+                        : 0;
 
-        totalPoints += points;
+                    totalPoints += points;
 
-        if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
-        if (m.motm === name) bb += 1;
-        if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
-        if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
+                    if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
+                    if (m.motm === name) bb += 1;
+                    if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
+                    if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
 
-        if (m.ratings && m.ratings[name]) {
-            ratings.push({
-                date: m.date,
-                rating: Number(m.ratings[name]) || 0,
-                opponent: m.opponent || ''
-            });
-        }
-    });
+                    if (m.ratings && m.ratings[name]) {
+                        ratings.push({
+                            date: m.date,
+                            rating: Number(m.ratings[name]) || 0,
+                            opponent: m.opponent || ''
+                        });
+                    }
+                });
 
-    const lastFiveRatings = ratings
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
+                const lastFiveRatings = ratings
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 5);
 
-    const avgRating = ratings.length
-        ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-        : 0;
+                const avgRating = ratings.length
+                    ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+                    : 0;
 
-    const formLastFive = lastFiveRatings.length
-        ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
-        : 0;
+                const formLastFive = lastFiveRatings.length
+                    ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
+                    : 0;
 
-    return {
-        name,
-        matches: playerMatches.length,
-        totalPoints,
-        pointsPerMatch: playerMatches.length ? totalPoints / playerMatches.length : 0,
-        goals,
-        bb,
-        yellow,
-        red,
-        avgRating,
-        formLastFive
-    };
-}).filter(Boolean);
+                // FIX: Kalkulerer snittet trygt på forhånd som en Float for å unngå toFixed-krasj
+                const pointsPerMatch = playerMatches.length > 0 
+                    ? parseFloat((totalPoints / playerMatches.length).toFixed(1)) 
+                    : 0.0;
+
+                return {
+                    name,
+                    matches: playerMatches.length,
+                    totalPoints,
+                    pointsPerMatch,
+                    goals,
+                    bb,
+                    yellow,
+                    red,
+                    avgRating,
+                    formLastFive
+                };
+            }).filter(Boolean);
 
     const activeStats = playerStats.filter(p => p.matches > 0);
 
