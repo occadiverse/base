@@ -4219,37 +4219,70 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
 };
 
         window.renderMatchStatsView = function() {
-            const container = document.getElementById('stat-view-kampstat');
-            if(!container) return;
+    const container = document.getElementById('stat-view-kampstat');
+    if (!container) return;
 
-            // Filtrer ut kamper som er spilt (som har et resultat)
-            const playedMatches = (window.activeMatches || [])
-                .filter(m => m.result && m.result.includes('-'))
-                .sort((a,b) => new Date(b.date) - new Date(a.date)); // Nyeste øverst
+    // Filtrer ut kamper som er spilt (som har et resultat)
+    const playedMatches = (window.activeMatches || [])
+        .filter(m => m.result && m.result.includes('-'))
+        .sort((a, b) => new Date(b.date) - new Date(a.date)); // Nyeste øverst
 
-            // Bygg nedtrekksmenyen for kampene
-            const optionsHtml = playedMatches.map(m => {
-                const dateStr = new Date(m.date).toLocaleDateString('no-NO', {day: '2-digit', month: '2-digit', year: 'numeric'});
-                return `<option value="${m.id}">${dateStr} - vs ${m.opponent} (${m.matchGroup})</option>`;
-            }).join('');
+    // Bygg nedtrekksmenyen for kampene
+    const optionsHtml = playedMatches.map(m => {
+        const dateStr = new Date(m.date).toLocaleDateString('no-NO', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
 
-            let html = `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <h3 class="text-lg font-black text-slate-800 mb-4">Spillerbørs og kampdetaljer</h3>
-                    <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
-                        <label class="text-sm font-bold text-slate-500 shrink-0">Velg kamp:</label>
-                        <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full md:w-1/2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
-                            <option value="">-- Velg kamp --</option>
-                            ${optionsHtml}
-                        </select>
-                    </div>
-                    <div id="kampstat-table-container">
-                        <div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk for spillerne som deltok.</div>
-                    </div>
+        const resultText = m.result ? ` · ${m.result}` : '';
+        const groupText = m.matchGroup ? ` (${m.matchGroup})` : '';
+
+        return `<option value="${m.id}">${dateStr} - vs ${m.opponent}${resultText}${groupText}</option>`;
+    }).join('');
+
+    let html = `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                <div>
+                    <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Kampstatistikk</p>
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Kampanalyse</h3>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Se spillerbørs, matchpoeng, BB, mål og kort for valgt kamp.
+                    </p>
                 </div>
-            `;
-            container.innerHTML = html;
-        };
+
+                <div class="w-full md:w-80">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                        Velg kamp
+                    </label>
+                    <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
+                        ${playedMatches.length ? optionsHtml : '<option value="">Ingen spilte kamper</option>'}
+                    </select>
+                </div>
+            </div>
+
+            <div id="kampstat-table-container">
+                <div class="text-center py-10 text-slate-400 italic text-sm">
+                    ${playedMatches.length ? 'Laster siste spilte kamp...' : 'Ingen spilte kamper med resultat er registrert ennå.'}
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    // Velg sist spilte kamp automatisk og vis analysen med en gang
+    const select = document.getElementById('kampstat-match-select');
+
+    if (select && playedMatches.length > 0) {
+        select.value = playedMatches[0].id;
+
+        if (typeof window.showMatchStatsTable === 'function') {
+            window.showMatchStatsTable();
+        }
+    }
+};
 
         window.showMatchStatsTable = function() {
     const matchSelect = document.getElementById('kampstat-match-select');
