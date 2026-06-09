@@ -4119,7 +4119,7 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     };
 
     const optionsHtml = (window.activePlayers || [])
-        .filter(p => p.status !== 'Passiv' && harSpiltMinstEnKamp(p.navn, p.spillerLag))
+        .filter(p => p.status !== 'Passiv')
         .sort((a, b) => a.navn.localeCompare(b.navn))
         .map(p => `<option value="${p.navn}">${p.navn}</option>`)
         .join('');
