@@ -3779,70 +3779,71 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     }
 
     const playerStats = players.map(player => {
-        const name = player.navn || player.name || player.fullName || player.spiller || '';
-        if (!name) return null;
+                const name = player.navn || player.name || player.fullName || player.spiller || '';
+                if (!name) return null;
 
-        const playerMatches = matches.filter(m => 
-            m.attendance && m.attendance[name] === true
-        );
+                const playerMatches = matches.filter(m =>
+                    m.attendance && m.attendance[name] === true
+                );
 
-        let totalPoints = 0;
-        let goals = 0;
-        let bb = 0;
-        let yellow = 0;
-        let red = 0;
-        let ratings = [];
+                let totalPoints = 0;
+                let goals = 0;
+                let bb = 0;
+                let yellow = 0;
+                let red = 0;
+                let ratings = [];
 
-        playerMatches.forEach(m => {
-            const points = typeof window.calculatePlayerMatchPoints === 'function'
-                ? window.calculatePlayerMatchPoints(m, name)
-                : 0;
+                playerMatches.forEach(m => {
+                    const points = typeof window.calculatePlayerMatchPoints === 'function'
+                        ? window.calculatePlayerMatchPoints(m, name)
+                        : 0;
 
-            totalPoints += points;
+                    totalPoints += points;
 
-            if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
-            if (m.motm === name) bb += 1;
-            if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
-            if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
+                    if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
+                    if (m.motm === name) bb += 1;
+                    if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
+                    if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
 
-            if (m.ratings && m.ratings[name]) {
-                ratings.push({
-                    date: m.date,
-                    rating: Number(m.ratings[name]) || 0,
-                    opponent: m.opponent || ''
+                    if (m.ratings && m.ratings[name]) {
+                        ratings.push({
+                            date: m.date,
+                            rating: Number(m.ratings[name]) || 0,
+                            opponent: m.opponent || ''
+                        });
+                    }
                 });
-            }
-        });
 
-        const lastFiveRatings = ratings
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 5);
+                const lastFiveRatings = ratings
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 5);
 
-        const avgRating = ratings.length
-            ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-            : 0;
+                const avgRating = ratings.length
+                    ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+                    : 0;
 
-        const formLastFive = lastFiveRatings.length
-            ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
-            : 0;
+                const formLastFive = lastFiveRatings.length
+                    ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
+                    : 0;
 
-        const pointsPerMatch = playerMatches.length
-            ? totalPoints / playerMatches.length
-            : 0;
-
-        return {
-            name,
-            matches: playerMatches.length,
-            totalPoints,
-            pointsPerMatch,
-            goals,
-            bb,
-            yellow,
-            red,
-            avgRating,
-            formLastFive
-        };
-    }).filter(Boolean);
+                // Sørger for at vi alltid returnerer et tall, selv om ingen kamper er spilt
+                const pointsPerMatch = (playerMatches.length > 0) 
+                    ? (totalPoints / playerMatches.length) 
+                    : 0;
+        
+                return {
+                    name,
+                    matches: playerMatches.length || 0,
+                    totalPoints: totalPoints || 0,
+                    pointsPerMatch: pointsPerMatch || 0,
+                    goals: goals || 0,
+                    bb: bb || 0,
+                    yellow: yellow || 0,
+                    red: red || 0,
+                    avgRating: avgRating || 0,
+                    formLastFive: formLastFive || 0
+                };
+            }).filter(Boolean);
 
     const activeStats = playerStats.filter(p => p.matches > 0);
 
@@ -3932,9 +3933,18 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                         <h2 class="text-2xl font-black tracking-tight">Analyse og trenerinnsikt</h2>
                         <p class="text-sm text-slate-200 mt-1">Form, BB, mål, poeng per kamp og spillere som bør følges opp.</p>
                     </div>
-                    <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-right">
-                        <p class="text-[10px] uppercase font-black text-slate-300">Grunnlag</p>
-                        <p class="text-xl font-black">${matches.length} kamper</p>
+                    <div class="shrink-0">
+                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center text-center shadow-sm">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-300 tracking-wider leading-none">
+                                Grunnlag
+                            </p>
+                            <p class="text-xl md:text-3xl font-black text-white leading-tight mt-1">
+                                ${matches.length}
+                            </p>
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-bsk-yellow tracking-wider leading-none">
+                                kamper
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4106,11 +4116,10 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     `;
 };
         
-        window.renderPointHistoryView = function() {
+       window.renderPointHistoryView = function() {
     const container = document.getElementById('stat-view-poeng');
-    if(!container) return;
+    if (!container) return;
     
-    // Hjelpefunksjon for å sjekke om spilleren faktisk har spilt noen kamper
     const harSpiltMinstEnKamp = (playerName, spillerLag) => {
         return (window.activeMatches || []).some(m => 
             m.matchGroup === spillerLag && 
@@ -4119,105 +4128,301 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
         );
     };
 
-    // Bygger nedtrekksmenyen: Filtrerer bort passive spillere OG spillere uten kamper
-    const optionsHtml = (window.activePlayers || [])
-        .filter(p => p.status !== 'Passiv' && harSpiltMinstEnKamp(p.navn, p.spillerLag))
-        .sort((a,b) => a.navn.localeCompare(b.navn))
-        .map(p => `<option value="${p.navn}">${p.navn}</option>`)
+    const playerOptions = (window.activePlayers || [])
+    .filter(p => p.status !== 'Passiv')
+    .sort((a, b) => a.navn.localeCompare(b.navn));
+
+    const defaultPlayer = playerOptions
+        .map(p => ({
+            ...p,
+            chemistry: typeof calculatePlayerPerformanceChemistry === 'function'
+                ? calculatePlayerPerformanceChemistry(p.navn)
+                : 0
+        }))
+        .sort((a, b) => b.chemistry - a.chemistry)[0];
+    
+    const defaultPlayerName = defaultPlayer ? defaultPlayer.navn : '';
+    
+    const optionsHtml = playerOptions
+        .map(p => `
+            <option 
+                class="text-slate-900 bg-white" 
+                value="${p.navn}"
+                ${p.navn === defaultPlayerName ? 'selected' : ''}
+            >
+                ${p.navn}
+            </option>
+        `)
         .join('');
         
     let html = `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-            <h3 class="text-lg font-black text-slate-800 mb-4">Spillerdetaljer og poenghistorikk</h3>
-            <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
-                <label class="text-sm font-bold text-slate-500 shrink-0">Velg spiller:</label>
-                <select id="poeng-player-select" onchange="showPlayerPointsTable()" class="w-full md:w-1/2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
-                    <option value="">-- Velg spiller --</option>
-                    ${optionsHtml}
-                </select>
+        <div class="space-y-6">
+
+            <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-5 md:p-6 shadow-md text-white border border-bsk-blueDark">
+                <div class="flex items-start justify-between gap-4">
+                    
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">
+                            Spilleranalyse
+                        </p>
+                    
+                        <div class="relative inline-block w-full max-w-[230px] sm:max-w-[290px] md:max-w-none md:w-auto">
+                            <select 
+                                id="poeng-player-select" 
+                                onchange="showPlayerPointsTable()" 
+                                class="w-full md:w-auto appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-sm md:text-base font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer [&>option]:text-slate-900 [&>option]:bg-white"
+                            >
+                                ${optionsHtml}
+                            </select>
+                    
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
+                        </div>
+                    
+                        <p class="text-xs md:text-sm text-slate-200 mt-3 leading-snug max-w-xl">
+                            Se utvikling, form, matchpoeng og kampbidrag for valgt spiller.
+                        </p>
+                    </div>
+            
+                    <div class="shrink-0 pt-7 md:pt-0">
+                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center text-center shadow-sm">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-300 tracking-wider leading-none">
+                                Snitt
+                            </p>
+                            <p id="player-banner-main" class="text-xl md:text-3xl font-black text-white leading-tight mt-1">
+                                -
+                            </p>
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-bsk-yellow tracking-wider leading-none">
+                                poeng
+                            </p>
+                        </div>
+            
+                        <p id="player-banner-sub" class="hidden md:block text-[10px] text-slate-300 mt-2 text-center">
+                            valgt spiller
+                        </p>
+                    </div>
+            
+                </div>
             </div>
+
             <div id="poeng-table-container">
-                <div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+                    <i class="fa-solid fa-user-chart text-4xl text-slate-300 mb-3"></i>
+                    <h3 class="font-black text-slate-800 text-lg mb-1">Velg en spiller</h3>
+                    <p class="text-sm text-slate-500">Da får du nøkkeltall og poenghistorikk for spilleren.</p>
+                </div>
             </div>
+
         </div>
     `;
+
     container.innerHTML = html;
+
+if (defaultPlayerName) {
+    showPlayerPointsTable();
+}
 };
 
         window.showPlayerPointsTable = function() {
     const playerName = document.getElementById('poeng-player-select').value;
     const container = document.getElementById('poeng-table-container');
     
-    if(!playerName) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en spiller for å se poenghistorikk.</div>';
+    if (!container) return;
+
+    if (!playerName) {
+        container.innerHTML = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+                <i class="fa-solid fa-user-chart text-4xl text-slate-300 mb-3"></i>
+                <h3 class="font-black text-slate-800 text-lg mb-1">Velg en spiller</h3>
+                <p class="text-sm text-slate-500">Da får du nøkkeltall og poenghistorikk for spilleren.</p>
+            </div>
+        `;
         return;
     }
     
+    const player = (window.activePlayers || []).find(p => p.navn === playerName);
     const history = typeof getPlayerMatchPointsHistory === 'function' ? getPlayerMatchPointsHistory(playerName) : [];
     
-    if(history.length === 0) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spilte kamper registrert for denne spilleren.</div>';
+    if (history.length === 0) {
+        container.innerHTML = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+                <i class="fa-solid fa-circle-info text-4xl text-slate-300 mb-3"></i>
+                <h3 class="font-black text-slate-800 text-lg mb-1">Ingen spilte kamper</h3>
+                <p class="text-sm text-slate-500">Ingen spilte kamper er registrert for denne spilleren ennå.</p>
+            </div>
+        `;
         return;
     }
+
+    const chemistry = typeof calculatePlayerPerformanceChemistry === 'function'
+        ? calculatePlayerPerformanceChemistry(playerName)
+        : 0;
+
+    const totalMatches = history.length;
+
+    const ratings = history
+        .map(h => Number(h.rating))
+        .filter(r => !isNaN(r) && r > 0);
+
+    const avgRating = ratings.length
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        : 0;
+
+    const totalPoints = history.reduce((sum, h) => sum + (Number(h.points) || 0), 0);
+    const avgPoints = totalMatches ? totalPoints / totalMatches : 0;
+
+    const bannerMain = document.getElementById('player-banner-main');
+    const bannerSub = document.getElementById('player-banner-sub');
     
+    if (bannerMain) {
+        bannerMain.textContent = avgPoints ? avgPoints.toFixed(1) : '-';
+    }
+    
+    if (bannerSub) {
+        bannerSub.textContent = totalPoints + ' poeng totalt';
+    }
+
+    let totalGoals = 0;
+    let totalYellow = 0;
+    let totalRed = 0;
+    let totalBb = 0;
+
+    history.forEach(h => {
+        const m = (window.activeMatches || []).find(match => match.id === h.matchId);
+        if (!m) return;
+
+        totalGoals += m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
+        totalYellow += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
+        totalRed += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
+        totalBb += m.motm === playerName ? 1 : 0;
+    });
+
+    const card = (label, value, sub, icon, iconClass) => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${label}</span>
+                <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                    <i class="fa-solid ${icon} ${iconClass}"></i>
+                </div>
+            </div>
+            <div class="text-2xl font-black text-slate-900">${value}</div>
+            <div class="text-xs text-slate-500 mt-1">${sub}</div>
+        </div>
+    `;
+
     let tableHtml = `
-        <div class="overflow-x-auto rounded-xl border border-slate-100">
-            <table class="w-full text-left text-sm whitespace-nowrap">
-                <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
-                    <tr>
-                        <th class="p-4">Dato</th>
-                        <th class="p-4">Motstander</th>
-                        <th class="p-4">Res</th>
-                        <th class="p-4 text-center">Børs</th>
-                        <th class="p-4 text-center">Mål</th>
-                        <th class="p-4 text-center">Gult</th>
-                        <th class="p-4 text-center">Rødt</th>
-                        <th class="p-4 text-center text-indigo-600">BB</th>
-                        <th class="p-4 text-right">Matchpoeng</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            ${card('Kjemiscore', chemistry + '%', 'Total form og lojalitet', 'fa-heart-pulse', 'text-emerald-600')}
+            ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
+            ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
+            ${card('Mål / BB', `${totalGoals} / ${totalBb}`, `${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 bg-slate-50">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h3 class="font-black text-slate-800 text-sm">${playerName}</h3>
+                        <p class="text-xs text-slate-500 mt-1 leading-snug">
+                            Poenghistorikk per kamp. Nyeste kamp vises øverst.
+                        </p>
+                    </div>
+
+                    <button 
+                        onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
+                        class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm shrink-0 whitespace-nowrap"
+                    >
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span class="sm:hidden">Poeng</span>
+                        <span class="hidden sm:inline">Slik regnes poengene</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
+                        <tr>
+                            <th class="p-4">Dato</th>
+                            <th class="p-4">Motstander</th>
+                            <th class="p-4 text-center">Poeng</th>
+                            <th class="p-4 text-center">Børs</th>
+                            <th class="p-4 text-center">Mål</th>
+                            <th class="p-4 text-center text-indigo-600">BB</th>
+                            <th class="p-4 text-center">Gult</th>
+                            <th class="p-4 text-center">Rødt</th>
+                            <th class="p-4 text-center">Res</th>
+                            <th class="p-4 text-right">Rediger</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
     `;
     
     history.forEach(h => {
-        let pointColor = 'text-slate-700';
-        if (h.points >= 20) pointColor = 'text-emerald-500';
-        else if (h.points < 10) pointColor = 'text-rose-500';
-        
         const m = (window.activeMatches || []).find(match => match.id === h.matchId);
-        
-        const mål = m && m.scorers && m.scorers[playerName] ? m.scorers[playerName] : '-';
-        const gult = m && m.guleKort && m.guleKort.includes(playerName) ? '1 🟨' : '-';
-        const rødt = m && m.rodeKort && m.rodeKort.includes(playerName) ? '1 🟥' : '-';
-        
-        // NY LINJE: Sjekker om han ble kåret til BB i denne historiske kampen
-        const bleBb = m && m.motm === playerName ? '+1' : '-';
-        
-        const gultKlasse = gult !== '-' ? 'text-amber-500 font-bold' : 'text-slate-300';
-        const rødtKlasse = rødt !== '-' ? 'text-rose-600 font-bold' : 'text-slate-300';
-        const målKlasse = mål !== '-' ? 'text-slate-800 font-bold' : 'text-slate-300';
-        
-        // NY LINJE: Stil for BB-prikken/kronen
-        const bbKlasse = bleBb !== '-' ? 'text-indigo-600 font-bold text-xs' : 'text-slate-300';
-        
+
+        let pointColor = 'text-slate-700';
+        if (h.points >= 25) pointColor = 'text-emerald-600';
+        else if (h.points >= 18) pointColor = 'text-bsk-blue';
+        else if (h.points < 10) pointColor = 'text-rose-600';
+
+        const goals = m && m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
+        const yellow = m && m.guleKort && m.guleKort.includes(playerName);
+        const red = m && m.rodeKort && m.rodeKort.includes(playerName);
+        const bb = m && m.motm === playerName;
+
+        const målVis = goals > 0
+            ? `<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full text-xs font-black">⚽ ${goals}</span>`
+            : '<span class="text-slate-300 font-bold">-</span>';
+
+        const bbVis = bb
+            ? `<span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-black">👑 +1</span>`
+            : '<span class="text-slate-300 font-bold">-</span>';
+
+        const yellowVis = yellow
+            ? `<span class="text-amber-500 font-black">🟨</span>`
+            : '<span class="text-slate-300 font-bold">-</span>';
+
+        const redVis = red
+            ? `<span class="text-rose-600 font-black">🟥 -10</span>`
+            : '<span class="text-slate-300 font-bold">-</span>';
+
+        const dateText = h.date
+            ? new Date(h.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
+            : '-';
+
         tableHtml += `
-            <tr class="hover:bg-slate-50 transition cursor-help" title="${h.breakdown}">
-                <td class="p-4 text-slate-500 font-medium">${new Date(h.date).toLocaleDateString('no-NO', {day: 'numeric', month: 'short'})}</td>
-                <td class="p-4 font-bold text-slate-800">${h.opponent}</td>
-                <td class="p-4 font-semibold text-slate-600">${h.result}</td>
+            <tr class="hover:bg-slate-50 transition" title="${h.breakdown}">
+                <td class="p-4 text-slate-500 font-medium">${dateText}</td>
+                <td class="p-4 font-black text-slate-800">${h.opponent}</td>
+                <td class="p-4 text-center font-black text-lg ${pointColor}">${h.points}</td>
                 <td class="p-4 text-center">
                     <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
                 </td>
-                <td class="p-4 text-center ${målKlasse}">${mål}</td>
-                <td class="p-4 text-center text-xs ${gultKlasse}">${gult}</td>
-                <td class="p-4 text-center text-xs ${rødtKlasse}">${rødt}</td>
-                <td class="p-4 text-center ${bbKlasse}">${bleBb}</td> <td class="p-4 text-right ${pointColor} font-black text-base">${h.points}</td>
+                <td class="p-4 text-center">${målVis}</td>
+                <td class="p-4 text-center">${bbVis}</td>
+                <td class="p-4 text-center">${yellowVis}</td>
+                <td class="p-4 text-center">${redVis}</td>
+                <td class="p-4 text-center font-semibold text-slate-600">${h.result}</td>
+                <td class="p-4 text-right">
+                    <button
+                        onclick="openMatchStatsEditor('${h.matchId}')"
+                        title="Rediger mål, kort og spillerbørs"
+                        class="inline-flex items-center justify-center w-8 h-8 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-100 rounded-xl transition shadow-sm"
+                    >
+                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </button>
+                </td>
             </tr>
         `;
     });
     
-    tableHtml += `</tbody></table></div>
-    <p class="text-[10px] text-slate-400 mt-3 italic text-right">* Hold musepekeren over raden for å se poengfordelingen.</p>`;
+    tableHtml += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
     container.innerHTML = tableHtml;
 };
 
