@@ -4180,9 +4180,9 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
             
                     <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-right shrink-0 min-w-[135px]">
                         <p class="text-[10px] uppercase font-black text-slate-300 tracking-wider">
-                            Kjemiscore
+                            Snittpoeng
                         </p>
-                        <p id="player-banner-chemistry" class="text-2xl font-black text-white">
+                        <p id="player-banner-main" class="text-2xl font-black text-white">
                             -
                         </p>
                         <p id="player-banner-sub" class="text-[10px] text-slate-300 mt-0.5">
@@ -4246,17 +4246,6 @@ if (defaultPlayerName) {
         ? calculatePlayerPerformanceChemistry(playerName)
         : 0;
 
-    const bannerChemistry = document.getElementById('player-banner-chemistry');
-    const bannerSub = document.getElementById('player-banner-sub');
-    
-    if (bannerChemistry) {
-        bannerChemistry.textContent = chemistry + '%';
-    }
-    
-    if (bannerSub) {
-        bannerSub.textContent = history.length + ' kamper registrert';
-    }
-
     const totalMatches = history.length;
 
     const ratings = history
@@ -4269,6 +4258,17 @@ if (defaultPlayerName) {
 
     const totalPoints = history.reduce((sum, h) => sum + (Number(h.points) || 0), 0);
     const avgPoints = totalMatches ? totalPoints / totalMatches : 0;
+
+    const bannerMain = document.getElementById('player-banner-main');
+    const bannerSub = document.getElementById('player-banner-sub');
+    
+    if (bannerMain) {
+        bannerMain.textContent = avgPoints ? avgPoints.toFixed(1) : '-';
+    }
+    
+    if (bannerSub) {
+        bannerSub.textContent = totalPoints + ' poeng totalt';
+    }
 
     let totalGoals = 0;
     let totalYellow = 0;
