@@ -4550,14 +4550,24 @@ let html = `
                                 </p>
                             </div>
                         
-                            <button 
-                                onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
-                                class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm shrink-0 whitespace-nowrap"
-                            >
-                                <i class="fa-solid fa-circle-info"></i>
-                                <span class="sm:hidden">Poeng</span>
-                                <span class="hidden sm:inline">Slik regnes poengene</span>
-                            </button>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button 
+                                    onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
+                                    class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm whitespace-nowrap"
+                                >
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span class="sm:hidden">Poeng</span>
+                                    <span class="hidden sm:inline">Slik regnes poengene</span>
+                                </button>
+                            
+                                <button
+                                    onclick="openMatchStatsEditor('${match.id}')"
+                                    title="Rediger mål, kort og spillerbørs"
+                                    class="inline-flex items-center justify-center w-9 h-9 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-100 rounded-xl transition shadow-sm"
+                                >
+                                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -4667,6 +4677,23 @@ let html = `
                     }
                 }
             }, 100);
+        };
+
+        window.openMatchStatsEditor = function(matchId) {
+            if (typeof window.showMatchDetails === 'function') {
+                window.showMatchDetails(matchId);
+        
+                setTimeout(() => {
+                    const section = document.getElementById('kampdetaljer-spillerbors');
+        
+                    if (section) {
+                        section.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }, 150);
+            }
         };
         
         window.sortStatsTable = function(column) {
