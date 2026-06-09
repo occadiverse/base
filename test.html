@@ -3927,14 +3927,42 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
 
             <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-6 shadow-md text-white border border-bsk-blueDark">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">Statistikk 2.0</p>
-                        <h2 class="text-2xl font-black tracking-tight">Analyse og trenerinnsikt</h2>
-                        <p class="text-sm text-slate-200 mt-1">Form, BB, mål, poeng per kamp og spillere som bør følges opp.</p>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">
+                            Statistikk 2.0
+                        </p>
+            
+                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-wrap">
+                            <span>Spilleranalyse for</span>
+            
+                            <span class="relative inline-block min-w-[190px] max-w-[280px]">
+                                <select 
+                                    id="poeng-player-select" 
+                                    onchange="showPlayerPointsTable()" 
+                                    class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate [&>option]:text-slate-900 [&>option]:bg-white"
+                                >
+                                    ${optionsHtml}
+                                </select>
+            
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
+                            </span>
+                        </h2>
+            
+                        <p class="text-sm text-slate-200 mt-2">
+                            Se utvikling, form, matchpoeng og kampbidrag for valgt spiller.
+                        </p>
                     </div>
-                    <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-right">
-                        <p class="text-[10px] uppercase font-black text-slate-300">Grunnlag</p>
-                        <p class="text-xl font-black">${matches.length} kamper</p>
+            
+                    <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-right shrink-0 min-w-[130px]">
+                        <p class="text-[10px] uppercase font-black text-slate-300 tracking-wider">
+                            Kjemiscore
+                        </p>
+                        <p id="player-banner-chemistry" class="text-2xl font-black text-white">
+                            -
+                        </p>
+                        <p id="player-banner-sub" class="text-[10px] text-slate-300 mt-0.5">
+                            valgt spiller
+                        </p>
                     </div>
                 </div>
             </div>
@@ -4232,6 +4260,17 @@ if (defaultPlayerName) {
     const chemistry = typeof calculatePlayerPerformanceChemistry === 'function'
         ? calculatePlayerPerformanceChemistry(playerName)
         : 0;
+
+    const bannerChemistry = document.getElementById('player-banner-chemistry');
+    const bannerSub = document.getElementById('player-banner-sub');
+    
+    if (bannerChemistry) {
+        bannerChemistry.textContent = chemistry + '%';
+    }
+    
+    if (bannerSub) {
+        bannerSub.textContent = history.length + ' kamper registrert';
+    }
 
     const totalMatches = history.length;
 
