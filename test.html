@@ -4542,8 +4542,22 @@ let html = `
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div class="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="p-5 border-b border-slate-100 bg-slate-50">
-                        <h3 class="font-black text-slate-800 text-sm">Spillerstatistikk</h3>
-                        <p class="text-xs text-slate-500 mt-1">Poengfordeling for spillerne som var registrert med oppmøte i kampen.</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div>
+                                <h3 class="font-black text-slate-800 text-sm">Spillerstatistikk</h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Poengfordeling for spillerne som var registrert med oppmøte i kampen.
+                                </p>
+                            </div>
+                    
+                            <button 
+                                onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
+                                class="inline-flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-xs px-3 py-2 rounded-xl transition shadow-sm shrink-0"
+                            >
+                                <i class="fa-solid fa-circle-info"></i>
+                                Slik regnes poengene
+                            </button>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
