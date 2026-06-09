@@ -4537,18 +4537,18 @@ let html = `
                                             ${playedMatches.map(m => {
                                                 const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
                                                 const shortText = m.opponent || 'Motstander';
-                                                const fullText = \`\${m.opponent || 'Motstander'}\${optionDate ? ' · ' + optionDate : ''}\${m.result ? ' · ' + m.result : ''}\`;
-                                                return \`
+                                                const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
+                                                return `
                                                     <option
                                                         class="text-slate-900"
-                                                        value="\${m.id}"
-                                                        data-short="\${shortText}"
-                                                        data-full="\${fullText}"
-                                                        \${m.id === matchId ? 'selected' : ''}
+                                                        value="${m.id}"
+                                                        data-short="${shortText}"
+                                                        data-full="${fullText}"
+                                                        ${m.id === matchId ? 'selected' : ''}
                                                     >
-                                                        \${shortText}
+                                                        ${shortText}
                                                     </option>
-                                                \`;
+                                                `;
                                             }).join('')}
                                         </select>
                                         <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
@@ -4582,8 +4582,7 @@ let html = `
                             <i class="fa-solid fa-user-check mr-2 text-bsk-yellow"></i> Før oppmøte for kampen
                         </button>
                     </div>
-                </div>`; // Lukk den ytre div-en
-                
+                </div>`; 
                 container.innerHTML = html;
                 window.collapseKampSelectLabel();
                 return;
@@ -4798,11 +4797,11 @@ let html = `
                         </div>
                     </div>
                 </div>
-            </div>`; 
+            </div>\`; 
 
             container.innerHTML = html;
             window.collapseKampSelectLabel();
-        }; 
+        };
 
         window.openTacticalPlanForMatch = function(matchId) {
             switchTab('taktikk');
