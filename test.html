@@ -4429,13 +4429,12 @@ let html = `
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                     <div>
                         <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">Kampanalyse</p>
-                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex flex-col sm:flex-row sm:items-center gap-2">
+                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap">
                             <span>BSK -</span>
-                            <span class="relative inline-block w-full sm:w-auto min-w-[220px]">
-                                <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-xl md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer">
+                            <span class="relative inline-block flex-1 min-w-0 max-w-[260px]">
+                                <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate">
                                     ${playedMatches.map(m => {
-                                        const resultText = m.result ? ` · ${m.result}` : '';
-                                        return `<option class="text-slate-900" value="${m.id}" ${m.id === matchId ? 'selected' : ''}>${m.opponent}${resultText}</option>`;
+                                        return `<option class="text-slate-900" value="${m.id}" ${m.id === matchId ? 'selected' : ''}>${m.opponent}</option>`;
                                     }).join('')}
                                 </select>
                                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
