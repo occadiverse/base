@@ -3933,9 +3933,18 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                         <h2 class="text-2xl font-black tracking-tight">Analyse og trenerinnsikt</h2>
                         <p class="text-sm text-slate-200 mt-1">Form, BB, mål, poeng per kamp og spillere som bør følges opp.</p>
                     </div>
-                    <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-right">
-                        <p class="text-[10px] uppercase font-black text-slate-300">Grunnlag</p>
-                        <p class="text-xl font-black">${matches.length} kamper</p>
+                    <div class="shrink-0">
+                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center text-center shadow-sm">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-300 tracking-wider leading-none">
+                                Grunnlag
+                            </p>
+                            <p class="text-xl md:text-3xl font-black text-white leading-tight mt-1">
+                                ${matches.length}
+                            </p>
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-bsk-yellow tracking-wider leading-none">
+                                kamper
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
