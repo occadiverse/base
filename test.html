@@ -3826,22 +3826,22 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                     ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
                     : 0;
 
-                // FIX: Kalkulerer snittet trygt på forhånd som en Float for å unngå toFixed-krasj
-                const pointsPerMatch = playerMatches.length > 0 
-                    ? parseFloat((totalPoints / playerMatches.length).toFixed(1)) 
-                    : 0.0;
-
+                // Sørger for at vi alltid returnerer et tall, selv om ingen kamper er spilt
+                const pointsPerMatch = (playerMatches.length > 0) 
+                    ? (totalPoints / playerMatches.length) 
+                    : 0;
+        
                 return {
                     name,
-                    matches: playerMatches.length,
-                    totalPoints,
-                    pointsPerMatch,
-                    goals,
-                    bb,
-                    yellow,
-                    red,
-                    avgRating,
-                    formLastFive
+                    matches: playerMatches.length || 0,
+                    totalPoints: totalPoints || 0,
+                    pointsPerMatch: pointsPerMatch || 0,
+                    goals: goals || 0,
+                    bb: bb || 0,
+                    yellow: yellow || 0,
+                    red: red || 0,
+                    avgRating: avgRating || 0,
+                    formLastFive: formLastFive || 0
                 };
             }).filter(Boolean);
 
