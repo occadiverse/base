@@ -4511,13 +4511,28 @@ let html = `
 
     const match = (window.activeMatches || []).find(m => m.id === matchId);
 
-    if (!match || !match.attendance) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen oppmøtedata registrert for denne kampen.</div>';
-        return;
-    }
-
-    const attendingPlayers = Object.keys(match.attendance).filter(pName => match.attendance[pName] === true);
-
+    if (!match) {
+    container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Fant ikke valgt kamp.</div>';
+    return;
+        }
+        
+        const attendance = match.attendance || {};
+        
+        let attendingPlayers = Object.keys(attendance).filter(pName => attendance[pName] === true);
+        
+        // Fallback: hvis attendance mangler, men ratings/scorers finnes, bruk dem
+        if (attendingPlayers.length === 0) {
+            const ratingPlayers = match.ratings ? Object.keys(match.ratings) : [];
+            const scorerPlayers = match.scorers ? Object.keys(match.scorers) : [];
+            const bbPlayer = match.motm ? [match.motm] : [];
+        
+            attendingPlayers = [...new Set([
+                ...ratingPlayers,
+                ...scorerPlayers,
+                ...bbPlayer
+            ])];
+        }
+            
     if (attendingPlayers.length === 0) {
         container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spillere var registrert med oppmøte på denne kampen.</div>';
         return;
