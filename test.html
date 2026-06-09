@@ -4262,6 +4262,28 @@ let html = `
     }
 };
 
+        window.expandKampSelectLabels = function() {
+            const select = document.getElementById('kampstat-match-select');
+            if (!select) return;
+        
+            Array.from(select.options).forEach(option => {
+                if (option.dataset.full) {
+                    option.textContent = option.dataset.full;
+                }
+            });
+        };
+        
+        window.collapseKampSelectLabel = function() {
+            const select = document.getElementById('kampstat-match-select');
+            if (!select) return;
+        
+            Array.from(select.options).forEach(option => {
+                if (option.dataset.short) {
+                    option.textContent = option.dataset.short;
+                }
+            });
+        };
+
         window.showMatchStatsTable = function() {
     const matchSelect = document.getElementById('kampstat-match-select');
 
@@ -4432,9 +4454,33 @@ let html = `
                         <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap">
                             <span>BSK -</span>
                             <span class="relative inline-block flex-1 min-w-0 max-w-[260px]">
-                                <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate">
+                                <select 
+                                    id="kampstat-match-select" 
+                                    onfocus="expandKampSelectLabels()"
+                                    onmousedown="expandKampSelectLabels()"
+                                    onblur="collapseKampSelectLabel()"
+                                    onchange="showMatchStatsTable()" 
+                                    class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate"
+                                >
                                     ${playedMatches.map(m => {
-                                        return `<option class="text-slate-900" value="${m.id}" ${m.id === matchId ? 'selected' : ''}>${m.opponent}</option>`;
+                                        const optionDate = m.date
+                                            ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                            : '';
+                                
+                                        const shortText = m.opponent || 'Motstander';
+                                        const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
+                                
+                                        return `
+                                            <option 
+                                                class="text-slate-900" 
+                                                value="${m.id}" 
+                                                data-short="${shortText}" 
+                                                data-full="${fullText}"
+                                                ${m.id === matchId ? 'selected' : ''}
+                                            >
+                                                ${shortText}
+                                            </option>
+                                        `;
                                     }).join('')}
                                 </select>
                                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
@@ -4535,6 +4581,7 @@ let html = `
 
         </div>
     `;
+    window.collapseKampSelectLabel();
 }; 
         
         window.sortStatsTable = function(column) {
