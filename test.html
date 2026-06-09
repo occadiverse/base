@@ -4118,10 +4118,31 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
         );
     };
 
-    const optionsHtml = (window.activePlayers || [])
-        .filter(p => p.status !== 'Passiv')
-        .sort((a, b) => a.navn.localeCompare(b.navn))
-        .map(p => `<option value="${p.navn}">${p.navn}</option>`)
+    const playerOptions = (window.activePlayers || [])
+    .filter(p => p.status !== 'Passiv')
+    .sort((a, b) => a.navn.localeCompare(b.navn));
+
+    const defaultPlayer = playerOptions
+        .map(p => ({
+            ...p,
+            chemistry: typeof calculatePlayerPerformanceChemistry === 'function'
+                ? calculatePlayerPerformanceChemistry(p.navn)
+                : 0
+        }))
+        .sort((a, b) => b.chemistry - a.chemistry)[0];
+    
+    const defaultPlayerName = defaultPlayer ? defaultPlayer.navn : '';
+    
+    const optionsHtml = playerOptions
+        .map(p => `
+            <option 
+                class="text-slate-900 bg-white" 
+                value="${p.navn}"
+                ${p.navn === defaultPlayerName ? 'selected' : ''}
+            >
+                ${p.navn}
+            </option>
+        `)
         .join('');
         
     let html = `
@@ -4149,9 +4170,8 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
                             <select 
                                 id="poeng-player-select" 
                                 onchange="showPlayerPointsTable()" 
-                                class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-3 pr-9 text-sm font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer"
+                                class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-3 pr-9 text-sm font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer [&>option]:text-slate-900 [&>option]:bg-white"
                             >
-                                <option class="text-slate-900" value="">-- Velg spiller --</option>
                                 ${optionsHtml}
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
@@ -4172,6 +4192,9 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
     `;
 
     container.innerHTML = html;
+
+if (defaultPlayerName) {
+    showPlayerPointsTable();
 };
 
         window.showPlayerPointsTable = function() {
