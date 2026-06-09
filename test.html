@@ -4244,14 +4244,25 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
 let html = `
     <div class="space-y-6">
 
-        <div class="flex justify-end">
-            <div class="w-full md:w-80">
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
-                    Velg kamp
-                </label>
-                <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 shadow-sm focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
-                    ${playedMatches.length ? optionsHtml : '<option value="">Ingen spilte kamper</option>'}
-                </select>
+        <div class="w-full flex justify-center">
+            <div class="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm w-full max-w-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-8 h-8 rounded-xl bg-bsk-blue text-bsk-yellow flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-futbol text-sm"></i>
+                        </div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                            Velg kamp
+                        </label>
+                    </div>
+        
+                    <div class="relative flex-1">
+                        <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 pr-9 font-bold text-sm text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue cursor-pointer">
+                            ${playedMatches.length ? optionsHtml : '<option value="">Ingen spilte kamper</option>'}
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
             </div>
         </div>
 
