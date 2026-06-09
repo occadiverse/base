@@ -4487,409 +4487,322 @@ let html = `
         };
 
         window.showMatchStatsTable = function() {
-    const matchSelect = document.getElementById('kampstat-match-select');
+            const matchSelect = document.getElementById('kampstat-match-select');
 
-    const playedMatches = (window.activeMatches || [])
-        .filter(m => m.result && m.result.includes('-'))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    const matchId = matchSelect && matchSelect.value
-        ? matchSelect.value
-        : (playedMatches[0] ? playedMatches[0].id : '');
-    
-    const container = document.getElementById('kampstat-table-container');
+            const playedMatches = (window.activeMatches || [])
+                .filter(m => m.result && m.result.includes('-'))
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    if (!container) return;
+            const matchId = matchSelect && matchSelect.value
+                ? matchSelect.value
+                : (playedMatches[0] ? playedMatches[0].id : '');
 
-    if (!matchId) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk for spillerne som deltok.</div>';
-        return;
-    }
+            const container = document.getElementById('kampstat-table-container');
 
-    const match = (window.activeMatches || []).find(m => m.id === matchId);
+            if (!container) return;
 
-    if (!match || !match.attendance) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen oppmøtedata registrert for denne kampen.</div>';
-        return;
-    }
+            if (!matchId) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk.</div>';
+                return;
+            }
 
-    const attendingPlayers = Object.keys(match.attendance).filter(pName => match.attendance[pName] === true);
+            const match = (window.activeMatches || []).find(m => m.id === matchId);
+            if (!match) return;
 
-    if (attendingPlayers.length === 0) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spillere var registrert med oppmøte på denne kampen.</div>';
-        return;
-    }
+            // 1. DATO OG INFO KLARGJØRES
+            const dateStr = match.date ? new Date(match.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+            const matchResult = match.result || '?';
+            const matchType = match.type || match.matchType || 'Kamp';
+            const matchGroup = match.matchGroup || match.team || '';
+            const pitch = match.pitch || match.bane || '';
 
-    const stats = attendingPlayers.map(pName => {
-        const rating = match.ratings && match.ratings[pName] ? Number(match.ratings[pName]) : 0;
-        const goals = match.scorers && match.scorers[pName] ? Number(match.scorers[pName]) : 0;
-        const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
-        const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
-        const isBbInMatch = match.motm === pName;
-
-        const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
-            ? window.calculatePlayerMatchPoints(match, pName, true)
-            : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0 };
-
-        return {
-            name: pName,
-            rating,
-            goals,
-            yellow,
-            red,
-            isBbInMatch,
-            points: pointsDetails.total || 0,
-            base: pointsDetails.base || 0,
-            resultBonus: pointsDetails.resultBonus || 0,
-            ratingBonus: pointsDetails.ratingBonus || 0,
-            bbBonus: pointsDetails.bbBonus || 0,
-            breakdown: `Start: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
-        };
-    });
-
-    stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals);
-
-    const dateStr = match.date
-        ? new Date(match.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : '';
-
-    const matchResult = match.result || '?';
-    const matchType = match.type || match.matchType || 'Kamp';
-    const matchGroup = match.matchGroup || match.team || '';
-    const opponent = match.opponent || 'Motstander';
-    const pitch = match.pitch || match.bane || '';
-
-    const avgRating = stats.filter(s => s.rating > 0).length
-        ? stats.filter(s => s.rating > 0).reduce((sum, s) => sum + s.rating, 0) / stats.filter(s => s.rating > 0).length
-        : 0;
-
-    const totalGoals = stats.reduce((sum, s) => sum + s.goals, 0);
-    const totalYellow = stats.reduce((sum, s) => sum + s.yellow, 0);
-    const totalRed = stats.reduce((sum, s) => sum + s.red, 0);
-
-    const bbPlayer = stats.find(s => s.isBbInMatch);
-    const topScorer = [...stats].sort((a, b) => b.goals - a.goals)[0];
-    const pointsLeader = stats[0];
-
-    const pointColor = (points) => {
-        if (points >= 25) return 'text-emerald-600';
-        if (points >= 18) return 'text-bsk-blue';
-        if (points >= 10) return 'text-slate-700';
-        return 'text-rose-600';
-    };
-
-    const scoreBadge = (value, type = 'neutral') => {
-        const styles = {
-            blue: 'bg-bsk-blue/10 text-bsk-blue border-bsk-blue/10',
-            emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-            amber: 'bg-amber-50 text-amber-700 border-amber-100',
-            rose: 'bg-rose-50 text-rose-700 border-rose-100',
-            indigo: 'bg-indigo-50 text-indigo-700 border-indigo-100',
-            slate: 'bg-slate-50 text-slate-600 border-slate-100'
-        };
-
-        return `<span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-black border ${styles[type] || styles.slate}">${value}</span>`;
-    };
-
-    const topFiveHtml = stats.slice(0, 5).map((s, index) => `
-        <div class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-full ${index === 0 ? 'bg-bsk-yellow text-bsk-blue' : 'bg-slate-100 text-slate-500'} flex items-center justify-center font-black text-xs shrink-0">
-                    ${index + 1}
-                </div>
-                <div class="min-w-0">
-                    <div class="font-black text-slate-800 truncate">${s.name}</div>
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        Børs ${s.rating || '-'} · Mål ${s.goals} · BB ${s.isBbInMatch ? '+1' : '-'}
-                    </div>
-                </div>
-            </div>
-            <div class="text-right font-black ${pointColor(s.points)}">${s.points}</div>
-        </div>
-    `).join('');
-
-    const rowsHtml = stats.map(s => {
-        const baseVis = scoreBadge(`+${s.base}`, 'slate');
-        const resultVis = scoreBadge(`${s.resultBonus > 0 ? '+' : ''}${s.resultBonus}`, s.resultBonus >= 0 ? 'blue' : 'rose');
-        const ratingVis = s.rating > 0
-            ? scoreBadge(`${s.ratingBonus > 0 ? '+' : ''}${s.ratingBonus}`, s.ratingBonus >= 0 ? 'emerald' : 'rose')
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const goalVis = s.goals > 0
-            ? scoreBadge(`⚽ +${s.goals}`, 'emerald')
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-       const yellowVis = s.yellow > 0
-            ? scoreBadge('🟨 0', 'amber')
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const redVis = s.red > 0
-            ? scoreBadge('🟥 -10', 'rose')
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const bbVis = s.isBbInMatch
-            ? scoreBadge('👑 +1', 'indigo')
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        return `
-            <tr class="hover:bg-slate-50 transition-colors" title="${s.breakdown}">
-                <td class="p-4 font-black text-slate-800">${s.name}</td>
-                <td class="p-4 text-center font-black text-lg ${pointColor(s.points)}">${s.points}</td>
-                <td class="p-4 text-center">${ratingVis}</td>
-                <td class="p-4 text-center">${goalVis}</td>
-                <td class="p-4 text-center">${bbVis}</td>
-                <td class="p-4 text-center">${yellowVis}</td>
-                <td class="p-4 text-center">${redVis}</td>
-                <td class="p-4 text-center">${resultVis}</td>
-                <td class="p-4 text-center">${baseVis}</td>
-            </tr>
-        `;
-    }).join('');
-
-    container.innerHTML = `
-        <div class="space-y-6">
-
-            <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-6 shadow-md text-white border border-bsk-blueDark">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-                    <div>
-                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">Kampanalyse</p>
-                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap">
-                            <span>BSK -</span>
-                            <span class="relative inline-block flex-1 min-w-0 max-w-[260px]">
-                                <select 
-                                    id="kampstat-match-select" 
-                                    onfocus="expandKampSelectLabels()"
-                                    onmousedown="expandKampSelectLabels()"
-                                    onblur="collapseKampSelectLabel()"
-                                    onchange="showMatchStatsTable()" 
-                                    class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate"
-                                >
-                                    ${playedMatches.map(m => {
-                                        const optionDate = m.date
-                                            ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                                            : '';
-                                
-                                        const shortText = m.opponent || 'Motstander';
-                                        const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
-                                
-                                        return `
-                                            <option 
-                                                class="text-slate-900" 
-                                                value="${m.id}" 
-                                                data-short="${shortText}" 
-                                                data-full="${fullText}"
-                                                ${m.id === matchId ? 'selected' : ''}
-                                            >
-                                                ${shortText}
-                                            </option>
-                                        `;
-                                    }).join('')}
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
-                            </span>
-                        </h2>
-                        <p class="text-sm text-slate-200 mt-1">
-                            ${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}
-                        </p>
-                    </div>
-                    <div class="bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[130px]">
-                        <p class="text-[10px] uppercase font-black text-slate-300 mb-1">Resultat</p>
-                        <p class="text-3xl font-black text-bsk-yellow">${matchResult}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Banens beste</span>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">👑</div>
-                    </div>
-                    <div class="text-xl font-black text-slate-900">${bbPlayer ? bbPlayer.name : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">${bbPlayer ? '+1 BB-bonus' : 'Ingen BB registrert'}</div>
-                </div>
-
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Toppscorer</span>
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">⚽</div>
-                    </div>
-                    <div class="text-xl font-black text-slate-900">${topScorer && topScorer.goals > 0 ? topScorer.name : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">${topScorer && topScorer.goals > 0 ? topScorer.goals + ' mål' : 'Ingen mål registrert'}</div>
-                </div>
-
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mest poeng</span>
-                        <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                            <i class="fa-solid fa-chart-line text-bsk-blue"></i>
-                        </div>
-                    </div>
-                    <div class="text-xl font-black text-slate-900">${pointsLeader ? pointsLeader.name : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">${pointsLeader ? pointsLeader.points + ' matchpoeng' : 'Ingen poengdata'}</div>
-                </div>
-
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kampbildet</span>
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
-                            <i class="fa-solid fa-clipboard-list text-amber-600"></i>
-                        </div>
-                    </div>
-                    <div class="text-xl font-black text-slate-900">${avgRating ? avgRating.toFixed(1) : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">Snittbørs · ${totalGoals} mål · ${totalYellow}🟨 ${totalRed}🟥</div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <h3 class="font-black text-slate-800 text-sm">Spillerstatistikk</h3>
-                                <p class="text-xs text-slate-500 mt-1 leading-snug">
-                                    Poengfordeling for spillerne som var registrert med oppmøte i kampen.
+            // 2. BYGG ALLTID TOPP-HEADEREN MED MENYEN FØRST
+            let html = `
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-6 shadow-md text-white border border-bsk-blueDark">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                            <div>
+                                <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">Kampanalyse</p>
+                                <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap">
+                                    <span>BSK -</span>
+                                    <span class="relative inline-block flex-1 min-w-0 max-w-[260px]">
+                                        <select
+                                            id="kampstat-match-select"
+                                            onfocus="expandKampSelectLabels()"
+                                            onmousedown="expandKampSelectLabels()"
+                                            onblur="collapseKampSelectLabel()"
+                                            onchange="showMatchStatsTable()"
+                                            class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate"
+                                        >
+                                            ${playedMatches.map(m => {
+                                                const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+                                                const shortText = m.opponent || 'Motstander';
+                                                const fullText = \`\${m.opponent || 'Motstander'}\${optionDate ? ' · ' + optionDate : ''}\${m.result ? ' · ' + m.result : ''}\`;
+                                                return \`
+                                                    <option
+                                                        class="text-slate-900"
+                                                        value="\${m.id}"
+                                                        data-short="\${shortText}"
+                                                        data-full="\${fullText}"
+                                                        \${m.id === matchId ? 'selected' : ''}
+                                                    >
+                                                        \${shortText}
+                                                    </option>
+                                                \`;
+                                            }).join('')}
+                                        </select>
+                                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
+                                    </span>
+                                </h2>
+                                <p class="text-sm text-slate-200 mt-1">
+                                    ${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}
                                 </p>
                             </div>
-                        
-                            <div class="flex items-center gap-2 shrink-0">
-                                <button 
-                                    onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
-                                    class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm whitespace-nowrap"
-                                >
-                                    <i class="fa-solid fa-circle-info"></i>
-                                    <span class="sm:hidden">Poeng</span>
-                                    <span class="hidden sm:inline">Slik regnes poengene</span>
-                                </button>
-                            
-                                <button
-                                    onclick="openMatchStatsEditor('${match.id}')"
-                                    title="Rediger mål, kort og spillerbørs"
-                                    class="inline-flex items-center justify-center w-9 h-9 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-100 rounded-xl transition shadow-sm"
-                                >
-                                    <i class="fa-solid fa-pen-to-square text-sm"></i>
-                                </button>
+                            <div class="bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[130px]">
+                                <p class="text-[10px] uppercase font-black text-slate-300 mb-1">Resultat</p>
+                                <p class="text-3xl font-black text-bsk-yellow">${matchResult}</p>
                             </div>
                         </div>
                     </div>
+            `;
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
-                                <tr>
-                                    <th class="p-4">Spiller</th>
-                                    <th class="p-4 text-center">Poeng</th>
-                                    <th class="p-4 text-center">Børs</th>
-                                    <th class="p-4 text-center">Mål</th>
-                                    <th class="p-4 text-center text-indigo-600">BB</th>
-                                    <th class="p-4 text-center">Gult</th>
-                                    <th class="p-4 text-center">Rødt</th>
-                                    <th class="p-4 text-center">Res/Mål</th>
-                                    <th class="p-4 text-center">Start</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                ${rowsHtml}
-                            </tbody>
-                        </table>
+            // 3. SJEKKER OPPMØTE FOR Å SE OM VI KAN BYGGE STATISTIKK
+            const attendingPlayers = match.attendance ? Object.keys(match.attendance).filter(pName => match.attendance[pName] === true) : [];
+
+            // HVIS INGEN HAR OPPMØTE, VIS EN FIN ADVARSEL UNDER MENYEN
+            if (attendingPlayers.length === 0) {
+                html += `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+                        <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-clipboard-user text-2xl text-slate-400"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg mb-1">Mangler oppmøtedata</h3>
+                        <p class="text-sm text-slate-500 mb-5 max-w-md mx-auto">Det er ikke ført oppmøte på denne kampen. Du må registrere hvem som spilte for å generere kampstatistikk og børs.</p>
+                        <button onclick="openAttendanceModal('match_${match.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black px-6 py-3 rounded-xl shadow-md transition-all active:scale-95">
+                            <i class="fa-solid fa-user-check mr-2 text-bsk-yellow"></i> Før oppmøte for kampen
+                        </button>
+                    </div>
+                </div>`; // Lukk den ytre div-en
+                
+                container.innerHTML = html;
+                window.collapseKampSelectLabel();
+                return;
+            }
+
+            // 4. HVIS DATA FINNES: BEREGN OG VIS STATISTIKK
+            const stats = attendingPlayers.map(pName => {
+                const rating = match.ratings && match.ratings[pName] ? Number(match.ratings[pName]) : 0;
+                const goals = match.scorers && match.scorers[pName] ? Number(match.scorers[pName]) : 0;
+                const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
+                const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
+                const isBbInMatch = match.motm === pName;
+
+                const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
+                    ? window.calculatePlayerMatchPoints(match, pName, true)
+                    : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0 };
+
+                return {
+                    name: pName, rating, goals, yellow, red, isBbInMatch,
+                    points: pointsDetails.total || 0, base: pointsDetails.base || 0,
+                    resultBonus: pointsDetails.resultBonus || 0, ratingBonus: pointsDetails.ratingBonus || 0, bbBonus: pointsDetails.bbBonus || 0,
+                    breakdown: \`Start: \${pointsDetails.base || 0} | Res/Mål: \${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: \${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: \${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}\`
+                };
+            });
+
+            stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals);
+
+            const avgRating = stats.filter(s => s.rating > 0).length
+                ? stats.filter(s => s.rating > 0).reduce((sum, s) => sum + s.rating, 0) / stats.filter(s => s.rating > 0).length
+                : 0;
+
+            const totalGoals = stats.reduce((sum, s) => sum + s.goals, 0);
+            const totalYellow = stats.reduce((sum, s) => sum + s.yellow, 0);
+            const totalRed = stats.reduce((sum, s) => sum + s.red, 0);
+
+            const bbPlayer = stats.find(s => s.isBbInMatch);
+            const topScorer = [...stats].sort((a, b) => b.goals - a.goals)[0];
+            const pointsLeader = stats[0];
+
+            const pointColor = (points) => {
+                if (points >= 25) return 'text-emerald-600';
+                if (points >= 18) return 'text-bsk-blue';
+                if (points >= 10) return 'text-slate-700';
+                return 'text-rose-600';
+            };
+
+            const scoreBadge = (value, type = 'neutral') => {
+                const styles = {
+                    blue: 'bg-bsk-blue/10 text-bsk-blue border-bsk-blue/10',
+                    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                    amber: 'bg-amber-50 text-amber-700 border-amber-100',
+                    rose: 'bg-rose-50 text-rose-700 border-rose-100',
+                    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                    slate: 'bg-slate-50 text-slate-600 border-slate-100'
+                };
+                return \`<span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-black border \${styles[type] || styles.slate}">\${value}</span>\`;
+            };
+
+            const rowsHtml = stats.map(s => {
+                const baseVis = scoreBadge(\`+\${s.base}\`, 'slate');
+                const resultVis = scoreBadge(\`\${s.resultBonus > 0 ? '+' : ''}\${s.resultBonus}\`, s.resultBonus >= 0 ? 'blue' : 'rose');
+                const ratingVis = s.rating > 0 ? scoreBadge(\`\${s.ratingBonus > 0 ? '+' : ''}\${s.ratingBonus}\`, s.ratingBonus >= 0 ? 'emerald' : 'rose') : '<span class="text-slate-300 font-bold">-</span>';
+                const goalVis = s.goals > 0 ? scoreBadge(\`⚽ +\${s.goals}\`, 'emerald') : '<span class="text-slate-300 font-bold">-</span>';
+                const yellowVis = s.yellow > 0 ? scoreBadge('🟨 0', 'amber') : '<span class="text-slate-300 font-bold">-</span>';
+                const redVis = s.red > 0 ? scoreBadge('🟥 -10', 'rose') : '<span class="text-slate-300 font-bold">-</span>';
+                const bbVis = s.isBbInMatch ? scoreBadge('👑 +1', 'indigo') : '<span class="text-slate-300 font-bold">-</span>';
+
+                return \`
+                    <tr class="hover:bg-slate-50 transition-colors" title="\${s.breakdown}">
+                        <td class="p-4 font-black text-slate-800">\${s.name}</td>
+                        <td class="p-4 text-center font-black text-lg \${pointColor(s.points)}">\${s.points}</td>
+                        <td class="p-4 text-center">\${ratingVis}</td>
+                        <td class="p-4 text-center">\${goalVis}</td>
+                        <td class="p-4 text-center">\${bbVis}</td>
+                        <td class="p-4 text-center">\${yellowVis}</td>
+                        <td class="p-4 text-center">\${redVis}</td>
+                        <td class="p-4 text-center">\${resultVis}</td>
+                        <td class="p-4 text-center">\${baseVis}</td>
+                    </tr>
+                \`;
+            }).join('');
+
+            html += \`
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Banens beste</span>
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">👑</div>
+                        </div>
+                        <div class="text-xl font-black text-slate-900">\${bbPlayer ? bbPlayer.name : '-'}</div>
+                        <div class="text-xs text-slate-500 mt-1">\${bbPlayer ? '+1 BB-bonus' : 'Ingen BB registrert'}</div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Toppscorer</span>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">⚽</div>
+                        </div>
+                        <div class="text-xl font-black text-slate-900">\${topScorer && topScorer.goals > 0 ? topScorer.name : '-'}</div>
+                        <div class="text-xs text-slate-500 mt-1">\${topScorer && topScorer.goals > 0 ? topScorer.goals + ' mål' : 'Ingen mål registrert'}</div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mest poeng</span>
+                            <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                                <i class="fa-solid fa-chart-line text-bsk-blue"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl font-black text-slate-900">\${pointsLeader ? pointsLeader.name : '-'}</div>
+                        <div class="text-xs text-slate-500 mt-1">\${pointsLeader ? pointsLeader.points + ' matchpoeng' : 'Ingen poengdata'}</div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kampbildet</span>
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+                                <i class="fa-solid fa-clipboard-list text-amber-600"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl font-black text-slate-900">\${avgRating ? avgRating.toFixed(1) : '-'}</div>
+                        <div class="text-xs text-slate-500 mt-1">Snittbørs · \${totalGoals} mål · \${totalYellow}🟨 \${totalRed}🟥</div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50">
-                        <h3 class="font-black text-slate-800 text-sm">Kampoppsummering</h3>
-                        <p class="text-xs text-slate-500 mt-1">Kort bilde av kampen basert på registrerte data.</p>
-                    </div>
-                
-                    <div class="p-5 space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Snittbørs</p>
-                                <p class="text-xl font-black text-bsk-blue mt-1">${avgRating ? avgRating.toFixed(1) : '-'}</p>
-                            </div>
-                
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mål</p>
-                                <p class="text-xl font-black text-emerald-600 mt-1">${totalGoals}</p>
-                            </div>
-                
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Gule kort</p>
-                                <p class="text-xl font-black text-amber-600 mt-1">${totalYellow}</p>
-                            </div>
-                
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Røde kort</p>
-                                <p class="text-xl font-black text-rose-600 mt-1">${totalRed}</p>
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div class="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 bg-slate-50">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h3 class="font-black text-slate-800 text-sm">Spillerstatistikk</h3>
+                                    <p class="text-xs text-slate-500 mt-1 leading-snug">
+                                        Poengfordeling for spillerne som spilte.
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                        <span class="sm:hidden">Poeng</span>
+                                        <span class="hidden sm:inline">Slik regnes poengene</span>
+                                    </button>
+                                    <button onclick="openMatchStatsEditor('\${match.id}')" title="Rediger mål, kort og spillerbørs" class="inline-flex items-center justify-center w-9 h-9 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-100 rounded-xl transition shadow-sm">
+                                        <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                
-                        <div class="border-t border-slate-100 pt-4 space-y-3">
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-bold text-slate-500">👑 Banens beste</span>
-                                <span class="text-xs font-black text-slate-800 text-right">${bbPlayer ? bbPlayer.name : '-'}</span>
-                            </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
+                                    <tr>
+                                        <th class="p-4">Spiller</th>
+                                        <th class="p-4 text-center">Poeng</th>
+                                        <th class="p-4 text-center">Børs</th>
+                                        <th class="p-4 text-center">Mål</th>
+                                        <th class="p-4 text-center text-indigo-600">BB</th>
+                                        <th class="p-4 text-center">Gult</th>
+                                        <th class="p-4 text-center">Rødt</th>
+                                        <th class="p-4 text-center">Res/Mål</th>
+                                        <th class="p-4 text-center">Start</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    \${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 bg-slate-50">
+                            <h3 class="font-black text-slate-800 text-sm">Kampoppsummering</h3>
+                            <p class="text-xs text-slate-500 mt-1">Notater og data for trenerteamet.</p>
+                        </div>
                         
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
-                                <span class="text-xs font-black text-slate-800 text-right">
-                                    ${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
-                                </span>
-                            </div>
-                        
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-bold text-slate-500">📈 Mest poeng</span>
-                                <span class="text-xs font-black text-slate-800 text-right">
-                                    ${pointsLeader ? pointsLeader.name + ' · ' + pointsLeader.points + ' p' : '-'}
-                                </span>
+                        <div class="p-5 space-y-4">
+                            <div class="border-t border-slate-100 pt-4 space-y-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-xs font-bold text-slate-500">👑 Banens beste</span>
+                                    <span class="text-xs font-black text-slate-800 text-right">\${bbPlayer ? bbPlayer.name : '-'}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
+                                    <span class="text-xs font-black text-slate-800 text-right">
+                                        \${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-xs font-bold text-slate-500">📈 Mest poeng</span>
+                                    <span class="text-xs font-black text-slate-800 text-right">
+                                        \${pointsLeader ? pointsLeader.name + ' · ' + pointsLeader.points + ' p' : '-'}
+                                    </span>
+                                </div>
                             </div>
 
                             <div class="border-t border-slate-100 pt-4 space-y-3">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
-                                        Positivt
-                                    </label>
-                                    <textarea
-                                        id="match-note-positive"
-                                        rows="2"
-                                        placeholder="Hva fungerte bra i denne kampen?"
-                                        onblur="saveMatchSummaryNotes('${match.id}')"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue resize-none"
-                                    >${match.notes?.positive || ''}</textarea>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Positivt</label>
+                                    <textarea id="match-note-positive" rows="2" placeholder="Hva fungerte bra i denne kampen?" onblur="saveMatchSummaryNotes('\${match.id}')" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue resize-none">\${match.notes?.positive || ''}</textarea>
                                 </div>
-                            
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
-                                        Utfordring
-                                    </label>
-                                    <textarea
-                                        id="match-note-challenge"
-                                        rows="2"
-                                        placeholder="Hva må vi forbedre eller følge opp?"
-                                        onblur="saveMatchSummaryNotes('${match.id}')"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue resize-none"
-                                    >${match.notes?.challenge || ''}</textarea>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Utfordring</label>
+                                    <textarea id="match-note-challenge" rows="2" placeholder="Hva må vi forbedre?" onblur="saveMatchSummaryNotes('\${match.id}')" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue resize-none">\${match.notes?.challenge || ''}</textarea>
                                 </div>
                             </div>
                             
                             <div class="pt-3">
-                                <button 
-                                    onclick="openTacticalPlanForMatch('${match.id}')"
-                                    class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-bsk-blueDark"
-                                >
-                                    <i class="fa-solid fa-chess-board text-bsk-yellow"></i>
-                                    Gå til kampplan
+                                <button onclick="openTacticalPlanForMatch('\${match.id}')" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-bsk-blueDark">
+                                    <i class="fa-solid fa-chess-board text-bsk-yellow"></i> Gå til kampplan
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>`; 
 
-        </div>
-    `;
-    window.collapseKampSelectLabel();
-}; 
+            container.innerHTML = html;
+            window.collapseKampSelectLabel();
+        }; 
 
         window.openTacticalPlanForMatch = function(matchId) {
             switchTab('taktikk');
