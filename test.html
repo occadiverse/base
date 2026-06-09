@@ -4241,34 +4241,36 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
         return `<option value="${m.id}">${dateStr} - vs ${m.opponent}${resultText}${groupText}</option>`;
     }).join('');
 
-    let html = `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-                <div>
-                    <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Kampstatistikk</p>
-                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Kampanalyse</h3>
-                    <p class="text-xs text-slate-500 mt-1">
-                        Se spillerbørs, matchpoeng, BB, mål og kort for valgt kamp.
-                    </p>
-                </div>
+let html = `
+    <div class="space-y-6">
 
-                <div class="w-full md:w-80">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
-                        Velg kamp
-                    </label>
-                    <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
-                        ${playedMatches.length ? optionsHtml : '<option value="">Ingen spilte kamper</option>'}
-                    </select>
-                </div>
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+                <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Kampstatistikk</p>
+                <h3 class="text-xl font-black text-slate-900 tracking-tight">Kampanalyse</h3>
+                <p class="text-xs text-slate-500 mt-1">
+                    Se spillerbørs, matchpoeng, BB, mål og kort for valgt kamp.
+                </p>
             </div>
 
-            <div id="kampstat-table-container">
-                <div class="text-center py-10 text-slate-400 italic text-sm">
-                    ${playedMatches.length ? 'Laster siste spilte kamp...' : 'Ingen spilte kamper med resultat er registrert ennå.'}
-                </div>
+            <div class="w-full md:w-80">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                    Velg kamp
+                </label>
+                <select id="kampstat-match-select" onchange="showMatchStatsTable()" class="w-full p-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 shadow-sm focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue">
+                    ${playedMatches.length ? optionsHtml : '<option value="">Ingen spilte kamper</option>'}
+                </select>
             </div>
         </div>
-    `;
+
+        <div id="kampstat-table-container">
+            <div class="text-center py-10 text-slate-400 italic text-sm">
+                ${playedMatches.length ? 'Laster siste spilte kamp...' : 'Ingen spilte kamper med resultat er registrert ennå.'}
+            </div>
+        </div>
+
+    </div>
+`;
 
     container.innerHTML = html;
 
