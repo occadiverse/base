@@ -63,7 +63,7 @@ window.loadAllData = async function() {
 // TAB NAVIGATION
 // ============================================
 
-function switchTab(tabName) {
+window.switchTab = function(tabName) {
     // Hide all view sections
     document.querySelectorAll('[id^="view-"]').forEach(el => {
         el.classList.add('hidden');
