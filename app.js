@@ -15,70 +15,46 @@ let matchesCache = [];
 let eventsCache = []; // Husk å få med denne!
 
 // ============================================
-// LOAD DATA FROM FIREBASE
+// LOAD DATA FROM FIREBASE (MODERNE V11 SDK)
 // ============================================
 
-async function loadAllData() {
+window.loadAllData = async function() {
     try {
-        console.log('Loading data from Firebase...');
-        await loadTeams();
-        await loadPlayers();
-        await loadMatches();
-        console.log('All data loaded successfully');
+        console.log('Henter ferske data fra Firebase...');
         
-        // --- NY KODE: Oppdaterer forsiden når alt er ferdig lastet ---
-        if (typeof window.updateDashboard === 'function') {
-            window.updateDashboard();
-        }
-        
-    } catch (error) {
-        console.error('Error loading data:', error);
-        alert('Feil ved lasting av data fra database');
-    }
-}
-
-async function loadTeams() {
-    try {
-        const snapshot = await db.collection('teams').get();
+        // 1. Hent lag
+        const teamsSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'teams'));
         teamsCache = [];
-        snapshot.forEach(doc => {
-            teamsCache.push({ id: doc.id, ...doc.data() });
-        });
-        console.log('Teams loaded:', teamsCache);
-        updateTeamSelects();
-        displayTeams();
-    } catch (error) {
-        console.error('Error loading teams:', error);
-    }
-}
-
-async function loadPlayers() {
-    try {
-        const snapshot = await db.collection('players').get();
+        teamsSnapshot.forEach(doc => teamsCache.push({ id: doc.id, ...doc.data() }));
+        
+        // 2. Hent spillere
+        const playersSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'players'));
         playersCache = [];
-        snapshot.forEach(doc => {
-            playersCache.push({ id: doc.id, ...doc.data() });
-        });
-        console.log('Players loaded:', playersCache);
-        displayPlayers();
-    } catch (error) {
-        console.error('Error loading players:', error);
-    }
-}
+        playersSnapshot.forEach(doc => playersCache.push({ id: doc.id, ...doc.data() }));
 
-async function loadMatches() {
-    try {
-        const snapshot = await db.collection('matches').get();
+        // 3. Hent kamper
+        const matchesSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'matches'));
         matchesCache = [];
-        snapshot.forEach(doc => {
-            matchesCache.push({ id: doc.id, ...doc.data() });
-        });
-        console.log('Matches loaded:', matchesCache);
-        displayMatches();
+        matchesSnapshot.forEach(doc => matchesCache.push({ id: doc.id, ...doc.data() }));
+
+        // 4. Hent eventer/treninger
+        const eventsSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'events'));
+        eventsCache = [];
+        eventsSnapshot.forEach(doc => eventsCache.push({ id: doc.id, ...doc.data() }));
+
+        console.log('Database-synkronisering fullført! 🎉');
+        
+        // Kjør oppdatering av grensesnittet
+        if (typeof updateTeamSelects === 'function') updateTeamSelects();
+        if (typeof displayTeams === 'function') displayTeams();
+        if (typeof displayPlayers === 'function') displayPlayers();
+        if (typeof displayMatches === 'function') displayMatches();
+        if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        
     } catch (error) {
-        console.error('Error loading matches:', error);
+        console.error('Kritisk feil ved lasting av Firebase-data:', error);
     }
-}
+};
 
 // ============================================
 // TAB NAVIGATION
@@ -995,6 +971,29 @@ window.updateHjemWidget = function() {
 
     let rightWidgetHtml = '';
     if (topPlayer && topScore > 0) {
+        let kamper = 0, mal = 0, attendedEvents = 0;
+        const allEvents = [
+            ...eventsCache,
+            ...matchesCache.map(m => ({ ...m, type: 'Kamp', team: m.group }))
+        ];
+        
+        const teamEvents = allEvents.filter(e => {
+            if (e.team !== topPlayer.spillerLag && e.team !== topPlayer.team) return false;
+            if (e.date && e.date > todayStr) return false;
+            return true;
+        });
+
+        teamEvents.forEach(e => { 
+            if (e.attendance && e.attendance[topPlayer.name] === true) {
+                attendedEvents++;
+                if (e.type === 'Kamp') {
+                    kamper++;
+                    if (e.scorers && e.scorers[topPlayer.name]) mal += e.scorers[topPlayer.name];
+                }
+            } 
+        });
+        const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
+
         rightWidgetHtml = `
             <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-700 rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-xl">
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
