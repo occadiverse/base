@@ -817,7 +817,8 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
 
 window.updateDashboard = function() {
     let upcoming = [];
-    matchesCache.forEach(m => {
+
+    (window.activeMatches || []).forEach(m => {
         const score = parseScore(m.result);
         if (score === null) upcoming.push(m);
     });
@@ -832,7 +833,7 @@ window.updateDashboard = function() {
             const nm = upcoming[0];
             const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
             
-            const teamSuspensions = getDisciplineStatusForTeam(nm.group, nm.date);
+            const teamSuspensions = getDisciplineStatusForTeam(nm.matchGroup || nm.group || nm.team, nm.date);
             const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
             
             let herosuspensionBadgeHtml = '';
@@ -998,29 +999,50 @@ window.updateHjemWidget = function() {
     }
 
     // --- HØYRE BOKS: UKENS MASKIN ---
-    let topPlayer = null;
-    let topScore = -1;
-    
-    (window.activePlayers || []).filter(p => p.status !== 'Passiv').forEach(p => {
-        const score = typeof window.calculatePlayerPerformanceChemistry === 'function' ? window.calculatePlayerPerformanceChemistry(p.navn) : 0;
-        if (score > topScore) { topScore = score; topPlayer = p; }
+    // --- HØYRE BOKS: UKENS MASKIN ---
+const getPlayerName = (p) => p.navn || p.name || p.fullName || '';
+const getPlayerTeam = (p) => p.spillerLag || p.team || p.group || p.lag || '';
+
+let topPlayer = null;
+let topScore = -1;
+
+(window.activePlayers || [])
+    .filter(p => p.status !== 'Passiv')
+    .forEach(p => {
+        const playerName = getPlayerName(p);
+        if (!playerName) return;
+
+        const score = typeof window.calculatePlayerPerformanceChemistry === 'function'
+            ? window.calculatePlayerPerformanceChemistry(playerName)
+            : 0;
+
+        if (score > topScore) {
+            topScore = score;
+            topPlayer = p;
+        }
     });
 
     let rightWidgetHtml = '';
     if (topPlayer && topScore > 0) {
         let kamper = 0, mal = 0, attendedEvents = 0;
+
+        const topPlayerName = getPlayerName(topPlayer);
+        const topPlayerTeam = getPlayerTeam(topPlayer);
         
         const allEvents = [
             ...(window.activeEvents || []),
-            ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))
+            ...(window.activeMatches || []).map(m => ({
+                ...m,
+                type: 'Kamp',
+                team: m.matchGroup || m.group || m.team
+            }))
         ];
 
         const todayForChemistry = new Date();
         todayForChemistry.setHours(0, 0, 0, 0);
         
         const teamEvents = allEvents.filter(e => {
-            // HER ER RETTELSEN SOM LØSER KRASJEN
-            if (e.team !== topPlayer.spillerLag) return false; 
+            if (topPlayerTeam && e.team && e.team !== topPlayerTeam) return false; 
         
             if (e.date) {
                 const eventDate = new Date(e.date);
@@ -1032,11 +1054,11 @@ window.updateHjemWidget = function() {
         });
         
         teamEvents.forEach(e => { 
-            if (e.attendance && e.attendance[topPlayer.navn] === true) {
+            if (e.attendance && e.attendance[topPlayerName] === true) {
                 attendedEvents++;
                 if (e.type === 'Kamp') {
                     kamper++;
-                    if (e.scorers && e.scorers[topPlayer.navn]) mal += e.scorers[topPlayer.navn];
+                   if (e.scorers && e.scorers[topPlayerName]) mal += Number(e.scorers[topPlayerName]) || 0;
                 }
             } 
         });
@@ -1059,8 +1081,8 @@ window.updateHjemWidget = function() {
                     
                     <div class="flex-1 flex items-center justify-between mb-2">
                         <div class="space-y-1 min-w-0 pr-4">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1}</p>
-                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.navn.split(' ')[0]}</h4>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1 || topPlayer.position || topPlayer.posisjon || ''}</p>
+                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayerName.split(' ')[0]}</h4>
                         </div>
                         
                         <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] transition-shadow duration-500">
