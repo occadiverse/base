@@ -924,7 +924,7 @@ window.updateHjemWidget = function() {
 
     // --- VENSTRE BOKS: NESTE ØKT ---
     const todayStr = new Date().toISOString().split('T')[0];
-    const upcomingEvents = eventsCache.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
+    const upcomingEvents = (window.activeEvents || []).filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
     
     let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
@@ -963,8 +963,11 @@ window.updateHjemWidget = function() {
     } else {
         leftWidgetHtml = `
             <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center text-center h-full min-h-[235px] text-white">
+                <div class="w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-calendar-xmark text-xl text-slate-400"></i>
+                </div>
                 <h3 class="font-black text-slate-200 text-sm">Kalenderen er tom</h3>
-                <p class="text-xs text-slate-400 mt-1">Ingen aktiviteter planlagt.</p>
+                <p class="text-xs text-slate-400 mt-1 max-w-[200px]">Det er ingen kommende aktiviteter planlagt.</p>
             </div>`;
     }
 
@@ -972,8 +975,8 @@ window.updateHjemWidget = function() {
     let topPlayer = null;
     let topScore = -1;
     
-    playersCache.filter(p => p.status !== 'Passiv').forEach(p => {
-        const score = calculatePlayerPerformanceChemistry(p.name);
+    (window.activePlayers || []).filter(p => p.status !== 'Passiv').forEach(p => {
+        const score = typeof window.calculatePlayerPerformanceChemistry === 'function' ? window.calculatePlayerPerformanceChemistry(p.navn) : 0;
         if (score > topScore) { topScore = score; topPlayer = p; }
     });
 
@@ -981,22 +984,23 @@ window.updateHjemWidget = function() {
     if (topPlayer && topScore > 0) {
         let kamper = 0, mal = 0, attendedEvents = 0;
         const allEvents = [
-            ...eventsCache,
-            ...matchesCache.map(m => ({ ...m, type: 'Kamp', team: m.group }))
+            ...(window.activeEvents || []),
+            ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))
         ];
         
         const teamEvents = allEvents.filter(e => {
+            // RETTET HER: Sjekker både spillerLag og team mot topPlayer sine faste verdier
             if (e.team !== topPlayer.spillerLag && e.team !== topPlayer.team) return false;
             if (e.date && e.date > todayStr) return false;
             return true;
         });
 
         teamEvents.forEach(e => { 
-            if (e.attendance && e.attendance[topPlayer.name] === true) {
+            if (e.attendance && e.attendance[topPlayer.navn] === true) {
                 attendedEvents++;
                 if (e.type === 'Kamp') {
                     kamper++;
-                    if (e.scorers && e.scorers[topPlayer.name]) mal += e.scorers[topPlayer.name];
+                    if (e.scorers && e.scorers[topPlayer.navn]) mal += e.scorers[topPlayer.navn];
                 }
             } 
         });
@@ -1012,24 +1016,33 @@ window.updateHjemWidget = function() {
                         <h3 class="font-black text-white text-sm flex items-center gap-2">
                             <i class="fa-solid fa-bolt text-amber-400"></i> Ukens Maskin
                         </h3>
-                        <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Hot Streak</span>
+                        <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Hot Streak</span>
                     </div>
                     <div class="flex-1 flex items-center justify-between mb-2">
                         <div class="space-y-1 min-w-0 pr-4">
-                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.name.split(' ')[0]}</h4>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1 || 'Uoppgitt pos'}</p>
+                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.navn.split(' ')[0]}</h4>
                         </div>
-                        <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)]">
+                        <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] transition-shadow duration-500">
                             <span class="text-2xl font-black text-bsk-yellow leading-none">${topScore}</span>
                             <span class="text-[8px] font-bold text-amber-200/70 uppercase tracking-wider mt-1">Form</span>
                         </div>
+                    </div>
+                    <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-800/60">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper</div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block font-black mb-0.5 leading-none">${mal}</span> Mål</div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-l border-slate-700 pl-4"><span class="text-bsk-yellow text-base block font-black mb-0.5 leading-none">${oppmotePct}%</span> Trening</div>
                     </div>
                 </div>
             </div>`;
     } else {
         rightWidgetHtml = `
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
+                <div class="w-12 h-12 bg-white rounded-full border border-slate-100 flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-bolt text-xl text-slate-300"></i>
+                </div>
                 <h3 class="font-black text-slate-700 text-sm">Ingen data enda</h3>
-                <p class="text-xs text-slate-500 mt-1">Kalkulerer formsum når uken starter.</p>
+                <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Før oppmøte og karakterer for å kåre Ukens Maskin.</p>
             </div>`;
     }
 
