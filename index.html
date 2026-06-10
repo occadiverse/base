@@ -158,13 +158,25 @@
             
             <!-- FORSIDE / DASHBOARD REDESIGN -->
             <div id="view-hjem" class="space-y-6">
-                <div id="hjem-hero-match-container">
-                </div>
-                <!-- BUNNSEKSJON: TRENING & ENGASJEMENT (50/50 SPLITT) -->
-                <div id="hjem-bottom-widgets" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Det nye, delte innholdet genereres automatisk av JavaScript her -->
-                </div>
-            </div> <!-- Dette er den lukkende taggen for view-hjem -->
+             <div id="hjem-hero-match-container" class="w-full"></div>
+         
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full">
+                    
+                    <div id="hjem-bottom-widgets" class="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:col-span-2"></div>
+                    
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm h-full flex flex-col">
+                        <div class="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                            <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-user-slash text-rose-500"></i> Status: Utilgjengelige spillere
+                            </h3>
+                            <span class="bg-rose-100 text-rose-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Neste match</span>
+                        </div>
+                        <div id="hjem-suspensions-danger-zone" class="space-y-2 flex-1">
+                            </div>
+                    </div>
+                    
+                </div>
+            </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
             <div id="view-kamper" class="hidden space-y-6">
                 <div class="w-full flex justify-center mb-6 mt-2">
