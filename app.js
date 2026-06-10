@@ -32,6 +32,12 @@ async function loadAllData() {
         await loadPlayers();
         await loadMatches();
         console.log('All data loaded successfully');
+        
+        // --- NY KODE: Oppdaterer forsiden når alt er ferdig lastet ---
+        if (typeof window.updateDashboard === 'function') {
+            window.updateDashboard();
+        }
+        
     } catch (error) {
         console.error('Error loading data:', error);
         alert('Feil ved lasting av data fra database');
@@ -700,3 +706,332 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load data from Firebase
     await loadAllData();
 });
+
+// ============================================
+// FORSIDE / DASHBOARD
+// ============================================
+
+// ============================================
+// HJELPEFUNKSJONER FOR MATTE OG LOGIKK
+// ============================================
+
+window.parseScore = function(resultStr) {
+    if (!resultStr || !resultStr.includes('-')) return null;
+    const pts = resultStr.split('-').map(x => parseInt(x.trim()));
+    if (pts.length !== 2 || isNaN(pts[0]) || isNaN(pts[1])) return null;
+    return { bsk: pts[0], opponent: pts[1] };
+};
+
+window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
+    const pastMatches = matchesCache
+        .filter(m => m.group === teamName && m.type === 'Serie' && m.date < upToDateStr)
+        .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    let playerStats = {}; 
+
+    pastMatches.forEach(m => {
+        Object.keys(playerStats).forEach(pName => {
+            if (playerStats[pName].isSuspended) {
+                if (!m.attendance || m.attendance[pName] !== true) {
+                    playerStats[pName].isSuspended = false;
+                    playerStats[pName].reason = '';
+                }
+            }
+        });
+
+        if (m.attendance) {
+            Object.keys(m.attendance).forEach(pName => {
+                if (m.attendance[pName] === true) {
+                    if (!playerStats[pName]) playerStats[pName] = { yellows: 0, reds: 0, isSuspended: false, isAtRisk: false, reason: '', cardType: '', displayNum: 0 };
+                    
+                    const gotYellow = m.guleKort && m.guleKort.includes(pName);
+                    const gotRed = m.rodeKort && m.rodeKort.includes(pName);
+
+                    if (gotRed) {
+                        playerStats[pName].reds++;
+                        playerStats[pName].isSuspended = true;
+                        playerStats[pName].reason = 'Rødt kort';
+                        playerStats[pName].cardType = 'red';
+                    }
+                    
+                    if (gotYellow) {
+                        playerStats[pName].yellows++;
+                        let y = playerStats[pName].yellows;
+                        playerStats[pName].isAtRisk = (y === 3 || (y > 3 && y % 2 === 1));
+                        
+                        if (y === 4 || (y > 4 && y % 2 === 0)) {
+                            playerStats[pName].isSuspended = true;
+                            playerStats[pName].isAtRisk = false;
+                            playerStats[pName].reason = `${y} gule kort`;
+                            playerStats[pName].cardType = 'yellow';
+                        }
+                    }
+                }
+            });
+        }
+    });
+    return playerStats;
+};
+
+window.calculatePlayerMatchPoints = function(m, playerName) {
+    let base = 15, resultBonus = 0, ratingBonus = 0, bbBonus = 0;
+    if (m.result && m.result.includes('-')) {
+        const score = parseScore(m.result);
+        if (score) {
+            if (score.bsk > score.opponent) resultBonus += 5;
+            else if (score.bsk === score.opponent) resultBonus += 2;
+            else resultBonus -= 2;
+            if (score.opponent === 0) resultBonus += 3;
+            resultBonus += score.bsk * 1;
+            resultBonus -= score.opponent * 1;
+        }
+    }
+    if (m.ratings && m.ratings[playerName]) ratingBonus = (m.ratings[playerName] - 5) * 6;
+    if (m.motm === playerName) bbBonus = 1;
+    
+    return base + resultBonus + ratingBonus + bbBonus;
+};
+
+window.calculatePlayerPerformanceChemistry = function(playerName) {
+    const playerObj = playersCache.find(p => p.name === playerName);
+    if (!playerObj) return 0;
+    const spillerLag = playerObj.spillerLag || playerObj.team; // Tilpass etter datamodellen din
+    const allEvents = [...eventsCache, ...matchesCache.map(m => ({ ...m, type: 'Kamp', team: m.group }))];
+    const teamEvents = allEvents.filter(e => e.team === spillerLag);
+    
+    let attendedEvents = 0;
+    teamEvents.forEach(e => { if (e.attendance && e.attendance[playerName] === true) attendedEvents++; });
+
+    let chemistryScore = (teamEvents.length > 0 ? (attendedEvents / teamEvents.length) : 0) * 25; 
+    if (attendedEvents > 0) chemistryScore += 15; 
+    
+    let totalMatchPoints = 0, matchesPlayed = 0, disciplinePenalty = 0, totalYellowCards = 0; 
+    matchesCache.forEach(m => {
+        if (m.group === spillerLag && m.attendance && m.attendance[playerName] === true) {
+            matchesPlayed++;
+            totalMatchPoints += calculatePlayerMatchPoints(m, playerName);
+            if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
+            if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 10;
+        }
+    });
+    
+    if (matchesPlayed > 0) chemistryScore += (totalMatchPoints / matchesPlayed);
+    
+    let karantener = 0;
+    if (totalYellowCards >= 4) karantener = 1 + Math.floor((totalYellowCards - 4) / 2);
+    if (karantener > 1) disciplinePenalty -= ((karantener - 1) * 5); 
+    
+    chemistryScore += disciplinePenalty;
+    return Math.max(0, Math.min(100, Math.round(chemistryScore)));
+}
+
+// ============================================
+// FORSIDE / DASHBOARD LOGIKK
+// ============================================
+
+window.updateDashboard = function() {
+    let upcoming = [];
+    matchesCache.forEach(m => {
+        const score = parseScore(m.result);
+        if (score === null) upcoming.push(m);
+    });
+
+    upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const heroContainer = document.getElementById('hjem-hero-match-container');
+    const dangerZoneContainer = document.getElementById('hjem-suspensions-danger-zone');
+    
+    if (heroContainer) {
+        if (upcoming.length > 0) {
+            const nm = upcoming[0];
+            const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+            
+            const teamSuspensions = getDisciplineStatusForTeam(nm.group, nm.date);
+            const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
+            
+            let herosuspensionBadgeHtml = '';
+            if (suspendedPlayers.length > 0) {
+                herosuspensionBadgeHtml = `
+                    <span onclick="event.stopPropagation(); switchTab('kamper');" 
+                          class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse border border-white/20 cursor-pointer z-20 hover:bg-red-700 hover:scale-115 transition-all">
+                        ${suspendedPlayers.length}
+                    </span>
+                `;
+            }
+
+            heroContainer.innerHTML = `
+                <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border-b-4 border-bsk-yellow group">
+                    <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0">
+                        <i class="fa-solid fa-shield-halved text-[22rem]"></i>
+                    </div>
+                    
+                    <div class="relative z-10 space-y-6 max-w-5xl mx-auto">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="relative inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-md">
+                                    <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
+                                    <span>NESTE KAMP SATT</span>
+                                    ${herosuspensionBadgeHtml}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
+                            <div class="text-center md:text-right flex-1 w-full md:max-w-[280px]">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-0.5">Hjemmelag</span>
+                                <h2 class="text-xl md:text-2xl font-black text-white tracking-tight drop-shadow-md truncate">BÆKKELAGETS SK</h2>
+                            </div>
+                            
+                            <div class="flex flex-col items-center gap-3 shrink-0 my-2 md:my-0 px-4">
+                                <div class="bg-bsk-yellow text-bsk-blue px-3 py-1 rounded-xl text-[11px] font-black shadow-md tracking-wider uppercase border border-amber-300">VS</div>
+                            </div>
+                            
+                            <div class="text-center md:text-left flex-1 w-full md:max-w-[280px]">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-0.5">Motstander</span>
+                                <h2 class="text-xl md:text-2xl font-black text-bsk-yellow tracking-tight drop-shadow-md uppercase">
+                                    <span>${nm.opponent}</span>
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 max-w-4xl mx-auto text-xs">
+                            <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
+                                <div class="w-10 h-10 rounded-xl bg-bsk-yellow/10 border border-bsk-yellow/20 flex items-center justify-center shrink-0">
+                                    <i class="fa-regular fa-calendar text-bsk-yellow text-lg"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Kampdato</p>
+                                    <p class="font-extrabold text-white text-sm capitalize truncate">${d}</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
+                                <div class="w-10 h-10 rounded-xl bg-bsk-yellow/10 border border-bsk-yellow/20 flex items-center justify-center shrink-0">
+                                    <i class="fa-regular fa-clock text-bsk-yellow text-lg"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Avspark</p>
+                                    <p class="font-extrabold text-white text-sm tracking-wide">Kl. ${nm.time || 'TBA'}</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/40 border border-white/10 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-lg transition hover:bg-slate-900/50">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-location-dot text-rose-400 text-lg"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Spillested</p>
+                                    <p class="font-extrabold text-white text-sm truncate" title="${nm.pitch || 'Ikke fastsatt'}">${nm.pitch || 'Ikke fastsatt'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+        } else {
+            heroContainer.innerHTML = `
+                <div class="bg-slate-100 border border-slate-200 rounded-2xl p-10 text-center text-slate-400 shadow-inner">
+                    <i class="fa-solid fa-futbol text-4xl mb-3 text-slate-300 animate-pulse"></i>
+                    <h3 class="font-black text-slate-700 text-base">Ingen kommende kamper satt opp</h3>
+                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Det er ikke ført noen kommende kamper i systemet akkurat nå.</p>
+                </div>`;
+        }
+    }
+    
+    updateHjemWidget();
+};
+
+window.updateHjemWidget = function() {
+    const bottomContainer = document.getElementById('hjem-bottom-widgets');
+    if (!bottomContainer) return;
+
+    // --- VENSTRE BOKS: NESTE ØKT ---
+    const todayStr = new Date().toISOString().split('T')[0];
+    const upcomingEvents = eventsCache.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
+    
+    let leftWidgetHtml = '';
+    if (upcomingEvents.length > 0) {
+        const ne = upcomingEvents[0];
+        const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+        
+        let påmeldtAntall = 0;
+        if (ne.attendance) {
+            Object.values(ne.attendance).forEach(status => { if (status === true) påmeldtAntall++; });
+        }
+
+        leftWidgetHtml = `
+            <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-700 rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-xl">
+                <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                    <i class="fa-solid fa-stopwatch text-[14rem] text-blue-400"></i>
+                </div>
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                        <h3 class="font-black text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-stopwatch text-blue-400"></i> Neste økt
+                        </h3>
+                        <span class="bg-blue-400/10 border border-blue-400/20 text-blue-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">${d.split(' ')[0]} ${new Date(ne.date).getDate()}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-between mb-2">
+                        <div class="space-y-1 min-w-0 pr-4">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${ne.time || 'TBA'} | ${ne.location || 'Ikke oppgitt'}</p>
+                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${ne.title || 'TRENING'}</h4>
+                        </div>
+                        <div class="bg-blue-500/10 border border-blue-500/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.15)] cursor-pointer hover:scale-105">
+                            <span class="text-2xl font-black text-blue-400 leading-none">${påmeldtAntall}</span>
+                            <span class="text-[8px] font-bold text-blue-200/70 uppercase tracking-wider mt-1">Klar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    } else {
+        leftWidgetHtml = `
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center text-center h-full min-h-[235px] text-white">
+                <h3 class="font-black text-slate-200 text-sm">Kalenderen er tom</h3>
+                <p class="text-xs text-slate-400 mt-1">Ingen aktiviteter planlagt.</p>
+            </div>`;
+    }
+
+    // --- HØYRE BOKS: UKENS MASKIN ---
+    let topPlayer = null;
+    let topScore = -1;
+    
+    playersCache.filter(p => p.status !== 'Passiv').forEach(p => {
+        const score = calculatePlayerPerformanceChemistry(p.name);
+        if (score > topScore) { topScore = score; topPlayer = p; }
+    });
+
+    let rightWidgetHtml = '';
+    if (topPlayer && topScore > 0) {
+        rightWidgetHtml = `
+            <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-700 rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-xl">
+                <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                    <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
+                </div>
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                        <h3 class="font-black text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Ukens Maskin
+                        </h3>
+                        <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Hot Streak</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-between mb-2">
+                        <div class="space-y-1 min-w-0 pr-4">
+                            <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.name.split(' ')[0]}</h4>
+                        </div>
+                        <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)]">
+                            <span class="text-2xl font-black text-bsk-yellow leading-none">${topScore}</span>
+                            <span class="text-[8px] font-bold text-amber-200/70 uppercase tracking-wider mt-1">Form</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    } else {
+        rightWidgetHtml = `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
+                <h3 class="font-black text-slate-700 text-sm">Ingen data enda</h3>
+                <p class="text-xs text-slate-500 mt-1">Kalkulerer formsum når uken starter.</p>
+            </div>`;
+    }
+
+    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
+};
