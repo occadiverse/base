@@ -2,24 +2,17 @@
 // FIREBASE CONFIGURATION & INITIALIZATION
 // ============================================
 
-// Initialize Firebase (Update these with your Firebase config)
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_ID",
-    appId: "YOUR_APP_ID"
-};
+// Henter database-tilkoblingen fra din egen config-fil
+import { db, auth } from './firestore-config.js';
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Hvis du trenger andre Firebase-funksjoner (som å hente data), legger vi dem til her:
+import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Global data cache
 let teamsCache = [];
 let playersCache = [];
 let matchesCache = [];
+let eventsCache = []; // Husk å få med denne!
 
 // ============================================
 // LOAD DATA FROM FIREBASE
