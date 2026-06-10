@@ -828,6 +828,7 @@ window.updateDashboard = function() {
                 `;
             }
 
+            // HTML for det oppdaterte, rene kjempebanneret
             heroContainer.innerHTML = `
                 <section class="bg-gradient-to-br from-bsk-blue via-bsk-blueLight to-bsk-blueDark rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border-b-4 border-bsk-yellow group">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0">
@@ -837,12 +838,16 @@ window.updateDashboard = function() {
                     <div class="relative z-10 space-y-6 max-w-5xl mx-auto">
                         <div class="flex justify-between items-center border-b border-white/10 pb-3">
                             <div class="flex items-center gap-2">
-                                <div class="relative inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-md">
+                                <div class="relative inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-md font-black">
                                     <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
                                     <span>NESTE KAMP SATT</span>
                                     ${herosuspensionBadgeHtml}
                                 </div>
                             </div>
+                            
+                            <button onclick="switchTab('kamper')" class="text-slate-400 hover:text-bsk-yellow transition-colors text-xs font-bold flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl shadow-sm hover:bg-white/10" title="Åpne kampdetaljer">
+                                <span>Kampinfo</span> <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
+                            </button>
                         </div>
 
                         <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
@@ -853,6 +858,8 @@ window.updateDashboard = function() {
                             
                             <div class="flex flex-col items-center gap-3 shrink-0 my-2 md:my-0 px-4">
                                 <div class="bg-bsk-yellow text-bsk-blue px-3 py-1 rounded-xl text-[11px] font-black shadow-md tracking-wider uppercase border border-amber-300">VS</div>
+                                <div class="flex gap-1 bg-black/30 backdrop-blur-sm p-1 rounded-lg border border-white/5 shadow-inner" id="hero-form-pills-container">
+                                </div>
                             </div>
                             
                             <div class="text-center md:text-left flex-1 w-full md:max-w-[280px]">
@@ -894,6 +901,7 @@ window.updateDashboard = function() {
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </section>
             `;
