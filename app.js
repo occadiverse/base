@@ -765,23 +765,37 @@ window.calculatePlayerMatchPoints = function(m, playerName) {
 };
 
 window.calculatePlayerPerformanceChemistry = function(playerName) {
-    const playerObj = playersCache.find(p => p.name === playerName);
+    // Endret til window.activePlayers
+    const playerObj = (window.activePlayers || []).find(p => p.navn === playerName || p.name === playerName);
     if (!playerObj) return 0;
-    const spillerLag = playerObj.spillerLag || playerObj.team; // Tilpass etter datamodellen din
-    const allEvents = [...eventsCache, ...matchesCache.map(m => ({ ...m, type: 'Kamp', team: m.group }))];
-    const teamEvents = allEvents.filter(e => e.team === spillerLag);
+    
+    // Sjekker begge varianter av lagsnavn for å være helt sikker
+    const spillerensEgetLag = playerObj.spillerLag || playerObj.team || playerObj.group; 
+    
+    // Endret til window.activeEvents og window.activeMatches
+    const allEvents = [
+        ...(window.activeEvents || []), 
+        ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup || m.group }))
+    ];
+    
+    const teamEvents = allEvents.filter(e => e.team === spillerensEgetLag);
     
     let attendedEvents = 0;
-    teamEvents.forEach(e => { if (e.attendance && e.attendance[playerName] === true) attendedEvents++; });
+    teamEvents.forEach(e => { 
+        if (e.attendance && e.attendance[playerName] === true) attendedEvents++; 
+    });
 
     let chemistryScore = (teamEvents.length > 0 ? (attendedEvents / teamEvents.length) : 0) * 25; 
     if (attendedEvents > 0) chemistryScore += 15; 
     
     let totalMatchPoints = 0, matchesPlayed = 0, disciplinePenalty = 0, totalYellowCards = 0; 
-    matchesCache.forEach(m => {
-        if (m.group === spillerLag && m.attendance && m.attendance[playerName] === true) {
+    
+    // Endret til window.activeMatches
+    (window.activeMatches || []).forEach(m => {
+        const matchGroup = m.matchGroup || m.group;
+        if (matchGroup === spillerensEgetLag && m.attendance && m.attendance[playerName] === true) {
             matchesPlayed++;
-            totalMatchPoints += calculatePlayerMatchPoints(m, playerName);
+            totalMatchPoints += window.calculatePlayerMatchPoints(m, playerName);
             if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
             if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 10;
         }
@@ -795,7 +809,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     
     chemistryScore += disciplinePenalty;
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
-}
+};
 
 // ============================================
 // FORSIDE / DASHBOARD LOGIKK
