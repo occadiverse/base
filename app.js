@@ -940,17 +940,21 @@ window.updateHjemWidget = function() {
     if (!bottomContainer) return;
 
     // --- VENSTRE BOKS: NESTE ØKT ---
+    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = new Date().toISOString().split('T')[0];
-    const upcomingEvents = (window.activeEvents || []).filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
+    const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
     
     let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
         const ne = upcomingEvents[0];
         const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
         
-        let påmeldtAntall = 0;
+        let påmeldtAntall = 0, forfallAntall = 0;
         if (ne.attendance) {
-            Object.values(ne.attendance).forEach(status => { if (status === true) påmeldtAntall++; });
+            Object.values(ne.attendance).forEach(status => {
+                if (status === true) påmeldtAntall++;
+                if (status === false) forfallAntall++;
+            });
         }
 
         leftWidgetHtml = `
@@ -970,10 +974,15 @@ window.updateHjemWidget = function() {
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${ne.time || 'TBA'} | ${ne.location || 'Ikke oppgitt'}</p>
                             <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${ne.title || 'TRENING'}</h4>
                         </div>
-                        <div class="bg-blue-500/10 border border-blue-500/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.15)] cursor-pointer hover:scale-105">
+                        <div onclick="if(typeof window.switchTab === 'function') window.switchTab('oppmote'); if(typeof window.openAttendanceModal === 'function') window.openAttendanceModal('${ne.id}')" class="bg-blue-500/10 border border-blue-500/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.25)] transition-all duration-500 cursor-pointer hover:scale-105">
                             <span class="text-2xl font-black text-blue-400 leading-none">${påmeldtAntall}</span>
                             <span class="text-[8px] font-bold text-blue-200/70 uppercase tracking-wider mt-1">Klar</span>
                         </div>
+                    </div>
+                    <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-800/60">
+                        <button onclick="if(typeof window.switchTab === 'function') window.switchTab('oppmote'); if(typeof window.openAttendanceModal === 'function') window.openAttendanceModal('${ne.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 border border-blue-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                            <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
+                        </button>
                     </div>
                 </div>
             </div>`;
@@ -1000,18 +1009,28 @@ window.updateHjemWidget = function() {
     let rightWidgetHtml = '';
     if (topPlayer && topScore > 0) {
         let kamper = 0, mal = 0, attendedEvents = 0;
+        
         const allEvents = [
             ...(window.activeEvents || []),
             ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))
         ];
+
+        const todayForChemistry = new Date();
+        todayForChemistry.setHours(0, 0, 0, 0);
         
         const teamEvents = allEvents.filter(e => {
-            // RETTET HER: Sjekker både spillerLag og team mot topPlayer sine faste verdier
-            if (e.team !== topPlayer.spillerLag && e.team !== topPlayer.team) return false;
-            if (e.date && e.date > todayStr) return false;
+            // HER ER RETTELSEN SOM LØSER KRASJEN
+            if (e.team !== topPlayer.spillerLag) return false; 
+        
+            if (e.date) {
+                const eventDate = new Date(e.date);
+                eventDate.setHours(0, 0, 0, 0);
+                if (eventDate > todayForChemistry) return false;
+            }
+        
             return true;
         });
-
+        
         teamEvents.forEach(e => { 
             if (e.attendance && e.attendance[topPlayer.navn] === true) {
                 attendedEvents++;
@@ -1021,6 +1040,7 @@ window.updateHjemWidget = function() {
                 }
             } 
         });
+
         const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
 
         rightWidgetHtml = `
@@ -1028,6 +1048,7 @@ window.updateHjemWidget = function() {
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                     <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
                 </div>
+                
                 <div class="relative z-10 flex flex-col h-full justify-between">
                     <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
                         <h3 class="font-black text-white text-sm flex items-center gap-2">
@@ -1035,23 +1056,33 @@ window.updateHjemWidget = function() {
                         </h3>
                         <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Hot Streak</span>
                     </div>
+                    
                     <div class="flex-1 flex items-center justify-between mb-2">
                         <div class="space-y-1 min-w-0 pr-4">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1 || 'Uoppgitt pos'}</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${topPlayer.pos1}</p>
                             <h4 class="font-black text-white text-2xl md:text-3xl truncate drop-shadow-md pb-1">${topPlayer.navn.split(' ')[0]}</h4>
                         </div>
+                        
                         <div class="bg-bsk-yellow/10 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.15)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] transition-shadow duration-500">
                             <span class="text-2xl font-black text-bsk-yellow leading-none">${topScore}</span>
                             <span class="text-[8px] font-bold text-amber-200/70 uppercase tracking-wider mt-1">Form</span>
                         </div>
                     </div>
+
                     <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-800/60">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper</div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span class="text-white text-base block font-black mb-0.5 leading-none">${mal}</span> Mål</div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-l border-slate-700 pl-4"><span class="text-bsk-yellow text-base block font-black mb-0.5 leading-none">${oppmotePct}%</span> Trening</div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span class="text-white text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span class="text-white text-base block font-black mb-0.5 leading-none">${mal}</span> Mål
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-l border-slate-700 pl-4">
+                            <span class="text-bsk-yellow text-base block font-black mb-0.5 leading-none">${oppmotePct}%</span> Trening
+                        </div>
                     </div>
                 </div>
-            </div>`;
+            </div>
+        `;
     } else {
         rightWidgetHtml = `
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
@@ -1060,7 +1091,8 @@ window.updateHjemWidget = function() {
                 </div>
                 <h3 class="font-black text-slate-700 text-sm">Ingen data enda</h3>
                 <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Før oppmøte og karakterer for å kåre Ukens Maskin.</p>
-            </div>`;
+            </div>
+        `;
     }
 
     bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
