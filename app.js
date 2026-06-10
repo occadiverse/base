@@ -8,11 +8,13 @@ import { db, auth } from './firestore-config.js';
 // Hvis du trenger andre Firebase-funksjoner (som å hente data), legger vi dem til her:
 import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Global data cache
-let teamsCache = [];
-let playersCache = [];
-let matchesCache = [];
-let eventsCache = []; // Husk å få med denne!
+// Global data cache linket til vinduet
+window.activeTeams = [];
+window.activePlayers = [];
+window.activeMatches = [];
+window.activeEvents = [];
+window.tacticalLineup = {};
+window.currentTacticalPhase = 'fase1';
 
 // ============================================
 // LOAD DATA FROM FIREBASE (MODERNE V11 SDK)
@@ -24,32 +26,33 @@ window.loadAllData = async function() {
         
         // 1. Hent lag
         const teamsSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'teams'));
-        teamsCache = [];
-        teamsSnapshot.forEach(doc => teamsCache.push({ id: doc.id, ...doc.data() }));
+        window.activeTeams = [];
+        teamsSnapshot.forEach(doc => window.activeTeams.push({ id: doc.id, ...doc.data() }));
         
         // 2. Hent spillere
         const playersSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'players'));
-        playersCache = [];
-        playersSnapshot.forEach(doc => playersCache.push({ id: doc.id, ...doc.data() }));
+        window.activePlayers = [];
+        playersSnapshot.forEach(doc => window.activePlayers.push({ id: doc.id, ...doc.data() }));
 
         // 3. Hent kamper
         const matchesSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'matches'));
-        matchesCache = [];
-        matchesSnapshot.forEach(doc => matchesCache.push({ id: doc.id, ...doc.data() }));
+        window.activeMatches = [];
+        matchesSnapshot.forEach(doc => window.activeMatches.push({ id: doc.id, ...doc.data() }));
 
         // 4. Hent eventer/treninger
         const eventsSnapshot = await getDocs(collection(db, 'artifacts', 'bsk-fotball-app', 'public', 'data', 'events'));
-        eventsCache = [];
-        eventsSnapshot.forEach(doc => eventsCache.push({ id: doc.id, ...doc.data() }));
+        window.activeEvents = [];
+        eventsSnapshot.forEach(doc => window.activeEvents.push({ id: doc.id, ...doc.data() }));
 
         console.log('Database-synkronisering fullført! 🎉');
         
         // Kjør oppdatering av grensesnittet
-        if (typeof updateTeamSelects === 'function') updateTeamSelects();
-        if (typeof displayTeams === 'function') displayTeams();
-        if (typeof displayPlayers === 'function') displayPlayers();
-        if (typeof displayMatches === 'function') displayMatches();
+        if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
+        if (typeof window.applyFilters === 'function') window.applyFilters();
         if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        
+        // Tving siden over på forsiden nå som alt er klart
+        if (typeof window.switchTab === 'function') window.switchTab('hjem');
         
     } catch (error) {
         console.error('Kritisk feil ved lasting av Firebase-data:', error);
