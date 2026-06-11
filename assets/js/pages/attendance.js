@@ -143,7 +143,7 @@ window.saveAttendanceRegistry = async function() {
 };
 
 window.promptDeleteEvent = function(id) {
-    customConfirm("Slette event?", "Er du sikker på at du ønsker å slette dette oppmøte-eventet permanent?", async () => {
+    window.customConfirm("Slette event?", "Er du sikker på at du ønsker å slette dette oppmøte-eventet permanent?", async () => {
         await window.deleteEventFromDatabase(id);
         window.recalculateOppmoteAndKjemi();
     });
@@ -373,7 +373,7 @@ window.editActivity = function(id) {
 };
 
 window.deleteActivity = function(id) {
-    customConfirm("Slette aktivitet?", "Er du sikker?", async () => {
+    window.customConfirm("Slette aktivitet?", "Er du sikker?", async () => {
         if (id.startsWith('match_')) await window.deleteMatchFromDatabase(id.replace('match_', ''));
         else await window.deleteEventFromDatabase(id);
 

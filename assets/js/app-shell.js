@@ -1,29 +1,3 @@
-function customConfirm(title, message, callback) {
-    customConfirmCallback = callback;
-    document.getElementById('confirmTitle').innerText = title;
-    document.getElementById('confirmMessage').innerText = message;
-
-    const modal = document.getElementById('confirmModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-document.getElementById('confirmYesBtn').onclick = function() {
-    if (customConfirmCallback) customConfirmCallback();
-    closeConfirmModal();
-};
-
-document.getElementById('confirmNoBtn').onclick = function() {
-    closeConfirmModal();
-};
-
-function closeConfirmModal() {
-    const modal = document.getElementById('confirmModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    customConfirmCallback = null;
-}
-
 function verifyAdminPin() {
     const input = document.getElementById('adminPinInput').value;
 

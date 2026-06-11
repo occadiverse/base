@@ -247,7 +247,7 @@ window.saveTeam = async function(event) {
 };
 
 window.promptDeleteTeam = function(id) {
-    customConfirm("Slette lag?", "Er du sikker på at du ønsker å slette dette laget permanent?", async () => {
+    window.customConfirm("Slette lag?", "Er du sikker på at du ønsker å slette dette laget permanent?", async () => {
         await window.deleteTeamFromDatabase(id);
         window.updateDynamicSelectors();
         window.renderAdminTeamsList();
@@ -275,7 +275,7 @@ window.savePlayer = async function(event) {
 };
 
 window.promptDeletePlayer = function(id) {
-    customConfirm("Slette spiller?", "Er du sikker på at du vil slette denne spilleren fra troppen permanent?", async () => {
+    window.customConfirm("Slette spiller?", "Er du sikker på at du vil slette denne spilleren fra troppen permanent?", async () => {
         await window.deletePlayerFromDatabase(id);
         window.renderPlayerRoster();
     });

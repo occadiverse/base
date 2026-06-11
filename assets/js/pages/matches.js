@@ -147,7 +147,7 @@ window.saveMatch = async function(event) {
 };
 
 window.promptDeleteMatch = function(id) {
-    customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
+    window.customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
         await window.deleteMatchFromDatabase(id);
         window.closeMatchInfo();
     });
@@ -192,7 +192,7 @@ window.showMatchDetails = function(id) {
 
     document.getElementById('btnEditKampdetaljer').onclick = () => window.openMatchModal(match.id);
     document.getElementById('btnDeleteKampdetaljer').onclick = () => {
-        customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
+        window.customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
             await window.deleteMatchFromDatabase(match.id);
             switchTab('kamper');
         });
