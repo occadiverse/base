@@ -99,7 +99,7 @@
                     initialMockMatches.forEach(async (m) => { try { await setDoc(doc(activeMatchesCollectionRef, m.id), m); } catch(e){} });
                 } else { 
                     syncMatches(fb); 
-                    if (typeof updateDailySchedule === 'function') updateDailySchedule();
+                    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
                 }
             }, (error) => handleSyncError('matches', syncMatches, initialMockMatches, error));
 
@@ -126,7 +126,7 @@
                     initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
                 } else { 
                     syncEvents(fb); 
-                    if (typeof updateDailySchedule === 'function') updateDailySchedule();
+                    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
                     if (typeof updateHjemWidget === 'function') updateHjemWidget(); 
                     if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); 
                 }

@@ -71,10 +71,10 @@ function switchTab(tabId) {
         window.currentCalendarDate = d;
         window.selectedCalendarDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-        if (typeof renderCalendar === 'function') renderCalendar();
-        if (typeof updateDailySchedule === 'function') updateDailySchedule();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
 
-        floatingBtn.onclick = function() { openActivityModal(); };
+        floatingBtn.onclick = function() { window.openActivityModal(); };
     } else if (tabId === 'tropp') {
         floatingBtn.classList.remove('hidden');
         floatingIcon.className = "fa-solid fa-user-plus";
@@ -120,8 +120,8 @@ function switchTab(tabId) {
     if (activeMobileBtn) activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
 
     if (tabId === 'oppmote') {
-        renderEvents();
-        recalculateOppmoteAndKjemi();
+        window.renderEvents();
+        window.recalculateOppmoteAndKjemi();
     } else if (tabId === 'tropp') {
         renderPlayerRoster();
     } else if (tabId === 'statistikk') {
@@ -138,7 +138,7 @@ function switchTab(tabId) {
 
 function handleFloatingAction() {
     if (currentTab === 'kamper') window.openMatchModal();
-    else if (currentTab === 'oppmote') openEventModal();
+    else if (currentTab === 'oppmote') window.openActivityModal();
     else if (currentTab === 'tropp') window.openPlayerModal();
 }
 
