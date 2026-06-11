@@ -130,9 +130,9 @@ function getFormGuide() {
 
     return last5.map(m => {
         const score = parseScore(m.result);
-        if (!score) return { m, form: 'U', class: 'bg-amber-500', text: 'U', tooltip: `Registrert: ${m.result}` };
+        if (!score) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Registrert: ${m.result}` };
         if (score.bsk > score.opponent) return { m, form: 'S', class: 'bg-emerald-500 text-white', text: 'S', tooltip: `Seier vs ${m.opponent} (${m.result})` };
-        if (score.bsk === score.opponent) return { m, form: 'U', class: 'bg-amber-500 text-white', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result})` };
+        if (score.bsk === score.opponent) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result})` };
         return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result})` };
     });
 }
