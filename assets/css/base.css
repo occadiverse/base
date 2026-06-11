@@ -11,6 +11,30 @@
             -webkit-tap-highlight-color: transparent;
             background: linear-gradient(180deg, #fbfdff 0%, var(--portal-bg) 48%, var(--portal-bg-soft) 100%);
         }
+        .portal-sidebar-shell {
+            background: linear-gradient(180deg, #0b2b4c 0%, #123f73 50%, #0b2b4c 100%);
+            box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08);
+        }
+        .portal-mobile-chrome {
+            background: linear-gradient(90deg, #0b2b4c 0%, #123f73 54%, #1f5d9e 100%);
+        }
+        .portal-action-bar-shell {
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+        .tab-link {
+            border: 1px solid transparent;
+        }
+        .tab-link.is-active,
+        .tab-link.is-active:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-color: rgba(245, 197, 66, 0.38) !important;
+            box-shadow: inset 3px 0 0 #f5c542, 0 10px 24px rgba(0, 0, 0, 0.12);
+        }
+        .tab-link.is-active i {
+            color: #f5c542 !important;
+        }
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -28,6 +52,9 @@
         .active-nav {
             color: #f5c542 !important;
             border-top: 3px solid #f5c542;
+        }
+        .mobile-nav-btn.active-nav {
+            background: rgba(255, 255, 255, 0.08);
         }
         /* Basis for alle modaler */
         .modal-base {

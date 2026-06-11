@@ -71,20 +71,12 @@ function switchTab(tabId) {
     document.getElementById('current-tab-title').innerText = titles[tabId] || "BSK Fotball";
 
     document.querySelectorAll('.tab-link').forEach(link => {
-        link.classList.remove('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
-        link.classList.add('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-
-        const icon = link.querySelector('i');
-        if (icon) icon.classList.remove('text-bsk-yellow');
+        link.classList.remove('is-active');
     });
 
     const sidebarBtn = document.getElementById(`sidebar-${tabId}`);
     if (sidebarBtn) {
-        sidebarBtn.classList.add('bg-bsk-blueLight', 'text-white', 'font-semibold', 'shadow-md');
-        sidebarBtn.classList.remove('text-slate-300', 'hover:bg-bsk-blueLight/50', 'hover:text-white');
-
-        const activeIcon = sidebarBtn.querySelector('i');
-        if (activeIcon) activeIcon.classList.add('text-bsk-yellow');
+        sidebarBtn.classList.add('is-active');
     }
 
     document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active-nav', 'text-bsk-yellow'));
