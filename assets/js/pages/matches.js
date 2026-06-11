@@ -4,7 +4,7 @@ function setMatchTimeFilter(filterType) {
     const btnKommende = document.getElementById('btn-filter-kommende');
     const btnTidligere = document.getElementById('btn-filter-tidligere');
     const activeClass = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0";
-    const inactiveClass = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0";
+    const inactiveClass = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-bsk-blue hover:bg-white/70 shrink-0";
 
     if (btnKommende && btnTidligere) {
         if (filterType === 'kommende') {
@@ -58,11 +58,12 @@ function applyFilters() {
 
     sortedMatches.forEach(m => {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50/70 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
+        tr.className = "group hover:bg-sky-50/60 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
         tr.onclick = () => showMatchDetails(m.id);
 
         const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
         let resultBadge = `<span class="text-slate-400 font-medium">-</span>`;
+        const matchMeta = `${m.matchGroup || 'Lag'} · ${m.matchType || 'Kamp'}`;
 
         if (m.result) {
             const score = parseScore(m.result);
@@ -77,13 +78,29 @@ function applyFilters() {
         }
 
         tr.innerHTML = `
-            <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900"><div class="flex flex-col"><span>${m.opponent}</span><span class="text-[10px] text-slate-400 font-normal lg:hidden">${m.pitch || 'Ingen bane'}</span></div></td>
+            <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">
+                <div class="flex items-center gap-3 min-w-[180px]">
+                    <div class="w-9 h-9 rounded-xl bg-bsk-blue/10 border border-bsk-blue/10 text-bsk-blue flex items-center justify-center shrink-0 group-hover:bg-bsk-blue group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="truncate">${m.opponent}</span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">${matchMeta}</span>
+                        <span class="text-[10px] text-slate-400 font-normal lg:hidden truncate">${m.pitch || 'Ingen bane'}</span>
+                    </div>
+                </div>
+            </td>
             <td class="py-3.5 px-4 text-center text-slate-600 font-semibold">${dateFormatted}</td>
             <td class="py-3.5 px-2 text-center text-slate-500 font-medium text-xs">${m.time || '--:--'}</td>
             <td class="py-3.5 px-4 text-center">${resultBadge}</td>
             <td class="py-3.5 px-6 text-left hidden lg:table-cell text-slate-600">${m.pitch || '<span class="text-slate-300">Ikke oppgitt</span>'}</td>
             <td class="py-3.5 px-6 text-left hidden lg:table-cell"><span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span></td>
-            <td class="py-3.5 px-4 md:px-6 text-right text-slate-400"><i class="fa-solid fa-chevron-right text-xs"></i></td>
+            <td class="py-3.5 px-4 md:px-6 text-right">
+                <button type="button" onclick="event.stopPropagation(); showMatchDetails('${m.id}')" class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-bsk-blue text-bsk-blue hover:text-white border border-bsk-blue/15 rounded-full px-2.5 py-1.5 text-[10px] font-black shadow-sm transition-colors">
+                    <i class="fa-solid fa-clipboard-list text-[10px]"></i>
+                    <span class="hidden sm:inline">Detaljer</span>
+                </button>
+            </td>
         `;
 
         tableBody.appendChild(tr);
@@ -183,10 +200,10 @@ window.showMatchDetails = function(id) {
                 <i class="fa-solid fa-square-poll-horizontal mr-1.5"></i> ${match.result || 'Ikke ferdigspilt'}
             </span>
         </div>
-        <div class="col-span-1 sm:col-span-2 space-y-1 bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-200 shadow-sm relative overflow-hidden mt-2">
-            <i class="fa-solid fa-crown absolute -right-2 -bottom-4 text-indigo-500 opacity-10 text-[5rem]"></i>
-            <span class="text-indigo-700 font-black block uppercase tracking-wide text-[10px]">Banens Beste (BB) 👑</span>
-            <span class="text-lg font-black text-indigo-950 relative z-10">${match.motm || '<span class="text-indigo-600/50">Ikke kåret</span>'}</span>
+        <div class="col-span-1 sm:col-span-2 space-y-1 bg-gradient-to-br from-white via-amber-50 to-sky-50 p-4 rounded-xl border border-bsk-yellow/30 shadow-sm relative overflow-hidden mt-2">
+            <i class="fa-solid fa-crown absolute -right-2 -bottom-4 text-bsk-yellow opacity-20 text-[5rem]"></i>
+            <span class="text-bsk-blue font-black block uppercase tracking-wide text-[10px]">Banens Beste (BB)</span>
+            <span class="text-lg font-black text-slate-900 relative z-10">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>
         </div>
     `;
 
