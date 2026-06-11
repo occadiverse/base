@@ -98,3 +98,838 @@
                             </button>
                             <button id="btnDeleteKampdetaljer" class="bg-white border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-500 w-10 h-10 rounded-xl transition shadow-sm flex items-center justify-center" title="Slett">
                                 <i class="fa-solid fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="kampdetaljer-info" class="p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white">
+                        </div>
+                    
+                    <div class="p-5 md:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+                        <button id="btnKampdetaljerOppmote" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3.5 px-4 rounded-xl transition shadow-md flex items-center justify-center gap-2 border border-bsk-blueDark">
+                            <i class="fa-solid fa-user-check text-bsk-yellow text-sm"></i> Før Oppmøte / Tropp
+                        </button>
+                        <button id="btnKampdetaljerTaktikk" class="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black text-xs py-3.5 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-emerald-300">
+                            <i class="fa-solid fa-chess-board text-sm"></i> Sett Kampplan / Taktikk
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+                    <div class="p-5 border-b border-slate-100 bg-slate-50">
+                        <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-star text-bsk-yellow text-lg"></i> Registrer Mål, Kort & Spillerbørs
+                        </h3>
+                    </div>
+                    <div>
+                        <div id="kampdetaljer-spillerbors" class="divide-y divide-slate-100 px-5 bg-white">
+                            </div>
+                        <div class="p-5 bg-slate-50 border-t border-slate-100 mt-2">
+                            <button onclick="savePlayerMatchStats()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-xs py-4 rounded-xl transition shadow-md border border-bsk-blueDark">
+                                LAGRE KAMPSTATISTIKK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-oppmote" class="hidden space-y-6">
+                
+                <div class="w-full flex justify-center mb-6 mt-2">
+                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex items-center text-xs font-bold shadow-sm h-10 shrink-0">
+                        <button onclick="navigateCalendar(-1)" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0 flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span id="calendar-month-year" class="px-4 text-bsk-blue font-black tracking-wider uppercase flex items-center justify-center pointer-events-none min-w-[120px]">
+                            Mai 2026
+                        </span>
+                        <button onclick="navigateCalendar(1)" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0 flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-sm space-y-4">
+                        
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <div>Man</div><div>Tis</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
+                        </div>
+
+                        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
+                        </div>
+                    
+                        <div class="flex flex-wrap gap-4 pt-4 text-[10px] font-bold text-slate-500 uppercase justify-center">
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamper</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Treninger</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
+                        </div>
+                    
+                        <div class="mt-4 pt-4 border-t border-slate-100 bg-slate-50 rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider">Aktivitetsdetaljer</h4>
+                                <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/20 px-2.5 py-1 rounded-full shadow-sm">Velg en dato</span>
+                            </div>
+                            <div id="daily-events-list" class="space-y-2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-tropp" class="hidden space-y-6 mt-2">
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="playerTable">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="py-4 px-4 md:px-6">Navn</th>
+                                    <th class="py-4 px-4 text-center w-20">Drakt</th>
+                                    <th class="py-4 px-4">Posisjon</th>
+                                    <th class="py-4 px-4 text-center w-24">Fot</th>
+                                    <th class="py-4 px-4 text-center w-24">Alder</th>
+                                    <th class="py-4 px-4 text-center w-24">Status</th>
+                                    <th class="py-4 px-6 text-right w-24">Handlinger</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playerTableBody" class="divide-y divide-slate-100 text-sm">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-statistikk" class="hidden space-y-6">
+                <div class="w-full flex justify-center items-center mb-6 mt-2">
+                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm max-w-full overflow-x-auto hide-scrollbar">
+                        <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
+                            Lag
+                        </button>
+                        <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                            Form
+                        </button>
+                        <button type="button" onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                            Spiller
+                        </button>
+                        <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                            Kamp
+                        </button>
+                        <button type="button" onclick="switchStatTab('analyse')" id="stat-tab-analyse" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                            Analyse
+                        </button>
+                    </div>
+                </div>
+
+                <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
+                    
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-emerald-700 uppercase">Seire</span>
+                            <span class="text-3xl font-black text-emerald-800" id="stats-page-wins">0</span>
+                        </div>
+                        <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-amber-700 uppercase">Uavgjorte</span>
+                            <span class="text-3xl font-black text-amber-800" id="stats-page-draws">0</span>
+                        </div>
+                        <div class="p-4 bg-rose-50 border border-rose-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-rose-700 uppercase">Tap</span>
+                            <span class="text-3xl font-black text-rose-800" id="stats-page-losses">0</span>
+                        </div>
+                        <div class="p-4 bg-sky-50 border border-sky-100 rounded-xl text-center">
+                            <span class="block text-xs font-semibold text-sky-700 uppercase">Mål Scoret</span>
+                            <span class="text-3xl font-black text-sky-800" id="stats-page-goals">0</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-slate-100 pt-6">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Totalt i tropp</span>
+                                <span class="text-3xl font-black text-bsk-blue mt-1 block" id="stats-page-players">0</span>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Snittalder</span>
+                                <span class="text-3xl font-black text-bsk-blue mt-1 block" id="stats-page-age">0</span>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rekrutter</span>
+                                <span class="text-3xl font-black text-bsk-yellow mt-1 block drop-shadow-sm" id="stats-page-recruits">0</span>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Oppmøte</span>
+                                <span class="text-3xl font-black text-emerald-500 mt-1 block" id="stats-page-attendance">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="stat-view-spillere" class="bg-white border border-slate-200 rounded-2xl shadow-sm hidden">
+                    <div class="p-4 border-b border-slate-100 bg-white rounded-t-2xl">
+                        <p class="text-xs text-slate-500 italic">Trykk på overskriftene for å sortere etter kjemi, oppmøte eller kort.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-100">
+                                <tr>
+                                    <th class="p-4 hover:text-slate-800 transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
+                                    <th class="p-4 text-center hover:text-slate-800 transition-colors">
+                                        <span onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></span>
+                                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Kjemiscore"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="stats-player-table-body" class="divide-y divide-slate-100">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="stat-view-poeng" class="hidden"></div>
+                <div id="stat-view-kampstat" class="hidden"></div>
+                <div id="stat-view-analyse" class="hidden"></div>
+            </div>
+
+            <div id="view-taktikk" class="hidden space-y-6 max-w-5xl mx-auto w-full">
+                
+                <!-- OPPDATERT: Her har menyene fått max-w-lg mx-auto, slik at de blir nøyaktig like brede som banen -->
+                <div class="max-w-lg mx-auto w-full px-4 lg:px-0 flex flex-col items-center gap-4 mb-2 mt-4">
+                    
+                    <!-- Kampvelger sentrert -->
+                    <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">Modus / Kamp:</label>
+                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="bg-transparent text-xs font-black text-bsk-blue outline-none min-w-[180px] cursor-pointer text-left">
+                            <option value="">Sandkasse</option>
+                        </select>
+                    </div>
+
+                    <!-- Faseknapper og verktøy sentrert rett over banen -->
+                    <div class="flex flex-wrap items-center justify-center gap-2">
+                        <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-bsk-blue text-white border border-bsk-blue shadow-md">
+                        F1
+                        </button>
+                        <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
+                        F2
+                        </button>
+                        <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
+                        F3
+                        </button>
+
+                        <div class="w-px h-6 bg-slate-300 mx-1 rounded"></div>
+
+                        <button onclick="autoFillTeam()" title="Autofullfør ellever" class="bg-gradient-to-r from-bsk-yellow to-amber-400 hover:from-amber-400 hover:to-amber-500 text-bsk-blue w-10 h-10 rounded-xl shadow-md transition-all flex items-center justify-center hover:scale-105 active:scale-95">
+                            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                        </button>
+                        <button onclick="clearTacticalBoard()" title="Tøm banen" class="bg-white border border-slate-200 text-slate-500 hover:text-rose-500 hover:bg-rose-50 w-10 h-10 rounded-xl shadow-sm transition-all flex items-center justify-center hover:scale-105 active:scale-95">
+                            <i class="fa-solid fa-eraser text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-4 lg:px-0 pb-12">
+                    <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
+
+                        <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
+                            <div class="bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-xl border border-white/10 text-center min-w-[100px] shadow-lg">
+                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider mb-0.5">Total Bonus</span>
+                                <span id="stat-total-bonus" class="text-xs font-black text-white tracking-wide">0/0</span>
+                            </div>
+                            <div class="bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-xl border border-white/10 text-center min-w-[100px] shadow-lg">
+                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider mb-0.5">Total Kjemi</span>
+                                <span id="stat-avg-chem" class="text-xs font-black text-white tracking-wide">0/0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
+        
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
+                        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
+
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
+                        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
+
+                        <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
+                        </svg>
+
+                        <div id="node-GK" class="player-node absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex flex-col items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('GK')">
+                            <span class="text-[10px] font-bold">GK</span>
+                        </div>
+                        <div id="node-VMS" class="player-node absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VMS')">
+                            <span class="text-[10px] font-bold">VMS</span>
+                        </div>
+                        <div id="node-HMS" class="player-node absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HMS')">
+                            <span class="text-[10px] font-bold">HMS</span>
+                        </div>
+                        <div id="node-VB" class="player-node absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VB')">
+                            <span class="text-[10px] font-bold">VB</span>
+                        </div>
+                        <div id="node-HB" class="player-node absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HB')">
+                            <span class="text-[10px] font-bold">HB</span>
+                        </div>
+                        <div id="node-DM" class="player-node absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('DM')">
+                            <span class="text-[10px] font-bold">DM</span>
+                        </div>
+                        <div id="node-OM" class="player-node absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('OM')">
+                            <span class="text-[10px] font-bold">OM</span>
+                        </div>
+                        <div id="node-PM" class="player-node absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('PM')">
+                            <span class="text-[10px] font-bold">PM</span>
+                        </div>
+                        <div id="node-VK" class="player-node absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('VK')">
+                            <span class="text-[10px] font-bold">VK</span>
+                        </div>
+                        <div id="node-HK" class="player-node absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('HK')">
+                            <span class="text-[10px] font-bold">HK</span>
+                        </div>
+                        <div id="node-SP" class="player-node absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-bsk-blue text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer z-10 border-2 border-bsk-yellow/60 hover:scale-110 transition-all duration-500" onclick="openPlayerSelect('SP')">
+                            <span class="text-[10px] font-bold">SP</span>
+                        </div>
+                    </div>
+
+                    <div id="tactical-bench-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-users-rectangle text-slate-500"></i> Benken / Innbyttere
+                            </h3>
+                            <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Ikke i start-11er</span>
+                        </div>
+                        
+                        <div id="tactical-bench-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-medium text-slate-700">
+                        </div>
+                    </div>
+                    
+                    <div id="tactical-roles-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-list text-bsk-blue"></i> Dødballtakere & Lederroller
+                            </h3>
+                            <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Lagres på kampen</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium text-slate-700">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Lagkaptein ⚓</label>
+                                <select id="role-captain" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Straffespark 🎯</label>
+                                <select id="role-penalty" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Frispark-spesialist 🚀</label>
+                                <select id="role-freekick" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cornere 📐</label>
+                                <select id="role-corners" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                            </div>
+                        </div>
+                    </div>        
+                </div>
+            </div>
+            
+            <div id="view-admin" class="hidden space-y-6">
+                <div id="admin-gate" class="bg-white border border-slate-200 rounded-2xl p-8 max-w-md mx-auto text-center shadow-md">
+                    <div class="bg-bsk-yellow/15 text-bsk-blue inline-flex p-4 rounded-full mb-4">
+                        <i class="fa-solid fa-lock text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Skriv PIN-kode for Admin</h3>
+                    <p class="text-xs text-slate-500 mb-6">Skriv stiftelsesåret til Bækkelagets Sportsklub (4 siffer) for å få tilgang.</p>
+                    <input type="password" id="adminPinInput" maxlength="4" placeholder="••••" class="w-32 text-center text-2xl tracking-widest border-2 border-slate-200 rounded-xl py-2 px-3 focus:border-bsk-blue focus:outline-none mb-4">
+                    <button onclick="verifyAdminPin()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold py-3 px-6 rounded-xl transition duration-150">Lås opp</button>
+                    <p class="text-[10px] text-slate-400 mt-4">Hint: BSK ble stiftet i 1908!</p>
+                </div>
+
+                <div id="admin-panel-content" class="hidden space-y-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="font-extrabold text-lg text-slate-950">Administrasjon av lag</h3>
+                                <p class="text-xs text-slate-500">Opprett flere lag, legg til lagleder, trenerinfo og beskrivelser.</p>
+                            </div>
+                            <button onclick="openTeamModal()" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-2 shadow-sm transition">
+                                <i class="fa-solid fa-plus text-bsk-yellow"></i>
+                                Opprett nytt lag
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="admin-teams-list">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="portal-mobile-nav"></div>
+    <div id="portal-floating-action"></div>
+
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center space-y-4">
+            <div class="bg-amber-100 text-amber-800 inline-flex p-3 rounded-full">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+            </div>
+            <h3 class="font-extrabold text-lg text-bsk-blue" id="confirmTitle">Bekreft handling</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" id="confirmMessage">Er du sikker på at du ønsker å utføre denne handlingen?</p>
+            <div class="flex gap-3 pt-2">
+                <button id="confirmYesBtn" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-2.5 px-4 rounded-xl text-xs transition">JA, UTØR</button>
+                <button id="confirmNoBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs transition">AVBRYT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="matchModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="modalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Kamp
+                </h3>
+                <button onclick="window.closeMatchModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="matchForm" onsubmit="saveMatch(event)" class="space-y-4">
+                <input type="hidden" id="editMatchId">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dato</label>
+                        <input type="date" id="matchDate" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Klokkeslett</label>
+                        <input type="time" id="matchTime" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Motstander</label>
+                    <input type="text" id="opponent" placeholder="Navn på motstanderlag" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Bane / Sted</label>
+                    <input type="text" id="pitch" placeholder="F.eks. Ekeberg Kunstgress, Sportsplassen..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kamp-type</label>
+                        <select id="matchType" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-medium">
+                            <option value="Serie">Serie</option>
+                            <option value="Cup">Cup</option>
+                            <option value="Treningskamp">Trening</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velg Lag</label>
+                        <select id="matchGroup" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                            </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Resultat (Valgfritt)</label>
+                        <input type="text" id="result" placeholder="f.eks. 3-1" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        LAGRE KAMP
+                    </button>
+                    <button type="button" onclick="window.closeMatchModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="eventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="eventModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-bsk-yellow"></i> Opprett Event / Trening
+                </h3>
+                <button onclick="closeEventModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="eventForm" onsubmit="saveEvent(event)" class="space-y-4">
+                <input type="hidden" id="editEventId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tittel / Navn</label>
+                    <input type="text" id="eventTitle" placeholder="F.eks. Tirsdagstrening, Dugnad, Lagfest..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Type event</label>
+                        <select id="eventType" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-semibold text-slate-700">
+                            <option value="Trening">Trening 🏃</option>
+                            <option value="Kamp">Kamp ⚽</option>
+                            <option value="Sosialt">Lagfest / Sosialt 🎉</option>
+                            <option value="Dugnad">Dugnad / Annet 🧹</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">For hvilket lag</label>
+                        <select id="eventTeam" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                            </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dato</label>
+                    <input type="date" id="eventDate" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        OPPRETT EVENT
+                    </button>
+                    <button type="button" onclick="closeEventModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="attendanceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <div>
+                    <h3 id="attendanceModalTitle" class="font-extrabold text-lg text-bsk-blue">Oppmøteregistrering</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5" id="attendanceModalSub">Laster...</p>
+                </div>
+                <button onclick="closeAttendanceModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="attendance-players-list">
+                </div>
+
+            <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
+                <button onclick="saveAttendanceRegistry()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    LAGRE OPPMØTE
+                </button>
+                <button type="button" onclick="closeAttendanceModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                    AVBRYT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="playerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="playerFormTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Spiller
+                </h3>
+                <button onclick="window.closePlayerModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="playerForm" onsubmit="savePlayer(event)" class="space-y-4">
+                <input type="hidden" id="editPlayerId">
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fullt navn</label>
+                        <input type="text" id="playerNameInput" placeholder="Navn Navnesen" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Draktnr #</label>
+                        <input type="number" id="playerJerseyInput" placeholder="00" min="1" max="99" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fødselsår</label>
+                        <input type="number" id="playerBirthYearInput" placeholder="F.eks. 1998" min="1950" max="2026" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status</label>
+                        <select id="playerStatusInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-semibold text-slate-700">
+                            <option value="Aktiv">Aktiv</option>
+                            <option value="Rekrutt">Rekrutt</option>
+                            <option value="Passiv">Passiv</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tilhører lag</label>
+                    <select id="playerTeamInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                        </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Hovedposisjon</label>
+                        <select id="playerPos1Input" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50">
+                            <option value="Keeper">Keeper</option>
+                            <option value="Høyre bekk">Høyre bekk</option>
+                            <option value="Venstre bekk">Venstre bekk</option>
+                            <option value="Høyre stopper">Høyre stopper</option>
+                            <option value="Venstre stopper">Venstre stopper</option>
+                            <option value="Defensiv midtbane">Defensiv midtbane</option>
+                            <option value="Høyre kant">Høyre kant</option>
+                            <option value="Offensiv midtbane">Offensiv midtbane</option>
+                            <option value="Spiss">Spiss</option>
+                            <option value="Playmaker">Playmaker</option>
+                            <option value="Venstre kant">Venstre kant</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Sekundærposisjon</label>
+                        <select id="playerPos2Input" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50">
+                            <option value="-">- Ingen -</option>
+                            <option value="Høyre bekk">Høyre bekk</option>
+                            <option value="Venstre bekk">Venstre bekk</option>
+                            <option value="Høyre stopper">Høyre stopper</option>
+                            <option value="Venstre stopper">Venstre stopper</option>
+                            <option value="Defensiv midtbane">Defensiv midtbane</option>
+                            <option value="Høyre kant">Høyre kant</option>
+                            <option value="Offensiv midtbane">Offensiv midtbane</option>
+                            <option value="Spiss">Spiss</option>
+                            <option value="Playmaker">Playmaker</option>
+                            <option value="Venstre kant">Venstre kant</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Foretrukket fot</label>
+                    <select id="playerFootInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 text-slate-700 font-semibold">
+                        <option value="Høyre">Høyre</option>
+                        <option value="Venstre">Venstre</option>
+                        <option value="Begge">Begge</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        LAGRE SPILLER
+                    </button>
+                    <button type="button" onclick="window.closePlayerModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="teamModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 id="teamModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-users text-bsk-yellow"></i> Opprett Lag
+                </h3>
+                <button onclick="window.closeTeamModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="teamForm" onsubmit="saveTeam(event)" class="space-y-4">
+                <input type="hidden" id="editTeamId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lagsnavn</label>
+                    <input type="text" id="teamName" placeholder="F.eks. Gutter 2012 A, Jenter 15, Herrer A..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Trener / Lagleder</label>
+                    <input type="text" id="teamCoach" placeholder="Navn på trener" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kontaktinfo Trener</label>
+                    <input type="text" id="teamCoachContact" placeholder="Tlf: 900 00 000 / e-post..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kort Beskrivelse / Laginfo</label>
+                    <textarea id="teamDesc" rows="3" placeholder="Beskrivelse av laget, treninger eller divisjon..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none resize-none"></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        LAGRE LAG
+                    </button>
+                    <button type="button" onclick="window.closeTeamModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                        AVBRYT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <div>
+                    <h3 class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet
+                    </h3>
+                </div>
+                <button onclick="closeActivityModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form id="activityForm" class="space-y-4">
+                <input type="hidden" id="editEventId">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1" id="activityTitleLabel">Hva skal dere?</label>
+                    <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                        <option value="Trening">Trening</option>
+                        <option value="Kamp">Kamp</option>
+                        <option value="Annet">Annet</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hvilket lag gjelder dette?</label>
+                    <select id="activityTeam" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-bsk-blue outline-none focus:ring-2 focus:ring-bsk-blue">
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tittel / Motstander</label>
+                    <input type="text" id="activityTitle" placeholder="F.eks. BSK - KFUM (Valgfritt)"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Sted / Bane</label>
+                    <input type="text" id="activityLocation" placeholder="F.eks. BSK-banen, Valle Hovin..." 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Dato</label>
+                        <input type="date" id="activityDate" required
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tidspunkt</label>
+                        <input type="time" id="activityTime" value="18:00" required
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100 mt-6">
+                    <button type="button" onclick="saveNewActivity()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                        OPPRETT AKTIVITET
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="tacticalPlayerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl relative flex flex-col max-h-[80vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                <div>
+                    <h3 class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                        <i class="fa-solid fa-shirt text-bsk-yellow"></i> Velg spiller
+                    </h3>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1" id="tactical-pos-label">POSISJON</p>
+                </div>
+                <button onclick="closePlayerSelect()" class="text-slate-400 hover:text-slate-600 p-2 bg-white rounded-xl shadow-sm border border-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto flex-1 divide-y divide-slate-50 p-2" id="tactical-player-list">
+            </div>
+        </div>
+    </div>
+    
+    <div id="kjemi-info-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4 transition-opacity">
+        <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
+            <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
+                <h3 class="text-xl font-black text-emerald-400">
+                    <i class="fa-solid fa-calculator text-emerald-500 mr-2"></i>Slik regnes Kjemiscoren
+                </h3>
+                <button onclick="document.getElementById('kjemi-info-modal').classList.add('hidden'); document.getElementById('kjemi-info-modal').classList.remove('flex');" class="text-slate-400 hover:text-white text-3xl font-light transition-colors leading-none">&times;</button>
+            </div>
+            
+            <div class="p-6 space-y-6 text-sm">
+                <p class="text-base text-slate-300">Den totale kjemiscoren (0–100%) består av spillerens <strong class="text-white">oppmøtegrunnlag</strong> pluss <strong class="text-white">gjennomsnittet av prestasjonene i kamp</strong>, minus eventuelle kort.</p>
+                
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Oppmøte og lojalitet (Maks 40 poeng)</h4>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-300">
+                        <li><strong class="text-white">Aktiv-bonus (+15 p):</strong> Gis i bunn til alle som har deltatt på minst én økt.</li>
+                        <li><strong class="text-white">Oppmøteprosent (0 til +25 p):</strong> Skaleres etter oppmøte. 100% gir 25 p.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Kampsnitt (Prestasjon på banen)</h4>
+                    <p class="mb-3 text-slate-300">Hver spilte kamp starter med <strong class="text-white">15 grunnpoeng</strong>, og justeres deretter opp eller ned. Systemet regner til slutt ut gjennomsnittet av alle spilte kamper.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+                            <strong class="block text-emerald-400 mb-2 pb-1 border-b border-slate-600">Lagets resultat</strong>
+                            <ul class="space-y-1.5">
+                                <li class="flex justify-between"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
+                                <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
+                                <li class="flex justify-between"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
+                                <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">-2</span></li>
+                                <li class="flex justify-between text-bsk-yellow"><span>Mål scoret (Mål for)</span> <span class="font-bold">+1 pr. mål</span></li>
+                                <li class="flex justify-between text-rose-300"><span>Mål sluppet inn (Mål imot)</span> <span class="font-bold">-1 pr. mål</span></li>
+                                <li class="flex justify-between text-indigo-300"><span>Banens beste</span><span class="font-bold">+1</span></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+                            <strong class="block text-blue-400 mb-1">Spillerbørs (1-10)</strong>
+                            <p class="text-[11px] text-slate-400 mb-2 pb-1 border-b border-slate-600">Hvert trinn over/under 5 gir ±6 poeng.</p>
+                            <ul class="space-y-1.5">
+                                <li class="flex justify-between"><span>Karakter 10</span> <span class="font-bold text-emerald-400">+30</span></li>
+                                <li class="flex justify-between"><span>Karakter 8</span> <span class="font-bold text-emerald-400">+18</span></li>
+                                <li class="flex justify-between"><span>Karakter 5 (Jevnt)</span> <span class="font-bold text-slate-400">0</span></li>
+                                <li class="flex justify-between"><span>Karakter 3</span> <span class="font-bold text-rose-400">-12</span></li>
+                                <li class="flex justify-between"><span>Karakter 1</span> <span class="font-bold text-rose-500">-24</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Disiplin (Direkte fratrekk)</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-rose-300">
+                            <li><strong class="text-rose-400">Gult kort:</strong> Ingen straff for 1-3 kort. Første karantene (ved 4, 6, 8 kort osv.) er "gratis".</li>
+                            <li><strong class="text-rose-400">Gjentatt karantene:</strong> Ved 2. karantene eller flere, gir hver utestengelse <strong class="text-white">-5 poeng</strong> i fratrekk.</li>
+                            <li><strong class="text-rose-500">Rødt kort:</strong> Direkte utvisning gir <strong class="text-white">-10 poeng</strong> fra sluttsummen.</li>
+</ul>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/components/navigation.js"></script>
+    <script src="assets/js/state.js"></script>
+    <script type="module" src="assets/js/firebase-sync.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
