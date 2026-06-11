@@ -1,0 +1,46 @@
+body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .active-nav {
+            color: #ffd700 !important;
+            border-top: 3px solid #ffd700;
+        }
+        /* Basis for alle modaler */
+        .modal-base {
+        z-index: 50 !important;
+        }
+
+        /* Informasjons-modal (Kampdetaljer) */
+        #matchInfoModal {
+        z-index: 60 !important;
+        }
+
+        /* Redigerings-modal (Må ligge over informasjons-modalen) */
+        #matchModal {
+        z-index: 70 !important;
+        }
+
+        /* NY: Oppmøte-modal (Skal sprette opp over kampinfo) */
+        #attendanceModal {
+        z-index: 80 !important;
+        }
+
+        /* Bekreftelses-modalen (Skal alltid være øverst) */
+        #confirmModal {
+        z-index: 100 !important;
+        }
