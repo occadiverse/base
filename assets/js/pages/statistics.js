@@ -362,22 +362,22 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     container.innerHTML = `
         <div class="space-y-6">
 
-            <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-6 shadow-md text-white border border-bsk-blueDark">
+            <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 shadow-sm text-slate-900 border border-slate-200 border-b-4 border-bsk-yellow">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">Statistikk 2.0</p>
-                        <h2 class="text-2xl font-black tracking-tight">Analyse og trenerinnsikt</h2>
-                        <p class="text-sm text-slate-200 mt-1">Form, BB, mål, poeng per kamp og spillere som bør følges opp.</p>
+                        <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Statistikk 2.0</p>
+                        <h2 class="text-2xl font-black tracking-tight text-bsk-blue">Analyse og trenerinnsikt</h2>
+                        <p class="text-sm text-slate-600 mt-1">Form, BB, mål, poeng per kamp og spillere som bør følges opp.</p>
                     </div>
                     <div class="shrink-0">
-                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center text-center shadow-sm">
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-300 tracking-wider leading-none">
+                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/85 border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-wider leading-none">
                                 Grunnlag
                             </p>
-                            <p class="text-xl md:text-3xl font-black text-white leading-tight mt-1">
+                            <p class="text-xl md:text-3xl font-black text-bsk-blue leading-tight mt-1">
                                 ${matches.length}
                             </p>
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-bsk-yellow tracking-wider leading-none">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-amber-700 tracking-wider leading-none">
                                 kamper
                             </p>
                         </div>
@@ -594,11 +594,11 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     let html = `
         <div class="space-y-6">
 
-            <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-5 md:p-6 shadow-md text-white border border-bsk-blueDark">
+            <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-5 md:p-6 shadow-sm text-slate-900 border border-slate-200 border-b-4 border-bsk-yellow">
                 <div class="flex items-start justify-between gap-4">
                     
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">
+                        <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">
                             Spilleranalyse
                         </p>
                     
@@ -606,33 +606,33 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
                             <select 
                                 id="poeng-player-select" 
                                 onchange="showPlayerPointsTable()" 
-                                class="w-full md:w-auto appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-sm md:text-base font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer [&>option]:text-slate-900 [&>option]:bg-white"
+                                class="w-full md:w-auto appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-9 text-sm md:text-base font-black text-bsk-blue focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 focus:border-bsk-yellow cursor-pointer shadow-sm [&>option]:text-slate-900 [&>option]:bg-white"
                             >
                                 ${optionsHtml}
                             </select>
                     
-                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-blue text-xs pointer-events-none"></i>
                         </div>
                     
-                        <p class="text-xs md:text-sm text-slate-200 mt-3 leading-snug max-w-xl">
+                        <p class="text-xs md:text-sm text-slate-600 mt-3 leading-snug max-w-xl">
                             Se utvikling, form, matchpoeng og kampbidrag for valgt spiller.
                         </p>
                     </div>
             
                     <div class="shrink-0 pt-7 md:pt-0">
-                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center text-center shadow-sm">
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-300 tracking-wider leading-none">
+                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/85 border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-wider leading-none">
                                 Snitt
                             </p>
-                            <p id="player-banner-main" class="text-xl md:text-3xl font-black text-white leading-tight mt-1">
+                            <p id="player-banner-main" class="text-xl md:text-3xl font-black text-bsk-blue leading-tight mt-1">
                                 -
                             </p>
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-bsk-yellow tracking-wider leading-none">
+                            <p class="text-[8px] md:text-[9px] uppercase font-black text-amber-700 tracking-wider leading-none">
                                 poeng
                             </p>
                         </div>
             
-                        <p id="player-banner-sub" class="hidden md:block text-[10px] text-slate-300 mt-2 text-center">
+                        <p id="player-banner-sub" class="hidden md:block text-[10px] text-slate-500 mt-2 text-center">
                             valgt spiller
                         </p>
                     </div>
@@ -1103,11 +1103,11 @@ let html = `
     container.innerHTML = `
         <div class="space-y-6">
 
-            <div class="bg-gradient-to-r from-bsk-blue to-bsk-blueLight rounded-2xl p-6 shadow-md text-white border border-bsk-blueDark">
+            <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 shadow-sm text-slate-900 border border-slate-200 border-b-4 border-bsk-yellow">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                     <div>
-                        <p class="text-[10px] font-black text-bsk-yellow uppercase tracking-[0.25em] mb-2">Kampanalyse</p>
-                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap">
+                        <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Kampanalyse</p>
+                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap text-bsk-blue">
                             <span>BSK -</span>
                             <span class="relative inline-block flex-1 min-w-0 max-w-[260px]">
                                 <select 
@@ -1116,7 +1116,7 @@ let html = `
                                     onmousedown="expandKampSelectLabels()"
                                     onblur="collapseKampSelectLabel()"
                                     onchange="showMatchStatsTable()" 
-                                    class="w-full appearance-none bg-white/10 border border-white/20 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 cursor-pointer truncate"
+                                    class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-bsk-blue focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 focus:border-bsk-yellow cursor-pointer truncate shadow-sm"
                                 >
                                     ${playedMatches.map(m => {
                                         const optionDate = m.date
@@ -1139,16 +1139,16 @@ let html = `
                                         `;
                                     }).join('')}
                                 </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-yellow text-xs pointer-events-none"></i>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-blue text-xs pointer-events-none"></i>
                             </span>
                         </h2>
-                        <p class="text-sm text-slate-200 mt-1">
+                        <p class="text-sm text-slate-600 mt-1">
                             ${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}
                         </p>
                     </div>
-                    <div class="bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[130px]">
-                        <p class="text-[10px] uppercase font-black text-slate-300 mb-1">Resultat</p>
-                        <p class="text-3xl font-black text-bsk-yellow">${matchResult}</p>
+                    <div class="bg-white/85 border border-slate-200 rounded-2xl px-6 py-4 text-center min-w-[130px] shadow-sm">
+                        <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Resultat</p>
+                        <p class="text-3xl font-black text-amber-700">${matchResult}</p>
                     </div>
                 </div>
             </div>
