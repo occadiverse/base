@@ -168,7 +168,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
             document.getElementById(`stat-view-${tabId}`).className = "block space-y-6";
             
             // 3. Nullstill alle knappene til passiv grå stil
-            const inactiveClass = "stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800";
+            const inactiveClass = "stat-tab-btn portal-segment-btn";
             document.querySelectorAll('.stat-tab-btn').forEach(btn => {
                 btn.className = inactiveClass;
             });
@@ -176,7 +176,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
             // 4. Gi den aktive knappen hvit bakgrunn, skygge og blå tekst
             const activeBtn = document.getElementById(`stat-tab-${tabId}`);
             if (activeBtn) {
-                activeBtn.className = "stat-tab-btn px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm";
+                activeBtn.className = "stat-tab-btn portal-segment-btn is-active";
             }
             
             // 5. Kjør tilhørende funksjoner for den aktuelle fanen

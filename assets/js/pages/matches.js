@@ -3,8 +3,8 @@ function setMatchTimeFilter(filterType) {
 
     const btnKommende = document.getElementById('btn-filter-kommende');
     const btnTidligere = document.getElementById('btn-filter-tidligere');
-    const activeClass = "px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0";
-    const inactiveClass = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-bsk-blue hover:bg-white/70 shrink-0";
+    const activeClass = "portal-segment-btn is-active";
+    const inactiveClass = "portal-segment-btn";
 
     if (btnKommende && btnTidligere) {
         if (filterType === 'kommende') {
@@ -79,10 +79,7 @@ function applyFilters() {
 
         tr.innerHTML = `
             <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">
-                <div class="flex items-center gap-3 min-w-[180px]">
-                    <div class="w-9 h-9 rounded-xl bg-bsk-blue/10 border border-bsk-blue/10 text-bsk-blue flex items-center justify-center shrink-0 group-hover:bg-bsk-blue group-hover:text-white transition-colors">
-                        <i class="fa-solid fa-shield-halved text-sm"></i>
-                    </div>
+                <div class="min-w-[180px]">
                     <div class="flex flex-col min-w-0">
                         <span class="truncate">${m.opponent}</span>
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">${matchMeta}</span>

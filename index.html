@@ -40,33 +40,29 @@
             </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
             <div id="view-kamper" class="hidden space-y-6">
-                <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 border border-slate-200 border-b-4 border-bsk-yellow rounded-2xl p-4 md:p-5 shadow-sm">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-1">Kamper</p>
-                            <h2 class="text-xl font-black text-bsk-blue tracking-tight">Terminliste</h2>
-                        </div>
+                <div class="portal-page-banner">
+                    <p class="portal-page-kicker">Kamper</p>
+                    <h2 class="portal-page-title">Terminliste</h2>
 
-                        <div class="flex items-center gap-2 max-w-full overflow-x-auto hide-scrollbar">
+                    <div class="portal-page-toolbar">
                     
-                            <div class="bg-white/80 border border-slate-200 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm shrink-0 h-10">
-                                <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="px-4 h-full rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
-                                    Kommende
-                                </button>
-                                <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-bsk-blue hover:bg-white/70 shrink-0">
-                                    Tidligere
-                                </button>
-                            </div>
-
-                            <div class="bg-white border border-slate-200 rounded-xl px-3 flex items-center shadow-sm shrink-0 h-10 hover:border-bsk-blueLight transition-colors">
-                                <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
-                                <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
-                                    <option value="Alle">ALLE LAG</option>
-                                </select>
-                                <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
-                            </div>
-
+                        <div class="portal-segmented">
+                            <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="portal-segment-btn is-active">
+                                Kommende
+                            </button>
+                            <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="portal-segment-btn">
+                                Tidligere
+                            </button>
                         </div>
+
+                        <div class="portal-inline-select hover:border-bsk-blueLight transition-colors">
+                            <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
+                            <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
+                                <option value="Alle">ALLE LAG</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
+                        </div>
+
                     </div>
                 </div>
 
@@ -214,23 +210,28 @@
             </div>
 
             <div id="view-statistikk" class="hidden space-y-6">
-                <div class="w-full flex justify-center items-center mb-6 mt-2">
-                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex text-xs font-bold shadow-sm max-w-full overflow-x-auto hide-scrollbar">
-                        <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-bsk-blue bg-white shadow-sm shrink-0">
+                <div class="portal-page-banner">
+                    <p class="portal-page-kicker">Statistikk</p>
+                    <h2 class="portal-page-title">Analyse og utvikling</h2>
+
+                    <div class="portal-page-toolbar">
+                        <div class="portal-segmented">
+                        <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
                             Lag
                         </button>
-                        <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                        <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn portal-segment-btn">
                             Form
                         </button>
-                        <button type="button" onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                        <button type="button" onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn portal-segment-btn">
                             Spiller
                         </button>
-                        <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                        <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn portal-segment-btn">
                             Kamp
                         </button>
-                        <button type="button" onclick="switchStatTab('analyse')" id="stat-tab-analyse" class="stat-tab-btn px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0">
+                        <button type="button" onclick="switchStatTab('analyse')" id="stat-tab-analyse" class="stat-tab-btn portal-segment-btn">
                             Analyse
                         </button>
+                        </div>
                     </div>
                 </div>
 
