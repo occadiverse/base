@@ -300,7 +300,7 @@ window.renderPlayerRowForm = function(match) {
 
                 <div class="flex items-center space-x-1 ml-1">
                     <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Børs:</span>
-                    <select class="player-rating-select bg-slate-100 border border-slate-200 text-xs font-bold rounded-lg px-2 py-1 outline-none text-slate-800" data-player="${player}">
+                    <select class="player-rating-select portal-field portal-field-sm" data-player="${player}">
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
                         ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
                     </select>

@@ -606,7 +606,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
                             <select 
                                 id="poeng-player-select" 
                                 onchange="showPlayerPointsTable()" 
-                                class="w-full md:w-auto appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-9 text-sm md:text-base font-black text-bsk-blue focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 focus:border-bsk-yellow cursor-pointer shadow-sm [&>option]:text-slate-900 [&>option]:bg-white"
+                                class="portal-field portal-field-strong w-full md:w-auto"
                             >
                                 ${optionsHtml}
                             </select>
@@ -1116,7 +1116,7 @@ let html = `
                                     onmousedown="expandKampSelectLabels()"
                                     onblur="collapseKampSelectLabel()"
                                     onchange="showMatchStatsTable()" 
-                                    class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 pr-9 text-lg md:text-2xl font-black text-bsk-blue focus:outline-none focus:ring-2 focus:ring-bsk-yellow/60 focus:border-bsk-yellow cursor-pointer truncate shadow-sm"
+                                    class="portal-field portal-field-display truncate"
                                 >
                                     ${playedMatches.map(m => {
                                         const optionDate = m.date
@@ -1300,7 +1300,7 @@ let html = `
 
                             <div class="border-t border-slate-100 pt-4 space-y-3">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                                    <label class="portal-label">
                                         Positivt
                                     </label>
                                     <textarea
@@ -1308,12 +1308,12 @@ let html = `
                                         rows="2"
                                         placeholder="Hva fungerte bra i denne kampen?"
                                         onblur="saveMatchSummaryNotes('${match.id}')"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue resize-none"
+                                        class="portal-field portal-textarea-sm"
                                     >${match.notes?.positive || ''}</textarea>
                                 </div>
                             
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                                    <label class="portal-label">
                                         Utfordring
                                     </label>
                                     <textarea
@@ -1321,7 +1321,7 @@ let html = `
                                         rows="2"
                                         placeholder="Hva må vi forbedre eller følge opp?"
                                         onblur="saveMatchSummaryNotes('${match.id}')"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-bsk-blue focus:ring-1 focus:ring-bsk-blue resize-none"
+                                        class="portal-field portal-textarea-sm"
                                     >${match.notes?.challenge || ''}</textarea>
                                 </div>
                             </div>

@@ -52,7 +52,7 @@
 
                     <div class="portal-inline-select hover:border-bsk-blueLight transition-colors">
                         <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
-                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
+                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="portal-field portal-field-inline text-xs font-black text-slate-600 cursor-pointer">
                             <option value="Alle">ALLE LAG</option>
                         </select>
                         <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
@@ -317,8 +317,8 @@
                     
                     <!-- Kampvelger sentrert -->
                     <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-slate-50/80 border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">Modus / Kamp:</label>
-                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="bg-transparent text-xs font-black text-bsk-blue outline-none min-w-[180px] cursor-pointer text-left">
+                        <label class="portal-label whitespace-nowrap mb-0">Modus / Kamp:</label>
+                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="portal-field portal-field-inline min-w-[180px] text-xs font-black text-bsk-blue cursor-pointer text-left">
                             <option value="">Sandkasse</option>
                         </select>
                     </div>
@@ -431,20 +431,20 @@
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium text-slate-700">
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Lagkaptein ⚓</label>
-                                <select id="role-captain" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                                <label class="portal-label">Lagkaptein ⚓</label>
+                                <select id="role-captain" onchange="saveMatchTactics()" class="portal-field portal-field-sm"></select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Straffespark 🎯</label>
-                                <select id="role-penalty" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                                <label class="portal-label">Straffespark 🎯</label>
+                                <select id="role-penalty" onchange="saveMatchTactics()" class="portal-field portal-field-sm"></select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Frispark-spesialist 🚀</label>
-                                <select id="role-freekick" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                                <label class="portal-label">Frispark-spesialist 🚀</label>
+                                <select id="role-freekick" onchange="saveMatchTactics()" class="portal-field portal-field-sm"></select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cornere 📐</label>
-                                <select id="role-corners" onchange="saveMatchTactics()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none text-xs font-bold text-slate-800 focus:ring-2 focus:ring-bsk-blue"></select>
+                                <label class="portal-label">Cornere 📐</label>
+                                <select id="role-corners" onchange="saveMatchTactics()" class="portal-field portal-field-sm"></select>
                             </div>
                         </div>
                     </div>        
@@ -458,7 +458,7 @@
                     </div>
                     <h3 class="text-xl font-extrabold text-slate-900 mb-2">Skriv PIN-kode for Admin</h3>
                     <p class="text-xs text-slate-500 mb-6">Skriv stiftelsesåret til Bækkelagets Sportsklub (4 siffer) for å få tilgang.</p>
-                    <input type="password" id="adminPinInput" maxlength="4" placeholder="••••" class="w-32 text-center text-2xl tracking-widest border-2 border-slate-200 rounded-xl py-2 px-3 focus:border-bsk-blue focus:outline-none mb-4">
+                    <input type="password" id="adminPinInput" maxlength="4" placeholder="••••" class="portal-field portal-field-pin mx-auto mb-4">
                     <button onclick="verifyAdminPin()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">Lås opp</button>
                     <p class="text-[10px] text-slate-400 mt-4">Hint: BSK ble stiftet i 1908!</p>
                 </div>
@@ -517,42 +517,42 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dato</label>
-                        <input type="date" id="matchDate" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                        <label class="portal-label">Dato</label>
+                        <input type="date" id="matchDate" required class="portal-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Klokkeslett</label>
-                        <input type="time" id="matchTime" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                        <label class="portal-label">Klokkeslett</label>
+                        <input type="time" id="matchTime" class="portal-field">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Motstander</label>
-                    <input type="text" id="opponent" placeholder="Navn på motstanderlag" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Motstander</label>
+                    <input type="text" id="opponent" placeholder="Navn på motstanderlag" required class="portal-field">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Bane / Sted</label>
-                    <input type="text" id="pitch" placeholder="F.eks. Ekeberg Kunstgress, Sportsplassen..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Bane / Sted</label>
+                    <input type="text" id="pitch" placeholder="F.eks. Ekeberg Kunstgress, Sportsplassen..." class="portal-field">
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
                     <div class="col-span-1">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kamp-type</label>
-                        <select id="matchType" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-medium">
+                        <label class="portal-label">Kamp-type</label>
+                        <select id="matchType" class="portal-field">
                             <option value="Serie">Serie</option>
                             <option value="Cup">Cup</option>
                             <option value="Treningskamp">Trening</option>
                         </select>
                     </div>
                     <div class="col-span-1">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velg Lag</label>
-                        <select id="matchGroup" class="w-full border border-slate-200 rounded-xl px-2 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                        <label class="portal-label">Velg Lag</label>
+                        <select id="matchGroup" class="portal-field">
                             </select>
                     </div>
                     <div class="col-span-1">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Resultat (Valgfritt)</label>
-                        <input type="text" id="result" placeholder="f.eks. 3-1" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                        <label class="portal-label">Resultat (Valgfritt)</label>
+                        <input type="text" id="result" placeholder="f.eks. 3-1" class="portal-field">
                     </div>
                 </div>
 
@@ -583,14 +583,14 @@
                 <input type="hidden" id="editEventId">
                 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tittel / Navn</label>
-                    <input type="text" id="eventTitle" placeholder="F.eks. Tirsdagstrening, Dugnad, Lagfest..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Tittel / Navn</label>
+                    <input type="text" id="eventTitle" placeholder="F.eks. Tirsdagstrening, Dugnad, Lagfest..." required class="portal-field">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Type event</label>
-                        <select id="eventType" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-semibold text-slate-700">
+                        <label class="portal-label">Type event</label>
+                        <select id="eventType" class="portal-field">
                             <option value="Trening">Trening 🏃</option>
                             <option value="Kamp">Kamp ⚽</option>
                             <option value="Sosialt">Lagfest / Sosialt 🎉</option>
@@ -598,15 +598,15 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">For hvilket lag</label>
-                        <select id="eventTeam" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                        <label class="portal-label">For hvilket lag</label>
+                        <select id="eventTeam" class="portal-field">
                             </select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dato</label>
-                    <input type="date" id="eventDate" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Dato</label>
+                    <input type="date" id="eventDate" required class="portal-field">
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
@@ -663,23 +663,23 @@
                 
                 <div class="grid grid-cols-3 gap-4">
                     <div class="col-span-2">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fullt navn</label>
-                        <input type="text" id="playerNameInput" placeholder="Navn Navnesen" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                        <label class="portal-label">Fullt navn</label>
+                        <input type="text" id="playerNameInput" placeholder="Navn Navnesen" required class="portal-field">
                     </div>
                     <div class="col-span-1">
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Draktnr #</label>
-                        <input type="number" id="playerJerseyInput" placeholder="00" min="1" max="99" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                        <label class="portal-label">Draktnr #</label>
+                        <input type="number" id="playerJerseyInput" placeholder="00" min="1" max="99" class="portal-field">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fødselsår</label>
-                        <input type="number" id="playerBirthYearInput" placeholder="F.eks. 1998" min="1950" max="2026" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                        <label class="portal-label">Fødselsår</label>
+                        <input type="number" id="playerBirthYearInput" placeholder="F.eks. 1998" min="1950" max="2026" required class="portal-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status</label>
-                        <select id="playerStatusInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-semibold text-slate-700">
+                        <label class="portal-label">Status</label>
+                        <select id="playerStatusInput" class="portal-field">
                             <option value="Aktiv">Aktiv</option>
                             <option value="Rekrutt">Rekrutt</option>
                             <option value="Passiv">Passiv</option>
@@ -688,15 +688,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tilhører lag</label>
-                    <select id="playerTeamInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 font-bold text-bsk-blue">
+                    <label class="portal-label">Tilhører lag</label>
+                    <select id="playerTeamInput" class="portal-field">
                         </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Hovedposisjon</label>
-                        <select id="playerPos1Input" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50">
+                        <label class="portal-label">Hovedposisjon</label>
+                        <select id="playerPos1Input" class="portal-field">
                             <option value="Keeper">Keeper</option>
                             <option value="Høyre bekk">Høyre bekk</option>
                             <option value="Venstre bekk">Venstre bekk</option>
@@ -711,8 +711,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Sekundærposisjon</label>
-                        <select id="playerPos2Input" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50">
+                        <label class="portal-label">Sekundærposisjon</label>
+                        <select id="playerPos2Input" class="portal-field">
                             <option value="-">- Ingen -</option>
                             <option value="Høyre bekk">Høyre bekk</option>
                             <option value="Venstre bekk">Venstre bekk</option>
@@ -729,8 +729,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Foretrukket fot</label>
-                    <select id="playerFootInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none bg-slate-50 text-slate-700 font-semibold">
+                    <label class="portal-label">Foretrukket fot</label>
+                    <select id="playerFootInput" class="portal-field">
                         <option value="Høyre">Høyre</option>
                         <option value="Venstre">Venstre</option>
                         <option value="Begge">Begge</option>
@@ -764,23 +764,23 @@
                 <input type="hidden" id="editTeamId">
                 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lagsnavn</label>
-                    <input type="text" id="teamName" placeholder="F.eks. Gutter 2012 A, Jenter 15, Herrer A..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Lagsnavn</label>
+                    <input type="text" id="teamName" placeholder="F.eks. Gutter 2012 A, Jenter 15, Herrer A..." required class="portal-field">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Trener / Lagleder</label>
-                    <input type="text" id="teamCoach" placeholder="Navn på trener" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Trener / Lagleder</label>
+                    <input type="text" id="teamCoach" placeholder="Navn på trener" required class="portal-field">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kontaktinfo Trener</label>
-                    <input type="text" id="teamCoachContact" placeholder="Tlf: 900 00 000 / e-post..." required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none">
+                    <label class="portal-label">Kontaktinfo Trener</label>
+                    <input type="text" id="teamCoachContact" placeholder="Tlf: 900 00 000 / e-post..." required class="portal-field">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kort Beskrivelse / Laginfo</label>
-                    <textarea id="teamDesc" rows="3" placeholder="Beskrivelse av laget, treninger eller divisjon..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-bsk-blue outline-none resize-none"></textarea>
+                    <label class="portal-label">Kort Beskrivelse / Laginfo</label>
+                    <textarea id="teamDesc" rows="3" placeholder="Beskrivelse av laget, treninger eller divisjon..." class="portal-field"></textarea>
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
@@ -811,8 +811,8 @@
             <form id="activityForm" class="space-y-4">
                 <input type="hidden" id="editEventId">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1" id="activityTitleLabel">Hva skal dere?</label>
-                    <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                    <label class="portal-label" id="activityTitleLabel">Hva skal dere?</label>
+                    <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="portal-field">
                         <option value="Trening">Trening</option>
                         <option value="Kamp">Kamp</option>
                         <option value="Annet">Annet</option>
@@ -820,33 +820,33 @@
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Hvilket lag gjelder dette?</label>
-                    <select id="activityTeam" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-bsk-blue outline-none focus:ring-2 focus:ring-bsk-blue">
+                    <label class="portal-label">Hvilket lag gjelder dette?</label>
+                    <select id="activityTeam" class="portal-field">
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tittel / Motstander</label>
+                    <label class="portal-label">Tittel / Motstander</label>
                     <input type="text" id="activityTitle" placeholder="F.eks. BSK - KFUM (Valgfritt)"
-                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                        class="portal-field">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Sted / Bane</label>
+                    <label class="portal-label">Sted / Bane</label>
                     <input type="text" id="activityLocation" placeholder="F.eks. BSK-banen, Valle Hovin..." 
-                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                        class="portal-field">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Dato</label>
+                        <label class="portal-label">Dato</label>
                         <input type="date" id="activityDate" required
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                            class="portal-field">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tidspunkt</label>
+                        <label class="portal-label">Tidspunkt</label>
                         <input type="time" id="activityTime" value="18:00" required
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-bsk-blue">
+                            class="portal-field">
                     </div>
                 </div>
 
