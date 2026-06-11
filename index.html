@@ -40,11 +40,6 @@
             </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
             <div id="view-kamper" class="hidden space-y-6">
-                <div class="portal-page-banner">
-                    <p class="portal-page-kicker">Kamper</p>
-                    <h2 class="portal-page-title">Terminliste</h2>
-                </div>
-
                 <div class="portal-page-toolbar is-detached">
                     <div class="portal-segmented">
                         <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="portal-segment-btn is-active">
@@ -142,44 +137,56 @@
             </div>
 
             <div id="view-oppmote" class="hidden space-y-6">
-                
-                <div class="w-full flex justify-center mb-6 mt-2">
-                    <div class="bg-slate-200/70 p-1 rounded-xl inline-flex items-center text-xs font-bold shadow-sm h-10 shrink-0">
-                        <button onclick="navigateCalendar(-1)" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0 flex items-center justify-center">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <span id="calendar-month-year" class="px-4 text-bsk-blue font-black tracking-wider uppercase flex items-center justify-center pointer-events-none min-w-[120px]">
-                            Mai 2026
-                        </span>
-                        <button onclick="navigateCalendar(1)" class="px-4 h-full rounded-lg transition-all text-slate-500 hover:text-slate-800 shrink-0 flex items-center justify-center">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-4 md:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1">Kalender</p>
+                            <h2 id="calendar-month-year" class="text-xl font-black text-bsk-blue tracking-tight">Mai 2026</h2>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button onclick="navigateCalendar(-1)" class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-white transition shadow-sm flex items-center justify-center" title="Forrige måned">
+                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                            </button>
+                            <button onclick="goToToday()" class="h-10 px-4 rounded-xl bg-bsk-blue text-white border border-bsk-blueDark hover:bg-bsk-blueLight transition shadow-sm text-xs font-black">
+                                I dag
+                            </button>
+                            <button onclick="navigateCalendar(1)" class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-white transition shadow-sm flex items-center justify-center" title="Neste måned">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-sm space-y-4">
-                        
-                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div>Man</div><div>Tis</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
+                    <div class="p-4 md:p-5 space-y-4">
+                        <div class="grid grid-cols-7 gap-1.5 text-center text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                            <div>Man</div><div>Tir</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
                         </div>
 
-                        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[220px]">
+                        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[320px]">
                         </div>
-                    
-                        <div class="flex flex-wrap gap-4 pt-4 text-[10px] font-bold text-slate-500 uppercase justify-center">
+
+                        <div class="flex flex-wrap gap-4 pt-2 text-[10px] font-bold text-slate-500 uppercase justify-center">
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamper</span></div>
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Treninger</span></div>
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
                         </div>
-                    
-                        <div class="mt-4 pt-4 border-t border-slate-100 bg-slate-50 rounded-xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <h4 class="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider">Aktivitetsdetaljer</h4>
-                                <span id="selected-calendar-date" class="text-xs font-black text-bsk-blue bg-bsk-yellow/20 px-2.5 py-1 rounded-full shadow-sm">Velg en dato</span>
-                            </div>
-                            <div id="daily-events-list" class="space-y-2">
-                            </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-4 md:p-5 border-b border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1">Aktivitetsdetaljer</p>
+                            <h3 id="selected-calendar-date" class="text-base font-black text-bsk-blue">Velg en dato</h3>
+                        </div>
+                        <button onclick="openActivityModal('Trening')" class="inline-flex items-center justify-center gap-2 bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-sm border border-bsk-blueDark">
+                            <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i>
+                            Ny aktivitet
+                        </button>
+                    </div>
+
+                    <div class="p-4 md:p-5">
+                        <div id="daily-events-list" class="space-y-2">
                         </div>
                     </div>
                 </div>
@@ -208,11 +215,6 @@
             </div>
 
             <div id="view-statistikk" class="hidden space-y-6">
-                <div class="portal-page-banner">
-                    <p class="portal-page-kicker">Statistikk</p>
-                    <h2 class="portal-page-title">Analyse og utvikling</h2>
-                </div>
-
                 <div class="portal-page-toolbar is-detached">
                     <div class="portal-segmented">
                         <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">

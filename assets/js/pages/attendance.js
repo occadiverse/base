@@ -159,6 +159,22 @@ window.navigateCalendar = function(direction) {
     window.renderCalendar();
 };
 
+function formatCalendarDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function parseCalendarDate(dateStr) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+window.goToToday = function() {
+    const today = new Date();
+    window.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    window.selectedCalendarDateStr = formatCalendarDate(today);
+    window.renderCalendar();
+};
+
 window.renderCalendar = function() {
     const grid = document.getElementById('calendar-days-grid');
     if (!grid) return;
@@ -178,38 +194,54 @@ window.renderCalendar = function() {
     const totalDays = new Date(year, month + 1, 0).getDate();
 
     for (let i = 0; i < startOffset; i++) {
-        grid.innerHTML += `<div class="bg-slate-100/40 rounded-lg min-h-[40px]"></div>`;
+        grid.innerHTML += `<div class="bg-slate-50/70 rounded-2xl min-h-[64px] md:min-h-[82px] border border-slate-100"></div>`;
     }
 
     for (let day = 1; day <= totalDays; day++) {
         const dayDate = new Date(year, month, day);
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dateStr = formatCalendarDate(dayDate);
         const isSelected = window.selectedCalendarDateStr === dateStr;
         const isToday = new Date().toDateString() === dayDate.toDateString();
-
-        const cell = document.createElement('div');
-        cell.className = `border border-slate-100 rounded-xl p-1.5 min-h-[44px] flex flex-col justify-between cursor-pointer transition active:scale-95 ${isSelected ? 'bg-bsk-blue text-white shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-800'} ${isToday && !isSelected ? 'ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
-        cell.onclick = () => window.selectCalendarDate(dateStr);
-
         const matches = (window.activeMatches || []).filter(m => m.date === dateStr);
         const events = (window.activeEvents || []).filter(e => e.date === dateStr);
-        const dotContainer = document.createElement('div');
-        dotContainer.className = "flex gap-1 justify-center mt-1";
+        const items = [
+            ...matches.map(m => ({
+                color: 'bg-emerald-500',
+                tint: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                label: m.opponent || 'Kamp'
+            })),
+            ...events.map(e => ({
+                color: e.type === 'Trening' ? 'bg-blue-500' : e.type === 'Dugnad' ? 'bg-amber-500' : e.type === 'Sosialt' ? 'bg-purple-500' : 'bg-slate-400',
+                tint: e.type === 'Trening' ? 'bg-blue-50 text-blue-700 border-blue-100' : e.type === 'Dugnad' ? 'bg-amber-50 text-amber-700 border-amber-100' : e.type === 'Sosialt' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-slate-100 text-slate-600 border-slate-200',
+                label: e.title || e.type || 'Aktivitet'
+            }))
+        ];
 
-        events.forEach(e => {
-            const dot = document.createElement('span');
-            dot.className = "w-2 h-2 rounded-full " + (e.type === 'Trening' ? 'bg-blue-500' : e.type === 'Sosialt' ? 'bg-purple-500' : e.type === 'Dugnad' ? 'bg-amber-500' : 'bg-slate-400');
-            dotContainer.appendChild(dot);
-        });
+        const cell = document.createElement('div');
+        cell.className = `group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 ${isSelected ? 'bg-bsk-blue border-bsk-blue text-white shadow-md' : 'bg-white hover:bg-sky-50/70 border-slate-200 text-slate-800 shadow-sm'} ${isToday && !isSelected ? 'ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
+        cell.onclick = () => window.selectCalendarDate(dateStr);
 
-        matches.forEach(() => {
-            const dot = document.createElement('span');
-            dot.className = "w-2 h-2 rounded-full bg-emerald-500";
-            dotContainer.appendChild(dot);
-        });
+        const visibleItems = items.slice(0, 2).map(item => `
+            <span class="flex items-center gap-1 min-w-0 rounded-full border px-1.5 py-0.5 text-[9px] font-black ${isSelected ? 'bg-white/15 text-white border-white/20' : item.tint}">
+                <span class="w-1.5 h-1.5 rounded-full ${item.color} shrink-0"></span>
+                <span class="hidden sm:inline truncate">${item.label}</span>
+            </span>
+        `).join('');
 
-        cell.innerHTML = `<span class="text-[10px] font-extrabold ${isSelected ? 'text-bsk-yellow' : 'text-slate-500'}">${day}</span>`;
-        cell.appendChild(dotContainer);
+        const moreHtml = items.length > 2
+            ? `<span class="text-[9px] font-black ${isSelected ? 'text-white/80' : 'text-slate-400'}">+${items.length - 2}</span>`
+            : '';
+
+        cell.innerHTML = `
+            <div class="flex items-start justify-between gap-1">
+                <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-yellow' : 'text-slate-700'}">${day}</span>
+                ${isToday ? `<span class="text-[8px] font-black uppercase ${isSelected ? 'text-white/80' : 'text-bsk-blue'}">I dag</span>` : ''}
+            </div>
+            <div class="mt-auto space-y-1 min-h-[22px]">
+                ${visibleItems || `<span class="block h-1"></span>`}
+                ${moreHtml}
+            </div>
+        `;
         grid.appendChild(cell);
     }
 
@@ -225,56 +257,100 @@ window.updateDailySchedule = function() {
     const listContainer = document.getElementById('daily-events-list');
     if (!listContainer) return;
 
-    if (!window.selectedCalendarDateStr) window.selectedCalendarDateStr = new Date().toISOString().split('T')[0];
+    if (!window.selectedCalendarDateStr) window.selectedCalendarDateStr = formatCalendarDate(new Date());
 
     const dateStr = window.selectedCalendarDateStr;
     const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
     const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
+    const selectedDate = parseCalendarDate(dateStr);
 
     if (document.getElementById('selected-calendar-date')) {
-        document.getElementById('selected-calendar-date').innerText = new Date(dateStr).toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+        document.getElementById('selected-calendar-date').innerText = selectedDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
     }
 
     listContainer.innerHTML = '';
 
     if (dayMatches.length === 0 && dayEvents.length === 0) {
-        listContainer.innerHTML = `<p class="text-[11px] text-slate-400 italic text-center py-2">Ingen aktiviteter planlagt denne dagen.</p>`;
+        listContainer.innerHTML = `
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl py-8 px-4 text-center">
+                <div class="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-regular fa-calendar text-slate-300 text-xl"></i>
+                </div>
+                <p class="font-black text-slate-700 text-sm">Ingen aktiviteter denne dagen</p>
+                <p class="text-xs text-slate-500 mt-1">Legg inn trening, sosialt eller dugnad når planen er klar.</p>
+                <button onclick="openActivityModal('Trening')" class="mt-4 inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-bsk-blue border border-slate-200 font-black text-xs px-4 py-2.5 rounded-xl transition shadow-sm">
+                    <i class="fa-solid fa-plus text-bsk-yellow"></i>
+                    Legg til aktivitet
+                </button>
+            </div>`;
         return;
     }
 
     dayMatches.forEach(m => {
         const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
         listContainer.innerHTML += `
-            <div class="flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm">
-                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div><span class="font-bold text-xs text-slate-800">Kamp mot ${m.opponent}</span></div>
-                <div class="text-[10px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 ml-4">
-                    <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span><span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span><span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-futbol text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Kamp</p>
+                            <h4 class="font-black text-sm text-slate-900 truncate">Kamp mot ${m.opponent}</h4>
+                            <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span>
+                                <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
+                                <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${m.matchGroup || 'Lag'}</span>
                 </div>
-                <div class="flex gap-2 mt-1 w-full justify-start ml-4">
-                    <button onclick="openAttendanceModal('match_${m.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow-sm flex items-center">
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button onclick="openAttendanceModal('match_${m.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-[10px] px-3 py-2 rounded-xl transition shadow-sm flex items-center">
                         <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
                     </button>
-                    <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                    <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    <button onclick="window.openMatchModal('${m.id}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-xl transition shadow-sm" title="Rediger"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                    <button onclick="promptDeleteMatch('${m.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-100 px-3 py-2 rounded-xl transition shadow-sm" title="Slett"><i class="fa-solid fa-trash text-[10px]"></i></button>
                 </div>
             </div>`;
     });
 
     dayEvents.forEach(e => {
-        const dotColor = e.type === 'Trening' ? 'bg-blue-500' : (e.type === 'Dugnad' ? 'bg-amber-500' : 'bg-slate-400');
+        const theme = e.type === 'Trening'
+            ? { icon: 'fa-person-running', label: 'Trening', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
+            : e.type === 'Dugnad'
+                ? { icon: 'fa-hammer', label: 'Dugnad', box: 'bg-amber-50 border-amber-100 text-amber-600', badge: 'bg-amber-50 text-amber-700 border-amber-100', text: 'text-amber-700' }
+                : e.type === 'Sosialt'
+                    ? { icon: 'fa-users', label: 'Sosialt', box: 'bg-purple-50 border-purple-100 text-purple-600', badge: 'bg-purple-50 text-purple-700 border-purple-100', text: 'text-purple-700' }
+                    : { icon: 'fa-calendar-check', label: e.type || 'Aktivitet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
         listContainer.innerHTML += `
-            <div class="flex flex-col bg-white border border-slate-150 p-3 rounded-xl gap-2 shadow-sm">
-                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full ${dotColor} shrink-0"></div><span class="font-bold text-xs text-slate-800">${e.type} ${e.title ? '- ' + e.title : ''}</span></div>
-                <div class="text-[10px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 ml-4">
-                    <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span><span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span><span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl ${theme.box} border flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${theme.icon} text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-black uppercase tracking-wider ${theme.text}">${theme.label}</p>
+                            <h4 class="font-black text-sm text-slate-900 truncate">${e.title || theme.label}</h4>
+                            <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span>
+                                <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
+                                <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="${theme.badge} border text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${e.team || 'Lag'}</span>
                 </div>
-                <div class="flex gap-2 mt-1 w-full justify-start ml-4">
-                    <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition shadow-sm flex items-center">
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button onclick="openAttendanceModal('${e.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-[10px] px-3 py-2 rounded-xl transition shadow-sm flex items-center">
                         <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
                     </button>
-                    <button onclick="editActivity('${e.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                    <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    <button onclick="editActivity('${e.id}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-xl transition shadow-sm" title="Rediger"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                    <button onclick="deleteActivity('${e.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-100 px-3 py-2 rounded-xl transition shadow-sm" title="Slett"><i class="fa-solid fa-trash text-[10px]"></i></button>
                 </div>
             </div>`;
     });
