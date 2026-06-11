@@ -4,11 +4,11 @@ window.tailwind.config = {
                 extend: {
                     colors: {
                         bsk: {
-                            blue: '#003366',      // Klassisk mørkeblå BSK-farge
-                            blueLight: '#004488', 
-                            blueDark: '#002244',
-                            yellow: '#ffd700',    // BSK Gulgull
-                            yellowDark: '#e0be00',
+                            blue: '#123f73',      // Lysere BSK-blå for portalen
+                            blueLight: '#1f5d9e',
+                            blueDark: '#0b2b4c',
+                            yellow: '#f5c542',    // Varm BSK-gul
+                            yellowDark: '#d6a820',
                         }
                     },
                     fontFamily: {

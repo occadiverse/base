@@ -1,6 +1,15 @@
-body {
+:root {
+            --portal-bg: #f7fafc;
+            --portal-bg-soft: #eef4f8;
+            --portal-border: #dbe5ef;
+        }
+        html {
+            background: var(--portal-bg);
+        }
+        body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            background: linear-gradient(180deg, #fbfdff 0%, var(--portal-bg) 48%, var(--portal-bg-soft) 100%);
         }
         ::-webkit-scrollbar {
             width: 6px;
@@ -17,8 +26,8 @@ body {
             background: #94a3b8;
         }
         .active-nav {
-            color: #ffd700 !important;
-            border-top: 3px solid #ffd700;
+            color: #f5c542 !important;
+            border-top: 3px solid #f5c542;
         }
         /* Basis for alle modaler */
         .modal-base {
