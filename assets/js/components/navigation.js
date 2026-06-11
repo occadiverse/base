@@ -50,7 +50,7 @@ function renderSidebar() {
 
 function renderMobileHeader() {
     return `
-        <header class="portal-mobile-chrome md:hidden text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md h-14 border-b border-bsk-yellow/30">
+        <header class="portal-mobile-chrome portal-mobile-header md:hidden text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md h-14 border-b border-bsk-yellow/30">
             <div class="flex items-center space-x-2 cursor-pointer hover:opacity-90 transition-opacity" onclick="switchTab('hjem')">
                 <div class="bg-bsk-yellow text-bsk-blue p-1.5 rounded-lg shadow-sm border border-white/20">
                     <i class="fa-solid fa-shield-halved text-sm"></i>

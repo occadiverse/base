@@ -18,6 +18,10 @@
         .portal-mobile-chrome {
             background: linear-gradient(90deg, #0b2b4c 0%, #123f73 54%, #1f5d9e 100%);
         }
+        .portal-mobile-header {
+            height: calc(3.5rem + env(safe-area-inset-top, 0px));
+            padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+        }
         .portal-action-bar-shell {
             background: rgba(255, 255, 255, 0.88);
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
