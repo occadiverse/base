@@ -123,13 +123,13 @@ function switchTab(tabId) {
         window.renderEvents();
         window.recalculateOppmoteAndKjemi();
     } else if (tabId === 'tropp') {
-        renderPlayerRoster();
+        window.renderPlayerRoster();
     } else if (tabId === 'statistikk') {
-        renderStatistikkSide();
+        window.renderStatistikkSide();
     } else if (tabId === 'admin' && isAdminUnlocked) {
         renderAdminTeamsList();
     } else if (tabId === 'hjem') {
-        updateDashboard();
+        window.updateDashboard();
     } else if (tabId === 'taktikk') {
         setTacticalPhase('fase1');
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();

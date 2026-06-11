@@ -379,5 +379,5 @@ window.savePlayerMatchStats = async function() {
 
     alert('Spillerbørs, kort og Banens Beste er oppdatert! 🏆');
     applyFilters();
-    if (typeof renderStatistikkSide === 'function') renderStatistikkSide();
+    if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
 };
