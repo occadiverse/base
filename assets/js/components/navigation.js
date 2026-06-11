@@ -67,17 +67,9 @@ function renderMobileHeader() {
 function renderActionBar() {
     return `
         <div id="action-bar-container" class="portal-action-bar-shell backdrop-blur-md border-b border-slate-200/80 px-4 py-3 md:px-8 hidden md:flex justify-between items-center sticky top-0 z-30 transition-all">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-bsk-blue text-bsk-yellow flex items-center justify-center shadow-sm border border-bsk-blueDark shrink-0">
-                    <i class="fa-solid fa-shield-halved text-sm"></i>
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-5 rounded-full bg-bsk-yellow shrink-0"></span>
-                        <h2 class="text-sm font-black text-bsk-blue uppercase tracking-[0.18em] truncate" id="current-tab-title">Forside</h2>
-                    </div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Kamp- & spillerportal</p>
-                </div>
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="w-1.5 h-5 rounded-full bg-bsk-yellow shrink-0"></span>
+                <h2 class="text-sm font-black text-bsk-blue uppercase tracking-[0.18em] truncate" id="current-tab-title">Hjem</h2>
             </div>
 
             <div class="flex items-center justify-end gap-3">

@@ -58,17 +58,20 @@ function switchTab(tabId) {
     }
 
     const titles = {
-        hjem: "Forside",
+        hjem: "Hjem",
         kamper: "Kamper",
         oppmote: "Kalender",
         tropp: "Spillertropp",
         statistikk: "Statistikk",
-        taktikk: "Taktikk & Kjemi",
-        admin: "Admin-panel",
+        taktikk: "Taktikk",
+        admin: "Admin",
         kampdetaljer: "Kampdetaljer"
     };
 
-    document.getElementById('current-tab-title').innerText = titles[tabId] || "BSK Fotball";
+    const tabTitle = titles[tabId] || "BSK Fotball";
+    const desktopTitle = document.getElementById('current-tab-title');
+
+    if (desktopTitle) desktopTitle.innerText = tabTitle;
 
     document.querySelectorAll('.tab-link').forEach(link => {
         link.classList.remove('is-active');
