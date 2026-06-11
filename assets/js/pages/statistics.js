@@ -173,7 +173,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
                 btn.className = inactiveClass;
             });
             
-            // 4. Gi den aktive knappen hvit bakgrunn, skygge og blå tekst
+            // 4. Gi den aktive knappen felles aktiv-stil fra base.css
             const activeBtn = document.getElementById(`stat-tab-${tabId}`);
             if (activeBtn) {
                 activeBtn.className = "stat-tab-btn portal-segment-btn is-active";
