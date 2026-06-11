@@ -60,6 +60,20 @@
         .mobile-nav-btn.active-nav {
             background: rgba(255, 255, 255, 0.08);
         }
+        .tactical-pitch {
+            background:
+                radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.08), transparent 42%),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.08) 0,
+                    rgba(255, 255, 255, 0.08) 12%,
+                    rgba(255, 255, 255, 0) 12%,
+                    rgba(255, 255, 255, 0) 24%
+                ),
+                linear-gradient(180deg, #38b978 0%, #2fa86d 48%, #23895c 100%);
+            border-color: rgba(18, 63, 115, 0.22);
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+        }
         /* Basis for alle modaler */
         .modal-base {
         z-index: 50 !important;

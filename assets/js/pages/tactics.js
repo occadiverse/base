@@ -49,7 +49,7 @@
                         } else if (chemScore >= 50) {
                             strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
                         } else if (chemScore === 0) { 
-                            strokeColor = 'rgba(255, 255, 255, 0.25)'; // HVIT STIPLET
+                            strokeColor = 'rgba(18, 63, 115, 0.28)'; // Svak BSK-blå stiplet
                             strokeWidth = 1.5; 
                         }
 
@@ -344,7 +344,7 @@
             ${badgesHtml}
             <span class="text-[14px] font-black tracking-tight z-10 ${bonusTextColor}" title="Kampbonus (Form)">${bonusTekst}</span>
             <div class="absolute -bottom-5 flex flex-col items-center pointer-events-none z-10">
-                <span class="text-[9px] font-bold text-white whitespace-nowrap drop-shadow-md bg-black/60 px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
+                <span class="text-[9px] font-bold text-bsk-blue whitespace-nowrap bg-white/90 border border-bsk-blue/10 shadow-sm px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
             </div>
         `;
         node.classList.add('bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);

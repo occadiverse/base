@@ -305,10 +305,10 @@
             <div id="view-taktikk" class="hidden space-y-6 max-w-5xl mx-auto w-full">
                 
                 <!-- OPPDATERT: Her har menyene fått max-w-lg mx-auto, slik at de blir nøyaktig like brede som banen -->
-                <div class="max-w-lg mx-auto w-full px-4 lg:px-0 flex flex-col items-center gap-4 mb-2 mt-4">
+                <div class="max-w-lg mx-auto w-full flex flex-col items-center gap-4 mb-2 mt-4 bg-white/90 border border-slate-200 border-b-4 border-bsk-yellow/40 rounded-2xl p-4 shadow-sm">
                     
                     <!-- Kampvelger sentrert -->
-                    <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+                    <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-slate-50/80 border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">Modus / Kamp:</label>
                         <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="bg-transparent text-xs font-black text-bsk-blue outline-none min-w-[180px] cursor-pointer text-left">
                             <option value="">Sandkasse</option>
@@ -339,29 +339,29 @@
                 </div>
 
                 <div class="px-4 lg:px-0 pb-12">
-                    <div class="relative w-full max-w-lg mx-auto aspect-[2/3] bg-emerald-800 rounded-xl shadow-2xl border-4 border-emerald-900 overflow-hidden" id="full-pitch-container">
+                    <div class="tactical-pitch relative w-full max-w-lg mx-auto aspect-[2/3] rounded-2xl shadow-lg border overflow-hidden" id="full-pitch-container">
 
                         <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
-                            <div class="bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-xl border border-white/10 text-center min-w-[100px] shadow-lg">
-                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider mb-0.5">Total Bonus</span>
-                                <span id="stat-total-bonus" class="text-xs font-black text-white tracking-wide">0/0</span>
+                            <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
+                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Total Bonus</span>
+                                <span id="stat-total-bonus" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
                             </div>
-                            <div class="bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-xl border border-white/10 text-center min-w-[100px] shadow-lg">
-                                <span class="block text-[8px] uppercase font-black text-slate-300 tracking-wider mb-0.5">Total Kjemi</span>
-                                <span id="stat-avg-chem" class="text-xs font-black text-white tracking-wide">0/0</span>
+                            <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
+                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Total Kjemi</span>
+                                <span id="stat-avg-chem" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
                             </div>
                         </div>
                         
-                        <div class="absolute top-1/2 w-full h-[2px] bg-white/30 -translate-y-1/2"></div> 
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/30"></div> 
+                        <div class="absolute top-1/2 w-full h-[2px] bg-white/45 -translate-y-1/2"></div> 
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/45"></div> 
         
-                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-b-0"></div> 
-                        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/30 border-b-0"></div> 
-                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-b-0"></div> 
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/45 border-b-0"></div> 
+                        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/45 border-b-0"></div> 
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/45 border-b-0"></div> 
 
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/30 border-t-0"></div> 
-                        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/30 border-t-0"></div> 
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/30 border-t-0"></div>
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/45 border-t-0"></div> 
+                        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/45 border-t-0"></div> 
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/45 border-t-0"></div>
 
                         <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0">
                         </svg>
