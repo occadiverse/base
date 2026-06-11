@@ -62,6 +62,10 @@
             margin-top: 1rem;
             max-width: 100%;
         }
+        .portal-page-toolbar.is-detached {
+            justify-content: center;
+            margin-top: 0;
+        }
         .portal-segmented {
             align-items: center;
             background: rgba(255, 255, 255, 0.78);

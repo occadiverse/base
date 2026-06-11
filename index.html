@@ -43,26 +43,24 @@
                 <div class="portal-page-banner">
                     <p class="portal-page-kicker">Kamper</p>
                     <h2 class="portal-page-title">Terminliste</h2>
+                </div>
 
-                    <div class="portal-page-toolbar">
-                    
-                        <div class="portal-segmented">
-                            <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="portal-segment-btn is-active">
-                                Kommende
-                            </button>
-                            <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="portal-segment-btn">
-                                Tidligere
-                            </button>
-                        </div>
+                <div class="portal-page-toolbar is-detached">
+                    <div class="portal-segmented">
+                        <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="portal-segment-btn is-active">
+                            Kommende
+                        </button>
+                        <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="portal-segment-btn">
+                            Tidligere
+                        </button>
+                    </div>
 
-                        <div class="portal-inline-select hover:border-bsk-blueLight transition-colors">
-                            <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
-                            <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
-                                <option value="Alle">ALLE LAG</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
-                        </div>
-
+                    <div class="portal-inline-select hover:border-bsk-blueLight transition-colors">
+                        <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
+                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="bg-transparent text-xs font-black text-slate-600 outline-none cursor-pointer appearance-none">
+                            <option value="Alle">ALLE LAG</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
                     </div>
                 </div>
 
@@ -213,9 +211,10 @@
                 <div class="portal-page-banner">
                     <p class="portal-page-kicker">Statistikk</p>
                     <h2 class="portal-page-title">Analyse og utvikling</h2>
+                </div>
 
-                    <div class="portal-page-toolbar">
-                        <div class="portal-segmented">
+                <div class="portal-page-toolbar is-detached">
+                    <div class="portal-segmented">
                         <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
                             Lag
                         </button>
@@ -231,7 +230,6 @@
                         <button type="button" onclick="switchStatTab('analyse')" id="stat-tab-analyse" class="stat-tab-btn portal-segment-btn">
                             Analyse
                         </button>
-                        </div>
                     </div>
                 </div>
 
