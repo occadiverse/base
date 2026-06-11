@@ -5,6 +5,7 @@ Dette er første ryddige versjon av portalen. Målet i denne runden er å behold
 ## Mapper
 
 - `index.html` inneholder app-skallet og HTML-visningene.
+- `.gitignore` hindrer at maskinfiler, midlertidige output-filer og ekte Firestore-konfigurasjon havner i GitHub.
 - `assets/css/base.css` inneholder global styling som gjelder hele portalen.
 - `assets/js/config/tailwind.config.js` inneholder felles Tailwind/BSK-farger.
 - `assets/js/state.js` setter opp global app-tilstand.
