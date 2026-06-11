@@ -131,7 +131,7 @@ function switchTab(tabId) {
     } else if (tabId === 'hjem') {
         window.updateDashboard();
     } else if (tabId === 'taktikk') {
-        setTacticalPhase('fase1');
+        if (typeof window.setTacticalPhase === 'function') window.setTacticalPhase('fase1');
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
     }
 }

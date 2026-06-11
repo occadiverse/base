@@ -14,6 +14,7 @@ Dette er første ryddige versjon av portalen. Målet i denne runden er å behold
 - `assets/js/pages/matches.js` inneholder terminliste, kampmodal, kampdetaljer og kampstatistikk.
 - `assets/js/pages/attendance.js` inneholder kalender, aktiviteter og oppmøteregistrering.
 - `assets/js/pages/statistics.js` inneholder Statistikk-fanen, spillerform, poenghistorikk, kampstatistikk og analysevisninger.
+- `assets/js/pages/tactics.js` inneholder Taktikk-fanen, kampplan, kjemilinjer, benk og automatisk laguttak.
 - `assets/js/firebase-sync.js` håndterer Firestore og lokal fallback.
 - `assets/js/app.js` inneholder resten av dagens app-logikk mens flere deler flyttes ut stegvis.
 - `assets/js/components/navigation.js` renderer sidebar, mobilheader, actionbar, mobilmeny og floating action-knapp.
@@ -22,7 +23,7 @@ Dette er første ryddige versjon av portalen. Målet i denne runden er å behold
 
 ## Neste naturlige steg
 
-1. Flytte taktikkdelen ut av `app.js` til en egen sidefil.
+1. Flytte dashboard/forside-logikk ut av `app.js` hvis vi vil gjøre hovedfilen enda mindre.
 2. Flytte hver stor HTML-visning ut i egne templates eller render-funksjoner.
 3. Flytte modaler til egne komponenter når app-logikken er enklere å dele.
 4. Bytte Tailwind CDN til en lokal build hvis portalen skal publiseres mer profesjonelt.
