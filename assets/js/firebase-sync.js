@@ -1,0 +1,261 @@
+
+
+        const initialMockMatches = window.initialMockMatches || [];
+        const initialMockTeams = window.initialMockTeams || [];
+        const initialMockPlayers = window.initialMockPlayers || [];
+        const initialMockEvents = window.initialMockEvents || [];
+        
+        const appId = "bsk-fotball-app";
+
+        let db = null;
+        let auth = null;
+        let signInAnonymously = null;
+        let doc = null;
+        let setDoc = null;
+        let onSnapshot = null;
+        let collection = null;
+        let deleteDoc = null;
+        
+        let activeMatchesCollectionRef = null;
+        let activeTeamsCollectionRef = null;
+        let activePlayersCollectionRef = null;
+        let activeEventsCollectionRef = null;
+        let firebaseEnabled = false;
+
+
+        async function loadFirestoreConfig() {
+            try {
+                return await import('../../firestore-config.js');
+            } catch (firstError) {
+                try {
+                    return await import('../../firestore.config.js');
+                } catch (secondError) {
+                    return null;
+                }
+            }
+        }
+
+        try {
+            ({ signInAnonymously } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'));
+            ({ doc, setDoc, onSnapshot, collection, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'));
+            const firestoreConfig = await loadFirestoreConfig();
+            if (!firestoreConfig) throw new Error("Firestore-config mangler, bruker lokal lagring.");
+            ({ db, auth } = firestoreConfig);
+            await signInAnonymously(auth);
+            if (!db) throw new Error("Database-objektet (db) er undefined!");
+
+            activeMatchesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'matches');
+            activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
+            activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+            activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
+            
+            firebaseEnabled = true;
+            console.log("Firebase lastet inn via firestore-config.js! 🎉");
+        } catch (err) {
+            console.warn("Firebase ikke aktivert:", err.message);
+            firebaseEnabled = false;
+            loadAllFromLocalStorage(); 
+        }
+
+        function syncMatches(matchesData) {
+            window.activeMatches = matchesData;
+            window.localStorage.setItem('bsk_local_matches', JSON.stringify(matchesData));
+            if (typeof window.updateDashboard === 'function') window.updateDashboard();
+            if (typeof window.applyFilters === 'function') window.applyFilters();
+        }
+
+        function syncTeams(teamsData) {
+            window.activeTeams = teamsData;
+            window.localStorage.setItem('bsk_local_teams', JSON.stringify(teamsData));
+            if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
+            if (typeof window.renderAdminTeamsList === 'function') window.renderAdminTeamsList();
+        }
+
+        function syncPlayers(playersData) {
+            window.activePlayers = playersData;
+            window.localStorage.setItem('bsk_local_players', JSON.stringify(playersData));
+            if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
+            if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+        }
+
+        function syncEvents(eventsData) {
+            window.activeEvents = eventsData;
+            window.localStorage.setItem('bsk_local_events', JSON.stringify(eventsData));
+            if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        }
+
+        if (firebaseEnabled && auth && auth.currentUser) {
+            function handleSyncError(key, syncFn, mockData, error) {
+                console.warn(`Database-tilgang avvist for ${key} (Faller tilbake til lokal lagring):`, error.message);
+                const cached = window.localStorage.getItem('bsk_local_' + key);
+                syncFn(cached ? JSON.parse(cached) : mockData);
+            }
+
+            onSnapshot(activeMatchesCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockMatches.forEach(async (m) => { try { await setDoc(doc(activeMatchesCollectionRef, m.id), m); } catch(e){} });
+                } else { 
+                    syncMatches(fb); 
+                    if (typeof updateDailySchedule === 'function') updateDailySchedule();
+                }
+            }, (error) => handleSyncError('matches', syncMatches, initialMockMatches, error));
+
+            onSnapshot(activeTeamsCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
+                } else { syncTeams(fb); }
+            }, (error) => handleSyncError('teams', syncTeams, initialMockTeams, error));
+
+            onSnapshot(activePlayersCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
+                } else { syncPlayers(fb); }
+            }, (error) => handleSyncError('players', syncPlayers, initialMockPlayers, error));
+
+            onSnapshot(activeEventsCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                if (fb.length === 0) {
+                    initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
+                } else { 
+                    syncEvents(fb); 
+                    if (typeof updateDailySchedule === 'function') updateDailySchedule();
+                    if (typeof updateHjemWidget === 'function') updateHjemWidget(); 
+                    if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); 
+                }
+            }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
+        } else {
+            loadAllFromLocalStorage();
+        }
+
+        function loadAllFromLocalStorage() {
+            const cachedMatches = window.localStorage.getItem('bsk_local_matches');
+            syncMatches(cachedMatches ? JSON.parse(cachedMatches) : initialMockMatches);
+            const cachedTeams = window.localStorage.getItem('bsk_local_teams');
+            syncTeams(cachedTeams ? JSON.parse(cachedTeams) : initialMockTeams);
+            const cachedPlayers = window.localStorage.getItem('bsk_local_players');
+            syncPlayers(cachedPlayers ? JSON.parse(cachedPlayers) : initialMockPlayers);
+            const cachedEvents = window.localStorage.getItem('bsk_local_events');
+            syncEvents(cachedEvents ? JSON.parse(cachedEvents) : initialMockEvents);
+        }
+
+        window.saveMatchToDatabase = async function(matchObject) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    const id = matchObject.id || crypto.randomUUID();
+                    matchObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activeMatches];
+            const idx = current.findIndex(m => m.id === matchObject.id);
+            if (idx > -1) { current[idx] = matchObject; } else { matchObject.id = matchObject.id || crypto.randomUUID(); current.push(matchObject); }
+            syncMatches(current);
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            return true;
+        };
+
+        window.deleteMatchFromDatabase = async function(matchId) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', matchId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activeMatches.filter(m => m.id !== matchId);
+            syncMatches(current);
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            return true;
+        };
+
+        window.saveTeamToDatabase = async function(teamObject) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    const id = teamObject.id || crypto.randomUUID();
+                    teamObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', id), teamObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activeTeams];
+            const idx = current.findIndex(t => t.id === teamObject.id);
+            if (idx > -1) { current[idx] = teamObject; } else { teamObject.id = teamObject.id || crypto.randomUUID(); current.push(teamObject); }
+            syncTeams(current);
+            return true;
+        };
+
+        window.deleteTeamFromDatabase = async function(teamId) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', teamId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activeTeams.filter(t => t.id !== teamId);
+            syncTeams(current);
+            return true;
+        };
+
+        window.savePlayerToDatabase = async function(playerObject) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    const id = playerObject.id || crypto.randomUUID();
+                    playerObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id), playerObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activePlayers];
+            const idx = current.findIndex(p => p.id === playerObject.id);
+            if (idx > -1) { current[idx] = playerObject; } else { playerObject.id = playerObject.id || crypto.randomUUID(); current.push(playerObject); }
+            syncPlayers(current);
+            return true;
+        };
+
+        window.deletePlayerFromDatabase = async function(playerId) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activePlayers.filter(p => p.id !== playerId);
+            syncPlayers(current);
+            return true;
+        };
+
+        window.saveEventToDatabase = async function(eventObject) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    const id = eventObject.id || crypto.randomUUID();
+                    eventObject.id = id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject);
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = [...window.activeEvents];
+            const idx = current.findIndex(ev => ev.id === eventObject.id);
+            if (idx > -1) { current[idx] = eventObject; } else { eventObject.id = eventObject.id || crypto.randomUUID(); current.push(eventObject); }
+            syncEvents(current);
+            return true;
+        };
+
+        window.deleteEventFromDatabase = async function(eventId) {
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId));
+                    return true;
+                } catch (e) { console.error(e); }
+            }
+            const current = window.activeEvents.filter(ev => ev.id !== eventId);
+            syncEvents(current);
+            return true;
+        };
