@@ -127,8 +127,8 @@
                 } else { 
                     syncEvents(fb); 
                     if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
-                    if (typeof updateHjemWidget === 'function') updateHjemWidget(); 
-                    if (typeof recalculateOppmoteAndKjemi === 'function') recalculateOppmoteAndKjemi(); 
+                    if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget(); 
+                    if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi(); 
                 }
             }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
         } else {
