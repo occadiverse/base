@@ -87,7 +87,7 @@
 </div>
             <div id="view-kampdetaljer" class="hidden space-y-6 max-w-4xl mx-auto w-full">
                 <div class="flex items-center mb-2">
-                    <button onclick="switchTab('kamper')" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-xl transition shadow-sm font-bold text-xs flex items-center gap-2">
+                    <button onclick="switchTab('kamper')" class="portal-btn portal-btn-secondary portal-btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Tilbake til terminlisten
                     </button>
                 </div>
@@ -96,10 +96,10 @@
                     <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 border-b border-slate-200 p-5 md:p-6 flex justify-between items-center">
                         <h2 id="kampdetaljer-title" class="font-black text-xl md:text-2xl text-bsk-blue uppercase tracking-tight">Kamp mot ...</h2>
                         <div class="flex gap-2">
-                            <button id="btnEditKampdetaljer" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-amber-500 w-10 h-10 rounded-xl transition shadow-sm flex items-center justify-center" title="Rediger">
+                            <button id="btnEditKampdetaljer" class="portal-btn portal-btn-icon portal-btn-secondary" title="Rediger">
                                 <i class="fa-solid fa-pen text-sm"></i>
                             </button>
-                            <button id="btnDeleteKampdetaljer" class="bg-white border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-500 w-10 h-10 rounded-xl transition shadow-sm flex items-center justify-center" title="Slett">
+                            <button id="btnDeleteKampdetaljer" class="portal-btn portal-btn-icon portal-btn-danger" title="Slett">
                                 <i class="fa-solid fa-trash text-sm"></i>
                             </button>
                         </div>
@@ -109,10 +109,10 @@
                         </div>
                     
                     <div class="p-5 md:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
-                        <button id="btnKampdetaljerOppmote" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3.5 px-4 rounded-xl transition shadow-md flex items-center justify-center gap-2 border border-bsk-blueDark">
+                        <button id="btnKampdetaljerOppmote" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                             <i class="fa-solid fa-user-check text-bsk-yellow text-sm"></i> Før Oppmøte / Tropp
                         </button>
-                        <button id="btnKampdetaljerTaktikk" class="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black text-xs py-3.5 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-emerald-300">
+                        <button id="btnKampdetaljerTaktikk" class="portal-btn portal-btn-success portal-btn-lg portal-btn-flex">
                             <i class="fa-solid fa-chess-board text-sm"></i> Sett Kampplan / Taktikk
                         </button>
                     </div>
@@ -128,7 +128,7 @@
                         <div id="kampdetaljer-spillerbors" class="divide-y divide-slate-100 px-5 bg-white">
                             </div>
                         <div class="p-5 bg-slate-50 border-t border-slate-100 mt-2">
-                            <button onclick="savePlayerMatchStats()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold text-xs py-4 rounded-xl transition shadow-md border border-bsk-blueDark">
+                            <button onclick="savePlayerMatchStats()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">
                                 LAGRE KAMPSTATISTIKK
                             </button>
                         </div>
@@ -145,13 +145,13 @@
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <button onclick="navigateCalendar(-1)" class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-white transition shadow-sm flex items-center justify-center" title="Forrige måned">
+                            <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Forrige måned">
                                 <i class="fa-solid fa-chevron-left text-xs"></i>
                             </button>
-                            <button onclick="goToToday()" class="h-10 px-4 rounded-xl bg-bsk-blue text-white border border-bsk-blueDark hover:bg-bsk-blueLight transition shadow-sm text-xs font-black">
+                            <button onclick="goToToday()" class="portal-btn portal-btn-primary">
                                 I dag
                             </button>
-                            <button onclick="navigateCalendar(1)" class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-white transition shadow-sm flex items-center justify-center" title="Neste måned">
+                            <button onclick="navigateCalendar(1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Neste måned">
                                 <i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
                         </div>
@@ -179,7 +179,7 @@
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1">Aktivitetsdetaljer</p>
                             <h3 id="selected-calendar-date" class="text-base font-black text-bsk-blue">Velg en dato</h3>
                         </div>
-                        <button onclick="openActivityModal('Trening')" class="inline-flex items-center justify-center gap-2 bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-sm border border-bsk-blueDark">
+                        <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-primary">
                             <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i>
                             Ny aktivitet
                         </button>
@@ -325,22 +325,22 @@
 
                     <!-- Faseknapper og verktøy sentrert rett over banen -->
                     <div class="flex flex-wrap items-center justify-center gap-2">
-                        <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-bsk-blue text-white border border-bsk-blue shadow-md">
+                        <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="phase-btn portal-btn portal-btn-icon portal-btn-primary">
                         F1
                         </button>
-                        <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
+                        <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="phase-btn portal-btn portal-btn-icon portal-btn-secondary">
                         F2
                         </button>
-                        <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="phase-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center hover:scale-105 active:scale-95 bg-white border border-slate-200 text-slate-500 hover:text-bsk-blue hover:bg-slate-50 shadow-sm">
+                        <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="phase-btn portal-btn portal-btn-icon portal-btn-secondary">
                         F3
                         </button>
 
                         <div class="w-px h-6 bg-slate-300 mx-1 rounded"></div>
 
-                        <button onclick="autoFillTeam()" title="Autofullfør ellever" class="bg-gradient-to-r from-bsk-yellow to-amber-400 hover:from-amber-400 hover:to-amber-500 text-bsk-blue w-10 h-10 rounded-xl shadow-md transition-all flex items-center justify-center hover:scale-105 active:scale-95">
+                        <button onclick="autoFillTeam()" title="Autofullfør ellever" class="portal-btn portal-btn-icon portal-btn-warning">
                             <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
                         </button>
-                        <button onclick="clearTacticalBoard()" title="Tøm banen" class="bg-white border border-slate-200 text-slate-500 hover:text-rose-500 hover:bg-rose-50 w-10 h-10 rounded-xl shadow-sm transition-all flex items-center justify-center hover:scale-105 active:scale-95">
+                        <button onclick="clearTacticalBoard()" title="Tøm banen" class="portal-btn portal-btn-icon portal-btn-danger">
                             <i class="fa-solid fa-eraser text-base"></i>
                         </button>
                     </div>
@@ -459,7 +459,7 @@
                     <h3 class="text-xl font-extrabold text-slate-900 mb-2">Skriv PIN-kode for Admin</h3>
                     <p class="text-xs text-slate-500 mb-6">Skriv stiftelsesåret til Bækkelagets Sportsklub (4 siffer) for å få tilgang.</p>
                     <input type="password" id="adminPinInput" maxlength="4" placeholder="••••" class="w-32 text-center text-2xl tracking-widest border-2 border-slate-200 rounded-xl py-2 px-3 focus:border-bsk-blue focus:outline-none mb-4">
-                    <button onclick="verifyAdminPin()" class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-bold py-3 px-6 rounded-xl transition duration-150">Lås opp</button>
+                    <button onclick="verifyAdminPin()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">Lås opp</button>
                     <p class="text-[10px] text-slate-400 mt-4">Hint: BSK ble stiftet i 1908!</p>
                 </div>
 
@@ -470,7 +470,7 @@
                                 <h3 class="font-extrabold text-lg text-slate-950">Administrasjon av lag</h3>
                                 <p class="text-xs text-slate-500">Opprett flere lag, legg til lagleder, trenerinfo og beskrivelser.</p>
                             </div>
-                            <button onclick="openTeamModal()" class="bg-bsk-blue hover:bg-bsk-blueLight text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-2 shadow-sm transition">
+                            <button onclick="openTeamModal()" class="portal-btn portal-btn-primary">
                                 <i class="fa-solid fa-plus text-bsk-yellow"></i>
                                 Opprett nytt lag
                             </button>
@@ -495,8 +495,8 @@
             <h3 class="font-extrabold text-lg text-bsk-blue" id="confirmTitle">Bekreft handling</h3>
             <p class="text-xs text-slate-500 leading-relaxed" id="confirmMessage">Er du sikker på at du ønsker å utføre denne handlingen?</p>
             <div class="flex gap-3 pt-2">
-                <button id="confirmYesBtn" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-2.5 px-4 rounded-xl text-xs transition">JA, UTØR</button>
-                <button id="confirmNoBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs transition">AVBRYT</button>
+                <button id="confirmYesBtn" class="portal-btn portal-btn-primary portal-btn-flex">JA, UTFØR</button>
+                <button id="confirmNoBtn" class="portal-btn portal-btn-muted portal-btn-flex">AVBRYT</button>
             </div>
         </div>
     </div>
@@ -507,7 +507,7 @@
                 <h3 id="modalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
                     <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Kamp
                 </h3>
-                <button onclick="window.closeMatchModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <button onclick="window.closeMatchModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -557,10 +557,10 @@
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                         LAGRE KAMP
                     </button>
-                    <button type="button" onclick="window.closeMatchModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                    <button type="button" onclick="window.closeMatchModal()" class="portal-btn portal-btn-muted portal-btn-lg">
                         AVBRYT
                     </button>
                 </div>
@@ -574,7 +574,7 @@
                 <h3 id="eventModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
                     <i class="fa-solid fa-calendar-check text-bsk-yellow"></i> Opprett Event / Trening
                 </h3>
-                <button onclick="closeEventModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <button onclick="closeEventModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -610,10 +610,10 @@
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                         OPPRETT EVENT
                     </button>
-                    <button type="button" onclick="closeEventModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                    <button type="button" onclick="closeEventModal()" class="portal-btn portal-btn-muted portal-btn-lg">
                         AVBRYT
                     </button>
                 </div>
@@ -628,7 +628,7 @@
                     <h3 id="attendanceModalTitle" class="font-extrabold text-lg text-bsk-blue">Oppmøteregistrering</h3>
                     <p class="text-[10px] text-slate-500 mt-0.5" id="attendanceModalSub">Laster...</p>
                 </div>
-                <button onclick="closeAttendanceModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <button onclick="closeAttendanceModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -637,10 +637,10 @@
                 </div>
 
             <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
-                <button onclick="saveAttendanceRegistry()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                <button onclick="saveAttendanceRegistry()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                     LAGRE OPPMØTE
                 </button>
-                <button type="button" onclick="closeAttendanceModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                <button type="button" onclick="closeAttendanceModal()" class="portal-btn portal-btn-muted portal-btn-lg">
                     AVBRYT
                 </button>
             </div>
@@ -653,7 +653,7 @@
                 <h3 id="playerFormTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Spiller
                 </h3>
-                <button onclick="window.closePlayerModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <button onclick="window.closePlayerModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -738,10 +738,10 @@
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                         LAGRE SPILLER
                     </button>
-                    <button type="button" onclick="window.closePlayerModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                    <button type="button" onclick="window.closePlayerModal()" class="portal-btn portal-btn-muted portal-btn-lg">
                         AVBRYT
                     </button>
                 </div>
@@ -755,7 +755,7 @@
                 <h3 id="teamModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
                     <i class="fa-solid fa-users text-bsk-yellow"></i> Opprett Lag
                 </h3>
-                <button onclick="window.closeTeamModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <button onclick="window.closeTeamModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -784,10 +784,10 @@
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                         LAGRE LAG
                     </button>
-                    <button type="button" onclick="window.closeTeamModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl transition">
+                    <button type="button" onclick="window.closeTeamModal()" class="portal-btn portal-btn-muted portal-btn-lg">
                         AVBRYT
                     </button>
                 </div>
@@ -803,7 +803,7 @@
                         <i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet
                     </h3>
                 </div>
-                <button onclick="closeActivityModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <button onclick="closeActivityModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -851,7 +851,7 @@
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100 mt-6">
-                    <button type="button" onclick="saveNewActivity()" class="flex-1 bg-bsk-blue hover:bg-bsk-blueLight text-white font-extrabold py-3 px-6 rounded-xl transition shadow-md">
+                    <button type="button" onclick="saveNewActivity()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                         OPPRETT AKTIVITET
                     </button>
                 </div>
@@ -868,7 +868,7 @@
                     </h3>
                     <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1" id="tactical-pos-label">POSISJON</p>
                 </div>
-                <button onclick="closePlayerSelect()" class="text-slate-400 hover:text-slate-600 p-2 bg-white rounded-xl shadow-sm border border-slate-200">
+                <button onclick="closePlayerSelect()" class="portal-btn portal-btn-icon portal-btn-secondary">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -883,7 +883,7 @@
                 <h3 class="text-xl font-black text-emerald-400">
                     <i class="fa-solid fa-calculator text-emerald-500 mr-2"></i>Slik regnes Kjemiscoren
                 </h3>
-                <button onclick="document.getElementById('kjemi-info-modal').classList.add('hidden'); document.getElementById('kjemi-info-modal').classList.remove('flex');" class="text-slate-400 hover:text-white text-3xl font-light transition-colors leading-none">&times;</button>
+                <button onclick="document.getElementById('kjemi-info-modal').classList.add('hidden'); document.getElementById('kjemi-info-modal').classList.remove('flex');" class="portal-btn portal-btn-icon portal-btn-dark-ghost text-3xl font-light leading-none">&times;</button>
             </div>
             
             <div class="p-6 space-y-6 text-sm">

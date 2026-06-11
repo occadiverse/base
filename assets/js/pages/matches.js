@@ -93,7 +93,7 @@ function applyFilters() {
             <td class="py-3.5 px-6 text-left hidden lg:table-cell text-slate-600">${m.pitch || '<span class="text-slate-300">Ikke oppgitt</span>'}</td>
             <td class="py-3.5 px-6 text-left hidden lg:table-cell"><span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span></td>
             <td class="py-3.5 px-4 md:px-6 text-right">
-                <button type="button" onclick="event.stopPropagation(); showMatchDetails('${m.id}')" class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-bsk-blue text-bsk-blue hover:text-white border border-bsk-blue/15 rounded-full px-2.5 py-1.5 text-[10px] font-black shadow-sm transition-colors">
+                <button type="button" onclick="event.stopPropagation(); showMatchDetails('${m.id}')" class="portal-btn portal-btn-secondary portal-btn-xs">
                     <i class="fa-solid fa-clipboard-list text-[10px]"></i>
                     <span class="hidden sm:inline">Detaljer</span>
                 </button>
@@ -292,10 +292,10 @@ window.renderPlayerRowForm = function(match) {
             <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
                     <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Mål:</span>
-                    <button type="button" onclick="changeCount(this, -1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">-</button>
+                    <button type="button" onclick="changeCount(this, -1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">-</button>
                     <span class="w-5 text-center font-extrabold text-slate-800 text-xs text-goal-val">${prevGoals}</span>
                     <input type="hidden" class="player-goals-input" data-player="${player}" value="${prevGoals}">
-                    <button type="button" onclick="changeCount(this, 1)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 font-bold text-slate-600 shadow-sm text-xs">+</button>
+                    <button type="button" onclick="changeCount(this, 1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">+</button>
                 </div>
 
                 <div class="flex items-center space-x-1 ml-1">

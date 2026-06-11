@@ -83,8 +83,8 @@ window.renderAdminTeamsList = function() {
                 <div class="flex justify-between items-start">
                     <h4 class="font-extrabold text-bsk-blue text-base">${t.name}</h4>
                     <div class="flex gap-1">
-                        <button onclick="openTeamModal('${t.id}')" class="text-slate-500 hover:text-bsk-blue p-1" title="Rediger"><i class="fa-solid fa-pen-to-square text-sm"></i></button>
-                        <button onclick="promptDeleteTeam('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Slett"><i class="fa-solid fa-trash text-sm"></i></button>
+                        <button onclick="openTeamModal('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square text-sm"></i></button>
+                        <button onclick="promptDeleteTeam('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash text-sm"></i></button>
                     </div>
                 </div>
                 <div class="space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
@@ -159,8 +159,8 @@ window.renderPlayerRoster = function() {
             <td class="py-3.5 px-4 text-center">${statusBadge}</td>
             <td class="py-3.5 px-6 text-right">
                 <div class="flex justify-end gap-1">
-                    <button onclick="window.openPlayerModal('${p.id}')" class="text-slate-500 hover:text-bsk-blue p-1.5" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="promptDeletePlayer('${p.id}')" class="text-slate-400 hover:text-rose-600 p-1.5" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="window.openPlayerModal('${p.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button onclick="promptDeletePlayer('${p.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </td>
         `;

@@ -57,7 +57,7 @@ function renderMobileHeader() {
                 </div>
                 <span class="font-black text-base tracking-tight leading-none">BSK <span class="text-bsk-yellow">FOTBALL</span></span>
             </div>
-            <button onclick="switchTab('admin')" class="text-slate-300 hover:text-white transition hover:rotate-90 duration-300" title="Innstillinger / Admin">
+            <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-dark-ghost hover:rotate-90 duration-300" title="Innstillinger / Admin">
                 <i class="fa-solid fa-gear text-xl"></i>
             </button>
         </header>
@@ -73,7 +73,7 @@ function renderActionBar() {
             </div>
 
             <div class="flex items-center justify-end gap-3">
-                <button onclick="switchTab('admin')" class="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-bsk-blue transition hover:rotate-90 duration-300 shadow-sm shrink-0" title="Admin / Innstillinger">
+                <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary hover:rotate-90 duration-300" title="Admin / Innstillinger">
                     <i class="fa-solid fa-gear text-sm"></i>
                 </button>
             </div>
@@ -96,7 +96,7 @@ function renderMobileNav() {
 
 function renderFloatingActionButton() {
     return `
-        <button id="floating-action-btn" class="fixed right-6 bottom-20 md:bottom-8 w-14 h-14 bg-bsk-yellow hover:bg-bsk-yellowDark text-bsk-blue font-black rounded-full shadow-xl flex items-center justify-center text-xl transition active:scale-95 hover:scale-105 z-30 hidden" onclick="openActivityModal('Trening')" title="Registrer ny oppføring">
+        <button id="floating-action-btn" class="portal-btn portal-btn-warning fixed right-6 bottom-20 md:bottom-8 w-14 h-14 rounded-full text-xl z-30 hidden" onclick="openActivityModal('Trening')" title="Registrer ny oppføring">
             <i id="floating-btn-icon" class="fa-solid fa-plus"></i>
         </button>
     `;

@@ -90,7 +90,7 @@ window.updateDashboard = function() {
                                 </div>
                             </div>
                             
-                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-slate-500 hover:text-bsk-blue transition-colors text-xs font-bold flex items-center gap-1.5 bg-white/80 border border-slate-200 px-2.5 py-1 rounded-xl shadow-sm hover:bg-white" title="Åpne kampdetaljer">
+                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="portal-btn portal-btn-secondary portal-btn-xs" title="Åpne kampdetaljer">
                                 <span>Kampinfo</span> <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
                             </button>
                         </div>
@@ -235,7 +235,7 @@ window.updateHjemWidget = function() {
                     </div>
 
                     <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-100">
-                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-1.5 border border-bsk-blueDark hover:scale-[1.02] active:scale-[0.98]">
+                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
                             <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
                         </button>
                     </div>

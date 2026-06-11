@@ -765,7 +765,7 @@ if (defaultPlayerName) {
 
                     <button 
                         onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
-                        class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm shrink-0 whitespace-nowrap"
+                        class="portal-btn portal-btn-success portal-btn-sm shrink-0"
                     >
                         <i class="fa-solid fa-circle-info"></i>
                         <span class="sm:hidden">Poeng</span>
@@ -843,7 +843,7 @@ if (defaultPlayerName) {
                     <button
                         onclick="openMatchStatsEditor('${h.matchId}')"
                         title="Rediger mål, kort og spillerbørs"
-                        class="inline-flex items-center justify-center w-8 h-8 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-100 rounded-xl transition shadow-sm"
+                        class="portal-btn portal-btn-icon-sm portal-btn-warning"
                     >
                         <i class="fa-solid fa-pen-to-square text-xs"></i>
                     </button>
@@ -1209,7 +1209,7 @@ let html = `
                             <div class="flex items-center gap-2 shrink-0">
                                 <button 
                                     onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
-                                    class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl transition shadow-sm whitespace-nowrap"
+                                    class="portal-btn portal-btn-success portal-btn-sm"
                                 >
                                     <i class="fa-solid fa-circle-info"></i>
                                     <span class="sm:hidden">Poeng</span>
@@ -1219,7 +1219,7 @@ let html = `
                                 <button
                                     onclick="openMatchStatsEditor('${match.id}')"
                                     title="Rediger mål, kort og spillerbørs"
-                                    class="inline-flex items-center justify-center w-9 h-9 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-100 rounded-xl transition shadow-sm"
+                                    class="portal-btn portal-btn-icon-sm portal-btn-warning"
                                 >
                                     <i class="fa-solid fa-pen-to-square text-sm"></i>
                                 </button>
@@ -1329,7 +1329,7 @@ let html = `
                             <div class="pt-3">
                                 <button 
                                     onclick="openTacticalPlanForMatch('${match.id}')"
-                                    class="w-full bg-bsk-blue hover:bg-bsk-blueLight text-white font-black text-xs py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 border border-bsk-blueDark"
+                                    class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full"
                                 >
                                     <i class="fa-solid fa-chess-board text-bsk-yellow"></i>
                                     Gå til kampplan
