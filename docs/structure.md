@@ -10,6 +10,7 @@ Dette er første ryddige versjon av portalen. Målet i denne runden er å behold
 - `assets/js/state.js` setter opp global app-tilstand.
 - `assets/js/app-shell.js` håndterer bekreftelsesmodal, fanebytte, admin-opplåsing og små app-hjelpere.
 - `assets/js/domain/scoring.js` inneholder poengberegning og kort-/karantenelogikk som brukes av flere deler av portalen.
+- `assets/js/pages/players.js` inneholder lagvelgere, Tropp-tabellen, spiller-modal og lag-modal.
 - `assets/js/pages/matches.js` inneholder terminliste, kampmodal, kampdetaljer og kampstatistikk.
 - `assets/js/firebase-sync.js` håndterer Firestore og lokal fallback.
 - `assets/js/app.js` inneholder resten av dagens app-logikk mens flere deler flyttes ut stegvis.
@@ -19,7 +20,7 @@ Dette er første ryddige versjon av portalen. Målet i denne runden er å behold
 
 ## Neste naturlige steg
 
-1. Splitte resten av `app.js` i fagområder: spillere, oppmøte, statistikk og taktikk.
+1. Splitte resten av `app.js` i fagområder: oppmøte, statistikk og taktikk.
 2. Flytte hver stor HTML-visning ut i egne templates eller render-funksjoner.
 3. Flytte modaler til egne komponenter når app-logikken er enklere å dele.
 4. Bytte Tailwind CDN til en lokal build hvis portalen skal publiseres mer profesjonelt.
