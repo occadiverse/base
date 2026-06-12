@@ -569,5 +569,5 @@ window.updateHjemWidget = function() {
         </div>
     `;
 
-    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml + seriesWidgetHtml + tableWidgetHtml;
+    bottomContainer.innerHTML = leftWidgetHtml + tableWidgetHtml + seriesWidgetHtml + rightWidgetHtml;
 };
