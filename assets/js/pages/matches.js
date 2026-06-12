@@ -174,19 +174,15 @@ window.showMatchDetails = function(id) {
     if (!match) return;
 
     const container = document.getElementById('kampdetaljer-info');
-    const titleText = [match.matchGroup, match.matchType].filter(Boolean).join(' ') || 'Kampdetaljer';
     const dateValue = new Date(match.date);
     const dateFormatted = Number.isNaN(dateValue.getTime())
         ? 'Dato ikke satt'
         : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
-    const matchMeta = [match.matchGroup, match.matchType].filter(Boolean).join(' · ') || 'Kamp';
     const centerValue = match.result || match.time || '--:--';
     const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
-
-    document.getElementById('kampdetaljer-title').textContent = titleText;
 
     container.innerHTML = `
         <article class="match-detail-card">
@@ -234,11 +230,7 @@ window.showMatchDetails = function(id) {
             </div>
         </article>
 
-        <div class="match-detail-summary">
-            <div class="match-detail-summary-card">
-                <span class="match-detail-summary-label">Lag og type</span>
-                <span class="match-detail-summary-value">${matchMeta}</span>
-            </div>
+        <div class="match-detail-summary match-detail-summary-single">
             <div class="match-detail-summary-card">
                 <span class="match-detail-summary-label">Banens Beste (BB)</span>
                 <span class="match-detail-summary-value">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>

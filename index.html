@@ -86,24 +86,21 @@
     </div>
 </div>
             <div id="view-kampdetaljer" class="hidden space-y-6 max-w-4xl mx-auto w-full">
-                <div class="flex items-center mb-2">
+                <div class="flex items-center justify-between gap-3 mb-2">
                     <button onclick="switchTab('kamper')" class="portal-btn portal-btn-secondary portal-btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Tilbake til terminlisten
                     </button>
+                    <div class="flex gap-2">
+                        <button id="btnEditKampdetaljer" class="portal-btn portal-btn-icon portal-btn-secondary" title="Rediger">
+                            <i class="fa-solid fa-pen text-sm"></i>
+                        </button>
+                        <button id="btnDeleteKampdetaljer" class="portal-btn portal-btn-icon portal-btn-danger" title="Slett">
+                            <i class="fa-solid fa-trash text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="rounded-2xl overflow-visible">
-                    <div class="pb-4 flex justify-between items-center">
-                        <h2 id="kampdetaljer-title" class="font-black text-xl md:text-2xl text-bsk-blue uppercase tracking-tight">Kamp mot ...</h2>
-                        <div class="flex gap-2">
-                            <button id="btnEditKampdetaljer" class="portal-btn portal-btn-icon portal-btn-secondary" title="Rediger">
-                                <i class="fa-solid fa-pen text-sm"></i>
-                            </button>
-                            <button id="btnDeleteKampdetaljer" class="portal-btn portal-btn-icon portal-btn-danger" title="Slett">
-                                <i class="fa-solid fa-trash text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
                     
                     <div id="kampdetaljer-info" class="space-y-4">
                         </div>
