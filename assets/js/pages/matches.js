@@ -328,26 +328,25 @@ window.renderPlayerRowForm = function(match) {
         const hasYellow = match.guleKort && match.guleKort.includes(player);
         const hasRed = match.rodeKort && match.rodeKort.includes(player);
         const isMotm = match.motm === player;
+        const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
 
         const div = document.createElement('div');
         div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
         div.innerHTML = `
             <span class="font-bold text-slate-800 text-xs">${player}</span>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Mål:</span>
-                    <button type="button" onclick="changeCount(this, -1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">-</button>
-                    <span class="w-5 text-center font-extrabold text-slate-800 text-xs text-goal-val" data-count-value>${prevGoals}</span>
-                    <input type="hidden" class="player-goals-input" data-count-input data-player="${player}" value="${prevGoals}">
-                    <button type="button" onclick="changeCount(this, 1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">+</button>
+                <div class="flex items-center space-x-1">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Mål:</span>
+                    <select class="player-goals-input portal-field portal-field-sm" data-player="${player}">
+                        ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
+                    </select>
                 </div>
 
-                <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Assist:</span>
-                    <button type="button" onclick="changeCount(this, -1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">-</button>
-                    <span class="w-5 text-center font-extrabold text-slate-800 text-xs" data-count-value>${prevAssists}</span>
-                    <input type="hidden" class="player-assists-input" data-count-input data-player="${player}" value="${prevAssists}">
-                    <button type="button" onclick="changeCount(this, 1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">+</button>
+                <div class="flex items-center space-x-1">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Ass:</span>
+                    <select class="player-assists-input portal-field portal-field-sm" data-player="${player}">
+                        ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
+                    </select>
                 </div>
 
                 <div class="flex items-center space-x-1 ml-1">
@@ -367,18 +366,6 @@ window.renderPlayerRowForm = function(match) {
         `;
         formList.appendChild(div);
     });
-};
-
-window.changeCount = function(btn, amount) {
-    const container = btn.parentElement;
-    const span = container.querySelector('[data-count-value]') || container.querySelector('.text-goal-val');
-    const hidden = container.querySelector('[data-count-input]') || container.querySelector('.player-goals-input');
-    if (!span || !hidden) return;
-    let current = parseInt(span.innerText);
-
-    current = Math.max(0, current + amount);
-    span.innerText = current;
-    hidden.value = current;
 };
 
 window.toggleCard = function(btn, type) {
