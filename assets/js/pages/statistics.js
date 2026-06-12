@@ -127,42 +127,64 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
         itemDate.setHours(0, 0, 0, 0);
         return itemDate <= todayForChemistry;
     };
-    const teamEvents = allEvents.filter(e => e.team === spillerLag && isHistorical(e));
-    
-    let attendedEvents = 0;
-    teamEvents.forEach(e => { if (e.attendance && e.attendance[playerName] === true) attendedEvents++; });
+    const teamEvents = allEvents
+        .filter(e => e.team === spillerLag && isHistorical(e))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-    let chemistryScore = (teamEvents.length > 0 ? (attendedEvents / teamEvents.length) : 0) * 25; 
-    if (attendedEvents > 0) chemistryScore += 15; 
-    
-    let totalMatchPoints = 0, matchesPlayed = 0, disciplinePenalty = 0, totalYellowCards = 0; 
-    
+    const recentEvents = teamEvents.slice(0, 8);
+    const attendedRecentEvents = recentEvents.filter(e => e.attendance && e.attendance[playerName] === true).length;
+    const availabilityScore = recentEvents.length > 0
+        ? (attendedRecentEvents / recentEvents.length) * 20
+        : 0;
+
+    const recentMatches = (window.activeMatches || [])
+        .filter(m => (
+            isHistorical(m) &&
+            m.matchGroup === spillerLag &&
+            m.attendance &&
+            m.attendance[playerName] === true
+        ))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, 5);
+
+    let performanceScore = 0;
+    if (recentMatches.length > 0) {
+        let weightedPoints = 0;
+        let totalWeight = 0;
+
+        recentMatches.forEach((m, index) => {
+            const weight = recentMatches.length - index;
+            weightedPoints += window.calculatePlayerMatchPoints(m, playerName) * weight;
+            totalWeight += weight;
+        });
+
+        const weightedAverage = totalWeight > 0 ? weightedPoints / totalWeight : 0;
+        performanceScore = Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
+    }
+
+    if (recentMatches.length === 0) return 0;
+
+    let totalYellowCards = 0;
+    let totalRedCards = 0;
+
     (window.activeMatches || []).forEach(m => {
-        if (!isHistorical(m)) return;
-        if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
-            matchesPlayed++;
-            totalMatchPoints += window.calculatePlayerMatchPoints(m, playerName);
-            if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
-            if (m.rodeKort && m.rodeKort.includes(playerName)) disciplinePenalty -= 10;
-        }
+        if (!isHistorical(m) || m.matchGroup !== spillerLag) return;
+        if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
+        if (m.rodeKort && m.rodeKort.includes(playerName)) totalRedCards++;
     });
-    
-    if (matchesPlayed > 0) chemistryScore += (totalMatchPoints / matchesPlayed);
-    
-    // --- OPPDATERT NFF-LOGIKK FOR KJEMISTRAFF (MODELL 2: FIRST TIME FREE) ---
+
+    // NFF-logikk for gule kort: første karantene er gratis, gjentatte karantener trekker.
     let karantener = 0;
     if (totalYellowCards >= 4) {
         karantener = 1 + Math.floor((totalYellowCards - 4) / 2);
     }
-    
-    // Hvis karantener > 1, trekker vi for alle unntatt den første
-    if (karantener > 1) {
-        disciplinePenalty -= ((karantener - 1) * 5); 
-    }
-    // (Hvis karantener er nøyaktig 1, skjer ingenting - den er "gratis")
-    
-    chemistryScore += disciplinePenalty;
-    return Math.max(0, Math.min(100, Math.round(chemistryScore)));
+
+    const hasFormData = recentMatches.length > 0;
+    const disciplinePenalty = (totalRedCards * 10) + (karantener > 1 ? (karantener - 1) * 5 : 0);
+    const disciplineScore = hasFormData ? Math.max(0, 10 - disciplinePenalty) : 0;
+
+    const formScore = performanceScore + availabilityScore + disciplineScore;
+    return Math.max(0, Math.min(100, Math.round(formScore)));
 }
 
 window.getTeamFormMedian = function(teamName) {
@@ -806,7 +828,7 @@ if (defaultPlayerName) {
 
     let tableHtml = `
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            ${card('Form', chemistry + '/100', 'Total form og lojalitet', 'fa-heart-pulse', 'text-emerald-600')}
+            ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
             ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
             ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
             ${card('Mål / BB', `${totalGoals} / ${totalBb}`, `${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
@@ -1527,7 +1549,7 @@ let html = `
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
                     <th class="p-4 text-center text-indigo-600 hover:text-indigo-800 transition-colors" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
-                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
+                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors">

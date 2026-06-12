@@ -281,7 +281,7 @@
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Bonus <span id="sort-icon-kampbonus"></span></th>
+                                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors">
@@ -341,7 +341,7 @@
 
                         <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
                             <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
-                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Total Bonus</span>
+                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Kampbidrag</span>
                                 <span id="stat-total-bonus" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
                             </div>
                             <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
@@ -877,19 +877,29 @@
             </div>
             
             <div class="p-6 space-y-6 text-sm">
-                <p class="text-base text-slate-300">Den totale formscoren (0–100) regnes på aktiviteter og kamper som har vært. Den består av spillerens <strong class="text-white">oppmøtegrunnlag</strong> pluss <strong class="text-white">gjennomsnittet av prestasjonene i kamp</strong>, minus eventuelle kort.</p>
+                <p class="text-base text-slate-300">Den totale formscoren (0–100) regnes på aktiviteter og kamper som har vært. Den bygger først og fremst på <strong class="text-white">kampbidrag i de siste kampene</strong>, med <strong class="text-white">nylig oppmøte</strong> og <strong class="text-white">disiplin</strong> som justeringer.</p>
                 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Oppmøte og lojalitet (Maks 40 poeng)</h4>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Kampbidrag (Maks 70 poeng)</h4>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
-                        <li><strong class="text-white">Aktiv-bonus (+15 p):</strong> Gis i bunn til alle som har deltatt på minst én økt.</li>
-                        <li><strong class="text-white">Oppmøteprosent (0 til +25 p):</strong> Skaleres etter oppmøte på historiske aktiviteter. Fullt oppmøte gir 25 p.</li>
+                        <li>Basert på spillerens matchpoeng fra de siste 5 spilte kampene.</li>
+                        <li>Nyeste kamp teller mest, slik at scoren reagerer på faktisk formutvikling.</li>
+                        <li>Spillere uten registrerte spilte kamper vises som grå til det finnes kampdata.</li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Kampsnitt (Prestasjon på banen)</h4>
-                    <p class="mb-3 text-slate-300">Hver spilte kamp starter med <strong class="text-white">15 grunnpoeng</strong>, og justeres deretter opp eller ned. Systemet regner til slutt ut gjennomsnittet av alle spilte kamper.</p>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Nylig oppmøte (Maks 20 poeng)</h4>
+                    <p class="mb-3 text-slate-300">Oppmøte brukes som en tilgjengelighetsfaktor, ikke som hoveddelen av Form. Systemet ser på de siste 8 historiske aktivitetene for spillerens lag.</p>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-300 mb-5">
+                        <li>Fullt oppmøte i perioden gir 20 poeng.</li>
+                        <li>Lavt oppmøte trekker Form ned, men kan ikke alene gi grønn Form.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Slik regnes kampbidrag</h4>
+                    <p class="mb-3 text-slate-300">Hver spilte kamp starter med <strong class="text-white">15 grunnpoeng</strong>, og justeres deretter opp eller ned. Dette gir grunnlaget for kampbidraget i Form.</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
@@ -920,16 +930,16 @@
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Disiplin (Direkte fratrekk)</h4>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">4. Disiplin (Maks 10 poeng)</h4>
                         <ul class="list-disc pl-5 space-y-1 text-rose-300">
                             <li><strong class="text-rose-400">Gult kort:</strong> Ingen straff for 1-3 kort. Første karantene (ved 4, 6, 8 kort osv.) er "gratis".</li>
-                            <li><strong class="text-rose-400">Gjentatt karantene:</strong> Ved 2. karantene eller flere, gir hver utestengelse <strong class="text-white">-5 poeng</strong> i fratrekk.</li>
-                            <li><strong class="text-rose-500">Rødt kort:</strong> Direkte utvisning gir <strong class="text-white">-10 poeng</strong> fra sluttsummen.</li>
+                            <li><strong class="text-rose-400">Gjentatt karantene:</strong> Ved 2. karantene eller flere trekkes det fra disiplinpoengene.</li>
+                            <li><strong class="text-rose-500">Rødt kort:</strong> Direkte utvisning gir kraftig disiplinfratrekk.</li>
 </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">4. Farge mot lagets median</h4>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">5. Farge mot lagets median</h4>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
                         <li><strong class="text-emerald-400">Grønn:</strong> Minst 8 poeng over lagets median.</li>
                         <li><strong class="text-amber-400">Gul:</strong> Innenfor 8 poeng over eller under medianen.</li>

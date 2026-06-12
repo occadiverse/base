@@ -252,7 +252,7 @@
                 ${benchSuspBadge}
             </div>
             <div class="flex items-center gap-3 shrink-0 ml-2">
-                <span class="font-black text-xs ${bonusColor}" title="Kampsnitt">${bonusTekst}</span>
+                <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
                 <div class="w-px h-3 bg-slate-300"></div>
                 <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
             </div>
@@ -281,7 +281,7 @@
 
         const playerChem = window.calculatePlayerPerformanceChemistry(playerObj.navn);
         
-        // 1. BEREGN KAMPBONUS (Form i midten av rundingen)
+        // 1. BEREGN KAMPBIDRAG (tallet i midten av rundingen)
         let kamper = 0;
         let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
@@ -336,7 +336,7 @@
 
         node.innerHTML = `
             ${badgesHtml}
-            <span class="text-[14px] font-black tracking-tight z-10 ${bonusTextColor}" title="Kampbonus (Form)">${bonusTekst}</span>
+            <span class="text-[14px] font-black tracking-tight z-10 ${bonusTextColor}" title="Kampbidrag">${bonusTekst}</span>
             <div class="absolute -bottom-5 flex flex-col items-center pointer-events-none z-10">
                 <span class="text-[9px] font-bold text-bsk-blue whitespace-nowrap bg-white/90 border border-bsk-blue/10 shadow-sm px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
             </div>
@@ -445,7 +445,7 @@
                 <p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p>
             </div>
             <div class="flex items-center gap-3 shrink-0 mr-3">
-                <span class="font-black text-xs ${bonusColor}" title="Kampbonus (Form)">${bonusTekst}</span>
+                <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
                 <div class="w-px h-3 bg-slate-300"></div>
                 <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
             </div>
