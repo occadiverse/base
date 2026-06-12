@@ -180,7 +180,9 @@ window.showMatchDetails = function(id) {
         : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
-    const centerValue = match.result || match.time || '--:--';
+    const parsedScore = match.result ? parseScore(match.result) : null;
+    const displayedResult = parsedScore ? `${parsedScore.opponent}-${parsedScore.bsk}` : match.result;
+    const centerValue = match.result ? displayedResult : (match.time || '--:--');
     const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
 
@@ -231,9 +233,15 @@ window.showMatchDetails = function(id) {
         </article>
 
         <div class="match-detail-summary match-detail-summary-single">
-            <div class="match-detail-summary-card">
-                <span class="match-detail-summary-label">Banens Beste (BB)</span>
-                <span class="match-detail-summary-value">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>
+            <div class="match-detail-bb-card">
+                <i class="fa-solid fa-crown match-detail-bb-watermark"></i>
+                <div class="match-detail-bb-icon">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div class="min-w-0">
+                    <span class="match-detail-bb-label">Banens Beste (BB)</span>
+                    <span class="match-detail-bb-value">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>
+                </div>
             </div>
         </div>
     `;

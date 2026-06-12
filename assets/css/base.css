@@ -302,6 +302,62 @@
             font-weight: 900;
             line-height: 1.2;
         }
+        .match-detail-bb-card {
+            align-items: center;
+            background: linear-gradient(135deg, #ffffff 0%, #fff7d6 48%, #eef7ff 100%);
+            border: 1px solid rgba(245, 197, 66, 0.34);
+            border-bottom: 3px solid #f5c542;
+            border-radius: 1rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+            display: flex;
+            gap: 0.9rem;
+            overflow: hidden;
+            padding: 1rem;
+            position: relative;
+        }
+        .match-detail-bb-watermark {
+            bottom: -1.6rem;
+            color: #f5c542;
+            font-size: 5rem;
+            opacity: 0.16;
+            pointer-events: none;
+            position: absolute;
+            right: -0.8rem;
+        }
+        .match-detail-bb-icon {
+            align-items: center;
+            background: #f5c542;
+            border: 1px solid rgba(214, 168, 32, 0.55);
+            border-radius: 999px;
+            color: #0b2b4c;
+            display: flex;
+            flex: 0 0 auto;
+            height: 2.65rem;
+            justify-content: center;
+            position: relative;
+            width: 2.65rem;
+            z-index: 1;
+        }
+        .match-detail-bb-label {
+            color: #0b2b4c;
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.25rem;
+            position: relative;
+            text-transform: uppercase;
+            z-index: 1;
+        }
+        .match-detail-bb-value {
+            color: #0f172a;
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1.15;
+            position: relative;
+            z-index: 1;
+        }
         @media (max-width: 640px) {
             .match-detail-card-top,
             .match-detail-footer {
@@ -363,7 +419,7 @@
         }
         .portal-btn:hover {
             box-shadow: none;
-            text-decoration-color: currentColor;
+            text-decoration-color: transparent;
             transform: none;
         }
         .portal-btn:active {
