@@ -1,3 +1,45 @@
+window.goToMatchDetails = function(matchId) {
+    if (!matchId) return;
+    switchTab('kamper');
+    if (typeof window.showMatchDetails === 'function') window.showMatchDetails(matchId);
+};
+
+window.goToCalendarDate = function(dateStr) {
+    if (dateStr) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        if (year && month && day) {
+            window.currentCalendarDate = new Date(year, month - 1, 1);
+            window.selectedCalendarDateStr = dateStr;
+        }
+    }
+
+    switchTab('oppmote');
+    if (typeof window.renderCalendar === 'function') window.renderCalendar();
+    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
+};
+
+window.goToPlayerAnalysis = function(playerName) {
+    switchTab('statistikk');
+
+    if (typeof window.switchStatTab === 'function') {
+        window.switchStatTab('poeng');
+    }
+
+    const playerSelect = document.getElementById('poeng-player-select');
+    if (playerSelect && playerName) {
+        const hasPlayer = Array.from(playerSelect.options).some(option => option.value === playerName);
+        if (hasPlayer) playerSelect.value = playerName;
+    }
+
+    if (typeof window.showPlayerPointsTable === 'function') window.showPlayerPointsTable();
+};
+
+window.activateDashboardCardFromKeyboard = function(event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    event.currentTarget.click();
+};
+
 window.updateDashboard = function() {
     let upcoming = [], totalGoals = 0, wins = 0, played = 0, draws = 0, losses = 0;
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
@@ -74,7 +116,7 @@ window.updateDashboard = function() {
 
             // HTML for det rendyrkede kampbanneret
             heroContainer.innerHTML = `
-                <section class="dashboard-hero-card rounded-2xl p-6 md:p-8 text-slate-900 relative overflow-hidden border border-b-4 border-bsk-yellow group">
+                <section onclick="window.goToMatchDetails('${nm.id}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-hero-card dashboard-click-card rounded-2xl p-6 md:p-8 text-slate-900 relative overflow-hidden border border-b-4 border-bsk-yellow group">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0 text-bsk-blue">
                         <i class="fa-solid fa-shield-halved text-[22rem]"></i>
                     </div>
@@ -89,7 +131,7 @@ window.updateDashboard = function() {
                                 </div>
                             </div>
                             
-                            <button onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="portal-btn portal-btn-secondary portal-btn-xs" title="Åpne kampdetaljer">
+                            <button onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="portal-btn portal-btn-secondary portal-btn-xs" title="Åpne kampdetaljer">
                                 <span>Kampinfo</span> <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
                             </button>
                         </div>
@@ -114,7 +156,7 @@ window.updateDashboard = function() {
                                 <div class="dashboard-team-badge">
                                     <i class="fa-solid fa-shield"></i>
                                 </div>
-                                <h2 onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase cursor-pointer hover:text-bsk-blueLight transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
+                                <h2 onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase cursor-pointer hover:text-bsk-blueLight transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
                                     <span>${nm.opponent}</span>
                                     <i class="fa-solid fa-circle-chevron-right text-xs opacity-40 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-bsk-blue"></i>
                                 </h2>
@@ -173,6 +215,7 @@ window.updateHjemWidget = function() {
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
+    const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     
     let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
@@ -188,7 +231,7 @@ window.updateHjemWidget = function() {
         }
 
         leftWidgetHtml = `
-            <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
+            <div onclick="window.goToCalendarDate('${escapeJsString(ne.date)}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                     <i class="fa-solid fa-stopwatch text-[14rem] text-bsk-blue"></i>
                 </div>
@@ -208,14 +251,14 @@ window.updateHjemWidget = function() {
                             <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase truncate pb-1">${ne.title || 'TRENING'}</h4>
                         </div>
                         
-                        <div onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-all duration-500 cursor-pointer hover:scale-105">
+                        <div onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-all duration-500 cursor-pointer hover:scale-105">
                             <span class="text-2xl font-black text-bsk-blue leading-none">${påmeldtAntall}</span>
                             <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Klar</span>
                         </div>
                     </div>
 
                     <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-100">
-                        <button onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
+                        <button onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="portal-btn portal-btn-primary portal-btn-sm">
                             <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
                         </button>
                     </div>
@@ -224,7 +267,7 @@ window.updateHjemWidget = function() {
         `;
     } else {
         leftWidgetHtml = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[235px]">
+            <div onclick="window.goToCalendarDate('${todayStr}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-click-card bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[235px]">
                 <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-3">
                     <i class="fa-solid fa-calendar-xmark text-xl text-slate-400"></i>
                 </div>
@@ -280,9 +323,10 @@ window.updateHjemWidget = function() {
         });
 
         const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
+        const topPlayerNameForJs = escapeJsString(topPlayer.navn);
 
         rightWidgetHtml = `
-            <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
+            <div onclick="window.goToPlayerAnalysis('${topPlayerNameForJs}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                     <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
                 </div>
@@ -327,7 +371,7 @@ window.updateHjemWidget = function() {
         `;
     } else {
         rightWidgetHtml = `
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
+            <div onclick="window.goToPlayerAnalysis('')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-click-card bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
                 <div class="w-12 h-12 bg-white rounded-full border border-slate-100 flex items-center justify-center mb-3">
                     <i class="fa-solid fa-bolt text-xl text-slate-300"></i>
                 </div>
@@ -368,7 +412,7 @@ window.updateHjemWidget = function() {
     }[char]));
 
     const seriesWidgetHtml = `
-        <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
+        <div onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
             <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                 <i class="fa-solid fa-ranking-star text-[14rem] text-bsk-blue"></i>
             </div>
@@ -403,69 +447,127 @@ window.updateHjemWidget = function() {
                                 : '<span class="text-[10px] text-slate-400 italic">Ingen formkurve</span>'
                         }
                     </div>
-                    <button onclick="switchTab('statistikk')" class="portal-btn portal-btn-primary portal-btn-sm">Statistikk</button>
+                    <button onclick="event.stopPropagation(); switchTab('statistikk')" class="portal-btn portal-btn-primary portal-btn-sm">Statistikk</button>
                 </div>
             </div>
         </div>
     `;
 
-    const activePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
-    const recruits = activePlayers.filter(p => p.status === 'Rekrutt').length;
-    const keepers = activePlayers.filter(p => [p.pos1, p.pos2].some(pos => String(pos || '').toLowerCase().includes('keeper'))).length;
-    const missingJersey = activePlayers.filter(p => !p.draktnummer).length;
-    const nextMatch = (window.activeMatches || [])
-        .filter(m => m.date >= todayStr && !window.parseScore(m.result))
-        .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+    const tableTeams = new Map();
+    const ensureTableTeam = (name) => {
+        const teamName = name || 'Ukjent lag';
+        if (!tableTeams.has(teamName)) {
+            tableTeams.set(teamName, {
+                name: teamName,
+                played: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                goalsFor: 0,
+                goalsAgainst: 0,
+                points: 0
+            });
+        }
+        return tableTeams.get(teamName);
+    };
 
-    let readyCount = 0;
-    let unavailableCount = 0;
+    playedMatches.forEach(({ match, score }) => {
+        const bskRow = ensureTableTeam('Bækkelaget');
+        const opponentRow = ensureTableTeam(match.opponent || 'Motstander');
 
-    if (nextMatch && nextMatch.attendance) {
-        Object.values(nextMatch.attendance).forEach(status => {
-            if (status === true) readyCount++;
-            if (status === false) unavailableCount++;
-        });
+        bskRow.played++;
+        bskRow.goalsFor += score.bsk;
+        bskRow.goalsAgainst += score.opponent;
+
+        opponentRow.played++;
+        opponentRow.goalsFor += score.opponent;
+        opponentRow.goalsAgainst += score.bsk;
+
+        if (score.bsk > score.opponent) {
+            bskRow.wins++;
+            bskRow.points += 3;
+            opponentRow.losses++;
+        } else if (score.bsk === score.opponent) {
+            bskRow.draws++;
+            bskRow.points += 1;
+            opponentRow.draws++;
+            opponentRow.points += 1;
+        } else {
+            bskRow.losses++;
+            opponentRow.wins++;
+            opponentRow.points += 3;
+        }
+    });
+
+    const sortedTableRows = Array.from(tableTeams.values())
+        .sort((a, b) => {
+            const gdA = a.goalsFor - a.goalsAgainst;
+            const gdB = b.goalsFor - b.goalsAgainst;
+            return b.points - a.points || gdB - gdA || b.goalsFor - a.goalsFor || a.name.localeCompare(b.name);
+        })
+        .map((row, index) => ({ ...row, rank: index + 1 }));
+
+    const bskTableIndex = sortedTableRows.findIndex(row => row.name === 'Bækkelaget');
+    let tableSlice = [];
+
+    if (bskTableIndex >= 0) {
+        let start = Math.max(0, bskTableIndex - 1);
+        let end = Math.min(sortedTableRows.length, start + 3);
+        start = Math.max(0, end - 3);
+        tableSlice = sortedTableRows.slice(start, end);
     }
 
-    const squadWidgetHtml = `
-        <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
+    const tableRowsHtml = tableSlice.map(row => {
+        const isBsk = row.name === 'Bækkelaget';
+        const gd = row.goalsFor - row.goalsAgainst;
+        const gdText = gd > 0 ? `+${gd}` : `${gd}`;
+
+        return `
+            <div class="grid grid-cols-[2rem_minmax(0,1fr)_2.4rem_2.4rem] items-center gap-2 rounded-xl px-2.5 py-2 ${isBsk ? 'bg-bsk-blue text-white shadow-sm' : 'bg-white/70 text-slate-700 border border-slate-100'}">
+                <span class="text-[10px] font-black ${isBsk ? 'text-bsk-yellow' : 'text-slate-400'}">${row.rank}</span>
+                <span class="truncate text-xs font-black">${row.name}</span>
+                <span class="text-center text-xs font-black">${row.points}</span>
+                <span class="text-right text-[10px] font-bold ${isBsk ? 'text-slate-200' : gd >= 0 ? 'text-emerald-600' : 'text-rose-500'}">${gdText}</span>
+            </div>
+        `;
+    }).join('');
+
+    const tableWidgetHtml = `
+        <div onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
             <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                <i class="fa-solid fa-users-viewfinder text-[14rem] text-bsk-yellow"></i>
+                <i class="fa-solid fa-table-cells text-[14rem] text-bsk-yellow"></i>
             </div>
 
             <div class="relative z-10 flex flex-col h-full justify-between">
                 <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
                     <div class="portal-status-label">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Troppstatus</span>
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Tabellutsnitt</span>
                     </div>
-                    <span class="portal-status-label portal-status-label-sm">${activePlayers.length} aktive</span>
+                    <span class="portal-status-label portal-status-label-sm">Lokal mini</span>
                 </div>
 
-                <div class="flex-1 flex items-center justify-between gap-5 mb-2">
-                    <div class="min-w-0">
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${nextMatch ? 'Neste kamp' : 'Spilleroversikt'}</p>
-                        <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight">${nextMatch ? `${readyCount} klare` : `${activePlayers.length} spillere`}</h4>
-                        <p class="text-xs text-slate-500 mt-1">
-                            ${nextMatch ? `${unavailableCount} forfall · ${Math.max(activePlayers.length - readyCount - unavailableCount, 0)} ikke svart` : `${recruits} rekrutter · ${keepers} keepere`}
-                        </p>
-                    </div>
-
-                    <div class="bg-bsk-yellow/15 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm">
-                        <span class="text-xl font-black text-amber-700 leading-none">${missingJersey}</span>
-                        <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Uten nr</span>
+                <div class="flex-1 mb-2">
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Lagene rundt oss</p>
+                    <div class="space-y-1.5">
+                        ${tableRowsHtml || `
+                            <div class="bg-white/70 border border-slate-100 rounded-xl p-4 text-center">
+                                <p class="text-sm font-black text-bsk-blue">Ingen tabell ennå</p>
+                                <p class="text-xs text-slate-500 mt-1">Før resultater for å bygge utsnittet.</p>
+                            </div>
+                        `}
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
-                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                        <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${keepers}</span> Keepere
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-snug">
+                        <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${sortedTableRows.length || 0}</span> Lag i mini
                     </div>
-                    <button onclick="switchTab('tropp')" class="portal-btn portal-btn-primary portal-btn-sm">Tropp</button>
+                    <button onclick="event.stopPropagation(); switchTab('statistikk')" class="portal-btn portal-btn-primary portal-btn-sm">Statistikk</button>
                 </div>
             </div>
         </div>
     `;
 
-    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml + seriesWidgetHtml + squadWidgetHtml;
+    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml + seriesWidgetHtml + tableWidgetHtml;
 };
