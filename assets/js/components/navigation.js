@@ -53,8 +53,8 @@ function renderSidebar() {
 
 function renderMobileHeader() {
     return `
-        <header class="portal-mobile-chrome portal-mobile-header md:hidden text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md h-14 border-b border-bsk-yellow/30">
-            <div class="flex items-center space-x-2 cursor-pointer hover:opacity-90 transition-opacity" onclick="switchTab('hjem')">
+        <header class="portal-mobile-header md:hidden px-4 py-3 flex items-center justify-between sticky top-0 z-40 h-14">
+            <div class="portal-mobile-brand-chip flex items-center space-x-2 cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
                 <div class="portal-brand-mark portal-brand-mark-sm">
                     <i class="fa-solid fa-shield-halved text-sm"></i>
                 </div>
@@ -63,7 +63,7 @@ function renderMobileHeader() {
                     <span class="portal-brand-football">Fotball</span>
                 </span>
             </div>
-            <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-dark-ghost hover:rotate-90 duration-300" title="Innstillinger / Admin">
+            <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-admin-btn hover:rotate-90 duration-300" title="Innstillinger / Admin">
                 <i class="fa-solid fa-gear text-xl"></i>
             </button>
         </header>
@@ -72,14 +72,14 @@ function renderMobileHeader() {
 
 function renderActionBar() {
     return `
-        <div id="action-bar-container" class="portal-action-bar-shell backdrop-blur-md border-b border-slate-200/80 px-4 py-3 md:px-8 hidden md:flex justify-between items-center sticky top-0 z-30 transition-all">
-            <div class="flex items-center gap-2 min-w-0">
-                <span class="w-1.5 h-5 rounded-full bg-bsk-yellow shrink-0"></span>
-                <h2 class="text-sm font-black text-bsk-blue uppercase tracking-[0.18em] truncate" id="current-tab-title">Hjem</h2>
+        <div id="action-bar-container" class="portal-action-bar-shell px-4 py-3 md:px-8 hidden md:flex justify-between items-center sticky top-0 z-30 transition-all">
+            <div class="portal-action-title-pill min-w-0">
+                <span class="portal-action-dot"></span>
+                <h2 class="portal-action-title truncate" id="current-tab-title">Hjem</h2>
             </div>
 
             <div class="flex items-center justify-end gap-3">
-                <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary hover:rotate-90 duration-300" title="Admin / Innstillinger">
+                <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-action-admin-btn hover:rotate-90 duration-300" title="Admin / Innstillinger">
                     <i class="fa-solid fa-gear text-sm"></i>
                 </button>
             </div>
