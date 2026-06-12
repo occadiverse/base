@@ -328,10 +328,71 @@
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 18px 38px rgba(15, 23, 42, 0.09);
         }
         @media (max-width: 767px) {
+            #main-view {
+                padding-top: 1rem;
+            }
+            #hjem-hero-match-container > div {
+                padding: 1.5rem 1rem !important;
+            }
+            #hjem-bottom-widgets > .dashboard-click-card {
+                min-height: 0 !important;
+                padding: 1rem !important;
+            }
+            #hjem-bottom-widgets .dashboard-click-card > .relative > .border-b {
+                margin-bottom: 0.75rem !important;
+                padding-bottom: 0.6rem !important;
+            }
+            #hjem-bottom-widgets .dashboard-click-card .flex-1 {
+                margin-bottom: 0.35rem !important;
+            }
+            #hjem-bottom-widgets .dashboard-click-card .mt-auto {
+                padding-top: 0.7rem !important;
+            }
+            #hjem-bottom-widgets .dashboard-click-card [class*="w-[72px]"] {
+                height: 3.75rem !important;
+                width: 3.75rem !important;
+            }
+            #hjem-bottom-widgets .dashboard-click-card [class*="text-[14rem]"] {
+                font-size: 10rem !important;
+            }
+            #hjem-bottom-widgets .dashboard-click-card h4 {
+                font-size: 1.05rem !important;
+                line-height: 1.18 !important;
+            }
+            .dashboard-hero-card {
+                padding: 1rem !important;
+            }
+            .dashboard-hero-card .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 1rem !important;
+            }
+            .dashboard-hero-card .max-w-4xl {
+                gap: 0.75rem !important;
+                padding-bottom: 0.25rem !important;
+                padding-top: 0.25rem !important;
+            }
+            .dashboard-hero-card .shrink-0.my-2 {
+                margin-bottom: 0.25rem !important;
+                margin-top: 0.25rem !important;
+                min-width: 10rem !important;
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            .dashboard-hero-card .dashboard-team-badge {
+                height: 2.2rem;
+                width: 2.2rem;
+            }
+            .dashboard-hero-card h2 {
+                font-size: 1.05rem !important;
+                line-height: 1.18 !important;
+            }
+            .dashboard-hero-card .border-t {
+                padding-top: 0.65rem !important;
+            }
             .dashboard-team-block,
             .dashboard-team-block.is-home,
             .dashboard-team-block.is-away {
                 flex-direction: column;
+                gap: 0.45rem;
                 justify-content: center;
             }
         }
