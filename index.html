@@ -135,17 +135,12 @@
 
             <div id="view-oppmote" class="hidden space-y-6">
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-4 md:p-5 border-b border-slate-100 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-3">
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0">
-                            <h2 id="calendar-month-year" class="text-xl font-black text-bsk-blue tracking-tight">Mai 2026</h2>
-                            <div class="flex flex-wrap gap-3 text-[10px] font-bold text-slate-500 uppercase">
-                                <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamp</span></div>
-                                <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Trening</span></div>
-                                <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
-                            </div>
+                    <div class="p-4 md:p-5 border-b border-slate-100 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-2">
+                        <div class="min-w-0">
+                            <h2 id="calendar-month-year" class="text-lg sm:text-xl font-black text-bsk-blue tracking-tight whitespace-nowrap">Mai 2026</h2>
                         </div>
 
-                        <div class="flex items-center justify-center gap-3">
+                        <div class="flex items-center justify-center gap-2 sm:gap-3">
                             <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Forrige måned">
                                 <i class="fa-solid fa-chevron-left text-xs"></i>
                             </button>
@@ -157,10 +152,16 @@
                             </button>
                         </div>
 
-                        <div class="flex justify-start lg:justify-end">
+                        <div class="flex justify-end">
                             <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-icon portal-btn-primary" title="Legg til aktivitet">
                                 <i class="fa-solid fa-plus text-bsk-blue"></i>
                             </button>
+                        </div>
+
+                        <div class="col-span-3 flex flex-wrap gap-3 text-[10px] font-bold text-slate-500 uppercase justify-start sm:justify-center lg:justify-start">
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamp</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Trening</span></div>
+                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
                         </div>
                     </div>
 
