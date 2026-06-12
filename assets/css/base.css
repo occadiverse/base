@@ -117,6 +117,196 @@
             letter-spacing: 0.09em;
             padding: 0.22rem 0.46rem;
         }
+        .match-detail-card {
+            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 1.25rem;
+            box-shadow: 0 16px 36px rgba(11, 43, 76, 0.22);
+            color: #ffffff;
+            overflow: hidden;
+        }
+        .match-detail-card-top {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.07);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+        }
+        .match-detail-meta,
+        .match-detail-chip,
+        .match-detail-footer-item {
+            align-items: center;
+            display: inline-flex;
+        }
+        .match-detail-meta {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 900;
+            gap: 0.7rem;
+        }
+        .match-detail-meta i {
+            color: #f5c542;
+            font-size: 1rem;
+        }
+        .match-detail-chip {
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 999px;
+            color: #f5c542;
+            font-size: 0.64rem;
+            font-weight: 900;
+            gap: 0.4rem;
+            letter-spacing: 0.08em;
+            padding: 0.38rem 0.62rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .match-detail-main {
+            align-items: center;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            padding: 2.25rem 1.25rem 2rem;
+        }
+        .match-detail-team {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            min-width: 0;
+            text-align: center;
+        }
+        .match-detail-crest {
+            align-items: center;
+            background: #ffffff;
+            border: 3px solid rgba(245, 197, 66, 0.9);
+            border-radius: 999px;
+            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
+            color: #123f73;
+            display: flex;
+            height: 4.25rem;
+            justify-content: center;
+            width: 4.25rem;
+        }
+        .match-detail-crest i {
+            font-size: 1.55rem;
+        }
+        .match-detail-crest-opponent {
+            border-color: rgba(255, 255, 255, 0.72);
+            color: #64748b;
+        }
+        .match-detail-team-name {
+            color: #ffffff;
+            font-size: clamp(1.15rem, 3vw, 1.9rem);
+            font-weight: 900;
+            line-height: 1.05;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+        .match-detail-center {
+            min-width: 5.5rem;
+            text-align: center;
+        }
+        .match-detail-time {
+            color: #ffffff;
+            display: block;
+            font-size: clamp(1.6rem, 4vw, 2.45rem);
+            font-weight: 900;
+            line-height: 1;
+        }
+        .match-detail-sub {
+            color: rgba(255, 255, 255, 0.65);
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+        }
+        .match-detail-footer {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(245, 197, 66, 0.18);
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+        }
+        .match-detail-footer-item {
+            color: #ffffff;
+            font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+            font-weight: 900;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+        .match-detail-footer-item span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-detail-footer-item i {
+            color: #f5c542;
+            font-size: 1rem;
+            flex: 0 0 auto;
+        }
+        .match-detail-summary {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 1rem;
+        }
+        .match-detail-summary-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            padding: 1rem;
+        }
+        .match-detail-summary-label {
+            color: #64748b;
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+        }
+        .match-detail-summary-value {
+            color: #0b2b4c;
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+        @media (max-width: 640px) {
+            .match-detail-card-top,
+            .match-detail-footer {
+                padding: 0.85rem 1rem;
+            }
+            .match-detail-main {
+                gap: 0.65rem;
+                padding: 1.75rem 0.8rem 1.6rem;
+            }
+            .match-detail-crest {
+                height: 3.4rem;
+                width: 3.4rem;
+            }
+            .match-detail-crest i {
+                font-size: 1.25rem;
+            }
+            .match-detail-center {
+                min-width: 4.25rem;
+            }
+            .match-detail-footer {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .match-detail-summary {
+                grid-template-columns: 1fr;
+            }
+        }
         .portal-btn {
             align-items: center;
             border: 1px solid transparent;

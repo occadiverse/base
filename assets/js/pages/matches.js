@@ -173,34 +173,76 @@ window.showMatchDetails = function(id) {
     const match = (window.activeMatches || []).find(m => m.id === id);
     if (!match) return;
 
-    document.getElementById('kampdetaljer-title').innerHTML = `Kamp mot ${match.opponent}`;
-
     const container = document.getElementById('kampdetaljer-info');
-    const dateFormatted = new Date(match.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const titleText = [match.matchGroup, match.matchType].filter(Boolean).join(' ') || 'Kampdetaljer';
+    const dateValue = new Date(match.date);
+    const dateFormatted = Number.isNaN(dateValue.getTime())
+        ? 'Dato ikke satt'
+        : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+    const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+    const matchTypeLabel = match.matchType || 'Kamp';
+    const matchMeta = [match.matchGroup, match.matchType].filter(Boolean).join(' · ') || 'Kamp';
+    const centerValue = match.result || match.time || '--:--';
+    const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
+    const durationLabel = match.duration || '90 min';
+
+    document.getElementById('kampdetaljer-title').textContent = titleText;
 
     container.innerHTML = `
-        <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Kamptidspunkt</span>
-            <span class="font-black text-slate-800 text-sm"><i class="fa-regular fa-clock text-bsk-blue mr-1.5"></i> ${dateFormatted} kl. ${match.time || '--:--'}</span>
-        </div>
-        <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Spillearena</span>
-            <span class="font-black text-slate-800 text-sm"><i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i> ${match.pitch || 'Ikke fastsatt'}</span>
-        </div>
-        <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Lag og Type</span>
-            <span class="font-black text-slate-800 text-sm"><i class="fa-solid fa-shield-halved text-bsk-yellow mr-1.5"></i> ${match.matchGroup} (${match.matchType})</span>
-        </div>
-        <div class="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
-            <span class="text-slate-400 font-bold block uppercase tracking-wide text-[10px]">Sluttresultat</span>
-            <span class="text-lg font-black ${match.result ? 'text-emerald-600' : 'text-slate-400'}">
-                <i class="fa-solid fa-square-poll-horizontal mr-1.5"></i> ${match.result || 'Ikke ferdigspilt'}
-            </span>
-        </div>
-        <div class="col-span-1 sm:col-span-2 space-y-1 bg-gradient-to-br from-white via-amber-50 to-sky-50 p-4 rounded-xl border border-bsk-yellow/30 shadow-sm relative overflow-hidden mt-2">
-            <i class="fa-solid fa-crown absolute -right-2 -bottom-4 text-bsk-yellow opacity-20 text-[5rem]"></i>
-            <span class="text-bsk-blue font-black block uppercase tracking-wide text-[10px]">Banens Beste (BB)</span>
-            <span class="text-lg font-black text-slate-900 relative z-10">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>
+        <article class="match-detail-card">
+            <div class="match-detail-card-top">
+                <div class="match-detail-meta">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    <span>${dateLabel}</span>
+                </div>
+                <div class="match-detail-chip">
+                    <i class="fa-solid fa-futbol"></i>
+                    <span>${matchTypeLabel}</span>
+                </div>
+            </div>
+
+            <div class="match-detail-main">
+                <div class="match-detail-team">
+                    <div class="match-detail-crest match-detail-crest-opponent">
+                        <i class="fa-solid fa-shield"></i>
+                    </div>
+                    <span class="match-detail-team-name">${match.opponent}</span>
+                </div>
+
+                <div class="match-detail-center">
+                    <span class="match-detail-time">${centerValue}</span>
+                    <span class="match-detail-sub">${centerLabel}</span>
+                </div>
+
+                <div class="match-detail-team">
+                    <div class="match-detail-crest">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span class="match-detail-team-name">Bækkelaget</span>
+                </div>
+            </div>
+
+            <div class="match-detail-footer">
+                <div class="match-detail-footer-item" title="${match.pitch || 'Ikke fastsatt'}">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>${match.pitch || 'Ikke fastsatt'}</span>
+                </div>
+                <div class="match-detail-footer-item">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>${durationLabel}</span>
+                </div>
+            </div>
+        </article>
+
+        <div class="match-detail-summary">
+            <div class="match-detail-summary-card">
+                <span class="match-detail-summary-label">Lag og type</span>
+                <span class="match-detail-summary-value">${matchMeta}</span>
+            </div>
+            <div class="match-detail-summary-card">
+                <span class="match-detail-summary-label">Banens Beste (BB)</span>
+                <span class="match-detail-summary-value">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>
+            </div>
         </div>
     `;
 
