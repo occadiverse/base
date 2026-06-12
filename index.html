@@ -271,7 +271,7 @@
 
                 <div id="stat-view-spillere" class="bg-white border border-slate-200 rounded-2xl shadow-sm hidden">
                     <div class="p-4 border-b border-slate-100 bg-white rounded-t-2xl">
-                        <p class="text-xs text-slate-500 italic">Trykk på overskriftene for å sortere etter kjemi, oppmøte eller kort.</p>
+                        <p class="text-xs text-slate-500 italic">Trykk på overskriftene for å sortere etter form, oppmøte eller kort.</p>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm whitespace-nowrap">
@@ -285,8 +285,8 @@
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
                                     <th class="p-4 text-center hover:text-slate-800 transition-colors">
-                                        <span onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></span>
-                                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Kjemiscore"></i>
+                                        <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
+                                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
                                     </th>
                                 </tr>
                             </thead>
@@ -345,7 +345,7 @@
                                 <span id="stat-total-bonus" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
                             </div>
                             <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
-                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Total Kjemi</span>
+                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Total Form</span>
                                 <span id="stat-avg-chem" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
                             </div>
                         </div>
@@ -871,13 +871,13 @@
         <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
             <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
                 <h3 class="text-xl font-black text-emerald-400">
-                    <i class="fa-solid fa-calculator text-emerald-500 mr-2"></i>Slik regnes Kjemiscoren
+                    <i class="fa-solid fa-calculator text-emerald-500 mr-2"></i>Slik regnes Form
                 </h3>
                 <button onclick="document.getElementById('kjemi-info-modal').classList.add('hidden'); document.getElementById('kjemi-info-modal').classList.remove('flex');" class="portal-btn portal-btn-icon portal-btn-dark-ghost text-3xl font-light leading-none">&times;</button>
             </div>
             
             <div class="p-6 space-y-6 text-sm">
-                <p class="text-base text-slate-300">Den totale kjemiscoren (0–100) regnes på aktiviteter og kamper som har vært. Den består av spillerens <strong class="text-white">oppmøtegrunnlag</strong> pluss <strong class="text-white">gjennomsnittet av prestasjonene i kamp</strong>, minus eventuelle kort.</p>
+                <p class="text-base text-slate-300">Den totale formscoren (0–100) regnes på aktiviteter og kamper som har vært. Den består av spillerens <strong class="text-white">oppmøtegrunnlag</strong> pluss <strong class="text-white">gjennomsnittet av prestasjonene i kamp</strong>, minus eventuelle kort.</p>
                 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Oppmøte og lojalitet (Maks 40 poeng)</h4>

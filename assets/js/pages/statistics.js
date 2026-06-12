@@ -756,7 +756,7 @@ if (defaultPlayerName) {
 
     let tableHtml = `
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            ${card('Kjemiscore', chemistry + '/100', 'Total form og lojalitet', 'fa-heart-pulse', 'text-emerald-600')}
+            ${card('Form', chemistry + '/100', 'Total form og lojalitet', 'fa-heart-pulse', 'text-emerald-600')}
             ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
             ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
             ${card('Mål / BB', `${totalGoals} / ${totalBb}`, `${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
@@ -777,8 +777,8 @@ if (defaultPlayerName) {
                         class="portal-btn portal-btn-success portal-btn-sm shrink-0"
                     >
                         <i class="fa-solid fa-circle-info"></i>
-                        <span class="sm:hidden">Poeng</span>
-                        <span class="hidden sm:inline">Slik regnes poengene</span>
+                        <span class="sm:hidden">Form</span>
+                        <span class="hidden sm:inline">Slik regnes form</span>
                     </button>
                 </div>
             </div>
@@ -1221,8 +1221,8 @@ let html = `
                                     class="portal-btn portal-btn-success portal-btn-sm"
                                 >
                                     <i class="fa-solid fa-circle-info"></i>
-                                    <span class="sm:hidden">Poeng</span>
-                                    <span class="hidden sm:inline">Slik regnes poengene</span>
+                                    <span class="sm:hidden">Form</span>
+                                    <span class="hidden sm:inline">Slik regnes form</span>
                                 </button>
                             
                                 <button
@@ -1481,8 +1481,8 @@ let html = `
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors">
-                        <span onclick="sortStatsTable('kjemi')">Kjemi <span id="sort-icon-kjemi"></span></span>
-                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Kjemiscore"></i>
+                        <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
+                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
                     </th>
                 </tr>
             `;

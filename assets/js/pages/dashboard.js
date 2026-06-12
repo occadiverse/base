@@ -197,7 +197,7 @@ window.updateHjemWidget = function() {
                     <div class="flex-1 flex items-center justify-between mb-2">
                         <div class="space-y-1 min-w-0 pr-4">
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${ne.time || 'TBA'} | ${ne.location || 'Ikke oppgitt'}</p>
-                            <h4 class="font-black text-slate-900 text-2xl md:text-3xl truncate pb-1">${ne.title || 'TRENING'}</h4>
+                            <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase truncate pb-1">${ne.title || 'TRENING'}</h4>
                         </div>
                         
                         <div onclick="switchTab('oppmote'); openAttendanceModal('${ne.id}')" class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-all duration-500 cursor-pointer hover:scale-105">
@@ -290,12 +290,12 @@ window.updateHjemWidget = function() {
                     <div class="flex-1 flex items-center justify-between mb-2">
                         <div class="space-y-1 min-w-0 pr-4">
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${topPlayer.pos1}</p>
-                            <h4 class="font-black text-slate-900 text-2xl md:text-3xl truncate pb-1">${topPlayer.navn.split(' ')[0]}</h4>
+                            <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase truncate pb-1">${topPlayer.navn.split(' ')[0]}</h4>
                         </div>
                         
                         <div class="bg-bsk-yellow/15 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-500">
                             <span class="text-lg font-black text-amber-700 leading-none">${topScore}/100</span>
-                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Kjemi</span>
+                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Form</span>
                         </div>
                     </div>
 
