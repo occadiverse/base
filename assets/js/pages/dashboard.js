@@ -72,7 +72,7 @@ window.updateDashboard = function() {
                 `;
             }
 
-            // HTML for det oppdaterte kampbanneret (Nå med Dato, Tid og Sted i midten)
+            // HTML for det rendyrkede kampbanneret (Nå uten VS og merkelapper, og med kortere Formkurve-tekst)
             heroContainer.innerHTML = `
                 <section class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 md:p-8 text-slate-900 shadow-sm relative overflow-hidden border border-slate-200 border-b-4 border-bsk-yellow group">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0 text-bsk-blue">
@@ -95,20 +95,17 @@ window.updateDashboard = function() {
                         </div>
 
                         <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
-                            <div class="text-center md:text-right flex-1 w-full md:max-w-[250px]">
-                                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider block mb-0.5">Hjemmelag</span>
+                            <div class="text-center md:text-right flex-1 w-full md:max-w-[250px] pb-1 md:pb-0">
                                 <h2 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight truncate">BÆKKELAGETS SK</h2>
                             </div>
                             
                             <div class="flex flex-col items-center shrink-0 my-2 md:my-0 px-6 min-w-[200px] text-center space-y-1">
-                                <div class="bg-bsk-blue text-white px-3 py-0.5 rounded-lg text-[10px] font-black shadow-sm tracking-wider uppercase border border-bsk-blueDark">VS</div>
                                 <p class="text-xs font-black text-slate-800 capitalize pt-1">${d}</p>
                                 <p class="text-[11px] font-bold text-slate-600">Kl. ${nm.time || 'TBA'}</p>
                                 <p class="text-[10px] font-semibold text-slate-500 max-w-[180px] truncate" title="${nm.pitch || 'Ikke fastsatt'}">📍 ${nm.pitch || 'Ikke fastsatt'}</p>
                             </div>
                             
-                            <div class="text-center md:text-left flex-1 w-full md:max-w-[250px]">
-                                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider block mb-0.5">Motstander</span>
+                            <div class="text-center md:text-left flex-1 w-full md:max-w-[250px] pt-1 md:pt-0">
                                 <h2 onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase cursor-pointer hover:text-bsk-blueLight transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
                                     <span>${nm.opponent}</span>
                                     <i class="fa-solid fa-circle-chevron-right text-xs opacity-40 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-bsk-blue"></i>
@@ -117,7 +114,7 @@ window.updateDashboard = function() {
                         </div>
 
                         <div class="flex flex-col items-center justify-center pt-3 border-t border-slate-150 text-center">
-                            <span class="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Lagets formkurve</span>
+                            <span class="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Formkurve</span>
                             <div class="flex gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 shadow-inner" id="hero-form-pills-container">
                             </div>
                         </div>
