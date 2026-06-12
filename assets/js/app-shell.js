@@ -105,6 +105,55 @@ function switchTab(tabId) {
     }
 }
 
+function setupMobileSwipeNavigation() {
+    if (window.mobileSwipeNavigationReady) return;
+    window.mobileSwipeNavigationReady = true;
+    document.documentElement.dataset.mobileSwipeNavigation = 'ready';
+
+    const swipeTabs = ['hjem', 'kamper', 'oppmote', 'statistikk', 'tropp', 'taktikk'];
+    let startX = 0;
+    let startY = 0;
+    let isTracking = false;
+
+    const shouldIgnoreSwipe = (target) => {
+        if (!target || !target.closest) return false;
+        return Boolean(target.closest(
+            'button, a, input, textarea, select, label, table, .overflow-x-auto, .portal-segmented, .modal-base, [role="dialog"], [data-no-swipe]'
+        ));
+    };
+
+    document.addEventListener('touchstart', event => {
+        if (window.innerWidth >= 768 || event.touches.length !== 1 || shouldIgnoreSwipe(event.target)) {
+            isTracking = false;
+            return;
+        }
+
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+        isTracking = true;
+    }, { passive: true });
+
+    document.addEventListener('touchend', event => {
+        if (!isTracking || window.innerWidth >= 768 || event.changedTouches.length !== 1) return;
+
+        const deltaX = event.changedTouches[0].clientX - startX;
+        const deltaY = event.changedTouches[0].clientY - startY;
+        isTracking = false;
+
+        if (Math.abs(deltaX) < 80 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
+
+        const currentIndex = swipeTabs.indexOf(currentTab);
+        if (currentIndex === -1) return;
+
+        const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
+        if (nextIndex < 0 || nextIndex >= swipeTabs.length) return;
+
+        switchTab(swipeTabs[nextIndex]);
+    }, { passive: true });
+}
+
+window.setupMobileSwipeNavigation = setupMobileSwipeNavigation;
+
 function handleFloatingAction() {
     if (currentTab === 'kamper') window.openMatchModal();
     else if (currentTab === 'oppmote') window.openActivityModal();

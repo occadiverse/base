@@ -7,4 +7,5 @@ setTimeout(() => {
     window.recalculateOppmoteAndKjemi();
     window.renderCalendar();
     window.switchTab('hjem');
+    if (typeof window.setupMobileSwipeNavigation === 'function') window.setupMobileSwipeNavigation();
 }, 300);

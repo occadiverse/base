@@ -337,5 +337,135 @@ window.updateHjemWidget = function() {
         `;
     }
 
-    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml;
+    const playedMatches = (window.activeMatches || [])
+        .map(m => ({ match: m, score: window.parseScore(m.result) }))
+        .filter(item => item.score !== null);
+
+    let tableWins = 0;
+    let tableDraws = 0;
+    let tableLosses = 0;
+    let goalsFor = 0;
+    let goalsAgainst = 0;
+
+    playedMatches.forEach(({ score }) => {
+        goalsFor += score.bsk;
+        goalsAgainst += score.opponent;
+        if (score.bsk > score.opponent) tableWins++;
+        else if (score.bsk === score.opponent) tableDraws++;
+        else tableLosses++;
+    });
+
+    const tablePoints = tableWins * 3 + tableDraws;
+    const goalDiff = goalsFor - goalsAgainst;
+    const goalDiffText = goalDiff > 0 ? `+${goalDiff}` : `${goalDiff}`;
+    const formGuide = typeof window.getFormGuide === 'function' ? window.getFormGuide() : [];
+    const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+
+    const seriesWidgetHtml = `
+        <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
+            <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                <i class="fa-solid fa-ranking-star text-[14rem] text-bsk-blue"></i>
+            </div>
+
+            <div class="relative z-10 flex flex-col h-full justify-between">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                    <div class="portal-status-label">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Seriestatus</span>
+                    </div>
+                    <span class="portal-status-label portal-status-label-sm">Lokal</span>
+                </div>
+
+                <div class="flex-1 flex items-center justify-between gap-5 mb-2">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Basert på registrerte kamper</p>
+                        <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight">${playedMatches.length ? `${tablePoints} poeng` : 'Ingen tabell ennå'}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${playedMatches.length ? `${tableWins}S · ${tableDraws}U · ${tableLosses}T` : 'Før resultater for å bygge seriebildet.'}</p>
+                    </div>
+
+                    <div class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm">
+                        <span class="text-xl font-black ${goalDiff >= 0 ? 'text-bsk-blue' : 'text-rose-600'} leading-none">${playedMatches.length ? goalDiffText : '-'}</span>
+                        <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Mål diff</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
+                    <div class="flex gap-1.5 min-h-5 items-center">
+                        ${
+                            formGuide.length
+                                ? formGuide.map(item => `<span class="w-5 h-5 rounded-md flex items-center justify-center font-black text-[9px] border border-white/60 shadow-sm ${item.class}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
+                                : '<span class="text-[10px] text-slate-400 italic">Ingen formkurve</span>'
+                        }
+                    </div>
+                    <button onclick="switchTab('statistikk')" class="portal-btn portal-btn-primary portal-btn-sm">Statistikk</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const activePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    const recruits = activePlayers.filter(p => p.status === 'Rekrutt').length;
+    const keepers = activePlayers.filter(p => [p.pos1, p.pos2].some(pos => String(pos || '').toLowerCase().includes('keeper'))).length;
+    const missingJersey = activePlayers.filter(p => !p.draktnummer).length;
+    const nextMatch = (window.activeMatches || [])
+        .filter(m => m.date >= todayStr && !window.parseScore(m.result))
+        .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
+    let readyCount = 0;
+    let unavailableCount = 0;
+
+    if (nextMatch && nextMatch.attendance) {
+        Object.values(nextMatch.attendance).forEach(status => {
+            if (status === true) readyCount++;
+            if (status === false) unavailableCount++;
+        });
+    }
+
+    const squadWidgetHtml = `
+        <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
+            <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                <i class="fa-solid fa-users-viewfinder text-[14rem] text-bsk-yellow"></i>
+            </div>
+
+            <div class="relative z-10 flex flex-col h-full justify-between">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                    <div class="portal-status-label">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Troppstatus</span>
+                    </div>
+                    <span class="portal-status-label portal-status-label-sm">${activePlayers.length} aktive</span>
+                </div>
+
+                <div class="flex-1 flex items-center justify-between gap-5 mb-2">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${nextMatch ? 'Neste kamp' : 'Spilleroversikt'}</p>
+                        <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight">${nextMatch ? `${readyCount} klare` : `${activePlayers.length} spillere`}</h4>
+                        <p class="text-xs text-slate-500 mt-1">
+                            ${nextMatch ? `${unavailableCount} forfall · ${Math.max(activePlayers.length - readyCount - unavailableCount, 0)} ikke svart` : `${recruits} rekrutter · ${keepers} keepere`}
+                        </p>
+                    </div>
+
+                    <div class="bg-bsk-yellow/15 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm">
+                        <span class="text-xl font-black text-amber-700 leading-none">${missingJersey}</span>
+                        <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Uten nr</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${keepers}</span> Keepere
+                    </div>
+                    <button onclick="switchTab('tropp')" class="portal-btn portal-btn-primary portal-btn-sm">Tropp</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    bottomContainer.innerHTML = leftWidgetHtml + rightWidgetHtml + seriesWidgetHtml + squadWidgetHtml;
 };
