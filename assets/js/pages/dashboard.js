@@ -84,7 +84,7 @@ window.updateDashboard = function() {
                             <div class="flex items-center gap-2">
                                 <div class="relative inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-sm">
                                     <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
-                                    <span>NESTE KAMP SATT</span>
+                                    <span>NESTE KAMP</span>
                                     ${herosuspensionBadgeHtml}
                                 </div>
                             </div>
