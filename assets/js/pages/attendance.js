@@ -305,14 +305,14 @@ window.updateDailySchedule = function() {
                             </div>
                         </div>
                     </div>
-                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${m.matchGroup || 'Lag'}</span>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
-                        <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
-                    </button>
-                    <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <div class="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${m.matchGroup || 'Lag'}</span>
+                        <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
+                            <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
+                        </button>
+                        <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </div>
             </div>`;
     });
@@ -343,14 +343,14 @@ window.updateDailySchedule = function() {
                             </div>
                         </div>
                     </div>
-                    <span class="${theme.badge} border text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${e.team || 'Lag'}</span>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
-                        <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
-                    </button>
-                    <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <div class="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                        <span class="${theme.badge} border text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${e.team || 'Lag'}</span>
+                        <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
+                            <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
+                        </button>
+                        <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </div>
             </div>`;
     });

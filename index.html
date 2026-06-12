@@ -145,19 +145,21 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-3">
-                            <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Forrige måned">
-                                <i class="fa-solid fa-chevron-left text-xs"></i>
-                            </button>
-                            <button onclick="goToToday()" class="portal-btn portal-btn-primary">
-                                I dag
-                            </button>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <div class="flex items-center gap-3">
+                                <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Forrige måned">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <button onclick="goToToday()" class="portal-btn portal-btn-primary">
+                                    I dag
+                                </button>
+                                <button onclick="navigateCalendar(1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Neste måned">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
                             <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-primary">
                                 <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i>
                                 Ny aktivitet
-                            </button>
-                            <button onclick="navigateCalendar(1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Neste måned">
-                                <i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
                         </div>
                     </div>
