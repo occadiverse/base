@@ -74,7 +74,7 @@ window.updateDashboard = function() {
 
             // HTML for det rendyrkede kampbanneret
             heroContainer.innerHTML = `
-                <section class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 md:p-8 text-slate-900 shadow-sm relative overflow-hidden border border-slate-200 border-b-4 border-bsk-yellow group">
+                <section class="dashboard-hero-card rounded-2xl p-6 md:p-8 text-slate-900 relative overflow-hidden border border-b-4 border-bsk-yellow group">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0 text-bsk-blue">
                         <i class="fa-solid fa-shield-halved text-[22rem]"></i>
                     </div>
@@ -95,8 +95,13 @@ window.updateDashboard = function() {
                         </div>
 
                         <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
-                            <div class="text-center md:text-right flex-1 w-full md:max-w-[250px] pb-1 md:pb-0">
-                                <h2 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight truncate">BÆKKELAGETS SK</h2>
+                            <div class="dashboard-team-block is-home text-center md:text-right flex-1 w-full md:max-w-[270px] pb-1 md:pb-0">
+                                <div class="min-w-0">
+                                    <h2 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight truncate">BÆKKELAGETS SK</h2>
+                                </div>
+                                <div class="dashboard-team-badge is-bsk">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
                             </div>
                             
                             <div class="flex flex-col items-center shrink-0 my-2 md:my-0 px-6 min-w-[200px] text-center space-y-1">
@@ -105,7 +110,10 @@ window.updateDashboard = function() {
                                 <p class="text-[10px] font-semibold text-slate-500 max-w-[180px] truncate" title="${nm.pitch || 'Ikke fastsatt'}">📍 ${nm.pitch || 'Ikke fastsatt'}</p>
                             </div>
                             
-                            <div class="text-center md:text-left flex-1 w-full md:max-w-[250px] pt-1 md:pt-0">
+                            <div class="dashboard-team-block is-away text-center md:text-left flex-1 w-full md:max-w-[270px] pt-1 md:pt-0">
+                                <div class="dashboard-team-badge">
+                                    <i class="fa-solid fa-shield"></i>
+                                </div>
                                 <h2 onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase cursor-pointer hover:text-bsk-blueLight transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
                                     <span>${nm.opponent}</span>
                                     <i class="fa-solid fa-circle-chevron-right text-xs opacity-40 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-bsk-blue"></i>
@@ -180,7 +188,7 @@ window.updateHjemWidget = function() {
         }
 
         leftWidgetHtml = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-md hover:border-bsk-blue/20">
+            <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                     <i class="fa-solid fa-stopwatch text-[14rem] text-bsk-blue"></i>
                 </div>
@@ -274,7 +282,7 @@ window.updateHjemWidget = function() {
         const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
 
         rightWidgetHtml = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between group h-full transition hover:shadow-md hover:border-bsk-yellow/40">
+            <div class="dashboard-widget-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
                 <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
                     <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
                 </div>

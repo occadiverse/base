@@ -18,21 +18,24 @@ const MOBILE_NAV_ITEMS = [
 
 function renderSidebar() {
     return `
-        <aside class="portal-sidebar-shell hidden md:flex flex-col w-64 text-white p-6 justify-between shrink-0">
+        <aside class="portal-sidebar-shell hidden md:flex flex-col w-64 p-5 justify-between shrink-0">
             <div>
-                <div class="flex items-center space-x-3 mb-8 cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
-                    <div class="bg-bsk-yellow text-bsk-blue p-2.5 rounded-xl shadow-lg border border-white/20">
+                <div class="portal-brand-panel flex items-center space-x-3 mb-7 cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
+                    <div class="portal-brand-mark">
                         <i class="fa-solid fa-shield-halved text-xl"></i>
                     </div>
                     <div>
-                        <h2 class="font-black text-lg tracking-tight leading-none">BSK <span class="text-bsk-yellow">FOTBALL</span></h2>
-                        <span class="text-xs text-slate-300 font-medium tracking-wide">Kamp- & spillerportal</span>
+                        <h2 class="portal-brand-title">
+                            <span class="portal-brand-bsk">BSK</span>
+                            <span class="portal-brand-football">Fotball</span>
+                        </h2>
+                        <span class="portal-brand-subtitle">Kamp- & spillerportal</span>
                     </div>
                 </div>
 
-                <nav class="space-y-2">
+                <nav class="space-y-1.5">
                     ${NAV_ITEMS.map((item, index) => `
-                        <a href="#" id="sidebar-${item.id}" onclick="switchTab('${item.id}')" class="tab-link ${index === 0 ? 'is-active ' : ''}flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white hover:border-white/10 transition-all">
+                        <a href="#" id="sidebar-${item.id}" onclick="switchTab('${item.id}')" class="tab-link portal-nav-link ${index === 0 ? 'is-active ' : ''}flex items-center space-x-3 px-4 py-3 rounded-xl transition-all">
                             <i class="fa-solid ${item.icon} w-5 text-center"></i>
                             <span>${item.label}</span>
                         </a>
@@ -40,9 +43,9 @@ function renderSidebar() {
                 </nav>
             </div>
 
-            <div class="border-t border-white/10 pt-4 text-xs text-slate-300">
-                <p class="font-semibold text-white">Bækkelagets Sportsklub</p>
-                <p class="text-slate-400">© 2026 OCCA</p>
+            <div class="portal-sidebar-footer pt-4 text-xs">
+                <p class="font-black">Bækkelagets Sportsklub</p>
+                <p>© 2026 OCCA</p>
             </div>
         </aside>
     `;
@@ -52,10 +55,13 @@ function renderMobileHeader() {
     return `
         <header class="portal-mobile-chrome portal-mobile-header md:hidden text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md h-14 border-b border-bsk-yellow/30">
             <div class="flex items-center space-x-2 cursor-pointer hover:opacity-90 transition-opacity" onclick="switchTab('hjem')">
-                <div class="bg-bsk-yellow text-bsk-blue p-1.5 rounded-lg shadow-sm border border-white/20">
+                <div class="portal-brand-mark portal-brand-mark-sm">
                     <i class="fa-solid fa-shield-halved text-sm"></i>
                 </div>
-                <span class="font-black text-base tracking-tight leading-none">BSK <span class="text-bsk-yellow">FOTBALL</span></span>
+                <span class="portal-brand-title portal-brand-title-mobile">
+                    <span class="portal-brand-bsk">BSK</span>
+                    <span class="portal-brand-football">Fotball</span>
+                </span>
             </div>
             <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-dark-ghost hover:rotate-90 duration-300" title="Innstillinger / Admin">
                 <i class="fa-solid fa-gear text-xl"></i>
@@ -83,9 +89,9 @@ function renderActionBar() {
 
 function renderMobileNav() {
     return `
-        <nav class="portal-mobile-chrome md:hidden fixed bottom-0 left-0 right-0 text-slate-300 border-t border-bsk-yellow/25 flex justify-around items-center h-20 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.2)]">
+        <nav class="portal-mobile-nav-shell md:hidden fixed bottom-0 left-0 right-0 border-t flex justify-around items-center h-20 z-40 shadow-[0_-4px_24px_rgba(15,23,42,0.08)]">
             ${MOBILE_NAV_ITEMS.map((item, index) => `
-                <button onclick="switchTab('${item.id}')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[11px] font-bold transition ${index === 0 ? 'active-nav text-bsk-yellow' : 'hover:text-white'}">
+                <button onclick="switchTab('${item.id}')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[11px] font-bold transition ${index === 0 ? 'active-nav' : ''}">
                     <i class="fa-solid ${item.icon} text-xl mb-1"></i>
                     <span>${item.mobileLabel}</span>
                 </button>

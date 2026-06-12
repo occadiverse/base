@@ -12,8 +12,11 @@
             background: linear-gradient(180deg, #fbfdff 0%, var(--portal-bg) 48%, var(--portal-bg-soft) 100%);
         }
         .portal-sidebar-shell {
-            background: linear-gradient(180deg, #0b2b4c 0%, #123f73 50%, #0b2b4c 100%);
-            box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08);
+            background:
+                radial-gradient(circle at 20% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
+                linear-gradient(180deg, #ffffff 0%, #f7fafc 46%, #eef4f8 100%);
+            border-right: 1px solid rgba(18, 63, 115, 0.12);
+            box-shadow: 12px 0 34px rgba(15, 23, 42, 0.04);
         }
         .portal-mobile-chrome {
             background: linear-gradient(90deg, #0b2b4c 0%, #123f73 54%, #1f5d9e 100%);
@@ -25,6 +28,114 @@
         .portal-action-bar-shell {
             background: rgba(255, 255, 255, 0.88);
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+        .portal-brand-panel {
+            background:
+                radial-gradient(circle at 88% 8%, rgba(245, 197, 66, 0.24), transparent 28%),
+                linear-gradient(135deg, #0b2b4c 0%, #123f73 64%, #1f5d9e 100%);
+            border: 1px solid rgba(245, 197, 66, 0.22);
+            border-radius: 1.25rem;
+            box-shadow: 0 14px 30px rgba(11, 43, 76, 0.18);
+            min-height: 5rem;
+            padding: 1rem;
+        }
+        .portal-brand-mark {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.62);
+            border-radius: 1rem;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 6, 23, 0.16);
+            color: #f5c542;
+            display: flex;
+            height: 2.85rem;
+            justify-content: center;
+            position: relative;
+            width: 2.85rem;
+        }
+        .portal-brand-mark::after {
+            background: #f5c542;
+            border-radius: 999px;
+            bottom: 0.42rem;
+            box-shadow: 0 0 0 4px rgba(245, 197, 66, 0.16);
+            content: "";
+            height: 0.38rem;
+            position: absolute;
+            right: 0.42rem;
+            width: 0.38rem;
+        }
+        .portal-brand-mark-sm {
+            border-radius: 0.75rem;
+            height: 2rem;
+            width: 2rem;
+        }
+        .portal-brand-mark-sm::after {
+            bottom: 0.3rem;
+            height: 0.26rem;
+            right: 0.3rem;
+            width: 0.26rem;
+        }
+        .portal-brand-title {
+            font-size: 1.05rem;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .portal-brand-title-mobile {
+            font-size: 1rem;
+        }
+        .portal-brand-bsk {
+            color: #f5c542;
+        }
+        .portal-brand-football {
+            color: #ffffff;
+        }
+        .portal-brand-subtitle {
+            color: rgba(255, 255, 255, 0.74);
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-top: 0.3rem;
+        }
+        .portal-nav-link {
+            border-color: transparent;
+            color: #526173 !important;
+            font-size: 0.9rem;
+            font-weight: 850;
+        }
+        .portal-nav-link i {
+            color: #7c8ca0;
+            transition: color 150ms ease, transform 150ms ease;
+        }
+        .portal-nav-link:hover {
+            background: rgba(255, 255, 255, 0.78) !important;
+            border-color: rgba(18, 63, 115, 0.12) !important;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+            color: #123f73 !important;
+        }
+        .portal-nav-link:hover i {
+            color: #123f73;
+            transform: translateX(1px);
+        }
+        .portal-sidebar-footer {
+            border-top: 1px solid rgba(18, 63, 115, 0.12);
+            color: #64748b;
+        }
+        .portal-sidebar-footer p:first-child {
+            color: #123f73;
+        }
+        .portal-mobile-nav-shell {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(18, 63, 115, 0.12);
+            color: #64748b;
+            backdrop-filter: blur(16px);
+        }
+        .portal-mobile-nav-shell .mobile-nav-btn {
+            color: #64748b;
+        }
+        .portal-mobile-nav-shell .mobile-nav-btn:hover {
+            color: #123f73;
         }
         .portal-page-toolbar {
             display: flex;
@@ -118,6 +229,69 @@
             gap: 0.28rem;
             letter-spacing: 0.09em;
             padding: 0.22rem 0.46rem;
+        }
+        .dashboard-hero-card {
+            background:
+                radial-gradient(circle at 8% 0%, rgba(245, 197, 66, 0.24), transparent 28%),
+                radial-gradient(circle at 92% 12%, rgba(31, 93, 158, 0.13), transparent 32%),
+                linear-gradient(135deg, #ffffff 0%, #f8fbff 48%, #fff7dc 100%);
+            border-color: rgba(18, 63, 115, 0.12);
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+        }
+        .dashboard-hero-card::before {
+            background: linear-gradient(90deg, #f5c542 0%, rgba(245, 197, 66, 0.12) 46%, rgba(31, 93, 158, 0.12) 100%);
+            content: "";
+            height: 0.25rem;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .dashboard-team-block {
+            align-items: center;
+            display: flex;
+            gap: 0.8rem;
+        }
+        .dashboard-team-block.is-home {
+            justify-content: flex-end;
+        }
+        .dashboard-team-block.is-away {
+            justify-content: flex-start;
+        }
+        .dashboard-team-badge {
+            align-items: center;
+            background: #ffffff;
+            border: 2px solid rgba(18, 63, 115, 0.14);
+            border-radius: 999px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            color: #64748b;
+            display: flex;
+            flex: 0 0 auto;
+            height: 2.6rem;
+            justify-content: center;
+            width: 2.6rem;
+        }
+        .dashboard-team-badge.is-bsk {
+            border-color: rgba(245, 197, 66, 0.86);
+            color: #123f73;
+        }
+        .dashboard-widget-card {
+            background:
+                radial-gradient(circle at 100% 100%, rgba(245, 197, 66, 0.11), transparent 34%),
+                linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border-color: rgba(18, 63, 115, 0.12);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+        }
+        .dashboard-widget-card:hover {
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.09);
+        }
+        @media (max-width: 767px) {
+            .dashboard-team-block,
+            .dashboard-team-block.is-home,
+            .dashboard-team-block.is-away {
+                flex-direction: column;
+                justify-content: center;
+            }
         }
         .calendar-day-cell {
             position: relative;
@@ -748,13 +922,13 @@
         }
         .tab-link.is-active,
         .tab-link.is-active:hover {
-            color: #ffffff !important;
-            background: rgba(255, 255, 255, 0.12) !important;
-            border-color: rgba(245, 197, 66, 0.38) !important;
-            box-shadow: inset 3px 0 0 #f5c542, 0 10px 24px rgba(0, 0, 0, 0.12);
+            color: #0b2b4c !important;
+            background: linear-gradient(135deg, rgba(245, 197, 66, 0.26) 0%, rgba(255, 255, 255, 0.88) 68%) !important;
+            border-color: rgba(245, 197, 66, 0.58) !important;
+            box-shadow: inset 3px 0 0 #f5c542, 0 10px 22px rgba(15, 23, 42, 0.07);
         }
         .tab-link.is-active i {
-            color: #f5c542 !important;
+            color: #d6a820 !important;
         }
         ::-webkit-scrollbar {
             width: 6px;
@@ -771,11 +945,12 @@
             background: #94a3b8;
         }
         .active-nav {
-            color: #f5c542 !important;
+            color: #123f73 !important;
             border-top: 3px solid #f5c542;
         }
         .mobile-nav-btn.active-nav {
-            background: rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, rgba(245, 197, 66, 0.16), rgba(255, 255, 255, 0));
+            color: #123f73 !important;
         }
         .tactical-pitch {
             background:
