@@ -72,7 +72,7 @@ window.updateDashboard = function() {
                 `;
             }
 
-            // HTML for det oppdaterte, lyse kjempebanneret
+            // HTML for det rendyrkede kampbanneret
             heroContainer.innerHTML = `
                 <section class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 md:p-8 text-slate-900 shadow-sm relative overflow-hidden border border-slate-200 border-b-4 border-bsk-yellow group">
                     <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0 text-bsk-blue">
@@ -82,10 +82,9 @@ window.updateDashboard = function() {
                     <div class="relative z-10 space-y-6 max-w-5xl mx-auto">
                         <div class="flex justify-between items-center border-b border-slate-200 pb-3">
                             <div class="flex items-center gap-2">
-                                <!-- VI HAR LAGT TIL 'relative' HER SÅ BADGEN PASSER PERFEKT -->
-                                <div class="relative inline-flex items-center space-x-2 bg-bsk-yellow text-bsk-blue font-black px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-sm">
-                                    <i class="fa-solid fa-futbol text-[9px] animate-spin" style="animation-duration: 4s;"></i>
-                                    <span>NESTE KAMP SATT</span>
+                                <div class="portal-status-label relative">
+                                    <i class="fa-solid fa-futbol animate-spin" style="animation-duration: 4s;"></i>
+                                    <span>NESTE KAMP</span>
                                     ${herosuspensionBadgeHtml}
                                 </div>
                             </div>
@@ -96,19 +95,17 @@ window.updateDashboard = function() {
                         </div>
 
                         <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
-                            <div class="text-center md:text-right flex-1 w-full md:max-w-[280px]">
-                                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider block mb-0.5">Hjemmelag</span>
+                            <div class="text-center md:text-right flex-1 w-full md:max-w-[250px] pb-1 md:pb-0">
                                 <h2 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight truncate">BÆKKELAGETS SK</h2>
                             </div>
                             
-                            <div class="flex flex-col items-center gap-3 shrink-0 my-2 md:my-0 px-4">
-                                <div class="bg-bsk-blue text-white px-3 py-1 rounded-xl text-[11px] font-black shadow-sm tracking-wider uppercase border border-bsk-blueDark">VS</div>
-                                <div class="flex gap-1 bg-white/85 backdrop-blur-sm p-1 rounded-lg border border-slate-200 shadow-sm" id="hero-form-pills-container">
-                                    </div>
+                            <div class="flex flex-col items-center shrink-0 my-2 md:my-0 px-6 min-w-[200px] text-center space-y-1">
+                                <p class="text-xs font-black text-slate-800 capitalize pt-1">${d}</p>
+                                <p class="text-[11px] font-bold text-slate-600">Kl. ${nm.time || 'TBA'}</p>
+                                <p class="text-[10px] font-semibold text-slate-500 max-w-[180px] truncate" title="${nm.pitch || 'Ikke fastsatt'}">📍 ${nm.pitch || 'Ikke fastsatt'}</p>
                             </div>
                             
-                            <div class="text-center md:text-left flex-1 w-full md:max-w-[280px]">
-                                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider block mb-0.5">Motstander</span>
+                            <div class="text-center md:text-left flex-1 w-full md:max-w-[250px] pt-1 md:pt-0">
                                 <h2 onclick="switchTab('kamper'); showMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase cursor-pointer hover:text-bsk-blueLight transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
                                     <span>${nm.opponent}</span>
                                     <i class="fa-solid fa-circle-chevron-right text-xs opacity-40 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-bsk-blue"></i>
@@ -116,35 +113,9 @@ window.updateDashboard = function() {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 max-w-4xl mx-auto text-xs">
-                            <div class="bg-white/85 border border-slate-200 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-sm transition hover:bg-white hover:border-bsk-blue/20">
-                                <div class="w-10 h-10 rounded-xl bg-bsk-yellow/15 border border-bsk-yellow/25 flex items-center justify-center shrink-0">
-                                    <i class="fa-regular fa-calendar text-bsk-blue text-lg"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Kampdato</p>
-                                    <p class="font-extrabold text-slate-900 text-sm capitalize truncate">${d}</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white/85 border border-slate-200 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-sm transition hover:bg-white hover:border-bsk-blue/20">
-                                <div class="w-10 h-10 rounded-xl bg-bsk-yellow/15 border border-bsk-yellow/25 flex items-center justify-center shrink-0">
-                                    <i class="fa-regular fa-clock text-bsk-blue text-lg"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Avspark</p>
-                                    <p class="font-extrabold text-slate-900 text-sm tracking-wide">Kl. ${nm.time || 'TBA'}</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white/85 border border-slate-200 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 shadow-sm transition hover:bg-white hover:border-bsk-blue/20">
-                                <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-location-dot text-rose-500 text-lg"></i>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Spillested</p>
-                                    <p class="font-extrabold text-slate-900 text-sm truncate" title="${nm.pitch || 'Ikke fastsatt'}">${nm.pitch || 'Ikke fastsatt'}</p>
-                                </div>
+                        <div class="flex flex-col items-center justify-center pt-3 border-t border-slate-150 text-center">
+                            <span class="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Formkurve</span>
+                            <div class="flex gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 shadow-inner" id="hero-form-pills-container">
                             </div>
                         </div>
 
@@ -216,10 +187,11 @@ window.updateHjemWidget = function() {
                 
                 <div class="relative z-10 flex flex-col h-full justify-between">
                     <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
-                        <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-stopwatch text-bsk-blue"></i> Neste økt
-                        </h3>
-                        <span class="bg-bsk-blue/10 border border-bsk-blue/15 text-bsk-blue text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">${d.split(' ')[0]} ${new Date(ne.date).getDate()}</span>
+                        <div class="portal-status-label">
+                            <i class="fa-solid fa-stopwatch"></i>
+                            <span>Neste økt</span>
+                        </div>
+                        <span class="portal-status-label portal-status-label-sm animate-pulse">${d.split(' ')[0]} ${new Date(ne.date).getDate()}</span>
                     </div>
                     
                     <div class="flex-1 flex items-center justify-between mb-2">
@@ -308,10 +280,11 @@ window.updateHjemWidget = function() {
                 
                 <div class="relative z-10 flex flex-col h-full justify-between">
                     <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
-                        <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-bolt text-amber-400"></i> Ukens Maskin
-                        </h3>
-                        <span class="bg-amber-100 border border-amber-200 text-amber-700 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Hot Streak</span>
+                        <div class="portal-status-label">
+                            <i class="fa-solid fa-bolt"></i>
+                            <span>Ukens Maskin</span>
+                        </div>
+                        <span class="portal-status-label portal-status-label-sm animate-pulse">Hot Streak</span>
                     </div>
                     
                     <div class="flex-1 flex items-center justify-between mb-2">

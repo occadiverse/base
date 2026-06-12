@@ -90,6 +90,33 @@
             height: 2.5rem;
             padding: 0 0.75rem;
         }
+        .portal-status-label {
+            align-items: center;
+            background: #f5c542;
+            border: 1px solid rgba(214, 168, 32, 0.7);
+            border-radius: 999px;
+            box-shadow: 0 6px 14px rgba(214, 168, 32, 0.18);
+            color: #0b2b4c;
+            display: inline-flex;
+            font-size: 0.625rem;
+            font-weight: 900;
+            gap: 0.45rem;
+            letter-spacing: 0.14em;
+            line-height: 1;
+            padding: 0.38rem 0.75rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .portal-status-label i {
+            color: #0b2b4c;
+            font-size: 0.58rem;
+        }
+        .portal-status-label-sm {
+            font-size: 0.5rem;
+            gap: 0.35rem;
+            letter-spacing: 0.12em;
+            padding: 0.28rem 0.58rem;
+        }
         .portal-btn {
             align-items: center;
             border: 1px solid transparent;
