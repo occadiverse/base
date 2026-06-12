@@ -294,8 +294,8 @@ window.updateHjemWidget = function() {
                         </div>
                         
                         <div class="bg-bsk-yellow/15 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-500">
-                            <span class="text-2xl font-black text-amber-700 leading-none">${topScore}</span>
-                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Form</span>
+                            <span class="text-lg font-black text-amber-700 leading-none">${topScore}/100</span>
+                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Kjemi</span>
                         </div>
                     </div>
 

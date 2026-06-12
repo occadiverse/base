@@ -119,7 +119,15 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     if (!playerObj) return 0;
     const spillerLag = playerObj.spillerLag;
     const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-    const teamEvents = allEvents.filter(e => e.team === spillerLag);
+    const todayForChemistry = new Date();
+    todayForChemistry.setHours(0, 0, 0, 0);
+    const isHistorical = (item) => {
+        if (!item.date) return true;
+        const itemDate = new Date(item.date);
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate <= todayForChemistry;
+    };
+    const teamEvents = allEvents.filter(e => e.team === spillerLag && isHistorical(e));
     
     let attendedEvents = 0;
     teamEvents.forEach(e => { if (e.attendance && e.attendance[playerName] === true) attendedEvents++; });
@@ -130,6 +138,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     let totalMatchPoints = 0, matchesPlayed = 0, disciplinePenalty = 0, totalYellowCards = 0; 
     
     (window.activeMatches || []).forEach(m => {
+        if (!isHistorical(m)) return;
         if (m.matchGroup === spillerLag && m.attendance && m.attendance[playerName] === true) {
             matchesPlayed++;
             totalMatchPoints += window.calculatePlayerMatchPoints(m, playerName);
@@ -747,7 +756,7 @@ if (defaultPlayerName) {
 
     let tableHtml = `
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            ${card('Kjemiscore', chemistry + '%', 'Total form og lojalitet', 'fa-heart-pulse', 'text-emerald-600')}
+            ${card('Kjemiscore', chemistry + '/100', 'Total form og lojalitet', 'fa-heart-pulse', 'text-emerald-600')}
             ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
             ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
             ${card('Mål / BB', `${totalGoals} / ${totalBb}`, `${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
@@ -1517,7 +1526,7 @@ let html = `
                         <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
                         <td class="p-4 text-center ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
                         <td class="p-4 text-center ${rodFarge}">${stat.rode > 0 ? stat.rode : '-'}</td>
-                        <td class="p-4 text-center font-bold ${chemColor}">${stat.kjemi}% ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
+                        <td class="p-4 text-center font-bold ${chemColor}">${stat.kjemi}/100 ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
                     </tr>`;
             }).join('');
         };

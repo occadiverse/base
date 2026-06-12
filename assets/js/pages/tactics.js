@@ -255,7 +255,7 @@
             <div class="flex items-center gap-3 shrink-0 ml-2">
                 <span class="font-black text-xs ${bonusColor}" title="Kampsnitt">${bonusTekst}</span>
                 <div class="w-px h-3 bg-slate-300"></div>
-                <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
+                <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}/100</span>
             </div>
         `;
         benchList.appendChild(div);
@@ -452,7 +452,7 @@
             <div class="flex items-center gap-3 shrink-0 mr-3">
                 <span class="font-black text-xs ${bonusColor}" title="Kampbonus (Form)">${bonusTekst}</span>
                 <div class="w-px h-3 bg-slate-300"></div>
-                <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}%</span>
+                <span class="font-black text-xs ${chemColor}" title="Kjemiscore">${playerChem}/100</span>
             </div>
             <div class="shrink-0">
                 ${isPlaying ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}
