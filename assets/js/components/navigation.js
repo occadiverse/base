@@ -44,8 +44,15 @@ function renderSidebar() {
             </div>
 
             <div class="portal-sidebar-footer pt-4 text-xs">
-                <p class="font-black">Bækkelagets Sportsklub</p>
-                <p>© 2026 OCCA</p>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="font-black">Bækkelagets Sportsklub</p>
+                        <p>© 2026 OCCA</p>
+                    </div>
+                    <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-sidebar-admin-btn shrink-0" title="Admin / Innstillinger">
+                        <i class="fa-solid fa-gear text-sm"></i>
+                    </button>
+                </div>
             </div>
         </aside>
     `;
@@ -71,20 +78,7 @@ function renderMobileHeader() {
 }
 
 function renderActionBar() {
-    return `
-        <div id="action-bar-container" class="portal-action-bar-shell px-4 py-3 md:px-8 hidden md:flex justify-between items-center sticky top-0 z-30 transition-all">
-            <div class="portal-action-title-pill min-w-0">
-                <span class="portal-action-dot"></span>
-                <h2 class="portal-action-title truncate" id="current-tab-title">Hjem</h2>
-            </div>
-
-            <div class="flex items-center justify-end gap-3">
-                <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-action-admin-btn hover:rotate-90 duration-300" title="Admin / Innstillinger">
-                    <i class="fa-solid fa-gear text-sm"></i>
-                </button>
-            </div>
-        </div>
-    `;
+    return '';
 }
 
 function renderMobileNav() {
