@@ -83,8 +83,8 @@ window.renderAdminTeamsList = function() {
                 <div class="flex justify-between items-start">
                     <h4 class="font-extrabold text-bsk-blue text-base">${t.name}</h4>
                     <div class="flex gap-1">
-                        <button onclick="openTeamModal('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square text-sm"></i></button>
-                        <button onclick="promptDeleteTeam('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash text-sm"></i></button>
+                        <button onclick="openTeamModal('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="promptDeleteTeam('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">

@@ -218,24 +218,24 @@ window.renderCalendar = function() {
         ];
 
         const cell = document.createElement('div');
-        cell.className = `group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 ${isSelected ? 'bg-bsk-blue border-bsk-blue text-white shadow-md' : 'bg-white hover:bg-sky-50/70 border-slate-200 text-slate-800 shadow-sm'} ${isToday && !isSelected ? 'ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
+        cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
         cell.onclick = () => window.selectCalendarDate(dateStr);
 
         const visibleItems = items.slice(0, 2).map(item => `
-            <span class="flex items-center gap-1 min-w-0 rounded-full border px-1.5 py-0.5 text-[9px] font-black ${isSelected ? 'bg-white/15 text-white border-white/20' : item.tint}">
+            <span class="flex items-center gap-1 min-w-0 rounded-full border px-1.5 py-0.5 text-[9px] font-black ${isSelected ? 'bg-bsk-yellow/10 text-bsk-blue border-bsk-yellow/30' : item.tint}">
                 <span class="w-1.5 h-1.5 rounded-full ${item.color} shrink-0"></span>
                 <span class="hidden sm:inline truncate">${item.label}</span>
             </span>
         `).join('');
 
         const moreHtml = items.length > 2
-            ? `<span class="text-[9px] font-black ${isSelected ? 'text-white/80' : 'text-slate-400'}">+${items.length - 2}</span>`
+            ? `<span class="text-[9px] font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-400'}">+${items.length - 2}</span>`
             : '';
 
         cell.innerHTML = `
             <div class="flex items-start justify-between gap-1">
-                <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-yellow' : 'text-slate-700'}">${day}</span>
-                ${isToday ? `<span class="text-[8px] font-black uppercase ${isSelected ? 'text-white/80' : 'text-bsk-blue'}">I dag</span>` : ''}
+                <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
+                ${isToday ? `<span class="text-[8px] font-black uppercase text-bsk-blue">I dag</span>` : ''}
             </div>
             <div class="mt-auto space-y-1 min-h-[22px]">
                 ${visibleItems || `<span class="block h-1"></span>`}
@@ -311,8 +311,8 @@ window.updateDailySchedule = function() {
                     <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
                         <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
                     </button>
-                    <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                    <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>`;
     });
@@ -349,8 +349,8 @@ window.updateDailySchedule = function() {
                     <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
                         <i class="fa-solid fa-user-check mr-1.5 text-bsk-yellow"></i> Oppmøte
                     </button>
-                    <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                    <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>`;
     });

@@ -119,6 +119,23 @@
             letter-spacing: 0.09em;
             padding: 0.22rem 0.46rem;
         }
+        .calendar-day-cell {
+            position: relative;
+        }
+        .calendar-day-cell.is-selected {
+            border-color: rgba(18, 63, 115, 0.28) !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        }
+        .calendar-day-cell.is-selected::after {
+            background: #f5c542;
+            border-radius: 999px;
+            bottom: 0.35rem;
+            content: "";
+            height: 2px;
+            left: 0.75rem;
+            position: absolute;
+            right: 0.75rem;
+        }
         .match-detail-card {
             background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             border: 1px solid rgba(245, 197, 66, 0.18);
@@ -368,7 +385,7 @@
         .portal-btn-secondary {
             background: transparent;
             border-color: transparent;
-            color: #123f73;
+            color: #0b2b4c;
         }
         .portal-btn-secondary:hover {
             background: transparent;
@@ -378,29 +395,29 @@
         .portal-btn-muted {
             background: transparent;
             border-color: transparent;
-            color: #475569;
+            color: #0b2b4c;
         }
         .portal-btn-muted:hover {
             background: transparent;
-            color: #334155;
+            color: #123f73;
         }
         .portal-btn-success {
             background: transparent;
             border-color: transparent;
-            color: #166534;
+            color: #0b2b4c;
         }
         .portal-btn-success:hover {
             background: transparent;
-            color: #14532d;
+            color: #123f73;
         }
         .portal-btn-danger {
             background: transparent;
             border-color: transparent;
-            color: #e11d48;
+            color: #b4535c;
         }
         .portal-btn-danger:hover {
             background: transparent;
-            color: #be123c;
+            color: #9f3f4b;
         }
         .portal-btn-warning {
             background: transparent;
@@ -431,18 +448,23 @@
             background: transparent;
             color: #ffffff;
         }
+        .portal-btn.is-active,
+        .phase-btn.portal-btn-primary {
+            color: #0b2b4c;
+            text-decoration-color: #f5c542;
+        }
         .portal-btn-sm {
-            font-size: 0.625rem;
+            font-size: 0.6875rem;
             min-height: auto;
-            padding: 0.15rem 0.05rem;
+            padding: 0.2rem 0.05rem;
         }
         .portal-btn-xs {
-            font-size: 0.575rem;
+            font-size: 0.6875rem;
             min-height: auto;
-            padding: 0.12rem 0.04rem;
+            padding: 0.2rem 0.05rem;
         }
         .portal-btn-lg {
-            font-size: 0.75rem;
+            font-size: 0.6875rem;
             min-height: auto;
             padding: 0.2rem 0.05rem;
         }

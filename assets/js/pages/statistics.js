@@ -845,7 +845,7 @@ if (defaultPlayerName) {
                         title="Rediger mål, kort og spillerbørs"
                         class="portal-btn portal-btn-icon-sm portal-btn-warning"
                     >
-                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                 </td>
             </tr>
@@ -1221,7 +1221,7 @@ let html = `
                                     title="Rediger mål, kort og spillerbørs"
                                     class="portal-btn portal-btn-icon-sm portal-btn-warning"
                                 >
-                                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                             </div>
                         </div>
