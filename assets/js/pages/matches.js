@@ -334,24 +334,24 @@ window.renderPlayerRowForm = function(match) {
         div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
         div.innerHTML = `
             <span class="font-bold text-slate-800 text-xs">${player}</span>
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                <div class="flex items-center space-x-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Mål:</span>
-                    <select class="player-goals-input portal-field portal-field-sm" data-player="${player}">
+            <div class="flex items-end gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                <div class="match-stat-field">
+                    <span class="match-stat-label">Mål</span>
+                    <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player="${player}" aria-label="Mål for ${player}">
                         ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
                     </select>
                 </div>
 
-                <div class="flex items-center space-x-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Ass:</span>
-                    <select class="player-assists-input portal-field portal-field-sm" data-player="${player}">
+                <div class="match-stat-field">
+                    <span class="match-stat-label">Ass</span>
+                    <select class="player-assists-input portal-field portal-field-sm match-stat-select" data-player="${player}" aria-label="Assist for ${player}">
                         ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
                     </select>
                 </div>
 
-                <div class="flex items-center space-x-1 ml-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 hidden sm:inline-block">Børs:</span>
-                    <select class="player-rating-select portal-field portal-field-sm" data-player="${player}">
+                <div class="match-stat-field">
+                    <span class="match-stat-label">Børs</span>
+                    <select class="player-rating-select portal-field portal-field-sm match-stat-select match-stat-select-rating" data-player="${player}" aria-label="Børs for ${player}">
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
                         ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
                     </select>

@@ -652,6 +652,30 @@
             min-height: 2rem;
             padding: 0 0.625rem;
         }
+        .match-stat-field {
+            align-items: center;
+            display: flex;
+            flex: 0 0 auto;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .match-stat-label {
+            color: #64748b;
+            font-size: 0.5rem;
+            font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .match-stat-select {
+            min-height: 1.95rem;
+            padding-left: 0.45rem;
+            padding-right: 1.4rem;
+            text-align: center;
+            width: 3.1rem;
+        }
+        .match-stat-select-rating {
+            width: 3.75rem;
+        }
         .portal-field-strong {
             color: #123f73;
             font-weight: 900;
@@ -695,6 +719,13 @@
             background-repeat: no-repeat;
             cursor: pointer;
             padding-right: 2.25rem;
+        }
+        select.match-stat-select {
+            background-position:
+                calc(100% - 12px) calc(50% - 2px),
+                calc(100% - 8px) calc(50% - 2px);
+            padding-left: 0.45rem;
+            padding-right: 1.25rem;
         }
         .portal-field-inline {
             background: transparent;
