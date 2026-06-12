@@ -237,7 +237,7 @@ window.updateHjemWidget = function() {
 
     let rightWidgetHtml = '';
     if (topPlayer && topScore > 0) {
-        let kamper = 0, mal = 0, attendedEvents = 0;
+        let kamper = 0, mal = 0, assist = 0, attendedEvents = 0;
         
         const allEvents = [
     ...(window.activeEvents || []),
@@ -264,9 +264,10 @@ window.updateHjemWidget = function() {
             if (e.attendance && e.attendance[topPlayer.navn] === true) {
                 attendedEvents++;
                 if (e.type === 'Kamp') {
-                    kamper++;
-                    if (e.scorers && e.scorers[topPlayer.navn]) mal += e.scorers[topPlayer.navn];
-                }
+	                    kamper++;
+	                    if (e.scorers && e.scorers[topPlayer.navn]) mal += e.scorers[topPlayer.navn];
+	                    if (e.assists && e.assists[topPlayer.navn]) assist += e.assists[topPlayer.navn];
+	                }
             } 
         });
 
@@ -303,10 +304,13 @@ window.updateHjemWidget = function() {
                         <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper
                         </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${mal}</span> Mål
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200 pl-4">
+	                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+	                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${mal}</span> Mål
+	                        </div>
+	                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+	                            <span class="text-sky-700 text-base block font-black mb-0.5 leading-none">${assist}</span> Assist
+	                        </div>
+	                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200 pl-4">
                             <span class="text-amber-700 text-base block font-black mb-0.5 leading-none">${oppmotePct}%</span> Trening
                         </div>
                     </div>

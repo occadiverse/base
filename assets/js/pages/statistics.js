@@ -305,6 +305,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                 let totalPoints = 0;
                 let goals = 0;
+                let assists = 0;
                 let bb = 0;
                 let yellow = 0;
                 let red = 0;
@@ -318,6 +319,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     totalPoints += points;
 
                     if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
+                    if (m.assists && m.assists[name]) assists += Number(m.assists[name]) || 0;
                     if (m.motm === name) bb += 1;
                     if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
                     if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
@@ -354,6 +356,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     totalPoints: totalPoints || 0,
                     pointsPerMatch: pointsPerMatch || 0,
                     goals: goals || 0,
+                    assists: assists || 0,
                     bb: bb || 0,
                     yellow: yellow || 0,
                     red: red || 0,
@@ -367,6 +370,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
     const topFormPlayer = [...activeStats].sort((a, b) => b.formLastFive - a.formLastFive)[0];
     const bbLeader = [...activeStats].sort((a, b) => b.bb - a.bb)[0];
     const topScorer = [...activeStats].sort((a, b) => b.goals - a.goals)[0];
+    const assistLeader = [...activeStats].sort((a, b) => b.assists - a.assists)[0];
     const pointsLeader = [...activeStats].sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)[0];
 
     const formTable = [...activeStats]
@@ -381,6 +385,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
     const scorerTable = [...activeStats]
         .filter(p => p.goals > 0)
         .sort((a, b) => b.goals - a.goals || b.pointsPerMatch - a.pointsPerMatch)
+        .slice(0, 8);
+
+    const assistTable = [...activeStats]
+        .filter(p => p.assists > 0)
+        .sort((a, b) => b.assists - a.assists || b.pointsPerMatch - a.pointsPerMatch)
         .slice(0, 8);
 
     const pointsTable = [...activeStats]
@@ -448,7 +457,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div>
                         <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Statistikk 2.0</p>
                         <h2 class="text-2xl font-black tracking-tight text-bsk-blue">Analyse og trenerinnsikt</h2>
-                        <p class="text-sm text-slate-600 mt-1">Form, BB, mål, poeng per kamp og spillere som bør følges opp.</p>
+                        <p class="text-sm text-slate-600 mt-1">Form, BB, mål, assists, poeng per kamp og spillere som bør følges opp.</p>
                     </div>
                     <div class="shrink-0">
                         <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/85 border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
@@ -466,7 +475,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
                 ${card(
                     'Formspiller',
                     topFormPlayer ? topFormPlayer.name : '-',
@@ -492,6 +501,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 )}
 
                 ${card(
+                    'Assistkonge',
+                    assistLeader ? assistLeader.name : '-',
+                    assistLeader ? `${assistLeader.assists} assists` : 'Ingen assists registrert',
+                    'fa-handshake-angle',
+                    'text-sky-500'
+                )}
+
+                ${card(
                     'Poeng per kamp',
                     pointsLeader ? pointsLeader.name : '-',
                     pointsLeader ? `${pointsLeader.pointsPerMatch.toFixed(1)} poeng i snitt` : 'Ingen poengdata',
@@ -509,6 +526,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         <th class="p-4 text-center">Kamper</th>
                         <th class="p-4 text-center">Snittbørs</th>
                         <th class="p-4 text-center">Mål</th>
+                        <th class="p-4 text-center">Assist</th>
                         <th class="p-4 text-center">BB</th>
                     `,
                     formTable.map(p => `
@@ -526,6 +544,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 </span>
                             </td>
                             <td class="p-4 text-center font-bold">${p.goals}</td>
+                            <td class="p-4 text-center font-bold">${p.assists}</td>
                             <td class="p-4 text-center">
                                 ${
                                     p.bb > 0
@@ -594,6 +613,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 </span>
                             </td>
                             <td class="p-4 text-right">${p.matches ? (p.goals / p.matches).toFixed(2) : '0.00'}</td>
+                        </tr>
+                    `).join('')
+                )}
+
+                ${smallTable(
+                    'Assistliga',
+                    'Assist registrert på kampdetaljene. Vises som motivasjon, men påvirker ikke Form eller Kampbidrag.',
+                    `
+                        <th class="p-4">Spiller</th>
+                        <th class="p-4 text-center">Assist</th>
+                        <th class="p-4 text-right">Assist/kamp</th>
+                    `,
+                    assistTable.map(p => `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                            <td class="p-4 text-center">
+                                <span class="inline-flex items-center gap-1 bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
+                                    A ${p.assists}
+                                </span>
+                            </td>
+                            <td class="p-4 text-right">${p.matches ? (p.assists / p.matches).toFixed(2) : '0.00'}</td>
                         </tr>
                     `).join('')
                 )}
@@ -799,6 +839,7 @@ if (defaultPlayerName) {
     }
 
     let totalGoals = 0;
+    let totalAssists = 0;
     let totalYellow = 0;
     let totalRed = 0;
     let totalBb = 0;
@@ -808,6 +849,7 @@ if (defaultPlayerName) {
         if (!m) return;
 
         totalGoals += m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
+        totalAssists += m.assists && m.assists[playerName] ? Number(m.assists[playerName]) : 0;
         totalYellow += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
         totalRed += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
         totalBb += m.motm === playerName ? 1 : 0;
@@ -831,7 +873,7 @@ if (defaultPlayerName) {
             ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
             ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
             ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
-            ${card('Mål / BB', `${totalGoals} / ${totalBb}`, `${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
+            ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · ${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -864,6 +906,7 @@ if (defaultPlayerName) {
                             <th class="p-4 text-center">Poeng</th>
                             <th class="p-4 text-center">Børs</th>
                             <th class="p-4 text-center">Mål</th>
+                            <th class="p-4 text-center">Assist</th>
                             <th class="p-4 text-center text-indigo-600">BB</th>
                             <th class="p-4 text-center">Gult</th>
                             <th class="p-4 text-center">Rødt</th>
@@ -883,12 +926,17 @@ if (defaultPlayerName) {
         else if (h.points < 10) pointColor = 'text-rose-600';
 
         const goals = m && m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
+        const assists = m && m.assists && m.assists[playerName] ? Number(m.assists[playerName]) : 0;
         const yellow = m && m.guleKort && m.guleKort.includes(playerName);
         const red = m && m.rodeKort && m.rodeKort.includes(playerName);
         const bb = m && m.motm === playerName;
 
         const målVis = goals > 0
             ? `<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full text-xs font-black">⚽ ${goals}</span>`
+            : '<span class="text-slate-300 font-bold">-</span>';
+
+        const assistVis = assists > 0
+            ? `<span class="inline-flex items-center gap-1 bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-full text-xs font-black">A ${assists}</span>`
             : '<span class="text-slate-300 font-bold">-</span>';
 
         const bbVis = bb
@@ -912,18 +960,19 @@ if (defaultPlayerName) {
                 <td class="p-4 text-slate-500 font-medium">${dateText}</td>
                 <td class="p-4 font-black text-slate-800">${h.opponent}</td>
                 <td class="p-4 text-center font-black text-lg ${pointColor}">${h.points}</td>
-                <td class="p-4 text-center">
-                    <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
-                </td>
-                <td class="p-4 text-center">${målVis}</td>
-                <td class="p-4 text-center">${bbVis}</td>
+	                <td class="p-4 text-center">
+	                    <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
+	                </td>
+	                <td class="p-4 text-center">${målVis}</td>
+	                <td class="p-4 text-center">${assistVis}</td>
+	                <td class="p-4 text-center">${bbVis}</td>
                 <td class="p-4 text-center">${yellowVis}</td>
                 <td class="p-4 text-center">${redVis}</td>
                 <td class="p-4 text-center font-semibold text-slate-600">${h.result}</td>
                 <td class="p-4 text-right">
                     <button
                         onclick="openMatchStatsEditor('${h.matchId}')"
-                        title="Rediger mål, kort og spillerbørs"
+                        title="Rediger mål, assist, kort og spillerbørs"
                         class="portal-btn portal-btn-icon-sm portal-btn-warning"
                     >
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -1041,11 +1090,13 @@ let html = `
         if (attendingPlayers.length === 0) {
             const ratingPlayers = match.ratings ? Object.keys(match.ratings) : [];
             const scorerPlayers = match.scorers ? Object.keys(match.scorers) : [];
+            const assistPlayers = match.assists ? Object.keys(match.assists) : [];
             const bbPlayer = match.motm ? [match.motm] : [];
         
             attendingPlayers = [...new Set([
                 ...ratingPlayers,
                 ...scorerPlayers,
+                ...assistPlayers,
                 ...bbPlayer
             ])];
         }
@@ -1058,6 +1109,7 @@ let html = `
     const stats = attendingPlayers.map(pName => {
         const rating = match.ratings && match.ratings[pName] ? Number(match.ratings[pName]) : 0;
         const goals = match.scorers && match.scorers[pName] ? Number(match.scorers[pName]) : 0;
+        const assists = match.assists && match.assists[pName] ? Number(match.assists[pName]) : 0;
         const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
         const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
         const isBbInMatch = match.motm === pName;
@@ -1070,6 +1122,7 @@ let html = `
             name: pName,
             rating,
             goals,
+            assists,
             yellow,
             red,
             isBbInMatch,
@@ -1082,7 +1135,7 @@ let html = `
         };
     });
 
-    stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals);
+    stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals || b.assists - a.assists);
 
     const dateStr = match.date
         ? new Date(match.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -1099,11 +1152,13 @@ let html = `
         : 0;
 
     const totalGoals = stats.reduce((sum, s) => sum + s.goals, 0);
+    const totalAssists = stats.reduce((sum, s) => sum + s.assists, 0);
     const totalYellow = stats.reduce((sum, s) => sum + s.yellow, 0);
     const totalRed = stats.reduce((sum, s) => sum + s.red, 0);
 
     const bbPlayer = stats.find(s => s.isBbInMatch);
     const topScorer = [...stats].sort((a, b) => b.goals - a.goals)[0];
+    const assistLeader = [...stats].sort((a, b) => b.assists - a.assists)[0];
     const pointsLeader = stats[0];
 
     const pointColor = (points) => {
@@ -1135,7 +1190,7 @@ let html = `
                 <div class="min-w-0">
                     <div class="font-black text-slate-800 truncate">${s.name}</div>
                     <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        Børs ${s.rating || '-'} · Mål ${s.goals} · BB ${s.isBbInMatch ? '+1' : '-'}
+                        Børs ${s.rating || '-'} · Mål ${s.goals} · Assist ${s.assists} · BB ${s.isBbInMatch ? '+1' : '-'}
                     </div>
                 </div>
             </div>
@@ -1154,6 +1209,10 @@ let html = `
             ? scoreBadge(`⚽ +${s.goals}`, 'emerald')
             : '<span class="text-slate-300 font-bold">-</span>';
 
+        const assistVis = s.assists > 0
+            ? scoreBadge(`A ${s.assists}`, 'blue')
+            : '<span class="text-slate-300 font-bold">-</span>';
+
        const yellowVis = s.yellow > 0
             ? scoreBadge('🟨 0', 'amber')
             : '<span class="text-slate-300 font-bold">-</span>';
@@ -1170,9 +1229,10 @@ let html = `
             <tr class="hover:bg-slate-50 transition-colors" title="${s.breakdown}">
                 <td class="p-4 font-black text-slate-800">${s.name}</td>
                 <td class="p-4 text-center font-black text-lg ${pointColor(s.points)}">${s.points}</td>
-                <td class="p-4 text-center">${ratingVis}</td>
-                <td class="p-4 text-center">${goalVis}</td>
-                <td class="p-4 text-center">${bbVis}</td>
+	                <td class="p-4 text-center">${ratingVis}</td>
+	                <td class="p-4 text-center">${goalVis}</td>
+	                <td class="p-4 text-center">${assistVis}</td>
+	                <td class="p-4 text-center">${bbVis}</td>
                 <td class="p-4 text-center">${yellowVis}</td>
                 <td class="p-4 text-center">${redVis}</td>
                 <td class="p-4 text-center">${resultVis}</td>
@@ -1272,7 +1332,7 @@ let html = `
                         </div>
                     </div>
                     <div class="text-xl font-black text-slate-900">${avgRating ? avgRating.toFixed(1) : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">Snittbørs · ${totalGoals} mål · ${totalYellow}🟨 ${totalRed}🟥</div>
+	                    <div class="text-xs text-slate-500 mt-1">Snittbørs · ${totalGoals} mål · ${totalAssists} assist · ${totalYellow}🟨 ${totalRed}🟥</div>
                 </div>
             </div>
 
@@ -1299,7 +1359,7 @@ let html = `
                             
                                 <button
                                     onclick="openMatchStatsEditor('${match.id}')"
-                                    title="Rediger mål, kort og spillerbørs"
+	                                    title="Rediger mål, assist, kort og spillerbørs"
                                     class="portal-btn portal-btn-icon-sm portal-btn-warning"
                                 >
                                     <i class="fa-solid fa-pen-to-square"></i>
@@ -1314,9 +1374,10 @@ let html = `
                                 <tr>
                                     <th class="p-4">Spiller</th>
                                     <th class="p-4 text-center">Poeng</th>
-                                    <th class="p-4 text-center">Børs</th>
-                                    <th class="p-4 text-center">Mål</th>
-                                    <th class="p-4 text-center text-indigo-600">BB</th>
+	                                    <th class="p-4 text-center">Børs</th>
+	                                    <th class="p-4 text-center">Mål</th>
+	                                    <th class="p-4 text-center">Assist</th>
+	                                    <th class="p-4 text-center text-indigo-600">BB</th>
                                     <th class="p-4 text-center">Gult</th>
                                     <th class="p-4 text-center">Rødt</th>
                                     <th class="p-4 text-center">Res/Mål</th>
@@ -1343,12 +1404,17 @@ let html = `
                                 <p class="text-xl font-black text-bsk-blue mt-1">${avgRating ? avgRating.toFixed(1) : '-'}</p>
                             </div>
                 
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mål</p>
-                                <p class="text-xl font-black text-emerald-600 mt-1">${totalGoals}</p>
-                            </div>
-                
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+	                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+	                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mål</p>
+	                                <p class="text-xl font-black text-emerald-600 mt-1">${totalGoals}</p>
+	                            </div>
+
+	                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+	                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Assist</p>
+	                                <p class="text-xl font-black text-sky-600 mt-1">${totalAssists}</p>
+	                            </div>
+	                
+	                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Gule kort</p>
                                 <p class="text-xl font-black text-amber-600 mt-1">${totalYellow}</p>
                             </div>
@@ -1365,12 +1431,19 @@ let html = `
                                 <span class="text-xs font-black text-slate-800 text-right">${bbPlayer ? bbPlayer.name : '-'}</span>
                             </div>
                         
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
-                                <span class="text-xs font-black text-slate-800 text-right">
-                                    ${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
-                                </span>
-                            </div>
+	                            <div class="flex items-center justify-between gap-3">
+	                                <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
+	                                <span class="text-xs font-black text-slate-800 text-right">
+	                                    ${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
+	                                </span>
+	                            </div>
+
+	                            <div class="flex items-center justify-between gap-3">
+	                                <span class="text-xs font-bold text-slate-500">A Assistkonge</span>
+	                                <span class="text-xs font-black text-slate-800 text-right">
+	                                    ${assistLeader && assistLeader.assists > 0 ? assistLeader.name + ' · ' + assistLeader.assists + ' assist' : '-'}
+	                                </span>
+	                            </div>
                         
                             <div class="flex items-center justify-between gap-3">
                                 <span class="text-xs font-bold text-slate-500">📈 Mest poeng</span>
@@ -1507,18 +1580,17 @@ let html = `
                     return true;
                 });
 
-                // NYTT: Lagt til 'bb' i tellingen
-                let attended = 0, kamper = 0, yellow = 0, red = 0, mal = 0, totalMatchPoints = 0, bb = 0;
+                let attended = 0, kamper = 0, yellow = 0, red = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
 
                 teamEvents.forEach(e => {
                     if (e.attendance && e.attendance[p.navn] === true) {
                         attended++;
                         if (e.type === 'Kamp') {
-                            kamper++; 
-                            if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
-                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
-                            // NYTT: Sjekker om spilleren ble Banens Beste i denne kampen
-                            if (e.motm === p.navn) bb++;
+	                            kamper++; 
+	                            if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
+	                            if (e.assists && e.assists[p.navn]) assist += e.assists[p.navn];
+	                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
+	                            if (e.motm === p.navn) bb++;
                         }
                     }
                     if (e.type === 'Kamp') {
@@ -1529,9 +1601,9 @@ let html = `
 
                 return {
                     navn: p.navn, pos1: p.pos1 || '', spillerLag: p.spillerLag || '', oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
-                    kamper: kamper, mal: mal, kampbonus: kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0,
+                    kamper: kamper, mal: mal, assist: assist, kampbonus: kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0,
                     gule: yellow, rode: red, kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
-                    bb: bb // NYTT: Sender bb-antallet videre til visningen
+                    bb: bb
                 };
             });
 
@@ -1540,7 +1612,6 @@ let html = `
                 return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
             });
 
-            // NYTT: Lagt til BB-kolonne i tabellhodet (mellom Mål og Bonus)
             theadContainer.className = "bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-200";
             theadContainer.innerHTML = `
                 <tr>
@@ -1548,6 +1619,7 @@ let html = `
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
                     <th class="p-4 text-center text-indigo-600 hover:text-indigo-800 transition-colors" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
                     <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
@@ -1559,8 +1631,7 @@ let html = `
                 </tr>
             `;
 
-            // NYTT: Lagt til 'bb' i listen over kolonne-ikoner som oppdateres
-            ['navn', 'oppmotePct', 'kamper', 'mal', 'bb', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
+            ['navn', 'oppmotePct', 'kamper', 'mal', 'assist', 'bb', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
                 const iconEl = document.getElementById(`sort-icon-${col}`);
                 if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
             });
@@ -1581,19 +1652,19 @@ let html = `
                 
                 let bonusTekst = stat.kamper > 0 ? stat.kampbonus.toFixed(1) : '-';
                 let malFarge = stat.mal > 0 ? 'text-slate-800 font-bold' : 'text-slate-300 font-bold';
+                let assistFarge = stat.assist > 0 ? 'text-sky-700 font-bold' : 'text-slate-300 font-bold';
                 let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse font-bold' : 'text-slate-800 font-bold') : 'text-slate-300 font-bold';
                 let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-300 font-bold';
                 
-                // NYTT: Fargestil for BB-kolonnen (Delikat lilla stil)
                 let bbFarge = stat.bb > 0 ? 'text-indigo-600 font-black text-sm' : 'text-slate-300 font-bold';
 
-                // NYTT: Lagt til <td>-cellen for BB i raden
                 return `
                     <tr class="bg-white hover:bg-slate-50 transition-colors">
                         <td class="p-4"><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
                         <td class="p-4 text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
                         <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
                         <td class="p-4 text-center ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
+                        <td class="p-4 text-center ${assistFarge}">${stat.assist > 0 ? stat.assist : '-'}</td>
                         <td class="p-4 text-center ${bbFarge}">${stat.bb > 0 ? stat.bb : '-'}</td>
                         <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
                         <td class="p-4 text-center ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>

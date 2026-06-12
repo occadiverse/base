@@ -152,6 +152,7 @@ window.saveMatch = async function(event) {
         matchGroup: document.getElementById('matchGroup').value,
         result: document.getElementById('result').value,
         scorers: existingMatch ? (existingMatch.scorers || {}) : {},
+        assists: existingMatch ? (existingMatch.assists || {}) : {},
         ratings: existingMatch ? (existingMatch.ratings || {}) : {}
     };
 
@@ -322,6 +323,7 @@ window.renderPlayerRowForm = function(match) {
     sortedPlayers.forEach(playerObj => {
         const player = playerObj.navn;
         const prevGoals = match.scorers ? (match.scorers[player] || 0) : 0;
+        const prevAssists = match.assists ? (match.assists[player] || 0) : 0;
         const prevRating = match.ratings ? (match.ratings[player] || 0) : 0;
         const hasYellow = match.guleKort && match.guleKort.includes(player);
         const hasRed = match.rodeKort && match.rodeKort.includes(player);
@@ -335,8 +337,16 @@ window.renderPlayerRowForm = function(match) {
                 <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
                     <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Mål:</span>
                     <button type="button" onclick="changeCount(this, -1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">-</button>
-                    <span class="w-5 text-center font-extrabold text-slate-800 text-xs text-goal-val">${prevGoals}</span>
-                    <input type="hidden" class="player-goals-input" data-player="${player}" value="${prevGoals}">
+                    <span class="w-5 text-center font-extrabold text-slate-800 text-xs text-goal-val" data-count-value>${prevGoals}</span>
+                    <input type="hidden" class="player-goals-input" data-count-input data-player="${player}" value="${prevGoals}">
+                    <button type="button" onclick="changeCount(this, 1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">+</button>
+                </div>
+
+                <div class="flex items-center space-x-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 px-1">Assist:</span>
+                    <button type="button" onclick="changeCount(this, -1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">-</button>
+                    <span class="w-5 text-center font-extrabold text-slate-800 text-xs" data-count-value>${prevAssists}</span>
+                    <input type="hidden" class="player-assists-input" data-count-input data-player="${player}" value="${prevAssists}">
                     <button type="button" onclick="changeCount(this, 1)" class="portal-btn portal-btn-icon-xs portal-btn-secondary">+</button>
                 </div>
 
@@ -361,8 +371,9 @@ window.renderPlayerRowForm = function(match) {
 
 window.changeCount = function(btn, amount) {
     const container = btn.parentElement;
-    const span = container.querySelector('.text-goal-val');
-    const hidden = container.querySelector('.player-goals-input');
+    const span = container.querySelector('[data-count-value]') || container.querySelector('.text-goal-val');
+    const hidden = container.querySelector('[data-count-input]') || container.querySelector('.player-goals-input');
+    if (!span || !hidden) return;
     let current = parseInt(span.innerText);
 
     current = Math.max(0, current + amount);
@@ -399,6 +410,7 @@ window.savePlayerMatchStats = async function() {
     if (!match) return;
 
     const scorers = {};
+    const assists = {};
     const ratings = {};
     const guleKort = [];
     const rodeKort = [];
@@ -406,6 +418,11 @@ window.savePlayerMatchStats = async function() {
     document.querySelectorAll('.player-goals-input').forEach(input => {
         const val = parseInt(input.value);
         if (val > 0) scorers[input.dataset.player] = val;
+    });
+
+    document.querySelectorAll('.player-assists-input').forEach(input => {
+        const val = parseInt(input.value);
+        if (val > 0) assists[input.dataset.player] = val;
     });
 
     document.querySelectorAll('.player-rating-select').forEach(select => {
@@ -421,6 +438,7 @@ window.savePlayerMatchStats = async function() {
     });
 
     match.scorers = scorers;
+    match.assists = assists;
     match.ratings = ratings;
     match.guleKort = guleKort;
     match.rodeKort = rodeKort;
@@ -433,7 +451,7 @@ window.savePlayerMatchStats = async function() {
 
     await window.saveMatchToDatabase(match);
 
-    alert('Spillerbørs, kort og Banens Beste er oppdatert! 🏆');
+    alert('Mål, assists, spillerbørs, kort og Banens Beste er oppdatert! 🏆');
     applyFilters();
     if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
 };

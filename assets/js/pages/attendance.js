@@ -499,6 +499,7 @@ window.saveNewActivity = async function() {
             result: existingMatch ? existingMatch.result : '',
             attendance: existingMatch ? (existingMatch.attendance || {}) : {},
             scorers: existingMatch ? (existingMatch.scorers || {}) : {},
+            assists: existingMatch ? (existingMatch.assists || {}) : {},
             ratings: existingMatch ? (existingMatch.ratings || {}) : {}
         };
 
