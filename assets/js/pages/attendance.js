@@ -263,9 +263,10 @@ window.updateDailySchedule = function() {
     const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
     const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
     const selectedDate = parseCalendarDate(dateStr);
+    const selectedDateLabel = selectedDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
 
     if (document.getElementById('selected-calendar-date')) {
-        document.getElementById('selected-calendar-date').innerText = selectedDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+        document.getElementById('selected-calendar-date').innerText = selectedDateLabel;
     }
 
     listContainer.innerHTML = '';
@@ -279,8 +280,7 @@ window.updateDailySchedule = function() {
                 <p class="font-black text-slate-700 text-sm">Ingen aktiviteter denne dagen</p>
                 <p class="text-xs text-slate-500 mt-1">Legg inn trening, sosialt eller dugnad når planen er klar.</p>
                 <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-secondary portal-btn-sm mt-4">
-                    <i class="fa-solid fa-plus text-bsk-yellow"></i>
-                    Legg til aktivitet
+                    Legg til
                 </button>
             </div>`;
         return;
@@ -289,15 +289,16 @@ window.updateDailySchedule = function() {
     dayMatches.forEach(m => {
         const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
         listContainer.innerHTML += `
-            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div class="calendar-detail-card">
+                <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-futbol text-sm"></i>
+                        <div class="calendar-detail-icon">
+                            <i class="fa-solid fa-futbol"></i>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Kamp</p>
-                            <h4 class="font-black text-sm text-slate-900 truncate">Kamp mot ${m.opponent}</h4>
+                            <span class="calendar-detail-date">${selectedDateLabel}</span>
+                            <h4 class="calendar-detail-title truncate">${m.opponent || 'Kamp'}</h4>
                             <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
@@ -305,7 +306,7 @@ window.updateDailySchedule = function() {
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                    <div class="calendar-detail-actions">
                         <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${m.matchGroup || 'Lag'}</span>
                         <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
                             <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
@@ -327,15 +328,16 @@ window.updateDailySchedule = function() {
                     : { icon: 'fa-calendar-check', label: e.type || 'Aktivitet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
         listContainer.innerHTML += `
-            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div class="calendar-detail-card">
+                <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl ${theme.box} border flex items-center justify-center shrink-0">
-                            <i class="fa-solid ${theme.icon} text-sm"></i>
+                        <div class="calendar-detail-icon">
+                            <i class="fa-solid ${theme.icon}"></i>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-black uppercase tracking-wider ${theme.text}">${theme.label}</p>
-                            <h4 class="font-black text-sm text-slate-900 truncate">${e.title || theme.label}</h4>
+                            <span class="calendar-detail-date">${selectedDateLabel}</span>
+                            <h4 class="calendar-detail-title truncate">${e.title || theme.label}</h4>
                             <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
@@ -343,7 +345,7 @@ window.updateDailySchedule = function() {
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                    <div class="calendar-detail-actions">
                         <span class="${theme.badge} border text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${e.team || 'Lag'}</span>
                         <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
                             <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
