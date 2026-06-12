@@ -113,9 +113,9 @@ window.updateDashboard = function() {
                             </div>
                         </div>
 
-                        <div class="flex flex-col items-center justify-center pt-3 border-t border-slate-150 text-center">
-                            <span class="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-1.5">Formkurve</span>
-                            <div class="flex gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 shadow-inner" id="hero-form-pills-container">
+                        <div class="flex flex-col items-center justify-center pt-2 border-t border-slate-150 text-center">
+                            <span class="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-1">Formkurve</span>
+                            <div class="flex gap-1.5 min-h-5 items-center justify-center" id="hero-form-pills-container">
                             </div>
                         </div>
 
