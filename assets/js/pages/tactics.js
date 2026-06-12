@@ -215,10 +215,9 @@
 
     benchPlayers.forEach(p => {
         const playerChem = window.calculatePlayerPerformanceChemistry(p.navn);
-        let chemColor = 'text-rose-500'; 
-        if (playerChem >= 75) chemColor = 'text-emerald-500';
-        else if (playerChem >= 50) chemColor = 'text-amber-500';
-        else if (playerChem === 0) chemColor = 'text-slate-400';
+        const chemColor = typeof window.getFormScoreTextClass === 'function'
+            ? window.getFormScoreTextClass(playerChem, p.spillerLag)
+            : 'text-slate-400';
 
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
@@ -267,7 +266,7 @@
     if (!node) return;
     
     // Fjerner gamle farger
-    node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'bg-bsk-blue', 'text-white', 'border-2', 'border-[3px]', 'border-bsk-yellow/60', 'border-emerald-500', 'border-yellow-500', 'border-amber-500', 'border-orange-500', 'border-rose-500');
+    node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'bg-bsk-blue', 'text-white', 'border-2', 'border-[3px]', 'border-bsk-yellow/60', 'border-emerald-500', 'border-yellow-500', 'border-amber-500', 'border-orange-500', 'border-rose-500', 'border-slate-300');
 
     if (playerObj === null || playerObj === undefined) {
         node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
@@ -330,13 +329,10 @@
         }
         badgesHtml += '</div>';
 
-        // 2. BEREGN KJEMI (Fargen på rammen rundt rundingen)
-        let borderClass = 'border-rose-500';
-        if (playerChem >= 75) { 
-            borderClass = 'border-emerald-500'; 
-        } else if (playerChem >= 50) { 
-            borderClass = 'border-amber-500'; 
-        }
+        // 2. BEREGN FORM (Fargen på rammen rundt rundingen)
+        const borderClass = typeof window.getFormScoreBorderClass === 'function'
+            ? window.getFormScoreBorderClass(playerChem, playerObj.spillerLag)
+            : 'border-slate-300';
 
         node.innerHTML = `
             ${badgesHtml}
@@ -413,10 +409,9 @@
         }
 
         const playerChem = window.calculatePlayerPerformanceChemistry(p.navn);
-        let chemColor = 'text-rose-500'; 
-        if (playerChem >= 75) chemColor = 'text-emerald-500';
-        else if (playerChem >= 50) chemColor = 'text-amber-500';
-        else if (playerChem === 0) chemColor = 'text-slate-400';
+        const chemColor = typeof window.getFormScoreTextClass === 'function'
+            ? window.getFormScoreTextClass(playerChem, p.spillerLag)
+            : 'text-slate-400';
 
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {

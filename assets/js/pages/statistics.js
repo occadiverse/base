@@ -165,6 +165,56 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     return Math.max(0, Math.min(100, Math.round(chemistryScore)));
 }
 
+window.getTeamFormMedian = function(teamName) {
+    const scores = (window.activePlayers || [])
+        .filter(p => p.status !== 'Passiv' && (!teamName || p.spillerLag === teamName))
+        .map(p => window.calculatePlayerPerformanceChemistry(p.navn))
+        .filter(score => score > 0)
+        .sort((a, b) => a - b);
+
+    if (!scores.length) return 0;
+
+    const middle = Math.floor(scores.length / 2);
+    return scores.length % 2 === 0
+        ? Math.round((scores[middle - 1] + scores[middle]) / 2)
+        : scores[middle];
+}
+
+window.getFormScoreTone = function(score, teamName) {
+    if (!score || score <= 0) return 'none';
+
+    const median = typeof window.getTeamFormMedian === 'function'
+        ? window.getTeamFormMedian(teamName)
+        : 0;
+
+    if (!median) return 'none';
+    if (score >= median + 8) return 'green';
+    if (score < median - 8) return 'red';
+    return 'amber';
+}
+
+window.getFormScoreTextClass = function(score, teamName) {
+    const tone = typeof window.getFormScoreTone === 'function'
+        ? window.getFormScoreTone(score, teamName)
+        : 'none';
+
+    if (tone === 'green') return 'text-emerald-500';
+    if (tone === 'amber') return 'text-amber-500';
+    if (tone === 'red') return 'text-rose-500';
+    return 'text-slate-400';
+}
+
+window.getFormScoreBorderClass = function(score, teamName) {
+    const tone = typeof window.getFormScoreTone === 'function'
+        ? window.getFormScoreTone(score, teamName)
+        : 'none';
+
+    if (tone === 'green') return 'border-emerald-500';
+    if (tone === 'amber') return 'border-amber-500';
+    if (tone === 'red') return 'border-rose-500';
+    return 'border-slate-300';
+}
+
         window.switchStatTab = function(tabId) {
             // 1. Skjul alle de fire innholdscontainerne
             document.getElementById('stat-view-lag').className = "hidden";
@@ -1456,7 +1506,7 @@ let html = `
                 });
 
                 return {
-                    navn: p.navn, pos1: p.pos1 || '', oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
+                    navn: p.navn, pos1: p.pos1 || '', spillerLag: p.spillerLag || '', oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
                     kamper: kamper, mal: mal, kampbonus: kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0,
                     gule: yellow, rode: red, kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
                     bb: bb // NYTT: Sender bb-antallet videre til visningen
@@ -1496,11 +1546,11 @@ let html = `
             tableBody.className = "divide-y divide-slate-100 bg-white";
 
             tableBody.innerHTML = statsData.map(stat => {
-                const isStarPlayer = stat.kjemi >= 75; 
-                let chemColor = 'text-rose-500'; 
-                if (stat.kjemi >= 75) chemColor = 'text-emerald-500'; 
-                else if (stat.kjemi >= 50) chemColor = 'text-amber-500'; 
-                else if (stat.kjemi === 0) chemColor = 'text-slate-400'; 
+                const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
+                const isStarPlayer = formTone === 'green'; 
+                const chemColor = typeof window.getFormScoreTextClass === 'function'
+                    ? window.getFormScoreTextClass(stat.kjemi, stat.spillerLag)
+                    : 'text-slate-400';
 
                 let bonusColor = 'text-slate-400';
                 if (stat.kampbonus > 15) bonusColor = 'text-emerald-500';
