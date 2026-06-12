@@ -404,16 +404,6 @@
             font-weight: 900;
             line-height: 1.2;
         }
-        .calendar-detail-actions {
-            align-items: center;
-            display: flex;
-            flex: 0 0 auto;
-            flex-wrap: wrap;
-            gap: 0.55rem;
-            justify-content: flex-end;
-            position: relative;
-            z-index: 1;
-        }
         @media (max-width: 640px) {
             .match-detail-card-top,
             .match-detail-footer {

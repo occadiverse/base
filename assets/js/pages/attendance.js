@@ -297,22 +297,21 @@ window.updateDailySchedule = function() {
                             <i class="fa-solid fa-futbol"></i>
                         </div>
                         <div class="min-w-0">
-                            <span class="calendar-detail-date">${selectedDateLabel}</span>
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="calendar-detail-date">${selectedDateLabel}</span>
+                                <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                             <h4 class="calendar-detail-title truncate">${m.opponent || 'Kamp'}</h4>
                             <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
+                            <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
+                                <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
+                            </button>
                         </div>
-                    </div>
-                    <div class="calendar-detail-actions">
-                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${m.matchGroup || 'Lag'}</span>
-                        <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
-                            <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
-                        </button>
-                        <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             </div>`;
@@ -336,22 +335,21 @@ window.updateDailySchedule = function() {
                             <i class="fa-solid ${theme.icon}"></i>
                         </div>
                         <div class="min-w-0">
-                            <span class="calendar-detail-date">${selectedDateLabel}</span>
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="calendar-detail-date">${selectedDateLabel}</span>
+                                <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                             <h4 class="calendar-detail-title truncate">${e.title || theme.label}</h4>
                             <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
+                            <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
+                                <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
+                            </button>
                         </div>
-                    </div>
-                    <div class="calendar-detail-actions">
-                        <span class="${theme.badge} border text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">${e.team || 'Lag'}</span>
-                        <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm">
-                            <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
-                        </button>
-                        <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             </div>`;
