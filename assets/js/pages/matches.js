@@ -186,6 +186,62 @@ window.showMatchDetails = function(id) {
     const centerValue = match.result ? displayedResult : (match.time || '--:--');
     const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
+    const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+    const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const teamPlayers = (window.activePlayers || [])
+        .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
+        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
+    const attendingNames = match.attendance
+        ? Object.keys(match.attendance).filter(navn => match.attendance[navn] === true)
+        : [];
+    const attendingNameSet = new Set(attendingNames);
+    const benchPlayers = teamPlayers
+        .filter(p => attendingNameSet.has(p.navn))
+        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
+    const fallbackBenchPlayers = attendingNames
+        .filter(name => !benchPlayers.some(p => p.navn === name))
+        .sort((a, b) => a.localeCompare(b))
+        .map(name => ({ navn: name, drakt: '' }));
+    const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
+    const teamCount = teamPlayers.length || selectedPlayers.length;
+    const selectedCountLabel = teamCount
+        ? `${selectedPlayers.length} av ${teamCount} påmeldt`
+        : `${selectedPlayers.length} påmeldt`;
+    const getLastName = (name) => {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : 'Spiller';
+    };
+    const getInitials = (name) => String(name || 'S')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0])
+        .join('')
+        .toUpperCase() || 'S';
+    const benchPlayersHtml = selectedPlayers.length
+        ? selectedPlayers.map(player => {
+            const jersey = player.drakt ? `${escapeHtml(player.drakt)}. ` : '';
+            const lastName = getLastName(player.navn);
+            return `
+                <div class="match-bench-player">
+                    <span class="match-bench-avatar">${escapeHtml(getInitials(player.navn))}</span>
+                    <span class="match-bench-name">${jersey}${escapeHtml(lastName)}</span>
+                </div>
+            `;
+        }).join('')
+        : `
+            <div class="match-bench-empty">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>Ingen spillere er meldt på ennå.</span>
+            </div>
+        `;
 
     container.innerHTML = `
         <article class="match-detail-card">
@@ -233,6 +289,33 @@ window.showMatchDetails = function(id) {
             </div>
         </article>
 
+        <section class="match-bench-panel">
+            <div class="match-bench-action-row">
+                <div class="match-bench-count">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>${selectedCountLabel}</span>
+                </div>
+                <div class="match-bench-actions">
+                    <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-bench-action-btn">
+                        <i class="fa-solid fa-user-check"></i>
+                        <span>Oppmøte</span>
+                    </button>
+                    <button type="button" onclick="window.openMatchModal('${escapeJsString(match.id)}')" class="match-bench-icon-btn" title="Rediger kamp">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="match-bench-heading">
+                <h3>Benk</h3>
+                <span>Påmeldte spillere</span>
+            </div>
+
+            <div class="match-bench-list">
+                ${benchPlayersHtml}
+            </div>
+        </section>
+
         <div class="match-detail-summary match-detail-summary-single">
             <div class="match-detail-bb-card">
                 <i class="fa-solid fa-crown match-detail-bb-watermark"></i>
@@ -247,29 +330,23 @@ window.showMatchDetails = function(id) {
         </div>
     `;
 
-    document.getElementById('btnKampdetaljerOppmote').onclick = () => {
-        if (typeof window.openAttendanceModal === 'function') {
-            window.openAttendanceModal('match_' + match.id);
-        }
-    };
-
-    document.getElementById('btnKampdetaljerTaktikk').onclick = () => {
-        window.switchTab('taktikk');
-        setTimeout(() => {
-            const tacticalSelect = document.getElementById('tacticalMatchSelect');
-            if (tacticalSelect) {
-                tacticalSelect.value = match.id;
-                window.loadMatchTactics();
-            }
-        }, 50);
-    };
-
     renderPlayerRowForm(match);
     switchTab('kampdetaljer');
 };
 
 window.closeMatchInfo = function() {
     switchTab('kamper');
+};
+
+window.goToMatchTactics = function(matchId) {
+    window.switchTab('taktikk');
+    setTimeout(() => {
+        const tacticalSelect = document.getElementById('tacticalMatchSelect');
+        if (tacticalSelect) {
+            tacticalSelect.value = matchId;
+            window.loadMatchTactics();
+        }
+    }, 50);
 };
 
 window.toggleMotm = function(btn) {
