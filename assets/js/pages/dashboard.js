@@ -195,12 +195,18 @@ window.updateDashboard = function() {
 
         } else {
             heroContainer.innerHTML = `
-                <div class="bg-slate-100 border border-slate-200 rounded-2xl p-10 text-center text-slate-400 shadow-inner">
-                    <i class="fa-solid fa-futbol text-4xl mb-3 text-slate-300 animate-pulse"></i>
-                    <h3 class="font-black text-slate-700 text-base">Ingen kommende kamper satt opp</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Det er ikke ført noen kommende kamper i systemet akkurat nå.</p>
+                <div onclick="switchTab('kamper')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-8 md:p-10 text-center relative overflow-hidden border min-h-[210px] flex flex-col items-center justify-center">
+                    <div class="absolute -right-8 -bottom-10 opacity-5 pointer-events-none">
+                        <i class="fa-solid fa-futbol text-[13rem] text-bsk-blue"></i>
+                    </div>
+                    <div class="portal-status-label mb-4 relative z-10">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span>Neste kamp</span>
+                    </div>
+                    <h3 class="font-black text-bsk-blue text-lg relative z-10">Ingen kommende kamp</h3>
+                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto relative z-10">Når en kamp uten resultat ligger inne, vises den automatisk her.</p>
                 </div>`;
-            if (dangerZoneContainer) dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Ingen aktiv kamp = Ingen karantener.</p>`;
+            if (dangerZoneContainer) dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Ingen aktiv kamp. Ingen varsler å vise.</p>`;
         }
     }
 
@@ -267,12 +273,16 @@ window.updateHjemWidget = function() {
         `;
     } else {
         leftWidgetHtml = `
-            <div onclick="window.goToCalendarDate('${todayStr}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-click-card bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[235px]">
-                <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-calendar-xmark text-xl text-slate-400"></i>
+            <div onclick="window.goToCalendarDate('${todayStr}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center text-center h-full min-h-[220px] border">
+                <div class="absolute -right-8 -bottom-8 opacity-5 pointer-events-none">
+                    <i class="fa-solid fa-calendar-days text-[12rem] text-bsk-blue"></i>
                 </div>
-                <h3 class="font-black text-slate-700 text-sm">Kalenderen er tom</h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Det er ingen kommende aktiviteter planlagt.</p>
+                <div class="portal-status-label mb-4 relative z-10">
+                    <i class="fa-solid fa-stopwatch"></i>
+                    <span>Neste økt</span>
+                </div>
+                <h3 class="font-black text-bsk-blue text-sm relative z-10">Ingen kommende økter</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-[210px] relative z-10">Legg inn trening eller aktivitet i kalenderen, så dukker neste økt opp her.</p>
             </div>
         `;
     }
@@ -371,12 +381,16 @@ window.updateHjemWidget = function() {
         `;
     } else {
         rightWidgetHtml = `
-            <div onclick="window.goToPlayerAnalysis('')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-click-card bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center h-full min-h-[220px]">
-                <div class="w-12 h-12 bg-white rounded-full border border-slate-100 flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-bolt text-xl text-slate-300"></i>
+            <div onclick="window.goToPlayerAnalysis('')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center text-center h-full min-h-[220px] border">
+                <div class="absolute -right-8 -bottom-8 opacity-5 pointer-events-none">
+                    <i class="fa-solid fa-bolt text-[12rem] text-bsk-yellow"></i>
                 </div>
-                <h3 class="font-black text-slate-700 text-sm">Ingen data enda</h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-[200px]">Før oppmøte og karakterer for å kåre Ukens Maskin.</p>
+                <div class="portal-status-label mb-4 relative z-10">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Ukens Maskin</span>
+                </div>
+                <h3 class="font-black text-bsk-blue text-sm relative z-10">Venter på formdata</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-[220px] relative z-10">Når spillere har oppmøte og kampdata, kåres ukens spiller automatisk.</p>
             </div>
         `;
     }
@@ -429,8 +443,8 @@ window.updateHjemWidget = function() {
                 <div class="flex-1 flex items-center justify-between gap-5 mb-2">
                     <div class="min-w-0">
                         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Basert på registrerte kamper</p>
-                        <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight">${playedMatches.length ? `${tablePoints} poeng` : 'Ingen tabell ennå'}</h4>
-                        <p class="text-xs text-slate-500 mt-1">${playedMatches.length ? `${tableWins}S · ${tableDraws}U · ${tableLosses}T` : 'Før resultater for å bygge seriebildet.'}</p>
+                        <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight">${playedMatches.length ? `${tablePoints} poeng` : 'Ingen resultater ennå'}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${playedMatches.length ? `${tableWins}S · ${tableDraws}U · ${tableLosses}T` : 'Når kampresultater føres, bygges seriestatus automatisk.'}</p>
                     </div>
 
                     <div class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm">
@@ -453,121 +467,5 @@ window.updateHjemWidget = function() {
         </div>
     `;
 
-    const tableTeams = new Map();
-    const ensureTableTeam = (name) => {
-        const teamName = name || 'Ukjent lag';
-        if (!tableTeams.has(teamName)) {
-            tableTeams.set(teamName, {
-                name: teamName,
-                played: 0,
-                wins: 0,
-                draws: 0,
-                losses: 0,
-                goalsFor: 0,
-                goalsAgainst: 0,
-                points: 0
-            });
-        }
-        return tableTeams.get(teamName);
-    };
-
-    playedMatches.forEach(({ match, score }) => {
-        const bskRow = ensureTableTeam('Bækkelaget');
-        const opponentRow = ensureTableTeam(match.opponent || 'Motstander');
-
-        bskRow.played++;
-        bskRow.goalsFor += score.bsk;
-        bskRow.goalsAgainst += score.opponent;
-
-        opponentRow.played++;
-        opponentRow.goalsFor += score.opponent;
-        opponentRow.goalsAgainst += score.bsk;
-
-        if (score.bsk > score.opponent) {
-            bskRow.wins++;
-            bskRow.points += 3;
-            opponentRow.losses++;
-        } else if (score.bsk === score.opponent) {
-            bskRow.draws++;
-            bskRow.points += 1;
-            opponentRow.draws++;
-            opponentRow.points += 1;
-        } else {
-            bskRow.losses++;
-            opponentRow.wins++;
-            opponentRow.points += 3;
-        }
-    });
-
-    const sortedTableRows = Array.from(tableTeams.values())
-        .sort((a, b) => {
-            const gdA = a.goalsFor - a.goalsAgainst;
-            const gdB = b.goalsFor - b.goalsAgainst;
-            return b.points - a.points || gdB - gdA || b.goalsFor - a.goalsFor || a.name.localeCompare(b.name);
-        })
-        .map((row, index) => ({ ...row, rank: index + 1 }));
-
-    const bskTableIndex = sortedTableRows.findIndex(row => row.name === 'Bækkelaget');
-    let tableSlice = [];
-
-    if (bskTableIndex >= 0) {
-        let start = Math.max(0, bskTableIndex - 1);
-        let end = Math.min(sortedTableRows.length, start + 3);
-        start = Math.max(0, end - 3);
-        tableSlice = sortedTableRows.slice(start, end);
-    }
-
-    const tableRowsHtml = tableSlice.map(row => {
-        const isBsk = row.name === 'Bækkelaget';
-        const gd = row.goalsFor - row.goalsAgainst;
-        const gdText = gd > 0 ? `+${gd}` : `${gd}`;
-
-        return `
-            <div class="grid grid-cols-[2rem_minmax(0,1fr)_2.4rem_2.4rem] items-center gap-2 rounded-xl px-2.5 py-2 ${isBsk ? 'bg-bsk-blue text-white shadow-sm' : 'bg-white/70 text-slate-700 border border-slate-100'}">
-                <span class="text-[10px] font-black ${isBsk ? 'text-bsk-yellow' : 'text-slate-400'}">${row.rank}</span>
-                <span class="truncate text-xs font-black">${row.name}</span>
-                <span class="text-center text-xs font-black">${row.points}</span>
-                <span class="text-right text-[10px] font-bold ${isBsk ? 'text-slate-200' : gd >= 0 ? 'text-emerald-600' : 'text-rose-500'}">${gdText}</span>
-            </div>
-        `;
-    }).join('');
-
-    const tableWidgetHtml = `
-        <div onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
-            <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                <i class="fa-solid fa-table-cells text-[14rem] text-bsk-yellow"></i>
-            </div>
-
-            <div class="relative z-10 flex flex-col h-full justify-between">
-                <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
-                    <div class="portal-status-label">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <span>Tabellutsnitt</span>
-                    </div>
-                    <span class="portal-status-label portal-status-label-sm">Lokal mini</span>
-                </div>
-
-                <div class="flex-1 mb-2">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Lagene rundt oss</p>
-                    <div class="space-y-1.5">
-                        ${tableRowsHtml || `
-                            <div class="bg-white/70 border border-slate-100 rounded-xl p-4 text-center">
-                                <p class="text-sm font-black text-bsk-blue">Ingen tabell ennå</p>
-                                <p class="text-xs text-slate-500 mt-1">Før resultater for å bygge utsnittet.</p>
-                            </div>
-                        `}
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
-                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-snug">
-                        <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${sortedTableRows.length || 0}</span> Lag i mini
-                    </div>
-                    <button onclick="event.stopPropagation(); switchTab('statistikk')" class="portal-btn portal-btn-primary portal-btn-sm">Statistikk</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    bottomContainer.innerHTML = leftWidgetHtml + tableWidgetHtml + seriesWidgetHtml + rightWidgetHtml;
+    bottomContainer.innerHTML = leftWidgetHtml + seriesWidgetHtml + rightWidgetHtml;
 };
