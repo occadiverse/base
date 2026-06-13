@@ -64,8 +64,10 @@ function renderMobileHeader() {
                 <div class="portal-brand-mark portal-brand-mark-sm portal-mobile-brand-mark">
                     <svg class="portal-mobile-shield" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
                         <path class="portal-mobile-shield-border" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
-                        <path class="portal-mobile-shield-fill" d="M32 7 53 16 49 46 32 63 15 46 11 16 32 7Z"></path>
-                        <path class="portal-mobile-shield-cutout" d="M35 14 47 19 43.5 44 35 53V14Z"></path>
+                        <path class="portal-mobile-shield-fill-yellow" d="M32 7 11 16 15 46 32 63V7Z"></path>
+                        <path class="portal-mobile-shield-fill-blue" d="M32 7 53 16 49 46 32 63V7Z"></path>
+                        <path class="portal-mobile-shield-divider" d="M31 8H33V62H31Z"></path>
+                        <path class="portal-mobile-shield-outline" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
                     </svg>
                 </div>
                 <span class="portal-mobile-brand-chip portal-brand-title portal-brand-title-mobile">
