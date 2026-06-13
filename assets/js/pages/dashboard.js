@@ -116,55 +116,56 @@ window.updateDashboard = function() {
 
             // HTML for det rendyrkede kampbanneret
             heroContainer.innerHTML = `
-                <section onclick="window.goToMatchDetails('${nm.id}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-hero-card dashboard-click-card rounded-2xl p-6 md:p-8 text-slate-900 relative overflow-hidden border border-b-4 border-bsk-yellow group">
-                    <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-5 pointer-events-none z-0 text-bsk-blue">
+                <section onclick="window.goToMatchDetails('${nm.id}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-hero-card dashboard-click-card rounded-2xl p-5 md:p-8 text-white relative overflow-hidden border group">
+                    <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-[0.07] pointer-events-none z-0 text-white">
                         <i class="fa-solid fa-shield-halved text-[22rem]"></i>
                     </div>
                     
-                    <div class="relative z-10 space-y-6 max-w-5xl mx-auto">
-                        <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                            <div class="flex items-center gap-2">
-                                <div class="portal-status-label relative">
-                                    <i class="fa-solid fa-futbol animate-spin" style="animation-duration: 4s;"></i>
-                                    <span>NESTE KAMP</span>
-                                    ${herosuspensionBadgeHtml}
-                                </div>
+                    <div class="relative z-10 dashboard-hero-content max-w-5xl mx-auto">
+                        <div class="dashboard-hero-top">
+                            <div class="dashboard-hero-meta relative">
+                                ${herosuspensionBadgeHtml}
+                                <span class="capitalize">${d}</span>
+                                <span>Kl. ${nm.time || 'TBA'}</span>
                             </div>
                             
-                            <button onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="portal-btn portal-btn-secondary portal-btn-xs" title="Åpne kampdetaljer">
+                            <button onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="dashboard-hero-info-link" title="Åpne kampdetaljer">
                                 <span>Kampinfo</span> <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
                             </button>
                         </div>
 
-                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-2 max-w-4xl mx-auto">
-                            <div class="dashboard-team-block is-home text-center md:text-right flex-1 w-full md:max-w-[270px] pb-1 md:pb-0">
-                                <div class="min-w-0">
-                                    <h2 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight truncate">BÆKKELAGETS SK</h2>
-                                </div>
+                        <div class="dashboard-matchup-grid">
+                            <div class="dashboard-team-block is-home">
                                 <div class="dashboard-team-badge is-bsk">
                                     <i class="fa-solid fa-shield-halved"></i>
                                 </div>
+                                <div class="min-w-0">
+                                    <p class="dashboard-team-kicker">Hjemme</p>
+                                    <h2>Bækkelagets SK</h2>
+                                </div>
                             </div>
                             
-                            <div class="flex flex-col items-center shrink-0 my-2 md:my-0 px-6 min-w-[200px] text-center space-y-1">
-                                <p class="text-xs font-black text-slate-800 capitalize pt-1">${d}</p>
-                                <p class="text-[11px] font-bold text-slate-600">Kl. ${nm.time || 'TBA'}</p>
-                                <p class="text-[10px] font-semibold text-slate-500 max-w-[180px] truncate" title="${nm.pitch || 'Ikke fastsatt'}">📍 ${nm.pitch || 'Ikke fastsatt'}</p>
+                            <div class="dashboard-match-center">
+                                <span>VS</span>
+                                <p title="${nm.pitch || 'Ikke fastsatt'}">${nm.pitch || 'Ikke fastsatt'}</p>
                             </div>
                             
-                            <div class="dashboard-team-block is-away text-center md:text-left flex-1 w-full md:max-w-[270px] pt-1 md:pt-0">
+                            <div class="dashboard-team-block is-away">
                                 <div class="dashboard-team-badge">
                                     <i class="fa-solid fa-shield"></i>
                                 </div>
-                                <h2 onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase cursor-pointer hover:text-bsk-blueLight transition-colors inline-flex items-center gap-1.5 group/link" title="Klikk for å åpne kampdetaljer">
-                                    <span>${nm.opponent}</span>
-                                    <i class="fa-solid fa-circle-chevron-right text-xs opacity-40 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-bsk-blue"></i>
-                                </h2>
+                                <div class="min-w-0">
+                                    <p class="dashboard-team-kicker">Borte</p>
+                                    <h2 onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="group/link" title="Klikk for å åpne kampdetaljer">
+                                        <span>${nm.opponent}</span>
+                                        <i class="fa-solid fa-circle-chevron-right"></i>
+                                    </h2>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex flex-col items-center justify-center pt-2 border-t border-slate-150 text-center">
-                            <span class="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-1">Formkurve</span>
+                        <div class="dashboard-hero-form-row">
+                            <span>Formkurve</span>
                             <div class="flex gap-1.5 min-h-5 items-center justify-center" id="hero-form-pills-container">
                             </div>
                         </div>
