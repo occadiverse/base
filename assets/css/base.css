@@ -37,6 +37,42 @@
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
             color: #123f73;
         }
+        .portal-mobile-tools {
+            position: relative;
+        }
+        .portal-mobile-tools-menu {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 1rem;
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+            min-width: 11rem;
+            overflow: hidden;
+            padding: 0.35rem;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.55rem);
+            z-index: 60;
+        }
+        .portal-mobile-tools-item {
+            align-items: center;
+            border-radius: 0.75rem;
+            color: #123f73;
+            display: flex;
+            font-size: 0.8rem;
+            font-weight: 850;
+            gap: 0.65rem;
+            padding: 0.7rem 0.75rem;
+            text-align: left;
+            width: 100%;
+        }
+        .portal-mobile-tools-item i {
+            color: #64748b;
+            text-align: center;
+            width: 1rem;
+        }
+        .portal-mobile-tools-item:hover {
+            background: rgba(245, 197, 66, 0.14);
+        }
         .portal-mobile-brand-chip {
             background:
                 radial-gradient(circle at 86% 6%, rgba(245, 197, 66, 0.2), transparent 34%),
@@ -158,9 +194,13 @@
             border-color: rgba(18, 63, 115, 0.12);
             color: #64748b;
             backdrop-filter: blur(16px);
+            height: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+            padding: 0.7rem 0.4rem calc(1.05rem + env(safe-area-inset-bottom, 0px));
         }
         .portal-mobile-nav-shell .mobile-nav-btn {
             color: #64748b;
+            height: 4.05rem;
+            min-width: 0;
         }
         .portal-mobile-nav-shell .mobile-nav-btn:hover {
             color: #123f73;
@@ -1049,10 +1089,11 @@
         }
         .active-nav {
             color: #123f73 !important;
-            border-top: 3px solid #f5c542;
         }
         .mobile-nav-btn.active-nav {
             background: linear-gradient(180deg, rgba(245, 197, 66, 0.16), rgba(255, 255, 255, 0));
+            border-top: 3px solid #f5c542;
+            border-radius: 0.9rem;
             color: #123f73 !important;
         }
         .tactical-pitch {

@@ -21,6 +21,7 @@ function verifyAdminPin() {
 
 function switchTab(tabId) {
     currentTab = tabId;
+    if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
 
     ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer'].forEach(id => {
         const el = document.getElementById(`view-${id}`);
@@ -84,7 +85,7 @@ function switchTab(tabId) {
 
     document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active-nav', 'text-bsk-yellow'));
 
-    const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, statistikk: 3, tropp: 4, taktikk: 5 };
+    const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, statistikk: 3, taktikk: 4 };
     const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
     if (activeMobileBtn) activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
 
@@ -110,7 +111,7 @@ function setupMobileSwipeNavigation() {
     window.mobileSwipeNavigationReady = true;
     document.documentElement.dataset.mobileSwipeNavigation = 'ready';
 
-    const swipeTabs = ['hjem', 'kamper', 'oppmote', 'statistikk', 'tropp', 'taktikk'];
+    const swipeTabs = ['hjem', 'kamper', 'oppmote', 'statistikk', 'taktikk'];
     let startX = 0;
     let startY = 0;
     let isTracking = false;

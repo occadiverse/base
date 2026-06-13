@@ -12,7 +12,6 @@ const MOBILE_NAV_ITEMS = [
     NAV_ITEMS[1],
     NAV_ITEMS[2],
     NAV_ITEMS[4],
-    NAV_ITEMS[3],
     NAV_ITEMS[5]
 ];
 
@@ -70,9 +69,21 @@ function renderMobileHeader() {
                     <span class="portal-brand-football">Fotball</span>
                 </span>
             </div>
-            <button onclick="switchTab('admin')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-admin-btn hover:rotate-90 duration-300" title="Innstillinger / Admin">
-                <i class="fa-solid fa-gear text-xl"></i>
-            </button>
+            <div class="portal-mobile-tools">
+                <button onclick="toggleMobileToolsMenu(event)" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-admin-btn" title="Meny">
+                    <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                </button>
+                <div id="portal-mobile-tools-menu" class="portal-mobile-tools-menu hidden">
+                    <button onclick="closeMobileToolsMenu(); switchTab('tropp')" class="portal-mobile-tools-item">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Spillertropp</span>
+                    </button>
+                    <button onclick="closeMobileToolsMenu(); switchTab('admin')" class="portal-mobile-tools-item">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Admin</span>
+                    </button>
+                </div>
+            </div>
         </header>
     `;
 }
@@ -83,10 +94,10 @@ function renderActionBar() {
 
 function renderMobileNav() {
     return `
-        <nav class="portal-mobile-nav-shell md:hidden fixed bottom-0 left-0 right-0 border-t flex justify-around items-center h-20 z-40 shadow-[0_-4px_24px_rgba(15,23,42,0.08)]">
+        <nav class="portal-mobile-nav-shell md:hidden fixed bottom-0 left-0 right-0 border-t flex justify-around items-start z-40 shadow-[0_-4px_24px_rgba(15,23,42,0.08)]">
             ${MOBILE_NAV_ITEMS.map((item, index) => `
-                <button onclick="switchTab('${item.id}')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 h-full text-[11px] font-bold transition ${index === 0 ? 'active-nav' : ''}">
-                    <i class="fa-solid ${item.icon} text-xl mb-1"></i>
+                <button onclick="switchTab('${item.id}')" class="mobile-nav-btn flex flex-col items-center justify-start flex-1 text-[11px] font-bold transition ${index === 0 ? 'active-nav' : ''}">
+                    <i class="fa-solid ${item.icon} text-xl mb-1.5"></i>
                     <span>${item.mobileLabel}</span>
                 </button>
             `).join('')}
@@ -96,7 +107,7 @@ function renderMobileNav() {
 
 function renderFloatingActionButton() {
     return `
-        <button id="floating-action-btn" class="portal-btn portal-btn-warning fixed right-6 bottom-20 md:bottom-8 w-14 h-14 rounded-full text-xl z-30 hidden" onclick="openActivityModal('Trening')" title="Registrer ny oppføring">
+        <button id="floating-action-btn" class="portal-btn portal-btn-warning fixed right-6 bottom-28 md:bottom-8 w-14 h-14 rounded-full text-xl z-30 hidden" onclick="openActivityModal('Trening')" title="Registrer ny oppføring">
             <i id="floating-btn-icon" class="fa-solid fa-plus"></i>
         </button>
     `;
@@ -116,3 +127,20 @@ window.renderPortalNavigation = function renderPortalNavigation() {
 };
 
 window.renderPortalNavigation();
+
+window.toggleMobileToolsMenu = function(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('portal-mobile-tools-menu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+};
+
+window.closeMobileToolsMenu = function() {
+    const menu = document.getElementById('portal-mobile-tools-menu');
+    if (menu) menu.classList.add('hidden');
+};
+
+document.addEventListener('click', event => {
+    const menuHost = event.target && event.target.closest ? event.target.closest('.portal-mobile-tools') : null;
+    if (!menuHost) window.closeMobileToolsMenu();
+});
