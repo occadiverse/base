@@ -62,7 +62,13 @@ window.updateDashboard = function() {
     if (heroContainer) {
         if (upcoming.length > 0) {
             const nm = upcoming[0];
-            const d = new Date(nm.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+            const dateValue = new Date(nm.date);
+            const dateFormatted = Number.isNaN(dateValue.getTime())
+                ? 'Dato ikke satt'
+                : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+            const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+            const matchTypeLabel = nm.matchType || 'Kamp';
+            const durationLabel = nm.duration || '90 min';
             
             // Henter ut karantener
             const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
@@ -114,85 +120,58 @@ window.updateDashboard = function() {
                 `;
             }
 
-            // HTML for det rendyrkede kampbanneret
+            // HTML for forsiden bruker samme kortspråk som kampdetaljer.
             heroContainer.innerHTML = `
-                <section onclick="window.goToMatchDetails('${nm.id}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-hero-card dashboard-click-card rounded-2xl p-5 md:p-8 text-white relative overflow-hidden border group">
-                    <div class="absolute right-0 bottom-0 translate-y-8 translate-x-8 opacity-[0.07] pointer-events-none z-0 text-white">
-                        <i class="fa-solid fa-shield-halved text-[22rem]"></i>
+                <article onclick="window.goToMatchDetails('${nm.id}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-match-card dashboard-click-card">
+                    <div class="dashboard-next-match-watermark">
+                        <i class="fa-solid fa-shield-halved"></i>
                     </div>
-                    
-                    <div class="relative z-10 dashboard-hero-content max-w-5xl mx-auto">
-                        <div class="dashboard-hero-top">
-                            <div class="dashboard-hero-meta relative">
-                                ${herosuspensionBadgeHtml}
-                                <span class="capitalize">${d}</span>
-                                <span>Kl. ${nm.time || 'TBA'}</span>
-                            </div>
-                            
-                            <button onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="dashboard-hero-info-link" title="Åpne kampdetaljer">
-                                <span>Kampinfo</span> <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
-                            </button>
-                        </div>
 
-                        <div class="dashboard-matchup-grid">
-                            <div class="dashboard-team-block is-home">
-                                <div class="dashboard-team-badge is-bsk">
-                                    <i class="fa-solid fa-shield-halved"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="dashboard-team-kicker">Hjemme</p>
-                                    <h2>Bækkelagets SK</h2>
-                                </div>
-                            </div>
-                            
-                            <div class="dashboard-match-center">
-                                <span>VS</span>
-                                <p title="${nm.pitch || 'Ikke fastsatt'}">${nm.pitch || 'Ikke fastsatt'}</p>
-                            </div>
-                            
-                            <div class="dashboard-team-block is-away">
-                                <div class="dashboard-team-badge">
-                                    <i class="fa-solid fa-shield"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="dashboard-team-kicker">Borte</p>
-                                    <h2 onclick="event.stopPropagation(); window.goToMatchDetails('${nm.id}')" class="group/link" title="Klikk for å åpne kampdetaljer">
-                                        <span>${nm.opponent}</span>
-                                        <i class="fa-solid fa-circle-chevron-right"></i>
-                                    </h2>
-                                </div>
-                            </div>
+                    <div class="match-detail-card-top relative z-10">
+                        <div class="match-detail-meta relative">
+                            ${herosuspensionBadgeHtml}
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <span>${dateLabel}</span>
                         </div>
-
-                        <div class="dashboard-hero-form-row">
-                            <span>Formkurve</span>
-                            <div class="flex gap-1.5 min-h-5 items-center justify-center" id="hero-form-pills-container">
-                            </div>
+                        <div class="match-detail-chip">
+                            <i class="fa-solid fa-futbol"></i>
+                            <span>${matchTypeLabel}</span>
                         </div>
-
                     </div>
-                </section>
+
+                    <div class="match-detail-main relative z-10">
+                        <div class="match-detail-team">
+                            <div class="match-detail-crest match-detail-crest-opponent">
+                                <i class="fa-solid fa-shield"></i>
+                            </div>
+                            <span class="match-detail-team-name">${nm.opponent}</span>
+                        </div>
+
+                        <div class="match-detail-center">
+                            <span class="match-detail-time">${nm.time || '--:--'}</span>
+                            <span class="match-detail-sub">Kampstart</span>
+                        </div>
+
+                        <div class="match-detail-team">
+                            <div class="match-detail-crest">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="match-detail-team-name">Bækkelaget</span>
+                        </div>
+                    </div>
+
+                    <div class="match-detail-footer relative z-10">
+                        <div class="match-detail-footer-item" title="${nm.pitch || 'Ikke fastsatt'}">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>${nm.pitch || 'Ikke fastsatt'}</span>
+                        </div>
+                        <div class="match-detail-footer-item">
+                            <i class="fa-regular fa-clock"></i>
+                            <span>${durationLabel}</span>
+                        </div>
+                    </div>
+                </article>
             `;
-
-            // DYTT DE ELEGANTE, SMÅ FORMPILLENE INN UNDER VS-TEGNET
-            const formGuide = window.getFormGuide();
-            setTimeout(() => {
-                const heroFormContainer = document.getElementById('hero-form-pills-container');
-                if (heroFormContainer) {
-                    heroFormContainer.innerHTML = '';
-                    if (formGuide.length === 0) {
-                        heroFormContainer.innerHTML = `<span class="text-[9px] text-slate-500 px-2 py-0.5 italic">Ingen spilte kamper</span>`;
-                    } else {
-                        formGuide.forEach(item => {
-                            const pill = document.createElement('div');
-                            pill.className = `w-5 h-5 rounded-md flex items-center justify-center font-black text-[9px] cursor-help border border-white/60 shadow-sm transition hover:scale-110 ${item.class}`;
-                            pill.title = item.tooltip; 
-                            pill.innerHTML = `<span>${item.text}</span>`;
-                            heroFormContainer.appendChild(pill);
-                        });
-                    }
-                }
-            }, 50);
 
         } else {
             heroContainer.innerHTML = `

@@ -247,14 +247,6 @@ window.showMatchDetails = function(id) {
         </div>
     `;
 
-    document.getElementById('btnEditKampdetaljer').onclick = () => window.openMatchModal(match.id);
-    document.getElementById('btnDeleteKampdetaljer').onclick = () => {
-        window.customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
-            await window.deleteMatchFromDatabase(match.id);
-            switchTab('kamper');
-        });
-    };
-
     document.getElementById('btnKampdetaljerOppmote').onclick = () => {
         if (typeof window.openAttendanceModal === 'function') {
             window.openAttendanceModal('match_' + match.id);

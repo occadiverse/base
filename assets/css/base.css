@@ -670,6 +670,19 @@
             box-shadow: 0 16px 36px rgba(11, 43, 76, 0.22);
             color: #ffffff;
             overflow: hidden;
+            position: relative;
+        }
+        .dashboard-next-match-watermark {
+            bottom: -4.5rem;
+            color: #ffffff;
+            opacity: 0.055;
+            pointer-events: none;
+            position: absolute;
+            right: -3.5rem;
+            z-index: 0;
+        }
+        .dashboard-next-match-watermark i {
+            font-size: clamp(13rem, 34vw, 24rem);
         }
         .match-detail-card-top {
             align-items: center;

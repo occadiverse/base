@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260613-dark-match-card">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260613-match-detail-hero">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -86,20 +86,6 @@
     </div>
 </div>
             <div id="view-kampdetaljer" class="hidden space-y-6 max-w-4xl mx-auto w-full">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <button onclick="switchTab('kamper')" class="portal-btn portal-btn-secondary portal-btn-sm">
-                        <i class="fa-solid fa-arrow-left"></i> Tilbake til terminlisten
-                    </button>
-                    <div class="flex gap-2">
-                        <button id="btnEditKampdetaljer" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button id="btnDeleteKampdetaljer" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-
                 <div class="rounded-2xl overflow-visible">
                     
                     <div id="kampdetaljer-info" class="space-y-4">
@@ -960,11 +946,11 @@
     <script src="assets/js/app-shell.js?v=20260613-mobile-nav"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/pages/players.js"></script>
-    <script src="assets/js/pages/matches.js"></script>
+    <script src="assets/js/pages/matches.js?v=20260613-clean-match-detail"></script>
     <script src="assets/js/pages/attendance.js"></script>
     <script src="assets/js/pages/statistics.js"></script>
     <script src="assets/js/pages/tactics.js"></script>
-    <script src="assets/js/pages/dashboard.js?v=20260613-dark-match-card"></script>
+    <script src="assets/js/pages/dashboard.js?v=20260613-match-detail-hero"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
 </body>
