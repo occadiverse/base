@@ -73,17 +73,24 @@
         .portal-mobile-tools-item:hover {
             background: rgba(245, 197, 66, 0.14);
         }
+        .portal-mobile-brand-lockup {
+            align-items: center;
+            display: inline-flex;
+            min-height: 2.4rem;
+            padding-left: 1.34rem;
+            position: relative;
+        }
         .portal-mobile-brand-chip {
             align-items: center;
             background:
                 radial-gradient(circle at 88% 8%, rgba(245, 197, 66, 0.18), transparent 34%),
                 linear-gradient(135deg, #0b2b4c 0%, #123f73 66%, #1f5d9e 100%);
             border: 1px solid rgba(245, 197, 66, 0.22);
-            border-radius: 0.75rem;
-            box-shadow: 0 8px 18px rgba(11, 43, 76, 0.12);
-            gap: 0.48rem;
+            border-radius: 0.64rem;
+            box-shadow: 0 7px 15px rgba(11, 43, 76, 0.11);
+            display: inline-flex;
             overflow: visible;
-            padding: 0.24rem 0.62rem 0.24rem 0;
+            padding: 0.18rem 0.55rem 0.19rem 0.86rem;
         }
         .portal-brand-panel {
             background:
@@ -122,10 +129,29 @@
         .portal-brand-mark-sm {
             border-radius: 0.75rem;
             height: 2rem;
-            margin-bottom: -0.22rem;
-            margin-left: -0.34rem;
-            margin-top: -0.22rem;
             width: 2rem;
+        }
+        .portal-mobile-brand-mark {
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            color: #f5c542;
+            left: 0;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+        .portal-mobile-brand-mark::after {
+            display: none;
+        }
+        .portal-mobile-brand-mark i {
+            filter: drop-shadow(0 3px 6px rgba(11, 43, 76, 0.2));
+            font-size: 1.45rem !important;
+        }
+        .portal-mobile-brand-chip .portal-brand-football {
+            display: inline-block;
+            margin-left: 0.16rem;
         }
         .portal-brand-mark-sm::after {
             bottom: 0.3rem;
@@ -201,8 +227,8 @@
             border-color: rgba(18, 63, 115, 0.12);
             color: #64748b;
             backdrop-filter: blur(16px);
-            height: calc(5.45rem + env(safe-area-inset-bottom, 0px));
-            padding: 0.7rem 0.4rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+            height: calc(5.1rem + env(safe-area-inset-bottom, 0px));
+            padding: 0.7rem 0.4rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
         }
         .portal-mobile-nav-shell .mobile-nav-btn {
             color: #64748b;

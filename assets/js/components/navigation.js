@@ -60,11 +60,11 @@ function renderSidebar() {
 function renderMobileHeader() {
     return `
         <header class="portal-mobile-header md:hidden px-4 py-3 flex items-center justify-between sticky top-0 z-40 h-14">
-            <div class="portal-mobile-brand-chip flex items-center space-x-2 cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
-                <div class="portal-brand-mark portal-brand-mark-sm">
+            <div class="portal-mobile-brand-lockup cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
+                <div class="portal-brand-mark portal-brand-mark-sm portal-mobile-brand-mark">
                     <i class="fa-solid fa-shield-halved text-sm"></i>
                 </div>
-                <span class="portal-brand-title portal-brand-title-mobile">
+                <span class="portal-mobile-brand-chip portal-brand-title portal-brand-title-mobile">
                     <span class="portal-brand-bsk">BSK</span>
                     <span class="portal-brand-football">Fotball</span>
                 </span>
