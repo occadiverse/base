@@ -31,6 +31,14 @@
             height: calc(3.5rem + env(safe-area-inset-top, 0px));
             padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
         }
+        .portal-main-shell {
+            padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+        }
+        @media (min-width: 768px) {
+            .portal-main-shell {
+                padding-top: 0;
+            }
+        }
         .portal-mobile-admin-btn {
             background: rgba(255, 255, 255, 0.72);
             border-color: rgba(18, 63, 115, 0.12);
@@ -104,27 +112,25 @@
         }
         .portal-brand-mark {
             align-items: center;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(245, 197, 66, 0.62);
-            border-radius: 1rem;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 6, 23, 0.16);
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
             color: #f5c542;
             display: flex;
-            height: 2.85rem;
+            height: 3.1rem;
             justify-content: center;
+            overflow: visible;
             position: relative;
-            width: 2.85rem;
+            width: 2.9rem;
         }
         .portal-brand-mark::after {
-            background: #f5c542;
-            border-radius: 999px;
-            bottom: 0.42rem;
-            box-shadow: 0 0 0 4px rgba(245, 197, 66, 0.16);
-            content: "";
-            height: 0.38rem;
-            position: absolute;
-            right: 0.42rem;
-            width: 0.38rem;
+            content: none;
+            display: none;
+        }
+        .portal-brand-mark-desktop .portal-brand-shield {
+            height: 3.35rem;
+            width: 3.1rem;
         }
         .portal-brand-mark-sm {
             border-radius: 0.75rem;
@@ -148,45 +154,33 @@
             content: none;
             display: none;
         }
-        .portal-mobile-shield {
+        .portal-brand-shield {
             display: block;
             filter: drop-shadow(0 3px 7px rgba(11, 43, 76, 0.16));
             height: 2.55rem;
             width: 2.42rem;
         }
-        .portal-mobile-shield-border {
+        .portal-brand-shield-border {
             fill: #d6dee9;
         }
-        .portal-mobile-shield-fill-yellow {
+        .portal-brand-shield-fill-yellow {
             fill: #f5c542;
         }
-        .portal-mobile-shield-fill-blue {
+        .portal-brand-shield-fill-blue {
             fill: #123f73;
         }
-        .portal-mobile-shield-divider {
+        .portal-brand-shield-divider {
             fill: rgba(255, 255, 255, 0.42);
         }
-        .portal-mobile-shield-outline {
+        .portal-brand-shield-outline {
             fill: none;
             stroke: #d6dee9;
             stroke-linejoin: round;
             stroke-width: 2.2;
         }
-        .portal-mobile-brand-mark i {
-            filter: drop-shadow(0 3px 6px rgba(11, 43, 76, 0.2));
-            font-size: 1.6rem !important;
-            position: relative;
-            z-index: 1;
-        }
         .portal-mobile-brand-chip .portal-brand-football {
             display: inline-block;
             margin-left: 0.16rem;
-        }
-        .portal-brand-mark-sm::after {
-            bottom: 0.3rem;
-            height: 0.26rem;
-            right: 0.3rem;
-            width: 0.26rem;
         }
         .portal-brand-title {
             font-size: 1.05rem;

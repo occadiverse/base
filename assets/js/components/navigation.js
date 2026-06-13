@@ -15,13 +15,25 @@ const MOBILE_NAV_ITEMS = [
     NAV_ITEMS[5]
 ];
 
+function renderBrandShield() {
+    return `
+        <svg class="portal-brand-shield" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
+            <path class="portal-brand-shield-border" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
+            <path class="portal-brand-shield-fill-yellow" d="M32 7 11 16 15 46 32 63V7Z"></path>
+            <path class="portal-brand-shield-fill-blue" d="M32 7 53 16 49 46 32 63V7Z"></path>
+            <path class="portal-brand-shield-divider" d="M31 8H33V62H31Z"></path>
+            <path class="portal-brand-shield-outline" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
+        </svg>
+    `;
+}
+
 function renderSidebar() {
     return `
         <aside class="portal-sidebar-shell hidden md:flex flex-col w-64 p-5 justify-between shrink-0">
             <div>
                 <div class="portal-brand-panel flex items-center space-x-3 mb-7 cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
-                    <div class="portal-brand-mark">
-                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    <div class="portal-brand-mark portal-brand-mark-desktop">
+                        ${renderBrandShield()}
                     </div>
                     <div>
                         <h2 class="portal-brand-title">
@@ -59,16 +71,10 @@ function renderSidebar() {
 
 function renderMobileHeader() {
     return `
-        <header class="portal-mobile-header md:hidden px-4 py-3 flex items-center justify-between sticky top-0 z-40 h-14">
+        <header class="portal-mobile-header md:hidden px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50 h-14">
             <div class="portal-mobile-brand-lockup cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
                 <div class="portal-brand-mark portal-brand-mark-sm portal-mobile-brand-mark">
-                    <svg class="portal-mobile-shield" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
-                        <path class="portal-mobile-shield-border" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
-                        <path class="portal-mobile-shield-fill-yellow" d="M32 7 11 16 15 46 32 63V7Z"></path>
-                        <path class="portal-mobile-shield-fill-blue" d="M32 7 53 16 49 46 32 63V7Z"></path>
-                        <path class="portal-mobile-shield-divider" d="M31 8H33V62H31Z"></path>
-                        <path class="portal-mobile-shield-outline" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
-                    </svg>
+                    ${renderBrandShield()}
                 </div>
                 <span class="portal-mobile-brand-chip portal-brand-title portal-brand-title-mobile">
                     <span class="portal-brand-bsk">BSK</span>
