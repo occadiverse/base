@@ -145,19 +145,24 @@
         }
         .portal-mobile-brand-mark::before,
         .portal-mobile-brand-mark::after {
-            clip-path: polygon(50% 3%, 86% 18%, 79% 68%, 50% 96%, 21% 68%, 14% 18%);
-            content: "";
-            position: absolute;
+            content: none;
+            display: none;
         }
-        .portal-mobile-brand-mark::before {
-            background: #d9e1ec;
-            inset: 0.02rem;
-            filter: drop-shadow(0 3px 7px rgba(11, 43, 76, 0.16));
-        }
-        .portal-mobile-brand-mark::after {
-            background: linear-gradient(135deg, #0b2b4c 0%, #123f73 66%, #1f5d9e 100%);
+        .portal-mobile-shield {
             display: block;
-            inset: 0.12rem;
+            filter: drop-shadow(0 3px 7px rgba(11, 43, 76, 0.16));
+            height: 2.55rem;
+            width: 2.28rem;
+        }
+        .portal-mobile-shield-border {
+            fill: #d6dee9;
+        }
+        .portal-mobile-shield-fill {
+            fill: #f5c542;
+        }
+        .portal-mobile-shield-cutout {
+            fill: #ffffff;
+            opacity: 0.96;
         }
         .portal-mobile-brand-mark i {
             filter: drop-shadow(0 3px 6px rgba(11, 43, 76, 0.2));

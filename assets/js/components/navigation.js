@@ -62,7 +62,11 @@ function renderMobileHeader() {
         <header class="portal-mobile-header md:hidden px-4 py-3 flex items-center justify-between sticky top-0 z-40 h-14">
             <div class="portal-mobile-brand-lockup cursor-pointer hover:opacity-95 transition-opacity" onclick="switchTab('hjem')">
                 <div class="portal-brand-mark portal-brand-mark-sm portal-mobile-brand-mark">
-                    <i class="fa-solid fa-shield-halved text-sm"></i>
+                    <svg class="portal-mobile-shield" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
+                        <path class="portal-mobile-shield-border" d="M32 2 58 13 53 49 32 70 11 49 6 13 32 2Z"></path>
+                        <path class="portal-mobile-shield-fill" d="M32 7 53 16 49 46 32 63 15 46 11 16 32 7Z"></path>
+                        <path class="portal-mobile-shield-cutout" d="M35 14 47 19 43.5 44 35 53V14Z"></path>
+                    </svg>
                 </div>
                 <span class="portal-mobile-brand-chip portal-brand-title portal-brand-title-mobile">
                     <span class="portal-brand-bsk">BSK</span>
