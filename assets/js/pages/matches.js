@@ -12,6 +12,116 @@ function escapeMatchJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+function getMatchFixturePresentation(match, options = {}) {
+    const { showLag = false } = options;
+    const dateValue = new Date(match.date);
+    const hasDate = !Number.isNaN(dateValue.getTime());
+    const day = hasDate ? dateValue.toLocaleDateString('no-NO', { day: '2-digit' }) : '--';
+    const month = hasDate
+        ? dateValue.toLocaleDateString('no-NO', { month: 'short' }).replace('.', '').toUpperCase()
+        : '---';
+    const weekday = hasDate
+        ? dateValue.toLocaleDateString('no-NO', { weekday: 'short' }).replace('.', '')
+        : '';
+    const monthKey = hasDate
+        ? dateValue.toLocaleDateString('no-NO', { month: 'long', year: 'numeric' })
+        : 'Ukjent dato';
+    const monthLabel = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
+    const parsedScore = match.result ? parseScore(match.result) : null;
+    const displayedResult = parsedScore ? `${parsedScore.opponent}-${parsedScore.bsk}` : (match.result || '-');
+
+    let resultTone = '';
+    if (parsedScore) {
+        if (parsedScore.bsk > parsedScore.opponent) resultTone = 'is-win';
+        else if (parsedScore.bsk === parsedScore.opponent) resultTone = 'is-draw';
+        else resultTone = 'is-loss';
+    }
+
+    const metaParts = [];
+    if (showLag && match.matchGroup) metaParts.push(match.matchGroup);
+    if (match.matchType) metaParts.push(match.matchType);
+    if (match.pitch) metaParts.push(match.pitch);
+
+    return {
+        day,
+        month,
+        weekday,
+        monthLabel,
+        meta: metaParts.join(' · '),
+        displayedResult,
+        resultTone
+    };
+}
+
+function groupMatchesByMonth(matches) {
+    const groups = [];
+
+    matches.forEach(match => {
+        const { monthLabel } = getMatchFixturePresentation(match);
+
+        if (!groups.length || groups[groups.length - 1].monthLabel !== monthLabel) {
+            groups.push({ monthLabel, matches: [] });
+        }
+
+        groups[groups.length - 1].matches.push(match);
+    });
+
+    return groups;
+}
+
+function updateMatchListSummary(count, timeFilter, lagFilter) {
+    const summaryEl = document.getElementById('matchListSummary');
+    if (!summaryEl) return;
+
+    const timeLabel = timeFilter === 'kommende' ? 'Kommende' : 'Tidligere';
+    const lagLabel = lagFilter === 'Alle' ? 'Alle lag' : lagFilter;
+    const countLabel = `${count} ${count === 1 ? 'kamp' : 'kamper'}`;
+
+    summaryEl.innerHTML = `
+        <span class="match-list-summary-label">Terminliste</span>
+        <span class="match-list-summary-dot">·</span>
+        <span>${timeLabel}</span>
+        <span class="match-list-summary-dot">·</span>
+        <span>${escapeMatchHtml(lagLabel)}</span>
+        <span class="match-list-summary-dot">·</span>
+        <span>${countLabel}</span>
+    `;
+}
+
+function buildMatchFixtureRowHtml(match, options = {}) {
+    const { showLag = false, isUpcoming = true } = options;
+    const data = getMatchFixturePresentation(match, { showLag });
+    const clickAttrs = `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`;
+    const sideValue = isUpcoming
+        ? (match.time || '--:--')
+        : data.displayedResult;
+    const sideLabel = isUpcoming ? 'Avspark' : 'Resultat';
+
+    return `
+        <article class="match-fixture-row dashboard-click-card ${data.resultTone}" ${clickAttrs}>
+            <div class="match-fixture-date" aria-hidden="true">
+                <span class="match-fixture-date-day">${escapeMatchHtml(data.day)}</span>
+                <span class="match-fixture-date-month">${escapeMatchHtml(data.month)}</span>
+            </div>
+
+            <div class="match-fixture-main">
+                <span class="match-fixture-weekday">${escapeMatchHtml(data.weekday)}</span>
+                <span class="match-fixture-opponent">${escapeMatchHtml(match.opponent)}</span>
+                ${data.meta ? `<span class="match-fixture-meta">${escapeMatchHtml(data.meta)}</span>` : ''}
+            </div>
+
+            <div class="match-fixture-side">
+                <span class="match-fixture-side-value">${escapeMatchHtml(sideValue)}</span>
+                <span class="match-fixture-side-label">${sideLabel}</span>
+            </div>
+
+            <div class="match-fixture-chevron" aria-hidden="true">
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </article>
+    `;
+}
+
 function getMatchCardPresentation(match) {
     const dateValue = new Date(match.date);
     const dateFormatted = Number.isNaN(dateValue.getTime())
@@ -200,19 +310,27 @@ function applyFilters() {
     );
 
     if (sortedMatches.length === 0) {
+        updateMatchListSummary(0, currentTimeFilter, kamperLagFilter);
         if (noMatchesView) noMatchesView.classList.remove('hidden');
         return;
     }
 
     if (noMatchesView) noMatchesView.classList.add('hidden');
 
-    listContainer.innerHTML = sortedMatches.map(match => buildMatchDetailCardHtml(match, {
-        extraClass: 'match-list-card',
-        clickable: true,
-        showWatermark: true,
-        showResultChip: currentTimeFilter === 'tidligere',
-        showAttendance: currentTimeFilter === 'kommende'
-    })).join('');
+    const showLag = kamperLagFilter === 'Alle';
+    const isUpcoming = currentTimeFilter === 'kommende';
+    const groups = groupMatchesByMonth(sortedMatches);
+
+    updateMatchListSummary(sortedMatches.length, currentTimeFilter, kamperLagFilter);
+
+    listContainer.innerHTML = groups.map(group => `
+        <section class="match-fixture-group">
+            <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
+            <div class="match-fixture-group-rows">
+                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { showLag, isUpcoming })).join('')}
+            </div>
+        </section>
+    `).join('');
 }
 
 window.openMatchModal = function(editId = null) {

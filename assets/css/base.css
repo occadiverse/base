@@ -935,21 +935,168 @@
             font-size: 0.62rem;
             pointer-events: none;
         }
+        .match-list-summary {
+            align-items: center;
+            color: #64748b;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.72rem;
+            font-weight: 800;
+            gap: 0.35rem;
+            letter-spacing: 0.03em;
+        }
+        .match-list-summary-label {
+            color: #0b2b4c;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .match-list-summary-dot {
+            color: rgba(18, 63, 115, 0.28);
+        }
         .match-list-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.15rem;
+        }
+        .match-fixture-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .match-fixture-month {
+            align-items: center;
+            color: #123f73;
+            display: flex;
+            font-size: 0.72rem;
+            font-weight: 900;
+            gap: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .match-fixture-month::after {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.55), rgba(18, 63, 115, 0.08));
+            content: "";
+            flex: 1 1 auto;
+            height: 1px;
+        }
+        .match-fixture-group-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .match-fixture-row {
+            align-items: center;
+            background: linear-gradient(90deg, #123f73 0%, #0f355f 58%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.16);
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(11, 43, 76, 0.14);
             display: grid;
-            gap: 1rem;
+            gap: 0.85rem;
+            grid-template-columns: auto minmax(0, 1fr) auto auto;
+            padding: 0.8rem 0.95rem;
+            position: relative;
         }
-        .match-list-card {
+        .match-fixture-row.is-win {
+            border-left: 3px solid #86efac;
+        }
+        .match-fixture-row.is-draw {
+            border-left: 3px solid #f5c542;
+        }
+        .match-fixture-row.is-loss {
+            border-left: 3px solid #f87171;
+        }
+        .match-fixture-date {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 3.1rem;
+            padding: 0.42rem 0.5rem;
+        }
+        .match-fixture-date-day {
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .match-fixture-date-month {
+            color: #f5c542;
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin-top: 0.18rem;
+        }
+        .match-fixture-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.18rem;
+            min-width: 0;
+        }
+        .match-fixture-weekday {
+            color: rgba(255, 255, 255, 0.52);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .match-fixture-opponent {
+            color: #ffffff;
+            font-size: clamp(0.95rem, 2.4vw, 1.12rem);
+            font-weight: 900;
+            line-height: 1.15;
             overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .match-list-card .match-detail-main {
-            padding: 1.85rem 1.25rem 1.65rem;
+        .match-fixture-meta {
+            color: rgba(255, 255, 255, 0.56);
+            font-size: 0.68rem;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .match-list-card .match-detail-team-name {
-            font-size: clamp(1rem, 2.6vw, 1.55rem);
+        .match-fixture-side {
+            align-items: flex-end;
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 3.4rem;
+            text-align: right;
         }
-        .match-list-card .dashboard-next-match-watermark i {
-            font-size: clamp(10rem, 28vw, 18rem);
+        .match-fixture-side-value {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .match-fixture-side-label {
+            color: rgba(255, 255, 255, 0.48);
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .match-fixture-row.is-win .match-fixture-side-value {
+            color: #bbf7d0;
+        }
+        .match-fixture-row.is-draw .match-fixture-side-value {
+            color: #fde68a;
+        }
+        .match-fixture-row.is-loss .match-fixture-side-value {
+            color: #fecaca;
+        }
+        .match-fixture-chevron {
+            align-items: center;
+            color: rgba(245, 197, 66, 0.72);
+            display: flex;
+            font-size: 0.72rem;
+            justify-content: center;
+            width: 0.85rem;
         }
         .match-list-empty {
             background: linear-gradient(180deg, rgba(18, 63, 115, 0.05) 0%, rgba(255, 255, 255, 0.92) 100%);
@@ -1369,14 +1516,19 @@
                 flex: 1 1 0;
                 justify-content: center;
             }
-            .match-list-card .match-detail-top-chips {
-                justify-content: flex-start;
-                margin-top: 0.35rem;
-                width: 100%;
+            .match-fixture-row {
+                gap: 0.65rem;
+                grid-template-columns: auto minmax(0, 1fr) auto;
+                padding: 0.75rem 0.8rem;
             }
-            .match-list-card .match-detail-card-top {
-                align-items: flex-start;
-                flex-direction: column;
+            .match-fixture-chevron {
+                display: none;
+            }
+            .match-fixture-opponent {
+                white-space: normal;
+            }
+            .match-fixture-meta {
+                white-space: normal;
             }
         }
         .portal-btn {
