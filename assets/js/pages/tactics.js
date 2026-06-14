@@ -13,7 +13,8 @@
             let shared = 0, either = 0;
             allEvents.forEach(e => {
                 if (e.attendance) {
-                    const aPresent = e.attendance[playerA] === true; const bPresent = e.attendance[playerB] === true;
+                    const aPresent = window.isPlayerAttending(e.attendance, playerA);
+                    const bPresent = window.isPlayerAttending(e.attendance, playerB);
                     if (aPresent || bPresent) either++; if (aPresent && bPresent) shared++;
                 }
             });
@@ -142,9 +143,13 @@
         if (roleSelect) {
             roleSelect.innerHTML = '<option value="">-- Velg spiller --</option>';
             sortedPlayers.forEach(p => {
-                const opt = document.createElement('option'); opt.value = p.navn; opt.innerText = p.navn; roleSelect.appendChild(opt);
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.innerText = p.navn;
+                roleSelect.appendChild(opt);
             });
-            roleSelect.value = match.roles ? (match.roles[roleId] || "") : "";
+            const roleRef = match.roles ? match.roles[roleId] : '';
+            roleSelect.value = window.findPlayerByRef(roleRef)?.id || roleRef || '';
         }
     });
     
@@ -202,7 +207,7 @@
 
     const benchPlayers = teamPlayers.filter(p => {
         const starterIKampen = startingPlayerNames.includes(p.navn);
-        const erBekreftetKlar = match.attendance && match.attendance[p.navn] === true;
+        const erBekreftetKlar = window.isPlayerAttending(match.attendance, p);
         return !starterIKampen && erBekreftetKlar;
     });
 
@@ -221,7 +226,7 @@
 
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
+            if (m.matchGroup === p.spillerLag && window.isPlayerAttending(m.attendance, p)) {
                 kamper++; 
                 totalMatchPoints += window.calculatePlayerMatchPoints(m, p.navn);
             }
@@ -234,7 +239,7 @@
         else if (kampbonus > 0) bonusColor = 'text-rose-500'; 
         const bonusTekst = kamper > 0 ? kampbonus : '-';
 
-        const pSusp = suspData[p.navn] || { isSuspended: false, isAtRisk: false };
+        const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
         let benchSuspBadge = '';
         let borderClass = 'border-slate-200/60';
         if (pSusp.isSuspended) {
@@ -290,7 +295,7 @@
         let kamper = 0;
         let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
+            if (m.matchGroup === playerObj.spillerLag && window.isPlayerAttending(m.attendance, playerObj)) {
                 kamper++;
                 totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
             }
@@ -320,10 +325,10 @@
             const fkValue = document.getElementById('role-freekick') ? document.getElementById('role-freekick').value : '';
             const cornValue = document.getElementById('role-corners') ? document.getElementById('role-corners').value : '';
             
-            if (capValue === playerObj.navn || (!capValue && playerObj.isCaptain)) badgesHtml += `<span class="bg-amber-400 text-bsk-blue text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Kaptein">C</span>`;
-            if (penValue === playerObj.navn) badgesHtml += `<span class="bg-emerald-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Straffer">P</span>`;
-            if (fkValue === playerObj.navn) badgesHtml += `<span class="bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Frispark">F</span>`;
-            if (cornValue === playerObj.navn) badgesHtml += `<span class="bg-purple-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Cornere">📐</span>`;
+            if (window.playerRefMatches(capValue, playerObj) || (!capValue && playerObj.isCaptain)) badgesHtml += `<span class="bg-amber-400 text-bsk-blue text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Kaptein">C</span>`;
+            if (window.playerRefMatches(penValue, playerObj)) badgesHtml += `<span class="bg-emerald-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Straffer">P</span>`;
+            if (window.playerRefMatches(fkValue, playerObj)) badgesHtml += `<span class="bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Frispark">F</span>`;
+            if (window.playerRefMatches(cornValue, playerObj)) badgesHtml += `<span class="bg-purple-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900" title="Cornere">📐</span>`;
         }
 
         // Viser advarsler (gule/røde kort osv.) uavhengig om det er sandkasse eller kamp
@@ -385,8 +390,8 @@
         .filter(p => p.status !== 'Passiv')
         .sort((a,b) => {
             if (currentMatch && currentMatch.attendance) {
-                const valA = currentMatch.attendance[a.navn] === true ? 2 : (currentMatch.attendance[a.navn] === false ? 0 : 1);
-                const valB = currentMatch.attendance[b.navn] === true ? 2 : (currentMatch.attendance[b.navn] === false ? 0 : 1);
+                const valA = window.getAttendanceForPlayer(currentMatch.attendance, a) === true ? 2 : (window.getAttendanceForPlayer(currentMatch.attendance, a) === false ? 0 : 1);
+                const valB = window.getAttendanceForPlayer(currentMatch.attendance, b) === true ? 2 : (window.getAttendanceForPlayer(currentMatch.attendance, b) === false ? 0 : 1);
                 if (valA !== valB) return valB - valA;
             }
             return a.navn.localeCompare(b.navn);
@@ -396,7 +401,7 @@
         const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
         let attStatusHtml = '', opacityClass = isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20', trengerBekreftelse = false;
 
-        const pSusp = suspData[p.navn] || { isSuspended: false, isAtRisk: false };
+        const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
 
         if (pSusp.isSuspended) {
             attStatusHtml += `<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black ml-2 animate-pulse shadow-sm" title="${pSusp.reason}">🚫 KARANTENE</span>`;
@@ -414,7 +419,7 @@
         }
 
         if (currentMatch) {
-            const att = currentMatch.attendance ? currentMatch.attendance[p.navn] : undefined;
+            const att = window.getAttendanceForPlayer(currentMatch.attendance, p);
             if (att === true && !pSusp.isSuspended) attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ KLAR</span>';
             else if (att === false) {
                 attStatusHtml += '<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-2">❌ FORFALL</span>'; trengerBekreftelse = true;
@@ -432,7 +437,7 @@
 
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === p.spillerLag && m.attendance && m.attendance[p.navn] === true) {
+            if (m.matchGroup === p.spillerLag && window.isPlayerAttending(m.attendance, p)) {
                 kamper++; 
                 totalMatchPoints += window.calculatePlayerMatchPoints(m, p.navn);
             }
@@ -504,7 +509,7 @@
 
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
-        if (currentMatch && isAttendanceStarted && currentMatch.attendance[p.navn] !== true) return false;
+        if (currentMatch && isAttendanceStarted && !window.isPlayerAttending(currentMatch.attendance, p)) return false;
         return true;
     });
 
@@ -526,7 +531,7 @@
     const getKampbonus = (pObj) => {
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === pObj.spillerLag && m.attendance && m.attendance[pObj.navn] === true) {
+            if (m.matchGroup === pObj.spillerLag && window.isPlayerAttending(m.attendance, pObj)) {
                 kamper++; 
                 totalMatchPoints += window.calculatePlayerMatchPoints(m, pObj.navn);
             }
@@ -574,7 +579,7 @@ window.updateTacticalBoardStats = function() {
             let kamper = 0;
             let totalMatchPoints = 0;
             (window.activeMatches || []).forEach(m => {
-                if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerObj.navn] === true) {
+                if (m.matchGroup === playerObj.spillerLag && window.isPlayerAttending(m.attendance, playerObj)) {
                     kamper++;
                     totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
                 }
@@ -603,7 +608,7 @@ window.updateTacticalBoardStats = function() {
     // Hent alle tilgjengelige spillere til akkurat denne kampen/økten
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
-        if (currentMatch && isAttendanceStarted && currentMatch.attendance[p.navn] !== true) return false;
+        if (currentMatch && isAttendanceStarted && !window.isPlayerAttending(currentMatch.attendance, p)) return false;
         return true;
     });
 
@@ -611,7 +616,7 @@ window.updateTacticalBoardStats = function() {
     const getPlayerFormSnitt = (pObj) => {
         let kamper = 0; let totalMatchPoints = 0;
         (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === pObj.spillerLag && m.attendance && m.attendance[pObj.navn] === true) {
+            if (m.matchGroup === pObj.spillerLag && window.isPlayerAttending(m.attendance, pObj)) {
                 kamper++; 
                 totalMatchPoints += window.calculatePlayerMatchPoints(m, pObj.navn);
             }

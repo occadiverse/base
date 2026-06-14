@@ -341,7 +341,8 @@ window.saveMatch = async function(event) {
     const matchId = document.getElementById('editMatchId').value || null;
     const existingMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
     const matchData = {
-        id: matchId,
+        ...(existingMatch || {}),
+        id: matchId || crypto.randomUUID(),
         date: document.getElementById('matchDate').value,
         time: document.getElementById('matchTime').value,
         opponent: document.getElementById('opponent').value,
@@ -349,10 +350,7 @@ window.saveMatch = async function(event) {
         matchType: document.getElementById('matchType').value,
         matchGroup: document.getElementById('matchGroup').value,
         venue: document.getElementById('matchVenue').value,
-        result: document.getElementById('result').value,
-        scorers: existingMatch ? (existingMatch.scorers || {}) : {},
-        assists: existingMatch ? (existingMatch.assists || {}) : {},
-        ratings: existingMatch ? (existingMatch.ratings || {}) : {}
+        result: document.getElementById('result').value
     };
 
     await window.saveMatchToDatabase(matchData);
@@ -379,17 +377,14 @@ window.showMatchDetails = function(id) {
     const teamPlayers = (window.activePlayers || [])
         .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
-    const attendingNames = match.attendance
-        ? Object.keys(match.attendance).filter(navn => match.attendance[navn] === true)
-        : [];
-    const attendingNameSet = new Set(attendingNames);
+    const attendingRefs = window.getAttendingPlayerRefs(match.attendance);
     const benchPlayers = teamPlayers
-        .filter(p => attendingNameSet.has(p.navn))
+        .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
-    const fallbackBenchPlayers = attendingNames
-        .filter(name => !benchPlayers.some(p => p.navn === name))
-        .sort((a, b) => a.localeCompare(b))
-        .map(name => ({ navn: name, drakt: '' }));
+    const fallbackBenchPlayers = attendingRefs
+        .filter(ref => !benchPlayers.some(p => window.playerRefMatches(ref, p)))
+        .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
+        .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
     const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
     const teamCount = teamPlayers.length || selectedPlayers.length;
     const selectedCountLabel = teamCount
@@ -463,7 +458,7 @@ window.showMatchDetails = function(id) {
                 </div>
                 <div class="min-w-0">
                     <span class="match-detail-bb-label">Banens Beste (BB)</span>
-                    <span class="match-detail-bb-value">${match.motm || '<span class="text-slate-400">Ikke kåret</span>'}</span>
+                    <span class="match-detail-bb-value">${match.motm ? window.getPlayerNameFromRef(match.motm) : '<span class="text-slate-400">Ikke kåret</span>'}</span>
                 </div>
             </div>
         </div>
@@ -510,11 +505,9 @@ window.renderPlayerRowForm = function(match) {
 
     formList.innerHTML = '';
 
-    const attendingPlayers = match.attendance
-        ? Object.keys(match.attendance).filter(navn => match.attendance[navn] === true)
-        : [];
+    const attendingRefs = window.getAttendingPlayerRefs(match.attendance);
 
-    if (attendingPlayers.length === 0) {
+    if (attendingRefs.length === 0) {
         formList.innerHTML = `
             <div class="py-8 text-center text-slate-500 text-sm">
                 <i class="fa-solid fa-clipboard-user text-3xl text-slate-300 mb-3 block"></i>
@@ -525,17 +518,18 @@ window.renderPlayerRowForm = function(match) {
     }
 
     const sortedPlayers = [...(window.activePlayers || [])]
-        .filter(p => attendingPlayers.includes(p.navn))
+        .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
         .sort((a, b) => a.navn.localeCompare(b.navn));
 
     sortedPlayers.forEach(playerObj => {
         const player = playerObj.navn;
-        const prevGoals = match.scorers ? (match.scorers[player] || 0) : 0;
-        const prevAssists = match.assists ? (match.assists[player] || 0) : 0;
-        const prevRating = match.ratings ? (match.ratings[player] || 0) : 0;
-        const hasYellow = match.guleKort && match.guleKort.includes(player);
-        const hasRed = match.rodeKort && match.rodeKort.includes(player);
-        const isMotm = match.motm === player;
+        const playerId = playerObj.id;
+        const prevGoals = window.getPlayerRefMapValue(match.scorers, playerObj, 0);
+        const prevAssists = window.getPlayerRefMapValue(match.assists, playerObj, 0);
+        const prevRating = window.getPlayerRefMapValue(match.ratings, playerObj, 0);
+        const hasYellow = window.playerRefListIncludes(match.guleKort, playerObj);
+        const hasRed = window.playerRefListIncludes(match.rodeKort, playerObj);
+        const isMotm = window.motmMatchesPlayer(match.motm, playerObj);
         const isBenchOnly = typeof window.isPlayerBenchOnly === 'function'
             ? window.isPlayerBenchOnly(match, player)
             : false;
@@ -550,34 +544,34 @@ window.renderPlayerRowForm = function(match) {
                 ${isBenchOnly ? '<span class="ml-2 text-[9px] font-black uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Kun oppmøte</span>' : ''}
             </div>
             <div class="flex items-end gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player="${player}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
+                <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
                 <div class="player-pitch-stats flex items-end gap-2 ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
-                    <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player="${player}" aria-label="Mål for ${player}">
+                    <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerId}" data-player="${player}" aria-label="Mål for ${player}">
                         ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="match-stat-field">
                     <span class="match-stat-label">Ass</span>
-                    <select class="player-assists-input portal-field portal-field-sm match-stat-select" data-player="${player}" aria-label="Assist for ${player}">
+                    <select class="player-assists-input portal-field portal-field-sm match-stat-select" data-player-id="${playerId}" data-player="${player}" aria-label="Assist for ${player}">
                         ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="match-stat-field">
                     <span class="match-stat-label">Børs</span>
-                    <select class="player-rating-select portal-field portal-field-sm match-stat-select match-stat-select-rating" data-player="${player}" aria-label="Børs for ${player}">
+                    <select class="player-rating-select portal-field portal-field-sm match-stat-select match-stat-select-rating" data-player-id="${playerId}" data-player="${player}" aria-label="Børs for ${player}">
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
                         ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="flex items-center space-x-1 border-l border-slate-200 pl-2 ml-1">
-                    <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
-                    <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-indigo-100 border-indigo-300 text-indigo-950 shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
+                    <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerId}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
+                    <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerId}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
+                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-indigo-100 border-indigo-300 text-indigo-950 shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
                 </div>
                 </div>
             </div>
@@ -641,39 +635,38 @@ window.savePlayerMatchStats = async function() {
     const benchOnly = {};
 
     document.querySelectorAll('.player-bench-btn').forEach(btn => {
-        if (btn.getAttribute('data-active') === 'true') {
-            benchOnly[btn.dataset.player] = true;
-        } else {
-            benchOnly[btn.dataset.player] = false;
-        }
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(btn));
+        if (!playerKey) return;
+        benchOnly[playerKey] = btn.getAttribute('data-active') === 'true';
     });
 
     document.querySelectorAll('.player-goals-input').forEach(input => {
         const val = parseInt(input.value);
-        const playerName = input.dataset.player;
-        if (benchOnly[playerName] === true) return;
-        if (val > 0) scorers[playerName] = val;
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(input));
+        if (!playerKey || benchOnly[playerKey] === true) return;
+        if (val > 0) scorers[playerKey] = val;
     });
 
     document.querySelectorAll('.player-assists-input').forEach(input => {
         const val = parseInt(input.value);
-        const playerName = input.dataset.player;
-        if (benchOnly[playerName] === true) return;
-        if (val > 0) assists[playerName] = val;
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(input));
+        if (!playerKey || benchOnly[playerKey] === true) return;
+        if (val > 0) assists[playerKey] = val;
     });
 
     document.querySelectorAll('.player-rating-select').forEach(select => {
         const val = parseInt(select.value);
-        const playerName = select.dataset.player;
-        if (benchOnly[playerName] === true) return;
-        if (val > 0) ratings[playerName] = val;
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(select));
+        if (!playerKey || benchOnly[playerKey] === true) return;
+        if (val > 0) ratings[playerKey] = val;
     });
 
     document.querySelectorAll('.player-card-btn').forEach(btn => {
-        if (benchOnly[btn.dataset.player] === true) return;
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(btn));
+        if (!playerKey || benchOnly[playerKey] === true) return;
         if (btn.getAttribute('data-active') === 'true') {
-            if (btn.getAttribute('data-type') === 'yellow') guleKort.push(btn.dataset.player);
-            if (btn.getAttribute('data-type') === 'red') rodeKort.push(btn.dataset.player);
+            if (btn.getAttribute('data-type') === 'yellow') guleKort.push(playerKey);
+            if (btn.getAttribute('data-type') === 'red') rodeKort.push(playerKey);
         }
     });
 
@@ -685,7 +678,7 @@ window.savePlayerMatchStats = async function() {
     match.benchOnly = benchOnly;
 
     const activeMotmBtn = document.querySelector('.player-motm-btn[data-active="true"]');
-    const motmPlayer = activeMotmBtn ? activeMotmBtn.getAttribute('data-player') : null;
+    const motmPlayer = activeMotmBtn ? window.getPlayerStorageKey(window.getPlayerRefFromElement(activeMotmBtn)) : null;
     match.motm = motmPlayer && benchOnly[motmPlayer] !== true ? motmPlayer : null;
 
     const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);

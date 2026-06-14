@@ -24,7 +24,8 @@ window.checkIndividualChemistry = function() {
                 allEvents.forEach(e => {
                     if (filterLag !== 'Alle' && e.team !== filterLag) return;
                     if (e.attendance) {
-                        const p1Present = e.attendance[selectedPlayer] === true; const p2Present = e.attendance[p.navn] === true;
+                        const p1Present = window.isPlayerAttending(e.attendance, selectedPlayer);
+                        const p2Present = window.isPlayerAttending(e.attendance, p);
                         if (p1Present || p2Present) eitherPresent++;
                         if (p1Present && p2Present) sharedPresent++;
                     }
@@ -97,7 +98,7 @@ window.checkIndividualChemistry = function() {
                     totalPossibleTicks += teamPlayers.length;
                     if (e.attendance) {
                         teamPlayers.forEach(p => {
-                            if (e.attendance[p.navn] === true) {
+                            if (window.isPlayerAttending(e.attendance, p)) {
                                 totalEventTicks++;
                             }
                         });
@@ -132,7 +133,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
     const recentEvents = teamEvents.slice(0, 8);
-    const attendedRecentEvents = recentEvents.filter(e => e.attendance && e.attendance[playerName] === true).length;
+    const attendedRecentEvents = recentEvents.filter(e => window.isPlayerAttending(e.attendance, playerObj)).length;
     const availabilityScore = recentEvents.length > 0
         ? (attendedRecentEvents / recentEvents.length) * 20
         : 0;
@@ -142,7 +143,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
             isHistorical(m) &&
             m.matchGroup === spillerLag &&
             m.attendance &&
-            m.attendance[playerName] === true
+            window.isPlayerAttending(m.attendance, playerObj)
         ))
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
         .slice(0, 5);
@@ -169,8 +170,8 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
 
     (window.activeMatches || []).forEach(m => {
         if (!isHistorical(m) || m.matchGroup !== spillerLag || m.matchType !== 'Serie') return;
-        if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
-        if (m.rodeKort && m.rodeKort.includes(playerName)) totalRedCards++;
+        if (window.playerRefListIncludes(m.guleKort, playerObj)) totalYellowCards++;
+        if (window.playerRefListIncludes(m.rodeKort, playerObj)) totalRedCards++;
     });
 
     // NFF-logikk for gule kort: første karantene er gratis, gjentatte karantener trekker.
@@ -300,7 +301,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!name) return null;
 
                 const playerMatches = matches.filter(m =>
-                    m.attendance && m.attendance[name] === true
+                    window.isPlayerAttending(m.attendance, player)
                 );
 
                 let totalPoints = 0;
@@ -320,18 +321,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     totalPoints += points;
 
-                    if (m.scorers && m.scorers[name]) goals += Number(m.scorers[name]) || 0;
-                    if (m.assists && m.assists[name]) assists += Number(m.assists[name]) || 0;
-                    if (m.motm === name) bb += 1;
-                    if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
-                    if (m.matchType === 'Serie' && m.guleKort && m.guleKort.includes(name)) yellowSerie += 1;
-                    if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
-                    if (m.matchType === 'Serie' && m.rodeKort && m.rodeKort.includes(name)) redSerie += 1;
+                    if (window.getPlayerRefMapValue(m.scorers, player, 0)) goals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
+                    if (window.getPlayerRefMapValue(m.assists, player, 0)) assists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
+                    if (window.motmMatchesPlayer(m.motm, player)) bb += 1;
+                    if (window.playerRefListIncludes(m.guleKort, player)) yellow += 1;
+                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.guleKort, player)) yellowSerie += 1;
+                    if (window.playerRefListIncludes(m.rodeKort, player)) red += 1;
+                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.rodeKort, player)) redSerie += 1;
 
-                    if (m.ratings && m.ratings[name]) {
+                    const playerRating = window.getPlayerRefMapValue(m.ratings, player, 0);
+                    if (playerRating) {
                         ratings.push({
                             date: m.date,
-                            rating: Number(m.ratings[name]) || 0,
+                            rating: Number(playerRating) || 0,
                             opponent: m.opponent || ''
                         });
                     }
@@ -693,8 +695,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
     const harSpiltMinstEnKamp = (playerName, spillerLag) => {
         return (window.activeMatches || []).some(m => 
             m.matchGroup === spillerLag && 
-            m.attendance && 
-            m.attendance[playerName] === true
+            window.isPlayerAttending(m.attendance, playerName)
         );
     };
 
@@ -863,16 +864,16 @@ if (defaultPlayerName) {
         const m = (window.activeMatches || []).find(match => match.id === h.matchId);
         if (!m) return;
 
-        totalGoals += m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
-        totalAssists += m.assists && m.assists[playerName] ? Number(m.assists[playerName]) : 0;
+        totalGoals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
+        totalAssists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
         if (m.matchType === 'Serie') {
-            totalYellowSerie += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
-            totalRedSerie += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
+            totalYellowSerie += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
+            totalRedSerie += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
         } else if (m.matchType === 'Cup') {
-            totalYellowCup += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
-            totalRedCup += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
+            totalYellowCup += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
+            totalRedCup += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
         }
-        totalBb += m.motm === playerName ? 1 : 0;
+        totalBb += window.motmMatchesPlayer(m.motm, player) ? 1 : 0;
     });
 
     const card = (label, value, sub, icon, iconClass) => `
@@ -945,11 +946,11 @@ if (defaultPlayerName) {
         else if (h.points >= 18) pointColor = 'text-bsk-blue';
         else if (h.points < 10) pointColor = 'text-rose-600';
 
-        const goals = m && m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
-        const assists = m && m.assists && m.assists[playerName] ? Number(m.assists[playerName]) : 0;
-        const yellow = m && m.guleKort && m.guleKort.includes(playerName);
-        const red = m && m.rodeKort && m.rodeKort.includes(playerName);
-        const bb = m && m.motm === playerName;
+        const goals = m ? Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0 : 0;
+        const assists = m ? Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0 : 0;
+        const yellow = m && window.playerRefListIncludes(m.guleKort, player);
+        const red = m && window.playerRefListIncludes(m.rodeKort, player);
+        const bb = m && window.motmMatchesPlayer(m.motm, player);
 
         const målVis = goals > 0
             ? `<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full text-xs font-black">⚽ ${goals}</span>`
@@ -1104,7 +1105,7 @@ let html = `
         
         const attendance = match.attendance || {};
         
-        let attendingPlayers = Object.keys(attendance).filter(pName => attendance[pName] === true);
+        let attendingPlayers = window.getAttendingPlayerRefs(attendance);
         
         // Fallback: hvis attendance mangler, men ratings/scorers finnes, bruk dem
         if (attendingPlayers.length === 0) {
@@ -1126,20 +1127,20 @@ let html = `
         return;
     }
 
-    const stats = attendingPlayers.map(pName => {
-        const rating = match.ratings && match.ratings[pName] ? Number(match.ratings[pName]) : 0;
-        const goals = match.scorers && match.scorers[pName] ? Number(match.scorers[pName]) : 0;
-        const assists = match.assists && match.assists[pName] ? Number(match.assists[pName]) : 0;
-        const yellow = match.guleKort && match.guleKort.includes(pName) ? 1 : 0;
-        const red = match.rodeKort && match.rodeKort.includes(pName) ? 1 : 0;
-        const isBbInMatch = match.motm === pName;
+    const stats = attendingPlayers.map(playerRef => {
+        const rating = Number(window.getPlayerRefMapValue(match.ratings, playerRef, 0)) || 0;
+        const goals = Number(window.getPlayerRefMapValue(match.scorers, playerRef, 0)) || 0;
+        const assists = Number(window.getPlayerRefMapValue(match.assists, playerRef, 0)) || 0;
+        const yellow = window.playerRefListIncludes(match.guleKort, playerRef) ? 1 : 0;
+        const red = window.playerRefListIncludes(match.rodeKort, playerRef) ? 1 : 0;
+        const isBbInMatch = window.motmMatchesPlayer(match.motm, playerRef);
 
         const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
-            ? window.calculatePlayerMatchPoints(match, pName, true)
+            ? window.calculatePlayerMatchPoints(match, playerRef, true)
             : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0 };
 
         return {
-            name: pName,
+            name: window.getPlayerNameFromRef(playerRef),
             rating,
             goals,
             assists,
@@ -1603,29 +1604,29 @@ let html = `
                 let attended = 0, kamper = 0, attendedMatches = 0, yellowSerie = 0, redSerie = 0, yellowCup = 0, redCup = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
 
                 teamEvents.forEach(e => {
-                    if (e.attendance && e.attendance[p.navn] === true) {
+                    if (window.isPlayerAttending(e.attendance, p)) {
                         attended++;
                         if (e.type === 'Kamp') {
                             attendedMatches++;
                             const onPitch = typeof window.isPlayerOnPitch === 'function'
-                                ? window.isPlayerOnPitch(e, p.navn)
+                                ? window.isPlayerOnPitch(e, p)
                                 : true;
                             if (onPitch) {
                                 kamper++;
-                                if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
-                                if (e.assists && e.assists[p.navn]) assist += e.assists[p.navn];
-                                if (e.motm === p.navn) bb++;
+                                mal += Number(window.getPlayerRefMapValue(e.scorers, p, 0)) || 0;
+                                assist += Number(window.getPlayerRefMapValue(e.assists, p, 0)) || 0;
+                                if (window.motmMatchesPlayer(e.motm, p)) bb++;
                             }
-                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
+                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p);
                         }
                     }
                     if (e.type === 'Kamp') {
                         if (e.matchType === 'Serie') {
-                            if (e.guleKort && e.guleKort.includes(p.navn)) yellowSerie++;
-                            if (e.rodeKort && e.rodeKort.includes(p.navn)) redSerie++;
+                            if (window.playerRefListIncludes(e.guleKort, p)) yellowSerie++;
+                            if (window.playerRefListIncludes(e.rodeKort, p)) redSerie++;
                         } else if (e.matchType === 'Cup') {
-                            if (e.guleKort && e.guleKort.includes(p.navn)) yellowCup++;
-                            if (e.rodeKort && e.rodeKort.includes(p.navn)) redCup++;
+                            if (window.playerRefListIncludes(e.guleKort, p)) yellowCup++;
+                            if (window.playerRefListIncludes(e.rodeKort, p)) redCup++;
                         }
                     }
                 });
@@ -1732,10 +1733,9 @@ window.getPlayerMatchPointsHistory = function(playerName) {
     
     (window.activeMatches || []).forEach(m => {
         // Sjekker kun kamper der spilleren faktisk møtte opp
-        if (m.matchGroup === playerObj.spillerLag && m.attendance && m.attendance[playerName] === true) {
+        if (m.matchGroup === playerObj.spillerLag && window.isPlayerAttending(m.attendance, playerObj)) {
             
-            // Henter ut detaljert poengberegning fra motoren vår
-            const ptsDetails = window.calculatePlayerMatchPoints(m, playerName, true);
+            const ptsDetails = window.calculatePlayerMatchPoints(m, playerObj, true);
             
             history.push({
                 matchId: m.id,
@@ -1743,7 +1743,7 @@ window.getPlayerMatchPointsHistory = function(playerName) {
                 opponent: m.opponent,
                 matchType: m.matchType || 'Kamp',
                 result: m.result || 'Ikke spilt',
-                rating: m.ratings && m.ratings[playerName] ? m.ratings[playerName] : '-',
+                rating: window.getPlayerRefMapValue(m.ratings, playerObj, '-') || '-',
                 points: ptsDetails.total,
                 onPitch: ptsDetails.onPitch !== false,
                 breakdown: `${ptsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`

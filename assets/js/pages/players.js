@@ -296,7 +296,14 @@ window.savePlayer = async function(event) {
         skadeTilDato: document.getElementById('playerSkadeTilDatoInput').value || ''
     };
 
+    const existingPlayer = playerData.id ? (window.activePlayers || []).find(p => p.id === playerData.id) : null;
+    const oldName = existingPlayer?.navn;
+
     await window.savePlayerToDatabase(playerData);
+
+    if (playerData.id && oldName && oldName !== playerData.navn && typeof window.remapPlayerRefsAfterRename === 'function') {
+        await window.remapPlayerRefsAfterRename(playerData.id, oldName);
+    }
     window.closePlayerModal();
     window.renderPlayerRoster();
 };

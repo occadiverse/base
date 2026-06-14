@@ -104,8 +104,8 @@ window.updateDashboard = function() {
             // Henter meldte forfall
             const forfallPlayers = [];
             if (nm.attendance) {
-                Object.entries(nm.attendance).forEach(([pName, isReady]) => {
-                    if (isReady === false) forfallPlayers.push(pName);
+                Object.entries(nm.attendance).forEach(([playerRef, isReady]) => {
+                    if (isReady === false) forfallPlayers.push(window.getPlayerNameFromRef(playerRef));
                 });
             }
 
@@ -115,20 +115,20 @@ window.updateDashboard = function() {
                 if (suspendedPlayers.length === 0 && atRiskPlayers.length === 0 && injuredPlayers.length === 0 && forfallPlayers.length === 0) {
                     dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Alle mann er meldt klare og tilgjengelige! 🦅</p>`;
                 } else {
-                    suspendedPlayers.forEach(p => {
-                        const s = teamSuspensions[p];
+                    suspendedPlayers.forEach(playerRef => {
+                        const s = teamSuspensions[playerRef];
                         const badgeColor = s.cardType === 'red' ? 'bg-red-600 text-white' : 'bg-yellow-400 text-slate-900';
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-rose-50 border border-rose-100 p-2 rounded-xl text-xs font-bold text-rose-900 shadow-sm">
-                                <span class="truncate">🚨 ${p}</span>
+                                <span class="truncate">🚨 ${window.getPlayerNameFromRef(playerRef)}</span>
                                 <span class="${badgeColor} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.reason || 'KARANTENE'}</span>
                             </div>`;
                     });
-                    atRiskPlayers.forEach(p => {
-                        const s = teamSuspensions[p];
+                    atRiskPlayers.forEach(playerRef => {
+                        const s = teamSuspensions[playerRef];
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-amber-50 border border-amber-100 p-2 rounded-xl text-xs font-bold text-amber-900 shadow-sm">
-                                <span class="truncate">⚠️ ${p}</span>
+                                <span class="truncate">⚠️ ${window.getPlayerNameFromRef(playerRef)}</span>
                                 <span class="bg-amber-400 text-slate-900 px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.yellows} gule · karantene ved ${s.nextKaranteneAt || 4}</span>
                             </div>`;
                     });
@@ -337,12 +337,12 @@ window.updateHjemWidget = function() {
         });
         
         teamEvents.forEach(e => { 
-            if (e.attendance && e.attendance[topPlayer.navn] === true) {
+            if (window.isPlayerAttending(e.attendance, topPlayer)) {
                 attendedEvents++;
                 if (e.type === 'Kamp') {
 	                    kamper++;
-	                    if (e.scorers && e.scorers[topPlayer.navn]) mal += e.scorers[topPlayer.navn];
-	                    if (e.assists && e.assists[topPlayer.navn]) assist += e.assists[topPlayer.navn];
+	                    mal += Number(window.getPlayerRefMapValue(e.scorers, topPlayer, 0)) || 0;
+	                    assist += Number(window.getPlayerRefMapValue(e.assists, topPlayer, 0)) || 0;
 	                }
             } 
         });

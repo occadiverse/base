@@ -1,4 +1,4 @@
-window.getPlayerCardCounts = function(playerName, teamName) {
+window.getPlayerCardCounts = function(playerRef, teamName) {
     const counts = { serie: { gule: 0, rode: 0 }, cup: { gule: 0, rode: 0 } };
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -14,36 +14,36 @@ window.getPlayerCardCounts = function(playerName, teamName) {
         const bucket = m.matchType === 'Cup' ? 'cup' : (m.matchType === 'Serie' ? 'serie' : null);
         if (!bucket) return;
 
-        if (m.guleKort && m.guleKort.includes(playerName)) counts[bucket].gule++;
-        if (m.rodeKort && m.rodeKort.includes(playerName)) counts[bucket].rode++;
+        if (window.playerRefListIncludes(m.guleKort, playerRef)) counts[bucket].gule++;
+        if (window.playerRefListIncludes(m.rodeKort, playerRef)) counts[bucket].rode++;
     });
 
     return counts;
 };
 
-window.isPlayerOnPitch = function(match, playerName) {
-    if (!match || !playerName) return true;
+window.isPlayerOnPitch = function(match, playerRef) {
+    if (!match || !playerRef) return true;
 
-    if (match.benchOnly && match.benchOnly[playerName] === true) return false;
-    if (match.benchOnly && match.benchOnly[playerName] === false) return true;
+    if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === true) return false;
+    if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === false) return true;
 
     if (match.lineup && typeof match.lineup === 'object' && Object.keys(match.lineup).length > 0) {
         return Object.values(match.lineup).some(player => {
             if (!player) return false;
-            if (typeof player === 'string') return player === playerName;
-            return player.navn === playerName;
+            if (typeof player === 'string') return window.playerRefMatches(player, window.findPlayerByRef(playerRef) || { navn: playerRef });
+            return window.playerRefMatches(player.id || player.navn, window.findPlayerByRef(playerRef) || { navn: playerRef });
         });
     }
 
     return true;
 };
 
-window.isPlayerBenchOnly = function(match, playerName) {
-    if (!match || !playerName) return false;
-    if (match.benchOnly && match.benchOnly[playerName] === true) return true;
-    if (match.benchOnly && match.benchOnly[playerName] === false) return false;
+window.isPlayerBenchOnly = function(match, playerRef) {
+    if (!match || !playerRef) return false;
+    if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === true) return true;
+    if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === false) return false;
     if (match.lineup && typeof match.lineup === 'object' && Object.keys(match.lineup).length > 0) {
-        return !window.isPlayerOnPitch({ ...match, benchOnly: {} }, playerName);
+        return !window.isPlayerOnPitch({ ...match, benchOnly: {} }, playerRef);
     }
     return false;
 };
@@ -89,74 +89,74 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
         .filter(m => m.matchGroup === teamName && m.matchType === 'Serie' && m.date < upToDateStr)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    let playerStats = {};
+    const playerStats = {};
+
+    const ensureStats = (playerRef) => {
+        const player = window.findPlayerByRef(playerRef);
+        const key = player?.id || playerRef;
+        if (!playerStats[key]) {
+            playerStats[key] = {
+                yellows: 0,
+                reds: 0,
+                isSuspended: false,
+                isAtRisk: false,
+                reason: '',
+                cardType: '',
+                displayNum: 0,
+                nextKaranteneAt: 4
+            };
+        }
+        return key;
+    };
 
     pastMatches.forEach(m => {
-        Object.keys(playerStats).forEach(pName => {
-            if (playerStats[pName].isSuspended) {
-                if (!m.attendance || m.attendance[pName] !== true) {
-                    playerStats[pName].isSuspended = false;
-                    playerStats[pName].reason = '';
-                    playerStats[pName].cardType = '';
-                    playerStats[pName].displayNum = 0;
-                }
+        Object.keys(playerStats).forEach(key => {
+            if (playerStats[key].isSuspended && !window.isPlayerAttending(m.attendance, key)) {
+                playerStats[key].isSuspended = false;
+                playerStats[key].reason = '';
+                playerStats[key].cardType = '';
+                playerStats[key].displayNum = 0;
             }
         });
 
-        if (m.attendance) {
-            Object.keys(m.attendance).forEach(pName => {
-                if (m.attendance[pName] === true) {
-                    if (!playerStats[pName]) {
-                        playerStats[pName] = {
-                            yellows: 0,
-                            reds: 0,
-                            isSuspended: false,
-                            isAtRisk: false,
-                            reason: '',
-                            cardType: '',
-                            displayNum: 0,
-                            nextKaranteneAt: 4
-                        };
-                    }
+        window.getAttendingPlayerRefs(m.attendance).forEach(playerRef => {
+            const key = ensureStats(playerRef);
+            const gotYellow = window.playerRefListIncludes(m.guleKort, playerRef);
+            const gotRed = window.playerRefListIncludes(m.rodeKort, playerRef);
 
-                    const gotYellow = m.guleKort && m.guleKort.includes(pName);
-                    const gotRed = m.rodeKort && m.rodeKort.includes(pName);
+            if (gotRed) {
+                playerStats[key].reds++;
+                playerStats[key].isSuspended = true;
+                playerStats[key].isAtRisk = false;
+                playerStats[key].reason = 'Rødt kort';
+                playerStats[key].cardType = 'red';
+                playerStats[key].displayNum = playerStats[key].reds;
+            }
 
-                    if (gotRed) {
-                        playerStats[pName].reds++;
-                        playerStats[pName].isSuspended = true;
-                        playerStats[pName].isAtRisk = false;
-                        playerStats[pName].reason = 'Rødt kort';
-                        playerStats[pName].cardType = 'red';
-                        playerStats[pName].displayNum = playerStats[pName].reds;
-                    }
+            if (gotYellow) {
+                playerStats[key].yellows++;
+                const y = playerStats[key].yellows;
+                const hint = window.getSerieYellowDisciplineHint(y);
+                playerStats[key].isAtRisk = hint.isAtRisk;
+                playerStats[key].nextKaranteneAt = hint.nextSuspensionAt;
 
-                    if (gotYellow) {
-                        playerStats[pName].yellows++;
-                        const y = playerStats[pName].yellows;
-                        const hint = window.getSerieYellowDisciplineHint(y);
-                        playerStats[pName].isAtRisk = hint.isAtRisk;
-                        playerStats[pName].nextKaranteneAt = hint.nextSuspensionAt;
-
-                        if (hint.isSuspendedThreshold) {
-                            playerStats[pName].isSuspended = true;
-                            playerStats[pName].isAtRisk = false;
-                            playerStats[pName].reason = `${y} gule kort`;
-                            playerStats[pName].cardType = 'yellow';
-                            playerStats[pName].displayNum = y;
-                        }
-                    }
+                if (hint.isSuspendedThreshold) {
+                    playerStats[key].isSuspended = true;
+                    playerStats[key].isAtRisk = false;
+                    playerStats[key].reason = `${y} gule kort`;
+                    playerStats[key].cardType = 'yellow';
+                    playerStats[key].displayNum = y;
                 }
-            });
-        }
+            }
+        });
     });
 
     return playerStats;
 };
 
-window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = false) {
+window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false) {
     const onPitch = typeof window.isPlayerOnPitch === 'function'
-        ? window.isPlayerOnPitch(m, playerName)
+        ? window.isPlayerOnPitch(m, playerRef)
         : true;
 
     let base = 15;
@@ -179,13 +179,10 @@ window.calculatePlayerMatchPoints = function(m, playerName, returnDetails = fals
             }
         }
 
-        if (m.ratings && m.ratings[playerName]) {
-            ratingBonus = (m.ratings[playerName] - 5) * 6;
-        }
+        const rating = window.getPlayerRefMapValue(m.ratings, playerRef, 0);
+        if (rating > 0) ratingBonus = (rating - 5) * 6;
 
-        if (m.motm === playerName) {
-            bbBonus = 1;
-        }
+        if (window.motmMatchesPlayer(m.motm, playerRef)) bbBonus = 1;
     }
 
     const total = base + resultBonus + ratingBonus + bbBonus;

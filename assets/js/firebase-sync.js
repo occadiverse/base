@@ -58,8 +58,11 @@
         }
 
         function syncMatches(matchesData) {
-            window.activeMatches = matchesData;
-            window.localStorage.setItem('bsk_local_matches', JSON.stringify(matchesData));
+            const normalized = (matchesData || []).map(m =>
+                typeof window.normalizeMatchPlayerRefs === 'function' ? window.normalizeMatchPlayerRefs(m) : m
+            );
+            window.activeMatches = normalized;
+            window.localStorage.setItem('bsk_local_matches', JSON.stringify(normalized));
             if (typeof window.updateDashboard === 'function') window.updateDashboard();
             if (typeof window.applyFilters === 'function') window.applyFilters();
         }
@@ -79,8 +82,11 @@
         }
 
         function syncEvents(eventsData) {
-            window.activeEvents = eventsData;
-            window.localStorage.setItem('bsk_local_events', JSON.stringify(eventsData));
+            const normalized = (eventsData || []).map(e =>
+                typeof window.normalizeEventPlayerRefs === 'function' ? window.normalizeEventPlayerRefs(e) : e
+            );
+            window.activeEvents = normalized;
+            window.localStorage.setItem('bsk_local_events', JSON.stringify(normalized));
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
         }
@@ -151,13 +157,18 @@
                 try {
                     const id = matchObject.id || crypto.randomUUID();
                     matchObject.id = id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject);
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject, { merge: true });
                     return true;
                 } catch (e) { console.error(e); }
             }
             const current = [...window.activeMatches];
             const idx = current.findIndex(m => m.id === matchObject.id);
-            if (idx > -1) { current[idx] = matchObject; } else { matchObject.id = matchObject.id || crypto.randomUUID(); current.push(matchObject); }
+            if (idx > -1) {
+                current[idx] = { ...current[idx], ...matchObject, id: matchObject.id || current[idx].id };
+            } else {
+                matchObject.id = matchObject.id || crypto.randomUUID();
+                current.push(matchObject);
+            }
             syncMatches(current);
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
             return true;
@@ -237,13 +248,18 @@
                 try {
                     const id = eventObject.id || crypto.randomUUID();
                     eventObject.id = id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject);
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject, { merge: true });
                     return true;
                 } catch (e) { console.error(e); }
             }
             const current = [...window.activeEvents];
             const idx = current.findIndex(ev => ev.id === eventObject.id);
-            if (idx > -1) { current[idx] = eventObject; } else { eventObject.id = eventObject.id || crypto.randomUUID(); current.push(eventObject); }
+            if (idx > -1) {
+                current[idx] = { ...current[idx], ...eventObject, id: eventObject.id || current[idx].id };
+            } else {
+                eventObject.id = eventObject.id || crypto.randomUUID();
+                current.push(eventObject);
+            }
             syncEvents(current);
             return true;
         };

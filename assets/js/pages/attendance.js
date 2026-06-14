@@ -15,13 +15,15 @@ window.closeEventModal = function() {
 window.saveEvent = async function(event) {
     event.preventDefault();
 
+    const editId = document.getElementById('editEventId').value;
+    const existingEvent = editId ? (window.activeEvents || []).find(e => e.id === editId) : null;
     const eventData = {
-        id: document.getElementById('editEventId').value || crypto.randomUUID(),
+        ...(existingEvent || {}),
+        id: editId || crypto.randomUUID(),
         title: document.getElementById('eventTitle').value,
         type: document.getElementById('eventType').value,
         team: document.getElementById('eventTeam').value,
-        date: document.getElementById('eventDate').value,
-        attendance: {}
+        date: document.getElementById('eventDate').value
     };
 
     await window.saveEventToDatabase(eventData);
@@ -66,7 +68,7 @@ window.openAttendanceModal = function(eventId) {
         container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen aktive spillere registrert i systemet.</div>`;
     } else {
         teamPlayers.sort((a, b) => a.navn.localeCompare(b.navn)).forEach(p => {
-            const status = ev.attendance ? ev.attendance[p.navn] : undefined;
+            const status = window.getAttendanceForPlayer(ev.attendance, p);
             const div = document.createElement('div');
             div.className = "py-3 flex justify-between items-center border-b border-slate-50";
             div.innerHTML = `
@@ -76,9 +78,9 @@ window.openAttendanceModal = function(eventId) {
                 </div>
                 <div class="flex items-center space-x-1">
                     <button type="button" onclick="setAttendancePill(this, true)"
-                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === true ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-400'}" data-player="${p.navn}" data-status="true">OK ✅</button>
+                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === true ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-400'}" data-player-id="${p.id}" data-player="${p.navn}" data-status="true">OK ✅</button>
                     <button type="button" onclick="setAttendancePill(this, false)"
-                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === false ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-white border-slate-200 text-slate-400'}" data-player="${p.navn}" data-status="false">X ❌</button>
+                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === false ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-white border-slate-200 text-slate-400'}" data-player-id="${p.id}" data-player="${p.navn}" data-status="false">X ❌</button>
                 </div>
             `;
             container.appendChild(div);
@@ -127,14 +129,17 @@ window.saveAttendanceRegistry = async function() {
 
     if (!ev) return;
 
-    const attMap = {};
+    const attMap = { ...(ev.attendance || {}) };
     document.getElementById('attendance-players-list').querySelectorAll('.attendance-pill').forEach(btn => {
         if (btn.classList.contains('bg-emerald-100') || btn.classList.contains('bg-rose-100')) {
-            attMap[btn.getAttribute('data-player')] = btn.getAttribute('data-status') === 'true';
+            const playerKey = window.getPlayerStorageKey(btn.getAttribute('data-player-id') || btn.getAttribute('data-player'));
+            if (playerKey) {
+                attMap[playerKey] = btn.getAttribute('data-status') === 'true';
+            }
         }
     });
 
-    ev.attendance = attMap;
+    ev.attendance = window.normalizePlayerRefMap(attMap);
     if (isMatch) await window.saveMatchToDatabase(ev);
     else await window.saveEventToDatabase(ev);
 
@@ -489,6 +494,7 @@ window.saveNewActivity = async function() {
     if (type === 'Kamp') {
         const existingMatch = editId ? (window.activeMatches || []).find(m => m.id === editId) : null;
         const matchData = {
+            ...(existingMatch || {}),
             id: editId || Date.now().toString(),
             date,
             time,
@@ -496,25 +502,21 @@ window.saveNewActivity = async function() {
             pitch: location || 'Ikke satt',
             matchType: existingMatch ? existingMatch.matchType : 'Treningskamp',
             matchGroup: selectedTeam,
-            result: existingMatch ? existingMatch.result : '',
-            attendance: existingMatch ? (existingMatch.attendance || {}) : {},
-            scorers: existingMatch ? (existingMatch.scorers || {}) : {},
-            assists: existingMatch ? (existingMatch.assists || {}) : {},
-            ratings: existingMatch ? (existingMatch.ratings || {}) : {}
+            result: existingMatch ? existingMatch.result : ''
         };
 
         if (typeof window.saveMatchToDatabase === 'function') await window.saveMatchToDatabase(matchData);
     } else {
         const existingEvent = editId ? (window.activeEvents || []).find(e => e.id === editId) : null;
         const activityData = {
+            ...(existingEvent || {}),
             id: editId || Date.now().toString(),
             type,
             title,
             date,
             time,
             location: location || 'Ikke satt',
-            team: selectedTeam,
-            attendance: existingEvent ? (existingEvent.attendance || {}) : {}
+            team: selectedTeam
         };
 
         if (typeof window.saveEventToDatabase === 'function') await window.saveEventToDatabase(activityData);
