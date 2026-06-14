@@ -69,23 +69,54 @@ function groupMatchesByMonth(matches) {
     return groups;
 }
 
-function updateMatchListSummary(count, timeFilter, lagFilter) {
-    const summaryEl = document.getElementById('matchListSummary');
-    if (!summaryEl) return;
+function applyFilters() {
+    const listContainer = document.getElementById('matchListContainer');
+    const noMatchesView = document.getElementById('no-matches-view');
+    if (!listContainer) return;
 
-    const timeLabel = timeFilter === 'kommende' ? 'Kommende' : 'Tidligere';
-    const lagLabel = lagFilter === 'Alle' ? 'Alle lag' : lagFilter;
-    const countLabel = `${count} ${count === 1 ? 'kamp' : 'kamper'}`;
+    listContainer.innerHTML = '';
 
-    summaryEl.innerHTML = `
-        <span class="match-list-summary-label">Terminliste</span>
-        <span class="match-list-summary-dot">·</span>
-        <span>${timeLabel}</span>
-        <span class="match-list-summary-dot">·</span>
-        <span>${escapeMatchHtml(lagLabel)}</span>
-        <span class="match-list-summary-dot">·</span>
-        <span>${countLabel}</span>
-    `;
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    const currentTimeFilter = window.activeTimeFilter || 'kommende';
+    const kamperLagFilter = 'Alle';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const filtered = matches.filter(m => {
+        if (!m.date) return false;
+
+        const matchDate = new Date(m.date);
+        matchDate.setHours(0, 0, 0, 0);
+
+        const matchesTime = currentTimeFilter === 'kommende' ? matchDate >= today : matchDate < today;
+        const matchesLag = kamperLagFilter === 'Alle' || m.matchGroup === kamperLagFilter;
+
+        return matchesTime && matchesLag;
+    });
+
+    const sortedMatches = [...filtered].sort((a, b) =>
+        currentTimeFilter === 'kommende' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date)
+    );
+
+    if (sortedMatches.length === 0) {
+        if (noMatchesView) noMatchesView.classList.remove('hidden');
+        return;
+    }
+
+    if (noMatchesView) noMatchesView.classList.add('hidden');
+
+    const isUpcoming = currentTimeFilter === 'kommende';
+    const groups = groupMatchesByMonth(sortedMatches);
+
+    listContainer.innerHTML = groups.map(group => `
+        <section class="match-fixture-group">
+            <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
+            <div class="match-fixture-group-rows">
+                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { showLag: false, isUpcoming })).join('')}
+            </div>
+        </section>
+    `).join('');
 }
 
 function buildMatchFixtureRowHtml(match, options = {}) {
@@ -277,60 +308,6 @@ function setMatchTimeFilter(filterType) {
     }
 
     applyFilters();
-}
-
-function applyFilters() {
-    const listContainer = document.getElementById('matchListContainer');
-    const noMatchesView = document.getElementById('no-matches-view');
-    if (!listContainer) return;
-
-    listContainer.innerHTML = '';
-
-    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
-    const currentTimeFilter = window.activeTimeFilter || 'kommende';
-    const kamperLagFilter = document.getElementById('kamperLagFilterSelect') ? document.getElementById('kamperLagFilterSelect').value : 'Alle';
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const filtered = matches.filter(m => {
-        if (!m.date) return false;
-
-        const matchDate = new Date(m.date);
-        matchDate.setHours(0, 0, 0, 0);
-
-        const matchesTime = currentTimeFilter === 'kommende' ? matchDate >= today : matchDate < today;
-        const matchesLag = kamperLagFilter === 'Alle' || m.matchGroup === kamperLagFilter;
-
-        return matchesTime && matchesLag;
-    });
-
-    const sortedMatches = [...filtered].sort((a, b) =>
-        currentTimeFilter === 'kommende' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date)
-    );
-
-    if (sortedMatches.length === 0) {
-        updateMatchListSummary(0, currentTimeFilter, kamperLagFilter);
-        if (noMatchesView) noMatchesView.classList.remove('hidden');
-        return;
-    }
-
-    if (noMatchesView) noMatchesView.classList.add('hidden');
-
-    const showLag = kamperLagFilter === 'Alle';
-    const isUpcoming = currentTimeFilter === 'kommende';
-    const groups = groupMatchesByMonth(sortedMatches);
-
-    updateMatchListSummary(sortedMatches.length, currentTimeFilter, kamperLagFilter);
-
-    listContainer.innerHTML = groups.map(group => `
-        <section class="match-fixture-group">
-            <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
-            <div class="match-fixture-group-rows">
-                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { showLag, isUpcoming })).join('')}
-            </div>
-        </section>
-    `).join('');
 }
 
 window.openMatchModal = function(editId = null) {

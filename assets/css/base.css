@@ -856,7 +856,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            justify-content: space-between;
+            justify-content: center;
         }
         .match-filter-segmented {
             background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
@@ -934,25 +934,6 @@
             color: #64748b;
             font-size: 0.62rem;
             pointer-events: none;
-        }
-        .match-list-summary {
-            align-items: center;
-            color: #64748b;
-            display: flex;
-            flex-wrap: wrap;
-            font-size: 0.72rem;
-            font-weight: 800;
-            gap: 0.35rem;
-            letter-spacing: 0.03em;
-        }
-        .match-list-summary-label {
-            color: #0b2b4c;
-            font-weight: 900;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-        .match-list-summary-dot {
-            color: rgba(18, 63, 115, 0.28);
         }
         .match-list-grid {
             display: flex;
