@@ -377,7 +377,10 @@ window.showMatchDetails = function(id) {
     const teamPlayers = (window.activePlayers || [])
         .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
-    const attendingRefs = window.getAttendingPlayerRefs(match.attendance);
+    const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
+        ? window.getMatchParticipantRefs(match)
+        : window.getAttendingPlayerRefs(match.attendance);
+    const hasStoredAttendance = window.getAttendingPlayerRefs(match.attendance).length > 0;
     const benchPlayers = teamPlayers
         .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
@@ -387,9 +390,13 @@ window.showMatchDetails = function(id) {
         .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
     const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
     const teamCount = teamPlayers.length || selectedPlayers.length;
-    const selectedCountLabel = teamCount
-        ? `${selectedPlayers.length} av ${teamCount} påmeldt`
-        : `${selectedPlayers.length} påmeldt`;
+    const selectedCountLabel = hasStoredAttendance
+        ? (teamCount
+            ? `${selectedPlayers.length} av ${teamCount} påmeldt`
+            : `${selectedPlayers.length} påmeldt`)
+        : (selectedPlayers.length
+            ? `${selectedPlayers.length} spillere fra kampstatistikk`
+            : 'Ingen spillere registrert');
     const getLastName = (name) => {
         const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
         return parts.length ? parts[parts.length - 1] : 'Spiller';
@@ -505,23 +512,41 @@ window.renderPlayerRowForm = function(match) {
 
     formList.innerHTML = '';
 
-    const attendingRefs = window.getAttendingPlayerRefs(match.attendance);
+    const participantRefs = typeof window.getMatchParticipantRefs === 'function'
+        ? window.getMatchParticipantRefs(match)
+        : window.getAttendingPlayerRefs(match.attendance);
+    const hasStoredAttendance = window.getAttendingPlayerRefs(match.attendance).length > 0;
 
-    if (attendingRefs.length === 0) {
+    if (participantRefs.length === 0) {
         formList.innerHTML = `
             <div class="py-8 text-center text-slate-500 text-sm">
                 <i class="fa-solid fa-clipboard-user text-3xl text-slate-300 mb-3 block"></i>
                 Ingen spillere er registrert med oppmøte på denne kampen enda.<br>
-                <span class="text-xs mt-1 block">Trykk på <b>"Før Oppmøte / Tropp"</b> for å velge hvem som spilte!</span>
+                <span class="text-xs mt-1 block">Trykk på <b>"Oppmøte"</b> for å velge hvem som spilte!</span>
             </div>`;
         return;
     }
 
     const sortedPlayers = [...(window.activePlayers || [])]
-        .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
+        .filter(p => participantRefs.some(ref => window.playerRefMatches(ref, p)))
         .sort((a, b) => a.navn.localeCompare(b.navn));
 
-    sortedPlayers.forEach(playerObj => {
+    const fallbackPlayers = participantRefs
+        .filter(ref => !sortedPlayers.some(p => window.playerRefMatches(ref, p)))
+        .map(ref => window.findPlayerByRef(ref) || { id: ref, navn: window.getPlayerNameFromRef(ref) });
+
+    const playersToRender = [...sortedPlayers, ...fallbackPlayers].sort((a, b) =>
+        a.navn.localeCompare(b.navn)
+    );
+
+    if (!hasStoredAttendance) {
+        const notice = document.createElement('div');
+        notice.className = 'py-3 px-1 text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg mb-2';
+        notice.innerHTML = 'Oppmøteliste mangler for denne kampen, men lagret kampstatistikk vises her. Trykk <b>Oppmøte</b> for å bekrefte troppen.';
+        formList.appendChild(notice);
+    }
+
+    playersToRender.forEach(playerObj => {
         const player = playerObj.navn;
         const playerId = playerObj.id;
         const prevGoals = window.getPlayerRefMapValue(match.scorers, playerObj, 0);

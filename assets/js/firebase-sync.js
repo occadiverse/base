@@ -57,14 +57,42 @@
             loadAllFromLocalStorage(); 
         }
 
+        async function persistRepairedMatches(repairedMatches) {
+            if (!repairedMatches.length || typeof window.saveMatchToDatabase !== 'function') return;
+
+            for (const match of repairedMatches) {
+                try {
+                    await window.saveMatchToDatabase(match);
+                } catch (error) {
+                    console.warn('Kunne ikke gjenopprette oppmøte for kamp:', match.id, error);
+                }
+            }
+        }
+
         function syncMatches(matchesData) {
-            const normalized = (matchesData || []).map(m =>
-                typeof window.normalizeMatchPlayerRefs === 'function' ? window.normalizeMatchPlayerRefs(m) : m
-            );
+            const repairedMatches = [];
+            const normalized = (matchesData || []).map(m => {
+                let next = typeof window.normalizeMatchPlayerRefs === 'function'
+                    ? window.normalizeMatchPlayerRefs(m)
+                    : m;
+
+                if (typeof window.repairMatchAttendanceFromStats === 'function') {
+                    const repairResult = window.repairMatchAttendanceFromStats(next);
+                    next = repairResult.match;
+                    if (repairResult.changed) repairedMatches.push(next);
+                }
+
+                return next;
+            });
+
             window.activeMatches = normalized;
             window.localStorage.setItem('bsk_local_matches', JSON.stringify(normalized));
             if (typeof window.updateDashboard === 'function') window.updateDashboard();
             if (typeof window.applyFilters === 'function') window.applyFilters();
+
+            if (repairedMatches.length > 0) {
+                persistRepairedMatches(repairedMatches);
+            }
         }
 
         function syncTeams(teamsData) {

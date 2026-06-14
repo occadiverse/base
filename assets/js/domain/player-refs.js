@@ -46,6 +46,57 @@ window.getAttendingPlayerRefs = function(attendance) {
     return Object.keys(attendance).filter(ref => attendance[ref] === true);
 };
 
+window.getMatchStatPlayerRefs = function(match) {
+    if (!match) return [];
+
+    const refs = new Set();
+
+    ['scorers', 'assists', 'ratings', 'benchOnly'].forEach(field => {
+        if (match[field] && typeof match[field] === 'object') {
+            Object.keys(match[field]).forEach(key => refs.add(key));
+        }
+    });
+
+    ['guleKort', 'rodeKort'].forEach(field => {
+        if (Array.isArray(match[field])) {
+            match[field].forEach(ref => refs.add(ref));
+        }
+    });
+
+    if (match.motm) refs.add(match.motm);
+
+    return [...refs];
+};
+
+window.getMatchParticipantRefs = function(match) {
+    const attendingRefs = window.getAttendingPlayerRefs(match?.attendance);
+    if (attendingRefs.length > 0) return attendingRefs;
+    return window.getMatchStatPlayerRefs(match);
+};
+
+window.repairMatchAttendanceFromStats = function(match) {
+    if (!match) return { match, changed: false };
+
+    const hasAttendance = match.attendance
+        && Object.values(match.attendance).some(value => value === true);
+
+    if (hasAttendance) return { match, changed: false };
+
+    const statRefs = window.getMatchStatPlayerRefs(match);
+    if (statRefs.length === 0) return { match, changed: false };
+
+    const attendance = {};
+    statRefs.forEach(ref => {
+        const player = window.findPlayerByRef(ref);
+        attendance[player?.id || ref] = true;
+    });
+
+    return {
+        match: { ...match, attendance },
+        changed: true
+    };
+};
+
 window.getPlayerRefMapValue = function(map, playerOrRef, defaultValue) {
     if (!map) return defaultValue;
     const player = typeof playerOrRef === 'object' && playerOrRef !== null && playerOrRef.navn
