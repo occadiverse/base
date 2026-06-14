@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260613-match-bench">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260614-match-list">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -39,52 +39,38 @@
                 </div>
             </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
-            <div id="view-kamper" class="hidden space-y-6">
-                <div class="portal-page-toolbar is-detached">
-                    <div class="portal-segmented">
-                        <button type="button" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="portal-segment-btn is-active">
-                            Kommende
+            <div id="view-kamper" class="hidden space-y-5 match-list-page">
+                <div class="match-list-toolbar">
+                    <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
+                        <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="match-filter-btn is-active" aria-selected="true">
+                            <i class="fa-solid fa-calendar-day"></i>
+                            <span>Kommende</span>
                         </button>
-                        <button type="button" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="portal-segment-btn">
-                            Tidligere
+                        <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="match-filter-btn" aria-selected="false">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>Tidligere</span>
                         </button>
                     </div>
 
-                    <div class="portal-inline-select hover:border-bsk-blueLight transition-colors">
-                        <i class="fa-solid fa-users text-slate-400 text-[10px] mr-2"></i>
-                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="portal-field portal-field-inline text-xs font-black text-slate-600 cursor-pointer">
-                            <option value="Alle">ALLE LAG</option>
+                    <div class="match-list-lag-filter">
+                        <i class="fa-solid fa-users"></i>
+                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="match-list-lag-select" aria-label="Filtrer kamper etter lag">
+                            <option value="Alle">Alle lag</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down text-slate-400 text-[9px] ml-2 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
                     </div>
                 </div>
 
-            <div class="bg-white border border-slate-200 border-b-4 border-bsk-yellow/30 rounded-2xl shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse" id="matchTable">
-                        <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                                <th class="py-4 px-4 md:px-6">Motstander</th> 
-                                <th class="py-4 px-4 text-center w-24">Dato</th>
-                                <th class="py-4 px-2 text-center w-16">Kl.</th>
-                                <th class="py-4 px-4 text-center w-20">Resultat</th>
-                                <th class="py-4 px-6 text-left hidden lg:table-cell">Bane</th>
-                                <th class="py-4 px-6 text-left hidden lg:table-cell">Type</th>
-                                <th class="py-4 px-4 md:px-6 text-right w-24">Detaljer</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matchTableBody" class="divide-y divide-slate-100 text-sm">
-                    </tbody>
-            </table>
-        </div>
-        
-        <div id="no-matches-view" class="hidden py-16 px-4 text-center text-slate-400">
-            <i class="fa-solid fa-futbol text-4xl mb-3 text-slate-300"></i>
-            <p class="font-bold text-slate-600">Ingen kamper funnet</p>
-            <p class="text-xs mt-1">Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.</p>
-        </div>
-    </div>
-</div>
+                <div id="matchListContainer" class="match-list-grid"></div>
+
+                <div id="no-matches-view" class="hidden match-list-empty">
+                    <div class="match-list-empty-icon">
+                        <i class="fa-solid fa-futbol"></i>
+                    </div>
+                    <p class="match-list-empty-title">Ingen kamper funnet</p>
+                    <p class="match-list-empty-text">Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.</p>
+                </div>
+            </div>
             <div id="view-kampdetaljer" class="hidden space-y-6 max-w-4xl mx-auto w-full">
                 <div class="rounded-2xl overflow-visible">
                     <div id="kampdetaljer-info" class="space-y-4">
@@ -936,7 +922,7 @@
     <script src="assets/js/app-shell.js?v=20260613-mobile-nav"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/pages/players.js"></script>
-    <script src="assets/js/pages/matches.js?v=20260613-match-bench"></script>
+    <script src="assets/js/pages/matches.js?v=20260614-match-list"></script>
     <script src="assets/js/pages/attendance.js"></script>
     <script src="assets/js/pages/statistics.js"></script>
     <script src="assets/js/pages/tactics.js"></script>

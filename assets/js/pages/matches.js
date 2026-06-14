@@ -1,18 +1,168 @@
+function escapeMatchHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function escapeMatchJsString(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function getMatchCardPresentation(match) {
+    const dateValue = new Date(match.date);
+    const dateFormatted = Number.isNaN(dateValue.getTime())
+        ? 'Dato ikke satt'
+        : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+    const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+    const matchTypeLabel = match.matchType || 'Kamp';
+    const parsedScore = match.result ? parseScore(match.result) : null;
+    const displayedResult = parsedScore ? `${parsedScore.opponent}-${parsedScore.bsk}` : match.result;
+    const centerValue = match.result ? displayedResult : (match.time || '--:--');
+    const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
+    const durationLabel = match.duration || '90 min';
+    const attendingCount = match.attendance
+        ? Object.values(match.attendance).filter(Boolean).length
+        : 0;
+
+    let resultTone = '';
+    let resultChip = '';
+
+    if (parsedScore) {
+        if (parsedScore.bsk > parsedScore.opponent) {
+            resultTone = 'is-win';
+            resultChip = '<span class="match-detail-result-chip is-win">Seier</span>';
+        } else if (parsedScore.bsk === parsedScore.opponent) {
+            resultTone = 'is-draw';
+            resultChip = '<span class="match-detail-result-chip is-draw">Uavgjort</span>';
+        } else {
+            resultTone = 'is-loss';
+            resultChip = '<span class="match-detail-result-chip is-loss">Tap</span>';
+        }
+    }
+
+    return {
+        dateLabel,
+        matchTypeLabel,
+        centerValue,
+        centerLabel,
+        durationLabel,
+        attendingCount,
+        resultTone,
+        resultChip,
+        groupChip: match.matchGroup
+            ? `<div class="match-detail-chip match-detail-chip-muted"><i class="fa-solid fa-users"></i><span>${escapeMatchHtml(match.matchGroup)}</span></div>`
+            : ''
+    };
+}
+
+function buildMatchDetailCardHtml(match, options = {}) {
+    const {
+        extraClass = '',
+        clickable = false,
+        showWatermark = false,
+        showResultChip = false,
+        showAttendance = false
+    } = options;
+    const data = getMatchCardPresentation(match);
+    const cardClasses = [
+        'match-detail-card',
+        extraClass,
+        data.resultTone,
+        clickable ? 'dashboard-click-card' : ''
+    ].filter(Boolean).join(' ');
+    const watermarkHtml = showWatermark
+        ? `<div class="dashboard-next-match-watermark"><i class="fa-solid fa-shield-halved"></i></div>`
+        : '';
+    const topChipsHtml = `
+        <div class="match-detail-chip">
+            <i class="fa-solid fa-futbol"></i>
+            <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
+        </div>
+        ${data.groupChip}
+        ${showResultChip && data.resultChip ? data.resultChip : ''}
+    `;
+    const footerAttendanceHtml = showAttendance && data.attendingCount > 0
+        ? `<div class="match-detail-footer-item">
+                <i class="fa-solid fa-user-check"></i>
+                <span>${data.attendingCount} påmeldt</span>
+           </div>`
+        : '';
+    const clickAttrs = clickable
+        ? `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`
+        : '';
+
+    return `
+        <article class="${cardClasses}" ${clickAttrs}>
+            ${watermarkHtml}
+            <div class="match-detail-card-top relative z-10">
+                <div class="match-detail-meta">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    <span>${escapeMatchHtml(data.dateLabel)}</span>
+                </div>
+                <div class="match-detail-top-chips">
+                    ${topChipsHtml}
+                </div>
+            </div>
+
+            <div class="match-detail-main relative z-10">
+                <div class="match-detail-team">
+                    <div class="match-detail-crest match-detail-crest-opponent">
+                        <i class="fa-solid fa-shield"></i>
+                    </div>
+                    <span class="match-detail-team-name">${escapeMatchHtml(match.opponent)}</span>
+                </div>
+
+                <div class="match-detail-center">
+                    <span class="match-detail-time">${escapeMatchHtml(data.centerValue)}</span>
+                    <span class="match-detail-sub">${escapeMatchHtml(data.centerLabel)}</span>
+                </div>
+
+                <div class="match-detail-team">
+                    <div class="match-detail-crest">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span class="match-detail-team-name">Bækkelaget</span>
+                </div>
+            </div>
+
+            <div class="match-detail-footer relative z-10">
+                <div class="match-detail-footer-item" title="${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}</span>
+                </div>
+                ${footerAttendanceHtml}
+                <div class="match-detail-footer-item">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>${escapeMatchHtml(data.durationLabel)}</span>
+                </div>
+            </div>
+        </article>
+    `;
+}
+
 function setMatchTimeFilter(filterType) {
     window.activeTimeFilter = filterType;
 
     const btnKommende = document.getElementById('btn-filter-kommende');
     const btnTidligere = document.getElementById('btn-filter-tidligere');
-    const activeClass = "portal-segment-btn is-active";
-    const inactiveClass = "portal-segment-btn";
+    const activeClass = 'match-filter-btn is-active';
+    const inactiveClass = 'match-filter-btn';
 
     if (btnKommende && btnTidligere) {
         if (filterType === 'kommende') {
             btnKommende.className = activeClass;
             btnTidligere.className = inactiveClass;
+            btnKommende.setAttribute('aria-selected', 'true');
+            btnTidligere.setAttribute('aria-selected', 'false');
         } else {
             btnTidligere.className = activeClass;
             btnKommende.className = inactiveClass;
+            btnTidligere.setAttribute('aria-selected', 'true');
+            btnKommende.setAttribute('aria-selected', 'false');
         }
     }
 
@@ -20,11 +170,11 @@ function setMatchTimeFilter(filterType) {
 }
 
 function applyFilters() {
-    const tableBody = document.getElementById('matchTableBody');
+    const listContainer = document.getElementById('matchListContainer');
     const noMatchesView = document.getElementById('no-matches-view');
-    if (!tableBody) return;
+    if (!listContainer) return;
 
-    tableBody.innerHTML = '';
+    listContainer.innerHTML = '';
 
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
     const currentTimeFilter = window.activeTimeFilter || 'kommende';
@@ -56,52 +206,13 @@ function applyFilters() {
 
     if (noMatchesView) noMatchesView.classList.add('hidden');
 
-    sortedMatches.forEach(m => {
-        const tr = document.createElement('tr');
-        tr.className = "group hover:bg-sky-50/60 active:bg-slate-100 transition-all border-b border-slate-100 cursor-pointer";
-        tr.onclick = () => showMatchDetails(m.id);
-
-        const dateFormatted = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
-        let resultBadge = `<span class="text-slate-400 font-medium">-</span>`;
-        const matchMeta = `${m.matchGroup || 'Lag'} · ${m.matchType || 'Kamp'}`;
-
-        if (m.result) {
-            const score = parseScore(m.result);
-
-            if (score) {
-                if (score.bsk > score.opponent) resultBadge = `<span class="inline-flex items-center justify-center bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">${m.result}</span>`;
-                else if (score.bsk === score.opponent) resultBadge = `<span class="inline-flex items-center justify-center bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-200">${m.result}</span>`;
-                else resultBadge = `<span class="inline-flex items-center justify-center bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-rose-200">${m.result}</span>`;
-            } else {
-                resultBadge = `<span class="text-slate-600 font-bold">${m.result}</span>`;
-            }
-        }
-
-        tr.innerHTML = `
-            <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">
-                <div class="min-w-[180px]">
-                    <div class="flex flex-col min-w-0">
-                        <span class="truncate">${m.opponent}</span>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">${matchMeta}</span>
-                        <span class="text-[10px] text-slate-400 font-normal lg:hidden truncate">${m.pitch || 'Ingen bane'}</span>
-                    </div>
-                </div>
-            </td>
-            <td class="py-3.5 px-4 text-center text-slate-600 font-semibold">${dateFormatted}</td>
-            <td class="py-3.5 px-2 text-center text-slate-500 font-medium text-xs">${m.time || '--:--'}</td>
-            <td class="py-3.5 px-4 text-center">${resultBadge}</td>
-            <td class="py-3.5 px-6 text-left hidden lg:table-cell text-slate-600">${m.pitch || '<span class="text-slate-300">Ikke oppgitt</span>'}</td>
-            <td class="py-3.5 px-6 text-left hidden lg:table-cell"><span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">${m.matchType}</span></td>
-            <td class="py-3.5 px-4 md:px-6 text-right">
-                <button type="button" onclick="event.stopPropagation(); showMatchDetails('${m.id}')" class="portal-btn portal-btn-secondary portal-btn-xs">
-                    <i class="fa-solid fa-clipboard-list text-[10px]"></i>
-                    <span class="hidden sm:inline">Detaljer</span>
-                </button>
-            </td>
-        `;
-
-        tableBody.appendChild(tr);
-    });
+    listContainer.innerHTML = sortedMatches.map(match => buildMatchDetailCardHtml(match, {
+        extraClass: 'match-list-card',
+        clickable: true,
+        showWatermark: true,
+        showResultChip: currentTimeFilter === 'tidligere',
+        showAttendance: currentTimeFilter === 'kommende'
+    })).join('');
 }
 
 window.openMatchModal = function(editId = null) {
@@ -175,25 +286,8 @@ window.showMatchDetails = function(id) {
     if (!match) return;
 
     const container = document.getElementById('kampdetaljer-info');
-    const dateValue = new Date(match.date);
-    const dateFormatted = Number.isNaN(dateValue.getTime())
-        ? 'Dato ikke satt'
-        : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
-    const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
-    const matchTypeLabel = match.matchType || 'Kamp';
-    const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = parsedScore ? `${parsedScore.opponent}-${parsedScore.bsk}` : match.result;
-    const centerValue = match.result ? displayedResult : (match.time || '--:--');
-    const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
-    const durationLabel = match.duration || '90 min';
-    const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    }[char]));
-    const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapeHtml = escapeMatchHtml;
+    const escapeJsString = escapeMatchJsString;
     const teamPlayers = (window.activePlayers || [])
         .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
@@ -244,50 +338,7 @@ window.showMatchDetails = function(id) {
         `;
 
     container.innerHTML = `
-        <article class="match-detail-card">
-            <div class="match-detail-card-top">
-                <div class="match-detail-meta">
-                    <i class="fa-regular fa-calendar-days"></i>
-                    <span>${dateLabel}</span>
-                </div>
-                <div class="match-detail-chip">
-                    <i class="fa-solid fa-futbol"></i>
-                    <span>${matchTypeLabel}</span>
-                </div>
-            </div>
-
-            <div class="match-detail-main">
-                <div class="match-detail-team">
-                    <div class="match-detail-crest match-detail-crest-opponent">
-                        <i class="fa-solid fa-shield"></i>
-                    </div>
-                    <span class="match-detail-team-name">${match.opponent}</span>
-                </div>
-
-                <div class="match-detail-center">
-                    <span class="match-detail-time">${centerValue}</span>
-                    <span class="match-detail-sub">${centerLabel}</span>
-                </div>
-
-                <div class="match-detail-team">
-                    <div class="match-detail-crest">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <span class="match-detail-team-name">Bækkelaget</span>
-                </div>
-            </div>
-
-            <div class="match-detail-footer">
-                <div class="match-detail-footer-item" title="${match.pitch || 'Ikke fastsatt'}">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <span>${match.pitch || 'Ikke fastsatt'}</span>
-                </div>
-                <div class="match-detail-footer-item">
-                    <i class="fa-regular fa-clock"></i>
-                    <span>${durationLabel}</span>
-                </div>
-            </div>
-        </article>
+        ${buildMatchDetailCardHtml(match, { showResultChip: Boolean(match.result) })}
 
         <section class="match-bench-panel">
             <div class="match-bench-action-row">
