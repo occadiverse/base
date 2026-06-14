@@ -1009,7 +1009,7 @@ if (defaultPlayerName) {
             year: 'numeric'
         });
 
-        const resultText = m.result ? ` · ${m.result}` : '';
+        const resultText = m.result ? ` · BSK ${m.result}` : '';
         const groupText = m.matchGroup ? ` (${m.matchGroup})` : '';
 
         return `<option value="${m.id}">${m.opponent}${resultText}</option>`;
@@ -1141,7 +1141,7 @@ let html = `
         ? new Date(match.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
         : '';
 
-    const matchResult = match.result || '?';
+    const matchResult = match.result ? `BSK ${match.result}` : '?';
     const matchType = match.type || match.matchType || 'Kamp';
     const matchGroup = match.matchGroup || match.team || '';
     const opponent = match.opponent || 'Motstander';
@@ -1265,7 +1265,7 @@ let html = `
                                             : '';
                                 
                                         const shortText = m.opponent || 'Motstander';
-                                        const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
+                                        const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · BSK ' + m.result : ''}`;
                                 
                                         return `
                                             <option 
@@ -1691,7 +1691,7 @@ window.getPlayerMatchPointsHistory = function(playerName) {
                 matchId: m.id,
                 date: m.date,
                 opponent: m.opponent,
-                result: m.result || 'Ikke spilt',
+                result: m.result ? `BSK ${m.result}` : 'Ikke spilt',
                 rating: m.ratings && m.ratings[playerName] ? m.ratings[playerName] : '-',
                 points: ptsDetails.total,
                 breakdown: `Start: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`

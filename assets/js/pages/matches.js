@@ -126,7 +126,7 @@ function buildMatchFixtureRowHtml(match, options = {}) {
     const sideValue = isUpcoming
         ? (match.time || '--:--')
         : data.displayedResult;
-    const sideLabel = isUpcoming ? 'Avspark' : 'Resultat';
+    const sideLabel = isUpcoming ? 'Avspark' : 'BSK-MOT';
 
     return `
         <article class="match-fixture-row dashboard-click-card ${data.resultTone}" ${clickAttrs}>
@@ -163,7 +163,7 @@ function getMatchCardPresentation(match) {
     const parsedScore = match.result ? parseScore(match.result) : null;
     const displayedResult = match.result || '-';
     const centerValue = match.result ? displayedResult : (match.time || '--:--');
-    const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
+    const centerLabel = match.result ? (match.time ? `BSK-MOT · Kl. ${match.time}` : 'BSK-MOT') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
     const attendingCount = match.attendance
         ? Object.values(match.attendance).filter(Boolean).length
