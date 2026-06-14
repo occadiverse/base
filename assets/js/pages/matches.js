@@ -41,9 +41,8 @@ function getMatchFixturePresentation(match, options = {}) {
         ? dateValue.toLocaleDateString('no-NO', { month: 'long', year: 'numeric' })
         : 'Ukjent dato';
     const monthLabel = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
-    const venue = getMatchVenue(match);
     const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = formatMatchResultForDisplay(match.result, venue);
+    const displayedResult = match.result || '-';
 
     let resultTone = '';
     if (parsedScore) {
@@ -54,7 +53,6 @@ function getMatchFixturePresentation(match, options = {}) {
 
     const metaParts = [];
     if (showLag && match.matchGroup) metaParts.push(match.matchGroup);
-    metaParts.push(venue === 'Hjemme' ? 'Hjemme' : 'Borte');
     if (match.matchType) metaParts.push(match.matchType);
     if (match.pitch) metaParts.push(match.pitch);
 
@@ -186,19 +184,11 @@ function getMatchCardPresentation(match) {
         : 0;
 
     let resultTone = '';
-    let resultChip = '';
 
     if (parsedScore) {
-        if (parsedScore.bsk > parsedScore.opponent) {
-            resultTone = 'is-win';
-            resultChip = '<span class="match-detail-result-chip is-win">Seier</span>';
-        } else if (parsedScore.bsk === parsedScore.opponent) {
-            resultTone = 'is-draw';
-            resultChip = '<span class="match-detail-result-chip is-draw">Uavgjort</span>';
-        } else {
-            resultTone = 'is-loss';
-            resultChip = '<span class="match-detail-result-chip is-loss">Tap</span>';
-        }
+        if (parsedScore.bsk > parsedScore.opponent) resultTone = 'is-win';
+        else if (parsedScore.bsk === parsedScore.opponent) resultTone = 'is-draw';
+        else resultTone = 'is-loss';
     }
 
     return {
@@ -208,12 +198,7 @@ function getMatchCardPresentation(match) {
         centerLabel,
         durationLabel,
         attendingCount,
-        resultTone,
-        resultChip,
-        venueLabel: venue === 'Hjemme' ? 'Hjemme' : 'Borte',
-        groupChip: match.matchGroup
-            ? `<div class="match-detail-chip match-detail-chip-muted"><i class="fa-solid fa-users"></i><span>${escapeMatchHtml(match.matchGroup)}</span></div>`
-            : ''
+        resultTone
     };
 }
 
@@ -222,7 +207,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
         extraClass = '',
         clickable = false,
         showWatermark = false,
-        showResultChip = false,
         showAttendance = false
     } = options;
     const data = getMatchCardPresentation(match);
@@ -241,12 +225,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
             <i class="fa-solid fa-futbol"></i>
             <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
         </div>
-        <div class="match-detail-chip match-detail-chip-muted">
-            <i class="fa-solid ${sides.venue === 'Hjemme' ? 'fa-house' : 'fa-plane'}"></i>
-            <span>${escapeMatchHtml(data.venueLabel)}</span>
-        </div>
-        ${data.groupChip}
-        ${showResultChip && data.resultChip ? data.resultChip : ''}
     `;
     const footerAttendanceHtml = showAttendance && data.attendingCount > 0
         ? `<div class="match-detail-footer-item">
@@ -448,7 +426,7 @@ window.showMatchDetails = function(id) {
         `;
 
     container.innerHTML = `
-        ${buildMatchDetailCardHtml(match, { showResultChip: Boolean(match.result) })}
+        ${buildMatchDetailCardHtml(match)}
 
         <section class="match-bench-panel">
             <div class="match-bench-action-row">

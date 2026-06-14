@@ -156,10 +156,6 @@ window.updateDashboard = function() {
                             <i class="fa-solid fa-futbol"></i>
                             <span>${matchTypeLabel}</span>
                         </div>
-                        <div class="match-detail-chip match-detail-chip-muted">
-                            <i class="fa-solid ${sides.venue === 'Hjemme' ? 'fa-house' : 'fa-plane'}"></i>
-                            <span>${sides.venueLabel}</span>
-                        </div>
                     </div>
 
                     <div class="match-detail-main relative z-10">
