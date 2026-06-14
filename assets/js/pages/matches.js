@@ -28,7 +28,7 @@ function getMatchFixturePresentation(match, options = {}) {
         : 'Ukjent dato';
     const monthLabel = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
     const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = parsedScore ? `${parsedScore.opponent}-${parsedScore.bsk}` : (match.result || '-');
+    const displayedResult = match.result || '-';
 
     let resultTone = '';
     if (parsedScore) {
@@ -161,7 +161,7 @@ function getMatchCardPresentation(match) {
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
     const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = parsedScore ? `${parsedScore.opponent}-${parsedScore.bsk}` : match.result;
+    const displayedResult = match.result || '-';
     const centerValue = match.result ? displayedResult : (match.time || '--:--');
     const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
