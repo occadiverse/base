@@ -170,6 +170,50 @@ function parseScore(resultStr) {
     return { bsk: pts[0], opponent: pts[1] };
 }
 
+function getMatchVenue(match) {
+    if (match && match.venue === 'Hjemme') return 'Hjemme';
+    if (match && match.venue === 'Borte') return 'Borte';
+    return 'Borte';
+}
+
+function formatMatchResultForDisplay(resultStr, venue) {
+    if (!resultStr) return '-';
+
+    const parsedScore = parseScore(resultStr);
+    if (!parsedScore) return resultStr;
+
+    if (venue === 'Hjemme') {
+        return `${parsedScore.bsk}-${parsedScore.opponent}`;
+    }
+
+    return `${parsedScore.opponent}-${parsedScore.bsk}`;
+}
+
+function getMatchCardSides(match) {
+    const venue = getMatchVenue(match);
+    const opponentName = match && match.opponent ? match.opponent : 'Motstander';
+
+    if (venue === 'Hjemme') {
+        return {
+            venue,
+            venueLabel: 'Hjemme',
+            left: { name: 'Bækkelaget', isBsk: true },
+            right: { name: opponentName, isBsk: false }
+        };
+    }
+
+    return {
+        venue,
+        venueLabel: 'Borte',
+        left: { name: opponentName, isBsk: false },
+        right: { name: 'Bækkelaget', isBsk: true }
+    };
+}
+
+window.getMatchVenue = getMatchVenue;
+window.formatMatchResultForDisplay = formatMatchResultForDisplay;
+window.getMatchCardSides = getMatchCardSides;
+
 function getFormGuide() {
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
     const playedMatches = matches.filter(m => m.result && m.result.includes('-'));
@@ -180,9 +224,9 @@ function getFormGuide() {
 
     return last5.map(m => {
         const score = parseScore(m.result);
-        if (!score) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Registrert: BSK ${m.result}` };
-        if (score.bsk > score.opponent) return { m, form: 'S', class: 'bg-emerald-500 text-white', text: 'S', tooltip: `Seier vs ${m.opponent} (BSK ${m.result})` };
-        if (score.bsk === score.opponent) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (BSK ${m.result})` };
-        return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (BSK ${m.result})` };
+        if (!score) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Registrert: ${m.result}` };
+        if (score.bsk > score.opponent) return { m, form: 'S', class: 'bg-emerald-500 text-white', text: 'S', tooltip: `Seier vs ${m.opponent} (${m.result})` };
+        if (score.bsk === score.opponent) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result})` };
+        return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result})` };
     });
 }

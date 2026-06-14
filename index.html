@@ -479,9 +479,18 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="portal-label">Motstander</label>
-                    <input type="text" id="opponent" placeholder="Navn på motstanderlag" required class="portal-field">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="portal-label">Motstander</label>
+                        <input type="text" id="opponent" placeholder="Navn på motstanderlag" required class="portal-field">
+                    </div>
+                    <div>
+                        <label class="portal-label">Hjemme / Borte</label>
+                        <select id="matchVenue" class="portal-field">
+                            <option value="Hjemme">Hjemme</option>
+                            <option value="Borte">Borte</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>
@@ -504,8 +513,9 @@
                             </select>
                     </div>
                     <div class="col-span-1">
-                        <label class="portal-label">Resultat (Valgfritt)</label>
-                        <input type="text" id="result" placeholder="f.eks. 3-1" class="portal-field">
+                        <label class="portal-label">Resultat (valgfritt)</label>
+                        <input type="text" id="result" placeholder="BSK først, f.eks. 2-0" class="portal-field">
+                        <p class="text-[10px] text-slate-500 mt-1">Alltid BSK sitt tall først. Eksempel: 2-0 betyr BSK 2, motstander 0.</p>
                     </div>
                 </div>
 
@@ -919,14 +929,14 @@
     <script src="assets/js/components/navigation.js?v=20260613-mobile-nav7"></script>
     <script src="assets/js/state.js"></script>
     <script src="assets/js/components/modals.js"></script>
-    <script src="assets/js/app-shell.js?v=20260614-score-order"></script>
+    <script src="assets/js/app-shell.js?v=20260614-match-venue"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/pages/players.js"></script>
-    <script src="assets/js/pages/matches.js?v=20260614-score-order"></script>
+    <script src="assets/js/pages/matches.js?v=20260614-match-venue"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260614-score-order"></script>
+    <script src="assets/js/pages/statistics.js?v=20260614-result-display"></script>
     <script src="assets/js/pages/tactics.js"></script>
-    <script src="assets/js/pages/dashboard.js?v=20260613-match-detail-hero"></script>
+    <script src="assets/js/pages/dashboard.js?v=20260614-match-venue"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
 </body>

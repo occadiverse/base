@@ -12,6 +12,20 @@ function escapeMatchJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+function renderMatchTeamHtml(team) {
+    const crestClass = team.isBsk ? 'match-detail-crest' : 'match-detail-crest match-detail-crest-opponent';
+    const iconClass = team.isBsk ? 'fa-shield-halved' : 'fa-shield';
+
+    return `
+        <div class="match-detail-team">
+            <div class="${crestClass}">
+                <i class="fa-solid ${iconClass}"></i>
+            </div>
+            <span class="match-detail-team-name">${escapeMatchHtml(team.name)}</span>
+        </div>
+    `;
+}
+
 function getMatchFixturePresentation(match, options = {}) {
     const { showLag = false } = options;
     const dateValue = new Date(match.date);
@@ -27,8 +41,9 @@ function getMatchFixturePresentation(match, options = {}) {
         ? dateValue.toLocaleDateString('no-NO', { month: 'long', year: 'numeric' })
         : 'Ukjent dato';
     const monthLabel = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
+    const venue = getMatchVenue(match);
     const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = match.result || '-';
+    const displayedResult = formatMatchResultForDisplay(match.result, venue);
 
     let resultTone = '';
     if (parsedScore) {
@@ -39,6 +54,7 @@ function getMatchFixturePresentation(match, options = {}) {
 
     const metaParts = [];
     if (showLag && match.matchGroup) metaParts.push(match.matchGroup);
+    metaParts.push(venue === 'Hjemme' ? 'Hjemme' : 'Borte');
     if (match.matchType) metaParts.push(match.matchType);
     if (match.pitch) metaParts.push(match.pitch);
 
@@ -126,7 +142,7 @@ function buildMatchFixtureRowHtml(match, options = {}) {
     const sideValue = isUpcoming
         ? (match.time || '--:--')
         : data.displayedResult;
-    const sideLabel = isUpcoming ? 'Avspark' : 'BSK-MOT';
+    const sideLabel = isUpcoming ? 'Avspark' : 'Resultat';
 
     return `
         <article class="match-fixture-row dashboard-click-card ${data.resultTone}" ${clickAttrs}>
@@ -160,10 +176,10 @@ function getMatchCardPresentation(match) {
         : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
+    const venue = getMatchVenue(match);
     const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = match.result || '-';
-    const centerValue = match.result ? displayedResult : (match.time || '--:--');
-    const centerLabel = match.result ? (match.time ? `BSK-MOT · Kl. ${match.time}` : 'BSK-MOT') : 'Kampstart';
+    const centerValue = match.result ? formatMatchResultForDisplay(match.result, venue) : (match.time || '--:--');
+    const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
     const attendingCount = match.attendance
         ? Object.values(match.attendance).filter(Boolean).length
@@ -194,6 +210,7 @@ function getMatchCardPresentation(match) {
         attendingCount,
         resultTone,
         resultChip,
+        venueLabel: venue === 'Hjemme' ? 'Hjemme' : 'Borte',
         groupChip: match.matchGroup
             ? `<div class="match-detail-chip match-detail-chip-muted"><i class="fa-solid fa-users"></i><span>${escapeMatchHtml(match.matchGroup)}</span></div>`
             : ''
@@ -209,6 +226,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
         showAttendance = false
     } = options;
     const data = getMatchCardPresentation(match);
+    const sides = getMatchCardSides(match);
     const cardClasses = [
         'match-detail-card',
         extraClass,
@@ -222,6 +240,10 @@ function buildMatchDetailCardHtml(match, options = {}) {
         <div class="match-detail-chip">
             <i class="fa-solid fa-futbol"></i>
             <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
+        </div>
+        <div class="match-detail-chip match-detail-chip-muted">
+            <i class="fa-solid ${sides.venue === 'Hjemme' ? 'fa-house' : 'fa-plane'}"></i>
+            <span>${escapeMatchHtml(data.venueLabel)}</span>
         </div>
         ${data.groupChip}
         ${showResultChip && data.resultChip ? data.resultChip : ''}
@@ -250,24 +272,14 @@ function buildMatchDetailCardHtml(match, options = {}) {
             </div>
 
             <div class="match-detail-main relative z-10">
-                <div class="match-detail-team">
-                    <div class="match-detail-crest match-detail-crest-opponent">
-                        <i class="fa-solid fa-shield"></i>
-                    </div>
-                    <span class="match-detail-team-name">${escapeMatchHtml(match.opponent)}</span>
-                </div>
+                ${renderMatchTeamHtml(sides.left)}
 
                 <div class="match-detail-center">
                     <span class="match-detail-time">${escapeMatchHtml(data.centerValue)}</span>
                     <span class="match-detail-sub">${escapeMatchHtml(data.centerLabel)}</span>
                 </div>
 
-                <div class="match-detail-team">
-                    <div class="match-detail-crest">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <span class="match-detail-team-name">Bækkelaget</span>
-                </div>
+                ${renderMatchTeamHtml(sides.right)}
             </div>
 
             <div class="match-detail-footer relative z-10">
@@ -328,10 +340,12 @@ window.openMatchModal = function(editId = null) {
             document.getElementById('pitch').value = matchObj.pitch || '';
             document.getElementById('matchType').value = matchObj.matchType;
             document.getElementById('matchGroup').value = matchObj.matchGroup || 'Lag A';
+            document.getElementById('matchVenue').value = getMatchVenue(matchObj);
             document.getElementById('result').value = matchObj.result || '';
         }
     } else {
         document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Ny Kamp`;
+        document.getElementById('matchVenue').value = 'Hjemme';
     }
 
     modal.classList.remove('hidden');
@@ -356,6 +370,7 @@ window.saveMatch = async function(event) {
         pitch: document.getElementById('pitch').value,
         matchType: document.getElementById('matchType').value,
         matchGroup: document.getElementById('matchGroup').value,
+        venue: document.getElementById('matchVenue').value,
         result: document.getElementById('result').value,
         scorers: existingMatch ? (existingMatch.scorers || {}) : {},
         assists: existingMatch ? (existingMatch.assists || {}) : {},

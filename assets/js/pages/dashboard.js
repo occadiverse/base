@@ -69,6 +69,25 @@ window.updateDashboard = function() {
             const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
             const matchTypeLabel = nm.matchType || 'Kamp';
             const durationLabel = nm.duration || '90 min';
+            const sides = typeof window.getMatchCardSides === 'function'
+                ? window.getMatchCardSides(nm)
+                : {
+                    venueLabel: 'Borte',
+                    left: { name: nm.opponent, isBsk: false },
+                    right: { name: 'Bækkelaget', isBsk: true }
+                };
+            const renderHeroTeamHtml = (team) => {
+                const crestClass = team.isBsk ? 'match-detail-crest' : 'match-detail-crest match-detail-crest-opponent';
+                const iconClass = team.isBsk ? 'fa-shield-halved' : 'fa-shield';
+                return `
+                    <div class="match-detail-team">
+                        <div class="${crestClass}">
+                            <i class="fa-solid ${iconClass}"></i>
+                        </div>
+                        <span class="match-detail-team-name">${team.name}</span>
+                    </div>
+                `;
+            };
             
             // Henter ut karantener
             const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
@@ -137,27 +156,21 @@ window.updateDashboard = function() {
                             <i class="fa-solid fa-futbol"></i>
                             <span>${matchTypeLabel}</span>
                         </div>
+                        <div class="match-detail-chip match-detail-chip-muted">
+                            <i class="fa-solid ${sides.venue === 'Hjemme' ? 'fa-house' : 'fa-plane'}"></i>
+                            <span>${sides.venueLabel}</span>
+                        </div>
                     </div>
 
                     <div class="match-detail-main relative z-10">
-                        <div class="match-detail-team">
-                            <div class="match-detail-crest match-detail-crest-opponent">
-                                <i class="fa-solid fa-shield"></i>
-                            </div>
-                            <span class="match-detail-team-name">${nm.opponent}</span>
-                        </div>
+                        ${renderHeroTeamHtml(sides.left)}
 
                         <div class="match-detail-center">
                             <span class="match-detail-time">${nm.time || '--:--'}</span>
                             <span class="match-detail-sub">Kampstart</span>
                         </div>
 
-                        <div class="match-detail-team">
-                            <div class="match-detail-crest">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <span class="match-detail-team-name">Bækkelaget</span>
-                        </div>
+                        ${renderHeroTeamHtml(sides.right)}
                     </div>
 
                     <div class="match-detail-footer relative z-10">
