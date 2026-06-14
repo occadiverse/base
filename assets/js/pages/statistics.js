@@ -168,7 +168,7 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     let totalRedCards = 0;
 
     (window.activeMatches || []).forEach(m => {
-        if (!isHistorical(m) || m.matchGroup !== spillerLag) return;
+        if (!isHistorical(m) || m.matchGroup !== spillerLag || m.matchType !== 'Serie') return;
         if (m.guleKort && m.guleKort.includes(playerName)) totalYellowCards++;
         if (m.rodeKort && m.rodeKort.includes(playerName)) totalRedCards++;
     });
@@ -308,7 +308,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 let assists = 0;
                 let bb = 0;
                 let yellow = 0;
+                let yellowSerie = 0;
                 let red = 0;
+                let redSerie = 0;
                 let ratings = [];
 
                 playerMatches.forEach(m => {
@@ -322,7 +324,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     if (m.assists && m.assists[name]) assists += Number(m.assists[name]) || 0;
                     if (m.motm === name) bb += 1;
                     if (m.guleKort && m.guleKort.includes(name)) yellow += 1;
+                    if (m.matchType === 'Serie' && m.guleKort && m.guleKort.includes(name)) yellowSerie += 1;
                     if (m.rodeKort && m.rodeKort.includes(name)) red += 1;
+                    if (m.matchType === 'Serie' && m.rodeKort && m.rodeKort.includes(name)) redSerie += 1;
 
                     if (m.ratings && m.ratings[name]) {
                         ratings.push({
@@ -359,7 +363,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     assists: assists || 0,
                     bb: bb || 0,
                     yellow: yellow || 0,
+                    yellowSerie: yellowSerie || 0,
                     red: red || 0,
+                    redSerie: redSerie || 0,
                     avgRating: avgRating || 0,
                     formLastFive: formLastFive || 0
                 };
@@ -397,12 +403,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
         .slice(0, 8);
 
     const followUps = activeStats
-        .filter(p => p.red > 0 || p.yellow >= 3 || p.formLastFive < 5.5 || p.matches <= 2)
+        .filter(p => p.redSerie > 0 || p.yellowSerie >= 3 || p.formLastFive < 5.5 || p.matches <= 2)
         .map(p => {
             let reason = [];
 
-            if (p.red > 0) reason.push('Rødt kort');
-            if (p.yellow >= 3) reason.push('Mange gule kort');
+            if (p.redSerie > 0) reason.push('Rødt kort i serie');
+            if (p.yellowSerie >= 3) {
+                const hint = typeof window.getSerieYellowDisciplineHint === 'function'
+                    ? window.getSerieYellowDisciplineHint(p.yellowSerie)
+                    : null;
+                reason.push(hint && hint.isAtRisk
+                    ? `${p.yellowSerie} gule i serie – karantene ved ${hint.nextSuspensionAt}`
+                    : 'Mange gule kort i serie');
+            }
             if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
             if (p.matches <= 2) reason.push('Få kamper registrert');
 
@@ -840,8 +853,10 @@ if (defaultPlayerName) {
 
     let totalGoals = 0;
     let totalAssists = 0;
-    let totalYellow = 0;
-    let totalRed = 0;
+    let totalYellowSerie = 0;
+    let totalYellowCup = 0;
+    let totalRedSerie = 0;
+    let totalRedCup = 0;
     let totalBb = 0;
 
     history.forEach(h => {
@@ -850,8 +865,13 @@ if (defaultPlayerName) {
 
         totalGoals += m.scorers && m.scorers[playerName] ? Number(m.scorers[playerName]) : 0;
         totalAssists += m.assists && m.assists[playerName] ? Number(m.assists[playerName]) : 0;
-        totalYellow += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
-        totalRed += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
+        if (m.matchType === 'Serie') {
+            totalYellowSerie += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
+            totalRedSerie += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
+        } else if (m.matchType === 'Cup') {
+            totalYellowCup += m.guleKort && m.guleKort.includes(playerName) ? 1 : 0;
+            totalRedCup += m.rodeKort && m.rodeKort.includes(playerName) ? 1 : 0;
+        }
         totalBb += m.motm === playerName ? 1 : 0;
     });
 
@@ -873,7 +893,7 @@ if (defaultPlayerName) {
             ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
             ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
             ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
-            ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · ${totalYellow} gule · ${totalRed} røde`, 'fa-chart-line', 'text-indigo-600')}
+            ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-indigo-600')}
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -958,7 +978,7 @@ if (defaultPlayerName) {
         tableHtml += `
             <tr class="hover:bg-slate-50 transition" title="${h.breakdown}">
                 <td class="p-4 text-slate-500 font-medium">${dateText}</td>
-                <td class="p-4 font-black text-slate-800">${h.opponent}</td>
+                <td class="p-4 font-black text-slate-800">${h.opponent}${h.onPitch === false ? ' <span class="text-[9px] text-amber-700 font-bold">(benk)</span>' : ''}</td>
                 <td class="p-4 text-center font-black text-lg ${pointColor}">${h.points}</td>
 	                <td class="p-4 text-center">
 	                    <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
@@ -1131,7 +1151,7 @@ let html = `
             resultBonus: pointsDetails.resultBonus || 0,
             ratingBonus: pointsDetails.ratingBonus || 0,
             bbBonus: pointsDetails.bbBonus || 0,
-            breakdown: `Start: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
+            breakdown: `${pointsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
         };
     });
 
@@ -1580,29 +1600,51 @@ let html = `
                     return true;
                 });
 
-                let attended = 0, kamper = 0, yellow = 0, red = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
+                let attended = 0, kamper = 0, attendedMatches = 0, yellowSerie = 0, redSerie = 0, yellowCup = 0, redCup = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
 
                 teamEvents.forEach(e => {
                     if (e.attendance && e.attendance[p.navn] === true) {
                         attended++;
                         if (e.type === 'Kamp') {
-	                            kamper++; 
-	                            if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
-	                            if (e.assists && e.assists[p.navn]) assist += e.assists[p.navn];
-	                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
-	                            if (e.motm === p.navn) bb++;
+                            attendedMatches++;
+                            const onPitch = typeof window.isPlayerOnPitch === 'function'
+                                ? window.isPlayerOnPitch(e, p.navn)
+                                : true;
+                            if (onPitch) {
+                                kamper++;
+                                if (e.scorers && e.scorers[p.navn]) mal += e.scorers[p.navn];
+                                if (e.assists && e.assists[p.navn]) assist += e.assists[p.navn];
+                                if (e.motm === p.navn) bb++;
+                            }
+                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p.navn);
                         }
                     }
                     if (e.type === 'Kamp') {
-                        if (e.guleKort && e.guleKort.includes(p.navn)) yellow++;
-                        if (e.rodeKort && e.rodeKort.includes(p.navn)) red++;
+                        if (e.matchType === 'Serie') {
+                            if (e.guleKort && e.guleKort.includes(p.navn)) yellowSerie++;
+                            if (e.rodeKort && e.rodeKort.includes(p.navn)) redSerie++;
+                        } else if (e.matchType === 'Cup') {
+                            if (e.guleKort && e.guleKort.includes(p.navn)) yellowCup++;
+                            if (e.rodeKort && e.rodeKort.includes(p.navn)) redCup++;
+                        }
                     }
                 });
 
+                const cardCounts = typeof window.getPlayerCardCounts === 'function'
+                    ? window.getPlayerCardCounts(p.navn, p.spillerLag)
+                    : { serie: { gule: yellowSerie, rode: redSerie }, cup: { gule: yellowCup, rode: redCup } };
+                const serieHint = typeof window.getSerieYellowDisciplineHint === 'function'
+                    ? window.getSerieYellowDisciplineHint(cardCounts.serie.gule)
+                    : { isAtRisk: false };
+
                 return {
                     navn: p.navn, pos1: p.pos1 || '', spillerLag: p.spillerLag || '', oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
-                    kamper: kamper, mal: mal, assist: assist, kampbonus: kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0,
-                    gule: yellow, rode: red, kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
+                    kamper: kamper, attendedMatches: attendedMatches, mal: mal, assist: assist, kampbonus: attendedMatches > 0 ? Math.round(totalMatchPoints / attendedMatches) : 0,
+                    guleSerie: cardCounts.serie.gule, rodeSerie: cardCounts.serie.rode,
+                    guleCup: cardCounts.cup.gule, rodeCup: cardCounts.cup.rode,
+                    gule: cardCounts.serie.gule, rode: cardCounts.serie.rode,
+                    serieAtRisk: serieHint.isAtRisk,
+                    kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
                     bb: bb
                 };
             });
@@ -1622,8 +1664,10 @@ let html = `
                     <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
                     <th class="p-4 text-center text-indigo-600 hover:text-indigo-800 transition-colors" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
                     <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('guleSerie')" title="Gule kort i seriespill">Gul S <span id="sort-icon-guleSerie"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('guleCup')" title="Gule kort i cup">Gul C <span id="sort-icon-guleCup"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rodeSerie')" title="Røde kort i seriespill">Rød S <span id="sort-icon-rodeSerie"></span></th>
+                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rodeCup')" title="Røde kort i cup">Rød C <span id="sort-icon-rodeCup"></span></th>
                     <th class="p-4 text-center hover:text-slate-800 transition-colors">
                         <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
                         <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
@@ -1631,7 +1675,7 @@ let html = `
                 </tr>
             `;
 
-            ['navn', 'oppmotePct', 'kamper', 'mal', 'assist', 'bb', 'kampbonus', 'gule', 'rode', 'kjemi'].forEach(col => {
+            ['navn', 'oppmotePct', 'kamper', 'mal', 'assist', 'bb', 'kampbonus', 'guleSerie', 'guleCup', 'rodeSerie', 'rodeCup', 'kjemi'].forEach(col => {
                 const iconEl = document.getElementById(`sort-icon-${col}`);
                 if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
             });
@@ -1650,11 +1694,15 @@ let html = `
                 else if (stat.kampbonus >= 10) bonusColor = 'text-amber-500';
                 else if (stat.kampbonus > 0) bonusColor = 'text-rose-500';
                 
-                let bonusTekst = stat.kamper > 0 ? stat.kampbonus.toFixed(1) : '-';
+                let bonusTekst = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
                 let malFarge = stat.mal > 0 ? 'text-slate-800 font-bold' : 'text-slate-300 font-bold';
                 let assistFarge = stat.assist > 0 ? 'text-sky-700 font-bold' : 'text-slate-300 font-bold';
-                let gulFarge = stat.gule > 0 ? (stat.gule % 4 === 3 ? 'text-yellow-500 animate-pulse font-bold' : 'text-slate-800 font-bold') : 'text-slate-300 font-bold';
-                let rodFarge = stat.rode > 0 ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-300 font-bold';
+                let gulSerieFarge = stat.guleSerie > 0
+                    ? (stat.serieAtRisk ? 'text-yellow-500 animate-pulse font-bold' : 'text-slate-800 font-bold')
+                    : 'text-slate-300 font-bold';
+                let gulCupFarge = stat.guleCup > 0 ? 'text-slate-700 font-bold' : 'text-slate-300 font-bold';
+                let rodSerieFarge = stat.rodeSerie > 0 ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-300 font-bold';
+                let rodCupFarge = stat.rodeCup > 0 ? 'text-rose-500 font-bold' : 'text-slate-300 font-bold';
                 
                 let bbFarge = stat.bb > 0 ? 'text-indigo-600 font-black text-sm' : 'text-slate-300 font-bold';
 
@@ -1667,8 +1715,10 @@ let html = `
                         <td class="p-4 text-center ${assistFarge}">${stat.assist > 0 ? stat.assist : '-'}</td>
                         <td class="p-4 text-center ${bbFarge}">${stat.bb > 0 ? stat.bb : '-'}</td>
                         <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
-                        <td class="p-4 text-center ${gulFarge}">${stat.gule > 0 ? stat.gule : '-'}</td>
-                        <td class="p-4 text-center ${rodFarge}">${stat.rode > 0 ? stat.rode : '-'}</td>
+                        <td class="p-4 text-center ${gulSerieFarge}" title="${stat.serieAtRisk ? 'Faresone: karantene ved neste gule i serie' : 'Gule kort i seriespill'}">${stat.guleSerie > 0 ? stat.guleSerie : '-'}</td>
+                        <td class="p-4 text-center ${gulCupFarge}" title="Gule kort i cup">${stat.guleCup > 0 ? stat.guleCup : '-'}</td>
+                        <td class="p-4 text-center ${rodSerieFarge}" title="Røde kort i seriespill">${stat.rodeSerie > 0 ? stat.rodeSerie : '-'}</td>
+                        <td class="p-4 text-center ${rodCupFarge}" title="Røde kort i cup">${stat.rodeCup > 0 ? stat.rodeCup : '-'}</td>
                         <td class="p-4 text-center font-bold ${chemColor}">${stat.kjemi}/100 ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
                     </tr>`;
             }).join('');
@@ -1691,10 +1741,12 @@ window.getPlayerMatchPointsHistory = function(playerName) {
                 matchId: m.id,
                 date: m.date,
                 opponent: m.opponent,
+                matchType: m.matchType || 'Kamp',
                 result: m.result || 'Ikke spilt',
                 rating: m.ratings && m.ratings[playerName] ? m.ratings[playerName] : '-',
                 points: ptsDetails.total,
-                breakdown: `Start: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
+                onPitch: ptsDetails.onPitch !== false,
+                breakdown: `${ptsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
             });
         }
     });

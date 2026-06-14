@@ -150,13 +150,22 @@ window.renderPlayerRoster = function() {
         if (p.status === 'Aktiv') statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">${p.status}</span>`;
         else if (p.status === 'Rekrutt') statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">${p.status}</span>`;
 
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
+        let injuryBadge = '';
+        if (injuryInfo.isInjured) {
+            const injuryClass = injuryInfo.type === 'langvarig'
+                ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                : 'bg-orange-100 text-orange-800 border border-orange-200';
+            injuryBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full ${injuryClass} ml-1" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
+        }
+
         tr.innerHTML = `
             <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">${p.navn} ${p.isCaptain ? '⚓' : ''}</td>
             <td class="py-3.5 px-4 text-center font-semibold text-slate-600">${jersey}</td>
             <td class="py-3.5 px-4 text-slate-700 font-medium">${posStr}</td>
             <td class="py-3.5 px-4 text-center text-slate-600">${p.fot}</td>
             <td class="py-3.5 px-4 text-center font-bold text-slate-800">${age} år</td>
-            <td class="py-3.5 px-4 text-center">${statusBadge}</td>
+            <td class="py-3.5 px-4 text-center">${statusBadge}${injuryBadge}</td>
             <td class="py-3.5 px-6 text-right">
                 <div class="flex justify-end gap-1">
                     <button onclick="window.openPlayerModal('${p.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -187,13 +196,28 @@ window.openPlayerModal = function(editPlayerId = null) {
             document.getElementById('playerPos1Input').value = pObj.pos1;
             document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
             document.getElementById('playerFootInput').value = pObj.fot || 'Høyre';
+            document.getElementById('playerSkadeStatusInput').value = pObj.skadeStatus || 'frisk';
+            document.getElementById('playerSkadeNotatInput').value = pObj.skadeNotat || '';
+            document.getElementById('playerSkadeTilDatoInput').value = pObj.skadeTilDato || '';
+            window.togglePlayerSkadeFields();
         }
     } else {
         document.getElementById('playerFormTitle').innerHTML = `<i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Ny Spiller`;
+        document.getElementById('playerSkadeStatusInput').value = 'frisk';
+        document.getElementById('playerSkadeNotatInput').value = '';
+        document.getElementById('playerSkadeTilDatoInput').value = '';
+        window.togglePlayerSkadeFields();
     }
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+};
+
+window.togglePlayerSkadeFields = function() {
+    const status = document.getElementById('playerSkadeStatusInput')?.value || 'frisk';
+    const extraFields = document.getElementById('playerSkadeExtraFields');
+    if (!extraFields) return;
+    extraFields.classList.toggle('hidden', status === 'frisk');
 };
 
 window.closePlayerModal = function() {
@@ -266,7 +290,10 @@ window.savePlayer = async function(event) {
         spillerLag: document.getElementById('playerTeamInput').value,
         pos1: document.getElementById('playerPos1Input').value,
         pos2: document.getElementById('playerPos2Input').value,
-        fot: document.getElementById('playerFootInput').value
+        fot: document.getElementById('playerFootInput').value,
+        skadeStatus: document.getElementById('playerSkadeStatusInput').value || 'frisk',
+        skadeNotat: document.getElementById('playerSkadeNotatInput').value.trim(),
+        skadeTilDato: document.getElementById('playerSkadeTilDatoInput').value || ''
     };
 
     await window.savePlayerToDatabase(playerData);

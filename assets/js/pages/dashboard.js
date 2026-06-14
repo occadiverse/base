@@ -92,6 +92,14 @@ window.updateDashboard = function() {
             // Henter ut karantener
             const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
             const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
+            const atRiskPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isAtRisk && !teamSuspensions[p].isSuspended);
+
+            const injuredPlayers = (window.activePlayers || [])
+                .filter(p => p.spillerLag === nm.matchGroup && typeof window.getPlayerInjuryInfo === 'function' && window.getPlayerInjuryInfo(p).isInjured)
+                .map(p => ({
+                    navn: p.navn,
+                    info: window.getPlayerInjuryInfo(p)
+                }));
             
             // Henter meldte forfall
             const forfallPlayers = [];
@@ -104,7 +112,7 @@ window.updateDashboard = function() {
             // Oppdaterer den dedikerte "Utilgjengelig"-boksen til høyre på forsiden
             if (dangerZoneContainer) {
                 dangerZoneContainer.innerHTML = '';
-                if (suspendedPlayers.length === 0 && forfallPlayers.length === 0) {
+                if (suspendedPlayers.length === 0 && atRiskPlayers.length === 0 && injuredPlayers.length === 0 && forfallPlayers.length === 0) {
                     dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Alle mann er meldt klare og tilgjengelige! 🦅</p>`;
                 } else {
                     suspendedPlayers.forEach(p => {
@@ -113,7 +121,25 @@ window.updateDashboard = function() {
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-rose-50 border border-rose-100 p-2 rounded-xl text-xs font-bold text-rose-900 shadow-sm">
                                 <span class="truncate">🚨 ${p}</span>
-                                <span class="${badgeColor} px-2 py-0.5 rounded text-[9px] font-black shrink-0">KARANTENE</span>
+                                <span class="${badgeColor} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.reason || 'KARANTENE'}</span>
+                            </div>`;
+                    });
+                    atRiskPlayers.forEach(p => {
+                        const s = teamSuspensions[p];
+                        dangerZoneContainer.innerHTML += `
+                            <div class="flex items-center justify-between bg-amber-50 border border-amber-100 p-2 rounded-xl text-xs font-bold text-amber-900 shadow-sm">
+                                <span class="truncate">⚠️ ${p}</span>
+                                <span class="bg-amber-400 text-slate-900 px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.yellows} gule · karantene ved ${s.nextKaranteneAt || 4}</span>
+                            </div>`;
+                    });
+                    injuredPlayers.forEach(p => {
+                        const badgeClass = p.info.type === 'langvarig'
+                            ? 'bg-rose-600 text-white'
+                            : 'bg-orange-500 text-white';
+                        dangerZoneContainer.innerHTML += `
+                            <div class="flex items-center justify-between bg-orange-50 border border-orange-100 p-2 rounded-xl text-xs font-bold text-orange-900 shadow-sm">
+                                <span class="truncate">🩹 ${p.navn}</span>
+                                <span class="${badgeClass} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${p.info.shortLabel}</span>
                             </div>`;
                     });
                     forfallPlayers.forEach(p => {
@@ -128,13 +154,13 @@ window.updateDashboard = function() {
 
             // --- OPPGRADERTE KLIKKBAR BADGE (Tar deg rett til kampen) ---
             let herosuspensionBadgeHtml = '';
-            if (suspendedPlayers.length > 0) {
-                // Vi har lagt til onclick, cursor-pointer og fjernet den gamle title-teksten
+            const totalWarnings = suspendedPlayers.length + atRiskPlayers.length;
+            if (totalWarnings > 0) {
                 herosuspensionBadgeHtml = `
                     <span onclick="event.stopPropagation(); switchTab('kamper'); showMatchDetails('${nm.id}')" 
                           class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse border border-white/20 cursor-pointer z-20 hover:bg-red-700 hover:scale-115 transition-all" 
-                          title="Karantene registrert! Klikk for å se hvem.">
-                        ${suspendedPlayers.length}
+                          title="Karantene eller faresone registrert! Klikk for detaljer.">
+                        ${totalWarnings}
                     </span>
                 `;
             }

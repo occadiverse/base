@@ -700,6 +700,27 @@
                     </select>
                 </div>
 
+                <div class="border-t border-slate-100 pt-4 space-y-4">
+                    <div>
+                        <label class="portal-label">Skadestatus</label>
+                        <select id="playerSkadeStatusInput" onchange="window.togglePlayerSkadeFields()" class="portal-field">
+                            <option value="frisk">Frisk / ingen skade</option>
+                            <option value="dag-til-dag">Dag-til-dag</option>
+                            <option value="langvarig">Langvarig skade</option>
+                        </select>
+                    </div>
+                    <div id="playerSkadeExtraFields" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden">
+                        <div>
+                            <label class="portal-label">Forventet tilbake (valgfritt)</label>
+                            <input type="date" id="playerSkadeTilDatoInput" class="portal-field">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="portal-label">Skadenotat</label>
+                            <input type="text" id="playerSkadeNotatInput" placeholder="F.eks. ankelskade, knært" class="portal-field">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
                     <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
                         LAGRE SPILLER

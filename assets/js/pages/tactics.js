@@ -241,7 +241,12 @@
             benchSuspBadge = `<span class="text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded-full font-black ml-2 animate-pulse" title="${pSusp.reason}">KARANTENE</span>`;
             borderClass = 'border-rose-300 bg-rose-50';
         } else if (pSusp.isAtRisk) {
-            benchSuspBadge = `<span class="text-[8px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full font-black ml-2" title="Faresone: ${pSusp.yellows} gule">FARESONE</span>`;
+            benchSuspBadge = `<span class="text-[8px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full font-black ml-2" title="Faresone: ${pSusp.yellows} gule i serie. Karantene ved ${pSusp.nextKaranteneAt || 4}.">FARESONE</span>`;
+        }
+
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
+        if (injuryInfo.isInjured) {
+            benchSuspBadge += `<span class="text-[8px] ${injuryInfo.type === 'langvarig' ? 'bg-rose-600' : 'bg-orange-500'} text-white px-1.5 py-0.5 rounded-full font-black ml-2" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
         }
 
         const div = document.createElement('div');
@@ -322,10 +327,14 @@
         }
 
         // Viser advarsler (gule/røde kort osv.) uavhengig om det er sandkasse eller kamp
-        let totalYellowCards = 0;
-        (window.activeMatches || []).forEach(m => { if (m.guleKort && m.guleKort.includes(playerObj.navn)) totalYellowCards++; });
-        if (totalYellowCards > 0 && totalYellowCards % 4 === 3) {
-            badgesHtml += `<span class="bg-red-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900 animate-pulse" title="Karantenefare! 3 gule kort.">⚠️</span>`;
+        const cardCounts = typeof window.getPlayerCardCounts === 'function'
+            ? window.getPlayerCardCounts(playerObj.navn, playerObj.spillerLag)
+            : { serie: { gule: 0 } };
+        const serieHint = typeof window.getSerieYellowDisciplineHint === 'function'
+            ? window.getSerieYellowDisciplineHint(cardCounts.serie.gule)
+            : { isAtRisk: false };
+        if (serieHint.isAtRisk) {
+            badgesHtml += `<span class="bg-red-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm border border-slate-900 animate-pulse" title="Faresone i serie: ${cardCounts.serie.gule} gule kort. Karantene ved ${serieHint.nextSuspensionAt}.">⚠️</span>`;
         }
         badgesHtml += '</div>';
 
@@ -393,7 +402,15 @@
             attStatusHtml += `<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black ml-2 animate-pulse shadow-sm" title="${pSusp.reason}">🚫 KARANTENE</span>`;
             opacityClass = 'opacity-60 bg-rose-50 border border-rose-200';
         } else if (pSusp.isAtRisk) {
-            attStatusHtml += `<span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="Faresone: ${pSusp.yellows} gule kort">⚠️ FARESONE</span>`;
+            attStatusHtml += `<span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="Faresone: ${pSusp.yellows} gule i serie. Karantene ved ${pSusp.nextKaranteneAt || 4}.">⚠️ FARESONE</span>`;
+        }
+
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
+        if (injuryInfo.isInjured) {
+            const injuryClass = injuryInfo.type === 'langvarig'
+                ? 'bg-rose-600 text-white'
+                : 'bg-orange-500 text-white';
+            attStatusHtml += `<span class="text-[9px] ${injuryClass} px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="${injuryInfo.label}">🩹 ${injuryInfo.shortLabel}</span>`;
         }
 
         if (currentMatch) {
