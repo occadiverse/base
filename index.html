@@ -440,6 +440,21 @@
     <div id="portal-mobile-nav"></div>
     <div id="portal-floating-action"></div>
 
+    <div id="sessionInjuryModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <h3 class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <i class="fa-solid fa-user-injured text-amber-500"></i> Skademoderasjon
+                </h3>
+                <button type="button" onclick="window.closeSessionInjuryModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Påmeldte spillere med aktiv skadestatus for denne økten.</p>
+            <div id="sessionInjuryList" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center space-y-4">
             <div class="bg-amber-100 text-amber-800 inline-flex p-3 rounded-full">

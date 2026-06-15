@@ -233,7 +233,7 @@ window.getPositionCategoryFromPos1 = function(pos1) {
     const normalized = String(pos1).trim();
     if (normalized === 'Keeper' || normalized.toLowerCase().includes('keeper')) return 'K';
     if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(normalized)) return 'F';
-    if (normalized === 'Spiss') return 'A';
+    if (['Spiss', 'Playmaker', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
     return 'M';
 };
 
@@ -262,7 +262,12 @@ window.buildNextSessionAttendanceStats = function(event) {
             ? window.getPlayerInjuryInfo(player)
             : { isInjured: false, type: 'frisk' };
         if (injuryInfo.isInjured) {
-            injuredReady.push({ navn: player.navn, type: injuryInfo.type });
+            injuredReady.push({
+                navn: player.navn,
+                type: injuryInfo.type,
+                label: injuryInfo.label,
+                shortLabel: injuryInfo.shortLabel
+            });
         }
     });
 
@@ -307,14 +312,18 @@ window.updateHjemWidget = function() {
         const ne = upcomingEvents[0];
         const sessionStats = window.buildNextSessionAttendanceStats(ne);
         const dateValue = new Date(ne.date);
-        const weekday = dateValue.toLocaleDateString('no-NO', { weekday: 'long' });
-        const dayMonth = dateValue.toLocaleDateString('no-NO', { day: 'numeric', month: 'long' });
-        const dateLabel = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${dayMonth} kl. ${ne.time || '--:--'}`;
+        const dateFormatted = Number.isNaN(dateValue.getTime())
+            ? 'Dato ikke satt'
+            : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+        const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+        const timeLabel = ne.time || '--:--';
         const locationLabel = ne.location || 'Ikke oppgitt';
-        const sessionTitle = ne.title || 'Trening';
+        const fractionToneClass = sessionStats.fractionTone === 'good' ? '' : ` is-${sessionStats.fractionTone}`;
         const radarParts = ['K', 'F', 'M', 'A'].map(letter => (
-            `<span class="dashboard-session-radar-pos"><strong>${sessionStats.positionCounts[letter]}</strong>${letter}</span>`
-        )).join('<span class="dashboard-session-radar-sep">-</span>');
+            `${sessionStats.positionCounts[letter]}${letter}`
+        )).join('<span class="dashboard-session-radar-sep"> - </span>');
+
+        window._sessionInjuryPopupData = sessionStats.injuredReady;
 
         let injuryHtml = '';
         if (sessionStats.injuredReady.length > 0) {
@@ -322,10 +331,12 @@ window.updateHjemWidget = function() {
             const exampleNames = sessionStats.injuredReady.slice(0, 2).map(p => p.navn.split(' ')[0]).join(', ');
             const playerWord = injuredCount === 1 ? 'spilleren' : 'spillerne';
             injuryHtml = `
-                <p class="dashboard-session-injury is-${sessionStats.injuryTone}">
+                <button type="button" onclick="event.stopPropagation(); window.showSessionInjuryModal()" class="dashboard-session-injury-btn is-${sessionStats.injuryTone}">
                     ⚠️ Merknad: ${injuredCount} av de påmeldte ${playerWord} har skademoderasjon (f.eks. ${escapeHtml(exampleNames)})
-                </p>
+                </button>
             `;
+        } else {
+            window._sessionInjuryPopupData = [];
         }
 
         leftWidgetHtml = `
@@ -334,34 +345,42 @@ window.updateHjemWidget = function() {
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>
 
-                <div class="dashboard-session-top">
-                    <div class="dashboard-session-meta-line">
+                <div class="match-detail-card-top relative z-10">
+                    <div class="match-detail-meta">
                         <i class="fa-regular fa-calendar-days"></i>
                         <span>${escapeHtml(dateLabel)}</span>
-                        <span class="dashboard-session-divider">|</span>
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span>${escapeHtml(locationLabel)}</span>
                     </div>
                     <div class="match-detail-chip">
                         <i class="fa-solid fa-stopwatch"></i>
-                        <span>Neste økt</span>
+                        <span>Trening</span>
                     </div>
                 </div>
 
-                <div class="dashboard-session-main">
-                    <div class="dashboard-session-attendance">
-                        <span class="dashboard-session-fraction is-${sessionStats.fractionTone}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
-                        <span class="dashboard-session-fraction-label">Klar</span>
+                <div class="match-detail-main dashboard-session-main relative z-10">
+                    <div class="match-detail-center dashboard-session-center">
+                        <div class="dashboard-session-stats-line">
+                            <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                            <span class="dashboard-session-radar-inline">${radarParts}</span>
+                        </div>
+                        ${injuryHtml}
+                        <div class="dashboard-session-actions">
+                            <button type="button" onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>Oppmøte</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="dashboard-session-radar">${radarParts}</div>
-                    <p class="dashboard-session-title">${escapeHtml(sessionTitle)}</p>
                 </div>
 
-                <div class="dashboard-session-footer">
-                    ${injuryHtml}
-                    <button onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="portal-btn portal-btn-primary portal-btn-sm">
-                        <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
-                    </button>
+                <div class="match-detail-footer relative z-10">
+                    <div class="match-detail-footer-item" title="${escapeHtml(locationLabel)}">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${escapeHtml(locationLabel)}</span>
+                    </div>
+                    <div class="match-detail-footer-item">
+                        <i class="fa-regular fa-clock"></i>
+                        <span>${escapeHtml(timeLabel)}</span>
+                    </div>
                 </div>
             </article>
         `;
