@@ -67,17 +67,9 @@ window.openAttendanceModal = function(eventId) {
     const container = document.getElementById('attendance-players-list');
     container.innerHTML = '';
 
-    const teamName = ev.team || ev.matchGroup;
     const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
         ? window.getAttendanceModalTeamPlayers(ev)
-        : (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
-
-    const appendSectionHeading = (label) => {
-        const heading = document.createElement('div');
-        heading.className = 'attendance-modal-section-heading';
-        heading.textContent = label;
-        container.appendChild(heading);
-    };
+        : (window.activePlayers || []).filter(p => p.status !== 'Passiv');
 
     const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
@@ -87,25 +79,27 @@ window.openAttendanceModal = function(eventId) {
         "'": '&#39;'
     }[char]));
 
-    const appendPlayerRow = (p) => {
-        const status = window.getAttendanceForPlayer(ev.attendance, p);
-        const okClass = status === true ? ' is-active is-ok' : '';
-        const noClass = status === false ? ' is-active is-no' : '';
-        const playerId = p.id ? escapeAttr(p.id) : '';
-        const playerName = escapeAttr(p.navn);
+    const appendPlayerRow = (player) => {
+        const storageKey = window.getPlayerStorageKey(player);
+        if (!storageKey) return;
+
+        const isRegistered = window.getAttendanceForPlayer(ev.attendance, player) === true;
         const div = document.createElement('div');
         div.className = 'attendance-modal-player';
         div.innerHTML = `
-            <div class="attendance-modal-player-info">
-                <span class="attendance-modal-player-name">${escapeAttr(p.navn)}</span>
-                <span class="attendance-modal-player-pos">${escapeAttr(p.pos1 || '-')}</span>
-            </div>
-            <div class="attendance-modal-player-actions">
-                <button type="button" onclick="setAttendancePill(this, true)"
-                    class="attendance-pill attendance-pill-ok${okClass}" data-player-id="${playerId}" data-player="${playerName}" data-status="true">OK</button>
-                <button type="button" onclick="setAttendancePill(this, false)"
-                    class="attendance-pill attendance-pill-no${noClass}" data-player-id="${playerId}" data-player="${playerName}" data-status="false">X</button>
-            </div>
+            <label class="attendance-modal-player-label">
+                <input
+                    type="checkbox"
+                    class="attendance-modal-checkbox"
+                    data-player-id="${escapeAttr(storageKey)}"
+                    ${isRegistered ? 'checked' : ''}
+                    onchange="window.updateAttendanceModalSummary()"
+                >
+                <div class="attendance-modal-player-info">
+                    <span class="attendance-modal-player-name">${escapeAttr(player.navn)}</span>
+                    <span class="attendance-modal-player-pos">${escapeAttr(player.pos1 || '-')}</span>
+                </div>
+            </label>
         `;
         container.appendChild(div);
     };
@@ -113,62 +107,25 @@ window.openAttendanceModal = function(eventId) {
     if (teamPlayers.length === 0) {
         container.innerHTML = `<div class="attendance-modal-empty">Ingen aktive spillere registrert i systemet.</div>`;
     } else {
-        const notRegistered = teamPlayers
-            .filter(p => window.getAttendanceForPlayer(ev.attendance, p) !== true)
-            .sort((a, b) => a.navn.localeCompare(b.navn));
-        const registered = teamPlayers
-            .filter(p => window.getAttendanceForPlayer(ev.attendance, p) === true)
-            .sort((a, b) => a.navn.localeCompare(b.navn));
-
-        appendSectionHeading('Ikke påmeldte');
-        if (notRegistered.length === 0) {
-            const empty = document.createElement('div');
-            empty.className = 'attendance-modal-empty';
-            empty.textContent = 'Alle spillere er påmeldt.';
-            container.appendChild(empty);
-        } else {
-            notRegistered.forEach(appendPlayerRow);
-        }
-
-        appendSectionHeading('Påmeldt');
-        if (registered.length === 0) {
-            const empty = document.createElement('div');
-            empty.className = 'attendance-modal-empty';
-            empty.textContent = 'Ingen spillere er påmeldt ennå.';
-            container.appendChild(empty);
-        } else {
-            registered.forEach(appendPlayerRow);
-        }
+        teamPlayers
+            .slice()
+            .sort((a, b) => a.navn.localeCompare(b.navn, 'no'))
+            .forEach(appendPlayerRow);
     }
+
+    window.updateAttendanceModalSummary();
 
     document.getElementById('attendanceModal').classList.remove('hidden');
     document.getElementById('attendanceModal').classList.add('flex');
 };
 
-window.setAttendancePill = function(btn, status) {
-    const row = btn.parentElement;
-    row.querySelectorAll('.attendance-pill').forEach(b => {
-        b.classList.remove('is-active', 'is-ok', 'is-no');
-    });
-
-    btn.classList.add('is-active');
-    if (status) btn.classList.add('is-ok');
-    else btn.classList.add('is-no');
-};
-
-window.closeAttendanceModal = function() {
-    document.getElementById('attendanceModal').classList.add('hidden');
-    document.getElementById('attendanceModal').classList.remove('flex');
-
-    const context = window._modalReturnContext;
-    window._modalReturnContext = null;
-    activeAttendanceEventId = null;
-
-    window.restoreModalReturnContext(context);
-
-    if (typeof window.updateDashboard === 'function') window.updateDashboard();
-    if (typeof window.renderCalendar === 'function') window.renderCalendar();
-    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
+window.updateAttendanceModalSummary = function() {
+    const checkboxes = document.querySelectorAll('#attendance-players-list .attendance-modal-checkbox');
+    const checkedCount = [...checkboxes].filter(checkbox => checkbox.checked).length;
+    const summary = document.getElementById('attendanceModalSummary');
+    if (summary) {
+        summary.textContent = `${checkedCount} / ${checkboxes.length} påmeldt`;
+    }
 };
 
 window.saveAttendanceRegistry = async function() {
@@ -195,6 +152,21 @@ window.saveAttendanceRegistry = async function() {
 
     window.closeAttendanceModal();
     window.recalculateOppmoteAndKjemi();
+};
+
+window.closeAttendanceModal = function() {
+    document.getElementById('attendanceModal').classList.add('hidden');
+    document.getElementById('attendanceModal').classList.remove('flex');
+
+    const context = window._modalReturnContext;
+    window._modalReturnContext = null;
+    activeAttendanceEventId = null;
+
+    window.restoreModalReturnContext(context);
+
+    if (typeof window.updateDashboard === 'function') window.updateDashboard();
+    if (typeof window.renderCalendar === 'function') window.renderCalendar();
+    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
 };
 
 window.promptDeleteEvent = function(id) {

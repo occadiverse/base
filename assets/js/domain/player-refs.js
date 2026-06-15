@@ -201,17 +201,56 @@ window.motmMatchesPlayer = function(motm, playerOrRef) {
     return typeof playerOrRef === 'string' && motm === playerOrRef;
 };
 
-window.resolveAttendanceRowPlayer = function(row) {
-    if (!row) return null;
+window.buildAttendanceMapFromModal = function(container, existingAttendance, teamPlayers) {
+    if (!container) {
+        return typeof window.sanitizeAttendanceMap === 'function'
+            ? window.sanitizeAttendanceMap(existingAttendance || {})
+            : { ...(existingAttendance || {}) };
+    }
 
-    const refBtn = row.querySelector('.attendance-pill[data-player]');
-    if (!refBtn) return null;
+    const modalPlayerKeys = new Set(
+        (teamPlayers || [])
+            .map(player => window.getPlayerStorageKey(player))
+            .filter(Boolean)
+    );
 
-    const rawId = refBtn.getAttribute('data-player-id');
-    const rawName = refBtn.getAttribute('data-player');
-    const playerRef = window.isValidPlayerRefKey(rawId) ? rawId : rawName;
+    const attMap = {};
+    const sanitizedExisting = typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(existingAttendance || {})
+        : { ...(existingAttendance || {}) };
 
-    return window.findPlayerByRef(playerRef) || window.findPlayerByRef(rawName);
+    Object.entries(sanitizedExisting).forEach(([key, value]) => {
+        const player = window.findPlayerByRef(key);
+        const storageKey = window.getPlayerStorageKey(player || key);
+        if (!storageKey || modalPlayerKeys.has(storageKey)) return;
+        attMap[storageKey] = value;
+    });
+
+    const checkboxByPlayerId = new Map();
+    container.querySelectorAll('.attendance-modal-checkbox').forEach(checkbox => {
+        const playerId = checkbox.getAttribute('data-player-id');
+        if (window.isValidPlayerRefKey(playerId)) {
+            checkboxByPlayerId.set(playerId, checkbox);
+        }
+    });
+
+    (teamPlayers || []).forEach(player => {
+        const storageKey = window.getPlayerStorageKey(player);
+        if (!storageKey) return;
+
+        const checkbox = checkboxByPlayerId.get(storageKey);
+        if (!checkbox) return;
+
+        if (typeof window.clearPlayerAttendanceKeys === 'function') {
+            window.clearPlayerAttendanceKeys(attMap, player);
+        }
+
+        attMap[storageKey] = checkbox.checked;
+    });
+
+    return typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(attMap)
+        : attMap;
 };
 
 window.getAttendanceModalTeamPlayers = function(ev) {
@@ -221,53 +260,6 @@ window.getAttendanceModalTeamPlayers = function(ev) {
         teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
     }
     return teamPlayers;
-};
-
-window.buildAttendanceMapFromModal = function(container, existingAttendance, teamPlayers) {
-    const sanitizedExisting = typeof window.sanitizeAttendanceMap === 'function'
-        ? window.sanitizeAttendanceMap(existingAttendance || {})
-        : { ...(existingAttendance || {}) };
-    const modalPlayerKeys = new Set(
-        (teamPlayers || [])
-            .map(player => window.getPlayerStorageKey(player))
-            .filter(Boolean)
-    );
-
-    const attMap = {};
-
-    Object.entries(sanitizedExisting).forEach(([key, value]) => {
-        const player = window.findPlayerByRef(key);
-        const storageKey = window.getPlayerStorageKey(player || key);
-        if (!storageKey || modalPlayerKeys.has(storageKey)) return;
-        attMap[storageKey] = value;
-    });
-
-    container.querySelectorAll('.attendance-modal-player').forEach(row => {
-        const player = window.resolveAttendanceRowPlayer(row);
-        const storageKey = window.getPlayerStorageKey(player);
-        if (!storageKey) return;
-
-        const activeBtn = row.querySelector('.attendance-pill.is-active');
-        let nextStatus;
-
-        if (activeBtn) {
-            nextStatus = activeBtn.getAttribute('data-status') === 'true';
-        } else {
-            const existingStatus = window.getAttendanceForPlayer(sanitizedExisting, player);
-            if (existingStatus === undefined) return;
-            nextStatus = existingStatus;
-        }
-
-        if (typeof window.clearPlayerAttendanceKeys === 'function') {
-            window.clearPlayerAttendanceKeys(attMap, player);
-        }
-
-        attMap[storageKey] = nextStatus;
-    });
-
-    return typeof window.sanitizeAttendanceMap === 'function'
-        ? window.sanitizeAttendanceMap(attMap)
-        : attMap;
 };
 
 window.sanitizeAttendanceMap = function(map) {
