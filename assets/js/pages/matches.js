@@ -358,12 +358,19 @@ window.saveMatch = async function(event) {
     window.closeMatchInfo();
 };
 
-window.saveMatchSummaryNotes = async function(matchId) {
+window.saveMatchSummaryNotes = async function(matchId, sourceElement) {
     const match = (window.activeMatches || []).find(m => m.id === matchId);
     if (!match) return;
 
-    const positiveInput = document.querySelector(`textarea[data-match-note-positive="${matchId}"]`);
-    const challengeInput = document.querySelector(`textarea[data-match-note-challenge="${matchId}"]`);
+    const root = sourceElement && typeof sourceElement.closest === 'function'
+        ? sourceElement.closest('[data-match-notes-form]')
+        : null;
+    const positiveInput = root
+        ? root.querySelector('[data-match-note-positive]')
+        : document.querySelector(`textarea[data-match-note-positive="${matchId}"]`);
+    const challengeInput = root
+        ? root.querySelector('[data-match-note-challenge]')
+        : document.querySelector(`textarea[data-match-note-challenge="${matchId}"]`);
 
     match.notes = {
         ...(match.notes || {}),
@@ -374,6 +381,40 @@ window.saveMatchSummaryNotes = async function(matchId) {
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
     }
+};
+
+window.buildMatchCoachNotesFieldsHtml = function(match) {
+    if (!match || !match.id) return '';
+
+    const matchId = escapeMatchHtml(match.id);
+    const matchIdJs = escapeMatchJsString(match.id);
+    const positiveNote = escapeMatchHtml(match.notes?.positive || '');
+    const challengeNote = escapeMatchHtml(match.notes?.challenge || '');
+
+    return `
+        <div class="match-coach-notes-fields" data-match-notes-form="${matchId}">
+            <div>
+                <label class="portal-label">Positivt</label>
+                <textarea
+                    rows="2"
+                    data-match-note-positive="${matchId}"
+                    placeholder="Hva fungerte bra i denne kampen?"
+                    onblur="saveMatchSummaryNotes('${matchIdJs}', this)"
+                    class="portal-field portal-textarea-sm"
+                >${positiveNote}</textarea>
+            </div>
+            <div>
+                <label class="portal-label">Utfordringer</label>
+                <textarea
+                    rows="2"
+                    data-match-note-challenge="${matchId}"
+                    placeholder="Hva må vi forbedre eller følge opp?"
+                    onblur="saveMatchSummaryNotes('${matchIdJs}', this)"
+                    class="portal-field portal-textarea-sm"
+                >${challengeNote}</textarea>
+            </div>
+        </div>
+    `;
 };
 
 window.promptDeleteMatch = function(id) {
@@ -496,28 +537,7 @@ window.showMatchDetails = function(id) {
                     <p class="match-coach-notes-lead">Sett fokus for treningsuka basert på kampen. Notatene vises på seriestatus-kortet på forsiden.</p>
                 </div>
             </div>
-            <div class="match-coach-notes-fields">
-                <div>
-                    <label class="portal-label">Positivt</label>
-                    <textarea
-                        rows="2"
-                        data-match-note-positive="${escapeHtml(match.id)}"
-                        placeholder="Hva fungerte bra i denne kampen?"
-                        onblur="saveMatchSummaryNotes('${escapeJsString(match.id)}')"
-                        class="portal-field portal-textarea-sm"
-                    >${escapeHtml(match.notes?.positive || '')}</textarea>
-                </div>
-                <div>
-                    <label class="portal-label">Utfordring</label>
-                    <textarea
-                        rows="2"
-                        data-match-note-challenge="${escapeHtml(match.id)}"
-                        placeholder="Hva må vi forbedre eller følge opp?"
-                        onblur="saveMatchSummaryNotes('${escapeJsString(match.id)}')"
-                        class="portal-field portal-textarea-sm"
-                    >${escapeHtml(match.notes?.challenge || '')}</textarea>
-                </div>
-            </div>
+            ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
         </section>
     `;
 

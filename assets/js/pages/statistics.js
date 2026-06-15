@@ -1479,31 +1479,8 @@ let html = `
                             </div>
 
                             <div class="border-t border-slate-100 pt-4 space-y-3">
-                                <div>
-                                    <label class="portal-label">
-                                        Positivt
-                                    </label>
-                                    <textarea
-                                        rows="2"
-                                        data-match-note-positive="${match.id}"
-                                        placeholder="Hva fungerte bra i denne kampen?"
-                                        onblur="saveMatchSummaryNotes('${match.id}')"
-                                        class="portal-field portal-textarea-sm"
-                                    >${match.notes?.positive || ''}</textarea>
-                                </div>
-                            
-                                <div>
-                                    <label class="portal-label">
-                                        Utfordring
-                                    </label>
-                                    <textarea
-                                        rows="2"
-                                        data-match-note-challenge="${match.id}"
-                                        placeholder="Hva må vi forbedre eller følge opp?"
-                                        onblur="saveMatchSummaryNotes('${match.id}')"
-                                        class="portal-field portal-textarea-sm"
-                                    >${match.notes?.challenge || ''}</textarea>
-                                </div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Trenernotater</p>
+                                ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
                             </div>
                             
                             <div class="pt-3">
