@@ -633,15 +633,14 @@ window.updateHjemWidget = function() {
                         ${seriesFocusHtml}
                     </div>
 
-                    <div class="dashboard-series-goal-hub shrink-0">
-                        <div class="dashboard-series-goal-avg-row">
-                            <span class="dashboard-series-goal-avg-value">${goalsScoredAvg}</span>
-                            <span class="dashboard-series-goal-avg-label">Scoret</span>
+                    <div class="dashboard-series-goal-stack shrink-0">
+                        <div class="match-bench-count dashboard-series-goal-count">
+                            <span class="dashboard-series-goal-count-value">${goalsScoredAvg}</span>
+                            <span>Scoret</span>
                         </div>
-                        <div class="dashboard-series-goal-avg-divider" aria-hidden="true">/</div>
-                        <div class="dashboard-series-goal-avg-row">
-                            <span class="dashboard-series-goal-avg-value">${goalsConcededAvg}</span>
-                            <span class="dashboard-series-goal-avg-label">Innslipp</span>
+                        <div class="match-bench-count dashboard-series-goal-count">
+                            <span class="dashboard-series-goal-count-value">${goalsConcededAvg}</span>
+                            <span>Innslipp</span>
                         </div>
                     </div>
                 </div>
