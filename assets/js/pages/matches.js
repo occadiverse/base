@@ -358,6 +358,24 @@ window.saveMatch = async function(event) {
     window.closeMatchInfo();
 };
 
+window.saveMatchSummaryNotes = async function(matchId) {
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+
+    const positiveInput = document.querySelector(`textarea[data-match-note-positive="${matchId}"]`);
+    const challengeInput = document.querySelector(`textarea[data-match-note-challenge="${matchId}"]`);
+
+    match.notes = {
+        ...(match.notes || {}),
+        positive: positiveInput ? positiveInput.value.trim() : (match.notes?.positive || ''),
+        challenge: challengeInput ? challengeInput.value.trim() : (match.notes?.challenge || '')
+    };
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+};
+
 window.promptDeleteMatch = function(id) {
     window.customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
         await window.deleteMatchFromDatabase(id);
@@ -470,6 +488,37 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
         </div>
+
+        <section class="match-coach-notes-panel">
+            <div class="match-coach-notes-header">
+                <div>
+                    <span class="match-detail-summary-label">Trenernotater</span>
+                    <p class="match-coach-notes-lead">Sett fokus for treningsuka basert på kampen. Notatene vises på seriestatus-kortet på forsiden.</p>
+                </div>
+            </div>
+            <div class="match-coach-notes-fields">
+                <div>
+                    <label class="portal-label">Positivt</label>
+                    <textarea
+                        rows="2"
+                        data-match-note-positive="${escapeHtml(match.id)}"
+                        placeholder="Hva fungerte bra i denne kampen?"
+                        onblur="saveMatchSummaryNotes('${escapeJsString(match.id)}')"
+                        class="portal-field portal-textarea-sm"
+                    >${escapeHtml(match.notes?.positive || '')}</textarea>
+                </div>
+                <div>
+                    <label class="portal-label">Utfordring</label>
+                    <textarea
+                        rows="2"
+                        data-match-note-challenge="${escapeHtml(match.id)}"
+                        placeholder="Hva må vi forbedre eller følge opp?"
+                        onblur="saveMatchSummaryNotes('${escapeJsString(match.id)}')"
+                        class="portal-field portal-textarea-sm"
+                    >${escapeHtml(match.notes?.challenge || '')}</textarea>
+                </div>
+            </div>
+        </section>
     `;
 
     renderPlayerRowForm(match);

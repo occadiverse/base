@@ -593,76 +593,50 @@
             padding: 1.35rem 1.25rem 1.1rem;
         }
         .dashboard-series-middle {
-            align-items: center;
+            align-items: stretch;
             display: flex;
             gap: 1rem;
             justify-content: space-between;
             min-height: 5.5rem;
         }
-        .dashboard-series-last-match-label {
-            color: rgba(255, 255, 255, 0.58);
-            font-size: 0.5625rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            line-height: 1;
-            margin-bottom: 0.3rem;
-            text-transform: uppercase;
+        .dashboard-series-focus-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            justify-content: center;
         }
-        .dashboard-series-last-match {
+        .dashboard-series-result {
             color: #ffffff;
-            font-size: 0.8125rem;
-            font-weight: 700;
-            line-height: 1.35;
+            font-size: 0.9375rem;
+            font-weight: 900;
+            line-height: 1.3;
         }
-        .dashboard-series-last-match.is-empty {
+        .dashboard-series-result.is-empty {
             color: rgba(255, 255, 255, 0.55);
             font-style: italic;
             font-weight: 600;
         }
-        .dashboard-series-trend {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(245, 197, 66, 0.18);
-            border-radius: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-width: 4.75rem;
-            padding: 0.55rem 0.65rem;
-        }
-        .dashboard-series-trend-label {
-            color: rgba(255, 255, 255, 0.58);
-            font-size: 0.5rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            line-height: 1;
-            margin-bottom: 0.25rem;
-            text-transform: uppercase;
-        }
-        .dashboard-series-trend-values {
-            color: #ffffff;
-            font-size: 0.8125rem;
-            font-weight: 900;
-            line-height: 1;
-        }
-        .dashboard-series-trend-sep {
-            color: rgba(255, 255, 255, 0.45);
-            font-size: 0.625rem;
+        .dashboard-series-note-positive {
+            border-left: 2px solid rgba(143, 176, 138, 0.85);
+            color: #c8ddc4;
+            font-size: 0.6875rem;
             font-weight: 700;
-            margin: 0 0.18rem;
+            line-height: 1.35;
+            padding-left: 0.5rem;
         }
-        .dashboard-series-trend-icon {
+        .dashboard-series-note-challenge {
+            border-left: 2px solid rgba(245, 197, 66, 0.85);
+            color: #f7e5a8;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            line-height: 1.35;
+            padding-left: 0.5rem;
+        }
+        .dashboard-series-fallback {
             color: rgba(255, 255, 255, 0.72);
-            font-size: 0.75rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-top: 0.2rem;
-        }
-        .dashboard-series-trend.is-up .dashboard-series-trend-icon {
-            color: #a8c6a3;
-        }
-        .dashboard-series-trend.is-down .dashboard-series-trend-icon {
-            color: #d7a29c;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            line-height: 1.45;
         }
         .dashboard-series-goal-hub {
             align-items: center;
@@ -674,29 +648,36 @@
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
             display: flex;
             flex-direction: column;
+            gap: 0.15rem;
             justify-content: center;
             min-width: 5.75rem;
             padding: 0.7rem 0.85rem;
         }
-        .dashboard-series-goal-diff {
+        .dashboard-series-goal-avg-row {
+            align-items: baseline;
+            display: flex;
+            gap: 0.3rem;
+            justify-content: center;
+        }
+        .dashboard-series-goal-avg-value {
             color: #0b2b4c;
-            font-size: 1.35rem;
+            font-size: 1.05rem;
             font-weight: 950;
             line-height: 1;
         }
-        .dashboard-series-goal-diff.is-negative {
-            color: #7a3f3a;
-        }
-        .dashboard-series-goal-diff.is-empty {
-            color: #94a3b8;
-        }
-        .dashboard-series-goal-stats {
+        .dashboard-series-goal-avg-label {
             color: rgba(11, 43, 76, 0.72);
-            font-size: 0.625rem;
-            font-weight: 700;
-            line-height: 1.3;
-            margin-top: 0.35rem;
-            text-align: center;
+            font-size: 0.5625rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .dashboard-series-goal-avg-divider {
+            color: rgba(11, 43, 76, 0.35);
+            font-size: 0.75rem;
+            font-weight: 900;
+            line-height: 1;
         }
         .dashboard-series-footer-line {
             width: 100%;
@@ -748,16 +729,15 @@
                 padding-top: 0.7rem !important;
             }
             #hjem-bottom-widgets .dashboard-click-card [class*="w-[72px]"],
-            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-goal-hub,
-            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-trend {
+            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-goal-hub {
                 min-width: 4.25rem;
                 padding: 0.5rem 0.55rem;
             }
-            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-goal-diff {
-                font-size: 1.1rem;
+            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-goal-avg-value {
+                font-size: 0.95rem;
             }
-            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-last-match {
-                font-size: 0.6875rem;
+            #hjem-bottom-widgets .dashboard-click-card .dashboard-series-result {
+                font-size: 0.8125rem;
             }
             #hjem-bottom-widgets .dashboard-click-card .dashboard-series-middle {
                 align-items: stretch;
@@ -1813,6 +1793,25 @@
             line-height: 1.15;
             position: relative;
             z-index: 1;
+        }
+        .match-coach-notes-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            margin-top: 0.75rem;
+            padding: 1rem;
+        }
+        .match-coach-notes-lead {
+            color: #64748b;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            margin-top: 0.35rem;
+        }
+        .match-coach-notes-fields {
+            display: grid;
+            gap: 0.85rem;
+            margin-top: 0.85rem;
         }
         .calendar-heading-panel {
             background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 52%, #fffbeb 100%);

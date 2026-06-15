@@ -1082,10 +1082,15 @@ let html = `
     const playedMatches = (window.activeMatches || [])
         .filter(m => m.result && m.result.includes('-'))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    const matchId = matchSelect && matchSelect.value
-        ? matchSelect.value
-        : (playedMatches[0] ? playedMatches[0].id : '');
+
+    const pendingMatchId = window.pendingKampstatMatchId;
+    window.pendingKampstatMatchId = null;
+
+    const matchId = pendingMatchId && playedMatches.some(m => m.id === pendingMatchId)
+        ? pendingMatchId
+        : (matchSelect && matchSelect.value
+            ? matchSelect.value
+            : (playedMatches[0] ? playedMatches[0].id : ''));
     
     const container = document.getElementById('kampstat-table-container');
 
@@ -1479,8 +1484,8 @@ let html = `
                                         Positivt
                                     </label>
                                     <textarea
-                                        id="match-note-positive"
                                         rows="2"
+                                        data-match-note-positive="${match.id}"
                                         placeholder="Hva fungerte bra i denne kampen?"
                                         onblur="saveMatchSummaryNotes('${match.id}')"
                                         class="portal-field portal-textarea-sm"
@@ -1492,8 +1497,8 @@ let html = `
                                         Utfordring
                                     </label>
                                     <textarea
-                                        id="match-note-challenge"
                                         rows="2"
+                                        data-match-note-challenge="${match.id}"
                                         placeholder="Hva må vi forbedre eller følge opp?"
                                         onblur="saveMatchSummaryNotes('${match.id}')"
                                         class="portal-field portal-textarea-sm"
@@ -1555,24 +1560,6 @@ let html = `
             }
         };
 
-        window.saveMatchSummaryNotes = async function(matchId) {
-            const match = (window.activeMatches || []).find(m => m.id === matchId);
-            if (!match) return;
-        
-            const positiveInput = document.getElementById('match-note-positive');
-            const challengeInput = document.getElementById('match-note-challenge');
-        
-            match.notes = {
-                ...(match.notes || {}),
-                positive: positiveInput ? positiveInput.value.trim() : '',
-                challenge: challengeInput ? challengeInput.value.trim() : ''
-            };
-        
-            if (typeof window.saveMatchToDatabase === 'function') {
-                await window.saveMatchToDatabase(match);
-            }
-        };
-        
         window.sortStatsTable = function(column) {
             if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc; 
             else { currentStatSortCol = column; currentStatSortDesc = true; }

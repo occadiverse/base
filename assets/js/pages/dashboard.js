@@ -18,6 +18,20 @@ window.goToCalendarDate = function(dateStr) {
     if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
 };
 
+window.goToMatchSummaryNotes = function(matchId) {
+    if (matchId) {
+        window.pendingKampstatMatchId = matchId;
+    }
+
+    switchTab('statistikk');
+
+    if (typeof window.switchStatTab === 'function') {
+        window.switchStatTab('kampstat');
+    } else if (typeof window.renderMatchStatsView === 'function') {
+        window.renderMatchStatsView();
+    }
+};
+
 window.goToPlayerAnalysis = function(playerName) {
     switchTab('statistikk');
 
@@ -531,8 +545,6 @@ window.updateHjemWidget = function() {
     });
 
     const tablePoints = tableWins * 3 + tableDraws;
-    const goalDiff = goalsFor - goalsAgainst;
-    const goalDiffText = goalDiff > 0 ? `+${goalDiff}` : `${goalDiff}`;
     const formGuide = typeof window.getFormGuide === 'function' ? window.getFormGuide() : [];
     const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
@@ -544,7 +556,7 @@ window.updateHjemWidget = function() {
 
     const sortedPlayedMatches = [...playedMatches].sort((a, b) => new Date(b.match.date) - new Date(a.match.date));
     const lastMatchItem = sortedPlayedMatches[0] || null;
-    let lastMatchLine = '';
+    let lastMatchResultLine = '';
     if (lastMatchItem) {
         const { match, score } = lastMatchItem;
         const venue = typeof window.getMatchVenue === 'function' ? window.getMatchVenue(match) : 'Borte';
@@ -554,29 +566,14 @@ window.updateHjemWidget = function() {
         let outcome = 'uavgjort mot';
         if (score.bsk > score.opponent) outcome = 'seier over';
         else if (score.bsk < score.opponent) outcome = 'tap mot';
-        lastMatchLine = `${displayScore} ${outcome} ${match.opponent || 'motstander'}`;
+        lastMatchResultLine = `${displayScore} ${outcome} ${match.opponent || 'motstander'}`;
     }
 
-    const last5ForForm = sortedPlayedMatches.slice(0, 5);
-    let last5Points = 0;
-    last5ForForm.forEach(({ score }) => {
-        if (score.bsk > score.opponent) last5Points += 3;
-        else if (score.bsk === score.opponent) last5Points += 1;
-    });
-    const formPpg = last5ForForm.length ? last5Points / last5ForForm.length : null;
-    const seasonPpg = playedMatches.length ? tablePoints / playedMatches.length : null;
-
-    let trendClass = 'is-flat';
-    let trendIcon = '→';
-    if (formPpg !== null && seasonPpg !== null) {
-        if (formPpg > seasonPpg + 0.05) {
-            trendClass = 'is-up';
-            trendIcon = '↑';
-        } else if (formPpg < seasonPpg - 0.05) {
-            trendClass = 'is-down';
-            trendIcon = '↓';
-        }
-    }
+    const lastMatchNotes = lastMatchItem?.match?.notes || {};
+    const positiveNote = String(lastMatchNotes.positive || '').trim();
+    const challengeNote = String(lastMatchNotes.challenge || '').trim();
+    const hasCoachNotes = Boolean(positiveNote || challengeNote);
+    const lastMatchIdForJs = lastMatchItem?.match?.id ? escapeJsString(lastMatchItem.match.id) : '';
 
     const getSeriesFormPillClass = (form) => {
         if (form === 'S') return 'is-win';
@@ -585,11 +582,8 @@ window.updateHjemWidget = function() {
     };
 
     const hasSeriesData = playedMatches.length > 0;
-    const formPpgText = formPpg !== null ? formPpg.toFixed(1) : '–';
-    const seasonPpgText = seasonPpg !== null ? seasonPpg.toFixed(1) : '–';
-    const goalHubDiffClass = !hasSeriesData ? 'is-empty' : (goalDiff >= 0 ? 'is-positive' : 'is-negative');
-    const goalHubDiffValue = hasSeriesData ? goalDiffText : '–';
-    const goalHubStatsValue = hasSeriesData ? `${goalsFor} For · ${goalsAgainst} Mot` : '– For · – Mot';
+    const goalsScoredAvg = hasSeriesData ? (goalsFor / playedMatches.length).toFixed(1) : '–';
+    const goalsConcededAvg = hasSeriesData ? (goalsAgainst / playedMatches.length).toFixed(1) : '–';
     const formPillsHtml = formGuide.length
         ? formGuide.map(item => `<span class="dashboard-series-form-pill ${getSeriesFormPillClass(item.form)}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
         : '<span class="dashboard-series-form-empty">Ingen form</span>';
@@ -597,8 +591,28 @@ window.updateHjemWidget = function() {
         ? `${tablePoints} poeng · ${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T`
         : 'Ingen registrerte kamper ennå';
 
+    let seriesFocusHtml = '';
+    if (!lastMatchResultLine) {
+        seriesFocusHtml = '<p class="dashboard-series-result is-empty">Ingen registrerte kamper ennå</p>';
+    } else if (hasCoachNotes) {
+        seriesFocusHtml = `
+            <p class="dashboard-series-result">${escapeAttr(lastMatchResultLine)}</p>
+            ${positiveNote ? `<p class="dashboard-series-note-positive">${escapeAttr(positiveNote)}</p>` : ''}
+            ${challengeNote ? `<p class="dashboard-series-note-challenge">${escapeAttr(challengeNote)}</p>` : ''}
+        `;
+    } else {
+        seriesFocusHtml = `
+            <p class="dashboard-series-result">${escapeAttr(lastMatchResultLine)}</p>
+            <p class="dashboard-series-fallback">Ingen trenernotater lagt inn for denne kampen ennå. Klikk her for å sette fokus for treningsuka!</p>
+        `;
+    }
+
+    const seriesCardClickHandler = lastMatchIdForJs
+        ? `window.goToMatchSummaryNotes('${lastMatchIdForJs}')`
+        : "switchTab('statistikk')";
+
     const seriesWidgetHtml = `
-        <article onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-series-card dashboard-click-card h-full">
+        <article onclick="${seriesCardClickHandler}" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-series-card dashboard-click-card h-full">
             <div class="dashboard-next-match-watermark">
                 <i class="fa-solid fa-ranking-star"></i>
             </div>
@@ -615,23 +629,20 @@ window.updateHjemWidget = function() {
 
             <div class="dashboard-series-main relative z-10">
                 <div class="dashboard-series-middle">
-                    <div class="dashboard-series-last-block min-w-0 flex-1">
-                        ${
-                            lastMatchLine
-                                ? `<p class="dashboard-series-last-match-label">Siste kamp</p><p class="dashboard-series-last-match">${escapeAttr(lastMatchLine)}</p>`
-                                : '<p class="dashboard-series-last-match-label">Siste kamp</p><p class="dashboard-series-last-match is-empty">Ingen registrerte kamper ennå</p>'
-                        }
-                    </div>
-
-                    <div class="dashboard-series-trend shrink-0 ${trendClass}">
-                        <span class="dashboard-series-trend-label">Form vs Snitt</span>
-                        <span class="dashboard-series-trend-values">${formPpgText}<span class="dashboard-series-trend-sep">vs</span>${seasonPpgText}</span>
-                        <span class="dashboard-series-trend-icon" aria-hidden="true">${trendIcon}</span>
+                    <div class="dashboard-series-focus-block min-w-0 flex-1">
+                        ${seriesFocusHtml}
                     </div>
 
                     <div class="dashboard-series-goal-hub shrink-0">
-                        <span class="dashboard-series-goal-diff ${goalHubDiffClass}">${goalHubDiffValue}</span>
-                        <span class="dashboard-series-goal-stats">${goalHubStatsValue}</span>
+                        <div class="dashboard-series-goal-avg-row">
+                            <span class="dashboard-series-goal-avg-value">${goalsScoredAvg}</span>
+                            <span class="dashboard-series-goal-avg-label">Scoret</span>
+                        </div>
+                        <div class="dashboard-series-goal-avg-divider" aria-hidden="true">/</div>
+                        <div class="dashboard-series-goal-avg-row">
+                            <span class="dashboard-series-goal-avg-value">${goalsConcededAvg}</span>
+                            <span class="dashboard-series-goal-avg-label">Innslipp</span>
+                        </div>
                     </div>
                 </div>
             </div>
