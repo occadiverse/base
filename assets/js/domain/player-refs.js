@@ -105,6 +105,19 @@ window.getMatchParticipantRefs = function(match) {
     return window.getMatchStatPlayerRefs(match);
 };
 
+window.clearPlayerAttendanceKeys = function(map, playerOrRef) {
+    if (!map || typeof map !== 'object') return;
+    const player = typeof playerOrRef === 'object' && playerOrRef !== null
+        ? playerOrRef
+        : window.findPlayerByRef(playerOrRef);
+
+    Object.keys(map).forEach(key => {
+        if (player && window.playerRefMatches(key, player)) {
+            delete map[key];
+        }
+    });
+};
+
 window.repairMatchAttendanceFromStats = function(match) {
     if (!match) return { match, changed: false };
 

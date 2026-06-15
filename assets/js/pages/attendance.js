@@ -181,7 +181,9 @@ window.saveAttendanceRegistry = async function() {
 
     if (!ev) return;
 
-    const attMap = {};
+    const attMap = typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(ev.attendance || {})
+        : { ...(ev.attendance || {}) };
 
     document.getElementById('attendance-players-list').querySelectorAll('.attendance-modal-player').forEach(row => {
         const activeBtn = row.querySelector('.attendance-pill.is-active');
@@ -193,6 +195,10 @@ window.saveAttendanceRegistry = async function() {
         const playerKey = window.getPlayerStorageKey(player || playerName);
 
         if (!playerKey) return;
+
+        if (typeof window.clearPlayerAttendanceKeys === 'function') {
+            window.clearPlayerAttendanceKeys(attMap, player || playerName);
+        }
 
         attMap[playerKey] = activeBtn.getAttribute('data-status') === 'true';
     });
