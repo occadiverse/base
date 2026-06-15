@@ -554,19 +554,45 @@ window.updateHjemWidget = function() {
         let outcome = 'uavgjort mot';
         if (score.bsk > score.opponent) outcome = 'seier over';
         else if (score.bsk < score.opponent) outcome = 'tap mot';
-        lastMatchLine = `Siste kamp: ${displayScore} ${outcome} ${match.opponent || 'motstander'}`;
+        lastMatchLine = `${displayScore} ${outcome} ${match.opponent || 'motstander'}`;
     }
 
+    const last5ForForm = sortedPlayedMatches.slice(0, 5);
+    let last5Points = 0;
+    last5ForForm.forEach(({ score }) => {
+        if (score.bsk > score.opponent) last5Points += 3;
+        else if (score.bsk === score.opponent) last5Points += 1;
+    });
+    const formPpg = last5ForForm.length ? last5Points / last5ForForm.length : null;
+    const seasonPpg = playedMatches.length ? tablePoints / playedMatches.length : null;
+
+    let trendClass = 'is-flat';
+    let trendIcon = '→';
+    if (formPpg !== null && seasonPpg !== null) {
+        if (formPpg > seasonPpg + 0.05) {
+            trendClass = 'is-up';
+            trendIcon = '↑';
+        } else if (formPpg < seasonPpg - 0.05) {
+            trendClass = 'is-down';
+            trendIcon = '↓';
+        }
+    }
+
+    const getSeriesFormPillClass = (form) => {
+        if (form === 'S') return 'is-win';
+        if (form === 'T') return 'is-loss';
+        return 'is-draw';
+    };
+
     const hasSeriesData = playedMatches.length > 0;
-    const pointsHtml = hasSeriesData
-        ? `<p class="dashboard-series-points">${tablePoints} <span class="dashboard-series-points-label">poeng</span></p>`
-        : '<p class="text-sm font-bold text-slate-500">Ingen resultater ennå</p>';
-    const matchBreakdownHtml = hasSeriesData
-        ? `<p class="dashboard-series-breakdown">${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T</p>`
-        : '<p class="dashboard-series-breakdown">Når kampresultater føres, bygges seriestatus automatisk.</p>';
-    const goalHubDiffClass = !hasSeriesData ? 'text-slate-400' : (goalDiff >= 0 ? 'text-bsk-blue' : 'text-rose-600');
+    const formPpgText = formPpg !== null ? formPpg.toFixed(1) : '–';
+    const seasonPpgText = seasonPpg !== null ? seasonPpg.toFixed(1) : '–';
+    const goalHubDiffClass = !hasSeriesData ? 'is-empty' : (goalDiff >= 0 ? 'is-positive' : 'is-negative');
     const goalHubDiffValue = hasSeriesData ? goalDiffText : '–';
     const goalHubStatsValue = hasSeriesData ? `${goalsFor} For · ${goalsAgainst} Mot` : '– For · – Mot';
+    const formPillsHtml = formGuide.length
+        ? formGuide.map(item => `<span class="dashboard-series-form-pill ${getSeriesFormPillClass(item.form)}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
+        : '<span class="dashboard-series-form-empty">Ingen form</span>';
 
     const seriesWidgetHtml = `
         <div onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
@@ -575,17 +601,29 @@ window.updateHjemWidget = function() {
             </div>
 
             <div class="relative z-10 flex flex-col h-full justify-between">
-                <div class="border-b border-slate-200 pb-3 mb-4">
+                <div class="flex justify-between items-center gap-3 border-b border-slate-200 pb-3 mb-4">
                     <div class="portal-status-label">
                         <i class="fa-solid fa-table-list"></i>
                         <span>Seriestatus</span>
                     </div>
+                    <div class="flex gap-1 min-h-5 items-center shrink-0">
+                        ${formPillsHtml}
+                    </div>
                 </div>
 
-                <div class="flex-1 flex items-center justify-between gap-5 mb-2">
-                    <div class="min-w-0">
-                        ${pointsHtml}
-                        ${matchBreakdownHtml}
+                <div class="dashboard-series-middle flex-1 flex items-center justify-between gap-4 mb-2 min-h-[5.5rem]">
+                    <div class="min-w-0 flex-1">
+                        ${
+                            lastMatchLine
+                                ? `<p class="dashboard-series-last-match-label">Siste kamp</p><p class="dashboard-series-last-match">${escapeAttr(lastMatchLine)}</p>`
+                                : '<p class="dashboard-series-last-match-label">Siste kamp</p><p class="dashboard-series-last-match is-empty">Ingen registrerte kamper ennå</p>'
+                        }
+                    </div>
+
+                    <div class="dashboard-series-trend shrink-0 ${trendClass}">
+                        <span class="dashboard-series-trend-label">Form vs Snitt</span>
+                        <span class="dashboard-series-trend-values">${formPpgText}<span class="dashboard-series-trend-sep">vs</span>${seasonPpgText}</span>
+                        <span class="dashboard-series-trend-icon" aria-hidden="true">${trendIcon}</span>
                     </div>
 
                     <div class="dashboard-series-goal-hub shrink-0">
@@ -594,22 +632,19 @@ window.updateHjemWidget = function() {
                     </div>
                 </div>
 
-                <div class="pt-3 mt-auto border-t border-slate-100">
-                    ${
-                        lastMatchLine
-                            ? `<p class="dashboard-series-last-match">${escapeAttr(lastMatchLine)}</p>`
-                            : ''
-                    }
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex gap-1.5 min-h-5 items-center">
-                            ${
-                                formGuide.length
-                                    ? formGuide.map(item => `<span class="w-5 h-5 rounded-md flex items-center justify-center font-black text-[9px] border border-white/60 shadow-sm ${item.class}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
-                                    : '<span class="text-[10px] text-slate-400 italic">Ingen formkurve</span>'
-                            }
+                <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
+                    <div class="flex items-center gap-5 min-w-0">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${hasSeriesData ? tablePoints : '–'}</span> Poeng
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); switchTab('statistikk')" class="dashboard-series-stat-btn">Statistikk</button>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${hasSeriesData ? playedMatches.length : '–'}</span> Kamper
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200 pl-4">
+                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${hasSeriesData ? `${tableWins}S · ${tableDraws}U · ${tableLosses}T` : '–'}</span> Serie
+                        </div>
                     </div>
+                    <button type="button" onclick="event.stopPropagation(); switchTab('statistikk')" class="dashboard-series-stat-btn">Statistikk</button>
                 </div>
             </div>
         </div>

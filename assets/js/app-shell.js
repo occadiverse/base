@@ -231,3 +231,5 @@ function getFormGuide() {
         return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result})` };
     });
 }
+
+window.getFormGuide = getFormGuide;
