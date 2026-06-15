@@ -78,22 +78,32 @@ window.openAttendanceModal = function(eventId) {
         container.appendChild(heading);
     };
 
+    const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+
     const appendPlayerRow = (p) => {
         const status = window.getAttendanceForPlayer(ev.attendance, p);
         const okClass = status === true ? ' is-active is-ok' : '';
         const noClass = status === false ? ' is-active is-no' : '';
+        const playerId = p.id ? escapeAttr(p.id) : '';
+        const playerName = escapeAttr(p.navn);
         const div = document.createElement('div');
         div.className = 'attendance-modal-player';
         div.innerHTML = `
             <div class="attendance-modal-player-info">
-                <span class="attendance-modal-player-name">${p.navn}</span>
-                <span class="attendance-modal-player-pos">${p.pos1 || '-'}</span>
+                <span class="attendance-modal-player-name">${escapeAttr(p.navn)}</span>
+                <span class="attendance-modal-player-pos">${escapeAttr(p.pos1 || '-')}</span>
             </div>
             <div class="attendance-modal-player-actions">
                 <button type="button" onclick="setAttendancePill(this, true)"
-                    class="attendance-pill attendance-pill-ok${okClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="true">OK</button>
+                    class="attendance-pill attendance-pill-ok${okClass}" data-player-id="${playerId}" data-player="${playerName}" data-status="true">OK</button>
                 <button type="button" onclick="setAttendancePill(this, false)"
-                    class="attendance-pill attendance-pill-no${noClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="false">X</button>
+                    class="attendance-pill attendance-pill-no${noClass}" data-player-id="${playerId}" data-player="${playerName}" data-status="false">X</button>
             </div>
         `;
         container.appendChild(div);
@@ -169,14 +179,23 @@ window.saveAttendanceRegistry = async function() {
 
     if (!ev) return;
 
-    const attMap = { ...(ev.attendance || {}) };
-    document.getElementById('attendance-players-list').querySelectorAll('.attendance-pill').forEach(btn => {
-        if (btn.classList.contains('is-active')) {
-            const playerKey = window.getPlayerStorageKey(btn.getAttribute('data-player-id') || btn.getAttribute('data-player'));
-            if (playerKey) {
-                attMap[playerKey] = btn.getAttribute('data-status') === 'true';
-            }
-        }
+    const attMap = {};
+
+    document.getElementById('attendance-players-list').querySelectorAll('.attendance-modal-player').forEach(row => {
+        const activeBtn = row.querySelector('.attendance-pill.is-active');
+        if (!activeBtn) return;
+
+        const refBtn = row.querySelector('.attendance-pill[data-player]');
+        if (!refBtn) return;
+
+        const rawId = refBtn.getAttribute('data-player-id');
+        const playerName = refBtn.getAttribute('data-player');
+        const playerRef = rawId && rawId !== 'undefined' && rawId !== 'null' ? rawId : playerName;
+        const playerKey = window.getPlayerStorageKey(playerRef);
+
+        if (!playerKey) return;
+
+        attMap[playerKey] = activeBtn.getAttribute('data-status') === 'true';
     });
 
     ev.attendance = window.normalizePlayerRefMap(attMap);

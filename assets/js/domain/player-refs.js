@@ -7,10 +7,22 @@ window.findPlayerByRef = function(ref) {
 };
 
 window.getPlayerStorageKey = function(playerOrRef) {
+    if (playerOrRef === 'undefined' || playerOrRef === 'null' || playerOrRef === '') {
+        playerOrRef = null;
+    }
+
     const player = typeof playerOrRef === 'object' && playerOrRef !== null && playerOrRef.navn
         ? playerOrRef
         : window.findPlayerByRef(playerOrRef);
-    return player?.id || (typeof playerOrRef === 'string' ? playerOrRef : null);
+
+    const resolvedId = player?.id;
+    if (resolvedId && resolvedId !== 'undefined' && resolvedId !== 'null') return resolvedId;
+
+    if (typeof playerOrRef === 'string' && playerOrRef !== 'undefined' && playerOrRef !== 'null') {
+        return playerOrRef;
+    }
+
+    return null;
 };
 
 window.getPlayerNameFromRef = function(ref) {
