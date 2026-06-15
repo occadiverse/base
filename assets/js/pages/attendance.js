@@ -48,15 +48,21 @@ window.openAttendanceModal = function(eventId) {
 
     if (!ev) return;
 
-    let modalTitleText = "";
+    let activityLabel = 'aktivitet';
     if (isMatchClick || ev.type === 'Kamp') {
-        modalTitleText = `Kamp mot ${ev.opponent || 'Ukjent motstander'}`;
-    } else {
-        modalTitleText = ev.title && ev.title.trim() !== "" ? ev.title : "Trening";
+        activityLabel = 'kamp';
+    } else if (ev.type === 'Trening') {
+        activityLabel = 'trening';
+    } else if (ev.type === 'Dugnad') {
+        activityLabel = 'dugnad';
+    } else if (ev.type === 'Sosialt') {
+        activityLabel = 'sosialt';
+    } else if (ev.type) {
+        activityLabel = ev.type.toLowerCase();
     }
 
-    document.getElementById('attendanceModalTitle').innerText = modalTitleText;
-    document.getElementById('attendanceModalSub').innerText = `${ev.team || 'Hele troppen'} • ${new Date(ev.date).toLocaleDateString('no-NO')}`;
+    const dateLabel = new Date(ev.date).toLocaleDateString('no-NO');
+    document.getElementById('attendanceModalTitle').innerText = `Oppmøte ${activityLabel} • ${dateLabel}`;
 
     const container = document.getElementById('attendance-players-list');
     container.innerHTML = '';
@@ -65,29 +71,63 @@ window.openAttendanceModal = function(eventId) {
     let teamPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
     if (teamPlayers.length === 0) teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
 
+    const appendSectionHeading = (label) => {
+        const heading = document.createElement('div');
+        heading.className = 'attendance-modal-section-heading';
+        heading.textContent = label;
+        container.appendChild(heading);
+    };
+
+    const appendPlayerRow = (p) => {
+        const status = window.getAttendanceForPlayer(ev.attendance, p);
+        const okClass = status === true ? ' is-active is-ok' : '';
+        const noClass = status === false ? ' is-active is-no' : '';
+        const div = document.createElement('div');
+        div.className = 'attendance-modal-player';
+        div.innerHTML = `
+            <div class="attendance-modal-player-info">
+                <span class="attendance-modal-player-name">${p.navn}</span>
+                <span class="attendance-modal-player-pos">${p.pos1 || '-'}</span>
+            </div>
+            <div class="attendance-modal-player-actions">
+                <button type="button" onclick="setAttendancePill(this, true)"
+                    class="attendance-pill attendance-pill-ok${okClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="true">OK</button>
+                <button type="button" onclick="setAttendancePill(this, false)"
+                    class="attendance-pill attendance-pill-no${noClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="false">X</button>
+            </div>
+        `;
+        container.appendChild(div);
+    };
+
     if (teamPlayers.length === 0) {
         container.innerHTML = `<div class="attendance-modal-empty">Ingen aktive spillere registrert i systemet.</div>`;
     } else {
-        teamPlayers.sort((a, b) => a.navn.localeCompare(b.navn)).forEach(p => {
-            const status = window.getAttendanceForPlayer(ev.attendance, p);
-            const okClass = status === true ? ' is-active is-ok' : '';
-            const noClass = status === false ? ' is-active is-no' : '';
-            const div = document.createElement('div');
-            div.className = 'attendance-modal-player';
-            div.innerHTML = `
-                <div class="attendance-modal-player-info">
-                    <span class="attendance-modal-player-name">${p.navn}</span>
-                    <span class="attendance-modal-player-pos">${p.pos1 || '-'}</span>
-                </div>
-                <div class="attendance-modal-player-actions">
-                    <button type="button" onclick="setAttendancePill(this, true)"
-                        class="attendance-pill attendance-pill-ok${okClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="true">OK</button>
-                    <button type="button" onclick="setAttendancePill(this, false)"
-                        class="attendance-pill attendance-pill-no${noClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="false">X</button>
-                </div>
-            `;
-            container.appendChild(div);
-        });
+        const notRegistered = teamPlayers
+            .filter(p => window.getAttendanceForPlayer(ev.attendance, p) !== true)
+            .sort((a, b) => a.navn.localeCompare(b.navn));
+        const registered = teamPlayers
+            .filter(p => window.getAttendanceForPlayer(ev.attendance, p) === true)
+            .sort((a, b) => a.navn.localeCompare(b.navn));
+
+        appendSectionHeading('Ikke påmeldte');
+        if (notRegistered.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'attendance-modal-empty';
+            empty.textContent = 'Alle spillere er påmeldt.';
+            container.appendChild(empty);
+        } else {
+            notRegistered.forEach(appendPlayerRow);
+        }
+
+        appendSectionHeading('Påmeldt');
+        if (registered.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'attendance-modal-empty';
+            empty.textContent = 'Ingen spillere er påmeldt ennå.';
+            container.appendChild(empty);
+        } else {
+            registered.forEach(appendPlayerRow);
+        }
     }
 
     document.getElementById('attendanceModal').classList.remove('hidden');

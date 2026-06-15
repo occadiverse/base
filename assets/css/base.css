@@ -986,20 +986,24 @@
             overflow: hidden;
             padding: 0 1.25rem;
         }
-        .attendance-modal-sub {
-            color: rgba(255, 255, 255, 0.62);
-            font-size: 0.72rem;
-            font-weight: 700;
-            line-height: 1.45;
-            margin: 0.85rem 0;
-        }
         .attendance-modal-list {
             display: flex;
             flex-direction: column;
             gap: 0.55rem;
             max-height: min(52vh, 22rem);
             overflow-y: auto;
-            padding-bottom: 0.85rem;
+            padding: 0.85rem 0;
+        }
+        .attendance-modal-section-heading {
+            color: rgba(245, 197, 66, 0.88);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0.35rem 0 0.15rem;
+            text-transform: uppercase;
+        }
+        .attendance-modal-section-heading:not(:first-child) {
+            margin-top: 0.85rem;
         }
         .attendance-modal-empty {
             color: rgba(255, 255, 255, 0.55);
