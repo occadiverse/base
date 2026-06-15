@@ -544,7 +544,6 @@ window.updateHjemWidget = function() {
         else tableLosses++;
     });
 
-    const tablePoints = tableWins * 3 + tableDraws;
     const formGuide = typeof window.getFormGuide === 'function' ? window.getFormGuide() : [];
     const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
@@ -588,7 +587,7 @@ window.updateHjemWidget = function() {
         ? formGuide.map(item => `<span class="dashboard-series-form-pill ${getSeriesFormPillClass(item.form)}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
         : '<span class="dashboard-series-form-empty">Ingen form</span>';
     const seriesFooterLine = hasSeriesData
-        ? `${tablePoints} poeng · ${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T`
+        ? `${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T`
         : 'Ingen registrerte kamper ennå';
 
     let seriesFocusHtml = '';
@@ -620,7 +619,7 @@ window.updateHjemWidget = function() {
             <div class="match-detail-card-top relative z-10">
                 <div class="match-detail-meta">
                     <i class="fa-solid fa-table-list"></i>
-                    <span>Seriestatus</span>
+                    <span>Kampstatus</span>
                 </div>
                 <div class="dashboard-series-form-row">
                     ${formPillsHtml}

@@ -534,7 +534,7 @@ window.showMatchDetails = function(id) {
             <div class="match-coach-notes-header">
                 <div>
                     <span class="match-detail-summary-label">Trenernotater</span>
-                    <p class="match-coach-notes-lead">Sett fokus for treningsuka basert på kampen. Notatene vises på seriestatus-kortet på forsiden.</p>
+                    <p class="match-coach-notes-lead">Sett fokus for treningsuka basert på kampen. Notatene vises på kampstatus-kortet på forsiden.</p>
                 </div>
             </div>
             ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
