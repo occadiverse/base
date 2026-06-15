@@ -588,6 +588,21 @@
                 font-size: 1.05rem !important;
                 line-height: 1.18 !important;
             }
+            .dashboard-session-top {
+                padding: 0.8rem 1rem !important;
+            }
+            .dashboard-session-main {
+                padding: 1rem 1rem 0.85rem !important;
+            }
+            .dashboard-session-footer {
+                padding: 0.75rem 1rem !important;
+            }
+            .dashboard-session-meta-line {
+                font-size: 0.68rem !important;
+            }
+            .dashboard-session-fraction {
+                font-size: 2.15rem !important;
+            }
             .dashboard-hero-card {
                 padding: 1rem !important;
             }
@@ -809,6 +824,151 @@
             color: #f5c542;
             font-size: 1rem;
             flex: 0 0 auto;
+        }
+        .dashboard-next-session-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 220px;
+        }
+        .dashboard-session-top {
+            align-items: flex-start;
+            background: rgba(255, 255, 255, 0.07);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 1rem;
+            justify-content: space-between;
+            padding: 0.95rem 1.25rem;
+            position: relative;
+            z-index: 10;
+        }
+        .dashboard-session-meta-line {
+            align-items: center;
+            color: #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: clamp(0.72rem, 1.8vw, 0.88rem);
+            font-weight: 800;
+            gap: 0.45rem 0.55rem;
+            line-height: 1.35;
+            min-width: 0;
+        }
+        .dashboard-session-meta-line i {
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.82rem;
+        }
+        .dashboard-session-divider {
+            color: rgba(255, 255, 255, 0.28);
+            font-weight: 400;
+        }
+        .dashboard-session-main {
+            align-items: center;
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 0.55rem;
+            justify-content: center;
+            padding: 1.35rem 1.25rem 1.1rem;
+            position: relative;
+            text-align: center;
+            z-index: 10;
+        }
+        .dashboard-session-title {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            margin-top: 0.15rem;
+            text-transform: uppercase;
+        }
+        .dashboard-session-attendance {
+            align-items: baseline;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem 0.65rem;
+            justify-content: center;
+        }
+        .dashboard-session-fraction {
+            color: #ffffff;
+            font-size: clamp(2.4rem, 7vw, 3.35rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+        .dashboard-session-fraction.is-good {
+            color: #ffffff;
+        }
+        .dashboard-session-fraction.is-warning {
+            color: #fde68a;
+        }
+        .dashboard-session-fraction.is-critical {
+            color: #fecaca;
+        }
+        .dashboard-session-fraction-sep {
+            color: rgba(255, 255, 255, 0.34);
+            font-weight: 700;
+            margin: 0 0.08em;
+        }
+        .dashboard-session-fraction-label {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .dashboard-session-radar {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.22);
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.88);
+            display: inline-flex;
+            flex-wrap: wrap;
+            font-size: clamp(0.78rem, 2vw, 0.92rem);
+            font-weight: 800;
+            gap: 0.35rem 0.55rem;
+            justify-content: center;
+            letter-spacing: 0.04em;
+            padding: 0.42rem 0.95rem;
+        }
+        .dashboard-session-radar-sep {
+            color: rgba(245, 197, 66, 0.55);
+            font-weight: 400;
+        }
+        .dashboard-session-radar-pos strong {
+            color: #f5c542;
+            font-weight: 900;
+        }
+        .dashboard-session-footer {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(245, 197, 66, 0.18);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem 0.85rem;
+            justify-content: space-between;
+            min-height: 3.1rem;
+            padding: 0.85rem 1.25rem;
+            position: relative;
+            z-index: 10;
+        }
+        .dashboard-session-injury {
+            flex: 1 1 12rem;
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1.35;
+            min-width: 0;
+        }
+        .dashboard-session-injury.is-warning {
+            color: #fde68a;
+        }
+        .dashboard-session-injury.is-critical {
+            color: #fecaca;
+        }
+        .dashboard-session-footer .portal-btn {
+            flex: 0 0 auto;
+            margin-left: auto;
         }
         .match-detail-top-chips {
             align-items: center;

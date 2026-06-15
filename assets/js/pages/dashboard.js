@@ -228,77 +228,158 @@ window.updateDashboard = function() {
     if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget();
 };
 
+window.getPositionCategoryFromPos1 = function(pos1) {
+    if (!pos1) return null;
+    const normalized = String(pos1).trim();
+    if (normalized === 'Keeper' || normalized.toLowerCase().includes('keeper')) return 'K';
+    if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(normalized)) return 'F';
+    if (normalized === 'Spiss') return 'A';
+    return 'M';
+};
+
+window.buildNextSessionAttendanceStats = function(event) {
+    const teamName = event?.team || event?.matchGroup;
+    const allActivePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    const squadPlayers = teamName
+        ? allActivePlayers.filter(p => p.spillerLag === teamName)
+        : allActivePlayers;
+    const squadSize = squadPlayers.length || allActivePlayers.length;
+
+    const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
+    const injuredReady = [];
+    const attendingRefs = typeof window.getAttendingPlayerRefs === 'function'
+        ? window.getAttendingPlayerRefs(event?.attendance)
+        : Object.keys(event?.attendance || {}).filter(ref => event.attendance[ref] === true);
+
+    attendingRefs.forEach(ref => {
+        const player = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null;
+        if (!player) return;
+
+        const category = window.getPositionCategoryFromPos1(player.pos1);
+        if (category) positionCounts[category] += 1;
+
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+            ? window.getPlayerInjuryInfo(player)
+            : { isInjured: false, type: 'frisk' };
+        if (injuryInfo.isInjured) {
+            injuredReady.push({ navn: player.navn, type: injuryInfo.type });
+        }
+    });
+
+    const påmeldtAntall = attendingRefs.length;
+    const lowAttendanceThreshold = Math.max(8, Math.ceil(squadSize * 0.45));
+    let fractionTone = 'good';
+    if (positionCounts.K === 0) fractionTone = 'critical';
+    else if (påmeldtAntall < lowAttendanceThreshold) fractionTone = 'warning';
+
+    const hasLangvarigInjury = injuredReady.some(p => p.type === 'langvarig');
+    const injuryTone = hasLangvarigInjury ? 'critical' : 'warning';
+
+    return {
+        påmeldtAntall,
+        squadSize,
+        positionCounts,
+        injuredReady,
+        fractionTone,
+        injuryTone
+    };
+};
+
 window.updateHjemWidget = function() {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
 
-    // 1. FORBERED TRENINGSDATA (Venstre blokk - lys portalstil)
+    // 1. FORBERED TRENINGSDATA (Venstre blokk - BSK-stil)
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
     const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
     
     let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
         const ne = upcomingEvents[0];
-        const d = new Date(ne.date).toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
-        
-        let påmeldtAntall = 0, forfallAntall = 0;
-        if (ne.attendance) {
-            Object.values(ne.attendance).forEach(status => {
-                if (status === true) påmeldtAntall++;
-                if (status === false) forfallAntall++;
-            });
+        const sessionStats = window.buildNextSessionAttendanceStats(ne);
+        const dateValue = new Date(ne.date);
+        const weekday = dateValue.toLocaleDateString('no-NO', { weekday: 'long' });
+        const dayMonth = dateValue.toLocaleDateString('no-NO', { day: 'numeric', month: 'long' });
+        const dateLabel = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${dayMonth} kl. ${ne.time || '--:--'}`;
+        const locationLabel = ne.location || 'Ikke oppgitt';
+        const sessionTitle = ne.title || 'Trening';
+        const radarParts = ['K', 'F', 'M', 'A'].map(letter => (
+            `<span class="dashboard-session-radar-pos"><strong>${sessionStats.positionCounts[letter]}</strong>${letter}</span>`
+        )).join('<span class="dashboard-session-radar-sep">-</span>');
+
+        let injuryHtml = '';
+        if (sessionStats.injuredReady.length > 0) {
+            const injuredCount = sessionStats.injuredReady.length;
+            const exampleNames = sessionStats.injuredReady.slice(0, 2).map(p => p.navn.split(' ')[0]).join(', ');
+            const playerWord = injuredCount === 1 ? 'spilleren' : 'spillerne';
+            injuryHtml = `
+                <p class="dashboard-session-injury is-${sessionStats.injuryTone}">
+                    ⚠️ Merknad: ${injuredCount} av de påmeldte ${playerWord} har skademoderasjon (f.eks. ${escapeHtml(exampleNames)})
+                </p>
+            `;
         }
 
         leftWidgetHtml = `
-            <div onclick="window.goToCalendarDate('${escapeJsString(ne.date)}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
-                <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                    <i class="fa-solid fa-stopwatch text-[14rem] text-bsk-blue"></i>
+            <article onclick="window.goToCalendarDate('${escapeJsString(ne.date)}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full">
+                <div class="dashboard-next-match-watermark">
+                    <i class="fa-solid fa-stopwatch"></i>
                 </div>
-                
-                <div class="relative z-10 flex flex-col h-full justify-between">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
-                        <div class="portal-status-label">
-                            <i class="fa-solid fa-stopwatch"></i>
-                            <span>Neste økt</span>
-                        </div>
-                        <span class="portal-status-label portal-status-label-sm animate-pulse">${d.split(' ')[0]} ${new Date(ne.date).getDate()}</span>
-                    </div>
-                    
-                    <div class="flex-1 flex items-center justify-between mb-2">
-                        <div class="space-y-1 min-w-0 pr-4">
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${ne.time || 'TBA'} | ${ne.location || 'Ikke oppgitt'}</p>
-                            <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase truncate pb-1">${ne.title || 'TRENING'}</h4>
-                        </div>
-                        
-                        <div onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-all duration-500 cursor-pointer hover:scale-105">
-                            <span class="text-2xl font-black text-bsk-blue leading-none">${påmeldtAntall}</span>
-                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Klar</span>
-                        </div>
-                    </div>
 
-                    <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-100">
-                        <button onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="portal-btn portal-btn-primary portal-btn-sm">
-                            <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
-                        </button>
+                <div class="dashboard-session-top">
+                    <div class="dashboard-session-meta-line">
+                        <i class="fa-regular fa-calendar-days"></i>
+                        <span>${escapeHtml(dateLabel)}</span>
+                        <span class="dashboard-session-divider">|</span>
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${escapeHtml(locationLabel)}</span>
+                    </div>
+                    <div class="match-detail-chip">
+                        <i class="fa-solid fa-stopwatch"></i>
+                        <span>Neste økt</span>
                     </div>
                 </div>
-            </div>
+
+                <div class="dashboard-session-main">
+                    <div class="dashboard-session-attendance">
+                        <span class="dashboard-session-fraction is-${sessionStats.fractionTone}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                        <span class="dashboard-session-fraction-label">Klar</span>
+                    </div>
+                    <div class="dashboard-session-radar">${radarParts}</div>
+                    <p class="dashboard-session-title">${escapeHtml(sessionTitle)}</p>
+                </div>
+
+                <div class="dashboard-session-footer">
+                    ${injuryHtml}
+                    <button onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="portal-btn portal-btn-primary portal-btn-sm">
+                        <i class="fa-solid fa-user-check text-bsk-yellow text-[11px]"></i> Oppmøte
+                    </button>
+                </div>
+            </article>
         `;
     } else {
         leftWidgetHtml = `
-            <div onclick="window.goToCalendarDate('${todayStr}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center text-center h-full min-h-[220px] border">
-                <div class="absolute -right-8 -bottom-8 opacity-5 pointer-events-none">
-                    <i class="fa-solid fa-calendar-days text-[12rem] text-bsk-blue"></i>
+            <article onclick="window.goToCalendarDate('${todayStr}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
+                <div class="dashboard-next-match-watermark">
+                    <i class="fa-solid fa-calendar-days"></i>
                 </div>
-                <div class="portal-status-label mb-4 relative z-10">
-                    <i class="fa-solid fa-stopwatch"></i>
-                    <span>Neste økt</span>
+                <div class="relative z-10 px-6 py-8">
+                    <div class="match-detail-chip mb-4 mx-auto">
+                        <i class="fa-solid fa-stopwatch"></i>
+                        <span>Neste økt</span>
+                    </div>
+                    <h3 class="font-black text-white text-sm">Ingen kommende økter</h3>
+                    <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Legg inn trening eller aktivitet i kalenderen, så dukker neste økt opp her.</p>
                 </div>
-                <h3 class="font-black text-bsk-blue text-sm relative z-10">Ingen kommende økter</h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-[210px] relative z-10">Legg inn trening eller aktivitet i kalenderen, så dukker neste økt opp her.</p>
-            </div>
+            </article>
         `;
     }
 
