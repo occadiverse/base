@@ -68,8 +68,9 @@ window.openAttendanceModal = function(eventId) {
     container.innerHTML = '';
 
     const teamName = ev.team || ev.matchGroup;
-    let teamPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
-    if (teamPlayers.length === 0) teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
+        ? window.getAttendanceModalTeamPlayers(ev)
+        : (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
 
     const appendSectionHeading = (label) => {
         const heading = document.createElement('div');
@@ -181,31 +182,14 @@ window.saveAttendanceRegistry = async function() {
 
     if (!ev) return;
 
-    const attMap = typeof window.sanitizeAttendanceMap === 'function'
-        ? window.sanitizeAttendanceMap(ev.attendance || {})
-        : { ...(ev.attendance || {}) };
+    const container = document.getElementById('attendance-players-list');
+    const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
+        ? window.getAttendanceModalTeamPlayers(ev)
+        : [];
 
-    document.getElementById('attendance-players-list').querySelectorAll('.attendance-modal-player').forEach(row => {
-        const activeBtn = row.querySelector('.attendance-pill.is-active');
-        if (!activeBtn) return;
-
-        const nameEl = row.querySelector('.attendance-modal-player-name');
-        const playerName = nameEl ? nameEl.textContent.trim() : '';
-        const player = (window.activePlayers || []).find(p => p.navn === playerName);
-        const playerKey = window.getPlayerStorageKey(player || playerName);
-
-        if (!playerKey) return;
-
-        if (typeof window.clearPlayerAttendanceKeys === 'function') {
-            window.clearPlayerAttendanceKeys(attMap, player || playerName);
-        }
-
-        attMap[playerKey] = activeBtn.getAttribute('data-status') === 'true';
-    });
-
-    ev.attendance = typeof window.sanitizeAttendanceMap === 'function'
-        ? window.sanitizeAttendanceMap(attMap)
-        : window.normalizePlayerRefMap(attMap);
+    ev.attendance = typeof window.buildAttendanceMapFromModal === 'function'
+        ? window.buildAttendanceMapFromModal(container, ev.attendance, teamPlayers)
+        : ev.attendance;
     if (isMatch) await window.saveMatchToDatabase(ev);
     else await window.saveEventToDatabase(ev);
 

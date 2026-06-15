@@ -132,11 +132,12 @@
 
         function syncPlayers(playersData) {
             const repairedPlayers = [];
-            const normalized = (playersData || []).map(p => {
-                if (window.isValidPlayerRefKey && window.isValidPlayerRefKey(p.id)) return p;
-                const repaired = { ...p, id: crypto.randomUUID() };
-                repairedPlayers.push(repaired);
-                return repaired;
+            const normalized = (playersData || []).map(player => {
+                const next = typeof window.ensurePlayerId === 'function'
+                    ? window.ensurePlayerId(player)
+                    : player;
+                if (next !== player || next.id !== player.id) repairedPlayers.push(next);
+                return next;
             });
 
             window.activePlayers = normalized;
@@ -210,7 +211,7 @@
 
             onSnapshot(activePlayersCollectionRef, (snapshot) => {
                 const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
                 if (fb.length === 0) {
                     initialMockPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
                 } else { syncPlayers(fb); }
@@ -307,17 +308,22 @@
         };
 
         window.savePlayerToDatabase = async function(playerObject) {
+            if (typeof window.ensurePlayerId === 'function') {
+                const ensured = window.ensurePlayerId(playerObject);
+                Object.assign(playerObject, ensured);
+            } else if (!playerObject.id) {
+                playerObject.id = crypto.randomUUID();
+            }
+
             if (firebaseEnabled && auth && auth.currentUser) {
                 try {
-                    const id = playerObject.id || crypto.randomUUID();
-                    playerObject.id = id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id), playerObject);
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', playerObject.id), playerObject);
                     return true;
                 } catch (e) { console.error(e); }
             }
             const current = [...window.activePlayers];
             const idx = current.findIndex(p => p.id === playerObject.id);
-            if (idx > -1) { current[idx] = playerObject; } else { playerObject.id = playerObject.id || crypto.randomUUID(); current.push(playerObject); }
+            if (idx > -1) { current[idx] = playerObject; } else { current.push(playerObject); }
             syncPlayers(current);
             return true;
         };

@@ -1,3 +1,9 @@
+window.ensurePlayerId = function(player) {
+    if (!player || typeof player !== 'object') return player;
+    if (window.isValidPlayerRefKey(player.id)) return player;
+    return { ...player, id: crypto.randomUUID() };
+};
+
 window.isValidPlayerRefKey = function(ref) {
     return Boolean(ref && ref !== 'undefined' && ref !== 'null' && String(ref).trim() !== '');
 };
@@ -20,9 +26,11 @@ window.getPlayerStorageKey = function(playerOrRef) {
         : window.findPlayerByRef(playerOrRef);
 
     const resolvedId = player?.id;
-    if (resolvedId && resolvedId !== 'undefined' && resolvedId !== 'null') return resolvedId;
+    if (window.isValidPlayerRefKey(resolvedId)) return resolvedId;
 
-    if (typeof playerOrRef === 'string' && playerOrRef !== 'undefined' && playerOrRef !== 'null') {
+    if (player?.navn) return player.navn;
+
+    if (typeof playerOrRef === 'string' && window.isValidPlayerRefKey(playerOrRef)) {
         return playerOrRef;
     }
 
@@ -173,6 +181,67 @@ window.motmMatchesPlayer = function(motm, playerOrRef) {
 
     if (player) return motm === player.id || motm === player.navn;
     return typeof playerOrRef === 'string' && motm === playerOrRef;
+};
+
+window.resolveAttendanceRowPlayer = function(row) {
+    if (!row) return null;
+
+    const refBtn = row.querySelector('.attendance-pill[data-player]');
+    if (!refBtn) return null;
+
+    const rawId = refBtn.getAttribute('data-player-id');
+    const rawName = refBtn.getAttribute('data-player');
+    const playerRef = window.isValidPlayerRefKey(rawId) ? rawId : rawName;
+
+    return window.findPlayerByRef(playerRef) || window.findPlayerByRef(rawName);
+};
+
+window.getAttendanceModalTeamPlayers = function(ev) {
+    const teamName = ev?.team || ev?.matchGroup;
+    let teamPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
+    if (teamPlayers.length === 0) {
+        teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    }
+    return teamPlayers;
+};
+
+window.buildAttendanceMapFromModal = function(container, existingAttendance, teamPlayers) {
+    const modalPlayerKeys = new Set(
+        (teamPlayers || [])
+            .map(player => window.getPlayerStorageKey(player))
+            .filter(Boolean)
+    );
+
+    const attMap = {};
+    const sanitizedExisting = typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(existingAttendance || {})
+        : { ...(existingAttendance || {}) };
+
+    Object.entries(sanitizedExisting).forEach(([key, value]) => {
+        const player = window.findPlayerByRef(key);
+        const storageKey = window.getPlayerStorageKey(player || key);
+        if (!storageKey || modalPlayerKeys.has(storageKey)) return;
+        attMap[storageKey] = value;
+    });
+
+    container.querySelectorAll('.attendance-modal-player').forEach(row => {
+        const activeBtn = row.querySelector('.attendance-pill.is-active');
+        if (!activeBtn) return;
+
+        const player = window.resolveAttendanceRowPlayer(row);
+        const storageKey = window.getPlayerStorageKey(player);
+        if (!storageKey) return;
+
+        if (typeof window.clearPlayerAttendanceKeys === 'function') {
+            window.clearPlayerAttendanceKeys(attMap, player);
+        }
+
+        attMap[storageKey] = activeBtn.getAttribute('data-status') === 'true';
+    });
+
+    return typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(attMap)
+        : attMap;
 };
 
 window.sanitizeAttendanceMap = function(map) {
