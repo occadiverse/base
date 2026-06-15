@@ -41,12 +41,6 @@ window.getPlayerStorageKey = function(playerOrRef) {
     const resolvedId = player?.id;
     if (window.isValidPlayerRefKey(resolvedId)) return resolvedId;
 
-    if (player?.navn) return player.navn;
-
-    if (typeof playerOrRef === 'string' && window.isValidPlayerRefKey(playerOrRef)) {
-        return playerOrRef;
-    }
-
     return null;
 };
 
@@ -202,13 +196,7 @@ window.motmMatchesPlayer = function(motm, playerOrRef) {
 };
 
 window.buildAttendanceMapFromModal = function(container, existingAttendance, teamPlayers) {
-    if (!container) {
-        return typeof window.sanitizeAttendanceMap === 'function'
-            ? window.sanitizeAttendanceMap(existingAttendance || {})
-            : { ...(existingAttendance || {}) };
-    }
-
-    const modalPlayerKeys = new Set(
+    const modalPlayerIds = new Set(
         (teamPlayers || [])
             .map(player => window.getPlayerStorageKey(player))
             .filter(Boolean)
@@ -220,30 +208,25 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
         : { ...(existingAttendance || {}) };
 
     Object.entries(sanitizedExisting).forEach(([key, value]) => {
-        const player = window.findPlayerByRef(key);
-        const storageKey = window.getPlayerStorageKey(player || key);
-        if (!storageKey || modalPlayerKeys.has(storageKey)) return;
-        attMap[storageKey] = value;
+        if (modalPlayerIds.has(key)) return;
+        attMap[key] = value;
     });
 
-    const checkboxByPlayerId = new Map();
-    container.querySelectorAll('.attendance-modal-checkbox').forEach(checkbox => {
-        const playerId = checkbox.getAttribute('data-player-id');
-        if (window.isValidPlayerRefKey(playerId)) {
-            checkboxByPlayerId.set(playerId, checkbox);
-        }
-    });
+    if (!container) {
+        return typeof window.sanitizeAttendanceMap === 'function'
+            ? window.sanitizeAttendanceMap(attMap)
+            : attMap;
+    }
 
-    (teamPlayers || []).forEach(player => {
-        const storageKey = window.getPlayerStorageKey(player);
-        if (!storageKey) return;
-
-        const checkbox = checkboxByPlayerId.get(storageKey);
+    container.querySelectorAll('.attendance-modal-player').forEach(row => {
+        const checkbox = row.querySelector('.attendance-modal-checkbox');
         if (!checkbox) return;
 
-        if (typeof window.clearPlayerAttendanceKeys === 'function') {
-            window.clearPlayerAttendanceKeys(attMap, player);
-        }
+        const storageKey = checkbox.getAttribute('data-player-id');
+        if (!window.isValidPlayerRefKey(storageKey)) return;
+
+        const player = window.findPlayerByRef(storageKey);
+        if (!player || window.getPlayerStorageKey(player) !== storageKey) return;
 
         attMap[storageKey] = checkbox.checked;
     });
@@ -265,7 +248,8 @@ window.getAttendanceModalTeamPlayers = function(ev) {
 window.sanitizeAttendanceMap = function(map) {
     if (!map || typeof map !== 'object') return {};
     const players = window.activePlayers || [];
-    const result = {};
+    const byId = {};
+    const byName = {};
 
     Object.entries(map).forEach(([key, value]) => {
         if (!window.isValidPlayerRefKey(key)) return;
@@ -274,7 +258,7 @@ window.sanitizeAttendanceMap = function(map) {
         if (normalizedValue === undefined) return;
 
         if (players.length === 0) {
-            result[key] = normalizedValue;
+            byId[key] = normalizedValue;
             return;
         }
 
@@ -284,10 +268,11 @@ window.sanitizeAttendanceMap = function(map) {
         const storageKey = window.getPlayerStorageKey(player);
         if (!storageKey) return;
 
-        result[storageKey] = normalizedValue;
+        if (key === storageKey) byId[storageKey] = normalizedValue;
+        else byName[storageKey] = normalizedValue;
     });
 
-    return result;
+    return { ...byName, ...byId };
 };
 
 window.normalizePlayerRefMap = function(map) {

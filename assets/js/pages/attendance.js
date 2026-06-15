@@ -80,18 +80,19 @@ window.openAttendanceModal = function(eventId) {
     }[char]));
 
     const appendPlayerRow = (player) => {
-        const storageKey = window.getPlayerStorageKey(player);
-        if (!storageKey) return;
+        const playerId = window.getPlayerStorageKey(player);
+        if (!playerId) return;
 
         const isRegistered = window.getAttendanceForPlayer(ev.attendance, player) === true;
         const div = document.createElement('div');
         div.className = 'attendance-modal-player';
+        div.setAttribute('data-player-id', playerId);
         div.innerHTML = `
             <label class="attendance-modal-player-label">
                 <input
                     type="checkbox"
                     class="attendance-modal-checkbox"
-                    data-player-id="${escapeAttr(storageKey)}"
+                    data-player-id="${escapeAttr(playerId)}"
                     ${isRegistered ? 'checked' : ''}
                     onchange="window.updateAttendanceModalSummary()"
                 >
@@ -107,9 +108,16 @@ window.openAttendanceModal = function(eventId) {
     if (teamPlayers.length === 0) {
         container.innerHTML = `<div class="attendance-modal-empty">Ingen aktive spillere registrert i systemet.</div>`;
     } else {
+        const seenPlayerIds = new Set();
         teamPlayers
             .slice()
             .sort((a, b) => a.navn.localeCompare(b.navn, 'no'))
+            .filter(player => {
+                const playerId = window.getPlayerStorageKey(player);
+                if (!playerId || seenPlayerIds.has(playerId)) return false;
+                seenPlayerIds.add(playerId);
+                return true;
+            })
             .forEach(appendPlayerRow);
     }
 

@@ -119,11 +119,20 @@
 
         function syncPlayers(playersData) {
             const repairedPlayers = [];
+            const seenIds = new Set();
             const normalized = (playersData || []).map(player => {
-                const next = typeof window.ensurePlayerId === 'function'
+                let next = typeof window.ensurePlayerId === 'function'
                     ? window.ensurePlayerId(player)
                     : player;
-                if (next !== player || next.id !== player.id) repairedPlayers.push(next);
+                let needsRepair = !window.isValidPlayerRefKey(player.id);
+
+                if (seenIds.has(next.id)) {
+                    next = { ...next, id: crypto.randomUUID() };
+                    needsRepair = true;
+                }
+
+                seenIds.add(next.id);
+                if (needsRepair) repairedPlayers.push(next);
                 return next;
             });
 
@@ -139,35 +148,23 @@
             if (Array.isArray(window.activeEvents) && window.activeEvents.length > 0) {
                 syncEvents(window.activeEvents);
             }
+
+            if (Array.isArray(window.activeMatches) && window.activeMatches.length > 0) {
+                syncMatches(window.activeMatches);
+            }
         }
 
         function syncEvents(eventsData) {
-            const playersLoaded = Array.isArray(window.activePlayers) && window.activePlayers.length > 0;
-            const repairedEvents = [];
-            const normalized = (eventsData || []).map(e => {
-                let next = typeof window.normalizeEventPlayerRefs === 'function' ? window.normalizeEventPlayerRefs(e) : e;
-
-                if (!playersLoaded) return next;
-
-                const cleanedAttendance = typeof window.sanitizeAttendanceMap === 'function'
-                    ? window.sanitizeAttendanceMap(next.attendance)
-                    : (next.attendance || {});
-
-                if (!attendanceMapsEqual(next.attendance, cleanedAttendance)) {
-                    next = { ...next, attendance: cleanedAttendance };
-                    repairedEvents.push(next);
-                }
-
+            const normalized = (eventsData || []).map(event => {
+                const next = typeof window.normalizeEventPlayerRefs === 'function'
+                    ? window.normalizeEventPlayerRefs(event)
+                    : event;
                 return next;
             });
             window.activeEvents = normalized;
             window.localStorage.setItem('bsk_local_events', JSON.stringify(normalized));
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
-
-            if (repairedEvents.length > 0) {
-                persistRepairedEvents(repairedEvents);
-            }
         }
 
         if (firebaseEnabled && auth && auth.currentUser) {
@@ -179,7 +176,7 @@
 
             onSnapshot(activeMatchesCollectionRef, (snapshot) => {
                 const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
                 if (fb.length === 0) {
                     initialMockMatches.forEach(async (m) => { try { await setDoc(doc(activeMatchesCollectionRef, m.id), m); } catch(e){} });
                 } else { 
@@ -190,7 +187,7 @@
 
             onSnapshot(activeTeamsCollectionRef, (snapshot) => {
                 const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
                 if (fb.length === 0) {
                     initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
                 } else { syncTeams(fb); }
@@ -206,7 +203,7 @@
 
             onSnapshot(activeEventsCollectionRef, (snapshot) => {
                 const fb = [];
-                snapshot.forEach((doc) => { fb.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
                 if (fb.length === 0) {
                     initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
                 } else { 
@@ -236,7 +233,7 @@
                 try {
                     const id = matchObject.id || crypto.randomUUID();
                     matchObject.id = id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject, { merge: true });
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject);
                     return true;
                 } catch (e) { console.error(e); }
             }
@@ -332,7 +329,7 @@
                 try {
                     const id = eventObject.id || crypto.randomUUID();
                     eventObject.id = id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject, { merge: true });
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject);
                     return true;
                 } catch (e) { console.error(e); }
             }
