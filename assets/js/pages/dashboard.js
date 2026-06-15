@@ -593,26 +593,29 @@ window.updateHjemWidget = function() {
     const formPillsHtml = formGuide.length
         ? formGuide.map(item => `<span class="dashboard-series-form-pill ${getSeriesFormPillClass(item.form)}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
         : '<span class="dashboard-series-form-empty">Ingen form</span>';
+    const seriesFooterLine = hasSeriesData
+        ? `${tablePoints} poeng · ${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T`
+        : 'Ingen registrerte kamper ennå';
 
     const seriesWidgetHtml = `
-        <div onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
-            <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                <i class="fa-solid fa-ranking-star text-[14rem] text-bsk-blue"></i>
+        <article onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-series-card dashboard-click-card h-full">
+            <div class="dashboard-next-match-watermark">
+                <i class="fa-solid fa-ranking-star"></i>
             </div>
 
-            <div class="relative z-10 flex flex-col h-full justify-between">
-                <div class="flex justify-between items-center gap-3 border-b border-slate-200 pb-3 mb-4">
-                    <div class="portal-status-label">
-                        <i class="fa-solid fa-table-list"></i>
-                        <span>Seriestatus</span>
-                    </div>
-                    <div class="flex gap-1 min-h-5 items-center shrink-0">
-                        ${formPillsHtml}
-                    </div>
+            <div class="match-detail-card-top relative z-10">
+                <div class="match-detail-meta">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span>Seriestatus</span>
                 </div>
+                <div class="dashboard-series-form-row">
+                    ${formPillsHtml}
+                </div>
+            </div>
 
-                <div class="dashboard-series-middle flex-1 flex items-center justify-between gap-4 mb-2 min-h-[5.5rem]">
-                    <div class="min-w-0 flex-1">
+            <div class="dashboard-series-main relative z-10">
+                <div class="dashboard-series-middle">
+                    <div class="dashboard-series-last-block min-w-0 flex-1">
                         ${
                             lastMatchLine
                                 ? `<p class="dashboard-series-last-match-label">Siste kamp</p><p class="dashboard-series-last-match">${escapeAttr(lastMatchLine)}</p>`
@@ -631,23 +634,14 @@ window.updateHjemWidget = function() {
                         <span class="dashboard-series-goal-stats">${goalHubStatsValue}</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
-                    <div class="flex items-center gap-5 min-w-0">
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${hasSeriesData ? tablePoints : '–'}</span> Poeng
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${hasSeriesData ? playedMatches.length : '–'}</span> Kamper
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200 pl-4">
-                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${hasSeriesData ? `${tableWins}S · ${tableDraws}U · ${tableLosses}T` : '–'}</span> Serie
-                        </div>
-                    </div>
-                    <button type="button" onclick="event.stopPropagation(); switchTab('statistikk')" class="dashboard-series-stat-btn">Statistikk</button>
+            <div class="match-detail-footer relative z-10">
+                <div class="match-detail-footer-item dashboard-series-footer-line">
+                    <span>${escapeAttr(seriesFooterLine)}</span>
                 </div>
             </div>
-        </div>
+        </article>
     `;
 
     bottomContainer.innerHTML = leftWidgetHtml + seriesWidgetHtml + rightWidgetHtml;
