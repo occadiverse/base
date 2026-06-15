@@ -41,9 +41,24 @@ window.isPlayerAttending = function(attendance, playerOrRef) {
     return window.getAttendanceForPlayer(attendance, playerOrRef) === true;
 };
 
+window.deduplicatePlayerRefs = function(refs) {
+    if (!Array.isArray(refs)) return [];
+    const seen = new Set();
+    const result = [];
+    refs.forEach(ref => {
+        const player = window.findPlayerByRef(ref);
+        const key = player?.id || player?.navn || ref;
+        if (seen.has(key)) return;
+        seen.add(key);
+        result.push(player?.id || ref);
+    });
+    return result;
+};
+
 window.getAttendingPlayerRefs = function(attendance) {
     if (!attendance) return [];
-    return Object.keys(attendance).filter(ref => attendance[ref] === true);
+    const refs = Object.keys(attendance).filter(ref => attendance[ref] === true);
+    return window.deduplicatePlayerRefs(refs);
 };
 
 window.getMatchStatPlayerRefs = function(match) {
@@ -65,7 +80,7 @@ window.getMatchStatPlayerRefs = function(match) {
 
     if (match.motm) refs.add(match.motm);
 
-    return [...refs];
+    return window.deduplicatePlayerRefs([...refs]);
 };
 
 window.getMatchParticipantRefs = function(match) {

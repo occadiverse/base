@@ -1108,44 +1108,39 @@ let html = `
     return;
         }
         
-        const attendance = match.attendance || {};
-        
-        let attendingPlayers = window.getAttendingPlayerRefs(attendance);
-        
-        // Fallback: hvis attendance mangler, men ratings/scorers finnes, bruk dem
-        if (attendingPlayers.length === 0) {
-            const ratingPlayers = match.ratings ? Object.keys(match.ratings) : [];
-            const scorerPlayers = match.scorers ? Object.keys(match.scorers) : [];
-            const assistPlayers = match.assists ? Object.keys(match.assists) : [];
-            const bbPlayer = match.motm ? [match.motm] : [];
-        
-            attendingPlayers = [...new Set([
-                ...ratingPlayers,
-                ...scorerPlayers,
-                ...assistPlayers,
-                ...bbPlayer
-            ])];
-        }
-            
-    if (attendingPlayers.length === 0) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spillere var registrert med oppmøte på denne kampen.</div>';
-        return;
-    }
+        const participantRefs = typeof window.getMatchParticipantRefs === 'function'
+            ? window.getMatchParticipantRefs(match)
+            : window.getAttendingPlayerRefs(match.attendance);
 
-    const stats = attendingPlayers.map(playerRef => {
-        const rating = Number(window.getPlayerRefMapValue(match.ratings, playerRef, 0)) || 0;
-        const goals = Number(window.getPlayerRefMapValue(match.scorers, playerRef, 0)) || 0;
-        const assists = Number(window.getPlayerRefMapValue(match.assists, playerRef, 0)) || 0;
-        const yellow = window.playerRefListIncludes(match.guleKort, playerRef) ? 1 : 0;
-        const red = window.playerRefListIncludes(match.rodeKort, playerRef) ? 1 : 0;
-        const isBbInMatch = window.motmMatchesPlayer(match.motm, playerRef);
+        if (participantRefs.length === 0) {
+            container.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">Ingen spillere var registrert med oppmøte på denne kampen.</div>';
+            return;
+        }
+
+        const sortedPlayers = [...(window.activePlayers || [])]
+            .filter(p => participantRefs.some(ref => window.playerRefMatches(ref, p)));
+
+        const fallbackPlayers = participantRefs
+            .filter(ref => !sortedPlayers.some(p => window.playerRefMatches(ref, p)))
+            .map(ref => window.findPlayerByRef(ref) || { id: ref, navn: window.getPlayerNameFromRef(ref) });
+
+        const playersToRender = [...sortedPlayers, ...fallbackPlayers];
+
+    const stats = playersToRender.map(playerObj => {
+        const playerRef = playerObj.id || playerObj.navn;
+        const rating = Number(window.getPlayerRefMapValue(match.ratings, playerObj, 0)) || 0;
+        const goals = Number(window.getPlayerRefMapValue(match.scorers, playerObj, 0)) || 0;
+        const assists = Number(window.getPlayerRefMapValue(match.assists, playerObj, 0)) || 0;
+        const yellow = window.playerRefListIncludes(match.guleKort, playerObj) ? 1 : 0;
+        const red = window.playerRefListIncludes(match.rodeKort, playerObj) ? 1 : 0;
+        const isBbInMatch = window.motmMatchesPlayer(match.motm, playerObj);
 
         const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
-            ? window.calculatePlayerMatchPoints(match, playerRef, true)
+            ? window.calculatePlayerMatchPoints(match, playerObj, true)
             : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0 };
 
         return {
-            name: window.getPlayerNameFromRef(playerRef),
+            name: playerObj.navn || window.getPlayerNameFromRef(playerRef),
             rating,
             goals,
             assists,
