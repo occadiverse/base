@@ -98,29 +98,16 @@
         }
 
         function syncMatches(matchesData) {
-            const repairedMatches = [];
-            const normalized = (matchesData || []).map(m => {
-                let next = typeof window.normalizeMatchPlayerRefs === 'function'
+            const normalized = (matchesData || []).map(m => (
+                typeof window.normalizeMatchPlayerRefs === 'function'
                     ? window.normalizeMatchPlayerRefs(m)
-                    : m;
-
-                if (typeof window.repairMatchAttendanceFromStats === 'function') {
-                    const repairResult = window.repairMatchAttendanceFromStats(next);
-                    next = repairResult.match;
-                    if (repairResult.changed) repairedMatches.push(next);
-                }
-
-                return next;
-            });
+                    : m
+            ));
 
             window.activeMatches = normalized;
             window.localStorage.setItem('bsk_local_matches', JSON.stringify(normalized));
             if (typeof window.updateDashboard === 'function') window.updateDashboard();
             if (typeof window.applyFilters === 'function') window.applyFilters();
-
-            if (repairedMatches.length > 0) {
-                persistRepairedMatches(repairedMatches);
-            }
         }
 
         function syncTeams(teamsData) {

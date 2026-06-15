@@ -1,3 +1,16 @@
+window.normalizeAttendanceValue = function(value) {
+    if (value === true || value === 'true') return true;
+    if (value === false || value === 'false') return false;
+    return undefined;
+};
+
+window.hasRegisteredAttendance = function(attendance) {
+    const sanitized = typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(attendance || {})
+        : (attendance || {});
+    return Object.keys(sanitized).length > 0;
+};
+
 window.ensurePlayerId = function(player) {
     if (!player || typeof player !== 'object') return player;
     if (window.isValidPlayerRefKey(player.id)) return player;
@@ -55,9 +68,15 @@ window.getAttendanceForPlayer = function(attendance, playerOrRef) {
         ? playerOrRef
         : window.findPlayerByRef(playerOrRef);
 
-    if (player?.id && attendance[player.id] !== undefined) return attendance[player.id];
-    if (player?.navn && attendance[player.navn] !== undefined) return attendance[player.navn];
-    if (typeof playerOrRef === 'string' && attendance[playerOrRef] !== undefined) return attendance[playerOrRef];
+    if (player?.id && attendance[player.id] !== undefined) {
+        return window.normalizeAttendanceValue(attendance[player.id]);
+    }
+    if (player?.navn && attendance[player.navn] !== undefined) {
+        return window.normalizeAttendanceValue(attendance[player.navn]);
+    }
+    if (typeof playerOrRef === 'string' && attendance[playerOrRef] !== undefined) {
+        return window.normalizeAttendanceValue(attendance[playerOrRef]);
+    }
     return undefined;
 };
 
@@ -81,7 +100,7 @@ window.deduplicatePlayerRefs = function(refs) {
 
 window.getAttendingPlayerRefs = function(attendance) {
     if (!attendance) return [];
-    const refs = Object.keys(attendance).filter(ref => attendance[ref] === true);
+    const refs = Object.keys(attendance).filter(ref => window.normalizeAttendanceValue(attendance[ref]) === true);
     return window.deduplicatePlayerRefs(refs);
 };
 
@@ -129,10 +148,9 @@ window.clearPlayerAttendanceKeys = function(map, playerOrRef) {
 window.repairMatchAttendanceFromStats = function(match) {
     if (!match) return { match, changed: false };
 
-    const hasAttendance = match.attendance
-        && Object.values(match.attendance).some(value => value === true || value === false);
-
-    if (hasAttendance) return { match, changed: false };
+    if (window.hasRegisteredAttendance(match.attendance)) {
+        return { match, changed: false };
+    }
 
     const statRefs = window.getMatchStatPlayerRefs(match);
     if (statRefs.length === 0) return { match, changed: false };
@@ -206,6 +224,9 @@ window.getAttendanceModalTeamPlayers = function(ev) {
 };
 
 window.buildAttendanceMapFromModal = function(container, existingAttendance, teamPlayers) {
+    const sanitizedExisting = typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(existingAttendance || {})
+        : { ...(existingAttendance || {}) };
     const modalPlayerKeys = new Set(
         (teamPlayers || [])
             .map(player => window.getPlayerStorageKey(player))
@@ -213,9 +234,6 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
     );
 
     const attMap = {};
-    const sanitizedExisting = typeof window.sanitizeAttendanceMap === 'function'
-        ? window.sanitizeAttendanceMap(existingAttendance || {})
-        : { ...(existingAttendance || {}) };
 
     Object.entries(sanitizedExisting).forEach(([key, value]) => {
         const player = window.findPlayerByRef(key);
@@ -225,18 +243,26 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
     });
 
     container.querySelectorAll('.attendance-modal-player').forEach(row => {
-        const activeBtn = row.querySelector('.attendance-pill.is-active');
-        if (!activeBtn) return;
-
         const player = window.resolveAttendanceRowPlayer(row);
         const storageKey = window.getPlayerStorageKey(player);
         if (!storageKey) return;
+
+        const activeBtn = row.querySelector('.attendance-pill.is-active');
+        let nextStatus;
+
+        if (activeBtn) {
+            nextStatus = activeBtn.getAttribute('data-status') === 'true';
+        } else {
+            const existingStatus = window.getAttendanceForPlayer(sanitizedExisting, player);
+            if (existingStatus === undefined) return;
+            nextStatus = existingStatus;
+        }
 
         if (typeof window.clearPlayerAttendanceKeys === 'function') {
             window.clearPlayerAttendanceKeys(attMap, player);
         }
 
-        attMap[storageKey] = activeBtn.getAttribute('data-status') === 'true';
+        attMap[storageKey] = nextStatus;
     });
 
     return typeof window.sanitizeAttendanceMap === 'function'
@@ -251,10 +277,12 @@ window.sanitizeAttendanceMap = function(map) {
 
     Object.entries(map).forEach(([key, value]) => {
         if (!window.isValidPlayerRefKey(key)) return;
-        if (value !== true && value !== false) return;
+
+        const normalizedValue = window.normalizeAttendanceValue(value);
+        if (normalizedValue === undefined) return;
 
         if (players.length === 0) {
-            result[key] = value;
+            result[key] = normalizedValue;
             return;
         }
 
@@ -264,7 +292,7 @@ window.sanitizeAttendanceMap = function(map) {
         const storageKey = window.getPlayerStorageKey(player);
         if (!storageKey) return;
 
-        result[storageKey] = value;
+        result[storageKey] = normalizedValue;
     });
 
     return result;
