@@ -109,7 +109,7 @@ window.repairMatchAttendanceFromStats = function(match) {
     if (!match) return { match, changed: false };
 
     const hasAttendance = match.attendance
-        && Object.values(match.attendance).some(value => value === true);
+        && Object.values(match.attendance).some(value => value === true || value === false);
 
     if (hasAttendance) return { match, changed: false };
 
