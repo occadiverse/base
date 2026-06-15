@@ -171,6 +171,8 @@ window.closeAttendanceModal = function() {
 };
 
 window.saveAttendanceRegistry = async function() {
+    if (!activeAttendanceEventId) return;
+
     const isMatch = activeAttendanceEventId.startsWith('match_');
     const realId = isMatch ? activeAttendanceEventId.replace('match_', '') : activeAttendanceEventId;
     const ev = isMatch
@@ -185,20 +187,19 @@ window.saveAttendanceRegistry = async function() {
         const activeBtn = row.querySelector('.attendance-pill.is-active');
         if (!activeBtn) return;
 
-        const refBtn = row.querySelector('.attendance-pill[data-player]');
-        if (!refBtn) return;
-
-        const rawId = refBtn.getAttribute('data-player-id');
-        const playerName = refBtn.getAttribute('data-player');
-        const playerRef = rawId && rawId !== 'undefined' && rawId !== 'null' ? rawId : playerName;
-        const playerKey = window.getPlayerStorageKey(playerRef);
+        const nameEl = row.querySelector('.attendance-modal-player-name');
+        const playerName = nameEl ? nameEl.textContent.trim() : '';
+        const player = (window.activePlayers || []).find(p => p.navn === playerName);
+        const playerKey = window.getPlayerStorageKey(player || playerName);
 
         if (!playerKey) return;
 
         attMap[playerKey] = activeBtn.getAttribute('data-status') === 'true';
     });
 
-    ev.attendance = window.normalizePlayerRefMap(attMap);
+    ev.attendance = typeof window.sanitizeAttendanceMap === 'function'
+        ? window.sanitizeAttendanceMap(attMap)
+        : window.normalizePlayerRefMap(attMap);
     if (isMatch) await window.saveMatchToDatabase(ev);
     else await window.saveEventToDatabase(ev);
 

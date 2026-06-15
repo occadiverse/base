@@ -57,6 +57,30 @@
             loadAllFromLocalStorage(); 
         }
 
+        async function persistRepairedEvents(repairedEvents) {
+            if (!repairedEvents.length || typeof window.saveEventToDatabase !== 'function') return;
+
+            for (const event of repairedEvents) {
+                try {
+                    await window.saveEventToDatabase(event);
+                } catch (error) {
+                    console.warn('Kunne ikke rydde oppmøtedata for aktivitet:', event.id, error);
+                }
+            }
+        }
+
+        async function persistRepairedPlayers(repairedPlayers) {
+            if (!repairedPlayers.length || typeof window.savePlayerToDatabase !== 'function') return;
+
+            for (const player of repairedPlayers) {
+                try {
+                    await window.savePlayerToDatabase(player);
+                } catch (error) {
+                    console.warn('Kunne ikke tildele spiller-ID:', player.navn, error);
+                }
+            }
+        }
+
         async function persistRepairedMatches(repairedMatches) {
             if (!repairedMatches.length || typeof window.saveMatchToDatabase !== 'function') return;
 
@@ -67,6 +91,10 @@
                     console.warn('Kunne ikke gjenopprette oppmøte for kamp:', match.id, error);
                 }
             }
+        }
+
+        function attendanceMapsEqual(left, right) {
+            return JSON.stringify(left || {}) === JSON.stringify(right || {});
         }
 
         function syncMatches(matchesData) {
@@ -103,20 +131,55 @@
         }
 
         function syncPlayers(playersData) {
-            window.activePlayers = playersData;
-            window.localStorage.setItem('bsk_local_players', JSON.stringify(playersData));
+            const repairedPlayers = [];
+            const normalized = (playersData || []).map(p => {
+                if (window.isValidPlayerRefKey && window.isValidPlayerRefKey(p.id)) return p;
+                const repaired = { ...p, id: crypto.randomUUID() };
+                repairedPlayers.push(repaired);
+                return repaired;
+            });
+
+            window.activePlayers = normalized;
+            window.localStorage.setItem('bsk_local_players', JSON.stringify(normalized));
             if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+
+            if (repairedPlayers.length > 0) {
+                persistRepairedPlayers(repairedPlayers);
+            }
+
+            if (Array.isArray(window.activeEvents) && window.activeEvents.length > 0) {
+                syncEvents(window.activeEvents);
+            }
         }
 
         function syncEvents(eventsData) {
-            const normalized = (eventsData || []).map(e =>
-                typeof window.normalizeEventPlayerRefs === 'function' ? window.normalizeEventPlayerRefs(e) : e
-            );
+            const playersLoaded = Array.isArray(window.activePlayers) && window.activePlayers.length > 0;
+            const repairedEvents = [];
+            const normalized = (eventsData || []).map(e => {
+                let next = typeof window.normalizeEventPlayerRefs === 'function' ? window.normalizeEventPlayerRefs(e) : e;
+
+                if (!playersLoaded) return next;
+
+                const cleanedAttendance = typeof window.sanitizeAttendanceMap === 'function'
+                    ? window.sanitizeAttendanceMap(next.attendance)
+                    : (next.attendance || {});
+
+                if (!attendanceMapsEqual(next.attendance, cleanedAttendance)) {
+                    next = { ...next, attendance: cleanedAttendance };
+                    repairedEvents.push(next);
+                }
+
+                return next;
+            });
             window.activeEvents = normalized;
             window.localStorage.setItem('bsk_local_events', JSON.stringify(normalized));
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
+
+            if (repairedEvents.length > 0) {
+                persistRepairedEvents(repairedEvents);
+            }
         }
 
         if (firebaseEnabled && auth && auth.currentUser) {

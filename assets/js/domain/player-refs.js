@@ -1,5 +1,9 @@
+window.isValidPlayerRefKey = function(ref) {
+    return Boolean(ref && ref !== 'undefined' && ref !== 'null' && String(ref).trim() !== '');
+};
+
 window.findPlayerByRef = function(ref) {
-    if (!ref) return null;
+    if (!window.isValidPlayerRefKey(ref)) return null;
     const players = window.activePlayers || [];
     const byId = players.find(p => p.id === ref);
     if (byId) return byId;
@@ -115,7 +119,8 @@ window.repairMatchAttendanceFromStats = function(match) {
     const attendance = {};
     statRefs.forEach(ref => {
         const player = window.findPlayerByRef(ref);
-        attendance[player?.id || ref] = true;
+        const storageKey = player ? window.getPlayerStorageKey(player) : null;
+        if (storageKey) attendance[storageKey] = true;
     });
 
     return {
@@ -157,10 +162,37 @@ window.motmMatchesPlayer = function(motm, playerOrRef) {
     return typeof playerOrRef === 'string' && motm === playerOrRef;
 };
 
+window.sanitizeAttendanceMap = function(map) {
+    if (!map || typeof map !== 'object') return {};
+    const players = window.activePlayers || [];
+    const result = {};
+
+    Object.entries(map).forEach(([key, value]) => {
+        if (!window.isValidPlayerRefKey(key)) return;
+        if (value !== true && value !== false) return;
+
+        if (players.length === 0) {
+            result[key] = value;
+            return;
+        }
+
+        const player = window.findPlayerByRef(key);
+        if (!player) return;
+
+        const storageKey = window.getPlayerStorageKey(player);
+        if (!storageKey) return;
+
+        result[storageKey] = value;
+    });
+
+    return result;
+};
+
 window.normalizePlayerRefMap = function(map) {
     if (!map || typeof map !== 'object') return {};
     const result = {};
     Object.entries(map).forEach(([key, value]) => {
+        if (!window.isValidPlayerRefKey(key)) return;
         const player = window.findPlayerByRef(key);
         result[player?.id || key] = value;
     });
@@ -179,7 +211,7 @@ window.normalizeMatchPlayerRefs = function(match) {
     if (!match) return match;
     const normalized = { ...match };
 
-    if (match.attendance) normalized.attendance = window.normalizePlayerRefMap(match.attendance);
+    if (match.attendance) normalized.attendance = window.sanitizeAttendanceMap(match.attendance);
     if (match.scorers) normalized.scorers = window.normalizePlayerRefMap(match.scorers);
     if (match.assists) normalized.assists = window.normalizePlayerRefMap(match.assists);
     if (match.ratings) normalized.ratings = window.normalizePlayerRefMap(match.ratings);
@@ -223,7 +255,7 @@ window.normalizeMatchPlayerRefs = function(match) {
 window.normalizeEventPlayerRefs = function(event) {
     if (!event) return event;
     if (!event.attendance) return { ...event };
-    return { ...event, attendance: window.normalizePlayerRefMap(event.attendance) };
+    return { ...event, attendance: window.sanitizeAttendanceMap(event.attendance) };
 };
 
 window.getPlayerRefFromElement = function(el) {
