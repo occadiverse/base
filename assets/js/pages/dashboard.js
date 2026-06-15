@@ -542,6 +542,32 @@ window.updateHjemWidget = function() {
         "'": '&#39;'
     }[char]));
 
+    const sortedPlayedMatches = [...playedMatches].sort((a, b) => new Date(b.match.date) - new Date(a.match.date));
+    const lastMatchItem = sortedPlayedMatches[0] || null;
+    let lastMatchLine = '';
+    if (lastMatchItem) {
+        const { match, score } = lastMatchItem;
+        const venue = typeof window.getMatchVenue === 'function' ? window.getMatchVenue(match) : 'Borte';
+        const displayScore = typeof window.formatMatchResultForDisplay === 'function'
+            ? window.formatMatchResultForDisplay(match.result, venue)
+            : match.result;
+        let outcome = 'uavgjort mot';
+        if (score.bsk > score.opponent) outcome = 'seier over';
+        else if (score.bsk < score.opponent) outcome = 'tap mot';
+        lastMatchLine = `Siste kamp: ${displayScore} ${outcome} ${match.opponent || 'motstander'}`;
+    }
+
+    const hasSeriesData = playedMatches.length > 0;
+    const pointsHtml = hasSeriesData
+        ? `<p class="dashboard-series-points">${tablePoints} <span class="dashboard-series-points-label">poeng</span></p>`
+        : '<p class="text-sm font-bold text-slate-500">Ingen resultater ennå</p>';
+    const matchBreakdownHtml = hasSeriesData
+        ? `<p class="dashboard-series-breakdown">${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T</p>`
+        : '<p class="dashboard-series-breakdown">Når kampresultater føres, bygges seriestatus automatisk.</p>';
+    const goalHubDiffClass = !hasSeriesData ? 'text-slate-400' : (goalDiff >= 0 ? 'text-bsk-blue' : 'text-rose-600');
+    const goalHubDiffValue = hasSeriesData ? goalDiffText : '–';
+    const goalHubStatsValue = hasSeriesData ? `${goalsFor} For · ${goalsAgainst} Mot` : '– For · – Mot';
+
     const seriesWidgetHtml = `
         <div onclick="switchTab('statistikk')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-blue/20">
             <div class="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
@@ -549,36 +575,41 @@ window.updateHjemWidget = function() {
             </div>
 
             <div class="relative z-10 flex flex-col h-full justify-between">
-                <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <div class="border-b border-slate-200 pb-3 mb-4">
                     <div class="portal-status-label">
                         <i class="fa-solid fa-table-list"></i>
                         <span>Seriestatus</span>
                     </div>
-                    <span class="portal-status-label portal-status-label-sm">Lokal</span>
                 </div>
 
                 <div class="flex-1 flex items-center justify-between gap-5 mb-2">
                     <div class="min-w-0">
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Basert på registrerte kamper</p>
-                        <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight">${playedMatches.length ? `${tablePoints} poeng` : 'Ingen resultater ennå'}</h4>
-                        <p class="text-xs text-slate-500 mt-1">${playedMatches.length ? `${tableWins}S · ${tableDraws}U · ${tableLosses}T` : 'Når kampresultater føres, bygges seriestatus automatisk.'}</p>
+                        ${pointsHtml}
+                        ${matchBreakdownHtml}
                     </div>
 
-                    <div class="bg-bsk-blue/5 border border-bsk-blue/15 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm">
-                        <span class="text-xl font-black ${goalDiff >= 0 ? 'text-bsk-blue' : 'text-rose-600'} leading-none">${playedMatches.length ? goalDiffText : '-'}</span>
-                        <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Mål diff</span>
+                    <div class="dashboard-series-goal-hub shrink-0">
+                        <span class="dashboard-series-goal-diff ${goalHubDiffClass}">${goalHubDiffValue}</span>
+                        <span class="dashboard-series-goal-stats">${goalHubStatsValue}</span>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 pt-3 mt-auto border-t border-slate-100">
-                    <div class="flex gap-1.5 min-h-5 items-center">
-                        ${
-                            formGuide.length
-                                ? formGuide.map(item => `<span class="w-5 h-5 rounded-md flex items-center justify-center font-black text-[9px] border border-white/60 shadow-sm ${item.class}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
-                                : '<span class="text-[10px] text-slate-400 italic">Ingen formkurve</span>'
-                        }
+                <div class="pt-3 mt-auto border-t border-slate-100">
+                    ${
+                        lastMatchLine
+                            ? `<p class="dashboard-series-last-match">${escapeAttr(lastMatchLine)}</p>`
+                            : ''
+                    }
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex gap-1.5 min-h-5 items-center">
+                            ${
+                                formGuide.length
+                                    ? formGuide.map(item => `<span class="w-5 h-5 rounded-md flex items-center justify-center font-black text-[9px] border border-white/60 shadow-sm ${item.class}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
+                                    : '<span class="text-[10px] text-slate-400 italic">Ingen formkurve</span>'
+                            }
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); switchTab('statistikk')" class="dashboard-series-stat-btn">Statistikk</button>
                     </div>
-                    <button onclick="event.stopPropagation(); switchTab('statistikk')" class="portal-btn portal-btn-primary portal-btn-sm">Statistikk</button>
                 </div>
             </div>
         </div>
