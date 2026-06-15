@@ -325,14 +325,16 @@ window.updateHjemWidget = function() {
 
         window._sessionInjuryPopupData = sessionStats.injuredReady;
 
-        let injuryHtml = '';
+        let injuryButtonHtml = '';
         if (sessionStats.injuredReady.length > 0) {
             const injuredCount = sessionStats.injuredReady.length;
-            const exampleNames = sessionStats.injuredReady.slice(0, 2).map(p => p.navn.split(' ')[0]).join(', ');
-            const playerWord = injuredCount === 1 ? 'spilleren' : 'spillerne';
-            injuryHtml = `
-                <button type="button" onclick="event.stopPropagation(); window.showSessionInjuryModal()" class="dashboard-session-injury-btn is-${sessionStats.injuryTone}">
-                    ⚠️ Merknad: ${injuredCount} av de påmeldte ${playerWord} har skademoderasjon (f.eks. ${escapeHtml(exampleNames)})
+            const injuryLabel = injuredCount === 1
+                ? '1 spiller med skade'
+                : `${injuredCount} spillere med skade`;
+            injuryButtonHtml = `
+                <button type="button" onclick="event.stopPropagation(); window.showSessionInjuryModal()" class="match-bench-action-btn dashboard-session-action-btn">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>${escapeHtml(injuryLabel)}</span>
                 </button>
             `;
         } else {
@@ -362,12 +364,12 @@ window.updateHjemWidget = function() {
                             <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
                             <span class="dashboard-session-radar-inline">${radarParts}</span>
                         </div>
-                        ${injuryHtml}
                         <div class="dashboard-session-actions">
-                            <button type="button" onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn">
+                            <button type="button" onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn dashboard-session-action-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
+                            ${injuryButtonHtml}
                         </div>
                     </div>
                 </div>

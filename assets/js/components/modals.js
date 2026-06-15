@@ -15,16 +15,22 @@ window.showSessionInjuryModal = function() {
     if (players.length === 0) return;
 
     const listEl = document.getElementById('sessionInjuryList');
+    const titleEl = document.getElementById('sessionInjuryModalTitle');
+    if (titleEl) {
+        titleEl.textContent = players.length === 1
+            ? '1 spiller med skade'
+            : `${players.length} spillere med skade`;
+    }
     if (listEl) {
         listEl.innerHTML = players.map(player => {
             const injuryLabel = window.escapeModalHtml(player.label || player.shortLabel || 'Skade registrert');
             const badgeClass = player.type === 'langvarig'
-                ? 'bg-rose-100 text-rose-800 border-rose-200'
-                : 'bg-amber-100 text-amber-900 border-amber-200';
+                ? 'session-injury-badge is-critical'
+                : 'session-injury-badge is-warning';
             return `
-                <div class="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3">
-                    <span class="font-bold text-slate-800 text-sm truncate">${window.escapeModalHtml(player.navn)}</span>
-                    <span class="text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-md border shrink-0 ${badgeClass}">${injuryLabel}</span>
+                <div class="session-injury-item">
+                    <span class="session-injury-name">${window.escapeModalHtml(player.navn)}</span>
+                    <span class="${badgeClass}">${injuryLabel}</span>
                 </div>
             `;
         }).join('');
