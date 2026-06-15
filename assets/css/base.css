@@ -563,9 +563,13 @@
             #hjem-hero-match-container > section {
                 padding: 1.5rem 1rem !important;
             }
-            #hjem-bottom-widgets > .dashboard-click-card {
+            #hjem-bottom-widgets > .dashboard-click-card:not(.match-detail-card) {
                 min-height: 0 !important;
                 padding: 1rem !important;
+            }
+            #hjem-bottom-widgets > .match-detail-card {
+                min-height: 0;
+                padding: 0 !important;
             }
             #hjem-bottom-widgets .dashboard-click-card > .relative > .border-b {
                 margin-bottom: 0.75rem !important;
@@ -589,7 +593,7 @@
                 line-height: 1.18 !important;
             }
             .dashboard-session-main {
-                padding: 1.35rem 1rem 1.25rem !important;
+                padding: 1.75rem 0.8rem 1.6rem !important;
             }
             .dashboard-session-stats-line {
                 gap: 0.55rem 0.75rem !important;
@@ -831,7 +835,7 @@
         }
         .dashboard-session-main {
             grid-template-columns: 1fr;
-            padding: 2.25rem 1.25rem 1.75rem;
+            padding: 2.25rem 1.25rem 2rem;
         }
         .dashboard-session-center {
             min-width: 0;
@@ -877,8 +881,22 @@
             width: min(100%, 16rem);
         }
         .dashboard-session-action-btn {
+            container-type: inline-size;
             justify-content: center;
             width: 100%;
+        }
+        @container (max-width: 7.5rem) {
+            .dashboard-session-action-btn span {
+                display: none;
+            }
+        }
+        .match-bench-action-btn {
+            container-type: inline-size;
+        }
+        @container (max-width: 7.5rem) {
+            .match-bench-action-btn span {
+                display: none;
+            }
         }
         .session-injury-modal-card {
             box-shadow: 0 24px 48px rgba(2, 6, 23, 0.42);
@@ -948,6 +966,124 @@
             background: rgba(248, 113, 113, 0.16);
             border: 1px solid rgba(248, 113, 113, 0.34);
             color: #fecaca;
+        }
+        .attendance-modal-card {
+            box-shadow: 0 24px 48px rgba(2, 6, 23, 0.42);
+        }
+        .attendance-modal-watermark {
+            bottom: -3rem;
+            right: -2rem;
+        }
+        .attendance-modal-watermark i {
+            font-size: clamp(8rem, 24vw, 12rem);
+        }
+        .attendance-modal-close {
+            flex: 0 0 auto;
+        }
+        .attendance-modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            padding: 0 1.25rem;
+        }
+        .attendance-modal-sub {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.45;
+            margin: 0.85rem 0;
+        }
+        .attendance-modal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            max-height: min(52vh, 22rem);
+            overflow-y: auto;
+            padding-bottom: 0.85rem;
+        }
+        .attendance-modal-empty {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.78rem;
+            font-style: italic;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+        .attendance-modal-player {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.85rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+            padding: 0.75rem 0.85rem;
+        }
+        .attendance-modal-player-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+        }
+        .attendance-modal-player-name {
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .attendance-modal-player-pos {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .attendance-modal-player-actions {
+            display: flex;
+            flex: 0 0 auto;
+            gap: 0.4rem;
+        }
+        .attendance-pill {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 0.65rem;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            min-width: 2.35rem;
+            padding: 0.42rem 0.65rem;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+        .attendance-pill-ok.is-active.is-ok {
+            background: rgba(134, 239, 172, 0.16);
+            border-color: rgba(134, 239, 172, 0.34);
+            color: #bbf7d0;
+        }
+        .attendance-pill-no.is-active.is-no {
+            background: rgba(248, 113, 113, 0.16);
+            border-color: rgba(248, 113, 113, 0.34);
+            color: #fecaca;
+        }
+        .attendance-modal-footer {
+            align-items: stretch;
+            background: rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(245, 197, 66, 0.18);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.85rem 1.25rem 1rem;
+        }
+        .attendance-modal-action-btn {
+            container-type: inline-size;
+            justify-content: center;
+            width: 100%;
+        }
+        @container (max-width: 9rem) {
+            .attendance-modal-action-btn span {
+                display: none;
+            }
         }
         .match-detail-top-chips {
             align-items: center;
@@ -1605,9 +1741,6 @@
             .match-bench-action-btn {
                 min-height: 2.65rem;
                 padding: 0.55rem 0.62rem;
-            }
-            .match-bench-action-btn span {
-                display: none;
             }
             .match-bench-icon-btn {
                 min-height: 2.65rem;

@@ -21,6 +21,7 @@ function verifyAdminPin() {
 
 function switchTab(tabId) {
     currentTab = tabId;
+    window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
 
     ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer'].forEach(id => {

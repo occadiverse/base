@@ -8,6 +8,7 @@ window.activeMatches = [];
         let activeAttendanceEventId = null;
         let customConfirmCallback = null;
         let currentTab = 'hjem';
+        window.currentTab = 'hjem';
         let isAdminUnlocked = false;
         let activeDetailsId = null;
         let currentStatSortCol = 'kjemi';

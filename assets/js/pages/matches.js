@@ -367,6 +367,7 @@ window.promptDeleteMatch = function(id) {
 
 window.showMatchDetails = function(id) {
     activeDetailsId = id;
+    window.activeDetailsId = id;
 
     const match = (window.activeMatches || []).find(m => m.id === id);
     if (!match) return;

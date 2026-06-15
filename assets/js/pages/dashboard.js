@@ -365,7 +365,7 @@ window.updateHjemWidget = function() {
                             <span class="dashboard-session-radar-inline">${radarParts}</span>
                         </div>
                         <div class="dashboard-session-actions">
-                            <button type="button" onclick="event.stopPropagation(); switchTab('oppmote'); openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn dashboard-session-action-btn">
+                            <button type="button" onclick="event.stopPropagation(); window.openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn dashboard-session-action-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>

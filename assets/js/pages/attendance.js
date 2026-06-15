@@ -35,6 +35,7 @@ window.saveEvent = async function(event) {
 
 window.openAttendanceModal = function(eventId) {
     activeAttendanceEventId = eventId;
+    window._modalReturnContext = window.captureModalReturnContext();
 
     let ev = null;
     const isMatchClick = eventId.startsWith('match_');
@@ -65,22 +66,24 @@ window.openAttendanceModal = function(eventId) {
     if (teamPlayers.length === 0) teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
 
     if (teamPlayers.length === 0) {
-        container.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs italic">Ingen aktive spillere registrert i systemet.</div>`;
+        container.innerHTML = `<div class="attendance-modal-empty">Ingen aktive spillere registrert i systemet.</div>`;
     } else {
         teamPlayers.sort((a, b) => a.navn.localeCompare(b.navn)).forEach(p => {
             const status = window.getAttendanceForPlayer(ev.attendance, p);
+            const okClass = status === true ? ' is-active is-ok' : '';
+            const noClass = status === false ? ' is-active is-no' : '';
             const div = document.createElement('div');
-            div.className = "py-3 flex justify-between items-center border-b border-slate-50";
+            div.className = 'attendance-modal-player';
             div.innerHTML = `
-                <div class="flex items-center space-x-2">
-                    <span class="font-semibold text-slate-800 text-xs">${p.navn}</span>
-                    <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">${p.pos1 || '-'}</span>
+                <div class="attendance-modal-player-info">
+                    <span class="attendance-modal-player-name">${p.navn}</span>
+                    <span class="attendance-modal-player-pos">${p.pos1 || '-'}</span>
                 </div>
-                <div class="flex items-center space-x-1">
+                <div class="attendance-modal-player-actions">
                     <button type="button" onclick="setAttendancePill(this, true)"
-                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === true ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-400'}" data-player-id="${p.id}" data-player="${p.navn}" data-status="true">OK ✅</button>
+                        class="attendance-pill attendance-pill-ok${okClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="true">OK</button>
                     <button type="button" onclick="setAttendancePill(this, false)"
-                        class="attendance-pill px-3 py-1.5 rounded-lg text-[10px] font-extrabold border transition ${status === false ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-white border-slate-200 text-slate-400'}" data-player-id="${p.id}" data-player="${p.navn}" data-status="false">X ❌</button>
+                        class="attendance-pill attendance-pill-no${noClass}" data-player-id="${p.id}" data-player="${p.navn}" data-status="false">X</button>
                 </div>
             `;
             container.appendChild(div);
@@ -94,30 +97,27 @@ window.openAttendanceModal = function(eventId) {
 window.setAttendancePill = function(btn, status) {
     const row = btn.parentElement;
     row.querySelectorAll('.attendance-pill').forEach(b => {
-        b.classList.remove('bg-emerald-100', 'border-emerald-300', 'text-emerald-800', 'bg-rose-100', 'border-rose-300', 'text-rose-800');
-        b.classList.add('bg-white', 'border-slate-200', 'text-slate-400');
+        b.classList.remove('is-active', 'is-ok', 'is-no');
     });
 
-    btn.classList.remove('bg-white', 'border-slate-200', 'text-slate-400');
-    if (status) btn.classList.add('bg-emerald-100', 'border-emerald-300', 'text-emerald-800');
-    else btn.classList.add('bg-rose-100', 'border-rose-300', 'text-rose-800');
+    btn.classList.add('is-active');
+    if (status) btn.classList.add('is-ok');
+    else btn.classList.add('is-no');
 };
 
 window.closeAttendanceModal = function() {
     document.getElementById('attendanceModal').classList.add('hidden');
     document.getElementById('attendanceModal').classList.remove('flex');
 
-    if (activeAttendanceEventId && activeAttendanceEventId.startsWith('match_')) {
-        const matchId = activeAttendanceEventId.replace('match_', '');
-
-        setTimeout(() => {
-            if (typeof window.showMatchDetails === 'function') {
-                window.showMatchDetails(matchId);
-            }
-        }, 100);
-    }
-
+    const context = window._modalReturnContext;
+    window._modalReturnContext = null;
     activeAttendanceEventId = null;
+
+    window.restoreModalReturnContext(context);
+
+    if (typeof window.updateDashboard === 'function') window.updateDashboard();
+    if (typeof window.renderCalendar === 'function') window.renderCalendar();
+    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
 };
 
 window.saveAttendanceRegistry = async function() {
@@ -131,7 +131,7 @@ window.saveAttendanceRegistry = async function() {
 
     const attMap = { ...(ev.attendance || {}) };
     document.getElementById('attendance-players-list').querySelectorAll('.attendance-pill').forEach(btn => {
-        if (btn.classList.contains('bg-emerald-100') || btn.classList.contains('bg-rose-100')) {
+        if (btn.classList.contains('is-active')) {
             const playerKey = window.getPlayerStorageKey(btn.getAttribute('data-player-id') || btn.getAttribute('data-player'));
             if (playerKey) {
                 attMap[playerKey] = btn.getAttribute('data-status') === 'true';

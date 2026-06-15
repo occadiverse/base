@@ -608,26 +608,34 @@
     </div>
 
     <div id="attendanceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
-                <div>
-                    <h3 id="attendanceModalTitle" class="font-extrabold text-lg text-bsk-blue">Oppmøteregistrering</h3>
-                    <p class="text-[10px] text-slate-500 mt-0.5" id="attendanceModalSub">Laster...</p>
+        <div class="match-detail-card attendance-modal-card w-full max-w-lg relative overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="dashboard-next-match-watermark attendance-modal-watermark">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+
+            <div class="match-detail-card-top relative z-10">
+                <div class="match-detail-meta">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span id="attendanceModalTitle">Oppmøteregistrering</span>
                 </div>
-                <button onclick="closeAttendanceModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button type="button" onclick="closeAttendanceModal()" class="match-bench-icon-btn attendance-modal-close" title="Lukk">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="attendance-players-list">
-                </div>
+            <div class="attendance-modal-body relative z-10">
+                <p class="attendance-modal-sub" id="attendanceModalSub">Laster...</p>
+                <div id="attendance-players-list" class="attendance-modal-list"></div>
+            </div>
 
-            <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
-                <button onclick="saveAttendanceRegistry()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
-                    LAGRE OPPMØTE
+            <div class="attendance-modal-footer relative z-10">
+                <button type="button" onclick="saveAttendanceRegistry()" class="match-bench-action-btn attendance-modal-action-btn">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Lagre oppmøte</span>
                 </button>
-                <button type="button" onclick="closeAttendanceModal()" class="portal-btn portal-btn-muted portal-btn-lg">
-                    AVBRYT
+                <button type="button" onclick="closeAttendanceModal()" class="match-bench-action-btn attendance-modal-action-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Avbryt</span>
                 </button>
             </div>
         </div>

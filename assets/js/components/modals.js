@@ -1,4 +1,5 @@
 window._sessionInjuryPopupData = [];
+window._modalReturnContext = null;
 
 window.escapeModalHtml = function(value) {
     return String(value || '').replace(/[&<>"']/g, char => ({
@@ -10,7 +11,30 @@ window.escapeModalHtml = function(value) {
     }[char]));
 };
 
+window.captureModalReturnContext = function() {
+    const tab = window.currentTab || 'hjem';
+    return {
+        tab,
+        matchId: tab === 'kampdetaljer' ? (window.activeDetailsId || null) : null
+    };
+};
+
+window.restoreModalReturnContext = function(context) {
+    if (!context) return;
+
+    if (context.tab === 'kampdetaljer' && context.matchId && typeof window.showMatchDetails === 'function') {
+        window.showMatchDetails(context.matchId);
+        return;
+    }
+
+    if (context.tab && typeof window.switchTab === 'function') {
+        window.switchTab(context.tab);
+    }
+};
+
 window.showSessionInjuryModal = function() {
+    window._modalReturnContext = window.captureModalReturnContext();
+
     const players = window._sessionInjuryPopupData || [];
     if (players.length === 0) return;
 
@@ -45,6 +69,10 @@ window.closeSessionInjuryModal = function() {
     const modal = document.getElementById('sessionInjuryModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+
+    const context = window._modalReturnContext;
+    window._modalReturnContext = null;
+    window.restoreModalReturnContext(context);
 };
 
 window.customConfirm = function(title, message, callback) {
