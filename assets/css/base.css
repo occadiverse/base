@@ -2096,14 +2096,36 @@
                 width: 100%;
             }
             .roster-player-row {
-                gap: 0.65rem;
-                grid-template-columns: auto minmax(0, 1fr);
-                padding: 0.75rem 0.8rem;
+                gap: 0.55rem;
+                grid-template-columns: auto minmax(0, 1fr) auto;
+                padding: 0.7rem 0.75rem;
+            }
+            .roster-player-jersey {
+                font-size: 0.72rem;
+                height: 2.25rem;
+                width: 2.25rem;
+            }
+            .roster-player-name {
+                font-size: 0.92rem;
             }
             .roster-player-side {
-                align-items: flex-start;
-                grid-column: 2;
-                grid-row: 2;
+                align-items: flex-end;
+                align-self: center;
+                flex-direction: column;
+                gap: 0.25rem;
+                grid-column: auto;
+                grid-row: auto;
+                min-width: 3.5rem;
+            }
+            .roster-player-age {
+                font-size: 0.66rem;
+            }
+            .roster-player-badges {
+                gap: 0.2rem;
+            }
+            .roster-badge {
+                font-size: 0.5rem;
+                padding: 0.22rem 0.42rem;
             }
             .roster-player-meta span:nth-of-type(3),
             .roster-player-meta span:nth-of-type(4) {

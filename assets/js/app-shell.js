@@ -52,9 +52,7 @@ function switchTab(tabId) {
 
         floatingBtn.onclick = function() { window.openActivityModal(); };
     } else if (tabId === 'tropp') {
-        floatingBtn.classList.remove('hidden');
-        floatingIcon.className = "fa-solid fa-user-plus";
-        floatingBtn.onclick = function() { window.openPlayerModal(); };
+        floatingBtn.classList.add('hidden');
     } else {
         floatingBtn.classList.add('hidden');
     }

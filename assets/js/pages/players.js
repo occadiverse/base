@@ -30,6 +30,9 @@ window.updateDynamicSelectors = function() {
     }
     if (kamperFilterSelect) kamperFilterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
 
+    const lagFilterWrap = document.getElementById('rosterLagFilterWrap');
+    if (lagFilterWrap) lagFilterWrap.classList.toggle('hidden', teams.length <= 1);
+
     teams.forEach(t => {
         if (kamperFilterSelect) {
             const opt = document.createElement('option');

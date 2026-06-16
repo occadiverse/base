@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v8">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v9">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -151,7 +151,7 @@
                             <p class="roster-hero-kicker">BSK Fotball</p>
                             <h2 class="roster-hero-title">Spillertropp</h2>
                         </div>
-                        <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn hidden md:inline-flex">
+                        <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn inline-flex">
                             <i class="fa-solid fa-user-plus"></i>
                             <span>Ny spiller</span>
                         </button>
@@ -177,7 +177,7 @@
                 </div>
 
                 <div class="roster-toolbar">
-                    <div class="match-list-lag-filter">
+                    <div id="rosterLagFilterWrap" class="match-list-lag-filter hidden">
                         <i class="fa-solid fa-shield-halved"></i>
                         <select id="lagFilterSelect" onchange="handleTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer spillere etter lag">
                         </select>
