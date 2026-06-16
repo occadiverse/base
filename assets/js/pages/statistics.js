@@ -237,6 +237,7 @@ window.checkIndividualChemistry = function() {
             `;
         };
 
+        
         window.renderStatistikkSide = function() {
             const filterLag = window.getStatsTeamFilter();
             const teamPlayers = (window.activePlayers || []).filter(p => {
@@ -264,9 +265,6 @@ window.checkIndividualChemistry = function() {
             });
 
             const matchCount = filteredMatches.length;
-            const goalsAvg = matchCount ? (goals / matchCount).toFixed(1) : '0';
-            const concededAvg = matchCount ? (conceded / matchCount).toFixed(1) : '0';
-
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             const todayForStats = new Date();
             todayForStats.setHours(0, 0, 0, 0);
@@ -279,11 +277,9 @@ window.checkIndividualChemistry = function() {
                     eventDate.setHours(0, 0, 0, 0);
                     if (eventDate > todayForStats) return;
                 }
-
                 const eventTeam = e.team || 'Lag A';
                 const squad = teamPlayers.filter(p => p.spillerLag === eventTeam);
                 if (!squad.length) return;
-
                 totalPossibleTicks += squad.length;
                 if (e.attendance) {
                     squad.forEach(p => {
@@ -292,38 +288,24 @@ window.checkIndividualChemistry = function() {
                 }
             });
 
-            const avgAttendance = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
-            const teamFormMedian = typeof window.getTeamFormMedian === 'function'
-                ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
-                : 0;
+            window._statsLagData = {
+                filterLag,
+                title: filterLag && filterLag !== 'Alle' ? filterLag : 'Lagstatistikk',
+                wins,
+                draws,
+                losses,
+                goals,
+                goalsAvg: matchCount ? (goals / matchCount).toFixed(1) : '0',
+                concededAvg: matchCount ? (conceded / matchCount).toFixed(1) : '0',
+                playerCount: teamPlayers.length,
+                avgAttendance: totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0,
+                teamFormMedian: typeof window.getTeamFormMedian === 'function'
+                    ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
+                    : 0
+            };
 
-            const titleEl = document.getElementById('stats-lag-title');
-            if (titleEl) titleEl.textContent = filterLag && filterLag !== 'Alle' ? filterLag : 'Lagstatistikk';
-
-            if (document.getElementById('stats-page-wins')) document.getElementById('stats-page-wins').innerText = wins;
-            if (document.getElementById('stats-page-draws')) document.getElementById('stats-page-draws').innerText = draws;
-            if (document.getElementById('stats-page-losses')) document.getElementById('stats-page-losses').innerText = losses;
-            if (document.getElementById('stats-page-goals')) document.getElementById('stats-page-goals').innerText = goals;
-            if (document.getElementById('stats-page-goals-avg')) document.getElementById('stats-page-goals-avg').innerText = goalsAvg;
-            if (document.getElementById('stats-page-conceded-avg')) document.getElementById('stats-page-conceded-avg').innerText = concededAvg;
-            if (document.getElementById('stats-page-players')) document.getElementById('stats-page-players').innerText = teamPlayers.length;
-            if (document.getElementById('stats-page-attendance')) document.getElementById('stats-page-attendance').innerText = `${avgAttendance}%`;
-            if (document.getElementById('stats-lag-form-median')) {
-                document.getElementById('stats-lag-form-median').innerText = teamFormMedian > 0 ? teamFormMedian : '-';
-            }
-
-            const formRow = document.getElementById('stats-lag-form-row');
-            if (formRow) {
-                const formGuide = window.getTeamFormGuide(filterLag);
-                const getPillClass = (form) => {
-                    if (form === 'S') return 'is-win';
-                    if (form === 'T') return 'is-loss';
-                    return 'is-draw';
-                };
-
-                formRow.innerHTML = formGuide.length
-                    ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
-                    : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
+            if (document.querySelector('#stat-tab-lag.is-active') || document.getElementById('stat-view-lag')?.classList.contains('block')) {
+                window.renderStatsTabHero('lag');
             }
 
             const followUpsContainer = document.getElementById('stats-lag-followups');
@@ -332,6 +314,7 @@ window.checkIndividualChemistry = function() {
                 followUpsContainer.innerHTML = window.renderStatsFollowUpsHtml(analysis.followUps);
             }
         };
+
 
 window.calculatePlayerPerformanceChemistry = function(playerName) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
@@ -456,6 +439,315 @@ window.getFormScoreBorderClass = function(score, teamName) {
     return 'border-slate-300';
 }
 
+        window.buildPlayerStatsData = function() {
+            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
+            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+            const todayForStats = new Date();
+            todayForStats.setHours(0, 0, 0, 0);
+
+            return (window.activePlayers || [])
+                .filter(p => filterLag === 'Alle' || p.spillerLag === filterLag)
+                .map(p => {
+                    const teamEvents = allEvents.filter(e => {
+                        if (e.team !== p.spillerLag) return false;
+                        if (e.date) {
+                            const eventDate = new Date(e.date);
+                            eventDate.setHours(0, 0, 0, 0);
+                            if (eventDate > todayForStats) return false;
+                        }
+                        return true;
+                    });
+
+                    let attended = 0, kamper = 0, attendedMatches = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
+
+                    teamEvents.forEach(e => {
+                        if (window.isPlayerAttending(e.attendance, p)) {
+                            attended++;
+                            if (e.type === 'Kamp') {
+                                attendedMatches++;
+                                const onPitch = typeof window.isPlayerOnPitch === 'function'
+                                    ? window.isPlayerOnPitch(e, p)
+                                    : true;
+                                if (onPitch) {
+                                    kamper++;
+                                    mal += Number(window.getPlayerRefMapValue(e.scorers, p, 0)) || 0;
+                                    assist += Number(window.getPlayerRefMapValue(e.assists, p, 0)) || 0;
+                                    if (window.motmMatchesPlayer(e.motm, p)) bb++;
+                                }
+                                totalMatchPoints += window.calculatePlayerMatchPoints(e, p);
+                            }
+                        }
+                    });
+
+                    const cardCounts = typeof window.getPlayerCardCounts === 'function'
+                        ? window.getPlayerCardCounts(p.navn, p.spillerLag)
+                        : { serie: { gule: 0, rode: 0 }, cup: { gule: 0, rode: 0 } };
+                    const serieHint = typeof window.getSerieYellowDisciplineHint === 'function'
+                        ? window.getSerieYellowDisciplineHint(cardCounts.serie.gule)
+                        : { isAtRisk: false };
+
+                    return {
+                        navn: p.navn,
+                        pos1: p.pos1 || '',
+                        spillerLag: p.spillerLag || '',
+                        oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
+                        kamper,
+                        attendedMatches,
+                        mal,
+                        assist,
+                        kampbonus: attendedMatches > 0 ? totalMatchPoints / attendedMatches : 0,
+                        guleSerie: cardCounts.serie.gule,
+                        rodeSerie: cardCounts.serie.rode,
+                        guleCup: cardCounts.cup.gule,
+                        rodeCup: cardCounts.cup.rode,
+                        serieAtRisk: serieHint.isAtRisk,
+                        kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
+                        bb
+                    };
+                });
+        };
+
+        window.renderStatsTabHero = function(tabId) {
+            const hero = document.getElementById('stats-tab-hero');
+            if (!hero) return;
+
+            if (tabId === 'lag') {
+                const data = window._statsLagData;
+                if (!data) {
+                    hero.innerHTML = '';
+                    return;
+                }
+
+                const formGuide = window.getTeamFormGuide(data.filterLag);
+                const getPillClass = (form) => {
+                    if (form === 'S') return 'is-win';
+                    if (form === 'T') return 'is-loss';
+                    return 'is-draw';
+                };
+                const formRowHtml = formGuide.length
+                    ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
+                    : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
+
+                hero.innerHTML = `
+                    <div class="stats-hero-panel">
+                        <div class="stats-hero-top">
+                            <div>
+                                <p class="stats-hero-kicker">BSK Fotball</p>
+                                <h2 class="stats-hero-title">${data.title}</h2>
+                                <p class="stats-hero-subtitle">Kampresultater, form og troppens nøkkeltall for valgt lag.</p>
+                            </div>
+                            <div class="stats-hero-ring">
+                                <p class="stats-hero-ring-label">Lagform</p>
+                                <p class="stats-hero-ring-value">${data.teamFormMedian > 0 ? data.teamFormMedian : '-'}</p>
+                                <p class="stats-hero-ring-sub">median</p>
+                            </div>
+                        </div>
+                        <div class="stats-form-row">${formRowHtml}</div>
+                        <div class="stats-stat-grid">
+                            <div class="stats-stat-card"><span class="stats-stat-label">Seire</span><span class="stats-stat-value is-win">${data.wins}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Uavgjorte</span><span class="stats-stat-value is-draw">${data.draws}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Tap</span><span class="stats-stat-value is-loss">${data.losses}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Mål scoret</span><span class="stats-stat-value is-goals">${data.goals}</span></div>
+                        </div>
+                        <div class="stats-section-divider"></div>
+                        <div class="stats-stat-grid">
+                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt scoret</span><span class="stats-stat-value">${data.goalsAvg}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt innslipp</span><span class="stats-stat-value is-loss">${data.concededAvg}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Spillere</span><span class="stats-stat-value">${data.playerCount}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Oppmøte</span><span class="stats-stat-value is-win">${data.avgAttendance}%</span></div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (tabId === 'spillere') {
+                const filterLag = window.getStatsTeamFilter();
+                const analysis = window.buildPlayerAnalysisStats(filterLag);
+                const statsData = window.buildPlayerStatsData().filter(s => s.kamper > 0 || s.kjemi > 0);
+                const avgForm = statsData.length
+                    ? Math.round(statsData.reduce((sum, s) => sum + s.kjemi, 0) / statsData.length)
+                    : 0;
+                const avgBonus = statsData.length
+                    ? (statsData.reduce((sum, s) => sum + s.kampbonus, 0) / statsData.length).toFixed(1)
+                    : '-';
+                const teamMedian = typeof window.getTeamFormMedian === 'function'
+                    ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
+                    : 0;
+                const title = filterLag && filterLag !== 'Alle' ? filterLag : 'Spilleroversikt';
+
+                const leaderChip = (label, icon, player, detail, toneClass = '') => {
+                    if (!player) {
+                        return `<div class="stats-leader-chip is-empty"><span class="stats-leader-chip-label"><i class="fa-solid ${icon}"></i> ${label}</span><span class="stats-leader-chip-value">-</span></div>`;
+                    }
+                    const safeName = String(player.name || player).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    return `
+                        <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-leader-chip ${toneClass}">
+                            <span class="stats-leader-chip-label"><i class="fa-solid ${icon}"></i> ${label}</span>
+                            <span class="stats-leader-chip-value">${detail}</span>
+                        </button>
+                    `;
+                };
+
+                hero.innerHTML = `
+                    <div class="stats-hero-panel">
+                        <div class="stats-hero-top">
+                            <div>
+                                <p class="stats-hero-kicker">BSK Fotball · Spillere</p>
+                                <h2 class="stats-hero-title">${title}</h2>
+                                <p class="stats-hero-subtitle">Form og kampbidrag i troppen. Trykk en spiller for poenghistorikk og kampdetaljer.</p>
+                            </div>
+                            <div class="stats-hero-ring">
+                                <p class="stats-hero-ring-label">Snitt form</p>
+                                <p class="stats-hero-ring-value">${avgForm || '-'}</p>
+                                <p class="stats-hero-ring-sub">/ 100</p>
+                            </div>
+                        </div>
+                        <div class="stats-hero-leaders">
+                            ${leaderChip('Form', 'fa-fire', analysis.topFormPlayer, analysis.topFormPlayer ? `${analysis.topFormPlayer.name} · ${analysis.topFormPlayer.formLastFive.toFixed(1)}` : '-', 'is-form')}
+                            ${leaderChip('Mål', 'fa-futbol', analysis.topScorer, analysis.topScorer ? `${analysis.topScorer.name} · ${analysis.topScorer.goals}` : '-', 'is-goals')}
+                            ${leaderChip('BB', 'fa-crown', analysis.bbLeader, analysis.bbLeader ? `${analysis.bbLeader.name} · ${analysis.bbLeader.bb}` : '-', 'is-bb')}
+                        </div>
+                        <div class="stats-stat-grid">
+                            <div class="stats-stat-card"><span class="stats-stat-label">Spillere</span><span class="stats-stat-value">${statsData.length}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt kampbidrag</span><span class="stats-stat-value is-accent">${avgBonus}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Lag median</span><span class="stats-stat-value">${teamMedian > 0 ? teamMedian : '-'}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Med kampdata</span><span class="stats-stat-value is-goals">${statsData.filter(s => s.kamper > 0).length}</span></div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (tabId === 'kampstat') {
+                const data = window._statsKampHeroData;
+                if (!data) {
+                    hero.innerHTML = `
+                        <div class="stats-hero-panel">
+                            <div class="stats-hero-top">
+                                <div>
+                                    <p class="stats-hero-kicker">BSK Fotball · Kamper</p>
+                                    <h2 class="stats-hero-title">Kampstatistikk</h2>
+                                    <p class="stats-hero-subtitle">Velg en spilt kamp for å se poengfordeling og kampbilde.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const { playedMatches, matchId, matchType, matchGroup, dateStr, pitch, matchResult } = data;
+                const currentIdx = playedMatches.findIndex(m => m.id === matchId);
+
+                hero.innerHTML = `
+                    <div class="stats-hero-panel">
+                        <div class="stats-hero-top">
+                            <div class="min-w-0">
+                                <p class="stats-hero-kicker">Kampanalyse</p>
+                                <h2 class="stats-hero-title">
+                                    BSK -
+                                    <span class="stats-hero-select-wrap ml-2 align-middle">
+                                        <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate">
+                                            ${playedMatches.map(m => {
+                                                const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+                                                const shortText = m.opponent || 'Motstander';
+                                                const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
+                                                return `<option value="${m.id}" data-short="${shortText}" data-full="${fullText}" ${m.id === matchId ? 'selected' : ''}>${shortText}</option>`;
+                                            }).join('')}
+                                        </select>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </span>
+                                </h2>
+                                <p class="stats-hero-subtitle">${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}</p>
+                                <div class="stats-kamp-nav">
+                                    <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <span>${currentIdx + 1} / ${playedMatches.length}</span>
+                                    <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+                            <div class="stats-hero-result">
+                                <p class="stats-hero-result-label">Resultat</p>
+                                <p class="stats-hero-result-value">${matchResult}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if (typeof window.collapseKampSelectLabel === 'function') window.collapseKampSelectLabel();
+            }
+        };
+
+        window.renderSpillerDetailHero = function(playerName, avgPoints, totalPoints, chemistry, formComparison, teamMedian, player) {
+            const hero = document.getElementById('stats-tab-hero');
+            if (!hero) return;
+
+            hero.innerHTML = `
+                <div class="stats-hero-panel">
+                    <div class="stats-hero-top">
+                        <div>
+                            <p class="stats-hero-kicker">${player.pos1 || 'Spiller'}</p>
+                            <h2 class="stats-hero-title">${playerName}</h2>
+                            <p class="stats-hero-subtitle">${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>
+                        </div>
+                        <div class="stats-hero-ring">
+                            <p class="stats-hero-ring-label">Snitt</p>
+                            <p class="stats-hero-ring-value">${avgPoints ? avgPoints.toFixed(1) : '-'}</p>
+                            <p class="stats-hero-ring-sub">${totalPoints} totalt · Form ${chemistry}/100</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderPlayerStatsList = function() {
+            const list = document.getElementById('stats-player-list');
+            if (!list) return;
+
+            let statsData = window.buildPlayerStatsData();
+            statsData.sort((a, b) => {
+                if (currentStatSortCol === 'navn') {
+                    return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
+                }
+                return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
+            });
+
+            if (!statsData.length) {
+                list.innerHTML = `<div class="stats-player-empty">Ingen spillere funnet for valgt lag.</div>`;
+                return;
+            }
+
+            list.innerHTML = statsData.map(stat => {
+                const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
+                const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
+                const bonusClass = stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral';
+                const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
+                const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+                const extras = [];
+                if (stat.mal > 0) extras.push(`⚽ ${stat.mal}`);
+                if (stat.assist > 0) extras.push(`A ${stat.assist}`);
+                if (stat.bb > 0) extras.push(`👑 ${stat.bb}`);
+                if (stat.guleSerie > 0) extras.push(`🟨 ${stat.guleSerie}`);
+                if (stat.rodeSerie > 0) extras.push(`🟥 ${stat.rodeSerie}`);
+
+                return `
+                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-player-row">
+                        <div class="stats-player-form-pill ${formClass}">
+                            <span class="stats-player-pill-label">Form</span>
+                            <span class="stats-player-pill-value">${stat.kjemi}</span>
+                        </div>
+                        <div class="stats-player-main">
+                            <span class="stats-player-name">${stat.navn}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</span>
+                            <span class="stats-player-meta">${stat.pos1 || 'Spiller'} · ${stat.kamper} kamper · ${stat.oppmotePct}% oppmøte${extras.length ? ' · ' + extras.join(' · ') : ''}</span>
+                        </div>
+                        <div class="stats-player-bonus-pill ${bonusClass}">
+                            <span class="stats-player-pill-label">KB</span>
+                            <span class="stats-player-pill-value">${bonusText}</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        };
+        
         window.switchStatTab = function(tabId) {
             const statViewActiveClasses = {
                 lag: 'block space-y-5',
@@ -468,18 +760,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (view) view.className = id === tabId ? statViewActiveClasses[id] : 'hidden';
             });
 
-            const inactiveClass = "stat-tab-btn portal-segment-btn";
             document.querySelectorAll('.stat-tab-btn').forEach(btn => {
-                btn.className = inactiveClass;
+                btn.className = 'stat-tab-btn portal-segment-btn';
             });
 
             const activeBtn = document.getElementById(`stat-tab-${tabId}`);
-            if (activeBtn) activeBtn.className = "stat-tab-btn portal-segment-btn is-active";
+            if (activeBtn) activeBtn.className = 'stat-tab-btn portal-segment-btn is-active';
 
             if (tabId === 'lag') window.renderStatistikkSide();
-            if (tabId === 'spillere') window.renderSpillereView();
+            if (tabId === 'spillere') {
+                if (window._statsSelectedPlayer) window.renderSpillereDetail(window._statsSelectedPlayer);
+                else window.renderSpillereView();
+            }
             if (tabId === 'kampstat') window.renderMatchStatsView();
         };
+
 
         window.statsEmptyStateHtml = function(icon, title, text) {
             return `
@@ -539,83 +834,50 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             `;
         };
+        
         window.renderSpillereView = function() {
             window._statsSelectedPlayer = null;
             const container = document.getElementById('stat-spillere-content');
             if (!container) return;
 
-            const filterLag = window.getStatsTeamFilter();
-            const analysis = window.buildPlayerAnalysisStats(filterLag);
-            const card = window.statsMetricCardHtml;
+            window.renderStatsTabHero('spillere');
+
+            const sortOptions = [
+                { id: 'kampbonus', label: 'Kampbidrag' },
+                { id: 'kjemi', label: 'Form' },
+                { id: 'oppmotePct', label: 'Oppmøte' },
+                { id: 'kamper', label: 'Kamper' },
+                { id: 'navn', label: 'Navn' }
+            ];
 
             container.innerHTML = `
-                <div class="space-y-5">
-                    <div class="stats-metric-grid is-three">
-                        ${card(
-                            'Formspiller',
-                            analysis.topFormPlayer ? analysis.topFormPlayer.name : '-',
-                            analysis.topFormPlayer ? `Snitt siste 5: ${analysis.topFormPlayer.formLastFive.toFixed(1)}` : 'Ingen formdata',
-                            'fa-fire',
-                            'text-orange-500',
-                            analysis.topFormPlayer ? analysis.topFormPlayer.name : ''
-                        )}
-                        ${card(
-                            'Toppscorer',
-                            analysis.topScorer ? analysis.topScorer.name : '-',
-                            analysis.topScorer ? `${analysis.topScorer.goals} mål` : 'Ingen mål registrert',
-                            'fa-futbol',
-                            'text-emerald-600',
-                            analysis.topScorer ? analysis.topScorer.name : ''
-                        )}
-                        ${card(
-                            'BB-leder',
-                            analysis.bbLeader ? analysis.bbLeader.name : '-',
-                            analysis.bbLeader ? `${analysis.bbLeader.bb} BB-kåringer` : 'Ingen BB registrert',
-                            'fa-crown',
-                            'text-bsk-yellow',
-                            analysis.bbLeader ? analysis.bbLeader.name : ''
-                        )}
+                <div class="stats-player-panel">
+                    <div class="stats-player-sort" role="tablist" aria-label="Sorter spillere">
+                        ${sortOptions.map(opt => `
+                            <button type="button" onclick="sortStatsTable('${opt.id}')" class="stats-sort-btn ${currentStatSortCol === opt.id ? 'is-active' : ''}">${opt.label}</button>
+                        `).join('')}
+                        <button type="button" onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="stats-sort-btn stats-sort-btn-info" title="Slik regnes form">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </button>
                     </div>
-
-                    <div class="stats-table-panel">
-                        <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Alle spillere</h3>
-                            <p class="stats-panel-subtitle">Trykk på en spiller for detaljer, eller sorter etter kolonne.</p>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm whitespace-nowrap">
-                                <thead class="stats-table-head select-none">
-                                    <tr>
-                                        <th onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
-                                        <th class="text-center text-bsk-blue" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
-                                        <th class="text-center text-bsk-blue" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('guleSerie')">Gul S <span id="sort-icon-guleSerie"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('guleCup')">Gul C <span id="sort-icon-guleCup"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('rodeSerie')">Rød S <span id="sort-icon-rodeSerie"></span></th>
-                                        <th class="text-center" onclick="sortStatsTable('rodeCup')">Rød C <span id="sort-icon-rodeCup"></span></th>
-                                        <th class="text-center">
-                                            <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
-                                            <i class="fa-solid fa-circle-info text-bsk-yellow hover:text-amber-500 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="stats-player-table-body" class="stats-table-body divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <div id="stats-player-list" class="stats-player-list"></div>
                 </div>
             `;
 
-            window.renderPlayerStatsTable();
+            window.renderPlayerStatsList();
         };
+
 
         window.openSpillerDetail = function(playerName) {
             if (!playerName) return;
             window._statsSelectedPlayer = playerName;
+
+            const spillereView = document.getElementById('stat-view-spillere');
+            if (spillereView && spillereView.classList.contains('hidden') && typeof window.switchStatTab === 'function') {
+                window.switchStatTab('spillere');
+                return;
+            }
+
             window.renderSpillereDetail(playerName);
         };
 
@@ -633,6 +895,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : [];
 
             if (!player || history.length === 0) {
+                if (player && typeof window.renderSpillerDetailHero === 'function') {
+                    window.renderSpillerDetailHero(playerName, 0, 0, 0, 'Ingen sammenligning', 0, player);
+                }
                 container.innerHTML = `
                     <div class="space-y-5">
                         <button type="button" onclick="window.showSpillereOverview()" class="portal-btn portal-btn-secondary portal-btn-sm">
@@ -687,6 +952,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 totalBb += window.motmMatchesPlayer(m.motm, player) ? 1 : 0;
             });
 
+            window.renderSpillerDetailHero(playerName, avgPoints, totalPoints, chemistry, formComparison, teamMedian, player);
+
             const card = window.statsMetricCardHtml;
             let rowsHtml = '';
 
@@ -732,21 +999,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <button type="button" onclick="window.showSpillereOverview()" class="portal-btn portal-btn-secondary portal-btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
                     </button>
-
-                    <div class="stats-hero-panel">
-                        <div class="stats-hero-top">
-                            <div>
-                                <p class="stats-hero-kicker">${player.pos1 || 'Spiller'}</p>
-                                <h2 class="stats-hero-title">${playerName}</h2>
-                                <p class="stats-hero-subtitle">${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>
-                            </div>
-                            <div class="stats-hero-ring">
-                                <p class="stats-hero-ring-label">Snitt</p>
-                                <p class="stats-hero-ring-value">${avgPoints ? avgPoints.toFixed(1) : '-'}</p>
-                                <p class="stats-hero-ring-sub">${totalPoints} totalt</p>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="stats-metric-grid is-four">
                         ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
@@ -846,9 +1098,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
     container.innerHTML = html;
 
-    // Vis siste spilte kamp automatisk
     if (playedMatches.length > 0 && typeof window.showMatchStatsTable === 'function') {
         window.showMatchStatsTable();
+    } else {
+        window._statsKampHeroData = null;
+        window.renderStatsTabHero('kampstat');
     }
 };
 
@@ -893,6 +1147,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
     if (!container) return;
 
     if (!matchId) {
+        window._statsKampHeroData = null;
+        window.renderStatsTabHero('kampstat');
         container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk for spillerne som deltok.</div>';
         return;
     }
@@ -963,6 +1219,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
     const matchGroup = match.matchGroup || match.team || '';
     const opponent = match.opponent || 'Motstander';
     const pitch = match.pitch || match.bane || '';
+
+    window._statsKampHeroData = {
+        playedMatches,
+        matchId,
+        matchType,
+        matchGroup,
+        dateStr,
+        pitch,
+        matchResult
+    };
+    window.renderStatsTabHero('kampstat');
 
     const avgRating = stats.filter(s => s.rating > 0).length
         ? stats.filter(s => s.rating > 0).reduce((sum, s) => sum + s.rating, 0) / stats.filter(s => s.rating > 0).length
@@ -1043,65 +1310,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
     container.innerHTML = `
         <div class="space-y-5">
-
-            <div class="stats-hero-panel">
-                <div class="stats-hero-top">
-                    <div class="min-w-0">
-                        <p class="stats-hero-kicker">Kampanalyse</p>
-                        <h2 class="stats-hero-title">
-                            BSK -
-                            <span class="stats-hero-select-wrap ml-2 align-middle">
-                                <select 
-                                    id="kampstat-match-select" 
-                                    onfocus="expandKampSelectLabels()"
-                                    onmousedown="expandKampSelectLabels()"
-                                    onblur="collapseKampSelectLabel()"
-                                    onchange="showMatchStatsTable()" 
-                                    class="portal-field portal-field-display truncate"
-                                >
-                                    ${playedMatches.map(m => {
-                                        const optionDate = m.date
-                                            ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                                            : '';
-                                
-                                        const shortText = m.opponent || 'Motstander';
-                                        const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
-                                
-                                        return `
-                                            <option 
-                                                value="${m.id}" 
-                                                data-short="${shortText}" 
-                                                data-full="${fullText}"
-                                                ${m.id === matchId ? 'selected' : ''}
-                                            >
-                                                ${shortText}
-                                            </option>
-                                        `;
-                                    }).join('')}
-                                </select>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </span>
-                        </h2>
-                        <p class="stats-hero-subtitle">
-                            ${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}
-                        </p>
-                        <div class="flex items-center gap-2 mt-3">
-                            <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${playedMatches.findIndex(m => m.id === matchId) <= 0 ? 'disabled' : ''} title="Forrige kamp">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <span class="text-xs font-bold text-white/60">${playedMatches.findIndex(m => m.id === matchId) + 1} / ${playedMatches.length}</span>
-                            <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${playedMatches.findIndex(m => m.id === matchId) >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="stats-hero-result">
-                        <p class="stats-hero-result-label">Resultat</p>
-                        <p class="stats-hero-result-value">${matchResult}</p>
-                    </div>
-                </div>
-            </div>
-
             <div class="stats-metric-grid is-four">
                 <div class="stats-metric-card">
                     <div class="stats-metric-card-top">
@@ -1277,7 +1485,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         </div>
     `;
-    window.collapseKampSelectLabel();
 }; 
 
         window.openTacticalPlanForMatch = function(matchId) {
@@ -1316,157 +1523,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.sortStatsTable = function(column) {
-            if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc; 
+            if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc;
             else { currentStatSortCol = column; currentStatSortDesc = true; }
-            window.renderPlayerStatsTable(); 
+
+            document.querySelectorAll('.stats-sort-btn:not(.stats-sort-btn-info)').forEach(btn => {
+                const label = btn.textContent.trim();
+                const sortMap = { Kampbidrag: 'kampbonus', Form: 'kjemi', Oppmøte: 'oppmotePct', Kamper: 'kamper', Navn: 'navn' };
+                btn.classList.toggle('is-active', sortMap[label] === column);
+            });
+
+            window.renderPlayerStatsList();
         };
 
+        
         window.renderPlayerStatsTable = function() {
-            const tableBody = document.getElementById('stats-player-table-body');
-            const theadContainer = tableBody ? tableBody.previousElementSibling : null;
-            if (!tableBody || !theadContainer) return;
-            
-            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
-            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-
-            const todayForStats = new Date();
-            todayForStats.setHours(0, 0, 0, 0);
-
-            let statsData = (window.activePlayers || []).filter(p => filterLag === 'Alle' || p.spillerLag === filterLag).map(p => {
-                const teamEvents = allEvents.filter(e => {
-                    if (e.team !== p.spillerLag) return false;
-                    if (e.date) {
-                        const eventDate = new Date(e.date);
-                        eventDate.setHours(0, 0, 0, 0);
-                        if (eventDate > todayForStats) return false;
-                    }
-                    return true;
-                });
-
-                let attended = 0, kamper = 0, attendedMatches = 0, yellowSerie = 0, redSerie = 0, yellowCup = 0, redCup = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
-
-                teamEvents.forEach(e => {
-                    if (window.isPlayerAttending(e.attendance, p)) {
-                        attended++;
-                        if (e.type === 'Kamp') {
-                            attendedMatches++;
-                            const onPitch = typeof window.isPlayerOnPitch === 'function'
-                                ? window.isPlayerOnPitch(e, p)
-                                : true;
-                            if (onPitch) {
-                                kamper++;
-                                mal += Number(window.getPlayerRefMapValue(e.scorers, p, 0)) || 0;
-                                assist += Number(window.getPlayerRefMapValue(e.assists, p, 0)) || 0;
-                                if (window.motmMatchesPlayer(e.motm, p)) bb++;
-                            }
-                            totalMatchPoints += window.calculatePlayerMatchPoints(e, p);
-                        }
-                    }
-                    if (e.type === 'Kamp') {
-                        if (e.matchType === 'Serie') {
-                            if (window.playerRefListIncludes(e.guleKort, p)) yellowSerie++;
-                            if (window.playerRefListIncludes(e.rodeKort, p)) redSerie++;
-                        } else if (e.matchType === 'Cup') {
-                            if (window.playerRefListIncludes(e.guleKort, p)) yellowCup++;
-                            if (window.playerRefListIncludes(e.rodeKort, p)) redCup++;
-                        }
-                    }
-                });
-
-                const cardCounts = typeof window.getPlayerCardCounts === 'function'
-                    ? window.getPlayerCardCounts(p.navn, p.spillerLag)
-                    : { serie: { gule: yellowSerie, rode: redSerie }, cup: { gule: yellowCup, rode: redCup } };
-                const serieHint = typeof window.getSerieYellowDisciplineHint === 'function'
-                    ? window.getSerieYellowDisciplineHint(cardCounts.serie.gule)
-                    : { isAtRisk: false };
-
-                return {
-                    navn: p.navn, pos1: p.pos1 || '', spillerLag: p.spillerLag || '', oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
-                    kamper: kamper, attendedMatches: attendedMatches, mal: mal, assist: assist, kampbonus: attendedMatches > 0 ? Math.round(totalMatchPoints / attendedMatches) : 0,
-                    guleSerie: cardCounts.serie.gule, rodeSerie: cardCounts.serie.rode,
-                    guleCup: cardCounts.cup.gule, rodeCup: cardCounts.cup.rode,
-                    gule: cardCounts.serie.gule, rode: cardCounts.serie.rode,
-                    serieAtRisk: serieHint.isAtRisk,
-                    kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
-                    bb: bb
-                };
-            });
-
-            statsData.sort((a, b) => {
-                if (currentStatSortCol === 'navn') return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
-                return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
-            });
-
-            theadContainer.className = "stats-table-head select-none";
-            theadContainer.innerHTML = `
-                <tr>
-                    <th onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
-                    <th class="text-center text-bsk-blue" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
-                    <th class="text-center text-bsk-blue" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('guleSerie')" title="Gule kort i seriespill">Gul S <span id="sort-icon-guleSerie"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('guleCup')" title="Gule kort i cup">Gul C <span id="sort-icon-guleCup"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('rodeSerie')" title="Røde kort i seriespill">Rød S <span id="sort-icon-rodeSerie"></span></th>
-                    <th class="text-center" onclick="sortStatsTable('rodeCup')" title="Røde kort i cup">Rød C <span id="sort-icon-rodeCup"></span></th>
-                    <th class="text-center">
-                        <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
-                        <i class="fa-solid fa-circle-info text-bsk-yellow hover:text-amber-500 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
-                    </th>
-                </tr>
-            `;
-
-            ['navn', 'oppmotePct', 'kamper', 'mal', 'assist', 'bb', 'kampbonus', 'guleSerie', 'guleCup', 'rodeSerie', 'rodeCup', 'kjemi'].forEach(col => {
-                const iconEl = document.getElementById(`sort-icon-${col}`);
-                if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
-            });
-
-            tableBody.className = "stats-table-body divide-y divide-slate-100";
-
-            tableBody.innerHTML = statsData.map(stat => {
-                const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
-                const isStarPlayer = formTone === 'green'; 
-                const chemColor = typeof window.getFormScoreTextClass === 'function'
-                    ? window.getFormScoreTextClass(stat.kjemi, stat.spillerLag)
-                    : 'text-slate-400';
-
-                let bonusColor = 'text-slate-400';
-                if (stat.kampbonus > 15) bonusColor = 'text-emerald-500';
-                else if (stat.kampbonus >= 10) bonusColor = 'text-amber-500';
-                else if (stat.kampbonus > 0) bonusColor = 'text-rose-500';
-                
-                let bonusTekst = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
-                let malFarge = stat.mal > 0 ? 'text-slate-800 font-bold' : 'text-slate-300 font-bold';
-                let assistFarge = stat.assist > 0 ? 'text-sky-700 font-bold' : 'text-slate-300 font-bold';
-                let gulSerieFarge = stat.guleSerie > 0
-                    ? (stat.serieAtRisk ? 'text-yellow-500 animate-pulse font-bold' : 'text-slate-800 font-bold')
-                    : 'text-slate-300 font-bold';
-                let gulCupFarge = stat.guleCup > 0 ? 'text-slate-700 font-bold' : 'text-slate-300 font-bold';
-                let rodSerieFarge = stat.rodeSerie > 0 ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-300 font-bold';
-                let rodCupFarge = stat.rodeCup > 0 ? 'text-rose-500 font-bold' : 'text-slate-300 font-bold';
-                
-                let bbFarge = stat.bb > 0 ? 'text-indigo-600 font-black text-sm' : 'text-slate-300 font-bold';
-                const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-
-                return `
-                    <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="window.openSpillerDetail('${safeName}')">
-                        <td><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
-                        <td class="text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
-                        <td class="text-center font-bold text-slate-800">${stat.kamper}</td>
-                        <td class="text-center ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
-                        <td class="text-center ${assistFarge}">${stat.assist > 0 ? stat.assist : '-'}</td>
-                        <td class="text-center ${bbFarge}">${stat.bb > 0 ? stat.bb : '-'}</td>
-                        <td class="text-center font-bold ${bonusColor}">${bonusTekst}</td>
-                        <td class="text-center ${gulSerieFarge}" title="${stat.serieAtRisk ? 'Faresone: karantene ved neste gule i serie' : 'Gule kort i seriespill'}">${stat.guleSerie > 0 ? stat.guleSerie : '-'}</td>
-                        <td class="text-center ${gulCupFarge}" title="Gule kort i cup">${stat.guleCup > 0 ? stat.guleCup : '-'}</td>
-                        <td class="text-center ${rodSerieFarge}" title="Røde kort i seriespill">${stat.rodeSerie > 0 ? stat.rodeSerie : '-'}</td>
-                        <td class="text-center ${rodCupFarge}" title="Røde kort i cup">${stat.rodeCup > 0 ? stat.rodeCup : '-'}</td>
-                        <td class="text-center font-bold ${chemColor}">${stat.kjemi}/100 ${isStarPlayer ? '<span class="ml-1 text-xs text-bsk-yellow">★</span>' : ''}</td>
-                    </tr>`;
-            }).join('');
+            window.renderPlayerStatsList();
         };
+
 
 window.getPlayerMatchPointsHistory = function(playerName) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);

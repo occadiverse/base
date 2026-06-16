@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v3">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -213,7 +213,9 @@
             </div>
 
             <div id="view-statistikk" class="hidden stats-page space-y-5">
-                <div class="stats-toolbar">
+                <div id="stats-tab-hero"></div>
+
+                <div class="stats-chrome">
                     <div class="portal-page-toolbar is-detached stats-tab-toolbar">
                         <div class="portal-segmented">
                             <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
@@ -237,63 +239,6 @@
                 </div>
 
                 <div id="stat-view-lag" class="block space-y-5">
-                    <div class="stats-hero-panel">
-                        <div class="stats-hero-top">
-                            <div>
-                                <p class="stats-hero-kicker">BSK Fotball</p>
-                                <h2 class="stats-hero-title" id="stats-lag-title">Lagstatistikk</h2>
-                                <p class="stats-hero-subtitle">Kampresultater, form og troppens nøkkeltall for valgt lag.</p>
-                            </div>
-                            <div class="stats-hero-ring">
-                                <p class="stats-hero-ring-label">Lagform</p>
-                                <p class="stats-hero-ring-value" id="stats-lag-form-median">-</p>
-                                <p class="stats-hero-ring-sub">median</p>
-                            </div>
-                        </div>
-
-                        <div id="stats-lag-form-row" class="stats-form-row"></div>
-
-                        <div class="stats-stat-grid">
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Seire</span>
-                                <span class="stats-stat-value is-win" id="stats-page-wins">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Uavgjorte</span>
-                                <span class="stats-stat-value is-draw" id="stats-page-draws">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Tap</span>
-                                <span class="stats-stat-value is-loss" id="stats-page-losses">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Mål scoret</span>
-                                <span class="stats-stat-value is-goals" id="stats-page-goals">0</span>
-                            </div>
-                        </div>
-
-                        <div class="stats-section-divider"></div>
-
-                        <div class="stats-stat-grid">
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Snitt scoret</span>
-                                <span class="stats-stat-value" id="stats-page-goals-avg">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Snitt innslipp</span>
-                                <span class="stats-stat-value is-loss" id="stats-page-conceded-avg">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Spillere</span>
-                                <span class="stats-stat-value" id="stats-page-players">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Oppmøte</span>
-                                <span class="stats-stat-value is-win" id="stats-page-attendance">0%</span>
-                            </div>
-                        </div>
-                    </div>
-
                     <div id="stats-lag-followups"></div>
                 </div>
 
@@ -1040,7 +985,7 @@
     <script src="assets/js/pages/players.js"></script>
     <script src="assets/js/pages/matches.js?v=20260614-match-trim"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260616-stats-v2"></script>
+    <script src="assets/js/pages/statistics.js?v=20260616-stats-v3"></script>
     <script src="assets/js/pages/tactics.js"></script>
     <script src="assets/js/pages/dashboard.js?v=20260614-match-trim"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>
