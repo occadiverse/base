@@ -912,7 +912,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     stat.pos1 || 'Spiller',
                     `${stat.kamper} kamper`,
                     `${stat.oppmotePct}% oppmøte`,
-                    `★ ${borsText} snittbørs`
+                    `★ ${borsText}`
                 ];
                 if (extras.length) metaParts.push(...extras);
 
