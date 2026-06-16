@@ -193,7 +193,9 @@ window.checkIndividualChemistry = function() {
                 followUps,
                 topFormPlayer: [...activeStats].sort((a, b) => b.formLastFive - a.formLastFive)[0] || null,
                 bbLeader: [...activeStats].sort((a, b) => b.bb - a.bb)[0] || null,
-                topScorer: [...activeStats].sort((a, b) => b.goals - a.goals)[0] || null
+                topScorer: [...activeStats].sort((a, b) => b.goals - a.goals)[0] || null,
+                topAssist: [...activeStats].sort((a, b) => b.assists - a.assists)[0] || null,
+                topKampbidrag: [...activeStats].sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)[0] || null
             };
         };
 
@@ -563,16 +565,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             if (tabId === 'spillere') {
                 const filterLag = window.getStatsTeamFilter();
-                const statsData = window.buildPlayerStatsData().filter(s => s.kamper > 0 || s.kjemi > 0);
+                const analysis = window.buildPlayerAnalysisStats(filterLag);
+                const allStats = window.buildPlayerStatsData();
+                const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
                 const avgForm = statsData.length
                     ? Math.round(statsData.reduce((sum, s) => sum + s.kjemi, 0) / statsData.length)
                     : 0;
                 const avgBonus = statsData.length
                     ? (statsData.reduce((sum, s) => sum + s.kampbonus, 0) / statsData.length).toFixed(1)
                     : '-';
-                const teamMedian = typeof window.getTeamFormMedian === 'function'
-                    ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
-                    : 0;
+
+                const buildLeaderCard = (label, player, detail, toneClass = 'is-goals') => {
+                    if (!player || !detail) {
+                        return `
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">${label}</span>
+                                <span class="stats-stat-value ${toneClass}">-</span>
+                            </div>
+                        `;
+                    }
+                    const safeName = String(player.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    return `
+                        <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-stat-card stats-stat-card-clickable">
+                            <span class="stats-stat-label">${label}</span>
+                            <span class="stats-stat-value is-leader ${toneClass}">${player.name} · ${detail}</span>
+                        </button>
+                    `;
+                };
+
+                const topScorer = analysis.topScorer && analysis.topScorer.goals > 0 ? analysis.topScorer : null;
+                const topScorerDetail = topScorer ? `${topScorer.goals} mål` : null;
+                const formPlayer = analysis.topFormPlayer && analysis.topFormPlayer.formLastFive > 0 ? analysis.topFormPlayer : null;
+                const formPlayerDetail = formPlayer ? `${formPlayer.formLastFive.toFixed(1)} børs` : null;
 
                 hero.innerHTML = `
                     <div class="stats-hero-panel">
@@ -583,10 +607,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             </div>
                         </div>
                         <div class="stats-stat-grid">
-                            <div class="stats-stat-card"><span class="stats-stat-label">Form</span><span class="stats-stat-value is-win">${avgForm || '-'}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt form</span><span class="stats-stat-value is-win">${avgForm || '-'}</span></div>
                             <div class="stats-stat-card"><span class="stats-stat-label">Snitt kampbidrag</span><span class="stats-stat-value is-accent">${avgBonus}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Lag median</span><span class="stats-stat-value">${teamMedian > 0 ? teamMedian : '-'}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Med kampdata</span><span class="stats-stat-value is-goals">${statsData.filter(s => s.kamper > 0).length}</span></div>
+                            ${buildLeaderCard('Toppscorer', topScorer, topScorerDetail, 'is-goals')}
+                            ${buildLeaderCard('Formspiller', formPlayer, formPlayerDetail, 'is-draw')}
                         </div>
                     </div>
                 `;

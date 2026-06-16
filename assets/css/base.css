@@ -2323,6 +2323,25 @@
         .stats-stat-value.is-accent {
             color: #f5c542;
         }
+        .stats-stat-card-clickable {
+            appearance: none;
+            cursor: pointer;
+            font: inherit;
+            text-align: center;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            width: 100%;
+        }
+        .stats-stat-card-clickable:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.28);
+        }
+        .stats-stat-value.is-leader {
+            font-size: clamp(0.72rem, 2.4vw, 0.92rem);
+            line-height: 1.25;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .stats-section-divider {
             border-top: 1px solid rgba(255, 255, 255, 0.12);
             margin: 1rem 0;
