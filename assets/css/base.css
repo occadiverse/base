@@ -2168,8 +2168,8 @@
                 font-size: 0.5rem;
                 padding: 0.22rem 0.42rem;
             }
-            .roster-player-meta span:nth-of-type(3),
-            .roster-player-meta span:nth-of-type(4) {
+            .roster-player-meta .stats-meta-part[data-stat-meta="oppmotePct"],
+            .roster-player-meta .stats-meta-part[data-stat-meta="snittBors"] {
                 display: none;
             }
             .player-modal-grid-injury {
@@ -2955,10 +2955,10 @@
         @media (max-width: 767px) {
             .stats-player-sort-dock {
                 backdrop-filter: blur(12px);
-                background: rgba(255, 255, 255, 0.72);
-                border-top: 1px solid rgba(148, 163, 184, 0.18);
+                background: rgba(255, 255, 255, 0.55);
+                border-top: 1px solid rgba(148, 163, 184, 0.14);
                 bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
-                box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
+                box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.04);
                 left: 0;
                 padding: 0.65rem 1rem 0.3rem;
                 position: fixed;
@@ -2966,10 +2966,10 @@
                 z-index: 35;
             }
             .stats-player-sort-dock .stats-sort-scroller-fade-left {
-                background: linear-gradient(to right, rgba(255, 255, 255, 0.72) 10%, rgba(255, 255, 255, 0.28) 45%, transparent 100%);
+                background: linear-gradient(to right, rgba(255, 255, 255, 0.55) 10%, rgba(255, 255, 255, 0.18) 45%, transparent 100%);
             }
             .stats-player-sort-dock .stats-sort-scroller-fade-right {
-                background: linear-gradient(to left, rgba(255, 255, 255, 0.72) 10%, rgba(255, 255, 255, 0.28) 45%, transparent 100%);
+                background: linear-gradient(to left, rgba(255, 255, 255, 0.55) 10%, rgba(255, 255, 255, 0.18) 45%, transparent 100%);
             }
             #stat-view-spillere:not(.hidden) .stats-spillere-layout {
                 padding-bottom: calc(4.1rem + env(safe-area-inset-bottom, 0px));
@@ -3184,13 +3184,38 @@
             color: #123f73;
         }
         .stats-kb-badge {
+            align-items: center;
             border-radius: 999px;
+            display: inline-flex;
             font-size: 0.62rem;
             font-weight: 900;
-            letter-spacing: 0.05em;
+            gap: 0.28rem;
+            letter-spacing: 0.02em;
             padding: 0.38rem 0.62rem;
-            text-transform: uppercase;
             white-space: nowrap;
+        }
+        .stats-kb-badge .stats-kb-icon {
+            font-size: 0.68rem;
+            line-height: 1;
+        }
+        .stats-meta-part {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.24rem;
+        }
+        .stats-meta-icon,
+        .stats-meta-part .stats-sort-glyph {
+            flex-shrink: 0;
+            font-size: 0.62rem;
+            line-height: 1;
+            opacity: 0.9;
+            width: 0.9em;
+        }
+        .stats-meta-text {
+            line-height: 1.2;
+        }
+        .stats-meta-pos {
+            line-height: 1.2;
         }
         .stats-kb-badge.is-high {
             background: rgba(245, 197, 66, 0.16);

@@ -901,19 +901,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
                 const extras = [];
-                if (stat.mal > 0) extras.push(`⚽ ${stat.mal}`);
-                if (stat.assist > 0) extras.push(`A ${stat.assist}`);
-                if (stat.bb > 0) extras.push(`👑 ${stat.bb}`);
-                if (stat.guleSerie > 0) extras.push(`🟨 ${stat.guleSerie}`);
-                if (stat.rodeSerie > 0) extras.push(`🟥 ${stat.rodeSerie}`);
+                if (stat.mal > 0) extras.push(window.renderStatsMetaPartHtml('mal', String(stat.mal)));
+                if (stat.assist > 0) extras.push(window.renderStatsMetaPartHtml('assist', String(stat.assist)));
+                if (stat.bb > 0) extras.push(window.renderStatsMetaPartHtml('bb', String(stat.bb)));
+                if (stat.guleSerie > 0) extras.push(window.renderStatsMetaPartHtml('guleSerie', String(stat.guleSerie)));
+                if (stat.rodeSerie > 0) extras.push(window.renderStatsMetaPartHtml('rodeSerie', String(stat.rodeSerie)));
 
                 const metaParts = [
-                    stat.pos1 || 'Spiller',
-                    `${stat.kamper} kamper`,
-                    `${stat.oppmotePct}% oppmøte`,
-                    `★ ${borsText}`
+                    `<span class="stats-meta-pos">${stat.pos1 || 'Spiller'}</span>`,
+                    window.renderStatsMetaPartHtml('kamper', String(stat.kamper)),
+                    window.renderStatsMetaPartHtml('oppmotePct', `${stat.oppmotePct}%`),
+                    window.renderStatsMetaPartHtml('snittBors', borsText)
                 ];
                 if (extras.length) metaParts.push(...extras);
+
+                const kampbidragIcon = window.renderStatsSortIconHtml(window.getStatsSortOption('kampbonus'), 'stats-kb-icon');
 
                 return `
                     <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
@@ -926,7 +928,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
                         </div>
                         <div class="roster-player-side">
-                            <span class="stats-kb-badge ${bonusClass}">KB ${bonusText}</span>
+                            <span class="stats-kb-badge ${bonusClass}" title="Kampbidrag">${kampbidragIcon}<span>${bonusText}</span></span>
                         </div>
                     </button>
                 `;
@@ -1032,6 +1034,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' }
         ];
+
+        window.getStatsSortOption = function(id) {
+            return (window.STATS_PLAYER_SORT_OPTIONS || []).find(opt => opt.id === id);
+        };
+
+        window.renderStatsSortIconHtml = function(option, extraClass = '') {
+            if (!option) return '';
+            const classSuffix = extraClass ? ` ${extraClass}` : '';
+            if (option.glyph) {
+                return `<i class="stats-sort-glyph stats-sort-glyph-${option.glyph}${classSuffix}" aria-hidden="true"></i>`;
+            }
+            return `<i class="fa-solid ${option.icon}${classSuffix}" aria-hidden="true"></i>`;
+        };
+
+        window.renderStatsMetaPartHtml = function(id, text) {
+            const option = window.getStatsSortOption(id);
+            const iconHtml = window.renderStatsSortIconHtml(option, 'stats-meta-icon');
+            return `<span class="stats-meta-part" data-stat-meta="${id}">${iconHtml}<span class="stats-meta-text">${text}</span></span>`;
+        };
 
         window.renderStatsSortButtonsHtml = function(activeCol) {
             return window.STATS_PLAYER_SORT_OPTIONS.map(opt => `
