@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v9">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v10">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -228,7 +228,7 @@
                         <input type="search" id="statsPlayerSearchInput" oninput="handleStatsPlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon…" class="roster-search-input" aria-label="Søk spillere i statistikk">
                     </div>
 
-                    <div class="roster-status-filter" role="tablist" aria-label="Statistikkfaner">
+                    <div class="roster-status-filter stats-chrome-tabs" role="tablist" aria-label="Statistikkfaner">
                         <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn roster-status-btn is-active">
                             Lag
                         </button>
@@ -237,6 +237,9 @@
                         </button>
                         <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn roster-status-btn">
                             Kamper
+                        </button>
+                        <button type="button" onclick="window.openStatsFormInfoModal()" class="roster-status-btn stats-chrome-info-btn" title="Slik regnes form" aria-label="Slik regnes form">
+                            <i class="fa-solid fa-circle-info"></i>
                         </button>
                     </div>
                 </div>
@@ -988,7 +991,7 @@
     <script src="assets/js/pages/players.js"></script>
     <script src="assets/js/pages/matches.js?v=20260614-match-trim"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260616-stats-v9"></script>
+    <script src="assets/js/pages/statistics.js?v=20260616-stats-v10"></script>
     <script src="assets/js/pages/tactics.js"></script>
     <script src="assets/js/pages/dashboard.js?v=20260614-match-trim"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>

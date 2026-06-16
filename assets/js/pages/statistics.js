@@ -600,11 +600,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                 hero.innerHTML = `
                     <div class="stats-hero-panel">
-                        <div class="stats-hero-top">
-                            <div>
-                                <p class="stats-hero-kicker">BSK Fotball · Spillere</p>
-                                <h2 class="stats-hero-title">Spilleranalyse</h2>
-                            </div>
+                        <div class="stats-hero-top stats-hero-top-compact">
+                            <h2 class="stats-hero-title">Spilleranalyse</h2>
                         </div>
                         <div class="stats-stat-grid">
                             <div class="stats-stat-card"><span class="stats-stat-label">Snitt form</span><span class="stats-stat-value is-win">${avgForm || '-'}</span></div>
@@ -870,6 +867,48 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
         
+        window.STATS_PLAYER_SORT_OPTIONS = [
+            { id: 'kampbonus', label: 'Kampbidrag', icon: 'fa-chart-line' },
+            { id: 'kjemi', label: 'Form', icon: 'fa-heart-pulse' },
+            { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
+            { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
+            { id: 'guleSerie', label: 'Gule kort', icon: 'fa-square', iconClass: 'stats-sort-icon-gk' },
+            { id: 'rodeSerie', label: 'Røde kort', icon: 'fa-square', iconClass: 'stats-sort-icon-rk' },
+            { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
+            { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
+            { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
+            { id: 'navn', label: 'Navn', icon: 'fa-user' }
+        ];
+
+        window.renderStatsSortButtonsHtml = function(activeCol) {
+            return window.STATS_PLAYER_SORT_OPTIONS.map(opt => `
+                <button
+                    type="button"
+                    onclick="sortStatsTable('${opt.id}')"
+                    class="roster-status-btn stats-sort-btn ${activeCol === opt.id ? 'is-active' : ''}"
+                    data-sort-col="${opt.id}"
+                    aria-label="${opt.label}"
+                    title="${opt.label}"
+                >
+                    <i class="fa-solid ${opt.icon} ${opt.iconClass || ''}" aria-hidden="true"></i>
+                    <span class="stats-sort-label">${opt.label}</span>
+                </button>
+            `).join('');
+        };
+
+        window.updateStatsSortButtons = function() {
+            document.querySelectorAll('.stats-sort-btn[data-sort-col]').forEach(btn => {
+                btn.classList.toggle('is-active', btn.dataset.sortCol === currentStatSortCol);
+            });
+        };
+
+        window.openStatsFormInfoModal = function() {
+            const modal = document.getElementById('kjemi-info-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
         window.renderSpillereView = function() {
             window._statsSelectedPlayer = null;
             const container = document.getElementById('stat-spillere-content');
@@ -877,28 +916,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             window.renderStatsTabHero('spillere');
 
-            const sortOptions = [
-                { id: 'kampbonus', label: 'Kampbidrag' },
-                { id: 'kjemi', label: 'Form' },
-                { id: 'mal', label: 'Mål' },
-                { id: 'assist', label: 'Assist' },
-                { id: 'guleSerie', label: 'GK' },
-                { id: 'rodeSerie', label: 'RK' },
-                { id: 'bb', label: 'BB' },
-                { id: 'oppmotePct', label: 'Oppmøte' },
-                { id: 'kamper', label: 'Kamper' },
-                { id: 'navn', label: 'Navn' }
-            ];
-
             container.innerHTML = `
                 <div class="stats-player-toolbar roster-toolbar">
                     <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
-                        ${sortOptions.map(opt => `
-                            <button type="button" onclick="sortStatsTable('${opt.id}')" class="roster-status-btn stats-sort-btn ${currentStatSortCol === opt.id ? 'is-active' : ''}">${opt.label}</button>
-                        `).join('')}
-                        <button type="button" onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="roster-status-btn stats-sort-btn stats-sort-btn-info" title="Slik regnes form">
-                            <i class="fa-solid fa-circle-info"></i>
-                        </button>
+                        ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
                     </div>
                 </div>
                 <div id="stats-player-list" class="roster-list stats-player-list"></div>
@@ -1566,23 +1587,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc;
             else { currentStatSortCol = column; currentStatSortDesc = true; }
 
-            document.querySelectorAll('.stats-sort-btn:not(.stats-sort-btn-info)').forEach(btn => {
-                const label = btn.textContent.trim();
-                const sortMap = {
-                    Kampbidrag: 'kampbonus',
-                    Form: 'kjemi',
-                    Mål: 'mal',
-                    Assist: 'assist',
-                    GK: 'guleSerie',
-                    RK: 'rodeSerie',
-                    BB: 'bb',
-                    Oppmøte: 'oppmotePct',
-                    Kamper: 'kamper',
-                    Navn: 'navn'
-                };
-                btn.classList.toggle('is-active', sortMap[label] === currentStatSortCol);
-            });
-
+            window.updateStatsSortButtons();
             window.renderPlayerStatsList();
         };
 

@@ -2637,17 +2637,48 @@
             justify-content: center;
             max-width: 100%;
         }
+        .stats-chrome-info-btn {
+            padding-inline: 0.72rem;
+        }
         .stats-player-toolbar {
             margin-bottom: 0.15rem;
         }
         .stats-sort-filter {
             flex: 1 1 auto;
-            justify-content: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
             max-width: 100%;
+            overflow-x: visible;
         }
-        .stats-sort-btn-info {
-            margin-left: auto;
-            padding-inline: 0.72rem;
+        .stats-sort-btn {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.35rem;
+            padding: 0.58rem 0.68rem;
+        }
+        .stats-sort-btn.is-active {
+            padding-inline: 0.85rem;
+        }
+        .stats-sort-btn .stats-sort-label {
+            display: none;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+        }
+        .stats-sort-btn.is-active .stats-sort-label {
+            display: inline;
+        }
+        .stats-sort-icon-gk {
+            color: #fbbf24;
+        }
+        .stats-sort-icon-rk {
+            color: #f87171;
+        }
+        .stats-hero-top-compact {
+            margin-bottom: 0.85rem;
+        }
+        .stats-hero-top-compact .stats-hero-title {
+            margin: 0;
         }
         .stats-player-list.roster-list {
             gap: 0.45rem;
