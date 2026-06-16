@@ -319,21 +319,34 @@ window.checkIndividualChemistry = function() {
         };
 
 
-window.calculatePlayerPerformanceChemistry = function(playerName) {
+window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
     if (!playerObj) return 0;
     const spillerLag = playerObj.spillerLag;
     const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
     const todayForChemistry = new Date();
     todayForChemistry.setHours(0, 0, 0, 0);
-    const isHistorical = typeof window.isHistoricalActivity === 'function'
-        ? window.isHistoricalActivity
-        : (item) => {
-            if (!item.date) return true;
-            const itemDate = new Date(item.date);
-            itemDate.setHours(0, 0, 0, 0);
-            return itemDate <= todayForChemistry;
-        };
+    let cutoffDate = asOfDate ? new Date(asOfDate) : null;
+    if (cutoffDate && Number.isNaN(cutoffDate.getTime())) {
+        cutoffDate = null;
+    } else if (cutoffDate) {
+        cutoffDate.setHours(23, 59, 59, 999);
+    }
+    const isHistorical = (item) => {
+        if (!item.date) return !cutoffDate;
+        const itemDate = new Date(item.date);
+        if (Number.isNaN(itemDate.getTime())) return false;
+        itemDate.setHours(0, 0, 0, 0);
+        if (cutoffDate) {
+            const cut = new Date(cutoffDate);
+            cut.setHours(0, 0, 0, 0);
+            return itemDate <= cut;
+        }
+        if (typeof window.isHistoricalActivity === 'function') {
+            return window.isHistoricalActivity(item);
+        }
+        return itemDate <= todayForChemistry;
+    };
     const teamEvents = allEvents
         .filter(e => e.team === spillerLag && isHistorical(e))
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -394,10 +407,10 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     return Math.max(0, Math.min(100, Math.round(formScore)));
 }
 
-window.getTeamFormMedian = function(teamName) {
+window.getTeamFormMedian = function(teamName, asOfDate) {
     const scores = (window.activePlayers || [])
         .filter(p => p.status !== 'Passiv' && (!teamName || p.spillerLag === teamName))
-        .map(p => window.calculatePlayerPerformanceChemistry(p.navn))
+        .map(p => window.calculatePlayerPerformanceChemistry(p.navn, asOfDate))
         .filter(score => score > 0)
         .sort((a, b) => a - b);
 
@@ -407,7 +420,27 @@ window.getTeamFormMedian = function(teamName) {
     return scores.length % 2 === 0
         ? Math.round((scores[middle - 1] + scores[middle]) / 2)
         : scores[middle];
-}
+};
+
+window.getTeamMatchAveragePoints = function(match, teamName) {
+    if (!match || !teamName || !match.attendance) return null;
+
+    const players = (window.activePlayers || []).filter(p =>
+        p.status !== 'Passiv' &&
+        p.spillerLag === teamName &&
+        window.isPlayerAttending(match.attendance, p)
+    );
+
+    if (!players.length) return null;
+
+    const sum = players.reduce((total, player) => {
+        return total + (typeof window.calculatePlayerMatchPoints === 'function'
+            ? window.calculatePlayerMatchPoints(match, player)
+            : 0);
+    }, 0);
+
+    return Math.round((sum / players.length) * 10) / 10;
+};
 
 window.getFormScoreTone = function(score, teamName) {
     if (!score || score <= 0) return 'none';
@@ -1197,8 +1230,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     window.renderSpillerDetailHero(playerName, 0, 0, 0, 'Ingen sammenligning', 0, player);
                 }
                 container.innerHTML = `
-                    <div class="space-y-5">
-                        <button type="button" onclick="window.showSpillereOverview()" class="portal-btn portal-btn-secondary portal-btn-sm">
+                    <div class="stats-player-detail">
+                        <button type="button" onclick="window.showSpillereOverview()" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
                             <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
                         </button>
                         ${window.statsEmptyStateHtml(
@@ -1253,48 +1286,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.renderSpillerDetailHero(playerName, avgPoints, totalPoints, chemistry, formComparison, teamMedian, player);
 
             const card = window.statsMetricCardHtml;
-            let rowsHtml = '';
-
-            history.forEach(h => {
-                const m = (window.activeMatches || []).find(match => match.id === h.matchId);
-                let pointColor = 'text-slate-700';
-                if (h.points >= 25) pointColor = 'text-emerald-600';
-                else if (h.points >= 18) pointColor = 'text-bsk-blue';
-                else if (h.points < 10) pointColor = 'text-rose-600';
-
-                const goals = m ? Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0 : 0;
-                const assists = m ? Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0 : 0;
-                const yellow = m && window.playerRefListIncludes(m.guleKort, player);
-                const red = m && window.playerRefListIncludes(m.rodeKort, player);
-                const bb = m && window.motmMatchesPlayer(m.motm, player);
-                const dateText = h.date
-                    ? new Date(h.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
-                    : '-';
-
-                rowsHtml += `
-                    <tr class="hover:bg-slate-50 transition" title="${h.breakdown}">
-                        <td class="text-slate-500 font-medium">${dateText}</td>
-                        <td class="font-black text-slate-800">${h.opponent}${h.onPitch === false ? ' <span class="text-[9px] text-amber-700 font-bold">(benk)</span>' : ''}</td>
-                        <td class="text-center font-black text-lg ${pointColor}">${h.points}</td>
-                        <td class="text-center"><span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span></td>
-                        <td class="text-center">${goals > 0 ? `⚽ ${goals}` : '-'}</td>
-                        <td class="text-center">${assists > 0 ? `A ${assists}` : '-'}</td>
-                        <td class="text-center">${bb ? '👑 +1' : '-'}</td>
-                        <td class="text-center">${yellow ? '🟨' : '-'}</td>
-                        <td class="text-center">${red ? '🟥 -10' : '-'}</td>
-                        <td class="text-center font-semibold text-slate-600">${h.result}</td>
-                        <td class="text-right">
-                            <button onclick="openMatchStatsEditor('${h.matchId}')" title="Rediger kampstatistikk" class="portal-btn portal-btn-icon-sm portal-btn-warning">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+            const trendData = typeof window.getPlayerPerformanceTrend === 'function'
+                ? window.getPlayerPerformanceTrend(playerName)
+                : [];
+            const matchHistoryHtml = history.map((h, index) =>
+                window.renderPlayerMatchHistoryItem(h, player, index === 0)
+            ).join('');
 
             container.innerHTML = `
-                <div class="space-y-5">
-                    <button type="button" onclick="window.showSpillereOverview()" class="portal-btn portal-btn-secondary portal-btn-sm">
+                <div class="stats-player-detail">
+                    <button type="button" onclick="window.showSpillereOverview()" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
                     </button>
 
@@ -1305,39 +1306,35 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-bsk-blue')}
                     </div>
 
-                    <div class="stats-table-panel">
+                    <div class="stats-panel stats-player-chart-panel">
                         <div class="stats-panel-header">
-                            <div class="flex items-start justify-between gap-3">
+                            <div class="stats-player-panel-heading">
                                 <div class="min-w-0">
-                                    <h3 class="stats-panel-title">Poenghistorikk</h3>
-                                    <p class="stats-panel-subtitle">Nyeste kamp vises øverst.</p>
+                                    <h3 class="stats-panel-title">Utvikling</h3>
+                                    <p class="stats-panel-subtitle">Spiller vs lagets snitt per kamp. Nyeste kamp til høyre.</p>
                                 </div>
-                                <button onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
+                                <button type="button" onclick="window.openStatsFormInfoModal()" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
                                     <i class="fa-solid fa-circle-info"></i>
                                     <span class="hidden sm:inline">Slik regnes form</span>
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm whitespace-nowrap">
-                                <thead class="stats-table-head">
-                                    <tr>
-                                        <th>Dato</th>
-                                        <th>Motstander</th>
-                                        <th class="text-center">Poeng</th>
-                                        <th class="text-center">Børs</th>
-                                        <th class="text-center">Mål</th>
-                                        <th class="text-center">Assist</th>
-                                        <th class="text-center text-bsk-blue">BB</th>
-                                        <th class="text-center">Gult</th>
-                                        <th class="text-center">Rødt</th>
-                                        <th class="text-center">Res</th>
-                                        <th class="text-right">Rediger</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="stats-table-body divide-y divide-slate-100">${rowsHtml}</tbody>
-                            </table>
+                        <div class="stats-player-chart-wrap">
+                            ${window.renderPlayerTrendChartSvg(trendData)}
                         </div>
+                        <div class="stats-chart-legend" aria-hidden="true">
+                            <span class="stats-chart-legend-item is-kampbidrag"><i></i> Spiller poeng</span>
+                            <span class="stats-chart-legend-item is-form"><i></i> Spiller form</span>
+                            <span class="stats-chart-legend-item is-team-kampbidrag"><i></i> Lag snitt</span>
+                            <span class="stats-chart-legend-item is-team-form"><i></i> Lag form</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-panel stats-match-history-panel">
+                        <div class="stats-panel-header">
+                            <h3 class="stats-panel-title">Poenghistorikk per kamp</h3>
+                        </div>
+                        <div class="stats-match-history-list">${matchHistoryHtml}</div>
                     </div>
                 </div>
             `;
@@ -1846,6 +1843,11 @@ window.getPlayerMatchPointsHistory = function(playerName) {
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return;
 
         const ptsDetails = window.calculatePlayerMatchPoints(m, playerObj, true);
+        const goals = Number(window.getPlayerRefMapValue(m.scorers, playerObj, 0)) || 0;
+        const assists = Number(window.getPlayerRefMapValue(m.assists, playerObj, 0)) || 0;
+        const yellow = window.playerRefListIncludes(m.guleKort, playerObj);
+        const red = window.playerRefListIncludes(m.rodeKort, playerObj);
+        const bb = window.motmMatchesPlayer(m.motm, playerObj);
 
         history.push({
             matchId: m.id,
@@ -1856,10 +1858,245 @@ window.getPlayerMatchPointsHistory = function(playerName) {
             rating: window.getPlayerRefMapValue(m.ratings, playerObj, '-') || '-',
             points: ptsDetails.total,
             onPitch: ptsDetails.onPitch !== false,
+            goals,
+            assists,
+            yellow,
+            red,
+            bb,
+            breakdownDetails: {
+                base: ptsDetails.base,
+                resultBonus: ptsDetails.resultBonus,
+                ratingBonus: ptsDetails.ratingBonus,
+                bbBonus: ptsDetails.bbBonus,
+                onPitch: ptsDetails.onPitch !== false
+            },
             breakdown: `${ptsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
         });
     });
     
-    // Sorterer fra nyeste kamp til eldste
     return history.sort((a, b) => new Date(b.date) - new Date(a.date));
+};
+
+window.getPlayerPerformanceTrend = function(playerName) {
+    const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
+    if (!playerObj) return [];
+
+    const history = window.getPlayerMatchPointsHistory(playerName);
+    if (!history.length) return [];
+
+    const teamName = playerObj.spillerLag;
+
+    return [...history]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map(entry => {
+            const match = (window.activeMatches || []).find(m => m.id === entry.matchId);
+            return {
+                matchId: entry.matchId,
+                date: entry.date,
+                opponent: entry.opponent,
+                kampbidrag: entry.points,
+                form: typeof window.calculatePlayerPerformanceChemistry === 'function'
+                    ? window.calculatePlayerPerformanceChemistry(playerName, entry.date)
+                    : 0,
+                teamKampbidrag: match && typeof window.getTeamMatchAveragePoints === 'function'
+                    ? window.getTeamMatchAveragePoints(match, teamName)
+                    : null,
+                teamForm: typeof window.getTeamFormMedian === 'function'
+                    ? window.getTeamFormMedian(teamName, entry.date)
+                    : 0
+            };
+        });
+};
+
+window.formatPointDelta = function(value) {
+    const num = Number(value) || 0;
+    if (num === 0) return '0';
+    return num > 0 ? `+${num}` : String(num);
+};
+
+window.getPlayerPointsToneClass = function(points) {
+    if (points >= 25) return 'is-high';
+    if (points >= 18) return 'is-mid';
+    if (points < 10) return 'is-low';
+    return 'is-neutral';
+};
+
+window.renderPlayerPointBreakdownHtml = function(details) {
+    if (!details) return '';
+
+    const items = [
+        { label: 'Grunnpoeng', value: details.base, tone: 'neutral' },
+        { label: 'Resultat / mål', value: details.resultBonus, tone: details.resultBonus >= 0 ? 'positive' : 'negative' },
+        { label: 'Spillerbørs', value: details.ratingBonus, tone: details.ratingBonus >= 0 ? 'positive' : 'negative' },
+        { label: 'Banens beste', value: details.bbBonus, tone: details.bbBonus > 0 ? 'accent' : 'neutral' }
+    ];
+
+    return `
+        <div class="stats-point-breakdown-grid">
+            ${items.map(item => `
+                <div class="stats-point-chip is-${item.tone}">
+                    <span class="stats-point-chip-label">${item.label}</span>
+                    <span class="stats-point-chip-value">${window.formatPointDelta(item.value)}</span>
+                </div>
+            `).join('')}
+            <div class="stats-point-chip is-total">
+                <span class="stats-point-chip-label">Totalt</span>
+                <span class="stats-point-chip-value">${details.base + details.resultBonus + details.ratingBonus + details.bbBonus}</span>
+            </div>
+        </div>
+        ${details.onPitch === false ? '<p class="stats-match-history-note">Spilleren var på benken – kun oppmøtepoeng er registrert.</p>' : ''}
+    `;
+};
+
+window.renderPlayerMatchHistoryItem = function(entry, player, expanded) {
+    const safeMatchId = String(entry.matchId).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const dateText = entry.date
+        ? new Date(entry.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short', year: 'numeric' })
+        : '-';
+    const shortDate = entry.date
+        ? new Date(entry.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
+        : '-';
+    const toneClass = window.getPlayerPointsToneClass(entry.points);
+    const metaParts = [];
+
+    if (entry.matchType) metaParts.push(entry.matchType);
+    if (entry.rating && entry.rating !== '-') metaParts.push(`Børs ${entry.rating}`);
+    if (entry.goals > 0) metaParts.push(`${entry.goals} mål`);
+    if (entry.assists > 0) metaParts.push(`${entry.assists} assist`);
+    if (entry.bb) metaParts.push('BB');
+    if (entry.yellow) metaParts.push('Gult');
+    if (entry.red) metaParts.push('Rødt');
+
+    return `
+        <article class="stats-match-history-item${expanded ? ' is-expanded' : ''}" data-match-history-id="${entry.matchId}">
+            <button type="button" class="stats-match-history-trigger" onclick="window.togglePlayerMatchHistory('${safeMatchId}')" aria-expanded="${expanded ? 'true' : 'false'}">
+                <div class="stats-match-history-leading">
+                    <span class="stats-match-history-date">${shortDate}</span>
+                    <div class="stats-match-history-main">
+                        <span class="stats-match-history-opponent">${entry.opponent || 'Motstander'}${entry.onPitch === false ? ' <span class="stats-match-history-bench">Benk</span>' : ''}</span>
+                        <span class="stats-match-history-meta">${metaParts.join(' · ') || entry.result || 'Ingen detaljer'}</span>
+                    </div>
+                </div>
+                <div class="stats-match-history-trailing">
+                    <span class="stats-match-history-result">${entry.result || '-'}</span>
+                    <span class="stats-match-history-points ${toneClass}">${entry.points}</span>
+                    <i class="fa-solid fa-chevron-down stats-match-history-chevron" aria-hidden="true"></i>
+                </div>
+            </button>
+            <div class="stats-match-history-body">
+                <div class="stats-match-history-body-head">
+                    <div>
+                        <p class="stats-match-history-body-title">${dateText} · ${entry.opponent || 'Motstander'}</p>
+                        <p class="stats-match-history-body-sub">${entry.matchType || 'Kamp'} · Resultat ${entry.result || '-'}</p>
+                    </div>
+                    <button type="button" onclick="openMatchStatsEditor('${safeMatchId}')" title="Rediger kampstatistikk" class="portal-btn portal-btn-icon-sm portal-btn-warning">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </div>
+                ${window.renderPlayerPointBreakdownHtml(entry.breakdownDetails)}
+            </div>
+        </article>
+    `;
+};
+
+window.togglePlayerMatchHistory = function(matchId) {
+    const item = document.querySelector(`[data-match-history-id="${matchId}"]`);
+    if (!item) return;
+
+    const isExpanded = item.classList.contains('is-expanded');
+    document.querySelectorAll('.stats-match-history-item.is-expanded').forEach(openItem => {
+        if (openItem !== item) {
+            openItem.classList.remove('is-expanded');
+            const trigger = openItem.querySelector('.stats-match-history-trigger');
+            if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    item.classList.toggle('is-expanded', !isExpanded);
+    const trigger = item.querySelector('.stats-match-history-trigger');
+    if (trigger) trigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+};
+
+window.renderPlayerTrendChartSvg = function(trendData) {
+    if (!Array.isArray(trendData) || trendData.length < 2) {
+        return `
+            <div class="stats-chart-empty">
+                <i class="fa-solid fa-chart-line"></i>
+                <p>Trenger minst 2 kamper for å vise utviklingsdiagram.</p>
+            </div>
+        `;
+    }
+
+    const data = trendData.slice(-12);
+    const width = 360;
+    const height = 188;
+    const pad = { top: 18, right: 34, bottom: 36, left: 34 };
+    const plotW = width - pad.left - pad.right;
+    const plotH = height - pad.top - pad.bottom;
+    const pointValues = data.flatMap(entry => [
+        entry.kampbidrag,
+        entry.teamKampbidrag
+    ].filter(value => value !== null && value !== undefined));
+    const maxPoints = Math.max(35, ...pointValues) * 1.08;
+    const maxForm = 100;
+    const xStep = data.length > 1 ? plotW / (data.length - 1) : 0;
+    const toX = (index) => pad.left + (index * xStep);
+    const toYPoints = (value) => pad.top + plotH - ((value / maxPoints) * plotH);
+    const toYForm = (value) => pad.top + plotH - ((value / maxForm) * plotH);
+
+    const gridLines = [0.25, 0.5, 0.75].map(ratio => {
+        const y = pad.top + plotH * (1 - ratio);
+        return `<line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="stats-chart-grid-line" />`;
+    }).join('');
+
+    const buildLinePoints = (values, toY) => values
+        .map((value, index) => (value === null || value === undefined ? null : `${toX(index)},${toY(value)}`))
+        .filter(Boolean)
+        .join(' ');
+
+    const kampbidragPoints = buildLinePoints(data.map(entry => entry.kampbidrag), toYPoints);
+    const formPoints = buildLinePoints(data.map(entry => entry.form), toYForm);
+    const teamKampbidragPoints = buildLinePoints(data.map(entry => entry.teamKampbidrag), toYPoints);
+    const teamFormPoints = buildLinePoints(data.map(entry => entry.teamForm), toYForm);
+
+    const labels = data.map((entry, index) => {
+        const label = entry.date
+            ? new Date(entry.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
+            : String(index + 1);
+        return `<text x="${toX(index)}" y="${height - 10}" class="stats-chart-axis-label" text-anchor="middle">${label}</text>`;
+    }).join('');
+
+    const markers = data.map((entry, index) => {
+        const teamPointsText = entry.teamKampbidrag !== null && entry.teamKampbidrag !== undefined
+            ? `, lag snitt ${entry.teamKampbidrag}`
+            : '';
+        const teamFormText = entry.teamForm ? `, lag form ${entry.teamForm}` : '';
+        const title = `${entry.opponent || 'Kamp'}: spiller ${entry.kampbidrag} poeng / form ${entry.form}${teamPointsText}${teamFormText}`;
+        return `
+            <g class="stats-chart-marker-group">
+                <title>${title}</title>
+                <circle cx="${toX(index)}" cy="${toYPoints(entry.kampbidrag)}" r="4.5" class="stats-chart-marker is-kampbidrag" />
+                <circle cx="${toX(index)}" cy="${toYForm(entry.form)}" r="4.5" class="stats-chart-marker is-form" />
+            </g>
+        `;
+    }).join('');
+
+    const teamLines = [
+        teamKampbidragPoints ? `<polyline points="${teamKampbidragPoints}" class="stats-chart-line is-team-kampbidrag" fill="none" />` : '',
+        teamFormPoints ? `<polyline points="${teamFormPoints}" class="stats-chart-line is-team-form" fill="none" />` : ''
+    ].join('');
+
+    return `
+        <svg class="stats-player-trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Diagram over spiller og lag: poeng og form">
+            ${gridLines}
+            <line x1="${pad.left}" y1="${pad.top + plotH}" x2="${width - pad.right}" y2="${pad.top + plotH}" class="stats-chart-axis" />
+            <text x="8" y="${pad.top + 4}" class="stats-chart-axis-caption">Poeng</text>
+            <text x="${width - 8}" y="${pad.top + 4}" class="stats-chart-axis-caption is-right" text-anchor="end">Form</text>
+            ${teamLines}
+            <polyline points="${kampbidragPoints}" class="stats-chart-line is-kampbidrag" fill="none" />
+            <polyline points="${formPoints}" class="stats-chart-line is-form" fill="none" />
+            ${markers}
+            ${labels}
+        </svg>
+    `;
 };
