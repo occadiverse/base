@@ -3008,6 +3008,19 @@
             font-size: 0.95rem;
             line-height: 1;
         }
+        .stats-sort-letter {
+            align-items: center;
+            border: 1px solid currentColor;
+            border-radius: 0.28rem;
+            display: inline-flex;
+            font-size: 0.58rem;
+            font-weight: 950;
+            height: 0.95rem;
+            justify-content: center;
+            line-height: 1;
+            min-width: 0.95rem;
+            opacity: 0.88;
+        }
         .stats-sort-btn.is-active {
             min-width: 0;
             padding-inline: 0.9rem;
@@ -3021,12 +3034,6 @@
         }
         .stats-sort-btn.is-active .stats-sort-label {
             display: inline;
-        }
-        .stats-sort-icon-gk {
-            color: #fbbf24;
-        }
-        .stats-sort-icon-rk {
-            color: #f87171;
         }
         .stats-hero-top-compact {
             align-items: center;
