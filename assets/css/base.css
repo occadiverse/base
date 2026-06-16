@@ -2935,13 +2935,55 @@
             margin-bottom: 0.15rem;
             width: 100%;
         }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) {
+            overflow: hidden;
+        }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #main-view {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #view-statistikk {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #stats-tab-hero,
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #stats-spillere-summary {
+            flex-shrink: 0;
+        }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #stat-view-spillere {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #stat-view-spillere > * + * {
+            margin-top: 0;
+        }
+        .portal-main-shell:has(#stat-view-spillere:not(.hidden) .stats-spillere-layout) #stat-spillere-content {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
         .stats-spillere-layout {
             display: flex;
+            flex: 1 1 auto;
             flex-direction: column;
             gap: 0.75rem;
+            min-height: 0;
             width: 100%;
         }
         .stats-player-sort-dock {
+            flex-shrink: 0;
             width: 100%;
         }
         .stats-player-sort-dock .stats-player-toolbar {
@@ -2967,16 +3009,18 @@
             .stats-player-sort-dock .stats-sort-scroller-fade-right {
                 background: linear-gradient(to left, rgba(255, 255, 255, 0.55) 10%, rgba(255, 255, 255, 0.18) 45%, transparent 100%);
             }
-            #stat-view-spillere:not(.hidden) .stats-spillere-layout {
+            #stat-view-spillere:not(.hidden) .stats-player-list {
                 padding-bottom: calc(4.1rem + env(safe-area-inset-bottom, 0px));
+            }
+            .stats-player-search-row {
+                background: linear-gradient(180deg, rgba(247, 250, 252, 0.98) 72%, rgba(247, 250, 252, 0.84) 100%);
+                margin-inline: -1rem;
+                padding-inline: 1rem;
             }
         }
         @media (min-width: 768px) {
             .stats-spillere-layout {
                 gap: 0.85rem;
-            }
-            .stats-player-sort-dock {
-                order: -1;
             }
         }
         .stats-player-toolbar {
@@ -2996,7 +3040,10 @@
             }
         }
         .stats-player-search-row {
+            flex-shrink: 0;
+            position: relative;
             width: 100%;
+            z-index: 3;
         }
         .stats-player-search-row .roster-search-wrap {
             max-height: 2.75rem;
@@ -3123,7 +3170,12 @@
             justify-content: flex-end;
         }
         .stats-player-list.roster-list {
+            -webkit-overflow-scrolling: touch;
+            flex: 1 1 auto;
             gap: 0.45rem;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
         .stats-player-row.roster-player-row {
             grid-template-columns: auto minmax(0, 1fr) auto;
