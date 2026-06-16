@@ -239,45 +239,95 @@ window.getFormScoreBorderClass = function(score, teamName) {
 }
 
         window.switchStatTab = function(tabId) {
-            // 1. Skjul alle de fire innholdscontainerne
-            document.getElementById('stat-view-lag').className = "hidden";
-            document.getElementById('stat-view-spillere').className = "hidden";
-            document.getElementById('stat-view-poeng').className = "hidden";
-            document.getElementById('stat-view-kampstat').className = "hidden";
-            document.getElementById('stat-view-analyse').className = "hidden";
+            const statViewActiveClasses = {
+                lag: 'block space-y-5',
+                spillere: 'block stats-table-panel',
+                poeng: 'block space-y-5',
+                kampstat: 'block space-y-5',
+                analyse: 'block space-y-5'
+            };
+
+            ['lag', 'spillere', 'poeng', 'kampstat', 'analyse'].forEach(id => {
+                const view = document.getElementById(`stat-view-${id}`);
+                if (view) view.className = id === tabId ? statViewActiveClasses[id] : 'hidden';
+            });
             
-            // 2. Vis containeren som ble trykket på
-            document.getElementById(`stat-view-${tabId}`).className = "block space-y-6";
-            
-            // 3. Nullstill alle knappene til passiv grå stil
             const inactiveClass = "stat-tab-btn portal-segment-btn";
             document.querySelectorAll('.stat-tab-btn').forEach(btn => {
                 btn.className = inactiveClass;
             });
             
-            // 4. Gi den aktive knappen felles aktiv-stil fra base.css
             const activeBtn = document.getElementById(`stat-tab-${tabId}`);
             if (activeBtn) {
                 activeBtn.className = "stat-tab-btn portal-segment-btn is-active";
             }
             
-            // 5. Kjør tilhørende funksjoner for den aktuelle fanen
             if (tabId === 'spillere') window.renderPlayerStatsTable();
             if (tabId === 'poeng') renderPointHistoryView();
             if (tabId === 'kampstat') renderMatchStatsView(); 
             if (tabId === 'analyse') renderAnalysisStatsView();
         };
 
+        window.statsEmptyStateHtml = function(icon, title, text) {
+            return `
+                <div class="stats-panel">
+                    <div class="stats-empty-state">
+                        <i class="fa-solid ${icon}"></i>
+                        <h3>${title}</h3>
+                        <p>${text}</p>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.statsMetricCardHtml = function(label, value, sub, icon, iconClass = 'text-bsk-blue') {
+            return `
+                <div class="stats-metric-card">
+                    <div class="stats-metric-card-top">
+                        <span class="stats-metric-label">${label}</span>
+                        <div class="stats-metric-icon">
+                            <i class="fa-solid ${icon} ${iconClass}"></i>
+                        </div>
+                    </div>
+                    <div class="stats-metric-value">${value || '-'}</div>
+                    <div class="stats-metric-sub">${sub || ''}</div>
+                </div>
+            `;
+        };
+
+        window.statsSmallTableHtml = function(title, subtitle, headers, rowsHtml) {
+            return `
+                <div class="stats-table-panel">
+                    <div class="stats-panel-header">
+                        <h3 class="stats-panel-title">${title}</h3>
+                        <p class="stats-panel-subtitle">${subtitle}</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="stats-table-head">
+                                <tr>${headers}</tr>
+                            </thead>
+                            <tbody class="stats-table-body divide-y divide-slate-100">
+                                ${rowsHtml || `
+                                    <tr>
+                                        <td colspan="6" class="p-5 text-center text-slate-400 italic text-xs">Ingen data ennå</td>
+                                    </tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        };
+
         window.renderAnalysisStatsView = function() {
     const container = document.getElementById('stat-view-analyse');
     if (!container) return;
-        container.innerHTML = `
-        <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-            <i class="fa-solid fa-spinner fa-spin text-3xl text-bsk-blue mb-3"></i>
-            <h3 class="font-black text-slate-800 text-lg mb-1">Laster analyse</h3>
-            <p class="text-sm text-slate-500">Regner ut form, BB, mål og poeng per kamp...</p>
-        </div>
-    `;
+        container.innerHTML = window.statsEmptyStateHtml(
+            'fa-spinner fa-spin',
+            'Laster analyse',
+            'Regner ut form, BB, mål og poeng per kamp...'
+        );
 
     const players = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
 
@@ -286,13 +336,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (!players.length || !matches.length) {
-        container.innerHTML = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-                <i class="fa-solid fa-chart-line text-4xl text-slate-300 mb-3"></i>
-                <h3 class="font-black text-slate-800 text-lg mb-1">Ikke nok data ennå</h3>
-                <p class="text-sm text-slate-500">Registrer kamper, oppmøte, mål, BB og spillerbørs for å bygge analysebildet.</p>
-            </div>
-        `;
+        container.innerHTML = window.statsEmptyStateHtml(
+            'fa-chart-line',
+            'Ikke nok data ennå',
+            'Registrer kamper, oppmøte, mål, BB og spillerbørs for å bygge analysebildet.'
+        );
         return;
     }
 
@@ -428,69 +476,29 @@ window.getFormScoreBorderClass = function(score, teamName) {
         })
         .slice(0, 8);
 
-    const card = (label, value, sub, icon, colorClass) => `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${label}</span>
-                <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                    <i class="fa-solid ${icon} ${colorClass} text-lg"></i>
-                </div>
-            </div>
-            <div class="text-2xl font-black text-slate-900 leading-tight">${value || '-'}</div>
-            <div class="text-xs text-slate-500 mt-1">${sub || ''}</div>
-        </div>
-    `;
+    const card = (label, value, sub, icon, colorClass) => window.statsMetricCardHtml(label, value, sub, icon, colorClass);
 
-    const smallTable = (title, subtitle, headers, rowsHtml) => `
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-slate-100 bg-slate-50">
-                <h3 class="font-black text-slate-800 text-sm">${title}</h3>
-                <p class="text-xs text-slate-500 mt-1">${subtitle}</p>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
-                        <tr>${headers}</tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        ${rowsHtml || `
-                            <tr>
-                                <td colspan="5" class="p-5 text-center text-slate-400 italic text-xs">Ingen data ennå</td>
-                            </tr>
-                        `}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
+    const smallTable = (title, subtitle, headers, rowsHtml) => window.statsSmallTableHtml(title, subtitle, headers, rowsHtml);
 
     container.innerHTML = `
-        <div class="space-y-6">
+        <div class="space-y-5">
 
-            <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 shadow-sm text-slate-900 border border-slate-200 border-b-4 border-bsk-yellow">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="stats-hero-panel">
+                <div class="stats-hero-top">
                     <div>
-                        <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Statistikk 2.0</p>
-                        <h2 class="text-2xl font-black tracking-tight text-bsk-blue">Analyse og trenerinnsikt</h2>
-                        <p class="text-sm text-slate-600 mt-1">Form, BB, mål, assists, poeng per kamp og spillere som bør følges opp.</p>
+                        <p class="stats-hero-kicker">Statistikk 2.0</p>
+                        <h2 class="stats-hero-title">Analyse og trenerinnsikt</h2>
+                        <p class="stats-hero-subtitle">Form, BB, mål, assists, poeng per kamp og spillere som bør følges opp.</p>
                     </div>
-                    <div class="shrink-0">
-                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/85 border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-wider leading-none">
-                                Grunnlag
-                            </p>
-                            <p class="text-xl md:text-3xl font-black text-bsk-blue leading-tight mt-1">
-                                ${matches.length}
-                            </p>
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-amber-700 tracking-wider leading-none">
-                                kamper
-                            </p>
-                        </div>
+                    <div class="stats-hero-ring">
+                        <p class="stats-hero-ring-label">Grunnlag</p>
+                        <p class="stats-hero-ring-value">${matches.length}</p>
+                        <p class="stats-hero-ring-sub">kamper</p>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div class="stats-metric-grid is-five">
                 ${card(
                     'Formspiller',
                     topFormPlayer ? topFormPlayer.name : '-',
@@ -532,7 +540,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 )}
             </div>
 
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
                 ${smallTable(
                     'Form siste 5 kamper',
                     'Sortert på snittbørs i spillerens siste registrerte kamper.',
@@ -591,7 +599,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 )}
             </div>
 
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
                 ${smallTable(
                     'BB-liga',
                     'Antall ganger spilleren er kåret til banens beste.',
@@ -654,18 +662,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 )}
             </div>
 
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div class="p-5 border-b border-slate-100 bg-slate-50">
-                    <h3 class="font-black text-slate-800 text-sm">Oppfølging</h3>
-                    <p class="text-xs text-slate-500 mt-1">Spillere som trenerteamet bør følge litt ekstra med på.</p>
+            <div class="stats-table-panel">
+                <div class="stats-panel-header">
+                    <h3 class="stats-panel-title">Oppfølging</h3>
+                    <p class="stats-panel-subtitle">Spillere som trenerteamet bør følge litt ekstra med på.</p>
                 </div>
-                <div class="divide-y divide-slate-100">
+                <div class="stats-followup-list">
                     ${
                         followUps.length
                             ? followUps.map(p => `
-                                <div class="p-4 hover:bg-amber-50/40 transition-colors">
+                                <div class="stats-followup-item">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
+                                        <div class="stats-metric-icon text-bsk-yellow">
                                             <i class="fa-solid fa-triangle-exclamation text-sm"></i>
                                         </div>
                                         <div class="min-w-0">
@@ -676,8 +684,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 </div>
                             `).join('')
                             : `
-                                <div class="p-6 text-center text-slate-400 italic text-xs">
-                                    Ingen tydelige varsler akkurat nå.
+                                <div class="stats-empty-state">
+                                    <p class="text-slate-400 italic text-xs">Ingen tydelige varsler akkurat nå.</p>
                                 </div>
                             `
                     }
@@ -727,17 +735,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         .join('');
         
     let html = `
-        <div class="space-y-6">
+        <div class="space-y-5">
 
-            <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-5 md:p-6 shadow-sm text-slate-900 border border-slate-200 border-b-4 border-bsk-yellow">
-                <div class="flex items-start justify-between gap-4">
-                    
+            <div class="stats-hero-panel">
+                <div class="stats-hero-top">
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">
-                            Spilleranalyse
-                        </p>
-                    
-                        <div class="relative inline-block w-full max-w-[230px] sm:max-w-[290px] md:max-w-none md:w-auto">
+                        <p class="stats-hero-kicker">Spilleranalyse</p>
+                        <div class="stats-hero-select-wrap max-w-full md:max-w-none">
                             <select 
                                 id="poeng-player-select" 
                                 onchange="showPlayerPointsTable()" 
@@ -745,42 +749,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             >
                                 ${optionsHtml}
                             </select>
-                    
-                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-blue text-xs pointer-events-none"></i>
+                            <i class="fa-solid fa-chevron-down"></i>
                         </div>
-                    
-                        <p class="text-xs md:text-sm text-slate-600 mt-3 leading-snug max-w-xl">
+                        <p class="stats-hero-subtitle">
                             Se utvikling, form, matchpoeng og kampbidrag for valgt spiller.
                         </p>
                     </div>
-            
-                    <div class="shrink-0 pt-7 md:pt-0">
-                        <div class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/85 border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-slate-500 tracking-wider leading-none">
-                                Snitt
-                            </p>
-                            <p id="player-banner-main" class="text-xl md:text-3xl font-black text-bsk-blue leading-tight mt-1">
-                                -
-                            </p>
-                            <p class="text-[8px] md:text-[9px] uppercase font-black text-amber-700 tracking-wider leading-none">
-                                poeng
-                            </p>
-                        </div>
-            
-                        <p id="player-banner-sub" class="hidden md:block text-[10px] text-slate-500 mt-2 text-center">
-                            valgt spiller
-                        </p>
+                    <div class="stats-hero-ring">
+                        <p class="stats-hero-ring-label">Snitt</p>
+                        <p id="player-banner-main" class="stats-hero-ring-value">-</p>
+                        <p class="stats-hero-ring-sub">poeng</p>
                     </div>
-            
                 </div>
+                <p id="player-banner-sub" class="hidden md:block text-[10px] text-white/55 mt-2 text-right">valgt spiller</p>
             </div>
 
             <div id="poeng-table-container">
-                <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-                    <i class="fa-solid fa-user-chart text-4xl text-slate-300 mb-3"></i>
-                    <h3 class="font-black text-slate-800 text-lg mb-1">Velg en spiller</h3>
-                    <p class="text-sm text-slate-500">Da får du nøkkeltall og poenghistorikk for spilleren.</p>
-                </div>
+                ${window.statsEmptyStateHtml(
+                    'fa-user-chart',
+                    'Velg en spiller',
+                    'Da får du nøkkeltall og poenghistorikk for spilleren.'
+                )}
             </div>
 
         </div>
@@ -800,13 +789,11 @@ if (defaultPlayerName) {
     if (!container) return;
 
     if (!playerName) {
-        container.innerHTML = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-                <i class="fa-solid fa-user-chart text-4xl text-slate-300 mb-3"></i>
-                <h3 class="font-black text-slate-800 text-lg mb-1">Velg en spiller</h3>
-                <p class="text-sm text-slate-500">Da får du nøkkeltall og poenghistorikk for spilleren.</p>
-            </div>
-        `;
+        container.innerHTML = window.statsEmptyStateHtml(
+            'fa-user-chart',
+            'Velg en spiller',
+            'Da får du nøkkeltall og poenghistorikk for spilleren.'
+        );
         return;
     }
     
@@ -814,13 +801,11 @@ if (defaultPlayerName) {
     const history = typeof window.getPlayerMatchPointsHistory === 'function' ? window.getPlayerMatchPointsHistory(playerName) : [];
     
     if (history.length === 0) {
-        container.innerHTML = `
-            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-                <i class="fa-solid fa-circle-info text-4xl text-slate-300 mb-3"></i>
-                <h3 class="font-black text-slate-800 text-lg mb-1">Ingen spilte kamper</h3>
-                <p class="text-sm text-slate-500">Ingen spilte kamper er registrert for denne spilleren ennå.</p>
-            </div>
-        `;
+        container.innerHTML = window.statsEmptyStateHtml(
+            'fa-circle-info',
+            'Ingen spilte kamper',
+            'Ingen spilte kamper er registrert for denne spilleren ennå.'
+        );
         return;
     }
 
@@ -876,33 +861,22 @@ if (defaultPlayerName) {
         totalBb += window.motmMatchesPlayer(m.motm, player) ? 1 : 0;
     });
 
-    const card = (label, value, sub, icon, iconClass) => `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${label}</span>
-                <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                    <i class="fa-solid ${icon} ${iconClass}"></i>
-                </div>
-            </div>
-            <div class="text-2xl font-black text-slate-900">${value}</div>
-            <div class="text-xs text-slate-500 mt-1">${sub}</div>
-        </div>
-    `;
+    const card = (label, value, sub, icon, iconClass) => window.statsMetricCardHtml(label, value, sub, icon, iconClass);
 
     let tableHtml = `
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div class="stats-metric-grid is-four mb-5">
             ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
             ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
-            ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-amber-500')}
-            ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-indigo-600')}
+            ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-bsk-yellow')}
+            ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-bsk-blue')}
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-slate-100 bg-slate-50">
+        <div class="stats-table-panel">
+            <div class="stats-panel-header">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <h3 class="font-black text-slate-800 text-sm">${playerName}</h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-snug">
+                        <h3 class="stats-panel-title">${playerName}</h3>
+                        <p class="stats-panel-subtitle">
                             Poenghistorikk per kamp. Nyeste kamp vises øverst.
                         </p>
                     </div>
@@ -920,22 +894,22 @@ if (defaultPlayerName) {
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
+                    <thead class="stats-table-head">
                         <tr>
-                            <th class="p-4">Dato</th>
-                            <th class="p-4">Motstander</th>
-                            <th class="p-4 text-center">Poeng</th>
-                            <th class="p-4 text-center">Børs</th>
-                            <th class="p-4 text-center">Mål</th>
-                            <th class="p-4 text-center">Assist</th>
-                            <th class="p-4 text-center text-indigo-600">BB</th>
-                            <th class="p-4 text-center">Gult</th>
-                            <th class="p-4 text-center">Rødt</th>
-                            <th class="p-4 text-center">Res</th>
-                            <th class="p-4 text-right">Rediger</th>
+                            <th>Dato</th>
+                            <th>Motstander</th>
+                            <th class="text-center">Poeng</th>
+                            <th class="text-center">Børs</th>
+                            <th class="text-center">Mål</th>
+                            <th class="text-center">Assist</th>
+                            <th class="text-center text-bsk-blue">BB</th>
+                            <th class="text-center">Gult</th>
+                            <th class="text-center">Rødt</th>
+                            <th class="text-center">Res</th>
+                            <th class="text-right">Rediger</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="stats-table-body divide-y divide-slate-100">
     `;
     
     history.forEach(h => {
@@ -1037,10 +1011,12 @@ if (defaultPlayerName) {
     }).join('');
 
 let html = `
-    <div class="space-y-6">
+    <div class="space-y-5">
         <div id="kampstat-table-container">
-            <div class="text-center py-10 text-slate-400 italic text-sm">
-                ${playedMatches.length ? 'Laster siste spilte kamp...' : 'Ingen spilte kamper med resultat er registrert ennå.'}
+            <div class="stats-empty-state">
+                <p class="text-slate-400 italic text-sm">
+                    ${playedMatches.length ? 'Laster siste spilte kamp...' : 'Ingen spilte kamper med resultat er registrert ennå.'}
+                </p>
             </div>
         </div>
     </div>
@@ -1202,23 +1178,6 @@ let html = `
         return `<span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-black border ${styles[type] || styles.slate}">${value}</span>`;
     };
 
-    const topFiveHtml = stats.slice(0, 5).map((s, index) => `
-        <div class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-full ${index === 0 ? 'bg-bsk-yellow text-bsk-blue' : 'bg-slate-100 text-slate-500'} flex items-center justify-center font-black text-xs shrink-0">
-                    ${index + 1}
-                </div>
-                <div class="min-w-0">
-                    <div class="font-black text-slate-800 truncate">${s.name}</div>
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        Børs ${s.rating || '-'} · Mål ${s.goals} · Assist ${s.assists} · BB ${s.isBbInMatch ? '+1' : '-'}
-                    </div>
-                </div>
-            </div>
-            <div class="text-right font-black ${pointColor(s.points)}">${s.points}</div>
-        </div>
-    `).join('');
-
     const rowsHtml = stats.map(s => {
         const baseVis = scoreBadge(`+${s.base}`, 'slate');
         const resultVis = scoreBadge(`${s.resultBonus > 0 ? '+' : ''}${s.resultBonus}`, s.resultBonus >= 0 ? 'blue' : 'rose');
@@ -1263,15 +1222,15 @@ let html = `
     }).join('');
 
     container.innerHTML = `
-        <div class="space-y-6">
+        <div class="space-y-5">
 
-            <div class="bg-gradient-to-br from-white via-sky-50 to-amber-50 rounded-2xl p-6 shadow-sm text-slate-900 border border-slate-200 border-b-4 border-bsk-yellow">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-                    <div>
-                        <p class="text-[10px] font-black text-bsk-blue uppercase tracking-[0.25em] mb-2">Kampanalyse</p>
-                        <h2 class="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 flex-nowrap text-bsk-blue">
-                            <span>BSK -</span>
-                            <span class="relative inline-block flex-1 min-w-0 max-w-[260px]">
+            <div class="stats-hero-panel">
+                <div class="stats-hero-top">
+                    <div class="min-w-0">
+                        <p class="stats-hero-kicker">Kampanalyse</p>
+                        <h2 class="stats-hero-title">
+                            BSK -
+                            <span class="stats-hero-select-wrap ml-2 align-middle">
                                 <select 
                                     id="kampstat-match-select" 
                                     onfocus="expandKampSelectLabels()"
@@ -1290,7 +1249,6 @@ let html = `
                                 
                                         return `
                                             <option 
-                                                class="text-slate-900" 
                                                 value="${m.id}" 
                                                 data-short="${shortText}" 
                                                 data-full="${fullText}"
@@ -1301,69 +1259,65 @@ let html = `
                                         `;
                                     }).join('')}
                                 </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-bsk-blue text-xs pointer-events-none"></i>
+                                <i class="fa-solid fa-chevron-down"></i>
                             </span>
                         </h2>
-                        <p class="text-sm text-slate-600 mt-1">
+                        <p class="stats-hero-subtitle">
                             ${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}
                         </p>
                     </div>
-                    <div class="bg-white/85 border border-slate-200 rounded-2xl px-6 py-4 text-center min-w-[130px] shadow-sm">
-                        <p class="text-[10px] uppercase font-black text-slate-500 mb-1">Resultat</p>
-                        <p class="text-3xl font-black text-amber-700">${matchResult}</p>
+                    <div class="stats-hero-result">
+                        <p class="stats-hero-result-label">Resultat</p>
+                        <p class="stats-hero-result-value">${matchResult}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Banens beste</span>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">👑</div>
+            <div class="stats-metric-grid is-four">
+                <div class="stats-metric-card">
+                    <div class="stats-metric-card-top">
+                        <span class="stats-metric-label">Banens beste</span>
+                        <div class="stats-metric-icon">👑</div>
                     </div>
-                    <div class="text-xl font-black text-slate-900">${bbPlayer ? bbPlayer.name : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">${bbPlayer ? '+1 BB-bonus' : 'Ingen BB registrert'}</div>
+                    <div class="stats-metric-value">${bbPlayer ? bbPlayer.name : '-'}</div>
+                    <div class="stats-metric-sub">${bbPlayer ? '+1 BB-bonus' : 'Ingen BB registrert'}</div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Toppscorer</span>
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">⚽</div>
+                <div class="stats-metric-card">
+                    <div class="stats-metric-card-top">
+                        <span class="stats-metric-label">Toppscorer</span>
+                        <div class="stats-metric-icon">⚽</div>
                     </div>
-                    <div class="text-xl font-black text-slate-900">${topScorer && topScorer.goals > 0 ? topScorer.name : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">${topScorer && topScorer.goals > 0 ? topScorer.goals + ' mål' : 'Ingen mål registrert'}</div>
+                    <div class="stats-metric-value">${topScorer && topScorer.goals > 0 ? topScorer.name : '-'}</div>
+                    <div class="stats-metric-sub">${topScorer && topScorer.goals > 0 ? topScorer.goals + ' mål' : 'Ingen mål registrert'}</div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mest poeng</span>
-                        <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                            <i class="fa-solid fa-chart-line text-bsk-blue"></i>
-                        </div>
+                <div class="stats-metric-card">
+                    <div class="stats-metric-card-top">
+                        <span class="stats-metric-label">Mest poeng</span>
+                        <div class="stats-metric-icon"><i class="fa-solid fa-chart-line text-bsk-blue"></i></div>
                     </div>
-                    <div class="text-xl font-black text-slate-900">${pointsLeader ? pointsLeader.name : '-'}</div>
-                    <div class="text-xs text-slate-500 mt-1">${pointsLeader ? pointsLeader.points + ' matchpoeng' : 'Ingen poengdata'}</div>
+                    <div class="stats-metric-value">${pointsLeader ? pointsLeader.name : '-'}</div>
+                    <div class="stats-metric-sub">${pointsLeader ? pointsLeader.points + ' matchpoeng' : 'Ingen poengdata'}</div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kampbildet</span>
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
-                            <i class="fa-solid fa-clipboard-list text-amber-600"></i>
-                        </div>
+                <div class="stats-metric-card">
+                    <div class="stats-metric-card-top">
+                        <span class="stats-metric-label">Kampbildet</span>
+                        <div class="stats-metric-icon"><i class="fa-solid fa-clipboard-list text-bsk-yellow"></i></div>
                     </div>
-                    <div class="text-xl font-black text-slate-900">${avgRating ? avgRating.toFixed(1) : '-'}</div>
-	                    <div class="text-xs text-slate-500 mt-1">Snittbørs · ${totalGoals} mål · ${totalAssists} assist · ${totalYellow}🟨 ${totalRed}🟥</div>
+                    <div class="stats-metric-value">${avgRating ? avgRating.toFixed(1) : '-'}</div>
+                    <div class="stats-metric-sub">Snittbørs · ${totalGoals} mål · ${totalAssists} assist · ${totalYellow}🟨 ${totalRed}🟥</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                <div class="xl:col-span-2 stats-table-panel">
+                    <div class="stats-panel-header">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <h3 class="font-black text-slate-800 text-sm">Spillerstatistikk</h3>
-                                <p class="text-xs text-slate-500 mt-1 leading-snug">
+                                <h3 class="stats-panel-title">Spillerstatistikk</h3>
+                                <p class="stats-panel-subtitle">
                                     Poengfordeling for spillerne som var registrert med oppmøte i kampen.
                                 </p>
                             </div>
@@ -1380,7 +1334,7 @@ let html = `
                             
                                 <button
                                     onclick="openMatchStatsEditor('${match.id}')"
-	                                    title="Rediger mål, assist, kort og spillerbørs"
+                                    title="Rediger mål, assist, kort og spillerbørs"
                                     class="portal-btn portal-btn-icon-sm portal-btn-warning"
                                 >
                                     <i class="fa-solid fa-pen-to-square"></i>
@@ -1391,58 +1345,58 @@ let html = `
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="bg-white text-slate-400 text-[10px] uppercase font-black border-b border-slate-100">
+                            <thead class="stats-table-head">
                                 <tr>
-                                    <th class="p-4">Spiller</th>
-                                    <th class="p-4 text-center">Poeng</th>
-	                                    <th class="p-4 text-center">Børs</th>
-	                                    <th class="p-4 text-center">Mål</th>
-	                                    <th class="p-4 text-center">Assist</th>
-	                                    <th class="p-4 text-center text-indigo-600">BB</th>
-                                    <th class="p-4 text-center">Gult</th>
-                                    <th class="p-4 text-center">Rødt</th>
-                                    <th class="p-4 text-center">Res/Mål</th>
-                                    <th class="p-4 text-center">Start</th>
+                                    <th>Spiller</th>
+                                    <th class="text-center">Poeng</th>
+                                    <th class="text-center">Børs</th>
+                                    <th class="text-center">Mål</th>
+                                    <th class="text-center">Assist</th>
+                                    <th class="text-center text-bsk-blue">BB</th>
+                                    <th class="text-center">Gult</th>
+                                    <th class="text-center">Rødt</th>
+                                    <th class="text-center">Res/Mål</th>
+                                    <th class="text-center">Start</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
+                            <tbody class="stats-table-body divide-y divide-slate-100">
                                 ${rowsHtml}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50">
-                        <h3 class="font-black text-slate-800 text-sm">Kampoppsummering</h3>
-                        <p class="text-xs text-slate-500 mt-1">Kort bilde av kampen basert på registrerte data.</p>
+                <div class="stats-panel">
+                    <div class="stats-panel-header">
+                        <h3 class="stats-panel-title">Kampoppsummering</h3>
+                        <p class="stats-panel-subtitle">Kort bilde av kampen basert på registrerte data.</p>
                     </div>
                 
                     <div class="p-5 space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Snittbørs</p>
-                                <p class="text-xl font-black text-bsk-blue mt-1">${avgRating ? avgRating.toFixed(1) : '-'}</p>
+                        <div class="stats-mini-grid">
+                            <div class="stats-mini-card">
+                                <p class="stats-mini-label">Snittbørs</p>
+                                <p class="stats-mini-value text-bsk-blue">${avgRating ? avgRating.toFixed(1) : '-'}</p>
                             </div>
                 
-	                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-	                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mål</p>
-	                                <p class="text-xl font-black text-emerald-600 mt-1">${totalGoals}</p>
-	                            </div>
+                            <div class="stats-mini-card">
+                                <p class="stats-mini-label">Mål</p>
+                                <p class="stats-mini-value text-emerald-600">${totalGoals}</p>
+                            </div>
 
-	                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-	                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Assist</p>
-	                                <p class="text-xl font-black text-sky-600 mt-1">${totalAssists}</p>
-	                            </div>
-	                
-	                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Gule kort</p>
-                                <p class="text-xl font-black text-amber-600 mt-1">${totalYellow}</p>
+                            <div class="stats-mini-card">
+                                <p class="stats-mini-label">Assist</p>
+                                <p class="stats-mini-value text-sky-600">${totalAssists}</p>
                             </div>
                 
-                            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Røde kort</p>
-                                <p class="text-xl font-black text-rose-600 mt-1">${totalRed}</p>
+                            <div class="stats-mini-card">
+                                <p class="stats-mini-label">Gule kort</p>
+                                <p class="stats-mini-value text-amber-600">${totalYellow}</p>
+                            </div>
+                
+                            <div class="stats-mini-card">
+                                <p class="stats-mini-label">Røde kort</p>
+                                <p class="stats-mini-value text-rose-600">${totalRed}</p>
                             </div>
                         </div>
                 
@@ -1452,19 +1406,19 @@ let html = `
                                 <span class="text-xs font-black text-slate-800 text-right">${bbPlayer ? bbPlayer.name : '-'}</span>
                             </div>
                         
-	                            <div class="flex items-center justify-between gap-3">
-	                                <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
-	                                <span class="text-xs font-black text-slate-800 text-right">
-	                                    ${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
-	                                </span>
-	                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-bold text-slate-500">⚽ Toppscorer</span>
+                                <span class="text-xs font-black text-slate-800 text-right">
+                                    ${topScorer && topScorer.goals > 0 ? topScorer.name + ' · ' + topScorer.goals + ' mål' : '-'}
+                                </span>
+                            </div>
 
-	                            <div class="flex items-center justify-between gap-3">
-	                                <span class="text-xs font-bold text-slate-500">A Assistkonge</span>
-	                                <span class="text-xs font-black text-slate-800 text-right">
-	                                    ${assistLeader && assistLeader.assists > 0 ? assistLeader.name + ' · ' + assistLeader.assists + ' assist' : '-'}
-	                                </span>
-	                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-bold text-slate-500">A Assistkonge</span>
+                                <span class="text-xs font-black text-slate-800 text-right">
+                                    ${assistLeader && assistLeader.assists > 0 ? assistLeader.name + ' · ' + assistLeader.assists + ' assist' : '-'}
+                                </span>
+                            </div>
                         
                             <div class="flex items-center justify-between gap-3">
                                 <span class="text-xs font-bold text-slate-500">📈 Mest poeng</span>
@@ -1474,7 +1428,7 @@ let html = `
                             </div>
 
                             <div class="border-t border-slate-100 pt-4 space-y-3">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Trenernotater</p>
+                                <p class="stats-mini-label">Trenernotater</p>
                                 ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
                             </div>
                             
@@ -1614,23 +1568,23 @@ let html = `
                 return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
             });
 
-            theadContainer.className = "bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-200";
+            theadContainer.className = "stats-table-head select-none";
             theadContainer.innerHTML = `
                 <tr>
-                    <th class="p-4 hover:text-slate-800 transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
-                    <th class="p-4 text-center text-indigo-600 hover:text-indigo-800 transition-colors" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
-                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('guleSerie')" title="Gule kort i seriespill">Gul S <span id="sort-icon-guleSerie"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('guleCup')" title="Gule kort i cup">Gul C <span id="sort-icon-guleCup"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rodeSerie')" title="Røde kort i seriespill">Rød S <span id="sort-icon-rodeSerie"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rodeCup')" title="Røde kort i cup">Rød C <span id="sort-icon-rodeCup"></span></th>
-                    <th class="p-4 text-center hover:text-slate-800 transition-colors">
+                    <th onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
+                    <th class="text-center text-bsk-blue" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
+                    <th class="text-center text-bsk-blue" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('guleSerie')" title="Gule kort i seriespill">Gul S <span id="sort-icon-guleSerie"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('guleCup')" title="Gule kort i cup">Gul C <span id="sort-icon-guleCup"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('rodeSerie')" title="Røde kort i seriespill">Rød S <span id="sort-icon-rodeSerie"></span></th>
+                    <th class="text-center" onclick="sortStatsTable('rodeCup')" title="Røde kort i cup">Rød C <span id="sort-icon-rodeCup"></span></th>
+                    <th class="text-center">
                         <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
-                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
+                        <i class="fa-solid fa-circle-info text-bsk-yellow hover:text-amber-500 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
                     </th>
                 </tr>
             `;
@@ -1640,7 +1594,7 @@ let html = `
                 if(iconEl) iconEl.innerHTML = col === currentStatSortCol ? (currentStatSortDesc ? '<i class="fa-solid fa-sort-down ml-1 text-bsk-blue"></i>' : '<i class="fa-solid fa-sort-up ml-1 text-bsk-blue"></i>') : '';
             });
 
-            tableBody.className = "divide-y divide-slate-100 bg-white";
+            tableBody.className = "stats-table-body divide-y divide-slate-100";
 
             tableBody.innerHTML = statsData.map(stat => {
                 const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
@@ -1667,19 +1621,19 @@ let html = `
                 let bbFarge = stat.bb > 0 ? 'text-indigo-600 font-black text-sm' : 'text-slate-300 font-bold';
 
                 return `
-                    <tr class="bg-white hover:bg-slate-50 transition-colors">
-                        <td class="p-4"><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
-                        <td class="p-4 text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
-                        <td class="p-4 text-center font-bold text-slate-800">${stat.kamper}</td>
-                        <td class="p-4 text-center ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
-                        <td class="p-4 text-center ${assistFarge}">${stat.assist > 0 ? stat.assist : '-'}</td>
-                        <td class="p-4 text-center ${bbFarge}">${stat.bb > 0 ? stat.bb : '-'}</td>
-                        <td class="p-4 text-center font-bold ${bonusColor}">${bonusTekst}</td>
-                        <td class="p-4 text-center ${gulSerieFarge}" title="${stat.serieAtRisk ? 'Faresone: karantene ved neste gule i serie' : 'Gule kort i seriespill'}">${stat.guleSerie > 0 ? stat.guleSerie : '-'}</td>
-                        <td class="p-4 text-center ${gulCupFarge}" title="Gule kort i cup">${stat.guleCup > 0 ? stat.guleCup : '-'}</td>
-                        <td class="p-4 text-center ${rodSerieFarge}" title="Røde kort i seriespill">${stat.rodeSerie > 0 ? stat.rodeSerie : '-'}</td>
-                        <td class="p-4 text-center ${rodCupFarge}" title="Røde kort i cup">${stat.rodeCup > 0 ? stat.rodeCup : '-'}</td>
-                        <td class="p-4 text-center font-bold ${chemColor}">${stat.kjemi}/100 ${isStarPlayer ? '<span class="ml-1 text-xs text-amber-400">★</span>' : ''}</td>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
+                        <td class="text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
+                        <td class="text-center font-bold text-slate-800">${stat.kamper}</td>
+                        <td class="text-center ${malFarge}">${stat.mal > 0 ? stat.mal : '-'}</td>
+                        <td class="text-center ${assistFarge}">${stat.assist > 0 ? stat.assist : '-'}</td>
+                        <td class="text-center ${bbFarge}">${stat.bb > 0 ? stat.bb : '-'}</td>
+                        <td class="text-center font-bold ${bonusColor}">${bonusTekst}</td>
+                        <td class="text-center ${gulSerieFarge}" title="${stat.serieAtRisk ? 'Faresone: karantene ved neste gule i serie' : 'Gule kort i seriespill'}">${stat.guleSerie > 0 ? stat.guleSerie : '-'}</td>
+                        <td class="text-center ${gulCupFarge}" title="Gule kort i cup">${stat.guleCup > 0 ? stat.guleCup : '-'}</td>
+                        <td class="text-center ${rodSerieFarge}" title="Røde kort i seriespill">${stat.rodeSerie > 0 ? stat.rodeSerie : '-'}</td>
+                        <td class="text-center ${rodCupFarge}" title="Røde kort i cup">${stat.rodeCup > 0 ? stat.rodeCup : '-'}</td>
+                        <td class="text-center font-bold ${chemColor}">${stat.kjemi}/100 ${isStarPlayer ? '<span class="ml-1 text-xs text-bsk-yellow">★</span>' : ''}</td>
                     </tr>`;
             }).join('');
         };

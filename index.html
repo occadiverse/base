@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v9">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-bsk">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -212,7 +212,7 @@
                 </div>
             </div>
 
-            <div id="view-statistikk" class="hidden space-y-6">
+            <div id="view-statistikk" class="hidden stats-page space-y-5">
                 <div class="portal-page-toolbar is-detached">
                     <div class="portal-segmented">
                         <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
@@ -233,73 +233,84 @@
                     </div>
                 </div>
 
-                <div id="stat-view-lag" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm block">
-                    
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
-                            <span class="block text-xs font-semibold text-emerald-700 uppercase">Seire</span>
-                            <span class="text-3xl font-black text-emerald-800" id="stats-page-wins">0</span>
+                <div id="stat-view-lag" class="block space-y-5">
+                    <div class="stats-hero-panel">
+                        <div class="stats-hero-top">
+                            <div>
+                                <p class="stats-hero-kicker">BSK Fotball</p>
+                                <h2 class="stats-hero-title">Lagstatistikk</h2>
+                                <p class="stats-hero-subtitle">Kampresultater og troppens nøkkeltall samlet på ett sted.</p>
+                            </div>
                         </div>
-                        <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl text-center">
-                            <span class="block text-xs font-semibold text-amber-700 uppercase">Uavgjorte</span>
-                            <span class="text-3xl font-black text-amber-800" id="stats-page-draws">0</span>
+
+                        <div class="stats-stat-grid">
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Seire</span>
+                                <span class="stats-stat-value is-win" id="stats-page-wins">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Uavgjorte</span>
+                                <span class="stats-stat-value is-draw" id="stats-page-draws">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Tap</span>
+                                <span class="stats-stat-value is-loss" id="stats-page-losses">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Mål scoret</span>
+                                <span class="stats-stat-value is-goals" id="stats-page-goals">0</span>
+                            </div>
                         </div>
-                        <div class="p-4 bg-rose-50 border border-rose-100 rounded-xl text-center">
-                            <span class="block text-xs font-semibold text-rose-700 uppercase">Tap</span>
-                            <span class="text-3xl font-black text-rose-800" id="stats-page-losses">0</span>
-                        </div>
-                        <div class="p-4 bg-sky-50 border border-sky-100 rounded-xl text-center">
-                            <span class="block text-xs font-semibold text-sky-700 uppercase">Mål Scoret</span>
-                            <span class="text-3xl font-black text-sky-800" id="stats-page-goals">0</span>
+
+                        <div class="stats-section-divider"></div>
+
+                        <div class="stats-stat-grid">
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Totalt i tropp</span>
+                                <span class="stats-stat-value" id="stats-page-players">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Snittalder</span>
+                                <span class="stats-stat-value" id="stats-page-age">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Rekrutter</span>
+                                <span class="stats-stat-value is-accent" id="stats-page-recruits">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Oppmøte</span>
+                                <span class="stats-stat-value is-win" id="stats-page-attendance">0%</span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="mt-8 border-t border-slate-100 pt-6">
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Totalt i tropp</span>
-                                <span class="text-3xl font-black text-bsk-blue mt-1 block" id="stats-page-players">0</span>
-                            </div>
-                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Snittalder</span>
-                                <span class="text-3xl font-black text-bsk-blue mt-1 block" id="stats-page-age">0</span>
-                            </div>
-                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rekrutter</span>
-                                <span class="text-3xl font-black text-amber-700 mt-1 block" id="stats-page-recruits">0</span>
-                            </div>
-                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Oppmøte</span>
-                                <span class="text-3xl font-black text-emerald-500 mt-1 block" id="stats-page-attendance">0%</span>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
 
-                <div id="stat-view-spillere" class="bg-white border border-slate-200 rounded-2xl shadow-sm hidden">
-                    <div class="p-4 border-b border-slate-100 bg-white rounded-t-2xl">
-                        <p class="text-xs text-slate-500 italic">Trykk på overskriftene for å sortere etter form, oppmøte eller kort.</p>
+                <div id="stat-view-spillere" class="hidden stats-table-panel">
+                    <div class="stats-panel-header">
+                        <h3 class="stats-panel-title">Spillerform</h3>
+                        <p class="stats-panel-subtitle">Trykk på overskriftene for å sortere etter form, oppmøte eller kort.</p>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold cursor-pointer select-none border-b border-slate-100">
+                            <thead class="stats-table-head select-none">
                                 <tr>
-                                    <th class="p-4 hover:text-slate-800 transition-colors" onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
-                                    <th class="p-4 text-center text-blue-500 hover:text-blue-700 transition-colors" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('gule')">Gule <span id="sort-icon-gule"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors" onclick="sortStatsTable('rode')">Røde <span id="sort-icon-rode"></span></th>
-                                    <th class="p-4 text-center hover:text-slate-800 transition-colors">
+                                    <th onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
+                                    <th class="text-center text-bsk-blue" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('guleSerie')">Gul S <span id="sort-icon-guleSerie"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('guleCup')">Gul C <span id="sort-icon-guleCup"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('rodeSerie')">Rød S <span id="sort-icon-rodeSerie"></span></th>
+                                    <th class="text-center" onclick="sortStatsTable('rodeCup')">Rød C <span id="sort-icon-rodeCup"></span></th>
+                                    <th class="text-center">
                                         <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
-                                        <i class="fa-solid fa-circle-info text-emerald-500 hover:text-emerald-400 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
+                                        <i class="fa-solid fa-circle-info text-bsk-yellow hover:text-amber-500 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="stats-player-table-body" class="divide-y divide-slate-100">
+                            <tbody id="stats-player-table-body" class="stats-table-body divide-y divide-slate-100">
                             </tbody>
                         </table>
                     </div>
@@ -1045,7 +1056,7 @@
     <script src="assets/js/pages/players.js"></script>
     <script src="assets/js/pages/matches.js?v=20260614-match-trim"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260614-result-display"></script>
+    <script src="assets/js/pages/statistics.js?v=20260616-stats-bsk"></script>
     <script src="assets/js/pages/tactics.js"></script>
     <script src="assets/js/pages/dashboard.js?v=20260614-match-trim"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>
