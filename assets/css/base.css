@@ -39,6 +39,13 @@
                 padding-top: 0;
             }
         }
+        .portal-view {
+            margin-top: 0;
+            width: 100%;
+        }
+        .portal-view > :first-child {
+            margin-top: 0;
+        }
         .portal-mobile-admin-btn {
             background: rgba(255, 255, 255, 0.72);
             border-color: rgba(18, 63, 115, 0.12);

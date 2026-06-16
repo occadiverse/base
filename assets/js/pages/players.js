@@ -53,7 +53,10 @@ window.updateDynamicSelectors = function() {
     }
 
     const statsLagFilterWrap = document.getElementById('statsLagFilterWrap');
-    if (statsLagFilterWrap) statsLagFilterWrap.classList.toggle('hidden', teams.length <= 1);
+    const statsChrome = document.getElementById('stats-chrome');
+    const hideStatsLagFilter = teams.length <= 1;
+    if (statsLagFilterWrap) statsLagFilterWrap.classList.toggle('hidden', hideStatsLagFilter);
+    if (statsChrome) statsChrome.classList.toggle('hidden', hideStatsLagFilter);
     if (kamperFilterSelect) kamperFilterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
 
     const lagFilterWrap = document.getElementById('rosterLagFilterWrap');

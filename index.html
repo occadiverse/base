@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v12">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v13">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -23,7 +23,7 @@
         <main class="flex-1 px-4 py-6 md:px-8 md:pt-4 md:pb-8 w-full" id="main-view">
             
             <!-- FORSIDE / DASHBOARD REDESIGN -->
-            <div id="view-hjem" class="space-y-4 md:space-y-6">
+            <div id="view-hjem" class="portal-view space-y-4 md:space-y-6">
                 <div id="hjem-hero-match-container">
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                         <p class="text-xs font-black text-bsk-blue uppercase tracking-[0.2em] mb-2">Laster portal</p>
@@ -39,7 +39,7 @@
                 </div>
             </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
-            <div id="view-kamper" class="hidden space-y-5 match-list-page">
+            <div id="view-kamper" class="hidden portal-view space-y-5 match-list-page">
                 <div class="match-list-toolbar">
                     <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
                         <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="match-filter-btn is-active" aria-selected="true">
@@ -71,7 +71,7 @@
                     <p class="match-list-empty-text">Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.</p>
                 </div>
             </div>
-            <div id="view-kampdetaljer" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            <div id="view-kampdetaljer" class="hidden portal-view space-y-6 max-w-4xl mx-auto w-full">
                 <div class="rounded-2xl overflow-visible">
                     <div id="kampdetaljer-info" class="space-y-4">
                         </div>
@@ -95,7 +95,7 @@
                 </div>
             </div>
 
-            <div id="view-oppmote" class="hidden space-y-6">
+            <div id="view-oppmote" class="hidden portal-view space-y-6">
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="calendar-heading-panel p-4 md:p-5 border-b border-slate-100 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-2">
                         <div class="min-w-0">
@@ -144,7 +144,7 @@
                 </div>
             </div>
 
-            <div id="view-tropp" class="hidden space-y-5 roster-page mt-2">
+            <div id="view-tropp" class="hidden portal-view space-y-5 roster-page">
                 <div class="roster-hero-panel">
                     <div class="roster-hero-top">
                         <div>
@@ -212,8 +212,10 @@
                 </div>
             </div>
 
-            <div id="view-statistikk" class="hidden stats-page space-y-5">
-                <div class="stats-chrome">
+            <div id="view-statistikk" class="hidden portal-view stats-page space-y-5">
+                <div id="stats-tab-hero"></div>
+
+                <div id="stats-chrome" class="stats-chrome hidden">
                     <div class="stats-chrome-inner roster-toolbar">
                         <div id="statsLagFilterWrap" class="match-list-lag-filter hidden">
                             <i class="fa-solid fa-shield-halved"></i>
@@ -223,8 +225,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div id="stats-tab-hero"></div>
 
                 <div id="stat-view-lag" class="block space-y-5">
                     <div id="stats-lag-followups"></div>
@@ -237,10 +237,10 @@
                 <div id="stat-view-kampstat" class="hidden space-y-5"></div>
             </div>
 
-            <div id="view-taktikk" class="hidden space-y-6 max-w-5xl mx-auto w-full">
+            <div id="view-taktikk" class="hidden portal-view space-y-6 max-w-5xl mx-auto w-full">
                 
                 <!-- OPPDATERT: Her har menyene fått max-w-lg mx-auto, slik at de blir nøyaktig like brede som banen -->
-                <div class="max-w-lg mx-auto w-full flex flex-col items-center gap-4 mb-2 mt-4 bg-white/90 border border-slate-200 border-b-4 border-bsk-yellow/40 rounded-2xl p-4 shadow-sm">
+                <div class="max-w-lg mx-auto w-full flex flex-col items-center gap-4 mb-2 bg-white/90 border border-slate-200 border-b-4 border-bsk-yellow/40 rounded-2xl p-4 shadow-sm">
                     
                     <!-- Kampvelger sentrert -->
                     <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-slate-50/80 border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
@@ -378,7 +378,7 @@
                 </div>
             </div>
             
-            <div id="view-admin" class="hidden space-y-6">
+            <div id="view-admin" class="hidden portal-view space-y-6">
                 <div id="admin-gate" class="bg-white border border-slate-200 rounded-2xl p-8 max-w-md mx-auto text-center shadow-md">
                     <div class="bg-bsk-yellow/15 text-bsk-blue inline-flex p-4 rounded-full mb-4">
                         <i class="fa-solid fa-lock text-3xl"></i>
