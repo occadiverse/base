@@ -2925,6 +2925,50 @@
             margin-bottom: 0.15rem;
             width: 100%;
         }
+        .stats-spillere-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .stats-player-sort-dock {
+            width: 100%;
+        }
+        .stats-player-sort-dock .stats-player-toolbar {
+            margin-inline: auto;
+            max-width: 36rem;
+        }
+        @media (max-width: 767px) {
+            .stats-player-sort-dock {
+                backdrop-filter: blur(12px);
+                background: rgba(255, 255, 255, 0.96);
+                border-top: 1px solid rgba(148, 163, 184, 0.28);
+                bottom: calc(5.1rem + env(safe-area-inset-bottom, 0px));
+                box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+                left: 0;
+                padding: 0.65rem 1rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+                position: fixed;
+                right: 0;
+                z-index: 35;
+            }
+            .stats-player-sort-dock .stats-sort-scroller-fade-left {
+                background: linear-gradient(to right, rgba(255, 255, 255, 0.98) 10%, rgba(255, 255, 255, 0.78) 45%, transparent 100%);
+            }
+            .stats-player-sort-dock .stats-sort-scroller-fade-right {
+                background: linear-gradient(to left, rgba(255, 255, 255, 0.98) 10%, rgba(255, 255, 255, 0.78) 45%, transparent 100%);
+            }
+            #stat-view-spillere:not(.hidden) .stats-spillere-layout {
+                padding-bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
+            }
+        }
+        @media (min-width: 768px) {
+            .stats-spillere-layout {
+                gap: 0.85rem;
+            }
+            .stats-player-sort-dock {
+                order: -1;
+            }
+        }
         .stats-player-toolbar {
             display: flex;
             justify-content: center;
