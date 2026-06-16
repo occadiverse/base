@@ -3010,16 +3010,22 @@
         }
         .stats-sort-letter {
             align-items: center;
-            border: 1px solid currentColor;
-            border-radius: 0.28rem;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 0.22rem;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+            color: #123f73;
             display: inline-flex;
-            font-size: 0.58rem;
+            font-size: 0.62rem;
             font-weight: 950;
             height: 0.95rem;
             justify-content: center;
             line-height: 1;
             min-width: 0.95rem;
-            opacity: 0.88;
+        }
+        .stats-sort-btn.is-active .stats-sort-letter {
+            background: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.32);
+            color: #0b2b4c;
         }
         .stats-sort-btn.is-active {
             min-width: 0;
