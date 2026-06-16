@@ -577,6 +577,43 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : 'Ingen spillere funnet for valgt lag.';
         };
 
+        window.clearStatsTabHero = function() {
+            const hero = document.getElementById('stats-tab-hero');
+            if (!hero) return;
+            hero.className = '';
+            hero.innerHTML = '';
+        };
+
+        window.paintStatsTabHero = function(markup) {
+            const hero = document.getElementById('stats-tab-hero');
+            if (!hero) return;
+            hero.className = 'stats-hero-panel';
+            hero.innerHTML = markup;
+            if (typeof window.syncStatsLagFilterPlacement === 'function') {
+                window.syncStatsLagFilterPlacement();
+            }
+        };
+
+        window.syncStatsLagFilterPlacement = function() {
+            const hero = document.getElementById('stats-tab-hero');
+            const wrap = document.getElementById('statsLagFilterWrap');
+            const view = document.getElementById('view-statistikk');
+            if (!wrap || !view) return;
+
+            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+            const showFilter = teams.length > 1;
+            const heroReady = hero && hero.classList.contains('stats-hero-panel');
+
+            if (!showFilter || !heroReady) {
+                wrap.classList.add('hidden');
+                if (wrap.parentElement !== view) view.appendChild(wrap);
+                return;
+            }
+
+            wrap.classList.remove('hidden');
+            if (wrap.parentElement !== hero) hero.insertBefore(wrap, hero.firstChild);
+        };
+
         window.renderStatsTabHero = function(tabId) {
             const hero = document.getElementById('stats-tab-hero');
             if (!hero) return;
@@ -586,7 +623,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (tabId === 'lag') {
                 const data = window._statsLagData;
                 if (!data) {
-                    hero.innerHTML = '';
+                    window.clearStatsTabHero();
                     return;
                 }
 
@@ -600,8 +637,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
                     : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
 
-                hero.innerHTML = `
-                    <div class="stats-hero-panel">
+                window.paintStatsTabHero(`
                         <div class="stats-hero-top">
                             <div>
                                 <p class="stats-hero-kicker">BSK Fotball</p>
@@ -631,8 +667,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="stats-stat-card"><span class="stats-stat-label">Spillere</span><span class="stats-stat-value">${data.playerCount}</span></div>
                             <div class="stats-stat-card"><span class="stats-stat-label">Oppmøte</span><span class="stats-stat-value is-win">${data.avgAttendance}%</span></div>
                         </div>
-                    </div>
-                `;
+                `);
                 return;
             }
 
@@ -671,8 +706,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const formPlayer = analysis.topFormPlayer && analysis.topFormPlayer.formLastFive > 0 ? analysis.topFormPlayer : null;
                 const formPlayerDetail = formPlayer ? `${formPlayer.formLastFive.toFixed(1)} børs` : null;
 
-                hero.innerHTML = `
-                    <div class="stats-hero-panel">
+                window.paintStatsTabHero(`
                         <div class="stats-hero-top stats-hero-top-compact">
                             <h2 class="stats-hero-title">Spilleranalyse</h2>
                             ${heroTabsHtml}
@@ -683,16 +717,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ${buildLeaderCard('Toppscorer', topScorer, topScorerDetail, 'is-goals')}
                             ${buildLeaderCard('Formspiller', formPlayer, formPlayerDetail, 'is-draw')}
                         </div>
-                    </div>
-                `;
+                `);
                 return;
             }
 
             if (tabId === 'kampstat') {
                 const data = window._statsKampHeroData;
                 if (!data) {
-                    hero.innerHTML = `
-                        <div class="stats-hero-panel">
+                    window.paintStatsTabHero(`
                             <div class="stats-hero-top">
                                 <div>
                                     <p class="stats-hero-kicker">BSK Fotball · Kamper</p>
@@ -701,16 +733,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 </div>
                                 ${heroTabsHtml}
                             </div>
-                        </div>
-                    `;
+                    `);
                     return;
                 }
 
                 const { playedMatches, matchId, matchType, matchGroup, dateStr, pitch, matchResult } = data;
                 const currentIdx = playedMatches.findIndex(m => m.id === matchId);
 
-                hero.innerHTML = `
-                    <div class="stats-hero-panel">
+                window.paintStatsTabHero(`
                         <div class="stats-hero-top">
                             <div class="min-w-0">
                                 <p class="stats-hero-kicker">Kampanalyse</p>
@@ -743,20 +773,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                `);
                 if (typeof window.collapseKampSelectLabel === 'function') window.collapseKampSelectLabel();
             }
         };
 
         window.renderSpillerDetailHero = function(playerName, avgPoints, totalPoints, chemistry, formComparison, teamMedian, player) {
-            const hero = document.getElementById('stats-tab-hero');
-            if (!hero) return;
-
             const heroTabsHtml = window.renderStatsHeroTabsHtml('spillere');
 
-            hero.innerHTML = `
-                <div class="stats-hero-panel">
+            window.paintStatsTabHero(`
                     <div class="stats-hero-top">
                         <div>
                             <p class="stats-hero-kicker">${player.pos1 || 'Spiller'}</p>
@@ -772,8 +797,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+            `);
         };
 
         window.getStatsPlayerSearchTerm = function() {

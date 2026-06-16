@@ -46,6 +46,28 @@
         .portal-view > :first-child {
             margin-top: 0;
         }
+        .portal-main-view,
+        #main-view {
+            padding-bottom: 1.5rem;
+            padding-top: 1rem;
+        }
+        @media (min-width: 768px) {
+            .portal-main-view,
+            #main-view {
+                padding-bottom: 2rem;
+            }
+        }
+        #stats-tab-hero:not(.stats-hero-panel):empty {
+            display: none;
+        }
+        .stats-hero-lag-filter {
+            margin: 0 auto;
+            max-width: 100%;
+            width: fit-content;
+        }
+        .stats-hero-panel > .stats-hero-lag-filter {
+            margin-bottom: 0.85rem;
+        }
         .portal-mobile-admin-btn {
             background: rgba(255, 255, 255, 0.72);
             border-color: rgba(18, 63, 115, 0.12);
@@ -691,9 +713,6 @@
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 18px 38px rgba(15, 23, 42, 0.09);
         }
         @media (max-width: 767px) {
-            #main-view {
-                padding-top: 1rem;
-            }
             #hjem-hero-match-container > div,
             #hjem-hero-match-container > section {
                 padding: 1.5rem 1rem !important;

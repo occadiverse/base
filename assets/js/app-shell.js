@@ -32,6 +32,9 @@ function switchTab(tabId) {
     const activeEl = document.getElementById(`view-${tabId}`);
     if (activeEl) activeEl.classList.remove('hidden');
 
+    const scrollHost = document.querySelector('.portal-main-shell');
+    if (scrollHost) scrollHost.scrollTop = 0;
+
     const floatingBtn = document.getElementById('floating-action-btn');
     const floatingIcon = document.getElementById('floating-btn-icon');
 
