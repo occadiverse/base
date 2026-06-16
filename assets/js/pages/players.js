@@ -6,22 +6,31 @@ window.updateDynamicSelectors = function() {
     const eventTeamSelect = document.getElementById('eventTeam');
     const activityTeamSelect = document.getElementById('activityTeam');
 
-    if (filterSelect) filterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
-    if (kamperFilterSelect) kamperFilterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
     if (formSelect) formSelect.innerHTML = '';
     if (playerTeamSelect) playerTeamSelect.innerHTML = '';
     if (eventTeamSelect) eventTeamSelect.innerHTML = '';
     if (activityTeamSelect) activityTeamSelect.innerHTML = '';
 
     const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
-    teams.forEach(t => {
-        if (filterSelect) {
+
+    if (filterSelect) {
+        const previousFilter = filterSelect.value;
+        filterSelect.innerHTML = '';
+        teams.forEach(t => {
             const optFilter = document.createElement('option');
             optFilter.value = t.name;
             optFilter.innerText = t.name.toUpperCase();
             filterSelect.appendChild(optFilter);
+        });
+        if (previousFilter && teams.some(t => t.name === previousFilter)) {
+            filterSelect.value = previousFilter;
+        } else if (teams[0]) {
+            filterSelect.value = teams[0].name;
         }
+    }
+    if (kamperFilterSelect) kamperFilterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
 
+    teams.forEach(t => {
         if (kamperFilterSelect) {
             const opt = document.createElement('option');
             opt.value = t.name;
@@ -145,15 +154,25 @@ const ROSTER_POSITION_GROUPS = [
     }
 ];
 
+function getPlayerFirstName(name) {
+    return (name || '').trim().split(/\s+/)[0] || '';
+}
+
+function comparePlayersByFirstName(a, b) {
+    const firstCompare = getPlayerFirstName(a.navn).localeCompare(getPlayerFirstName(b.navn), 'no', { sensitivity: 'base' });
+    if (firstCompare !== 0) return firstCompare;
+    return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
+}
+
 function getRosterFilteredPlayers() {
     const filterLagEl = document.getElementById('lagFilterSelect');
-    const filterLag = filterLagEl ? filterLagEl.value : 'Alle';
+    const filterLag = filterLagEl ? filterLagEl.value : '';
     const searchEl = document.getElementById('playerSearchInput');
     const searchTerm = (searchEl ? searchEl.value : '').trim().toLowerCase();
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
     return players.filter(p => {
-        if (filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
+        if (filterLag && p.spillerLag !== filterLag) return false;
 
         const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
             ? window.getPlayerInjuryInfo(p)
@@ -248,14 +267,6 @@ function buildRosterPlayerRow(p, currentYear) {
                     ${buildRosterInjuryBadge(injuryInfo)}
                 </div>
             </div>
-            <div class="roster-player-actions" onclick="event.stopPropagation()">
-                <button type="button" onclick="window.openPlayerModal('${p.id}')" class="roster-action-btn" title="Rediger">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                </button>
-                <button type="button" onclick="promptDeletePlayer('${p.id}')" class="roster-action-btn roster-action-btn-danger" title="Slett">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </div>
         </article>
     `;
 }
@@ -303,12 +314,7 @@ window.renderPlayerRoster = function() {
     if (emptyState) emptyState.classList.add('hidden');
 
     const grouped = assignPlayersToRosterGroups(
-        [...filteredPlayers].sort((a, b) => {
-            const jerseyA = parseInt(a.draktnummer) || 999;
-            const jerseyB = parseInt(b.draktnummer) || 999;
-            if (jerseyA !== jerseyB) return jerseyA - jerseyB;
-            return a.navn.localeCompare(b.navn);
-        })
+        [...filteredPlayers].sort(comparePlayersByFirstName)
     );
 
     ROSTER_POSITION_GROUPS.forEach(group => {
@@ -339,7 +345,7 @@ window.openPlayerModal = function(editPlayerId = null) {
     if (editPlayerId) {
         const pObj = (window.activePlayers || []).find(p => p.id === editPlayerId);
         if (pObj) {
-            document.getElementById('playerFormTitle').innerHTML = `<i class="fa-solid fa-user-pen text-bsk-yellow"></i> Rediger Spiller`;
+            document.getElementById('playerFormTitle').innerText = 'Rediger spiller';
             document.getElementById('editPlayerId').value = pObj.id;
             document.getElementById('playerNameInput').value = pObj.navn;
             document.getElementById('playerJerseyInput').value = pObj.draktnummer || '';
@@ -355,12 +361,15 @@ window.openPlayerModal = function(editPlayerId = null) {
             window.togglePlayerSkadeFields();
         }
     } else {
-        document.getElementById('playerFormTitle').innerHTML = `<i class="fa-solid fa-user-plus text-bsk-yellow"></i> Registrer Ny Spiller`;
+        document.getElementById('playerFormTitle').innerText = 'Ny spiller';
         document.getElementById('playerSkadeStatusInput').value = 'frisk';
         document.getElementById('playerSkadeNotatInput').value = '';
         document.getElementById('playerSkadeTilDatoInput').value = '';
         window.togglePlayerSkadeFields();
     }
+
+    const deleteBtn = document.getElementById('playerModalDeleteBtn');
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', !editPlayerId);
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -464,6 +473,12 @@ window.savePlayer = async function(event) {
 window.promptDeletePlayer = function(id) {
     window.customConfirm("Slette spiller?", "Er du sikker på at du vil slette denne spilleren fra troppen permanent?", async () => {
         await window.deletePlayerFromDatabase(id);
+        window.closePlayerModal();
         window.renderPlayerRoster();
     });
+};
+
+window.deletePlayerFromModal = function() {
+    const id = document.getElementById('editPlayerId')?.value;
+    if (id) window.promptDeletePlayer(id);
 };
