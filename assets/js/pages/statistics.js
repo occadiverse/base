@@ -101,6 +101,7 @@ window.checkIndividualChemistry = function() {
             const matches = (window.activeMatches || [])
                 .filter(m => {
                     if (!m.result || !m.result.includes('-')) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
                     if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
                     return true;
                 })
@@ -325,12 +326,14 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
     const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
     const todayForChemistry = new Date();
     todayForChemistry.setHours(0, 0, 0, 0);
-    const isHistorical = (item) => {
-        if (!item.date) return true;
-        const itemDate = new Date(item.date);
-        itemDate.setHours(0, 0, 0, 0);
-        return itemDate <= todayForChemistry;
-    };
+    const isHistorical = typeof window.isHistoricalActivity === 'function'
+        ? window.isHistoricalActivity
+        : (item) => {
+            if (!item.date) return true;
+            const itemDate = new Date(item.date);
+            itemDate.setHours(0, 0, 0, 0);
+            return itemDate <= todayForChemistry;
+        };
     const teamEvents = allEvents
         .filter(e => e.team === spillerLag && isHistorical(e))
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -444,19 +447,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.buildPlayerStatsData = function() {
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-            const todayForStats = new Date();
-            todayForStats.setHours(0, 0, 0, 0);
 
             return (window.activePlayers || [])
                 .filter(p => filterLag === 'Alle' || p.spillerLag === filterLag)
                 .map(p => {
                     const teamEvents = allEvents.filter(e => {
                         if (e.team !== p.spillerLag) return false;
-                        if (e.date) {
-                            const eventDate = new Date(e.date);
-                            eventDate.setHours(0, 0, 0, 0);
-                            if (eventDate > todayForStats) return false;
-                        }
+                        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
                         return true;
                     });
 
@@ -503,7 +500,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         attendedMatches,
                         mal,
                         assist,
-                        kampbonus: attendedMatches > 0 ? totalMatchPoints / attendedMatches : 0,
+                        kampbonus: typeof window.getPlayerKampbidragSnitt === 'function'
+                            ? window.getPlayerKampbidragSnitt(p)
+                            : (attendedMatches > 0 ? totalMatchPoints / attendedMatches : 0),
                         guleSerie: cardCounts.serie.gule,
                         rodeSerie: cardCounts.serie.rode,
                         guleCup: cardCounts.cup.gule,
@@ -1820,23 +1819,22 @@ window.getPlayerMatchPointsHistory = function(playerName) {
     const history = [];
     
     (window.activeMatches || []).forEach(m => {
-        // Sjekker kun kamper der spilleren faktisk møtte opp
-        if (m.matchGroup === playerObj.spillerLag && window.isPlayerAttending(m.attendance, playerObj)) {
-            
-            const ptsDetails = window.calculatePlayerMatchPoints(m, playerObj, true);
-            
-            history.push({
-                matchId: m.id,
-                date: m.date,
-                opponent: m.opponent,
-                matchType: m.matchType || 'Kamp',
-                result: m.result || 'Ikke spilt',
-                rating: window.getPlayerRefMapValue(m.ratings, playerObj, '-') || '-',
-                points: ptsDetails.total,
-                onPitch: ptsDetails.onPitch !== false,
-                breakdown: `${ptsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
-            });
-        }
+        if (m.matchGroup !== playerObj.spillerLag || !window.isPlayerAttending(m.attendance, playerObj)) return;
+        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return;
+
+        const ptsDetails = window.calculatePlayerMatchPoints(m, playerObj, true);
+
+        history.push({
+            matchId: m.id,
+            date: m.date,
+            opponent: m.opponent,
+            matchType: m.matchType || 'Kamp',
+            result: m.result || 'Ikke spilt',
+            rating: window.getPlayerRefMapValue(m.ratings, playerObj, '-') || '-',
+            points: ptsDetails.total,
+            onPitch: ptsDetails.onPitch !== false,
+            breakdown: `${ptsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
+        });
     });
     
     // Sorterer fra nyeste kamp til eldste

@@ -154,6 +154,38 @@ window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
     return playerStats;
 };
 
+window.isHistoricalActivity = function(item) {
+    if (!item || !item.date) return true;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const itemDate = new Date(item.date);
+    itemDate.setHours(0, 0, 0, 0);
+    return itemDate <= today;
+};
+
+window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
+    const player = typeof playerOrRef === 'object' && playerOrRef !== null
+        ? playerOrRef
+        : (typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(playerOrRef) : null);
+    const lag = teamName || player?.spillerLag;
+    if (!player || !lag) return 0;
+
+    let kamper = 0;
+    let totalMatchPoints = 0;
+
+    (window.activeMatches || []).forEach(m => {
+        if (m.matchGroup !== lag) return;
+        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return;
+        if (!window.isPlayerAttending(m.attendance, player)) return;
+
+        kamper++;
+        totalMatchPoints += window.calculatePlayerMatchPoints(m, player.navn || playerOrRef);
+    });
+
+    return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+};
+
 window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false) {
     const onPitch = typeof window.isPlayerOnPitch === 'function'
         ? window.isPlayerOnPitch(m, playerRef)

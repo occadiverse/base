@@ -224,20 +224,14 @@
             ? window.getFormScoreTextClass(playerChem, p.spillerLag)
             : 'text-slate-400';
 
-        let kamper = 0; let totalMatchPoints = 0;
-        (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === p.spillerLag && window.isPlayerAttending(m.attendance, p)) {
-                kamper++; 
-                totalMatchPoints += window.calculatePlayerMatchPoints(m, p.navn);
-            }
-        });
-        
-        const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-        let bonusColor = 'text-slate-400'; 
-        if (kampbonus > 15) bonusColor = 'text-emerald-500'; 
-        else if (kampbonus >= 10) bonusColor = 'text-amber-500'; 
-        else if (kampbonus > 0) bonusColor = 'text-rose-500'; 
-        const bonusTekst = kamper > 0 ? kampbonus : '-';
+        const kampbonus = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(p)
+            : 0;
+        let bonusColor = 'text-slate-400';
+        if (kampbonus > 15) bonusColor = 'text-emerald-500';
+        else if (kampbonus >= 10) bonusColor = 'text-amber-500';
+        else if (kampbonus > 0) bonusColor = 'text-rose-500';
+        const bonusTekst = kampbonus > 0 ? kampbonus : '-';
 
         const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
         let benchSuspBadge = '';
@@ -291,22 +285,14 @@
 
         const playerChem = window.calculatePlayerPerformanceChemistry(playerObj.navn);
         
-        // 1. BEREGN KAMPBIDRAG (tallet i midten av rundingen)
-        let kamper = 0;
-        let totalMatchPoints = 0;
-        (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === playerObj.spillerLag && window.isPlayerAttending(m.attendance, playerObj)) {
-                kamper++;
-                totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
-            }
-        });
-        
-        const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-        const bonusTekst = kamper > 0 ? kampbonus : '-';
+        const kampbonus = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(playerObj)
+            : 0;
+        const bonusTekst = kampbonus > 0 ? kampbonus : '-';
         
         // Fargen på tallet i midten (Lyser opp mot den mørkeblå bakgrunnen)
         let bonusTextColor = 'text-slate-300';
-        if (kamper > 0) {
+        if (kampbonus > 0) {
             if (kampbonus > 15) bonusTextColor = 'text-emerald-400'; // Grønn form
             else if (kampbonus >= 10) bonusTextColor = 'text-amber-400'; // Gul/Stabil form
             else bonusTextColor = 'text-rose-400'; // Rød/Dårlig form
@@ -435,20 +421,14 @@
             ? window.getFormScoreTextClass(playerChem, p.spillerLag)
             : 'text-slate-400';
 
-        let kamper = 0; let totalMatchPoints = 0;
-        (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === p.spillerLag && window.isPlayerAttending(m.attendance, p)) {
-                kamper++; 
-                totalMatchPoints += window.calculatePlayerMatchPoints(m, p.navn);
-            }
-        });
-        
-        const kampbonus = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+        const kampbonus = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(p)
+            : 0;
         let bonusColor = 'text-slate-400';
         if (kampbonus > 15) bonusColor = 'text-emerald-500';
         else if (kampbonus >= 10) bonusColor = 'text-amber-500';
         else if (kampbonus > 0) bonusColor = 'text-rose-500';
-        const bonusTekst = kamper > 0 ? kampbonus : '-';
+        const bonusTekst = kampbonus > 0 ? kampbonus : '-';
 
         const div = document.createElement('div');
         div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
@@ -527,17 +507,11 @@
         { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: null, requireFoot: false }
     ];
 
-    // Hjelpefunksjon for å la tryllestaven beregne formen (kampbonus) til spillerne
-    const getKampbonus = (pObj) => {
-        let kamper = 0; let totalMatchPoints = 0;
-        (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === pObj.spillerLag && window.isPlayerAttending(m.attendance, pObj)) {
-                kamper++; 
-                totalMatchPoints += window.calculatePlayerMatchPoints(m, pObj.navn);
-            }
-        });
-        return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-    };
+    const getKampbonus = (pObj) => (
+        typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(pObj)
+            : 0
+    );
 
     priorityOrder.forEach(req => {
         let candidates = availablePlayers.filter(p => req.pos.includes(p.pos1) || req.pos.includes(p.pos2));
@@ -575,16 +549,9 @@ window.updateTacticalBoardStats = function() {
         if (playerObj && playerObj.navn) {
             currentOnBoardCount++;
             
-            // Kampbonus for denne spilleren (snitt per kamp)
-            let kamper = 0;
-            let totalMatchPoints = 0;
-            (window.activeMatches || []).forEach(m => {
-                if (m.matchGroup === playerObj.spillerLag && window.isPlayerAttending(m.attendance, playerObj)) {
-                    kamper++;
-                    totalMatchPoints += window.calculatePlayerMatchPoints(m, playerObj.navn);
-                }
-            });
-            let playerFormSnitt = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+            const playerFormSnitt = typeof window.getPlayerKampbidragSnitt === 'function'
+                ? window.getPlayerKampbidragSnitt(playerObj)
+                : 0;
             
             // NYTT: Summerer kampsnittet til alle som er valgt utpå banen
             realTotalBonus += playerFormSnitt;
@@ -613,16 +580,11 @@ window.updateTacticalBoardStats = function() {
     });
 
     // Hjelpefunksjon for å hente en spillers kampsnitt
-    const getPlayerFormSnitt = (pObj) => {
-        let kamper = 0; let totalMatchPoints = 0;
-        (window.activeMatches || []).forEach(m => {
-            if (m.matchGroup === pObj.spillerLag && window.isPlayerAttending(m.attendance, pObj)) {
-                kamper++; 
-                totalMatchPoints += window.calculatePlayerMatchPoints(m, pObj.navn);
-            }
-        });
-        return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
-    };
+    const getPlayerFormSnitt = (pObj) => (
+        typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(pObj)
+            : 0
+    );
 
     // Splitt i keepere og utespillere for å låse keepervalget
     let keepere = availablePlayers.filter(p => p.pos1 === 'Keeper' || (p.pos1 && p.pos1.toLowerCase().includes('keeper')));
