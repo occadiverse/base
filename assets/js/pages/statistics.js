@@ -12,7 +12,7 @@ window.checkIndividualChemistry = function() {
             if (resContainer) resContainer.classList.remove('hidden');
             if (emptyContainer) emptyContainer.classList.add('hidden');
 
-            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, team: m.matchGroup }))];
             const teamPlayers = (window.activePlayers || []).filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
 
@@ -47,72 +47,290 @@ window.checkIndividualChemistry = function() {
             }
         }
 
+        window.getStatsTeamFilter = function() {
+            const statsSelect = document.getElementById('statsLagFilterSelect');
+            if (statsSelect && statsSelect.value) return statsSelect.value;
+            const rosterSelect = document.getElementById('lagFilterSelect');
+            if (rosterSelect && rosterSelect.value) return rosterSelect.value;
+            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+            return teams[0] ? teams[0].name : 'Alle';
+        };
+
+        window.handleStatsTeamFilterChange = function() {
+            const rosterSelect = document.getElementById('lagFilterSelect');
+            const statsSelect = document.getElementById('statsLagFilterSelect');
+            if (rosterSelect && statsSelect && rosterSelect.value !== statsSelect.value) {
+                rosterSelect.value = statsSelect.value;
+            }
+
+            window.renderStatistikkSide();
+            if (window._statsSelectedPlayer) {
+                window.renderSpillereDetail(window._statsSelectedPlayer);
+            } else {
+                window.renderSpillereView();
+            }
+            if (typeof window.renderMatchStatsView === 'function') window.renderMatchStatsView();
+        };
+
+        window.getTeamFormGuide = function(teamName) {
+            const matches = (window.activeMatches || []).filter(m => {
+                if (!m.result || !m.result.includes('-')) return false;
+                if (teamName && teamName !== 'Alle' && m.matchGroup !== teamName) return false;
+                return true;
+            });
+
+            matches.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const last5 = matches.slice(0, 5).reverse();
+
+            return last5.map(m => {
+                const score = parseScore(m.result);
+                if (!score) return { m, form: 'U', text: 'U', tooltip: `Registrert: ${m.result}` };
+                if (score.bsk > score.opponent) return { m, form: 'S', text: 'S', tooltip: `Seier vs ${m.opponent} (${m.result})` };
+                if (score.bsk === score.opponent) return { m, form: 'U', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result})` };
+                return { m, form: 'T', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result})` };
+            });
+        };
+
+        window.buildPlayerAnalysisStats = function(filterLag) {
+            const players = (window.activePlayers || []).filter(p => {
+                if (p.status === 'Passiv') return false;
+                if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
+                return true;
+            });
+
+            const matches = (window.activeMatches || [])
+                .filter(m => {
+                    if (!m.result || !m.result.includes('-')) return false;
+                    if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
+                    return true;
+                })
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const playerStats = players.map(player => {
+                const name = player.navn || player.name || player.fullName || player.spiller || '';
+                if (!name) return null;
+
+                const playerMatches = matches.filter(m => window.isPlayerAttending(m.attendance, player));
+                let totalPoints = 0;
+                let goals = 0;
+                let assists = 0;
+                let bb = 0;
+                let yellowSerie = 0;
+                let redSerie = 0;
+                let ratings = [];
+
+                playerMatches.forEach(m => {
+                    totalPoints += typeof window.calculatePlayerMatchPoints === 'function'
+                        ? window.calculatePlayerMatchPoints(m, name)
+                        : 0;
+                    if (window.getPlayerRefMapValue(m.scorers, player, 0)) goals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
+                    if (window.getPlayerRefMapValue(m.assists, player, 0)) assists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
+                    if (window.motmMatchesPlayer(m.motm, player)) bb += 1;
+                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.guleKort, player)) yellowSerie += 1;
+                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.rodeKort, player)) redSerie += 1;
+
+                    const playerRating = window.getPlayerRefMapValue(m.ratings, player, 0);
+                    if (playerRating) {
+                        ratings.push({
+                            date: m.date,
+                            rating: Number(playerRating) || 0
+                        });
+                    }
+                });
+
+                const lastFiveRatings = ratings
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 5);
+
+                const formLastFive = lastFiveRatings.length
+                    ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
+                    : 0;
+
+                const pointsPerMatch = playerMatches.length > 0 ? totalPoints / playerMatches.length : 0;
+
+                return {
+                    name,
+                    spillerLag: player.spillerLag || '',
+                    matches: playerMatches.length || 0,
+                    totalPoints: totalPoints || 0,
+                    pointsPerMatch: pointsPerMatch || 0,
+                    goals: goals || 0,
+                    assists: assists || 0,
+                    bb: bb || 0,
+                    yellowSerie: yellowSerie || 0,
+                    redSerie: redSerie || 0,
+                    formLastFive: formLastFive || 0,
+                    formScore: typeof window.calculatePlayerPerformanceChemistry === 'function'
+                        ? window.calculatePlayerPerformanceChemistry(name)
+                        : 0
+                };
+            }).filter(Boolean);
+
+            const activeStats = playerStats.filter(p => p.matches > 0);
+
+            const followUps = activeStats
+                .filter(p => p.redSerie > 0 || p.yellowSerie >= 3 || p.formLastFive < 5.5 || p.matches <= 2)
+                .map(p => {
+                    const reason = [];
+                    if (p.redSerie > 0) reason.push('Rødt kort i serie');
+                    if (p.yellowSerie >= 3) {
+                        const hint = typeof window.getSerieYellowDisciplineHint === 'function'
+                            ? window.getSerieYellowDisciplineHint(p.yellowSerie)
+                            : null;
+                        reason.push(hint && hint.isAtRisk
+                            ? `${p.yellowSerie} gule i serie – karantene ved ${hint.nextSuspensionAt}`
+                            : 'Mange gule kort i serie');
+                    }
+                    if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
+                    if (p.matches <= 2) reason.push('Få kamper registrert');
+                    return { name: p.name, reason: reason.join(', ') };
+                })
+                .slice(0, 6);
+
+            return {
+                matches,
+                activeStats,
+                followUps,
+                topFormPlayer: [...activeStats].sort((a, b) => b.formLastFive - a.formLastFive)[0] || null,
+                bbLeader: [...activeStats].sort((a, b) => b.bb - a.bb)[0] || null,
+                topScorer: [...activeStats].sort((a, b) => b.goals - a.goals)[0] || null
+            };
+        };
+
+        window.renderStatsFollowUpsHtml = function(followUps) {
+            if (!followUps.length) {
+                return `
+                    <div class="stats-panel">
+                        <div class="stats-panel-header">
+                            <h3 class="stats-panel-title">Oppfølging</h3>
+                            <p class="stats-panel-subtitle">Spillere som trenerteamet bør følge litt ekstra med på.</p>
+                        </div>
+                        <div class="stats-empty-state">
+                            <p class="text-slate-400 italic text-xs">Ingen tydelige varsler akkurat nå.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="stats-panel">
+                    <div class="stats-panel-header">
+                        <h3 class="stats-panel-title">Oppfølging</h3>
+                        <p class="stats-panel-subtitle">Spillere som trenerteamet bør følge litt ekstra med på.</p>
+                    </div>
+                    <div class="stats-followup-list">
+                        ${followUps.map(p => `
+                            <button type="button" onclick="window.openSpillerDetail('${String(p.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" class="stats-followup-item w-full text-left">
+                                <div class="flex items-center gap-3">
+                                    <div class="stats-metric-icon text-bsk-yellow">
+                                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-black text-slate-800">${p.name}</div>
+                                        <div class="text-xs text-slate-500 leading-snug">${p.reason}</div>
+                                    </div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        };
+
         window.renderStatistikkSide = function() {
-            // 1. KAMP-STATISTIKK
-            let wins = 0, draws = 0, losses = 0, goals = 0;
-            (window.activeMatches || []).forEach(m => {
+            const filterLag = window.getStatsTeamFilter();
+            const teamPlayers = (window.activePlayers || []).filter(p => {
+                if (p.status === 'Passiv') return false;
+                if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
+                return true;
+            });
+
+            const filteredMatches = (window.activeMatches || []).filter(m => {
+                if (!m.result || !m.result.includes('-')) return false;
+                if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
+                return true;
+            });
+
+            let wins = 0, draws = 0, losses = 0, goals = 0, conceded = 0;
+            filteredMatches.forEach(m => {
                 const score = parseScore(m.result);
                 if (score !== null) {
                     goals += score.bsk;
-                    if (score.bsk > score.opponent) wins++; else if (score.bsk === score.opponent) draws++; else losses++;
+                    conceded += score.opponent;
+                    if (score.bsk > score.opponent) wins++;
+                    else if (score.bsk === score.opponent) draws++;
+                    else losses++;
                 }
             });
-            
+
+            const matchCount = filteredMatches.length;
+            const goalsAvg = matchCount ? (goals / matchCount).toFixed(1) : '0';
+            const concededAvg = matchCount ? (conceded / matchCount).toFixed(1) : '0';
+
+            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+            const todayForStats = new Date();
+            todayForStats.setHours(0, 0, 0, 0);
+
+            let totalEventTicks = 0, totalPossibleTicks = 0;
+            allEvents.forEach(e => {
+                if (filterLag && filterLag !== 'Alle' && e.team !== filterLag) return;
+                if (e.date) {
+                    const eventDate = new Date(e.date);
+                    eventDate.setHours(0, 0, 0, 0);
+                    if (eventDate > todayForStats) return;
+                }
+
+                const eventTeam = e.team || 'Lag A';
+                const squad = teamPlayers.filter(p => p.spillerLag === eventTeam);
+                if (!squad.length) return;
+
+                totalPossibleTicks += squad.length;
+                if (e.attendance) {
+                    squad.forEach(p => {
+                        if (window.isPlayerAttending(e.attendance, p)) totalEventTicks++;
+                    });
+                }
+            });
+
+            const avgAttendance = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
+            const teamFormMedian = typeof window.getTeamFormMedian === 'function'
+                ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
+                : 0;
+
+            const titleEl = document.getElementById('stats-lag-title');
+            if (titleEl) titleEl.textContent = filterLag && filterLag !== 'Alle' ? filterLag : 'Lagstatistikk';
+
             if (document.getElementById('stats-page-wins')) document.getElementById('stats-page-wins').innerText = wins;
             if (document.getElementById('stats-page-draws')) document.getElementById('stats-page-draws').innerText = draws;
             if (document.getElementById('stats-page-losses')) document.getElementById('stats-page-losses').innerText = losses;
             if (document.getElementById('stats-page-goals')) document.getElementById('stats-page-goals').innerText = goals;
-
-            // 2. TROPPSTATISTIKK
-            const activePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
-            let totalAge = 0;
-            let recruits = 0;
-
-            activePlayers.forEach(p => {
-                if (p.fodselsaar) totalAge += (2026 - parseInt(p.fodselsaar));
-                if (p.status === 'Rekrutt') recruits++;
-            });
-
-            const avgAge = activePlayers.length > 0 ? (totalAge / activePlayers.length).toFixed(1) : 0;
-
-            // RIKTIG LOGIKK FOR OPPMØTE: Tar utgangspunkt i lagets faktiske størrelse
-            let totalEventTicks = 0, totalPossibleTicks = 0;
-            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-            
-            // NYTT: Hent dagens dato for å stoppe "fremtidsstraff"
-            const todayForStats = new Date();
-            todayForStats.setHours(0, 0, 0, 0);
-
-            allEvents.forEach(e => {
-                // NYTT: Sjekk om hendelsen ligger i fremtiden. Hvis ja, hopp over!
-                if (e.date) {
-                    const eventDate = new Date(e.date);
-                    eventDate.setHours(0, 0, 0, 0);
-                    if (eventDate > todayForStats) return; 
-                }
-
-                const eventTeam = e.team || 'Lag A'; 
-                const teamPlayers = activePlayers.filter(p => p.spillerLag === eventTeam); 
-                
-                if (teamPlayers.length > 0) {
-                    totalPossibleTicks += teamPlayers.length;
-                    if (e.attendance) {
-                        teamPlayers.forEach(p => {
-                            if (window.isPlayerAttending(e.attendance, p)) {
-                                totalEventTicks++;
-                            }
-                        });
-                    }
-                }
-            });
-            
-            const avgAttendance = totalPossibleTicks > 0 ? Math.round((totalEventTicks / totalPossibleTicks) * 100) : 0;
-
-            // Oppdater de nye HTML-boksene
-            if (document.getElementById('stats-page-players')) document.getElementById('stats-page-players').innerText = activePlayers.length;
-            if (document.getElementById('stats-page-age')) document.getElementById('stats-page-age').innerText = avgAge;
-            if (document.getElementById('stats-page-recruits')) document.getElementById('stats-page-recruits').innerText = recruits;
+            if (document.getElementById('stats-page-goals-avg')) document.getElementById('stats-page-goals-avg').innerText = goalsAvg;
+            if (document.getElementById('stats-page-conceded-avg')) document.getElementById('stats-page-conceded-avg').innerText = concededAvg;
+            if (document.getElementById('stats-page-players')) document.getElementById('stats-page-players').innerText = teamPlayers.length;
             if (document.getElementById('stats-page-attendance')) document.getElementById('stats-page-attendance').innerText = `${avgAttendance}%`;
+            if (document.getElementById('stats-lag-form-median')) {
+                document.getElementById('stats-lag-form-median').innerText = teamFormMedian > 0 ? teamFormMedian : '-';
+            }
+
+            const formRow = document.getElementById('stats-lag-form-row');
+            if (formRow) {
+                const formGuide = window.getTeamFormGuide(filterLag);
+                const getPillClass = (form) => {
+                    if (form === 'S') return 'is-win';
+                    if (form === 'T') return 'is-loss';
+                    return 'is-draw';
+                };
+
+                formRow.innerHTML = formGuide.length
+                    ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
+                    : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
+            }
+
+            const followUpsContainer = document.getElementById('stats-lag-followups');
+            if (followUpsContainer) {
+                const analysis = window.buildPlayerAnalysisStats(filterLag);
+                followUpsContainer.innerHTML = window.renderStatsFollowUpsHtml(analysis.followUps);
+            }
         };
 
 window.calculatePlayerPerformanceChemistry = function(playerName) {
@@ -241,31 +459,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.switchStatTab = function(tabId) {
             const statViewActiveClasses = {
                 lag: 'block space-y-5',
-                spillere: 'block stats-table-panel',
-                poeng: 'block space-y-5',
-                kampstat: 'block space-y-5',
-                analyse: 'block space-y-5'
+                spillere: 'block space-y-5',
+                kampstat: 'block space-y-5'
             };
 
-            ['lag', 'spillere', 'poeng', 'kampstat', 'analyse'].forEach(id => {
+            ['lag', 'spillere', 'kampstat'].forEach(id => {
                 const view = document.getElementById(`stat-view-${id}`);
                 if (view) view.className = id === tabId ? statViewActiveClasses[id] : 'hidden';
             });
-            
+
             const inactiveClass = "stat-tab-btn portal-segment-btn";
             document.querySelectorAll('.stat-tab-btn').forEach(btn => {
                 btn.className = inactiveClass;
             });
-            
+
             const activeBtn = document.getElementById(`stat-tab-${tabId}`);
-            if (activeBtn) {
-                activeBtn.className = "stat-tab-btn portal-segment-btn is-active";
-            }
-            
-            if (tabId === 'spillere') window.renderPlayerStatsTable();
-            if (tabId === 'poeng') renderPointHistoryView();
-            if (tabId === 'kampstat') renderMatchStatsView(); 
-            if (tabId === 'analyse') renderAnalysisStatsView();
+            if (activeBtn) activeBtn.className = "stat-tab-btn portal-segment-btn is-active";
+
+            if (tabId === 'lag') window.renderStatistikkSide();
+            if (tabId === 'spillere') window.renderSpillereView();
+            if (tabId === 'kampstat') window.renderMatchStatsView();
         };
 
         window.statsEmptyStateHtml = function(icon, title, text) {
@@ -280,9 +493,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.statsMetricCardHtml = function(label, value, sub, icon, iconClass = 'text-bsk-blue') {
+        window.statsMetricCardHtml = function(label, value, sub, icon, iconClass = 'text-bsk-blue', playerName = '') {
+            const safeName = playerName
+                ? String(playerName).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+                : '';
+            const clickAttrs = safeName
+                ? ` role="button" tabindex="0" onclick="window.openSpillerDetail('${safeName}')" class="stats-metric-card stats-metric-card-clickable"`
+                : ` class="stats-metric-card"`;
+
             return `
-                <div class="stats-metric-card">
+                <div${clickAttrs}>
                     <div class="stats-metric-card-top">
                         <span class="stats-metric-label">${label}</span>
                         <div class="stats-metric-icon">
@@ -319,698 +539,300 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             `;
         };
+        window.renderSpillereView = function() {
+            window._statsSelectedPlayer = null;
+            const container = document.getElementById('stat-spillere-content');
+            if (!container) return;
 
-        window.renderAnalysisStatsView = function() {
-    const container = document.getElementById('stat-view-analyse');
-    if (!container) return;
-        container.innerHTML = window.statsEmptyStateHtml(
-            'fa-spinner fa-spin',
-            'Laster analyse',
-            'Regner ut form, BB, mål og poeng per kamp...'
-        );
+            const filterLag = window.getStatsTeamFilter();
+            const analysis = window.buildPlayerAnalysisStats(filterLag);
+            const card = window.statsMetricCardHtml;
 
-    const players = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
-
-    const matches = (window.activeMatches || [])
-        .filter(m => m.result && m.result.includes('-'))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (!players.length || !matches.length) {
-        container.innerHTML = window.statsEmptyStateHtml(
-            'fa-chart-line',
-            'Ikke nok data ennå',
-            'Registrer kamper, oppmøte, mål, BB og spillerbørs for å bygge analysebildet.'
-        );
-        return;
-    }
-
-    const playerStats = players.map(player => {
-                const name = player.navn || player.name || player.fullName || player.spiller || '';
-                if (!name) return null;
-
-                const playerMatches = matches.filter(m =>
-                    window.isPlayerAttending(m.attendance, player)
-                );
-
-                let totalPoints = 0;
-                let goals = 0;
-                let assists = 0;
-                let bb = 0;
-                let yellow = 0;
-                let yellowSerie = 0;
-                let red = 0;
-                let redSerie = 0;
-                let ratings = [];
-
-                playerMatches.forEach(m => {
-                    const points = typeof window.calculatePlayerMatchPoints === 'function'
-                        ? window.calculatePlayerMatchPoints(m, name)
-                        : 0;
-
-                    totalPoints += points;
-
-                    if (window.getPlayerRefMapValue(m.scorers, player, 0)) goals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
-                    if (window.getPlayerRefMapValue(m.assists, player, 0)) assists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
-                    if (window.motmMatchesPlayer(m.motm, player)) bb += 1;
-                    if (window.playerRefListIncludes(m.guleKort, player)) yellow += 1;
-                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.guleKort, player)) yellowSerie += 1;
-                    if (window.playerRefListIncludes(m.rodeKort, player)) red += 1;
-                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.rodeKort, player)) redSerie += 1;
-
-                    const playerRating = window.getPlayerRefMapValue(m.ratings, player, 0);
-                    if (playerRating) {
-                        ratings.push({
-                            date: m.date,
-                            rating: Number(playerRating) || 0,
-                            opponent: m.opponent || ''
-                        });
-                    }
-                });
-
-                const lastFiveRatings = ratings
-                    .sort((a, b) => new Date(b.date) - new Date(a.date))
-                    .slice(0, 5);
-
-                const avgRating = ratings.length
-                    ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-                    : 0;
-
-                const formLastFive = lastFiveRatings.length
-                    ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
-                    : 0;
-
-                // Sørger for at vi alltid returnerer et tall, selv om ingen kamper er spilt
-                const pointsPerMatch = (playerMatches.length > 0) 
-                    ? (totalPoints / playerMatches.length) 
-                    : 0;
-        
-                return {
-                    name,
-                    matches: playerMatches.length || 0,
-                    totalPoints: totalPoints || 0,
-                    pointsPerMatch: pointsPerMatch || 0,
-                    goals: goals || 0,
-                    assists: assists || 0,
-                    bb: bb || 0,
-                    yellow: yellow || 0,
-                    yellowSerie: yellowSerie || 0,
-                    red: red || 0,
-                    redSerie: redSerie || 0,
-                    avgRating: avgRating || 0,
-                    formLastFive: formLastFive || 0
-                };
-            }).filter(Boolean);
-
-    const activeStats = playerStats.filter(p => p.matches > 0);
-
-    const topFormPlayer = [...activeStats].sort((a, b) => b.formLastFive - a.formLastFive)[0];
-    const bbLeader = [...activeStats].sort((a, b) => b.bb - a.bb)[0];
-    const topScorer = [...activeStats].sort((a, b) => b.goals - a.goals)[0];
-    const assistLeader = [...activeStats].sort((a, b) => b.assists - a.assists)[0];
-    const pointsLeader = [...activeStats].sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)[0];
-
-    const formTable = [...activeStats]
-        .sort((a, b) => b.formLastFive - a.formLastFive)
-        .slice(0, 8);
-
-    const bbTable = [...activeStats]
-        .filter(p => p.bb > 0)
-        .sort((a, b) => b.bb - a.bb || b.formLastFive - a.formLastFive)
-        .slice(0, 8);
-
-    const scorerTable = [...activeStats]
-        .filter(p => p.goals > 0)
-        .sort((a, b) => b.goals - a.goals || b.pointsPerMatch - a.pointsPerMatch)
-        .slice(0, 8);
-
-    const assistTable = [...activeStats]
-        .filter(p => p.assists > 0)
-        .sort((a, b) => b.assists - a.assists || b.pointsPerMatch - a.pointsPerMatch)
-        .slice(0, 8);
-
-    const pointsTable = [...activeStats]
-        .sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)
-        .slice(0, 8);
-
-    const followUps = activeStats
-        .filter(p => p.redSerie > 0 || p.yellowSerie >= 3 || p.formLastFive < 5.5 || p.matches <= 2)
-        .map(p => {
-            let reason = [];
-
-            if (p.redSerie > 0) reason.push('Rødt kort i serie');
-            if (p.yellowSerie >= 3) {
-                const hint = typeof window.getSerieYellowDisciplineHint === 'function'
-                    ? window.getSerieYellowDisciplineHint(p.yellowSerie)
-                    : null;
-                reason.push(hint && hint.isAtRisk
-                    ? `${p.yellowSerie} gule i serie – karantene ved ${hint.nextSuspensionAt}`
-                    : 'Mange gule kort i serie');
-            }
-            if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
-            if (p.matches <= 2) reason.push('Få kamper registrert');
-
-            return {
-                name: p.name,
-                reason: reason.join(', ')
-            };
-        })
-        .slice(0, 8);
-
-    const card = (label, value, sub, icon, colorClass) => window.statsMetricCardHtml(label, value, sub, icon, colorClass);
-
-    const smallTable = (title, subtitle, headers, rowsHtml) => window.statsSmallTableHtml(title, subtitle, headers, rowsHtml);
-
-    container.innerHTML = `
-        <div class="space-y-5">
-
-            <div class="stats-hero-panel">
-                <div class="stats-hero-top">
-                    <div>
-                        <p class="stats-hero-kicker">Statistikk 2.0</p>
-                        <h2 class="stats-hero-title">Analyse og trenerinnsikt</h2>
-                        <p class="stats-hero-subtitle">Form, BB, mål, assists, poeng per kamp og spillere som bør følges opp.</p>
+            container.innerHTML = `
+                <div class="space-y-5">
+                    <div class="stats-metric-grid is-three">
+                        ${card(
+                            'Formspiller',
+                            analysis.topFormPlayer ? analysis.topFormPlayer.name : '-',
+                            analysis.topFormPlayer ? `Snitt siste 5: ${analysis.topFormPlayer.formLastFive.toFixed(1)}` : 'Ingen formdata',
+                            'fa-fire',
+                            'text-orange-500',
+                            analysis.topFormPlayer ? analysis.topFormPlayer.name : ''
+                        )}
+                        ${card(
+                            'Toppscorer',
+                            analysis.topScorer ? analysis.topScorer.name : '-',
+                            analysis.topScorer ? `${analysis.topScorer.goals} mål` : 'Ingen mål registrert',
+                            'fa-futbol',
+                            'text-emerald-600',
+                            analysis.topScorer ? analysis.topScorer.name : ''
+                        )}
+                        ${card(
+                            'BB-leder',
+                            analysis.bbLeader ? analysis.bbLeader.name : '-',
+                            analysis.bbLeader ? `${analysis.bbLeader.bb} BB-kåringer` : 'Ingen BB registrert',
+                            'fa-crown',
+                            'text-bsk-yellow',
+                            analysis.bbLeader ? analysis.bbLeader.name : ''
+                        )}
                     </div>
-                    <div class="stats-hero-ring">
-                        <p class="stats-hero-ring-label">Grunnlag</p>
-                        <p class="stats-hero-ring-value">${matches.length}</p>
-                        <p class="stats-hero-ring-sub">kamper</p>
-                    </div>
-                </div>
-            </div>
 
-            <div class="stats-metric-grid is-five">
-                ${card(
-                    'Formspiller',
-                    topFormPlayer ? topFormPlayer.name : '-',
-                    topFormPlayer ? `Snitt siste 5: ${topFormPlayer.formLastFive.toFixed(1)}` : 'Ingen formdata',
-                    'fa-fire',
-                    'text-orange-500'
-                )}
-
-                ${card(
-                    'BB-leder',
-                    bbLeader ? bbLeader.name : '-',
-                    bbLeader ? `${bbLeader.bb} BB-kåringer` : 'Ingen BB registrert',
-                    'fa-crown',
-                    'text-indigo-500'
-                )}
-
-                ${card(
-                    'Toppscorer',
-                    topScorer ? topScorer.name : '-',
-                    topScorer ? `${topScorer.goals} mål` : 'Ingen mål registrert',
-                    'fa-futbol',
-                    'text-emerald-500'
-                )}
-
-                ${card(
-                    'Assistkonge',
-                    assistLeader ? assistLeader.name : '-',
-                    assistLeader ? `${assistLeader.assists} assists` : 'Ingen assists registrert',
-                    'fa-handshake-angle',
-                    'text-sky-500'
-                )}
-
-                ${card(
-                    'Poeng per kamp',
-                    pointsLeader ? pointsLeader.name : '-',
-                    pointsLeader ? `${pointsLeader.pointsPerMatch.toFixed(1)} poeng i snitt` : 'Ingen poengdata',
-                    'fa-chart-line',
-                    'text-bsk-blue'
-                )}
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-                ${smallTable(
-                    'Form siste 5 kamper',
-                    'Sortert på snittbørs i spillerens siste registrerte kamper.',
-                    `
-                        <th class="p-4">Spiller</th>
-                        <th class="p-4 text-center">Kamper</th>
-                        <th class="p-4 text-center">Snittbørs</th>
-                        <th class="p-4 text-center">Mål</th>
-                        <th class="p-4 text-center">Assist</th>
-                        <th class="p-4 text-center">BB</th>
-                    `,
-                    formTable.map(p => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-center">${p.matches}</td>
-                            <td class="p-4 text-center">
-                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-black ${
-                                    p.formLastFive >= 7 ? 'bg-orange-100 text-orange-700' :
-                                    p.formLastFive >= 6 ? 'bg-emerald-100 text-emerald-700' :
-                                    p.formLastFive > 0 ? 'bg-slate-100 text-slate-600' :
-                                    'bg-slate-50 text-slate-300'
-                                }">
-                                    ${p.formLastFive.toFixed(1)}
-                                </span>
-                            </td>
-                            <td class="p-4 text-center font-bold">${p.goals}</td>
-                            <td class="p-4 text-center font-bold">${p.assists}</td>
-                            <td class="p-4 text-center">
-                                ${
-                                    p.bb > 0
-                                        ? `<span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">👑 +${p.bb}</span>`
-                                        : `<span class="text-slate-300 font-bold">-</span>`
-                                }
-                            </td>
-                        </tr>
-                    `).join('')
-                )}
-
-                ${smallTable(
-                    'Poeng per kamp',
-                    'Viser hvem som leverer mest når de faktisk spiller.',
-                    `
-                        <th class="p-4">Spiller</th>
-                        <th class="p-4 text-center">Kamper</th>
-                        <th class="p-4 text-center">Totalt</th>
-                        <th class="p-4 text-right">Snitt</th>
-                    `,
-                    pointsTable.map(p => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-center">${p.matches}</td>
-                            <td class="p-4 text-center">${Math.round(p.totalPoints)}</td>
-                            <td class="p-4 text-right font-black text-bsk-blue">${p.pointsPerMatch.toFixed(1)}</td>
-                        </tr>
-                    `).join('')
-                )}
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-                ${smallTable(
-                    'BB-liga',
-                    'Antall ganger spilleren er kåret til banens beste.',
-                    `
-                        <th class="p-4">Spiller</th>
-                        <th class="p-4 text-center text-indigo-600">BB</th>
-                    `,
-                    bbTable.map(p => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-center">
-                                <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
-                                    👑 +${p.bb}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('')
-                )}
-
-                ${smallTable(
-                    'Toppscorer',
-                    'Mål registrert på kampdetaljene.',
-                    `
-                        <th class="p-4">Spiller</th>
-                        <th class="p-4 text-center">Mål</th>
-                        <th class="p-4 text-right">Mål/kamp</th>
-                    `,
-                    scorerTable.map(p => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-center">
-                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
-                                    ⚽ ${p.goals}
-                                </span>
-                            </td>
-                            <td class="p-4 text-right">${p.matches ? (p.goals / p.matches).toFixed(2) : '0.00'}</td>
-                        </tr>
-                    `).join('')
-                )}
-
-                ${smallTable(
-                    'Assistliga',
-                    'Assist registrert på kampdetaljene. Vises som motivasjon, men påvirker ikke Form eller Kampbidrag.',
-                    `
-                        <th class="p-4">Spiller</th>
-                        <th class="p-4 text-center">Assist</th>
-                        <th class="p-4 text-right">Assist/kamp</th>
-                    `,
-                    assistTable.map(p => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-center">
-                                <span class="inline-flex items-center gap-1 bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-full text-xs font-black shadow-sm">
-                                    A ${p.assists}
-                                </span>
-                            </td>
-                            <td class="p-4 text-right">${p.matches ? (p.assists / p.matches).toFixed(2) : '0.00'}</td>
-                        </tr>
-                    `).join('')
-                )}
-            </div>
-
-            <div class="stats-table-panel">
-                <div class="stats-panel-header">
-                    <h3 class="stats-panel-title">Oppfølging</h3>
-                    <p class="stats-panel-subtitle">Spillere som trenerteamet bør følge litt ekstra med på.</p>
-                </div>
-                <div class="stats-followup-list">
-                    ${
-                        followUps.length
-                            ? followUps.map(p => `
-                                <div class="stats-followup-item">
-                                    <div class="flex items-center gap-3">
-                                        <div class="stats-metric-icon text-bsk-yellow">
-                                            <i class="fa-solid fa-triangle-exclamation text-sm"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="font-black text-slate-800">${p.name}</div>
-                                            <div class="text-xs text-slate-500 leading-snug">${p.reason}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')
-                            : `
-                                <div class="stats-empty-state">
-                                    <p class="text-slate-400 italic text-xs">Ingen tydelige varsler akkurat nå.</p>
-                                </div>
-                            `
-                    }
-                </div>
-            </div>
-
-        </div>
-    `;
-};
-        
-       window.renderPointHistoryView = function() {
-    const container = document.getElementById('stat-view-poeng');
-    if (!container) return;
-    
-    const harSpiltMinstEnKamp = (playerName, spillerLag) => {
-        return (window.activeMatches || []).some(m => 
-            m.matchGroup === spillerLag && 
-            window.isPlayerAttending(m.attendance, playerName)
-        );
-    };
-
-    const playerOptions = (window.activePlayers || [])
-    .filter(p => p.status !== 'Passiv')
-    .sort((a, b) => a.navn.localeCompare(b.navn));
-
-    const defaultPlayer = playerOptions
-        .map(p => ({
-            ...p,
-            chemistry: typeof window.calculatePlayerPerformanceChemistry === 'function'
-                ? window.calculatePlayerPerformanceChemistry(p.navn)
-                : 0
-        }))
-        .sort((a, b) => b.chemistry - a.chemistry)[0];
-    
-    const defaultPlayerName = defaultPlayer ? defaultPlayer.navn : '';
-    
-    const optionsHtml = playerOptions
-        .map(p => `
-            <option 
-                class="text-slate-900 bg-white" 
-                value="${p.navn}"
-                ${p.navn === defaultPlayerName ? 'selected' : ''}
-            >
-                ${p.navn}
-            </option>
-        `)
-        .join('');
-        
-    let html = `
-        <div class="space-y-5">
-
-            <div class="stats-hero-panel">
-                <div class="stats-hero-top">
-                    <div class="min-w-0 flex-1">
-                        <p class="stats-hero-kicker">Spilleranalyse</p>
-                        <div class="stats-hero-select-wrap max-w-full md:max-w-none">
-                            <select 
-                                id="poeng-player-select" 
-                                onchange="showPlayerPointsTable()" 
-                                class="portal-field portal-field-strong w-full md:w-auto"
-                            >
-                                ${optionsHtml}
-                            </select>
-                            <i class="fa-solid fa-chevron-down"></i>
+                    <div class="stats-table-panel">
+                        <div class="stats-panel-header">
+                            <h3 class="stats-panel-title">Alle spillere</h3>
+                            <p class="stats-panel-subtitle">Trykk på en spiller for detaljer, eller sorter etter kolonne.</p>
                         </div>
-                        <p class="stats-hero-subtitle">
-                            Se utvikling, form, matchpoeng og kampbidrag for valgt spiller.
-                        </p>
-                    </div>
-                    <div class="stats-hero-ring">
-                        <p class="stats-hero-ring-label">Snitt</p>
-                        <p id="player-banner-main" class="stats-hero-ring-value">-</p>
-                        <p class="stats-hero-ring-sub">poeng</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="stats-table-head select-none">
+                                    <tr>
+                                        <th onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
+                                        <th class="text-center text-bsk-blue" onclick="sortStatsTable('bb')">BB <span id="sort-icon-bb"></span></th>
+                                        <th class="text-center text-bsk-blue" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('guleSerie')">Gul S <span id="sort-icon-guleSerie"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('guleCup')">Gul C <span id="sort-icon-guleCup"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('rodeSerie')">Rød S <span id="sort-icon-rodeSerie"></span></th>
+                                        <th class="text-center" onclick="sortStatsTable('rodeCup')">Rød C <span id="sort-icon-rodeCup"></span></th>
+                                        <th class="text-center">
+                                            <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
+                                            <i class="fa-solid fa-circle-info text-bsk-yellow hover:text-amber-500 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stats-player-table-body" class="stats-table-body divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <p id="player-banner-sub" class="hidden md:block text-[10px] text-white/55 mt-2 text-right">valgt spiller</p>
-            </div>
+            `;
 
-            <div id="poeng-table-container">
-                ${window.statsEmptyStateHtml(
-                    'fa-user-chart',
-                    'Velg en spiller',
-                    'Da får du nøkkeltall og poenghistorikk for spilleren.'
-                )}
-            </div>
+            window.renderPlayerStatsTable();
+        };
 
-        </div>
-    `;
+        window.openSpillerDetail = function(playerName) {
+            if (!playerName) return;
+            window._statsSelectedPlayer = playerName;
+            window.renderSpillereDetail(playerName);
+        };
 
-    container.innerHTML = html;
+        window.showSpillereOverview = function() {
+            window.renderSpillereView();
+        };
 
-if (defaultPlayerName) {
-    showPlayerPointsTable();
-}
-};
+        window.renderSpillereDetail = function(playerName) {
+            const container = document.getElementById('stat-spillere-content');
+            if (!container || !playerName) return;
+
+            const player = (window.activePlayers || []).find(p => p.navn === playerName);
+            const history = typeof window.getPlayerMatchPointsHistory === 'function'
+                ? window.getPlayerMatchPointsHistory(playerName)
+                : [];
+
+            if (!player || history.length === 0) {
+                container.innerHTML = `
+                    <div class="space-y-5">
+                        <button type="button" onclick="window.showSpillereOverview()" class="portal-btn portal-btn-secondary portal-btn-sm">
+                            <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
+                        </button>
+                        ${window.statsEmptyStateHtml(
+                            'fa-circle-info',
+                            'Ingen spilte kamper',
+                            'Ingen spilte kamper er registrert for denne spilleren ennå.'
+                        )}
+                    </div>
+                `;
+                return;
+            }
+
+            const chemistry = typeof window.calculatePlayerPerformanceChemistry === 'function'
+                ? window.calculatePlayerPerformanceChemistry(playerName)
+                : 0;
+            const teamMedian = typeof window.getTeamFormMedian === 'function'
+                ? window.getTeamFormMedian(player.spillerLag)
+                : 0;
+            const formComparison = teamMedian > 0
+                ? (chemistry >= teamMedian + 8 ? 'Over lagssnitt' : chemistry < teamMedian - 8 ? 'Under lagssnitt' : 'Om lagssnitt')
+                : 'Ingen sammenligning';
+
+            const totalMatches = history.length;
+            const ratings = history.map(h => Number(h.rating)).filter(r => !isNaN(r) && r > 0);
+            const avgRating = ratings.length ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : 0;
+            const totalPoints = history.reduce((sum, h) => sum + (Number(h.points) || 0), 0);
+            const avgPoints = totalMatches ? totalPoints / totalMatches : 0;
+
+            let totalGoals = 0;
+            let totalAssists = 0;
+            let totalYellowSerie = 0;
+            let totalYellowCup = 0;
+            let totalRedSerie = 0;
+            let totalRedCup = 0;
+            let totalBb = 0;
+
+            history.forEach(h => {
+                const m = (window.activeMatches || []).find(match => match.id === h.matchId);
+                if (!m) return;
+                totalGoals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
+                totalAssists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
+                if (m.matchType === 'Serie') {
+                    totalYellowSerie += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
+                    totalRedSerie += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
+                } else if (m.matchType === 'Cup') {
+                    totalYellowCup += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
+                    totalRedCup += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
+                }
+                totalBb += window.motmMatchesPlayer(m.motm, player) ? 1 : 0;
+            });
+
+            const card = window.statsMetricCardHtml;
+            let rowsHtml = '';
+
+            history.forEach(h => {
+                const m = (window.activeMatches || []).find(match => match.id === h.matchId);
+                let pointColor = 'text-slate-700';
+                if (h.points >= 25) pointColor = 'text-emerald-600';
+                else if (h.points >= 18) pointColor = 'text-bsk-blue';
+                else if (h.points < 10) pointColor = 'text-rose-600';
+
+                const goals = m ? Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0 : 0;
+                const assists = m ? Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0 : 0;
+                const yellow = m && window.playerRefListIncludes(m.guleKort, player);
+                const red = m && window.playerRefListIncludes(m.rodeKort, player);
+                const bb = m && window.motmMatchesPlayer(m.motm, player);
+                const dateText = h.date
+                    ? new Date(h.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
+                    : '-';
+
+                rowsHtml += `
+                    <tr class="hover:bg-slate-50 transition" title="${h.breakdown}">
+                        <td class="text-slate-500 font-medium">${dateText}</td>
+                        <td class="font-black text-slate-800">${h.opponent}${h.onPitch === false ? ' <span class="text-[9px] text-amber-700 font-bold">(benk)</span>' : ''}</td>
+                        <td class="text-center font-black text-lg ${pointColor}">${h.points}</td>
+                        <td class="text-center"><span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span></td>
+                        <td class="text-center">${goals > 0 ? `⚽ ${goals}` : '-'}</td>
+                        <td class="text-center">${assists > 0 ? `A ${assists}` : '-'}</td>
+                        <td class="text-center">${bb ? '👑 +1' : '-'}</td>
+                        <td class="text-center">${yellow ? '🟨' : '-'}</td>
+                        <td class="text-center">${red ? '🟥 -10' : '-'}</td>
+                        <td class="text-center font-semibold text-slate-600">${h.result}</td>
+                        <td class="text-right">
+                            <button onclick="openMatchStatsEditor('${h.matchId}')" title="Rediger kampstatistikk" class="portal-btn portal-btn-icon-sm portal-btn-warning">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="space-y-5">
+                    <button type="button" onclick="window.showSpillereOverview()" class="portal-btn portal-btn-secondary portal-btn-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
+                    </button>
+
+                    <div class="stats-hero-panel">
+                        <div class="stats-hero-top">
+                            <div>
+                                <p class="stats-hero-kicker">${player.pos1 || 'Spiller'}</p>
+                                <h2 class="stats-hero-title">${playerName}</h2>
+                                <p class="stats-hero-subtitle">${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>
+                            </div>
+                            <div class="stats-hero-ring">
+                                <p class="stats-hero-ring-label">Snitt</p>
+                                <p class="stats-hero-ring-value">${avgPoints ? avgPoints.toFixed(1) : '-'}</p>
+                                <p class="stats-hero-ring-sub">${totalPoints} totalt</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-metric-grid is-four">
+                        ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
+                        ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
+                        ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-bsk-yellow')}
+                        ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-bsk-blue')}
+                    </div>
+
+                    <div class="stats-table-panel">
+                        <div class="stats-panel-header">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h3 class="stats-panel-title">Poenghistorikk</h3>
+                                    <p class="stats-panel-subtitle">Nyeste kamp vises øverst.</p>
+                                </div>
+                                <button onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span class="hidden sm:inline">Slik regnes form</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="stats-table-head">
+                                    <tr>
+                                        <th>Dato</th>
+                                        <th>Motstander</th>
+                                        <th class="text-center">Poeng</th>
+                                        <th class="text-center">Børs</th>
+                                        <th class="text-center">Mål</th>
+                                        <th class="text-center">Assist</th>
+                                        <th class="text-center text-bsk-blue">BB</th>
+                                        <th class="text-center">Gult</th>
+                                        <th class="text-center">Rødt</th>
+                                        <th class="text-center">Res</th>
+                                        <th class="text-right">Rediger</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="stats-table-body divide-y divide-slate-100">${rowsHtml}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
 
         window.showPlayerPointsTable = function() {
-    const playerName = document.getElementById('poeng-player-select').value;
-    const container = document.getElementById('poeng-table-container');
-    
-    if (!container) return;
+            const select = document.getElementById('poeng-player-select');
+            const playerName = select ? select.value : window._statsSelectedPlayer;
+            if (playerName) window.openSpillerDetail(playerName);
+        };
 
-    if (!playerName) {
-        container.innerHTML = window.statsEmptyStateHtml(
-            'fa-user-chart',
-            'Velg en spiller',
-            'Da får du nøkkeltall og poenghistorikk for spilleren.'
-        );
-        return;
-    }
-    
-    const player = (window.activePlayers || []).find(p => p.navn === playerName);
-    const history = typeof window.getPlayerMatchPointsHistory === 'function' ? window.getPlayerMatchPointsHistory(playerName) : [];
-    
-    if (history.length === 0) {
-        container.innerHTML = window.statsEmptyStateHtml(
-            'fa-circle-info',
-            'Ingen spilte kamper',
-            'Ingen spilte kamper er registrert for denne spilleren ennå.'
-        );
-        return;
-    }
+        window.renderPointHistoryView = function() {
+            window.renderSpillereView();
+        };
 
-    const chemistry = typeof window.calculatePlayerPerformanceChemistry === 'function'
-        ? window.calculatePlayerPerformanceChemistry(playerName)
-        : 0;
+        window.getFilteredPlayedMatches = function() {
+            const filterLag = window.getStatsTeamFilter();
+            return (window.activeMatches || [])
+                .filter(m => {
+                    if (!m.result || !m.result.includes('-')) return false;
+                    if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
+                    return true;
+                })
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+        };
 
-    const totalMatches = history.length;
-
-    const ratings = history
-        .map(h => Number(h.rating))
-        .filter(r => !isNaN(r) && r > 0);
-
-    const avgRating = ratings.length
-        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-        : 0;
-
-    const totalPoints = history.reduce((sum, h) => sum + (Number(h.points) || 0), 0);
-    const avgPoints = totalMatches ? totalPoints / totalMatches : 0;
-
-    const bannerMain = document.getElementById('player-banner-main');
-    const bannerSub = document.getElementById('player-banner-sub');
-    
-    if (bannerMain) {
-        bannerMain.textContent = avgPoints ? avgPoints.toFixed(1) : '-';
-    }
-    
-    if (bannerSub) {
-        bannerSub.textContent = totalPoints + ' poeng totalt';
-    }
-
-    let totalGoals = 0;
-    let totalAssists = 0;
-    let totalYellowSerie = 0;
-    let totalYellowCup = 0;
-    let totalRedSerie = 0;
-    let totalRedCup = 0;
-    let totalBb = 0;
-
-    history.forEach(h => {
-        const m = (window.activeMatches || []).find(match => match.id === h.matchId);
-        if (!m) return;
-
-        totalGoals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
-        totalAssists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
-        if (m.matchType === 'Serie') {
-            totalYellowSerie += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
-            totalRedSerie += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
-        } else if (m.matchType === 'Cup') {
-            totalYellowCup += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
-            totalRedCup += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
-        }
-        totalBb += window.motmMatchesPlayer(m.motm, player) ? 1 : 0;
-    });
-
-    const card = (label, value, sub, icon, iconClass) => window.statsMetricCardHtml(label, value, sub, icon, iconClass);
-
-    let tableHtml = `
-        <div class="stats-metric-grid is-four mb-5">
-            ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
-            ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
-            ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-bsk-yellow')}
-            ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-bsk-blue')}
-        </div>
-
-        <div class="stats-table-panel">
-            <div class="stats-panel-header">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <h3 class="stats-panel-title">${playerName}</h3>
-                        <p class="stats-panel-subtitle">
-                            Poenghistorikk per kamp. Nyeste kamp vises øverst.
-                        </p>
-                    </div>
-
-                    <button 
-                        onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
-                        class="portal-btn portal-btn-success portal-btn-sm shrink-0"
-                    >
-                        <i class="fa-solid fa-circle-info"></i>
-                        <span class="sm:hidden">Form</span>
-                        <span class="hidden sm:inline">Slik regnes form</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="stats-table-head">
-                        <tr>
-                            <th>Dato</th>
-                            <th>Motstander</th>
-                            <th class="text-center">Poeng</th>
-                            <th class="text-center">Børs</th>
-                            <th class="text-center">Mål</th>
-                            <th class="text-center">Assist</th>
-                            <th class="text-center text-bsk-blue">BB</th>
-                            <th class="text-center">Gult</th>
-                            <th class="text-center">Rødt</th>
-                            <th class="text-center">Res</th>
-                            <th class="text-right">Rediger</th>
-                        </tr>
-                    </thead>
-                    <tbody class="stats-table-body divide-y divide-slate-100">
-    `;
-    
-    history.forEach(h => {
-        const m = (window.activeMatches || []).find(match => match.id === h.matchId);
-
-        let pointColor = 'text-slate-700';
-        if (h.points >= 25) pointColor = 'text-emerald-600';
-        else if (h.points >= 18) pointColor = 'text-bsk-blue';
-        else if (h.points < 10) pointColor = 'text-rose-600';
-
-        const goals = m ? Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0 : 0;
-        const assists = m ? Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0 : 0;
-        const yellow = m && window.playerRefListIncludes(m.guleKort, player);
-        const red = m && window.playerRefListIncludes(m.rodeKort, player);
-        const bb = m && window.motmMatchesPlayer(m.motm, player);
-
-        const målVis = goals > 0
-            ? `<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full text-xs font-black">⚽ ${goals}</span>`
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const assistVis = assists > 0
-            ? `<span class="inline-flex items-center gap-1 bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-full text-xs font-black">A ${assists}</span>`
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const bbVis = bb
-            ? `<span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-black">👑 +1</span>`
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const yellowVis = yellow
-            ? `<span class="text-amber-500 font-black">🟨</span>`
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const redVis = red
-            ? `<span class="text-rose-600 font-black">🟥 -10</span>`
-            : '<span class="text-slate-300 font-bold">-</span>';
-
-        const dateText = h.date
-            ? new Date(h.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
-            : '-';
-
-        tableHtml += `
-            <tr class="hover:bg-slate-50 transition" title="${h.breakdown}">
-                <td class="p-4 text-slate-500 font-medium">${dateText}</td>
-                <td class="p-4 font-black text-slate-800">${h.opponent}${h.onPitch === false ? ' <span class="text-[9px] text-amber-700 font-bold">(benk)</span>' : ''}</td>
-                <td class="p-4 text-center font-black text-lg ${pointColor}">${h.points}</td>
-	                <td class="p-4 text-center">
-	                    <span class="bg-bsk-blue text-white px-2 py-1 rounded text-[10px] font-black shadow-sm">${h.rating}</span>
-	                </td>
-	                <td class="p-4 text-center">${målVis}</td>
-	                <td class="p-4 text-center">${assistVis}</td>
-	                <td class="p-4 text-center">${bbVis}</td>
-                <td class="p-4 text-center">${yellowVis}</td>
-                <td class="p-4 text-center">${redVis}</td>
-                <td class="p-4 text-center font-semibold text-slate-600">${h.result}</td>
-                <td class="p-4 text-right">
-                    <button
-                        onclick="openMatchStatsEditor('${h.matchId}')"
-                        title="Rediger mål, assist, kort og spillerbørs"
-                        class="portal-btn portal-btn-icon-sm portal-btn-warning"
-                    >
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    tableHtml += `
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-
-    container.innerHTML = tableHtml;
-};
+        window.navigateKampstatMatch = function(direction) {
+            const playedMatches = window.getFilteredPlayedMatches();
+            const matchSelect = document.getElementById('kampstat-match-select');
+            const currentId = window.pendingKampstatMatchId || (matchSelect ? matchSelect.value : '');
+            const idx = playedMatches.findIndex(m => m.id === currentId);
+            if (idx === -1) return;
+            const nextIdx = idx + direction;
+            if (nextIdx < 0 || nextIdx >= playedMatches.length) return;
+            window.pendingKampstatMatchId = playedMatches[nextIdx].id;
+            window.showMatchStatsTable();
+        };
 
         window.renderMatchStatsView = function() {
     const container = document.getElementById('stat-view-kampstat');
     if (!container) return;
 
-    // Filtrer ut kamper som er spilt (som har et resultat)
-    const playedMatches = (window.activeMatches || [])
-        .filter(m => m.result && m.result.includes('-'))
-        .sort((a, b) => new Date(b.date) - new Date(a.date)); // Nyeste øverst
+    const playedMatches = window.getFilteredPlayedMatches();
 
-    // Bygg nedtrekksmenyen for kampene
-    const optionsHtml = playedMatches.map(m => {
-        const dateStr = new Date(m.date).toLocaleDateString('no-NO', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-
-        const resultText = m.result ? ` · ${m.result}` : '';
-        const groupText = m.matchGroup ? ` (${m.matchGroup})` : '';
-
-        return `<option value="${m.id}">${m.opponent}${resultText}</option>`;
-    }).join('');
-
-let html = `
+    const html = `
     <div class="space-y-5">
         <div id="kampstat-table-container">
             <div class="stats-empty-state">
@@ -1055,9 +877,7 @@ let html = `
         window.showMatchStatsTable = function() {
     const matchSelect = document.getElementById('kampstat-match-select');
 
-    const playedMatches = (window.activeMatches || [])
-        .filter(m => m.result && m.result.includes('-'))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const playedMatches = window.getFilteredPlayedMatches();
 
     const pendingMatchId = window.pendingKampstatMatchId;
     window.pendingKampstatMatchId = null;
@@ -1265,6 +1085,15 @@ let html = `
                         <p class="stats-hero-subtitle">
                             ${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}
                         </p>
+                        <div class="flex items-center gap-2 mt-3">
+                            <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${playedMatches.findIndex(m => m.id === matchId) <= 0 ? 'disabled' : ''} title="Forrige kamp">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span class="text-xs font-bold text-white/60">${playedMatches.findIndex(m => m.id === matchId) + 1} / ${playedMatches.length}</span>
+                            <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${playedMatches.findIndex(m => m.id === matchId) >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="stats-hero-result">
                         <p class="stats-hero-result-label">Resultat</p>
@@ -1497,7 +1326,7 @@ let html = `
             const theadContainer = tableBody ? tableBody.previousElementSibling : null;
             if (!tableBody || !theadContainer) return;
             
-            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
 
             const todayForStats = new Date();
@@ -1619,9 +1448,10 @@ let html = `
                 let rodCupFarge = stat.rodeCup > 0 ? 'text-rose-500 font-bold' : 'text-slate-300 font-bold';
                 
                 let bbFarge = stat.bb > 0 ? 'text-indigo-600 font-black text-sm' : 'text-slate-300 font-bold';
+                const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
                 return `
-                    <tr class="hover:bg-slate-50 transition-colors">
+                    <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="window.openSpillerDetail('${safeName}')">
                         <td><div class="font-bold text-slate-800">${stat.navn}</div><div class="text-[10px] text-slate-500 uppercase tracking-wide">${stat.pos1}</div></td>
                         <td class="text-center font-bold text-slate-700">${stat.oppmotePct}%</td>
                         <td class="text-center font-bold text-slate-800">${stat.kamper}</td>

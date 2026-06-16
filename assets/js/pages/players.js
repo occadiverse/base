@@ -28,6 +28,32 @@ window.updateDynamicSelectors = function() {
             filterSelect.value = teams[0].name;
         }
     }
+
+    const statsFilterSelect = document.getElementById('statsLagFilterSelect');
+    if (statsFilterSelect) {
+        const previousStatsFilter = statsFilterSelect.value;
+        statsFilterSelect.innerHTML = '';
+        if (teams.length > 1) {
+            const allOpt = document.createElement('option');
+            allOpt.value = 'Alle';
+            allOpt.innerText = 'ALLE LAG';
+            statsFilterSelect.appendChild(allOpt);
+        }
+        teams.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.name;
+            opt.innerText = t.name.toUpperCase();
+            statsFilterSelect.appendChild(opt);
+        });
+        if (previousStatsFilter && (previousStatsFilter === 'Alle' || teams.some(t => t.name === previousStatsFilter))) {
+            statsFilterSelect.value = previousStatsFilter;
+        } else if (teams[0]) {
+            statsFilterSelect.value = teams[0].name;
+        }
+    }
+
+    const statsLagFilterWrap = document.getElementById('statsLagFilterWrap');
+    if (statsLagFilterWrap) statsLagFilterWrap.classList.toggle('hidden', teams.length <= 1);
     if (kamperFilterSelect) kamperFilterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
 
     const lagFilterWrap = document.getElementById('rosterLagFilterWrap');
@@ -113,6 +139,12 @@ window.renderAdminTeamsList = function() {
 window.handleTeamFilterChange = function() {
     window.renderPlayerRoster();
     recalculateOppmoteAndKjemi();
+    const statsSelect = document.getElementById('statsLagFilterSelect');
+    const rosterSelect = document.getElementById('lagFilterSelect');
+    if (statsSelect && rosterSelect && statsSelect.value !== rosterSelect.value) {
+        statsSelect.value = rosterSelect.value;
+    }
+    if (typeof window.handleStatsTeamFilterChange === 'function') window.handleStatsTeamFilterChange();
 };
 
 window.rosterStatusFilter = 'alle';

@@ -36,16 +36,14 @@ window.goToPlayerAnalysis = function(playerName) {
     switchTab('statistikk');
 
     if (typeof window.switchStatTab === 'function') {
-        window.switchStatTab('poeng');
+        window.switchStatTab('spillere');
     }
 
-    const playerSelect = document.getElementById('poeng-player-select');
-    if (playerSelect && playerName) {
-        const hasPlayer = Array.from(playerSelect.options).some(option => option.value === playerName);
-        if (hasPlayer) playerSelect.value = playerName;
+    if (playerName && typeof window.openSpillerDetail === 'function') {
+        window.openSpillerDetail(playerName);
+    } else if (typeof window.renderSpillereView === 'function') {
+        window.renderSpillereView();
     }
-
-    if (typeof window.showPlayerPointsTable === 'function') window.showPlayerPointsTable();
 };
 
 window.activateDashboardCardFromKeyboard = function(event) {

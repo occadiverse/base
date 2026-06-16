@@ -94,7 +94,15 @@ function switchTab(tabId) {
     } else if (tabId === 'tropp') {
         window.renderPlayerRoster();
     } else if (tabId === 'statistikk') {
+        if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
         window.renderStatistikkSide();
+        if (typeof window.switchStatTab === 'function') {
+            const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
+            const tabName = activeStatTab && activeStatTab.id
+                ? activeStatTab.id.replace('stat-tab-', '')
+                : 'lag';
+            window.switchStatTab(tabName);
+        }
     } else if (tabId === 'admin' && isAdminUnlocked) {
         renderAdminTeamsList();
     } else if (tabId === 'hjem') {

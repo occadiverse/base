@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-bsk">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v2">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -213,23 +213,26 @@
             </div>
 
             <div id="view-statistikk" class="hidden stats-page space-y-5">
-                <div class="portal-page-toolbar is-detached">
-                    <div class="portal-segmented">
-                        <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
-                            Lag
-                        </button>
-                        <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn portal-segment-btn">
-                            Form
-                        </button>
-                        <button type="button" onclick="switchStatTab('poeng')" id="stat-tab-poeng" class="stat-tab-btn portal-segment-btn">
-                            Spiller
-                        </button>
-                        <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn portal-segment-btn">
-                            Kamp
-                        </button>
-                        <button type="button" onclick="switchStatTab('analyse')" id="stat-tab-analyse" class="stat-tab-btn portal-segment-btn">
-                            Analyse
-                        </button>
+                <div class="stats-toolbar">
+                    <div class="portal-page-toolbar is-detached stats-tab-toolbar">
+                        <div class="portal-segmented">
+                            <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
+                                Lag
+                            </button>
+                            <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn portal-segment-btn">
+                                Spillere
+                            </button>
+                            <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn portal-segment-btn">
+                                Kamper
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="statsLagFilterWrap" class="match-list-lag-filter hidden">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <select id="statsLagFilterSelect" onchange="handleStatsTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer statistikk etter lag">
+                        </select>
+                        <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
                     </div>
                 </div>
 
@@ -238,10 +241,17 @@
                         <div class="stats-hero-top">
                             <div>
                                 <p class="stats-hero-kicker">BSK Fotball</p>
-                                <h2 class="stats-hero-title">Lagstatistikk</h2>
-                                <p class="stats-hero-subtitle">Kampresultater og troppens nøkkeltall samlet på ett sted.</p>
+                                <h2 class="stats-hero-title" id="stats-lag-title">Lagstatistikk</h2>
+                                <p class="stats-hero-subtitle">Kampresultater, form og troppens nøkkeltall for valgt lag.</p>
+                            </div>
+                            <div class="stats-hero-ring">
+                                <p class="stats-hero-ring-label">Lagform</p>
+                                <p class="stats-hero-ring-value" id="stats-lag-form-median">-</p>
+                                <p class="stats-hero-ring-sub">median</p>
                             </div>
                         </div>
+
+                        <div id="stats-lag-form-row" class="stats-form-row"></div>
 
                         <div class="stats-stat-grid">
                             <div class="stats-stat-card">
@@ -266,16 +276,16 @@
 
                         <div class="stats-stat-grid">
                             <div class="stats-stat-card">
-                                <span class="stats-stat-label">Totalt i tropp</span>
+                                <span class="stats-stat-label">Snitt scoret</span>
+                                <span class="stats-stat-value" id="stats-page-goals-avg">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Snitt innslipp</span>
+                                <span class="stats-stat-value is-loss" id="stats-page-conceded-avg">0</span>
+                            </div>
+                            <div class="stats-stat-card">
+                                <span class="stats-stat-label">Spillere</span>
                                 <span class="stats-stat-value" id="stats-page-players">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Snittalder</span>
-                                <span class="stats-stat-value" id="stats-page-age">0</span>
-                            </div>
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">Rekrutter</span>
-                                <span class="stats-stat-value is-accent" id="stats-page-recruits">0</span>
                             </div>
                             <div class="stats-stat-card">
                                 <span class="stats-stat-label">Oppmøte</span>
@@ -283,41 +293,15 @@
                             </div>
                         </div>
                     </div>
+
+                    <div id="stats-lag-followups"></div>
                 </div>
 
-                <div id="stat-view-spillere" class="hidden stats-table-panel">
-                    <div class="stats-panel-header">
-                        <h3 class="stats-panel-title">Spillerform</h3>
-                        <p class="stats-panel-subtitle">Trykk på overskriftene for å sortere etter form, oppmøte eller kort.</p>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="stats-table-head select-none">
-                                <tr>
-                                    <th onclick="sortStatsTable('navn')">Spiller <span id="sort-icon-navn"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('oppmotePct')">Oppmøte <span id="sort-icon-oppmotePct"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('kamper')">Kamper <span id="sort-icon-kamper"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('mal')">Mål <span id="sort-icon-mal"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('assist')">Assist <span id="sort-icon-assist"></span></th>
-                                    <th class="text-center text-bsk-blue" onclick="sortStatsTable('kampbonus')">Kampbidrag <span id="sort-icon-kampbonus"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('guleSerie')">Gul S <span id="sort-icon-guleSerie"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('guleCup')">Gul C <span id="sort-icon-guleCup"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('rodeSerie')">Rød S <span id="sort-icon-rodeSerie"></span></th>
-                                    <th class="text-center" onclick="sortStatsTable('rodeCup')">Rød C <span id="sort-icon-rodeCup"></span></th>
-                                    <th class="text-center">
-                                        <span onclick="sortStatsTable('kjemi')">Form <span id="sort-icon-kjemi"></span></span>
-                                        <i class="fa-solid fa-circle-info text-bsk-yellow hover:text-amber-500 ml-2 cursor-pointer transition-colors" onclick="event.stopPropagation(); document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" title="Les mer om Form"></i>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="stats-player-table-body" class="stats-table-body divide-y divide-slate-100">
-                            </tbody>
-                        </table>
-                    </div>
+                <div id="stat-view-spillere" class="hidden space-y-5">
+                    <div id="stat-spillere-content"></div>
                 </div>
-                <div id="stat-view-poeng" class="hidden"></div>
-                <div id="stat-view-kampstat" class="hidden"></div>
-                <div id="stat-view-analyse" class="hidden"></div>
+
+                <div id="stat-view-kampstat" class="hidden space-y-5"></div>
             </div>
 
             <div id="view-taktikk" class="hidden space-y-6 max-w-5xl mx-auto w-full">
@@ -1056,7 +1040,7 @@
     <script src="assets/js/pages/players.js"></script>
     <script src="assets/js/pages/matches.js?v=20260614-match-trim"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260616-stats-bsk"></script>
+    <script src="assets/js/pages/statistics.js?v=20260616-stats-v2"></script>
     <script src="assets/js/pages/tactics.js"></script>
     <script src="assets/js/pages/dashboard.js?v=20260614-match-trim"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>
