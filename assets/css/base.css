@@ -1924,9 +1924,6 @@
         .player-modal-grid-name {
             grid-template-columns: 4.75rem minmax(0, 1fr);
         }
-        .player-modal-grid-triple {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
         .player-modal-grid-injury {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -1939,7 +1936,6 @@
         }
         .player-modal-grid .player-modal-field-block,
         .player-modal-grid-name .player-modal-field-block,
-        .player-modal-grid-triple .player-modal-field-block,
         .player-modal-grid-injury .player-modal-field-block {
             margin-bottom: 0;
         }
@@ -2030,21 +2026,28 @@
             text-transform: uppercase;
         }
         .player-modal-footer {
-            align-items: center;
+            align-items: stretch;
             background: rgba(255, 255, 255, 0.06);
             border-top: 1px solid rgba(245, 197, 66, 0.18);
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            gap: 0.5rem;
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             padding: 0.85rem 1.25rem 1rem;
         }
-        .player-modal-action-btn {
-            container-type: inline-size;
-            flex: 1 1 0;
-            justify-content: center;
+        .player-modal-action-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
             min-width: 0;
-            width: auto;
+        }
+        .player-modal-action-block.hidden {
+            display: none;
+        }
+        .player-modal-action-btn {
+            flex: 1 1 auto;
+            justify-content: center;
+            min-height: 2.45rem;
+            width: 100%;
         }
         .player-modal-action-btn-primary {
             background: rgba(245, 197, 66, 0.14);
@@ -2060,10 +2063,11 @@
         .player-modal-action-btn-danger:hover i {
             color: #fecaca;
         }
-        @container (max-width: 9rem) {
-            .player-modal-action-btn span {
-                display: none;
-            }
+        .player-modal-footer.is-edit-mode {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .player-modal-footer:not(.is-edit-mode) {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .roster-empty {
             background: linear-gradient(180deg, rgba(18, 63, 115, 0.05) 0%, rgba(255, 255, 255, 0.92) 100%);
@@ -2131,12 +2135,14 @@
             .roster-player-meta span:nth-of-type(4) {
                 display: none;
             }
-            .player-modal-grid-triple,
             .player-modal-grid-injury {
                 grid-template-columns: 1fr;
             }
-            .player-modal-footer {
-                flex-wrap: wrap;
+            .player-modal-footer.is-edit-mode {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .player-modal-footer:not(.is-edit-mode) {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
         .match-bench-panel {

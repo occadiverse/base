@@ -368,8 +368,10 @@ window.openPlayerModal = function(editPlayerId = null) {
         window.togglePlayerSkadeFields();
     }
 
-    const deleteBtn = document.getElementById('playerModalDeleteBtn');
-    if (deleteBtn) deleteBtn.classList.toggle('hidden', !editPlayerId);
+    const deleteWrap = document.getElementById('playerModalDeleteWrap');
+    const footer = document.querySelector('.player-modal-footer');
+    if (deleteWrap) deleteWrap.classList.toggle('hidden', !editPlayerId);
+    if (footer) footer.classList.toggle('is-edit-mode', Boolean(editPlayerId));
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');

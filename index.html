@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v3">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v4">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -717,7 +717,7 @@
                     </div>
                 </div>
 
-                <div class="player-modal-grid player-modal-grid-triple">
+                <div class="player-modal-grid">
                     <div class="player-modal-field-block">
                         <label class="player-modal-label" for="playerBirthYearInput">Fødselsår</label>
                         <input type="number" id="playerBirthYearInput" placeholder="1998" min="1950" max="2026" required class="player-modal-field">
@@ -730,9 +730,20 @@
                             <option value="Passiv">Passiv</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="player-modal-grid">
                     <div class="player-modal-field-block">
                         <label class="player-modal-label" for="playerTeamInput">Tilhører lag</label>
                         <select id="playerTeamInput" class="player-modal-field"></select>
+                    </div>
+                    <div class="player-modal-field-block">
+                        <label class="player-modal-label" for="playerFootInput">Foretrukket fot</label>
+                        <select id="playerFootInput" class="player-modal-field">
+                            <option value="Høyre">Høyre</option>
+                            <option value="Venstre">Venstre</option>
+                            <option value="Begge">Begge</option>
+                        </select>
                     </div>
                 </div>
 
@@ -771,15 +782,6 @@
                     </div>
                 </div>
 
-                <div class="player-modal-field-block">
-                    <label class="player-modal-label" for="playerFootInput">Foretrukket fot</label>
-                    <select id="playerFootInput" class="player-modal-field">
-                        <option value="Høyre">Høyre</option>
-                        <option value="Venstre">Venstre</option>
-                        <option value="Begge">Begge</option>
-                    </select>
-                </div>
-
                 <div class="player-modal-section">
                     <p class="player-modal-section-title">Skade</p>
                     <div class="player-modal-grid player-modal-grid-injury">
@@ -804,18 +806,24 @@
             </form>
 
             <div class="player-modal-footer relative z-10">
-                <button type="submit" form="playerForm" class="match-bench-action-btn player-modal-action-btn player-modal-action-btn-primary">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span>Lagre</span>
-                </button>
-                <button type="button" id="playerModalDeleteBtn" onclick="window.deletePlayerFromModal()" class="match-bench-action-btn player-modal-action-btn player-modal-action-btn-danger hidden">
-                    <i class="fa-solid fa-trash"></i>
-                    <span>Slett</span>
-                </button>
-                <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn player-modal-action-btn">
-                    <i class="fa-solid fa-xmark"></i>
-                    <span>Avbryt</span>
-                </button>
+                <div class="player-modal-action-block">
+                    <span class="player-modal-label">Lagre</span>
+                    <button type="submit" form="playerForm" class="match-bench-action-btn player-modal-action-btn player-modal-action-btn-primary" title="Lagre spiller">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                </div>
+                <div class="player-modal-action-block hidden" id="playerModalDeleteWrap">
+                    <span class="player-modal-label">Slett</span>
+                    <button type="button" id="playerModalDeleteBtn" onclick="window.deletePlayerFromModal()" class="match-bench-action-btn player-modal-action-btn player-modal-action-btn-danger" title="Slett spiller">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                <div class="player-modal-action-block">
+                    <span class="player-modal-label">Avbryt</span>
+                    <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn player-modal-action-btn" title="Avbryt">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
