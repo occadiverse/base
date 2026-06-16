@@ -2174,6 +2174,28 @@
             justify-content: space-between;
             margin-bottom: 1rem;
         }
+        .stats-hero-aside {
+            align-items: flex-end;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            gap: 0.65rem;
+        }
+        .stats-hero-tabs {
+            flex-shrink: 0;
+        }
+        .stats-hero-tabs .stats-hero-tablist {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            box-shadow: none;
+        }
+        .stats-hero-tabs .roster-status-btn {
+            font-size: 0.62rem;
+            padding: 0.5rem 0.72rem;
+        }
+        .stats-hero-tabs .stats-chrome-info-btn {
+            padding-inline: 0.62rem;
+        }
         .stats-hero-kicker {
             color: rgba(255, 255, 255, 0.56);
             font-size: 0.58rem;
@@ -2640,11 +2662,7 @@
         }
         .stats-chrome #statsLagFilterWrap {
             flex: 0 0 auto;
-        }
-        .stats-chrome .stats-chrome-tabs {
-            flex: 0 0 auto;
-            max-width: 100%;
-            width: fit-content;
+            margin-inline: auto;
         }
         .stats-chrome-info-btn {
             padding-inline: 0.72rem;
@@ -2760,10 +2778,12 @@
             color: #f87171;
         }
         .stats-hero-top-compact {
+            align-items: flex-start;
             margin-bottom: 0.85rem;
         }
         .stats-hero-top-compact .stats-hero-title {
             margin: 0;
+            min-width: 0;
         }
         .stats-player-list.roster-list {
             gap: 0.45rem;

@@ -509,9 +509,79 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 });
         };
 
+        window.renderStatsHeroTabsHtml = function(activeTabId) {
+            const tabs = [
+                { id: 'lag', label: 'Lag' },
+                { id: 'spillere', label: 'Spillere' },
+                { id: 'kampstat', label: 'Kamper' }
+            ];
+
+            return `
+                <div class="stats-hero-tabs">
+                    <div class="roster-status-filter stats-hero-tablist" role="tablist" aria-label="Statistikkfaner">
+                        ${tabs.map(tab => `
+                            <button
+                                type="button"
+                                onclick="switchStatTab('${tab.id}')"
+                                id="stat-tab-${tab.id}"
+                                class="stat-tab-btn roster-status-btn ${activeTabId === tab.id ? 'is-active' : ''}"
+                            >${tab.label}</button>
+                        `).join('')}
+                        <button
+                            type="button"
+                            onclick="window.openStatsFormInfoModal()"
+                            class="roster-status-btn stats-chrome-info-btn"
+                            title="Slik regnes form"
+                            aria-label="Slik regnes form"
+                        >
+                            <i class="fa-solid fa-circle-info"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.playerStatsRelevantForSort = function(stat, column) {
+            switch (column) {
+                case 'guleSerie': return stat.guleSerie > 0;
+                case 'rodeSerie': return stat.rodeSerie > 0;
+                case 'mal': return stat.mal > 0;
+                case 'assist': return stat.assist > 0;
+                case 'bb': return stat.bb > 0;
+                case 'kamper': return stat.kamper > 0;
+                case 'kampbonus': return stat.attendedMatches > 0;
+                case 'kjemi': return stat.kjemi > 0;
+                case 'oppmotePct': return stat.oppmotePct > 0;
+                default: return true;
+            }
+        };
+
+        window.getStatsSortEmptyMessage = function(column, searchTerm) {
+            if (searchTerm) return 'Ingen spillere matcher søket.';
+
+            const labels = {
+                guleSerie: 'gule kort',
+                rodeSerie: 'røde kort',
+                mal: 'mål',
+                assist: 'assist',
+                bb: 'banens beste',
+                kamper: 'kamper',
+                kampbonus: 'kampbidrag',
+                kjemi: 'form',
+                oppmotePct: 'oppmøte'
+            };
+
+            const label = labels[column];
+            return label
+                ? `Ingen spillere med registrerte ${label}.`
+                : 'Ingen spillere funnet for valgt lag.';
+        };
+
         window.renderStatsTabHero = function(tabId) {
             const hero = document.getElementById('stats-tab-hero');
             if (!hero) return;
+
+            const heroTabsHtml = window.renderStatsHeroTabsHtml(tabId);
 
             if (tabId === 'lag') {
                 const data = window._statsLagData;
@@ -538,10 +608,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <h2 class="stats-hero-title">${data.title}</h2>
                                 <p class="stats-hero-subtitle">Kampresultater, form og troppens nøkkeltall for valgt lag.</p>
                             </div>
-                            <div class="stats-hero-ring">
-                                <p class="stats-hero-ring-label">Lagform</p>
-                                <p class="stats-hero-ring-value">${data.teamFormMedian > 0 ? data.teamFormMedian : '-'}</p>
-                                <p class="stats-hero-ring-sub">median</p>
+                            <div class="stats-hero-aside">
+                                ${heroTabsHtml}
+                                <div class="stats-hero-ring">
+                                    <p class="stats-hero-ring-label">Lagform</p>
+                                    <p class="stats-hero-ring-value">${data.teamFormMedian > 0 ? data.teamFormMedian : '-'}</p>
+                                    <p class="stats-hero-ring-sub">median</p>
+                                </div>
                             </div>
                         </div>
                         <div class="stats-form-row">${formRowHtml}</div>
@@ -602,6 +675,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-hero-panel">
                         <div class="stats-hero-top stats-hero-top-compact">
                             <h2 class="stats-hero-title">Spilleranalyse</h2>
+                            ${heroTabsHtml}
                         </div>
                         <div class="stats-stat-grid">
                             <div class="stats-stat-card"><span class="stats-stat-label">Snitt form</span><span class="stats-stat-value is-win">${avgForm || '-'}</span></div>
@@ -625,6 +699,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     <h2 class="stats-hero-title">Kampstatistikk</h2>
                                     <p class="stats-hero-subtitle">Velg en spilt kamp for å se poengfordeling og kampbilde.</p>
                                 </div>
+                                ${heroTabsHtml}
                             </div>
                         </div>
                     `;
@@ -660,9 +735,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
                                 </div>
                             </div>
-                            <div class="stats-hero-result">
-                                <p class="stats-hero-result-label">Resultat</p>
-                                <p class="stats-hero-result-value">${matchResult}</p>
+                            <div class="stats-hero-aside">
+                                ${heroTabsHtml}
+                                <div class="stats-hero-result">
+                                    <p class="stats-hero-result-label">Resultat</p>
+                                    <p class="stats-hero-result-value">${matchResult}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -675,6 +753,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const hero = document.getElementById('stats-tab-hero');
             if (!hero) return;
 
+            const heroTabsHtml = window.renderStatsHeroTabsHtml('spillere');
+
             hero.innerHTML = `
                 <div class="stats-hero-panel">
                     <div class="stats-hero-top">
@@ -683,10 +763,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <h2 class="stats-hero-title">${playerName}</h2>
                             <p class="stats-hero-subtitle">${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>
                         </div>
-                        <div class="stats-hero-ring">
-                            <p class="stats-hero-ring-label">Snitt</p>
-                            <p class="stats-hero-ring-value">${avgPoints ? avgPoints.toFixed(1) : '-'}</p>
-                            <p class="stats-hero-ring-sub">${totalPoints} totalt · Form ${chemistry}/100</p>
+                        <div class="stats-hero-aside">
+                            ${heroTabsHtml}
+                            <div class="stats-hero-ring">
+                                <p class="stats-hero-ring-label">Snitt</p>
+                                <p class="stats-hero-ring-value">${avgPoints ? avgPoints.toFixed(1) : '-'}</p>
+                                <p class="stats-hero-ring-sub">${totalPoints} totalt · Form ${chemistry}/100</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -729,6 +812,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 });
             }
 
+            statsData = statsData.filter(stat => window.playerStatsRelevantForSort(stat, currentStatSortCol));
+
             statsData.sort((a, b) => {
                 if (currentStatSortCol === 'navn') {
                     return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
@@ -737,7 +822,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
 
             if (!statsData.length) {
-                list.innerHTML = `<div class="stats-player-empty">${searchTerm ? 'Ingen spillere matcher søket.' : 'Ingen spillere funnet for valgt lag.'}</div>`;
+                list.innerHTML = `<div class="stats-player-empty">${window.getStatsSortEmptyMessage(currentStatSortCol, searchTerm)}</div>`;
                 return;
             }
 
