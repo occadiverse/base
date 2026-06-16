@@ -1918,14 +1918,35 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             margin-bottom: 0.75rem;
         }
+        .player-modal-body > .player-modal-field-block {
+            margin-bottom: 0.75rem;
+        }
         .player-modal-grid-name {
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+            grid-template-columns: 4.75rem minmax(0, 1fr);
+        }
+        .player-modal-grid-triple {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .player-modal-grid-injury {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .player-modal-field-block {
             display: flex;
             flex-direction: column;
             gap: 0.3rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0;
+            min-width: 0;
+        }
+        .player-modal-grid .player-modal-field-block,
+        .player-modal-grid-name .player-modal-field-block,
+        .player-modal-grid-triple .player-modal-field-block,
+        .player-modal-grid-injury .player-modal-field-block {
+            margin-bottom: 0;
+        }
+        .player-modal-field-block-jersey .player-modal-field {
+            padding-left: 0.45rem;
+            padding-right: 0.45rem;
+            text-align: center;
         }
         .player-modal-field-block-wide {
             grid-column: 1 / -1;
@@ -1961,6 +1982,7 @@
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
         }
         select.player-modal-field {
+            background-color: rgba(255, 255, 255, 0.08);
             background-image:
                 linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.72) 50%),
                 linear-gradient(135deg, rgba(255, 255, 255, 0.72) 50%, transparent 50%);
@@ -1969,13 +1991,35 @@
                 calc(100% - 13px) calc(50% - 2px);
             background-repeat: no-repeat;
             background-size: 5px 5px, 5px 5px;
+            color: #ffffff;
             cursor: pointer;
             padding-right: 2.25rem;
         }
+        select.player-modal-field option {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        select.player-modal-field option:checked {
+            background: #123f73;
+            color: #ffffff;
+        }
+        input.player-modal-field[type="date"] {
+            color-scheme: dark;
+        }
+        input.player-modal-field[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
         .player-modal-section {
             border-top: 1px solid rgba(245, 197, 66, 0.16);
+            margin-bottom: 0;
             margin-top: 0.35rem;
             padding-top: 0.85rem;
+        }
+        .player-modal-section > .player-modal-field-block {
+            margin-bottom: 0.75rem;
+        }
+        .player-modal-section > .player-modal-grid {
+            margin-bottom: 0.75rem;
         }
         .player-modal-section-title {
             color: rgba(255, 255, 255, 0.72);
@@ -1986,18 +2030,21 @@
             text-transform: uppercase;
         }
         .player-modal-footer {
-            align-items: stretch;
+            align-items: center;
             background: rgba(255, 255, 255, 0.06);
             border-top: 1px solid rgba(245, 197, 66, 0.18);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            flex-wrap: nowrap;
             gap: 0.5rem;
             padding: 0.85rem 1.25rem 1rem;
         }
         .player-modal-action-btn {
             container-type: inline-size;
+            flex: 1 1 0;
             justify-content: center;
-            width: 100%;
+            min-width: 0;
+            width: auto;
         }
         .player-modal-action-btn-primary {
             background: rgba(245, 197, 66, 0.14);
@@ -2084,9 +2131,12 @@
             .roster-player-meta span:nth-of-type(4) {
                 display: none;
             }
-            .player-modal-grid,
-            .player-modal-grid-name {
+            .player-modal-grid-triple,
+            .player-modal-grid-injury {
                 grid-template-columns: 1fr;
+            }
+            .player-modal-footer {
+                flex-wrap: wrap;
             }
         }
         .match-bench-panel {

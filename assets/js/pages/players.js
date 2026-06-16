@@ -140,12 +140,12 @@ const ROSTER_POSITION_GROUPS = [
     {
         id: 'midtbane',
         label: 'Midtbane',
-        match: pos => ['Defensiv midtbane', 'Offensiv midtbane', 'Playmaker', 'Høyre kant', 'Venstre kant'].includes(pos)
+        match: pos => ['Defensiv midtbane', 'Offensiv midtbane', 'Playmaker'].includes(pos)
     },
     {
         id: 'angrep',
         label: 'Angrep',
-        match: pos => pos === 'Spiss'
+        match: pos => ['Høyre kant', 'Venstre kant', 'Spiss'].includes(pos)
     },
     {
         id: 'other',
@@ -377,9 +377,11 @@ window.openPlayerModal = function(editPlayerId = null) {
 
 window.togglePlayerSkadeFields = function() {
     const status = document.getElementById('playerSkadeStatusInput')?.value || 'frisk';
-    const extraFields = document.getElementById('playerSkadeExtraFields');
-    if (!extraFields) return;
-    extraFields.classList.toggle('hidden', status === 'frisk');
+    const isInjured = status !== 'frisk';
+    const dateWrap = document.getElementById('playerSkadeTilDatoWrap');
+    const notatWrap = document.getElementById('playerSkadeNotatWrap');
+    if (dateWrap) dateWrap.classList.toggle('hidden', !isInjured);
+    if (notatWrap) notatWrap.classList.toggle('hidden', !isInjured);
 };
 
 window.closePlayerModal = function() {

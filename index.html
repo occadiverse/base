@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v3">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -707,20 +707,20 @@
                 <input type="hidden" id="editPlayerId">
 
                 <div class="player-modal-grid player-modal-grid-name">
-                    <div class="player-modal-field-block player-modal-field-block-wide">
+                    <div class="player-modal-field-block player-modal-field-block-jersey">
+                        <label class="player-modal-label" for="playerJerseyInput">Draktnr</label>
+                        <input type="number" id="playerJerseyInput" placeholder="#" min="1" max="99" class="player-modal-field">
+                    </div>
+                    <div class="player-modal-field-block player-modal-field-block-name">
                         <label class="player-modal-label" for="playerNameInput">Fullt navn</label>
                         <input type="text" id="playerNameInput" placeholder="Navn Navnesen" required class="player-modal-field">
                     </div>
-                    <div class="player-modal-field-block">
-                        <label class="player-modal-label" for="playerJerseyInput">Draktnr</label>
-                        <input type="number" id="playerJerseyInput" placeholder="00" min="1" max="99" class="player-modal-field">
-                    </div>
                 </div>
 
-                <div class="player-modal-grid">
+                <div class="player-modal-grid player-modal-grid-triple">
                     <div class="player-modal-field-block">
                         <label class="player-modal-label" for="playerBirthYearInput">Fødselsår</label>
-                        <input type="number" id="playerBirthYearInput" placeholder="F.eks. 1998" min="1950" max="2026" required class="player-modal-field">
+                        <input type="number" id="playerBirthYearInput" placeholder="1998" min="1950" max="2026" required class="player-modal-field">
                     </div>
                     <div class="player-modal-field-block">
                         <label class="player-modal-label" for="playerStatusInput">Status</label>
@@ -730,11 +730,10 @@
                             <option value="Passiv">Passiv</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="player-modal-field-block">
-                    <label class="player-modal-label" for="playerTeamInput">Tilhører lag</label>
-                    <select id="playerTeamInput" class="player-modal-field"></select>
+                    <div class="player-modal-field-block">
+                        <label class="player-modal-label" for="playerTeamInput">Tilhører lag</label>
+                        <select id="playerTeamInput" class="player-modal-field"></select>
+                    </div>
                 </div>
 
                 <div class="player-modal-grid">
@@ -783,23 +782,23 @@
 
                 <div class="player-modal-section">
                     <p class="player-modal-section-title">Skade</p>
-                    <div class="player-modal-field-block">
-                        <label class="player-modal-label" for="playerSkadeStatusInput">Skadestatus</label>
-                        <select id="playerSkadeStatusInput" onchange="window.togglePlayerSkadeFields()" class="player-modal-field">
-                            <option value="frisk">Frisk / ingen skade</option>
-                            <option value="dag-til-dag">Dag-til-dag</option>
-                            <option value="langvarig">Langvarig skade</option>
-                        </select>
-                    </div>
-                    <div id="playerSkadeExtraFields" class="player-modal-grid hidden">
+                    <div class="player-modal-grid player-modal-grid-injury">
                         <div class="player-modal-field-block">
+                            <label class="player-modal-label" for="playerSkadeStatusInput">Skadestatus</label>
+                            <select id="playerSkadeStatusInput" onchange="window.togglePlayerSkadeFields()" class="player-modal-field">
+                                <option value="frisk">Frisk / ingen skade</option>
+                                <option value="dag-til-dag">Dag-til-dag</option>
+                                <option value="langvarig">Langvarig skade</option>
+                            </select>
+                        </div>
+                        <div class="player-modal-field-block hidden" id="playerSkadeTilDatoWrap">
                             <label class="player-modal-label" for="playerSkadeTilDatoInput">Forventet tilbake</label>
                             <input type="date" id="playerSkadeTilDatoInput" class="player-modal-field">
                         </div>
-                        <div class="player-modal-field-block player-modal-field-block-wide">
-                            <label class="player-modal-label" for="playerSkadeNotatInput">Skadenotat</label>
-                            <input type="text" id="playerSkadeNotatInput" placeholder="F.eks. ankelskade, knært" class="player-modal-field">
-                        </div>
+                    </div>
+                    <div class="player-modal-field-block hidden" id="playerSkadeNotatWrap">
+                        <label class="player-modal-label" for="playerSkadeNotatInput">Skadenotat</label>
+                        <input type="text" id="playerSkadeNotatInput" placeholder="F.eks. ankelskade, knært" class="player-modal-field">
                     </div>
                 </div>
             </form>
