@@ -638,20 +638,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
 
                 window.paintStatsTabHero(`
-                        <div class="stats-hero-top">
-                            <div>
-                                <p class="stats-hero-kicker">BSK Fotball</p>
-                                <h2 class="stats-hero-title">${data.title}</h2>
-                                <p class="stats-hero-subtitle">Kampresultater, form og troppens nøkkeltall for valgt lag.</p>
-                            </div>
-                            <div class="stats-hero-aside">
-                                ${heroTabsHtml}
-                                <div class="stats-hero-ring">
-                                    <p class="stats-hero-ring-label">Lagform</p>
-                                    <p class="stats-hero-ring-value">${data.teamFormMedian > 0 ? data.teamFormMedian : '-'}</p>
-                                    <p class="stats-hero-ring-sub">median</p>
-                                </div>
-                            </div>
+                        <div class="stats-hero-top stats-hero-top-compact">
+                            <h2 class="stats-hero-title">Laganalyse</h2>
+                            ${heroTabsHtml}
                         </div>
                         <div class="stats-form-row">${formRowHtml}</div>
                         <div class="stats-stat-grid">
@@ -725,12 +714,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const data = window._statsKampHeroData;
                 if (!data) {
                     window.paintStatsTabHero(`
-                            <div class="stats-hero-top">
-                                <div>
-                                    <p class="stats-hero-kicker">BSK Fotball · Kamper</p>
-                                    <h2 class="stats-hero-title">Kampstatistikk</h2>
-                                    <p class="stats-hero-subtitle">Velg en spilt kamp for å se poengfordeling og kampbilde.</p>
-                                </div>
+                            <div class="stats-hero-top stats-hero-top-compact">
+                                <h2 class="stats-hero-title">Kampanalyse</h2>
                                 ${heroTabsHtml}
                             </div>
                     `);
@@ -741,36 +726,37 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const currentIdx = playedMatches.findIndex(m => m.id === matchId);
 
                 window.paintStatsTabHero(`
-                        <div class="stats-hero-top">
-                            <div class="min-w-0">
-                                <p class="stats-hero-kicker">Kampanalyse</p>
-                                <h2 class="stats-hero-title">
-                                    BSK -
-                                    <span class="stats-hero-select-wrap ml-2 align-middle">
-                                        <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate">
-                                            ${playedMatches.map(m => {
-                                                const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-                                                const shortText = m.opponent || 'Motstander';
-                                                const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
-                                                return `<option value="${m.id}" data-short="${shortText}" data-full="${fullText}" ${m.id === matchId ? 'selected' : ''}>${shortText}</option>`;
-                                            }).join('')}
-                                        </select>
-                                        <i class="fa-solid fa-chevron-down"></i>
-                                    </span>
-                                </h2>
-                                <p class="stats-hero-subtitle">${matchType} ${matchGroup ? '· ' + matchGroup : ''} ${dateStr ? '· ' + dateStr : ''} ${pitch ? '· ' + pitch : ''}</p>
-                                <div class="stats-kamp-nav">
-                                    <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
-                                    <span>${currentIdx + 1} / ${playedMatches.length}</span>
-                                    <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
-                                </div>
-                            </div>
+                        <div class="stats-hero-top stats-hero-top-compact">
+                            <h2 class="stats-hero-title">Kampanalyse</h2>
                             <div class="stats-hero-aside">
                                 ${heroTabsHtml}
                                 <div class="stats-hero-result">
                                     <p class="stats-hero-result-label">Resultat</p>
                                     <p class="stats-hero-result-value">${matchResult}</p>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="stats-kamp-detail">
+                            <div class="stats-kamp-matchline">
+                                <span class="stats-kamp-vs">BSK</span>
+                                <span class="stats-kamp-vs-sep">–</span>
+                                <span class="stats-hero-select-wrap">
+                                    <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate">
+                                        ${playedMatches.map(m => {
+                                            const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+                                            const shortText = m.opponent || 'Motstander';
+                                            const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
+                                            return `<option value="${m.id}" data-short="${shortText}" data-full="${fullText}" ${m.id === matchId ? 'selected' : ''}>${shortText}</option>`;
+                                        }).join('')}
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </span>
+                            </div>
+                            <p class="stats-kamp-meta">${[matchType, matchGroup, dateStr, pitch].filter(Boolean).join(' · ')}</p>
+                            <div class="stats-kamp-nav">
+                                <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
+                                <span>${currentIdx + 1} / ${playedMatches.length}</span>
+                                <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
                             </div>
                         </div>
                 `);

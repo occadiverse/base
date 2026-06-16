@@ -2214,12 +2214,20 @@
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.18);
             box-shadow: none;
+            display: inline-grid;
+            grid-template-columns: repeat(3, minmax(4.25rem, 1fr)) auto;
         }
         .stats-hero-tabs .roster-status-btn {
             font-size: 0.62rem;
             padding: 0.5rem 0.72rem;
         }
+        .stats-hero-tabs .stat-tab-btn {
+            min-width: 0;
+            text-align: center;
+            width: 100%;
+        }
         .stats-hero-tabs .stats-chrome-info-btn {
+            flex: 0 0 auto;
             padding-inline: 0.62rem;
         }
         .stats-hero-kicker {
@@ -2804,12 +2812,19 @@
             color: #f87171;
         }
         .stats-hero-top-compact {
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 0.85rem;
         }
         .stats-hero-top-compact .stats-hero-title {
             margin: 0;
             min-width: 0;
+        }
+        .stats-hero-top-compact .stats-hero-aside {
+            align-items: flex-end;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            justify-content: flex-end;
         }
         .stats-player-list.roster-list {
             gap: 0.45rem;
@@ -2976,6 +2991,35 @@
             .stats-hero-leaders {
                 grid-template-columns: 1fr;
             }
+        }
+        .stats-kamp-detail {
+            margin-bottom: 1rem;
+        }
+        .stats-kamp-matchline {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.5rem;
+        }
+        .stats-kamp-vs {
+            color: #ffffff;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 950;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+        }
+        .stats-kamp-vs-sep {
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .stats-kamp-meta {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            line-height: 1.45;
+            margin-top: 0.4rem;
         }
         .stats-kamp-nav {
             align-items: center;
