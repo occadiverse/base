@@ -563,7 +563,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             if (tabId === 'spillere') {
                 const filterLag = window.getStatsTeamFilter();
-                const analysis = window.buildPlayerAnalysisStats(filterLag);
                 const statsData = window.buildPlayerStatsData().filter(s => s.kamper > 0 || s.kjemi > 0);
                 const avgForm = statsData.length
                     ? Math.round(statsData.reduce((sum, s) => sum + s.kjemi, 0) / statsData.length)
@@ -575,19 +574,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
                     : 0;
                 const title = filterLag && filterLag !== 'Alle' ? filterLag : 'Spilleroversikt';
-
-                const leaderChip = (label, icon, player, detail, toneClass = '') => {
-                    if (!player) {
-                        return `<div class="stats-leader-chip is-empty"><span class="stats-leader-chip-label"><i class="fa-solid ${icon}"></i> ${label}</span><span class="stats-leader-chip-value">-</span></div>`;
-                    }
-                    const safeName = String(player.name || player).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                    return `
-                        <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-leader-chip ${toneClass}">
-                            <span class="stats-leader-chip-label"><i class="fa-solid ${icon}"></i> ${label}</span>
-                            <span class="stats-leader-chip-value">${detail}</span>
-                        </button>
-                    `;
-                };
 
                 hero.innerHTML = `
                     <div class="stats-hero-panel">
@@ -602,11 +588,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <p class="stats-hero-ring-value">${avgForm || '-'}</p>
                                 <p class="stats-hero-ring-sub">/ 100</p>
                             </div>
-                        </div>
-                        <div class="stats-hero-leaders">
-                            ${leaderChip('Form', 'fa-fire', analysis.topFormPlayer, analysis.topFormPlayer ? `${analysis.topFormPlayer.name} · ${analysis.topFormPlayer.formLastFive.toFixed(1)}` : '-', 'is-form')}
-                            ${leaderChip('Mål', 'fa-futbol', analysis.topScorer, analysis.topScorer ? `${analysis.topScorer.name} · ${analysis.topScorer.goals}` : '-', 'is-goals')}
-                            ${leaderChip('BB', 'fa-crown', analysis.bbLeader, analysis.bbLeader ? `${analysis.bbLeader.name} · ${analysis.bbLeader.bb}` : '-', 'is-bb')}
                         </div>
                         <div class="stats-stat-grid">
                             <div class="stats-stat-card"><span class="stats-stat-label">Spillere</span><span class="stats-stat-value">${statsData.length}</span></div>
@@ -698,11 +679,42 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.getStatsPlayerSearchTerm = function() {
+            const el = document.getElementById('statsPlayerSearchInput');
+            return (el ? el.value : '').trim().toLowerCase();
+        };
+
+        window.handleStatsPlayerSearchChange = function() {
+            if (window._statsSelectedPlayer) return;
+            const spillereView = document.getElementById('stat-view-spillere');
+            if (spillereView && !spillereView.classList.contains('hidden')) {
+                window.renderPlayerStatsList();
+            }
+        };
+
         window.renderPlayerStatsList = function() {
             const list = document.getElementById('stats-player-list');
             if (!list) return;
 
             let statsData = window.buildPlayerStatsData();
+            const searchTerm = window.getStatsPlayerSearchTerm();
+
+            if (searchTerm) {
+                statsData = statsData.filter(stat => {
+                    const player = (window.activePlayers || []).find(p => p.navn === stat.navn);
+                    const posStr = player && player.pos2 && player.pos2 !== '-'
+                        ? `${player.pos1} / ${player.pos2}`
+                        : (stat.pos1 || '');
+                    const haystack = [
+                        stat.navn,
+                        player && player.draktnummer ? String(player.draktnummer) : '',
+                        posStr,
+                        stat.spillerLag
+                    ].join(' ').toLowerCase();
+                    return haystack.includes(searchTerm);
+                });
+            }
+
             statsData.sort((a, b) => {
                 if (currentStatSortCol === 'navn') {
                     return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
@@ -711,7 +723,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
 
             if (!statsData.length) {
-                list.innerHTML = `<div class="stats-player-empty">Ingen spillere funnet for valgt lag.</div>`;
+                list.innerHTML = `<div class="stats-player-empty">${searchTerm ? 'Ingen spillere matcher søket.' : 'Ingen spillere funnet for valgt lag.'}</div>`;
                 return;
             }
 
@@ -851,6 +863,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const sortOptions = [
                 { id: 'kampbonus', label: 'Kampbidrag' },
                 { id: 'kjemi', label: 'Form' },
+                { id: 'mal', label: 'Mål' },
+                { id: 'assist', label: 'Assist' },
+                { id: 'guleSerie', label: 'GK' },
+                { id: 'rodeSerie', label: 'RK' },
+                { id: 'bb', label: 'BB' },
                 { id: 'oppmotePct', label: 'Oppmøte' },
                 { id: 'kamper', label: 'Kamper' },
                 { id: 'navn', label: 'Navn' }
@@ -1534,7 +1551,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             document.querySelectorAll('.stats-sort-btn:not(.stats-sort-btn-info)').forEach(btn => {
                 const label = btn.textContent.trim();
-                const sortMap = { Kampbidrag: 'kampbonus', Form: 'kjemi', Oppmøte: 'oppmotePct', Kamper: 'kamper', Navn: 'navn' };
+                const sortMap = {
+                    Kampbidrag: 'kampbonus',
+                    Form: 'kjemi',
+                    Mål: 'mal',
+                    Assist: 'assist',
+                    GK: 'guleSerie',
+                    RK: 'rodeSerie',
+                    BB: 'bb',
+                    Oppmøte: 'oppmotePct',
+                    Kamper: 'kamper',
+                    Navn: 'navn'
+                };
                 btn.classList.toggle('is-active', sortMap[label] === currentStatSortCol);
             });
 

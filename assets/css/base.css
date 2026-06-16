@@ -2610,6 +2610,9 @@
         .stats-chrome.roster-toolbar {
             justify-content: center;
         }
+        .stats-chrome .roster-search-wrap {
+            flex: 1 1 16rem;
+        }
         .stats-chrome .roster-status-filter {
             flex: 1 1 auto;
             justify-content: center;
