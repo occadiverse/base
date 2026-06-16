@@ -2624,15 +2624,22 @@
             font-style: italic;
         }
         .stats-chrome {
-            margin-bottom: 0.15rem;
+            margin-bottom: 0;
+            width: 100%;
         }
-        .stats-chrome.roster-toolbar {
+        .stats-chrome-inner {
             align-items: center;
-            justify-content: flex-start;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            width: 100%;
         }
-        .stats-chrome .roster-search-wrap {
-            flex: 1 1 16rem;
-            min-width: 0;
+        .stats-chrome-inner.roster-toolbar {
+            justify-content: center;
+        }
+        .stats-chrome #statsLagFilterWrap {
+            flex: 0 0 auto;
         }
         .stats-chrome .stats-chrome-tabs {
             flex: 0 0 auto;
@@ -2642,12 +2649,34 @@
         .stats-chrome-info-btn {
             padding-inline: 0.72rem;
         }
-        .stats-player-toolbar {
+        .stats-player-tools {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
             margin-bottom: 0.15rem;
             width: 100%;
         }
+        .stats-player-toolbar {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
         .stats-sort-scroller-wrap {
+            margin-inline: auto;
+            max-width: 100%;
             position: relative;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .stats-sort-scroller-wrap {
+                max-width: 36rem;
+            }
+        }
+        .stats-player-search-row {
+            width: 100%;
+        }
+        .stats-player-search-row .roster-search-wrap {
+            max-height: 2.75rem;
             width: 100%;
         }
         .stats-sort-scroller {
@@ -2833,20 +2862,8 @@
             text-align: center;
         }
         @media (min-width: 768px) {
-            .stats-chrome.roster-toolbar {
+            .stats-chrome-inner {
                 flex-wrap: nowrap;
-            }
-            .stats-chrome .roster-search-wrap {
-                flex: 1 1 auto;
-            }
-            .stats-chrome #statsLagFilterWrap {
-                flex: 0 0 auto;
-            }
-        }
-        @media (max-width: 640px) {
-            .stats-chrome .stats-chrome-tabs {
-                align-self: center;
-                width: fit-content;
             }
         }
         @media (max-width: 480px) {

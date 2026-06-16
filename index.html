@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v11">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v12">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -213,36 +213,33 @@
             </div>
 
             <div id="view-statistikk" class="hidden stats-page space-y-5">
-                <div id="stats-tab-hero"></div>
+                <div class="stats-chrome">
+                    <div class="stats-chrome-inner roster-toolbar">
+                        <div id="statsLagFilterWrap" class="match-list-lag-filter hidden">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <select id="statsLagFilterSelect" onchange="handleStatsTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer statistikk etter lag">
+                            </select>
+                            <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
+                        </div>
 
-                <div class="stats-chrome roster-toolbar">
-                    <div id="statsLagFilterWrap" class="match-list-lag-filter hidden">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <select id="statsLagFilterSelect" onchange="handleStatsTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer statistikk etter lag">
-                        </select>
-                        <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
-                    </div>
-
-                    <div class="roster-search-wrap">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="search" id="statsPlayerSearchInput" oninput="handleStatsPlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon…" class="roster-search-input" aria-label="Søk spillere i statistikk">
-                    </div>
-
-                    <div class="roster-status-filter stats-chrome-tabs" role="tablist" aria-label="Statistikkfaner">
-                        <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn roster-status-btn is-active">
-                            Lag
-                        </button>
-                        <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn roster-status-btn">
-                            Spillere
-                        </button>
-                        <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn roster-status-btn">
-                            Kamper
-                        </button>
-                        <button type="button" onclick="window.openStatsFormInfoModal()" class="roster-status-btn stats-chrome-info-btn" title="Slik regnes form" aria-label="Slik regnes form">
-                            <i class="fa-solid fa-circle-info"></i>
-                        </button>
+                        <div class="roster-status-filter stats-chrome-tabs" role="tablist" aria-label="Statistikkfaner">
+                            <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn roster-status-btn is-active">
+                                Lag
+                            </button>
+                            <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn roster-status-btn">
+                                Spillere
+                            </button>
+                            <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn roster-status-btn">
+                                Kamper
+                            </button>
+                            <button type="button" onclick="window.openStatsFormInfoModal()" class="roster-status-btn stats-chrome-info-btn" title="Slik regnes form" aria-label="Slik regnes form">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                <div id="stats-tab-hero"></div>
 
                 <div id="stat-view-lag" class="block space-y-5">
                     <div id="stats-lag-followups"></div>
@@ -991,7 +988,7 @@
     <script src="assets/js/pages/players.js"></script>
     <script src="assets/js/pages/matches.js?v=20260614-match-trim"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260616-stats-v11"></script>
+    <script src="assets/js/pages/statistics.js?v=20260616-stats-v12"></script>
     <script src="assets/js/pages/tactics.js"></script>
     <script src="assets/js/pages/dashboard.js?v=20260614-match-trim"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>

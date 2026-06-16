@@ -949,25 +949,37 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (!container) return;
 
             window.renderStatsTabHero('spillere');
+            const searchValue = window.getStatsPlayerSearchTerm();
 
             container.innerHTML = `
-                <div class="stats-player-toolbar">
-                    <div class="stats-sort-scroller-wrap">
-                        <div class="stats-sort-scroller-fade stats-sort-scroller-fade-left" aria-hidden="true">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </div>
-                        <div class="stats-sort-scroller" id="stats-player-sort-scroller">
-                            <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
-                                ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
+                <div class="stats-player-tools">
+                    <div class="stats-player-toolbar">
+                        <div class="stats-sort-scroller-wrap">
+                            <div class="stats-sort-scroller-fade stats-sort-scroller-fade-left" aria-hidden="true">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </div>
+                            <div class="stats-sort-scroller" id="stats-player-sort-scroller">
+                                <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
+                                    ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
+                                </div>
+                            </div>
+                            <div class="stats-sort-scroller-fade stats-sort-scroller-fade-right" aria-hidden="true">
+                                <i class="fa-solid fa-chevron-right"></i>
                             </div>
                         </div>
-                        <div class="stats-sort-scroller-fade stats-sort-scroller-fade-right" aria-hidden="true">
-                            <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="stats-player-search-row">
+                        <div class="roster-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="search" id="statsPlayerSearchInput" oninput="handleStatsPlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon…" class="roster-search-input" aria-label="Søk spillere i statistikk">
                         </div>
                     </div>
                 </div>
                 <div id="stats-player-list" class="roster-list stats-player-list"></div>
             `;
+
+            const searchInput = document.getElementById('statsPlayerSearchInput');
+            if (searchInput && searchValue) searchInput.value = searchValue;
 
             window.bindStatsSortScroller();
             window.renderPlayerStatsList();
