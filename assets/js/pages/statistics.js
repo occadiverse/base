@@ -898,7 +898,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
                 const bonusClass = stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral';
                 const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
-                const borsClass = stat.snittBors >= 7.5 ? 'is-high' : stat.snittBors >= 6 ? 'is-mid' : stat.snittBors > 0 ? 'is-low' : 'is-neutral';
                 const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
                 const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
@@ -912,7 +911,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const metaParts = [
                     stat.pos1 || 'Spiller',
                     `${stat.kamper} kamper`,
-                    `${stat.oppmotePct}% oppmøte`
+                    `${stat.oppmotePct}% oppmøte`,
+                    `★ ${borsText} snittbørs`
                 ];
                 if (extras.length) metaParts.push(...extras);
 
@@ -927,7 +927,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
                         </div>
                         <div class="roster-player-side">
-                            <span class="stats-bors-badge ${borsClass}" title="Snitt spillerbørs"><i class="fa-solid fa-star" aria-hidden="true"></i>${borsText}</span>
                             <span class="stats-kb-badge ${bonusClass}">KB ${bonusText}</span>
                         </div>
                     </button>
@@ -1025,7 +1024,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.STATS_PLAYER_SORT_OPTIONS = [
             { id: 'kampbonus', label: 'Kampbidrag', icon: 'fa-chart-line' },
             { id: 'kjemi', label: 'Form', icon: 'fa-heart-pulse' },
-            { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star', iconClass: 'stats-sort-icon-bors' },
+            { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
             { id: 'guleSerie', label: 'Gule kort', icon: 'fa-square', iconClass: 'stats-sort-icon-gk' },

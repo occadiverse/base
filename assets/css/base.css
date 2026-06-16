@@ -3028,9 +3028,6 @@
         .stats-sort-icon-rk {
             color: #f87171;
         }
-        .stats-sort-icon-bors {
-            color: #f5c542;
-        }
         .stats-hero-top-compact {
             align-items: center;
             margin-bottom: 0.85rem;
@@ -3102,53 +3099,6 @@
         .stats-form-jersey.is-neutral {
             border-color: rgba(245, 197, 66, 0.75);
             color: #123f73;
-        }
-        .stats-bors-badge {
-            align-items: center;
-            border-radius: 999px;
-            display: inline-flex;
-            font-size: 0.62rem;
-            font-weight: 900;
-            gap: 0.28rem;
-            letter-spacing: 0.03em;
-            padding: 0.38rem 0.62rem;
-            white-space: nowrap;
-        }
-        .stats-bors-badge i {
-            font-size: 0.55rem;
-            line-height: 1;
-        }
-        .stats-bors-badge.is-high {
-            background: rgba(245, 197, 66, 0.16);
-            border: 1px solid rgba(245, 197, 66, 0.34);
-            color: #fde68a;
-        }
-        .stats-bors-badge.is-high i {
-            color: #f5c542;
-        }
-        .stats-bors-badge.is-mid {
-            background: rgba(147, 197, 253, 0.14);
-            border: 1px solid rgba(147, 197, 253, 0.28);
-            color: #bfdbfe;
-        }
-        .stats-bors-badge.is-mid i {
-            color: #93c5fd;
-        }
-        .stats-bors-badge.is-low {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: rgba(255, 255, 255, 0.82);
-        }
-        .stats-bors-badge.is-low i {
-            color: rgba(255, 255, 255, 0.55);
-        }
-        .stats-bors-badge.is-neutral {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            color: rgba(255, 255, 255, 0.5);
-        }
-        .stats-bors-badge.is-neutral i {
-            color: rgba(255, 255, 255, 0.35);
         }
         .stats-kb-badge {
             border-radius: 999px;
