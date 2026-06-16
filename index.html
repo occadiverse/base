@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260614-fixture-list">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -144,25 +144,72 @@
                 </div>
             </div>
 
-            <div id="view-tropp" class="hidden space-y-6 mt-2">
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse" id="playerTable">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                                    <th class="py-4 px-4 md:px-6">Navn</th>
-                                    <th class="py-4 px-4 text-center w-20">Drakt</th>
-                                    <th class="py-4 px-4">Posisjon</th>
-                                    <th class="py-4 px-4 text-center w-24">Fot</th>
-                                    <th class="py-4 px-4 text-center w-24">Alder</th>
-                                    <th class="py-4 px-4 text-center w-24">Status</th>
-                                    <th class="py-4 px-6 text-right w-24">Handlinger</th>
-                                </tr>
-                            </thead>
-                            <tbody id="playerTableBody" class="divide-y divide-slate-100 text-sm">
-                            </tbody>
-                        </table>
+            <div id="view-tropp" class="hidden space-y-5 roster-page mt-2">
+                <div class="roster-hero-panel">
+                    <div class="roster-hero-top">
+                        <div>
+                            <p class="roster-hero-kicker">BSK Fotball</p>
+                            <h2 class="roster-hero-title">Spillertropp</h2>
+                        </div>
+                        <button type="button" onclick="window.openPlayerModal()" class="roster-add-btn hidden md:inline-flex">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Ny spiller</span>
+                        </button>
                     </div>
+                    <div class="roster-stat-grid">
+                        <div class="roster-stat-card">
+                            <span class="roster-stat-label">Spillere</span>
+                            <span class="roster-stat-value" id="stat-total-players">0 spillere</span>
+                        </div>
+                        <div class="roster-stat-card">
+                            <span class="roster-stat-label">Snittalder</span>
+                            <span class="roster-stat-value" id="stat-avg-age">0 år</span>
+                        </div>
+                        <div class="roster-stat-card">
+                            <span class="roster-stat-label">Rekrutter</span>
+                            <span class="roster-stat-value" id="stat-total-rekrutt">0 rekrutter</span>
+                        </div>
+                        <div class="roster-stat-card">
+                            <span class="roster-stat-label">Skadede</span>
+                            <span class="roster-stat-value" id="stat-total-injured">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="roster-toolbar">
+                    <div class="match-list-lag-filter">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <select id="lagFilterSelect" onchange="handleTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer spillere etter lag">
+                            <option value="Alle">Alle lag</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
+                    </div>
+
+                    <div class="roster-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon…" class="roster-search-input" aria-label="Søk spillere">
+                    </div>
+
+                    <div class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
+                        <button type="button" onclick="setPlayerStatusFilter('alle')" id="roster-filter-alle" class="roster-status-btn is-active">Alle</button>
+                        <button type="button" onclick="setPlayerStatusFilter('Aktiv')" id="roster-filter-aktiv" class="roster-status-btn">Aktiv</button>
+                        <button type="button" onclick="setPlayerStatusFilter('Rekrutt')" id="roster-filter-rekrutt" class="roster-status-btn">Rekrutt</button>
+                        <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="roster-status-btn">Skadet</button>
+                    </div>
+                </div>
+
+                <div id="playerRosterContainer" class="roster-list"></div>
+
+                <div id="playerRosterEmpty" class="hidden roster-empty">
+                    <div class="roster-empty-icon">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <p class="roster-empty-title">Ingen spillere funnet</p>
+                    <p class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
+                    <button type="button" onclick="window.openPlayerModal()" class="roster-add-btn roster-add-btn-inline">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Registrer spiller</span>
+                    </button>
                 </div>
             </div>
 

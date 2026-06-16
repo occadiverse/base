@@ -103,77 +103,230 @@ window.handleTeamFilterChange = function() {
     recalculateOppmoteAndKjemi();
 };
 
-window.renderPlayerRoster = function() {
-    const tableBody = document.getElementById('playerTableBody');
-    if (!tableBody) return;
+window.rosterStatusFilter = 'alle';
 
+window.setPlayerStatusFilter = function(status) {
+    window.rosterStatusFilter = status;
+    document.querySelectorAll('.roster-status-btn').forEach(btn => btn.classList.remove('is-active'));
+    const activeBtn = document.getElementById(`roster-filter-${status === 'alle' ? 'alle' : status === 'skadet' ? 'skadet' : status.toLowerCase()}`);
+    if (activeBtn) activeBtn.classList.add('is-active');
+    window.renderPlayerRoster();
+};
+
+window.handlePlayerSearchChange = function() {
+    window.renderPlayerRoster();
+};
+
+const ROSTER_POSITION_GROUPS = [
+    {
+        id: 'keeper',
+        label: 'Keeper',
+        match: pos => pos === 'Keeper'
+    },
+    {
+        id: 'forsvar',
+        label: 'Forsvar',
+        match: pos => ['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(pos)
+    },
+    {
+        id: 'midtbane',
+        label: 'Midtbane',
+        match: pos => ['Defensiv midtbane', 'Offensiv midtbane', 'Playmaker', 'Høyre kant', 'Venstre kant'].includes(pos)
+    },
+    {
+        id: 'angrep',
+        label: 'Angrep',
+        match: pos => pos === 'Spiss'
+    },
+    {
+        id: 'other',
+        label: 'Øvrige',
+        match: () => true
+    }
+];
+
+function getRosterFilteredPlayers() {
     const filterLagEl = document.getElementById('lagFilterSelect');
     const filterLag = filterLagEl ? filterLagEl.value : 'Alle';
+    const searchEl = document.getElementById('playerSearchInput');
+    const searchTerm = (searchEl ? searchEl.value : '').trim().toLowerCase();
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
-    const filteredPlayers = players.filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+
+    return players.filter(p => {
+        if (filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
+
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+            ? window.getPlayerInjuryInfo(p)
+            : { isInjured: false };
+
+        if (window.rosterStatusFilter === 'skadet' && !injuryInfo.isInjured) return false;
+        if (window.rosterStatusFilter !== 'alle' && window.rosterStatusFilter !== 'skadet' && p.status !== window.rosterStatusFilter) return false;
+
+        if (!searchTerm) return true;
+
+        const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
+        const haystack = [
+            p.navn,
+            p.draktnummer ? String(p.draktnummer) : '',
+            posStr,
+            p.fot,
+            p.status,
+            p.spillerLag
+        ].join(' ').toLowerCase();
+
+        return haystack.includes(searchTerm);
+    });
+}
+
+function getRosterPositionGroup(pos1) {
+    const group = ROSTER_POSITION_GROUPS.find(entry => entry.id !== 'other' && entry.match(pos1));
+    return group ? group.id : 'other';
+}
+
+function assignPlayersToRosterGroups(players) {
+    const grouped = {};
+    ROSTER_POSITION_GROUPS.forEach(group => {
+        grouped[group.id] = [];
+    });
+
+    players.forEach(player => {
+        const groupId = getRosterPositionGroup(player.pos1);
+        grouped[groupId].push(player);
+    });
+
+    return grouped;
+}
+
+function buildRosterStatusBadge(status) {
+    if (status === 'Aktiv') {
+        return `<span class="roster-badge roster-badge-active">${status}</span>`;
+    }
+    if (status === 'Rekrutt') {
+        return `<span class="roster-badge roster-badge-recruit">${status}</span>`;
+    }
+    return `<span class="roster-badge roster-badge-muted">${status}</span>`;
+}
+
+function buildRosterInjuryBadge(injuryInfo) {
+    if (!injuryInfo.isInjured) return '';
+
+    const injuryClass = injuryInfo.type === 'langvarig'
+        ? 'roster-badge-injury-long'
+        : 'roster-badge-injury-short';
+
+    return `<span class="roster-badge ${injuryClass}" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
+}
+
+function buildRosterPlayerRow(p, currentYear) {
+    const age = currentYear - parseInt(p.fodselsaar || 2000);
+    const jersey = p.draktnummer ? String(p.draktnummer) : '–';
+    const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
+    const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+        ? window.getPlayerInjuryInfo(p)
+        : { isInjured: false };
+    const captainMark = p.isCaptain ? '<span class="roster-captain" title="Kaptein">⚓</span>' : '';
+
+    return `
+        <article class="roster-player-row" onclick="window.openPlayerModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openPlayerModal('${p.id}');}">
+            <div class="roster-player-jersey" aria-label="Draktnummer ${jersey}">
+                <span>${jersey}</span>
+            </div>
+            <div class="roster-player-main">
+                <div class="roster-player-name">${p.navn}${captainMark}</div>
+                <div class="roster-player-meta">
+                    <span>${posStr}</span>
+                    <span class="roster-player-meta-sep">·</span>
+                    <span>${p.fot} fot</span>
+                    <span class="roster-player-meta-sep">·</span>
+                    <span>${p.spillerLag || 'Uten lag'}</span>
+                </div>
+            </div>
+            <div class="roster-player-side">
+                <span class="roster-player-age">${age} år</span>
+                <div class="roster-player-badges">
+                    ${buildRosterStatusBadge(p.status)}
+                    ${buildRosterInjuryBadge(injuryInfo)}
+                </div>
+            </div>
+            <div class="roster-player-actions" onclick="event.stopPropagation()">
+                <button type="button" onclick="window.openPlayerModal('${p.id}')" class="roster-action-btn" title="Rediger">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button type="button" onclick="promptDeletePlayer('${p.id}')" class="roster-action-btn roster-action-btn-danger" title="Slett">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </article>
+    `;
+}
+
+window.renderPlayerRoster = function() {
+    const listContainer = document.getElementById('playerRosterContainer');
+    const emptyState = document.getElementById('playerRosterEmpty');
+    if (!listContainer) return;
+
+    const filteredPlayers = getRosterFilteredPlayers();
     const currentYear = new Date().getFullYear();
     let totalAge = 0;
     let countRekrutt = 0;
+    let countInjured = 0;
 
     filteredPlayers.forEach(p => {
-        const age = currentYear - parseInt(p.fodselsaar || 2000);
-        totalAge += age;
+        totalAge += currentYear - parseInt(p.fodselsaar || 2000);
         if (p.status === 'Rekrutt') countRekrutt++;
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+            ? window.getPlayerInjuryInfo(p)
+            : { isInjured: false };
+        if (injuryInfo.isInjured) countInjured++;
     });
 
     const avgAge = filteredPlayers.length > 0 ? (totalAge / filteredPlayers.length).toFixed(1) : 0;
     const statPlayersEl = document.getElementById('stat-total-players');
     const statAvgAgeEl = document.getElementById('stat-avg-age');
     const statRekruttEl = document.getElementById('stat-total-rekrutt');
+    const statInjuredEl = document.getElementById('stat-total-injured');
 
     if (statPlayersEl) statPlayersEl.innerText = `${filteredPlayers.length} spillere`;
     if (statAvgAgeEl) statAvgAgeEl.innerText = `${avgAge} år`;
     if (statRekruttEl) statRekruttEl.innerText = `${countRekrutt} rekrutter`;
+    if (statInjuredEl) statInjuredEl.innerText = String(countInjured);
 
-    tableBody.innerHTML = '';
+    listContainer.innerHTML = '';
 
     if (filteredPlayers.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400"><i class="fa-solid fa-users text-4xl mb-2 block text-slate-200"></i>Ingen spillere funnet i dette laget.</td></tr>`;
+        listContainer.classList.add('hidden');
+        if (emptyState) emptyState.classList.remove('hidden');
         return;
     }
 
-    const sorted = [...filteredPlayers].sort((a, b) => a.navn.localeCompare(b.navn));
-    sorted.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50/70 transition-all border-b border-slate-100";
+    listContainer.classList.remove('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
 
-        const age = currentYear - parseInt(p.fodselsaar || 2000);
-        const jersey = p.draktnummer ? `#${p.draktnummer}` : '-';
-        const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
+    const grouped = assignPlayersToRosterGroups(
+        [...filteredPlayers].sort((a, b) => {
+            const jerseyA = parseInt(a.draktnummer) || 999;
+            const jerseyB = parseInt(b.draktnummer) || 999;
+            if (jerseyA !== jerseyB) return jerseyA - jerseyB;
+            return a.navn.localeCompare(b.navn);
+        })
+    );
 
-        let statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600">${p.status}</span>`;
-        if (p.status === 'Aktiv') statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">${p.status}</span>`;
-        else if (p.status === 'Rekrutt') statusBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">${p.status}</span>`;
+    ROSTER_POSITION_GROUPS.forEach(group => {
+        const playersInGroup = grouped[group.id];
+        if (!playersInGroup || playersInGroup.length === 0) return;
 
-        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
-        let injuryBadge = '';
-        if (injuryInfo.isInjured) {
-            const injuryClass = injuryInfo.type === 'langvarig'
-                ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                : 'bg-orange-100 text-orange-800 border border-orange-200';
-            injuryBadge = `<span class="inline-flex px-2 py-1 text-[10px] font-bold rounded-full ${injuryClass} ml-1" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
-        }
-
-        tr.innerHTML = `
-            <td class="py-3.5 px-4 md:px-6 font-bold text-slate-900">${p.navn} ${p.isCaptain ? '⚓' : ''}</td>
-            <td class="py-3.5 px-4 text-center font-semibold text-slate-600">${jersey}</td>
-            <td class="py-3.5 px-4 text-slate-700 font-medium">${posStr}</td>
-            <td class="py-3.5 px-4 text-center text-slate-600">${p.fot}</td>
-            <td class="py-3.5 px-4 text-center font-bold text-slate-800">${age} år</td>
-            <td class="py-3.5 px-4 text-center">${statusBadge}${injuryBadge}</td>
-            <td class="py-3.5 px-6 text-right">
-                <div class="flex justify-end gap-1">
-                    <button onclick="window.openPlayerModal('${p.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="promptDeletePlayer('${p.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </td>
+        const section = document.createElement('section');
+        section.className = 'roster-group';
+        section.innerHTML = `
+            <div class="roster-group-heading">
+                <span>${group.label}</span>
+                <span class="roster-group-count">${playersInGroup.length}</span>
+            </div>
+            <div class="roster-group-rows">
+                ${playersInGroup.map(player => buildRosterPlayerRow(player, currentYear)).join('')}
+            </div>
         `;
-        tableBody.appendChild(tr);
+        listContainer.appendChild(section);
     });
 };
 
