@@ -57,11 +57,12 @@
                 padding-bottom: 2rem;
             }
         }
-        #stats-tab-hero:not(.stats-hero-panel):empty {
+        #stats-tab-hero:not(.stats-hero-panel):not(.stats-chrome):empty {
             display: none;
         }
-        .stats-hero-lag-filter {
-            margin: 0 auto;
+        .stats-hero-lag-filter,
+        .stats-chrome > .stats-hero-lag-filter {
+            margin: 0 auto 0.65rem;
             max-width: 100%;
             width: fit-content;
         }
@@ -2683,6 +2684,57 @@
             margin-bottom: 0;
             width: 100%;
         }
+        .stats-chrome-bar {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem 0.75rem;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .stats-chrome-main {
+            min-width: 0;
+        }
+        .stats-chrome-title {
+            color: #0b2b4c;
+            font-size: 1.08rem;
+            font-weight: 950;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+            margin: 0;
+        }
+        .stats-chrome-subtitle {
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-top: 0.15rem;
+        }
+        .stats-chrome-actions {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+        .stats-chrome-badge {
+            align-items: center;
+            background: rgba(18, 63, 115, 0.06);
+            border: 1px solid rgba(18, 63, 115, 0.1);
+            border-radius: 999px;
+            color: #0b2b4c;
+            display: inline-flex;
+            font-size: 0.62rem;
+            font-weight: 900;
+            gap: 0.45rem;
+            padding: 0.38rem 0.72rem;
+            white-space: nowrap;
+        }
+        .stats-chrome-badge-sep {
+            color: #94a3b8;
+            font-weight: 700;
+        }
         .stats-chrome-inner {
             align-items: center;
             display: flex;
@@ -2698,8 +2750,165 @@
             flex: 0 0 auto;
             margin-inline: auto;
         }
+        .stats-chrome-actions .stats-hero-tabs .stats-hero-tablist {
+            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            box-shadow: 0 10px 24px rgba(11, 43, 76, 0.18);
+        }
+        .stats-chrome-actions .stats-hero-tabs .roster-status-btn {
+            font-size: 0.68rem;
+            padding: 0.58rem 0.85rem;
+        }
+        .stats-chrome-actions .stats-hero-tabs .stat-tab-btn {
+            min-width: 0;
+            text-align: center;
+            width: 100%;
+        }
         .stats-chrome-info-btn {
             padding-inline: 0.72rem;
+        }
+        .stats-summary-panel {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid rgba(18, 63, 115, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+            padding: 0.8rem 0.9rem;
+        }
+        .stats-inline-metrics {
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .stats-inline-metric {
+            background: rgba(18, 63, 115, 0.04);
+            border: 1px solid rgba(18, 63, 115, 0.08);
+            border-radius: 0.75rem;
+            min-width: 0;
+            padding: 0.5rem 0.6rem;
+            text-align: center;
+        }
+        button.stats-inline-metric {
+            appearance: none;
+            cursor: pointer;
+            font: inherit;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            width: 100%;
+        }
+        button.stats-inline-metric:hover {
+            background: rgba(245, 197, 66, 0.12);
+            border-color: rgba(245, 197, 66, 0.35);
+        }
+        .stats-inline-metric-label {
+            color: #64748b;
+            display: block;
+            font-size: 0.52rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.18rem;
+            text-transform: uppercase;
+        }
+        .stats-inline-metric-value {
+            color: #0b2b4c;
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 950;
+            line-height: 1.1;
+        }
+        .stats-inline-metric-value.is-win {
+            color: #166534;
+        }
+        .stats-inline-metric-value.is-draw {
+            color: #a16207;
+        }
+        .stats-inline-metric-value.is-loss {
+            color: #b91c1c;
+        }
+        .stats-inline-metric-value.is-goals {
+            color: #1d4ed8;
+        }
+        .stats-inline-metric-value.is-accent {
+            color: #a16207;
+        }
+        .stats-inline-metric-value.is-leader {
+            font-size: 0.74rem;
+            line-height: 1.25;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .stats-form-row.is-light {
+            border-bottom-color: rgba(18, 63, 115, 0.08);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .stats-form-row.is-light .stats-form-label {
+            color: #64748b;
+        }
+        .stats-form-row.is-light .stats-form-empty {
+            color: #94a3b8;
+        }
+        .stats-kamp-bar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid rgba(18, 63, 115, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+            padding: 0.75rem 0.9rem;
+        }
+        .stats-kamp-bar-row {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem 0.75rem;
+            justify-content: space-between;
+        }
+        .stats-kamp-bar .stats-kamp-matchline {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.5rem;
+            min-width: 0;
+        }
+        .stats-kamp-bar .stats-kamp-vs {
+            color: #0b2b4c;
+            font-size: 1rem;
+            font-weight: 950;
+        }
+        .stats-kamp-bar .stats-kamp-vs-sep {
+            color: #94a3b8;
+        }
+        .stats-kamp-bar .stats-kamp-select-wrap .portal-field {
+            background: rgba(18, 63, 115, 0.04);
+            border-color: rgba(18, 63, 115, 0.12);
+            color: #0b2b4c;
+            font-size: 0.92rem;
+            font-weight: 950;
+            max-width: 14rem;
+            padding-right: 2rem;
+        }
+        .stats-kamp-bar .stats-kamp-select-wrap i {
+            color: #123f73;
+        }
+        .stats-kamp-bar-meta {
+            align-items: center;
+            color: #64748b;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.68rem;
+            font-weight: 700;
+            gap: 0.45rem 0.75rem;
+            justify-content: space-between;
+            margin-top: 0.45rem;
+        }
+        .stats-kamp-bar-result {
+            color: #0b2b4c;
+            font-size: 0.95rem;
+            font-weight: 950;
+        }
+        .stats-kamp-bar .stats-kamp-nav {
+            margin-top: 0;
+        }
+        .stats-kamp-bar .stats-kamp-nav span {
+            color: #64748b;
         }
         .stats-player-tools {
             display: flex;
@@ -2921,6 +3130,11 @@
             font-style: italic;
             padding: 2rem 1rem;
             text-align: center;
+        }
+        @media (min-width: 640px) {
+            .stats-inline-metrics {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
         }
         @media (min-width: 768px) {
             .stats-chrome-inner {

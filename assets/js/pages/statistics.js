@@ -584,6 +584,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
             hero.innerHTML = '';
         };
 
+        window.paintStatsChrome = function(markup) {
+            const hero = document.getElementById('stats-tab-hero');
+            if (!hero) return;
+            hero.className = 'stats-chrome';
+            hero.innerHTML = markup;
+            if (typeof window.syncStatsLagFilterPlacement === 'function') {
+                window.syncStatsLagFilterPlacement();
+            }
+        };
+
         window.paintStatsTabHero = function(markup) {
             const hero = document.getElementById('stats-tab-hero');
             if (!hero) return;
@@ -594,6 +604,157 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
         };
 
+        window.renderStatsChromeBar = function(title, tabsHtml, subtitleHtml = '') {
+            return `
+                <div class="stats-chrome-bar">
+                    <div class="stats-chrome-main">
+                        <h2 class="stats-chrome-title">${title}</h2>
+                        ${subtitleHtml}
+                    </div>
+                    <div class="stats-chrome-actions">${tabsHtml}</div>
+                </div>
+            `;
+        };
+
+        window.renderStatsInlineMetricHtml = function(label, value, toneClass = '', clickHandler = '') {
+            const tag = clickHandler ? 'button' : 'div';
+            const attrs = clickHandler
+                ? ` type="button" onclick="${clickHandler}" class="stats-inline-metric stats-inline-metric-clickable"`
+                : ` class="stats-inline-metric"`;
+            return `
+                <${tag}${attrs}>
+                    <span class="stats-inline-metric-label">${label}</span>
+                    <span class="stats-inline-metric-value ${toneClass}">${value}</span>
+                </${tag}>
+            `;
+        };
+
+        window.renderStatsLagSummary = function() {
+            const container = document.getElementById('stats-lag-summary');
+            const data = window._statsLagData;
+            if (!container) return;
+            if (!data) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const formGuide = window.getTeamFormGuide(data.filterLag);
+            const getPillClass = (form) => {
+                if (form === 'S') return 'is-win';
+                if (form === 'T') return 'is-loss';
+                return 'is-draw';
+            };
+            const formRowHtml = formGuide.length
+                ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
+                : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
+
+            container.innerHTML = `
+                <div class="stats-summary-panel">
+                    <div class="stats-form-row is-light">${formRowHtml}</div>
+                    <div class="stats-inline-metrics">
+                        ${window.renderStatsInlineMetricHtml('Seire', data.wins, 'is-win')}
+                        ${window.renderStatsInlineMetricHtml('Uavgjorte', data.draws, 'is-draw')}
+                        ${window.renderStatsInlineMetricHtml('Tap', data.losses, 'is-loss')}
+                        ${window.renderStatsInlineMetricHtml('Mål scoret', data.goals, 'is-goals')}
+                        ${window.renderStatsInlineMetricHtml('Snitt scoret', data.goalsAvg)}
+                        ${window.renderStatsInlineMetricHtml('Snitt innslipp', data.concededAvg, 'is-loss')}
+                        ${window.renderStatsInlineMetricHtml('Spillere', data.playerCount)}
+                        ${window.renderStatsInlineMetricHtml('Oppmøte', `${data.avgAttendance}%`, 'is-win')}
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderStatsSpillereSummary = function() {
+            const container = document.getElementById('stats-spillere-summary');
+            if (!container) return;
+
+            const filterLag = window.getStatsTeamFilter();
+            const analysis = window.buildPlayerAnalysisStats(filterLag);
+            const allStats = window.buildPlayerStatsData();
+            const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
+            const avgForm = statsData.length
+                ? Math.round(statsData.reduce((sum, s) => sum + s.kjemi, 0) / statsData.length)
+                : 0;
+            const avgBonus = statsData.length
+                ? (statsData.reduce((sum, s) => sum + s.kampbonus, 0) / statsData.length).toFixed(1)
+                : '-';
+
+            const buildLeaderMetric = (label, player, detail, toneClass = 'is-goals') => {
+                if (!player || !detail) {
+                    return window.renderStatsInlineMetricHtml(label, '-', toneClass);
+                }
+                const safeName = String(player.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return window.renderStatsInlineMetricHtml(
+                    label,
+                    `${player.name} · ${detail}`,
+                    `is-leader ${toneClass}`,
+                    `window.openSpillerDetail('${safeName}')`
+                );
+            };
+
+            const topScorer = analysis.topScorer && analysis.topScorer.goals > 0 ? analysis.topScorer : null;
+            const topScorerDetail = topScorer ? `${topScorer.goals} mål` : null;
+            const formPlayer = analysis.topFormPlayer && analysis.topFormPlayer.formLastFive > 0 ? analysis.topFormPlayer : null;
+            const formPlayerDetail = formPlayer ? `${formPlayer.formLastFive.toFixed(1)} børs` : null;
+
+            container.innerHTML = `
+                <div class="stats-summary-panel">
+                    <div class="stats-inline-metrics">
+                        ${window.renderStatsInlineMetricHtml('Snitt form', avgForm || '-', 'is-win')}
+                        ${window.renderStatsInlineMetricHtml('Snitt kampbidrag', avgBonus, 'is-accent')}
+                        ${buildLeaderMetric('Toppscorer', topScorer, topScorerDetail, 'is-goals')}
+                        ${buildLeaderMetric('Formspiller', formPlayer, formPlayerDetail, 'is-draw')}
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderStatsKampContext = function() {
+            const container = document.getElementById('stats-kamp-context');
+            const data = window._statsKampHeroData;
+            if (!container) return;
+            if (!data) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const { playedMatches, matchId, matchType, matchGroup, dateStr, pitch, matchResult } = data;
+            const currentIdx = playedMatches.findIndex(m => m.id === matchId);
+
+            container.innerHTML = `
+                <div class="stats-kamp-bar">
+                    <div class="stats-kamp-bar-row">
+                        <div class="stats-kamp-matchline">
+                            <span class="stats-kamp-vs">BSK</span>
+                            <span class="stats-kamp-vs-sep">–</span>
+                            <span class="stats-kamp-select-wrap stats-hero-select-wrap">
+                                <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate">
+                                    ${playedMatches.map(m => {
+                                        const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+                                        const shortText = m.opponent || 'Motstander';
+                                        const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
+                                        return `<option value="${m.id}" data-short="${shortText}" data-full="${fullText}" ${m.id === matchId ? 'selected' : ''}>${shortText}</option>`;
+                                    }).join('')}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </span>
+                        </div>
+                        <span class="stats-kamp-bar-result">${matchResult}</span>
+                    </div>
+                    <div class="stats-kamp-bar-meta">
+                        <span>${[matchType, matchGroup, dateStr, pitch].filter(Boolean).join(' · ')}</span>
+                        <div class="stats-kamp-nav">
+                            <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span>${currentIdx + 1} / ${playedMatches.length}</span>
+                            <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            if (typeof window.collapseKampSelectLabel === 'function') window.collapseKampSelectLabel();
+        };
+
         window.syncStatsLagFilterPlacement = function() {
             const hero = document.getElementById('stats-tab-hero');
             const wrap = document.getElementById('statsLagFilterWrap');
@@ -602,7 +763,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
             const showFilter = teams.length > 1;
-            const heroReady = hero && hero.classList.contains('stats-hero-panel');
+            const heroReady = hero && (hero.classList.contains('stats-hero-panel') || hero.classList.contains('stats-chrome'));
 
             if (!showFilter || !heroReady) {
                 wrap.classList.add('hidden');
@@ -624,166 +785,45 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const data = window._statsLagData;
                 if (!data) {
                     window.clearStatsTabHero();
+                    const summary = document.getElementById('stats-lag-summary');
+                    if (summary) summary.innerHTML = '';
                     return;
                 }
 
-                const formGuide = window.getTeamFormGuide(data.filterLag);
-                const getPillClass = (form) => {
-                    if (form === 'S') return 'is-win';
-                    if (form === 'T') return 'is-loss';
-                    return 'is-draw';
-                };
-                const formRowHtml = formGuide.length
-                    ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
-                    : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
-
-                window.paintStatsTabHero(`
-                        <div class="stats-hero-top stats-hero-top-compact">
-                            <h2 class="stats-hero-title">Laganalyse</h2>
-                            ${heroTabsHtml}
-                        </div>
-                        <div class="stats-form-row">${formRowHtml}</div>
-                        <div class="stats-stat-grid">
-                            <div class="stats-stat-card"><span class="stats-stat-label">Seire</span><span class="stats-stat-value is-win">${data.wins}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Uavgjorte</span><span class="stats-stat-value is-draw">${data.draws}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Tap</span><span class="stats-stat-value is-loss">${data.losses}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Mål scoret</span><span class="stats-stat-value is-goals">${data.goals}</span></div>
-                        </div>
-                        <div class="stats-section-divider"></div>
-                        <div class="stats-stat-grid">
-                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt scoret</span><span class="stats-stat-value">${data.goalsAvg}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt innslipp</span><span class="stats-stat-value is-loss">${data.concededAvg}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Spillere</span><span class="stats-stat-value">${data.playerCount}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Oppmøte</span><span class="stats-stat-value is-win">${data.avgAttendance}%</span></div>
-                        </div>
-                `);
+                window.paintStatsChrome(window.renderStatsChromeBar('Laganalyse', heroTabsHtml));
+                window.renderStatsLagSummary();
                 return;
             }
 
             if (tabId === 'spillere') {
-                const filterLag = window.getStatsTeamFilter();
-                const analysis = window.buildPlayerAnalysisStats(filterLag);
-                const allStats = window.buildPlayerStatsData();
-                const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
-                const avgForm = statsData.length
-                    ? Math.round(statsData.reduce((sum, s) => sum + s.kjemi, 0) / statsData.length)
-                    : 0;
-                const avgBonus = statsData.length
-                    ? (statsData.reduce((sum, s) => sum + s.kampbonus, 0) / statsData.length).toFixed(1)
-                    : '-';
-
-                const buildLeaderCard = (label, player, detail, toneClass = 'is-goals') => {
-                    if (!player || !detail) {
-                        return `
-                            <div class="stats-stat-card">
-                                <span class="stats-stat-label">${label}</span>
-                                <span class="stats-stat-value ${toneClass}">-</span>
-                            </div>
-                        `;
-                    }
-                    const safeName = String(player.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                    return `
-                        <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-stat-card stats-stat-card-clickable">
-                            <span class="stats-stat-label">${label}</span>
-                            <span class="stats-stat-value is-leader ${toneClass}">${player.name} · ${detail}</span>
-                        </button>
-                    `;
-                };
-
-                const topScorer = analysis.topScorer && analysis.topScorer.goals > 0 ? analysis.topScorer : null;
-                const topScorerDetail = topScorer ? `${topScorer.goals} mål` : null;
-                const formPlayer = analysis.topFormPlayer && analysis.topFormPlayer.formLastFive > 0 ? analysis.topFormPlayer : null;
-                const formPlayerDetail = formPlayer ? `${formPlayer.formLastFive.toFixed(1)} børs` : null;
-
-                window.paintStatsTabHero(`
-                        <div class="stats-hero-top stats-hero-top-compact">
-                            <h2 class="stats-hero-title">Spilleranalyse</h2>
-                            ${heroTabsHtml}
-                        </div>
-                        <div class="stats-stat-grid">
-                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt form</span><span class="stats-stat-value is-win">${avgForm || '-'}</span></div>
-                            <div class="stats-stat-card"><span class="stats-stat-label">Snitt kampbidrag</span><span class="stats-stat-value is-accent">${avgBonus}</span></div>
-                            ${buildLeaderCard('Toppscorer', topScorer, topScorerDetail, 'is-goals')}
-                            ${buildLeaderCard('Formspiller', formPlayer, formPlayerDetail, 'is-draw')}
-                        </div>
-                `);
+                window.paintStatsChrome(window.renderStatsChromeBar('Spilleranalyse', heroTabsHtml));
+                window.renderStatsSpillereSummary();
                 return;
             }
 
             if (tabId === 'kampstat') {
-                const data = window._statsKampHeroData;
-                if (!data) {
-                    window.paintStatsTabHero(`
-                            <div class="stats-hero-top stats-hero-top-compact">
-                                <h2 class="stats-hero-title">Kampanalyse</h2>
-                                ${heroTabsHtml}
-                            </div>
-                    `);
-                    return;
-                }
-
-                const { playedMatches, matchId, matchType, matchGroup, dateStr, pitch, matchResult } = data;
-                const currentIdx = playedMatches.findIndex(m => m.id === matchId);
-
-                window.paintStatsTabHero(`
-                        <div class="stats-hero-top stats-hero-top-compact">
-                            <h2 class="stats-hero-title">Kampanalyse</h2>
-                            <div class="stats-hero-aside">
-                                ${heroTabsHtml}
-                                <div class="stats-hero-result">
-                                    <p class="stats-hero-result-label">Resultat</p>
-                                    <p class="stats-hero-result-value">${matchResult}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stats-kamp-detail">
-                            <div class="stats-kamp-matchline">
-                                <span class="stats-kamp-vs">BSK</span>
-                                <span class="stats-kamp-vs-sep">–</span>
-                                <span class="stats-hero-select-wrap">
-                                    <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate">
-                                        ${playedMatches.map(m => {
-                                            const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-                                            const shortText = m.opponent || 'Motstander';
-                                            const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
-                                            return `<option value="${m.id}" data-short="${shortText}" data-full="${fullText}" ${m.id === matchId ? 'selected' : ''}>${shortText}</option>`;
-                                        }).join('')}
-                                    </select>
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </span>
-                            </div>
-                            <p class="stats-kamp-meta">${[matchType, matchGroup, dateStr, pitch].filter(Boolean).join(' · ')}</p>
-                            <div class="stats-kamp-nav">
-                                <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
-                                <span>${currentIdx + 1} / ${playedMatches.length}</span>
-                                <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
-                            </div>
-                        </div>
-                `);
-                if (typeof window.collapseKampSelectLabel === 'function') window.collapseKampSelectLabel();
+                window.paintStatsChrome(window.renderStatsChromeBar('Kampanalyse', heroTabsHtml));
+                window.renderStatsKampContext();
             }
         };
 
         window.renderSpillerDetailHero = function(playerName, avgPoints, totalPoints, chemistry, formComparison, teamMedian, player) {
             const heroTabsHtml = window.renderStatsHeroTabsHtml('spillere');
+            const summary = document.getElementById('stats-spillere-summary');
+            if (summary) summary.innerHTML = '';
 
-            window.paintStatsTabHero(`
-                    <div class="stats-hero-top">
-                        <div>
-                            <p class="stats-hero-kicker">${player.pos1 || 'Spiller'}</p>
-                            <h2 class="stats-hero-title">${playerName}</h2>
-                            <p class="stats-hero-subtitle">${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>
-                        </div>
-                        <div class="stats-hero-aside">
-                            ${heroTabsHtml}
-                            <div class="stats-hero-ring">
-                                <p class="stats-hero-ring-label">Snitt</p>
-                                <p class="stats-hero-ring-value">${avgPoints ? avgPoints.toFixed(1) : '-'}</p>
-                                <p class="stats-hero-ring-sub">${totalPoints} totalt · Form ${chemistry}/100</p>
-                            </div>
-                        </div>
+            window.paintStatsChrome(window.renderStatsChromeBar(
+                playerName,
+                `
+                    ${heroTabsHtml}
+                    <div class="stats-chrome-badge">
+                        <span>Snitt ${avgPoints ? avgPoints.toFixed(1) : '-'}</span>
+                        <span class="stats-chrome-badge-sep">·</span>
+                        <span>Form ${chemistry}/100</span>
                     </div>
-            `);
+                `,
+                `<p class="stats-chrome-subtitle">${player.pos1 || 'Spiller'} · ${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>`
+            ));
         };
 
         window.getStatsPlayerSearchTerm = function() {
@@ -877,9 +917,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         
         window.switchStatTab = function(tabId) {
             const statViewActiveClasses = {
-                lag: 'block space-y-5',
-                spillere: 'block space-y-5',
-                kampstat: 'block space-y-5'
+                lag: 'block space-y-4',
+                spillere: 'block space-y-4',
+                kampstat: 'block space-y-4'
             };
 
             ['lag', 'spillere', 'kampstat'].forEach(id => {
@@ -1298,7 +1338,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
     const playedMatches = window.getFilteredPlayedMatches();
 
     const html = `
-    <div class="space-y-5">
+    <div class="space-y-4">
+        <div id="stats-kamp-context"></div>
         <div id="kampstat-table-container">
             <div class="stats-empty-state">
                 <p class="text-slate-400 italic text-sm">
