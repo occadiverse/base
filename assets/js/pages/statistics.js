@@ -461,6 +461,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     });
 
                     let attended = 0, kamper = 0, attendedMatches = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
+                    let ratingSum = 0, ratingCount = 0;
 
                     teamEvents.forEach(e => {
                         if (window.isPlayerAttending(e.attendance, p)) {
@@ -475,6 +476,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     mal += Number(window.getPlayerRefMapValue(e.scorers, p, 0)) || 0;
                                     assist += Number(window.getPlayerRefMapValue(e.assists, p, 0)) || 0;
                                     if (window.motmMatchesPlayer(e.motm, p)) bb++;
+                                    const playerRating = Number(window.getPlayerRefMapValue(e.ratings, p, 0)) || 0;
+                                    if (playerRating > 0) {
+                                        ratingSum += playerRating;
+                                        ratingCount++;
+                                    }
                                 }
                                 totalMatchPoints += window.calculatePlayerMatchPoints(e, p);
                             }
@@ -504,6 +510,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         rodeCup: cardCounts.cup.rode,
                         serieAtRisk: serieHint.isAtRisk,
                         kjemi: window.calculatePlayerPerformanceChemistry(p.navn),
+                        snittBors: ratingCount > 0 ? ratingSum / ratingCount : 0,
                         bb
                     };
                 });
@@ -551,6 +558,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'kamper': return stat.kamper > 0;
                 case 'kampbonus': return stat.attendedMatches > 0;
                 case 'kjemi': return stat.kjemi > 0;
+                case 'snittBors': return stat.snittBors > 0;
                 case 'oppmotePct': return stat.oppmotePct > 0;
                 default: return true;
             }
@@ -568,6 +576,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 kamper: 'kamper',
                 kampbonus: 'kampbidrag',
                 kjemi: 'form',
+                snittBors: 'spillerbørs',
                 oppmotePct: 'oppmøte'
             };
 
@@ -602,6 +611,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (typeof window.syncStatsLagFilterPlacement === 'function') {
                 window.syncStatsLagFilterPlacement();
             }
+        };
+
+        window.renderStatsChromeTabsOnly = function(tabsHtml) {
+            return `
+                <div class="stats-chrome-bar stats-chrome-bar-centered">
+                    <div class="stats-chrome-actions">${tabsHtml}</div>
+                </div>
+            `;
         };
 
         window.renderStatsChromeBar = function(title, tabsHtml, subtitleHtml = '') {
@@ -796,7 +813,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             if (tabId === 'spillere') {
-                window.paintStatsChrome(window.renderStatsChromeBar('Spilleranalyse', heroTabsHtml));
+                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
                 window.renderStatsSpillereSummary();
                 return;
             }
@@ -881,6 +898,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
                 const bonusClass = stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral';
                 const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
+                const borsClass = stat.snittBors >= 7.5 ? 'is-high' : stat.snittBors >= 6 ? 'is-mid' : stat.snittBors > 0 ? 'is-low' : 'is-neutral';
+                const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
                 const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
                 const extras = [];
@@ -898,7 +917,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (extras.length) metaParts.push(...extras);
 
                 return `
-                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, form ${stat.kjemi}, kampbidrag ${bonusText}">
+                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
                         <div class="stats-form-jersey ${formClass}" aria-hidden="true">
                             <span class="stats-form-jersey-value">${stat.kjemi}</span>
                             <span class="stats-form-jersey-label">Form</span>
@@ -908,6 +927,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
                         </div>
                         <div class="roster-player-side">
+                            <span class="stats-bors-badge ${borsClass}" title="Snitt spillerbørs"><i class="fa-solid fa-star" aria-hidden="true"></i>${borsText}</span>
                             <span class="stats-kb-badge ${bonusClass}">KB ${bonusText}</span>
                         </div>
                     </button>
@@ -1005,6 +1025,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.STATS_PLAYER_SORT_OPTIONS = [
             { id: 'kampbonus', label: 'Kampbidrag', icon: 'fa-chart-line' },
             { id: 'kjemi', label: 'Form', icon: 'fa-heart-pulse' },
+            { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star', iconClass: 'stats-sort-icon-bors' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
             { id: 'guleSerie', label: 'Gule kort', icon: 'fa-square', iconClass: 'stats-sort-icon-gk' },
