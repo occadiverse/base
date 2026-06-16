@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v5">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-roster-v6">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -151,7 +151,7 @@
                             <p class="roster-hero-kicker">BSK Fotball</p>
                             <h2 class="roster-hero-title">Spillertropp</h2>
                         </div>
-                        <button type="button" onclick="window.openPlayerModal()" class="roster-add-btn hidden md:inline-flex">
+                        <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn hidden md:inline-flex">
                             <i class="fa-solid fa-user-plus"></i>
                             <span>Ny spiller</span>
                         </button>
@@ -205,7 +205,7 @@
                     </div>
                     <p class="roster-empty-title">Ingen spillere funnet</p>
                     <p class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
-                    <button type="button" onclick="window.openPlayerModal()" class="roster-add-btn roster-add-btn-inline">
+                    <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-empty-action-btn">
                         <i class="fa-solid fa-user-plus"></i>
                         <span>Registrer spiller</span>
                     </button>
@@ -806,15 +806,15 @@
             </form>
 
             <div class="player-modal-footer relative z-10">
-                <button type="submit" form="playerForm" class="match-bench-action-btn player-modal-action-btn player-modal-action-btn-primary">
+                <button type="submit" form="playerForm" class="match-bench-action-btn dashboard-session-action-btn">
                     <i class="fa-solid fa-floppy-disk"></i>
                     <span>Lagre</span>
                 </button>
-                <button type="button" id="playerModalDeleteBtn" onclick="window.deletePlayerFromModal()" class="match-bench-action-btn player-modal-action-btn player-modal-action-btn-danger hidden">
+                <button type="button" id="playerModalDeleteBtn" onclick="window.deletePlayerFromModal()" class="match-bench-action-btn dashboard-session-action-btn hidden">
                     <i class="fa-solid fa-trash"></i>
                     <span>Slett</span>
                 </button>
-                <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn player-modal-action-btn">
+                <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn dashboard-session-action-btn">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Avbryt</span>
                 </button>
