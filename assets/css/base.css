@@ -2168,10 +2168,6 @@
                 font-size: 0.5rem;
                 padding: 0.22rem 0.42rem;
             }
-            .roster-player-meta .stats-meta-part[data-stat-meta="oppmotePct"],
-            .roster-player-meta .stats-meta-part[data-stat-meta="snittBors"] {
-                display: none;
-            }
             .player-modal-grid-injury {
                 grid-template-columns: 1fr;
             }
