@@ -3004,28 +3004,40 @@
             min-width: 2.55rem;
             padding: 0.62rem 0.72rem;
         }
-        .stats-sort-btn i {
+        .stats-sort-btn .fa-solid,
+        .stats-sort-btn .stats-sort-glyph {
+            color: inherit;
+            display: inline-block;
+            flex-shrink: 0;
             font-size: 0.95rem;
+            font-style: normal;
             line-height: 1;
+            text-align: center;
+            transition: color 150ms ease;
+            width: 1em;
         }
-        .stats-sort-letter {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.92);
-            border-radius: 0.22rem;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-            color: #123f73;
-            display: inline-flex;
-            font-size: 0.62rem;
+        .stats-sort-glyph {
+            font-family: inherit;
             font-weight: 950;
-            height: 0.95rem;
-            justify-content: center;
-            line-height: 1;
-            min-width: 0.95rem;
+            speak: never;
         }
-        .stats-sort-btn.is-active .stats-sort-letter {
-            background: #ffffff;
-            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.32);
-            color: #0b2b4c;
+        .stats-sort-glyph-g::before {
+            content: "G";
+        }
+        .stats-sort-glyph-r::before {
+            content: "R";
+        }
+        .stats-sort-filter .roster-status-btn.stats-sort-btn:not(.is-active) .fa-solid,
+        .stats-sort-filter .roster-status-btn.stats-sort-btn:not(.is-active) .stats-sort-glyph {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .stats-sort-filter .roster-status-btn.stats-sort-btn:hover:not(.is-active) .fa-solid,
+        .stats-sort-filter .roster-status-btn.stats-sort-btn:hover:not(.is-active) .stats-sort-glyph {
+            color: #ffffff;
+        }
+        .stats-sort-filter .roster-status-btn.stats-sort-btn.is-active .fa-solid,
+        .stats-sort-filter .roster-status-btn.stats-sort-btn.is-active .stats-sort-glyph {
+            color: #f5c542;
         }
         .stats-sort-btn.is-active {
             min-width: 0;

@@ -1027,8 +1027,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
-            { id: 'guleSerie', label: 'Gule kort', letter: 'G' },
-            { id: 'rodeSerie', label: 'Røde kort', letter: 'R' },
+            { id: 'guleSerie', label: 'Gule kort', glyph: 'g' },
+            { id: 'rodeSerie', label: 'Røde kort', glyph: 'r' },
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' }
@@ -1044,8 +1044,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     aria-label="${opt.label}"
                     title="${opt.label}"
                 >
-                    ${opt.letter
-                        ? `<span class="stats-sort-letter" aria-hidden="true">${opt.letter}</span>`
+                    ${opt.glyph
+                        ? `<i class="stats-sort-glyph stats-sort-glyph-${opt.glyph}" aria-hidden="true"></i>`
                         : `<i class="fa-solid ${opt.icon} ${opt.iconClass || ''}" aria-hidden="true"></i>`
                     }
                     <span class="stats-sort-label">${opt.label}</span>
