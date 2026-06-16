@@ -876,8 +876,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'rodeSerie', label: 'Røde kort', icon: 'fa-square', iconClass: 'stats-sort-icon-rk' },
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
-            { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
-            { id: 'navn', label: 'Navn', icon: 'fa-user' }
+            { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' }
         ];
 
         window.renderStatsSortButtonsHtml = function(activeCol) {
@@ -900,6 +899,41 @@ window.getFormScoreBorderClass = function(score, teamName) {
             document.querySelectorAll('.stats-sort-btn[data-sort-col]').forEach(btn => {
                 btn.classList.toggle('is-active', btn.dataset.sortCol === currentStatSortCol);
             });
+            window.centerStatsSortButton('smooth');
+        };
+
+        window.syncStatsSortScroller = function() {
+            const scroller = document.getElementById('stats-player-sort-scroller');
+            const wrap = scroller?.closest('.stats-sort-scroller-wrap');
+            if (!scroller || !wrap) return;
+
+            const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+            wrap.classList.toggle('can-scroll-left', scroller.scrollLeft > 6);
+            wrap.classList.toggle('can-scroll-right', maxScroll > 6 && scroller.scrollLeft < maxScroll - 6);
+        };
+
+        window.centerStatsSortButton = function(behavior = 'smooth') {
+            const scroller = document.getElementById('stats-player-sort-scroller');
+            const active = scroller?.querySelector('.stats-sort-btn.is-active');
+            if (!scroller || !active) return;
+
+            requestAnimationFrame(() => {
+                const target = active.offsetLeft - (scroller.clientWidth / 2) + (active.offsetWidth / 2);
+                scroller.scrollTo({ left: Math.max(0, target), behavior });
+                if (behavior === 'auto') {
+                    window.syncStatsSortScroller();
+                } else {
+                    setTimeout(window.syncStatsSortScroller, 280);
+                }
+            });
+        };
+
+        window.bindStatsSortScroller = function() {
+            const scroller = document.getElementById('stats-player-sort-scroller');
+            if (!scroller) return;
+
+            scroller.addEventListener('scroll', window.syncStatsSortScroller, { passive: true });
+            window.centerStatsSortButton('auto');
         };
 
         window.openStatsFormInfoModal = function() {
@@ -917,14 +951,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.renderStatsTabHero('spillere');
 
             container.innerHTML = `
-                <div class="stats-player-toolbar roster-toolbar">
-                    <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
-                        ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
+                <div class="stats-player-toolbar">
+                    <div class="stats-sort-scroller-wrap">
+                        <div class="stats-sort-scroller-fade stats-sort-scroller-fade-left" aria-hidden="true">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </div>
+                        <div class="stats-sort-scroller" id="stats-player-sort-scroller">
+                            <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
+                                ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
+                            </div>
+                        </div>
+                        <div class="stats-sort-scroller-fade stats-sort-scroller-fade-right" aria-hidden="true">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
                     </div>
                 </div>
                 <div id="stats-player-list" class="roster-list stats-player-list"></div>
             `;
 
+            window.bindStatsSortScroller();
             window.renderPlayerStatsList();
         };
 

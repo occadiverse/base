@@ -2627,43 +2627,99 @@
             margin-bottom: 0.15rem;
         }
         .stats-chrome.roster-toolbar {
-            justify-content: center;
+            align-items: center;
+            justify-content: flex-start;
         }
         .stats-chrome .roster-search-wrap {
             flex: 1 1 16rem;
+            min-width: 0;
         }
-        .stats-chrome .roster-status-filter {
-            flex: 1 1 auto;
-            justify-content: center;
+        .stats-chrome .stats-chrome-tabs {
+            flex: 0 0 auto;
             max-width: 100%;
+            width: fit-content;
         }
         .stats-chrome-info-btn {
             padding-inline: 0.72rem;
         }
         .stats-player-toolbar {
             margin-bottom: 0.15rem;
+            width: 100%;
+        }
+        .stats-sort-scroller-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .stats-sort-scroller {
+            -webkit-overflow-scrolling: touch;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+        }
+        .stats-sort-scroller::-webkit-scrollbar {
+            display: none;
         }
         .stats-sort-filter {
-            flex: 1 1 auto;
-            flex-wrap: wrap;
+            display: inline-flex;
+            flex-wrap: nowrap;
+            width: max-content;
+        }
+        .stats-sort-scroller-fade {
+            align-items: center;
+            display: flex;
+            height: 100%;
             justify-content: center;
-            max-width: 100%;
-            overflow-x: visible;
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            top: 0;
+            transition: opacity 0.2s ease;
+            width: 2.35rem;
+            z-index: 2;
+        }
+        .stats-sort-scroller-fade-left {
+            background: linear-gradient(to right, rgba(248, 250, 252, 0.96) 10%, rgba(248, 250, 252, 0.72) 45%, transparent 100%);
+            border-radius: 999px 0 0 999px;
+            left: 0;
+        }
+        .stats-sort-scroller-fade-right {
+            background: linear-gradient(to left, rgba(248, 250, 252, 0.96) 10%, rgba(248, 250, 252, 0.72) 45%, transparent 100%);
+            border-radius: 0 999px 999px 0;
+            right: 0;
+        }
+        .stats-sort-scroller-wrap.can-scroll-left .stats-sort-scroller-fade-left,
+        .stats-sort-scroller-wrap.can-scroll-right .stats-sort-scroller-fade-right {
+            opacity: 1;
+        }
+        .stats-sort-scroller-fade i {
+            color: rgba(11, 43, 76, 0.42);
+            font-size: 0.68rem;
         }
         .stats-sort-btn {
             align-items: center;
             display: inline-flex;
-            gap: 0.35rem;
-            padding: 0.58rem 0.68rem;
+            flex: 0 0 auto;
+            gap: 0.4rem;
+            justify-content: center;
+            min-height: 2.55rem;
+            min-width: 2.55rem;
+            padding: 0.62rem 0.72rem;
+        }
+        .stats-sort-btn i {
+            font-size: 0.95rem;
+            line-height: 1;
         }
         .stats-sort-btn.is-active {
-            padding-inline: 0.85rem;
+            min-width: 0;
+            padding-inline: 0.9rem;
         }
         .stats-sort-btn .stats-sort-label {
             display: none;
             font-size: 0.68rem;
             font-weight: 900;
             letter-spacing: 0.02em;
+            white-space: nowrap;
         }
         .stats-sort-btn.is-active .stats-sort-label {
             display: inline;
@@ -2776,11 +2832,24 @@
             padding: 2rem 1rem;
             text-align: center;
         }
-        @media (max-width: 480px) {
-            .stats-chrome .roster-status-filter,
-            .stats-sort-filter {
-                justify-content: flex-start;
+        @media (min-width: 768px) {
+            .stats-chrome.roster-toolbar {
+                flex-wrap: nowrap;
             }
+            .stats-chrome .roster-search-wrap {
+                flex: 1 1 auto;
+            }
+            .stats-chrome #statsLagFilterWrap {
+                flex: 0 0 auto;
+            }
+        }
+        @media (max-width: 640px) {
+            .stats-chrome .stats-chrome-tabs {
+                align-self: center;
+                width: fit-content;
+            }
+        }
+        @media (max-width: 480px) {
             .stats-form-jersey {
                 height: 2.45rem;
                 min-width: 2.45rem;
