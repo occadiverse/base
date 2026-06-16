@@ -1049,6 +1049,13 @@
             .match-bench-action-btn span {
                 display: none;
             }
+            .match-bench-action-btn {
+                justify-content: center;
+                min-width: 2.85rem;
+                padding-left: 0;
+                padding-right: 0;
+                width: 2.85rem;
+            }
         }
         .session-injury-modal-card {
             box-shadow: 0 24px 48px rgba(2, 6, 23, 0.42);
@@ -1615,11 +1622,15 @@
         }
         .roster-hero-action-btn {
             flex: 0 0 auto;
+            max-width: 100%;
+            min-width: 2.85rem;
         }
         .roster-empty-action-btn {
             background: linear-gradient(90deg, #123f73 0%, #0b2b4c 100%);
             border-color: rgba(245, 197, 66, 0.16);
             margin-top: 1rem;
+            max-width: 100%;
+            min-width: 2.85rem;
         }
         .roster-toolbar {
             align-items: center;
