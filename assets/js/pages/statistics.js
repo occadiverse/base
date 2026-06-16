@@ -573,24 +573,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const teamMedian = typeof window.getTeamFormMedian === 'function'
                     ? window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag)
                     : 0;
-                const title = filterLag && filterLag !== 'Alle' ? filterLag : 'Spilleroversikt';
 
                 hero.innerHTML = `
                     <div class="stats-hero-panel">
                         <div class="stats-hero-top">
                             <div>
                                 <p class="stats-hero-kicker">BSK Fotball · Spillere</p>
-                                <h2 class="stats-hero-title">${title}</h2>
-                                <p class="stats-hero-subtitle">Form og kampbidrag i troppen. Trykk en spiller for poenghistorikk og kampdetaljer.</p>
-                            </div>
-                            <div class="stats-hero-ring">
-                                <p class="stats-hero-ring-label">Snitt form</p>
-                                <p class="stats-hero-ring-value">${avgForm || '-'}</p>
-                                <p class="stats-hero-ring-sub">/ 100</p>
+                                <h2 class="stats-hero-title">Spilleranalyse</h2>
                             </div>
                         </div>
                         <div class="stats-stat-grid">
-                            <div class="stats-stat-card"><span class="stats-stat-label">Spillere</span><span class="stats-stat-value">${statsData.length}</span></div>
+                            <div class="stats-stat-card"><span class="stats-stat-label">Form</span><span class="stats-stat-value is-win">${avgForm || '-'}</span></div>
                             <div class="stats-stat-card"><span class="stats-stat-label">Snitt kampbidrag</span><span class="stats-stat-value is-accent">${avgBonus}</span></div>
                             <div class="stats-stat-card"><span class="stats-stat-label">Lag median</span><span class="stats-stat-value">${teamMedian > 0 ? teamMedian : '-'}</span></div>
                             <div class="stats-stat-card"><span class="stats-stat-label">Med kampdata</span><span class="stats-stat-value is-goals">${statsData.filter(s => s.kamper > 0).length}</span></div>
