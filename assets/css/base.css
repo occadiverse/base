@@ -2941,24 +2941,24 @@
         @media (max-width: 767px) {
             .stats-player-sort-dock {
                 backdrop-filter: blur(12px);
-                background: rgba(255, 255, 255, 0.96);
-                border-top: 1px solid rgba(148, 163, 184, 0.28);
-                bottom: calc(5.1rem + env(safe-area-inset-bottom, 0px));
-                box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+                background: rgba(255, 255, 255, 0.72);
+                border-top: 1px solid rgba(148, 163, 184, 0.18);
+                bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+                box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
                 left: 0;
-                padding: 0.65rem 1rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+                padding: 0.65rem 1rem 0.3rem;
                 position: fixed;
                 right: 0;
                 z-index: 35;
             }
             .stats-player-sort-dock .stats-sort-scroller-fade-left {
-                background: linear-gradient(to right, rgba(255, 255, 255, 0.98) 10%, rgba(255, 255, 255, 0.78) 45%, transparent 100%);
+                background: linear-gradient(to right, rgba(255, 255, 255, 0.72) 10%, rgba(255, 255, 255, 0.28) 45%, transparent 100%);
             }
             .stats-player-sort-dock .stats-sort-scroller-fade-right {
-                background: linear-gradient(to left, rgba(255, 255, 255, 0.98) 10%, rgba(255, 255, 255, 0.78) 45%, transparent 100%);
+                background: linear-gradient(to left, rgba(255, 255, 255, 0.72) 10%, rgba(255, 255, 255, 0.28) 45%, transparent 100%);
             }
             #stat-view-spillere:not(.hidden) .stats-spillere-layout {
-                padding-bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
+                padding-bottom: calc(4.1rem + env(safe-area-inset-bottom, 0px));
             }
         }
         @media (min-width: 768px) {
