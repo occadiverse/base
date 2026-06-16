@@ -2,6 +2,7 @@
             --portal-bg: #f7fafc;
             --portal-bg-soft: #eef4f8;
             --portal-border: #dbe5ef;
+            --portal-mobile-nav-height: 4.65rem;
         }
         html {
             background: var(--portal-bg);
@@ -33,6 +34,11 @@
         }
         .portal-main-shell {
             padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+        }
+        @media (max-width: 767px) {
+            .portal-main-shell {
+                padding-bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+            }
         }
         @media (min-width: 768px) {
             .portal-main-shell {
@@ -280,16 +286,24 @@
             border-color: rgba(18, 63, 115, 0.12);
             color: #64748b;
             backdrop-filter: blur(16px);
-            height: calc(5.1rem + env(safe-area-inset-bottom, 0px));
-            padding: 0.7rem 0.4rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
+            height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+            padding: 0.45rem 0.4rem calc(0.25rem + env(safe-area-inset-bottom, 0px));
         }
         .portal-mobile-nav-shell .mobile-nav-btn {
             color: #64748b;
-            height: 4.05rem;
+            height: 3.55rem;
             min-width: 0;
         }
         .portal-mobile-nav-shell .mobile-nav-btn:hover {
             color: #123f73;
+        }
+        #floating-action-btn {
+            bottom: calc(var(--portal-mobile-nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
+        }
+        @media (min-width: 768px) {
+            #floating-action-btn {
+                bottom: 2rem;
+            }
         }
         .portal-page-toolbar {
             display: flex;
@@ -2943,7 +2957,7 @@
                 backdrop-filter: blur(12px);
                 background: rgba(255, 255, 255, 0.72);
                 border-top: 1px solid rgba(148, 163, 184, 0.18);
-                bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+                bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
                 box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
                 left: 0;
                 padding: 0.65rem 1rem 0.3rem;
@@ -4075,7 +4089,7 @@
         }
         .mobile-nav-btn.active-nav {
             background: linear-gradient(180deg, rgba(245, 197, 66, 0.16), rgba(255, 255, 255, 0));
-            border-top: 3px solid #f5c542;
+            box-shadow: inset 0 2px 0 #f5c542;
             border-radius: 0.9rem;
             color: #123f73 !important;
         }
