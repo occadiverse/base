@@ -368,9 +368,9 @@ window.openPlayerModal = function(editPlayerId = null) {
         window.togglePlayerSkadeFields();
     }
 
-    const deleteWrap = document.getElementById('playerModalDeleteWrap');
+    const deleteBtn = document.getElementById('playerModalDeleteBtn');
     const footer = document.querySelector('.player-modal-footer');
-    if (deleteWrap) deleteWrap.classList.toggle('hidden', !editPlayerId);
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', !editPlayerId);
     if (footer) footer.classList.toggle('is-edit-mode', Boolean(editPlayerId));
 
     modal.classList.remove('hidden');

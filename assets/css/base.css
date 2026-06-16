@@ -2034,20 +2034,15 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
             padding: 0.85rem 1.25rem 1rem;
         }
-        .player-modal-action-block {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            min-width: 0;
-        }
-        .player-modal-action-block.hidden {
-            display: none;
-        }
         .player-modal-action-btn {
-            flex: 1 1 auto;
+            container-type: inline-size;
             justify-content: center;
-            min-height: 2.45rem;
             width: 100%;
+        }
+        @container (max-width: 9rem) {
+            .player-modal-action-btn span {
+                display: none;
+            }
         }
         .player-modal-action-btn-primary {
             background: rgba(245, 197, 66, 0.14);
