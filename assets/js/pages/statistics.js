@@ -729,19 +729,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (stat.guleSerie > 0) extras.push(`🟨 ${stat.guleSerie}`);
                 if (stat.rodeSerie > 0) extras.push(`🟥 ${stat.rodeSerie}`);
 
+                const metaParts = [
+                    stat.pos1 || 'Spiller',
+                    `${stat.kamper} kamper`,
+                    `${stat.oppmotePct}% oppmøte`
+                ];
+                if (extras.length) metaParts.push(...extras);
+
                 return `
-                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-player-row">
-                        <div class="stats-player-form-pill ${formClass}">
-                            <span class="stats-player-pill-label">Form</span>
-                            <span class="stats-player-pill-value">${stat.kjemi}</span>
+                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, form ${stat.kjemi}, kampbidrag ${bonusText}">
+                        <div class="stats-form-jersey ${formClass}" aria-hidden="true">
+                            <span class="stats-form-jersey-value">${stat.kjemi}</span>
+                            <span class="stats-form-jersey-label">Form</span>
                         </div>
-                        <div class="stats-player-main">
-                            <span class="stats-player-name">${stat.navn}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</span>
-                            <span class="stats-player-meta">${stat.pos1 || 'Spiller'} · ${stat.kamper} kamper · ${stat.oppmotePct}% oppmøte${extras.length ? ' · ' + extras.join(' · ') : ''}</span>
+                        <div class="roster-player-main">
+                            <div class="roster-player-name">${stat.navn}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</div>
+                            <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
                         </div>
-                        <div class="stats-player-bonus-pill ${bonusClass}">
-                            <span class="stats-player-pill-label">KB</span>
-                            <span class="stats-player-pill-value">${bonusText}</span>
+                        <div class="roster-player-side">
+                            <span class="stats-kb-badge ${bonusClass}">KB ${bonusText}</span>
                         </div>
                     </button>
                 `;
@@ -761,11 +767,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
 
             document.querySelectorAll('.stat-tab-btn').forEach(btn => {
-                btn.className = 'stat-tab-btn portal-segment-btn';
+                btn.classList.remove('is-active');
             });
 
             const activeBtn = document.getElementById(`stat-tab-${tabId}`);
-            if (activeBtn) activeBtn.className = 'stat-tab-btn portal-segment-btn is-active';
+            if (activeBtn) activeBtn.classList.add('is-active');
 
             if (tabId === 'lag') window.renderStatistikkSide();
             if (tabId === 'spillere') {
@@ -851,17 +857,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ];
 
             container.innerHTML = `
-                <div class="stats-player-panel">
-                    <div class="stats-player-sort" role="tablist" aria-label="Sorter spillere">
+                <div class="stats-player-toolbar roster-toolbar">
+                    <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
                         ${sortOptions.map(opt => `
-                            <button type="button" onclick="sortStatsTable('${opt.id}')" class="stats-sort-btn ${currentStatSortCol === opt.id ? 'is-active' : ''}">${opt.label}</button>
+                            <button type="button" onclick="sortStatsTable('${opt.id}')" class="roster-status-btn stats-sort-btn ${currentStatSortCol === opt.id ? 'is-active' : ''}">${opt.label}</button>
                         `).join('')}
-                        <button type="button" onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="stats-sort-btn stats-sort-btn-info" title="Slik regnes form">
+                        <button type="button" onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');" class="roster-status-btn stats-sort-btn stats-sort-btn-info" title="Slik regnes form">
                             <i class="fa-solid fa-circle-info"></i>
                         </button>
                     </div>
-                    <div id="stats-player-list" class="stats-player-list"></div>
                 </div>
+                <div id="stats-player-list" class="roster-list stats-player-list"></div>
             `;
 
             window.renderPlayerStatsList();
@@ -1529,7 +1535,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             document.querySelectorAll('.stats-sort-btn:not(.stats-sort-btn-info)').forEach(btn => {
                 const label = btn.textContent.trim();
                 const sortMap = { Kampbidrag: 'kampbonus', Form: 'kjemi', Oppmøte: 'oppmotePct', Kamper: 'kamper', Navn: 'navn' };
-                btn.classList.toggle('is-active', sortMap[label] === column);
+                btn.classList.toggle('is-active', sortMap[label] === currentStatSortCol);
             });
 
             window.renderPlayerStatsList();

@@ -12,7 +12,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v3">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260616-stats-v4">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -215,26 +215,24 @@
             <div id="view-statistikk" class="hidden stats-page space-y-5">
                 <div id="stats-tab-hero"></div>
 
-                <div class="stats-chrome">
-                    <div class="portal-page-toolbar is-detached stats-tab-toolbar">
-                        <div class="portal-segmented">
-                            <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn portal-segment-btn is-active">
-                                Lag
-                            </button>
-                            <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn portal-segment-btn">
-                                Spillere
-                            </button>
-                            <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn portal-segment-btn">
-                                Kamper
-                            </button>
-                        </div>
-                    </div>
-
+                <div class="stats-chrome roster-toolbar">
                     <div id="statsLagFilterWrap" class="match-list-lag-filter hidden">
                         <i class="fa-solid fa-shield-halved"></i>
                         <select id="statsLagFilterSelect" onchange="handleStatsTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer statistikk etter lag">
                         </select>
                         <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
+                    </div>
+
+                    <div class="roster-status-filter" role="tablist" aria-label="Statistikkfaner">
+                        <button type="button" onclick="switchStatTab('lag')" id="stat-tab-lag" class="stat-tab-btn roster-status-btn is-active">
+                            Lag
+                        </button>
+                        <button type="button" onclick="switchStatTab('spillere')" id="stat-tab-spillere" class="stat-tab-btn roster-status-btn">
+                            Spillere
+                        </button>
+                        <button type="button" onclick="switchStatTab('kampstat')" id="stat-tab-kampstat" class="stat-tab-btn roster-status-btn">
+                            Kamper
+                        </button>
                     </div>
                 </div>
 
@@ -985,7 +983,7 @@
     <script src="assets/js/pages/players.js"></script>
     <script src="assets/js/pages/matches.js?v=20260614-match-trim"></script>
     <script src="assets/js/pages/attendance.js"></script>
-    <script src="assets/js/pages/statistics.js?v=20260616-stats-v3"></script>
+    <script src="assets/js/pages/statistics.js?v=20260616-stats-v4"></script>
     <script src="assets/js/pages/tactics.js"></script>
     <script src="assets/js/pages/dashboard.js?v=20260614-match-trim"></script>
     <script type="module" src="assets/js/firebase-sync.js"></script>
