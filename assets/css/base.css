@@ -2823,6 +2823,25 @@
             gap: 0.35rem 0.45rem;
             justify-content: center;
         }
+        .stats-inline-metric-value.is-bsk-blue,
+        .stats-sort-context-value.is-bsk-blue .stats-sort-context-main,
+        .stats-sort-context-value.is-bsk-blue .stats-sort-context-icon,
+        .stats-sort-context-value.is-bsk-blue .stats-sort-glyph {
+            color: #123f73;
+        }
+        .stats-leader-name {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .stats-spillere-summary-metrics .stats-inline-metric {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            min-height: 3.1rem;
+        }
         .stats-sort-context-icon,
         .stats-sort-context-value .stats-sort-glyph {
             flex-shrink: 0;

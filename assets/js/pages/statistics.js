@@ -715,7 +715,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (Number.isNaN(delta)) return { text: '', tone: 'is-equal' };
 
             if (Math.abs(delta) < 0.05) {
-                return { text: '±0', tone: 'is-equal' };
+                return { text: '+0', tone: 'is-equal' };
             }
 
             const rounded = column === 'oppmotePct'
@@ -741,45 +741,71 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return relevantStats[0] || null;
         };
 
-        window.getStatsSortMedian = function(sortCol, statsData, filterLag) {
-            const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, sortCol));
+        window.getStatsSortMedian = function(column, statsData, teamName) {
+            const pool = statsData.filter(stat => {
+                if (teamName && stat.spillerLag !== teamName) return false;
+                return window.playerStatsRelevantForSort(stat, column);
+            });
 
-            if (sortCol === 'kjemi' && typeof window.getTeamFormMedian === 'function') {
-                return window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag);
+            if (column === 'kjemi' && typeof window.getTeamFormMedian === 'function') {
+                return window.getTeamFormMedian(teamName || '');
             }
 
-            return window.getStatsTeamMedian(relevantStats, sortCol);
+            return window.getStatsTeamMedian(pool, column);
         };
 
-        window.renderStatsSpillerePrimaryMetricHtml = function(statsData, filterLag) {
-            const useDefaultFormCard = currentStatSortCol === 'kampbonus' || currentStatSortCol === 'kjemi';
-            if (useDefaultFormCard) {
-                const avgForm = statsData.length
-                    ? Math.round(statsData.reduce((sum, stat) => sum + stat.kjemi, 0) / statsData.length)
-                    : 0;
-                return window.renderStatsInlineMetricHtml('Snitt form', avgForm || '-', 'is-win');
-            }
-
-            const leader = window.getStatsSortedLeader(currentStatSortCol, statsData);
+        window.renderStatsSpillereLeaderNameCardHtml = function(leader) {
             if (!leader) {
-                return window.renderStatsInlineMetricHtml('Snitt form', '-', 'is-win');
+                return `
+                    <div class="stats-inline-metric">
+                        <span class="stats-inline-metric-value is-bsk-blue stats-leader-name">-</span>
+                    </div>
+                `;
             }
 
-            const option = window.getStatsSortOption(currentStatSortCol);
+            const safeName = String(leader.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            return `
+                <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-inline-metric stats-inline-metric-clickable">
+                    <span class="stats-inline-metric-value is-bsk-blue stats-leader-name">${leader.navn}</span>
+                </button>
+            `;
+        };
+
+        window.renderStatsSpillereMetricCardHtml = function(column, leader, statsData) {
+            if (!leader) {
+                return `
+                    <div class="stats-inline-metric">
+                        <span class="stats-inline-metric-value is-bsk-blue">-</span>
+                    </div>
+                `;
+            }
+
+            const option = window.getStatsSortOption(column);
             const iconHtml = window.renderStatsSortIconHtml(option, 'stats-sort-context-icon');
-            const value = leader[currentStatSortCol];
-            const median = window.getStatsSortMedian(currentStatSortCol, statsData, filterLag);
-            const mainText = window.formatStatsSortValue(currentStatSortCol, value);
-            const delta = window.formatStatsMedianDelta(currentStatSortCol, value, median);
+            const value = leader[column];
+            const median = window.getStatsSortMedian(column, statsData, leader.spillerLag || '');
+            const mainText = window.formatStatsSortValue(column, value);
+            const delta = window.formatStatsMedianDelta(column, value, median);
 
             return `
                 <div class="stats-inline-metric">
-                    <span class="stats-inline-metric-value stats-sort-context-value is-win">
+                    <span class="stats-inline-metric-value stats-sort-context-value is-bsk-blue">
                         ${iconHtml}
                         <span class="stats-sort-context-main">${mainText}</span>
                         ${delta.text ? `<span class="stats-sort-context-delta ${delta.tone}">${delta.text}</span>` : ''}
                     </span>
                 </div>
+            `;
+        };
+
+        window.renderStatsSpillereSummaryCardsHtml = function(statsData) {
+            const leader = window.getStatsSortedLeader(currentStatSortCol, statsData);
+
+            return `
+                ${window.renderStatsSpillereLeaderNameCardHtml(leader)}
+                ${window.renderStatsSpillereMetricCardHtml(currentStatSortCol, leader, statsData)}
+                ${window.renderStatsSpillereMetricCardHtml('kjemi', leader, statsData)}
+                ${window.renderStatsSpillereMetricCardHtml('kampbonus', leader, statsData)}
             `;
         };
 
@@ -823,39 +849,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const container = document.getElementById('stats-spillere-summary');
             if (!container) return;
 
-            const filterLag = window.getStatsTeamFilter();
-            const analysis = window.buildPlayerAnalysisStats(filterLag);
             const allStats = window.buildPlayerStatsData();
             const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
-            const avgBonus = statsData.length
-                ? (statsData.reduce((sum, s) => sum + s.kampbonus, 0) / statsData.length).toFixed(1)
-                : '-';
-
-            const buildLeaderMetric = (label, player, detail, toneClass = 'is-goals') => {
-                if (!player || !detail) {
-                    return window.renderStatsInlineMetricHtml(label, '-', toneClass);
-                }
-                const safeName = String(player.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                return window.renderStatsInlineMetricHtml(
-                    label,
-                    `${player.name} · ${detail}`,
-                    `is-leader ${toneClass}`,
-                    `window.openSpillerDetail('${safeName}')`
-                );
-            };
-
-            const topScorer = analysis.topScorer && analysis.topScorer.goals > 0 ? analysis.topScorer : null;
-            const topScorerDetail = topScorer ? `${topScorer.goals} mål` : null;
-            const formPlayer = analysis.topFormPlayer && analysis.topFormPlayer.formLastFive > 0 ? analysis.topFormPlayer : null;
-            const formPlayerDetail = formPlayer ? `${formPlayer.formLastFive.toFixed(1)} børs` : null;
 
             container.innerHTML = `
                 <div class="stats-summary-panel">
-                    <div class="stats-inline-metrics">
-                        ${window.renderStatsSpillerePrimaryMetricHtml(statsData, filterLag)}
-                        ${window.renderStatsInlineMetricHtml('Snitt kampbidrag', avgBonus, 'is-accent')}
-                        ${buildLeaderMetric('Toppscorer', topScorer, topScorerDetail, 'is-goals')}
-                        ${buildLeaderMetric('Formspiller', formPlayer, formPlayerDetail, 'is-draw')}
+                    <div class="stats-inline-metrics stats-spillere-summary-metrics">
+                        ${window.renderStatsSpillereSummaryCardsHtml(statsData)}
                     </div>
                 </div>
             `;
