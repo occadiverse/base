@@ -2857,13 +2857,16 @@
             font-weight: 900;
             line-height: 1.1;
         }
-        .stats-sort-context-delta.is-above {
-            color: #166534;
+        .stats-sort-context-value .stats-sort-context-delta.is-above,
+        .stats-inline-metric-value .stats-sort-context-delta.is-above {
+            color: #22c55e;
         }
-        .stats-sort-context-delta.is-below {
-            color: #b91c1c;
+        .stats-sort-context-value .stats-sort-context-delta.is-below,
+        .stats-inline-metric-value .stats-sort-context-delta.is-below {
+            color: #dc2626;
         }
-        .stats-sort-context-delta.is-equal {
+        .stats-sort-context-value .stats-sort-context-delta.is-equal,
+        .stats-inline-metric-value .stats-sort-context-delta.is-equal {
             color: #64748b;
         }
         .stats-inline-metric-label {
