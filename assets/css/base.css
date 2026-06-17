@@ -674,14 +674,22 @@
             background: rgba(249, 115, 22, 0.9);
             color: #fff;
         }
-        .dashboard-injury-count-value.is-critical {
-            color: #fecaca;
+        .dashboard-injury-count,
+        .dashboard-injury-count .dashboard-injury-count-value,
+        .dashboard-injury-count .dashboard-series-goal-count-value {
+            color: #123f73;
         }
-        .dashboard-injury-count-value.is-warning {
-            color: #fde68a;
+        .dashboard-injury-row-overflow {
+            justify-content: center;
         }
-        .dashboard-injury-count-value.is-good {
-            color: #dbe8d8;
+        .dashboard-injury-row-overflow .dashboard-injury-name {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-align: center;
+            text-transform: uppercase;
+            width: 100%;
         }
         .dashboard-series-form-row {
             align-items: center;

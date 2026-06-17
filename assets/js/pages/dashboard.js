@@ -499,11 +499,18 @@ window.updateHjemWidget = function() {
 
     let rightWidgetHtml = '';
     if (injuryStats.injuredCount > 0) {
-        const visibleInjuries = injuryStats.injured.slice(0, 3);
-        const hiddenInjuryCount = Math.max(0, injuryStats.injuredCount - visibleInjuries.length);
-        const injuryChipLabel = injuryStats.langvarigCount > 0
-            ? `${injuryStats.langvarigCount} langvarig`
+        const maxInjuryRows = 3;
+        const hasOverflow = injuryStats.injuredCount > maxInjuryRows;
+        const visibleInjuries = hasOverflow
+            ? injuryStats.injured.slice(0, maxInjuryRows - 1)
+            : injuryStats.injured;
+        const overflowCount = hasOverflow
+            ? injuryStats.injuredCount - visibleInjuries.length
+            : 0;
+        const injuryChipLabel = injuryStats.injuredCount === 1
+            ? '1 skadet'
             : `${injuryStats.injuredCount} skadet`;
+
         const injuryRowsHtml = visibleInjuries.map(player => {
             const badgeClass = player.info.type === 'langvarig' ? 'is-critical' : 'is-warning';
             const firstName = (player.navn || '').trim().split(/\s+/)[0] || player.navn;
@@ -518,9 +525,15 @@ window.updateHjemWidget = function() {
             `;
         }).join('');
 
-        const injuryFooterLine = hiddenInjuryCount > 0
-            ? `${injuryStats.availableCount} av ${injuryStats.squadSize} tilgjengelige · +${hiddenInjuryCount} flere skadet`
-            : `${injuryStats.availableCount} av ${injuryStats.squadSize} spillere tilgjengelige`;
+        const overflowRowHtml = overflowCount > 0
+            ? `
+                <div class="dashboard-injury-row dashboard-injury-row-overflow">
+                    <div class="dashboard-injury-row-main min-w-0">
+                        <span class="dashboard-injury-name">+${overflowCount} flere skadet</span>
+                    </div>
+                </div>
+            `
+            : '';
 
         rightWidgetHtml = `
             <article onclick="window.goToInjuredRoster()" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-injury-card dashboard-click-card h-full">
@@ -543,31 +556,25 @@ window.updateHjemWidget = function() {
                     <div class="dashboard-injury-middle">
                         <div class="dashboard-injury-list min-w-0 flex-1">
                             ${injuryRowsHtml}
+                            ${overflowRowHtml}
                         </div>
 
                         <div class="dashboard-series-goal-stack shrink-0">
                             <div class="match-bench-count dashboard-series-goal-count dashboard-injury-count">
-                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value is-critical">${injuryStats.langvarigCount}</span>
+                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value">${injuryStats.langvarigCount}</span>
                                 <span>Langvarig</span>
                             </div>
                             <div class="match-bench-count dashboard-series-goal-count dashboard-injury-count">
-                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value is-warning">${injuryStats.dagTilDagCount}</span>
+                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value">${injuryStats.dagTilDagCount}</span>
                                 <span>Dag-til-dag</span>
-                            </div>
-                            <div class="match-bench-count dashboard-series-goal-count dashboard-injury-count">
-                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value is-good">${injuryStats.availableCount}</span>
-                                <span>Friske</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="match-detail-footer relative z-10">
-                    <div class="match-detail-footer-item dashboard-series-footer-line">
-                        <span>${escapeHtml(injuryFooterLine)}</span>
-                    </div>
                     ${injuryPositionLine ? `
-                        <div class="match-detail-footer-item">
+                        <div class="match-detail-footer-item dashboard-series-footer-line">
                             <i class="fa-solid fa-layer-group"></i>
                             <span>${escapeHtml(injuryPositionLine)}</span>
                         </div>
