@@ -7,15 +7,46 @@
             fase3: { 'GK': { top: '80%', left: '50%' }, 'VMS': { top: '50%', left: '33%' }, 'HMS': { top: '50%', left: '67%' }, 'VB': { top: '35%', left: '20%' }, 'HB': { top: '35%', left: '80%' }, 'DM': { top: '35%', left: '50%' }, 'OM': { top: '22%', left: '30%' }, 'PM': { top: '22%', left: '70%' }, 'VK': { top: '15%', left: '10%' }, 'HK': { top: '15%', left: '90%' }, 'SP': { top: '15%', left: '50%' } }
         };
 
-        window.getDuoChemistry = function(playerA, playerB) {
+        window.getTacticalChemistryFilter = function() {
+            const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : '';
+            const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
+
+            if (currentMatch && currentMatch.matchGroup) {
+                return { teamName: currentMatch.matchGroup, historicalOnly: true };
+            }
+
+            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
+            if (filterLag && filterLag !== 'Alle') {
+                return { teamName: filterLag, historicalOnly: true };
+            }
+
+            const lineupPlayers = Object.values(window.tacticalLineup || {}).filter(p => p && p.spillerLag);
+            if (lineupPlayers.length > 0) {
+                const lagCounts = {};
+                lineupPlayers.forEach(p => { lagCounts[p.spillerLag] = (lagCounts[p.spillerLag] || 0) + 1; });
+                const topLag = Object.entries(lagCounts).sort((a, b) => b[1] - a[1])[0];
+                if (topLag) return { teamName: topLag[0], historicalOnly: true };
+            }
+
+            return { teamName: null, historicalOnly: true };
+        };
+
+        window.getDuoChemistry = function(playerA, playerB, options) {
             if (!playerA || !playerB) return 0;
+            const opts = options || {};
+            const filterLag = opts.teamName || null;
+            const historicalOnly = opts.historicalOnly !== false;
+
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             let shared = 0, either = 0;
             allEvents.forEach(e => {
+                if (filterLag && e.team !== filterLag) return;
+                if (historicalOnly && typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
                 if (e.attendance) {
                     const aPresent = window.isPlayerAttending(e.attendance, playerA);
                     const bPresent = window.isPlayerAttending(e.attendance, playerB);
-                    if (aPresent || bPresent) either++; if (aPresent && bPresent) shared++;
+                    if (aPresent || bPresent) either++;
+                    if (aPresent && bPresent) shared++;
                 }
             });
             return either > 0 ? Math.round((shared / either) * 100) : 0;
@@ -34,11 +65,15 @@
 
             const connections = phaseConnections[currentTacticalPhase] || phaseConnections.fase2;
 
+            const chemOptions = typeof window.getTacticalChemistryFilter === 'function'
+                ? window.getTacticalChemistryFilter()
+                : { historicalOnly: true };
+
             connections.forEach(pair => {
                 const player1 = window.tacticalLineup[pair[0]];
                 const player2 = window.tacticalLineup[pair[1]];
                 if (player1 && player2) {
-                    const chemScore = window.getDuoChemistry(player1.navn, player2.navn);
+                    const chemScore = window.getDuoChemistry(player1.navn, player2.navn, chemOptions);
                     const node1 = document.getElementById('node-' + pair[0]);
                     const node2 = document.getElementById('node-' + pair[1]);
                     
