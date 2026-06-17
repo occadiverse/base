@@ -757,16 +757,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsSpillereLeaderNameCardHtml = function(leader) {
             if (!leader) {
                 return `
-                    <div class="stats-inline-metric">
-                        <span class="stats-inline-metric-value is-bsk-blue stats-leader-name">-</span>
+                    <div class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card">
+                        <span class="dashboard-series-goal-count-value stats-leader-name">-</span>
                     </div>
                 `;
             }
 
             const safeName = String(leader.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             return `
-                <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="stats-inline-metric stats-inline-metric-clickable">
-                    <span class="stats-inline-metric-value is-bsk-blue stats-leader-name">${leader.navn}</span>
+                <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card stats-spillere-summary-card-clickable">
+                    <span class="dashboard-series-goal-count-value stats-leader-name">${leader.navn}</span>
                 </button>
             `;
         };
@@ -774,8 +774,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsSpillereMetricCardHtml = function(column, leader, statsData) {
             if (!leader) {
                 return `
-                    <div class="stats-inline-metric">
-                        <span class="stats-inline-metric-value is-bsk-blue">-</span>
+                    <div class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card">
+                        <span class="dashboard-series-goal-count-value">-</span>
                     </div>
                 `;
             }
@@ -788,8 +788,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const delta = window.formatStatsMedianDelta(column, value, median);
 
             return `
-                <div class="stats-inline-metric">
-                    <span class="stats-inline-metric-value stats-sort-context-value is-bsk-blue">
+                <div class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card">
+                    <span class="dashboard-series-goal-count-value stats-spillere-summary-value">
                         ${iconHtml}
                         <span class="stats-sort-context-main">${mainText}</span>
                         ${delta.text ? `<span class="stats-sort-context-delta ${delta.tone}">${delta.text}</span>` : ''}
@@ -802,10 +802,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const leader = window.getStatsSortedLeader(currentStatSortCol, statsData);
 
             return `
-                ${window.renderStatsSpillereLeaderNameCardHtml(leader)}
-                ${window.renderStatsSpillereMetricCardHtml(currentStatSortCol, leader, statsData)}
-                ${window.renderStatsSpillereMetricCardHtml('kjemi', leader, statsData)}
-                ${window.renderStatsSpillereMetricCardHtml('kampbonus', leader, statsData)}
+                <div class="stats-spillere-summary-metrics">
+                    ${window.renderStatsSpillereLeaderNameCardHtml(leader)}
+                    ${window.renderStatsSpillereMetricCardHtml(currentStatSortCol, leader, statsData)}
+                    ${window.renderStatsSpillereMetricCardHtml('kjemi', leader, statsData)}
+                    ${window.renderStatsSpillereMetricCardHtml('kampbonus', leader, statsData)}
+                </div>
             `;
         };
 
@@ -852,13 +854,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const allStats = window.buildPlayerStatsData();
             const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
 
-            container.innerHTML = `
-                <div class="stats-summary-panel">
-                    <div class="stats-inline-metrics stats-spillere-summary-metrics">
-                        ${window.renderStatsSpillereSummaryCardsHtml(statsData)}
-                    </div>
-                </div>
-            `;
+            container.innerHTML = window.renderStatsSpillereSummaryCardsHtml(statsData);
         };
 
         window.renderStatsKampContext = function() {
