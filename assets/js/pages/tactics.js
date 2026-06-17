@@ -308,7 +308,7 @@
     node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'bg-bsk-blue', 'text-white', 'border-2', 'border-[3px]', 'border-bsk-yellow/60', 'border-emerald-500', 'border-yellow-500', 'border-amber-500', 'border-orange-500', 'border-rose-500', 'border-slate-300');
 
     if (playerObj === null || playerObj === undefined) {
-        node.innerHTML = `<span class="text-[10px] font-bold">${posId}</span>`;
+        node.innerHTML = `<span class="player-node-pos">${posId}</span>`;
         node.classList.add('bg-bsk-blue', 'text-white', 'border-2', 'border-bsk-yellow/60');
     } else {
         // Henter fornavn og legger til initialen fra etternavnet (uten punktum) hvis det finnes
@@ -325,13 +325,11 @@
             : 0;
         const bonusTekst = kampbonus > 0 ? kampbonus : '-';
         
-        // Fargen på tallet i midten (Lyser opp mot den mørkeblå bakgrunnen)
-        let bonusTextColor = 'text-slate-300';
-        if (kampbonus > 0) {
-            if (kampbonus > 15) bonusTextColor = 'text-emerald-400'; // Grønn form
-            else if (kampbonus >= 10) bonusTextColor = 'text-amber-400'; // Gul/Stabil form
-            else bonusTextColor = 'text-rose-400'; // Rød/Dårlig form
-        }
+        let bonusValueClass = 'player-node-value';
+        if (kampbonus <= 0) bonusValueClass += ' is-muted';
+        else if (kampbonus > 15) bonusValueClass += ' is-high';
+        else if (kampbonus >= 10) bonusValueClass += ' is-mid';
+        else bonusValueClass += ' is-low';
 
         // --- NYTT: Sjekk om vi er i sandkassen ---
         const matchSelect = document.getElementById('tacticalMatchSelect');
@@ -371,7 +369,7 @@
 
         node.innerHTML = `
             ${badgesHtml}
-            <span class="text-[14px] font-black tracking-tight z-10 ${bonusTextColor}" title="Kampbidrag">${bonusTekst}</span>
+            <span class="${bonusValueClass}" title="Kampbidrag">${bonusTekst}</span>
             <div class="absolute -bottom-5 flex flex-col items-center pointer-events-none z-10">
                 <span class="player-node-name text-[9px] font-bold whitespace-nowrap px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
             </div>
