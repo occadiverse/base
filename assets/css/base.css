@@ -2890,6 +2890,19 @@
         .stats-spillere-summary-card .stats-sort-context-delta.is-equal {
             color: #64748b;
         }
+        .stats-spillere-summary-card .stats-sort-context-rank {
+            align-items: center;
+            color: #123f73;
+            display: inline-flex;
+            font-size: 0.82rem;
+            font-weight: 900;
+            gap: 0.28rem;
+            line-height: 1.1;
+        }
+        .stats-spillere-summary-card .stats-sort-context-rank-sep {
+            color: rgba(18, 63, 115, 0.45);
+            font-weight: 700;
+        }
         .stats-inline-metric-label {
             color: #64748b;
             display: block;

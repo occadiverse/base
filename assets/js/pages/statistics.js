@@ -731,6 +731,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
             };
         };
 
+        window.getStatsPlayerRank = function(playerName, column, statsData) {
+            const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, column));
+            const useActiveSort = column === currentStatSortCol;
+
+            relevantStats.sort((a, b) => (
+                useActiveSort && !currentStatSortDesc
+                    ? a[column] - b[column]
+                    : b[column] - a[column]
+            ));
+
+            const index = relevantStats.findIndex(stat => stat.navn === playerName);
+            return index === -1 ? null : index + 1;
+        };
+
         window.getStatsSortedLeader = function(sortCol, statsData) {
             const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, sortCol));
             relevantStats.sort((a, b) => (
@@ -786,6 +800,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const median = window.getStatsSortMedian(column, statsData, leader.spillerLag || '');
             const mainText = window.formatStatsSortValue(column, value);
             const delta = window.formatStatsMedianDelta(column, value, median);
+            const rank = window.getStatsPlayerRank(leader.navn, column, statsData);
 
             return `
                 <div class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card">
@@ -793,6 +808,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ${iconHtml}
                         <span class="stats-sort-context-main">${mainText}</span>
                         ${delta.text ? `<span class="stats-sort-context-delta ${delta.tone}">${delta.text}</span>` : ''}
+                        ${rank ? `<span class="stats-sort-context-rank"><span class="stats-sort-context-rank-sep" aria-hidden="true">·</span>${rank}</span>` : ''}
                     </span>
                 </div>
             `;
