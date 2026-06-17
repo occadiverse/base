@@ -932,9 +932,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             list.innerHTML = statsData.map(stat => {
+                const activeSortCol = currentStatSortCol;
                 const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
                 const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
+                const formSortActiveClass = activeSortCol === 'kjemi' ? ' is-sort-active' : '';
                 const bonusClass = stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral';
+                const kbSortActiveClass = activeSortCol === 'kampbonus' ? ' is-sort-active' : '';
                 const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
                 const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
                 const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -958,7 +961,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                 return `
                     <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
-                        <div class="stats-form-jersey ${formClass}" aria-hidden="true">
+                        <div class="stats-form-jersey ${formClass}${formSortActiveClass}" aria-hidden="true">
                             <span class="stats-form-jersey-value">${stat.kjemi}</span>
                             <span class="stats-form-jersey-label">Form</span>
                         </div>
@@ -967,7 +970,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
                         </div>
                         <div class="roster-player-side">
-                            <span class="stats-kb-badge ${bonusClass}" title="Kampbidrag">${kampbidragIcon}<span>${bonusText}</span></span>
+                            <span class="stats-kb-badge ${bonusClass}${kbSortActiveClass}" title="Kampbidrag">${kampbidragIcon}<span>${bonusText}</span></span>
                         </div>
                     </button>
                 `;
@@ -1090,7 +1093,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsMetaPartHtml = function(id, text) {
             const option = window.getStatsSortOption(id);
             const iconHtml = window.renderStatsSortIconHtml(option, 'stats-meta-icon');
-            return `<span class="stats-meta-part" data-stat-meta="${id}">${iconHtml}<span class="stats-meta-text">${text}</span></span>`;
+            const activeClass = id === currentStatSortCol ? ' is-sort-active' : '';
+            return `<span class="stats-meta-part${activeClass}" data-stat-meta="${id}">${iconHtml}<span class="stats-meta-text">${text}</span></span>`;
         };
 
         window.renderStatsSortButtonsHtml = function(activeCol) {

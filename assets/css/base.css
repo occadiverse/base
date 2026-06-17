@@ -3016,6 +3016,37 @@
             #view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-player-list {
                 padding-bottom: calc(4.1rem + env(safe-area-inset-bottom, 0px));
             }
+            .stats-player-list .stats-player-row .roster-player-name {
+                font-size: 1.04rem;
+            }
+            .stats-player-list .stats-player-row .roster-player-meta {
+                font-size: 0.78rem;
+                gap: 0.34rem;
+            }
+            .stats-player-list .stats-meta-icon,
+            .stats-player-list .stats-meta-part .stats-sort-glyph {
+                font-size: 0.74rem;
+                width: 1em;
+            }
+            .stats-player-list .stats-form-jersey {
+                height: 2.9rem;
+                min-width: 2.9rem;
+            }
+            .stats-player-list .stats-form-jersey-value {
+                font-size: 0.94rem;
+            }
+            .stats-player-list .stats-form-jersey-label {
+                font-size: 0.48rem;
+            }
+            .stats-player-list .stats-kb-badge {
+                font-size: 0.74rem;
+                gap: 0.32rem;
+                padding: 0.44rem 0.7rem;
+            }
+            .stats-player-list .stats-kb-badge .stats-kb-icon,
+            .stats-player-list .stats-kb-badge .stats-sort-glyph {
+                font-size: 0.78rem;
+            }
             .stats-player-search-row {
                 background: linear-gradient(180deg, rgba(247, 250, 252, 0.98) 72%, rgba(247, 250, 252, 0.84) 100%);
                 flex-shrink: 0;
@@ -3290,6 +3321,34 @@
             border: 1px solid rgba(255, 255, 255, 0.18);
             color: rgba(255, 255, 255, 0.72);
         }
+        .stats-meta-part.is-sort-active .stats-meta-icon,
+        .stats-meta-part.is-sort-active .stats-sort-glyph,
+        .stats-meta-part.is-sort-active .stats-meta-text {
+            color: #f5c542;
+            font-weight: 900;
+            opacity: 1;
+        }
+        .stats-form-jersey.is-sort-active {
+            border-color: #f5c542;
+            box-shadow: 0 0 0 1px rgba(245, 197, 66, 0.28);
+        }
+        .stats-form-jersey.is-sort-active .stats-form-jersey-value,
+        .stats-form-jersey.is-sort-active .stats-form-jersey-label {
+            color: #f5c542;
+        }
+        .stats-kb-badge.is-sort-active,
+        .stats-kb-badge.is-sort-active.is-high,
+        .stats-kb-badge.is-sort-active.is-mid,
+        .stats-kb-badge.is-sort-active.is-low,
+        .stats-kb-badge.is-sort-active.is-neutral {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.45);
+            color: #f5c542;
+        }
+        .stats-kb-badge.is-sort-active .stats-kb-icon,
+        .stats-kb-badge.is-sort-active .stats-sort-glyph {
+            color: #f5c542;
+        }
         .stats-player-star {
             color: #f5c542;
             font-size: 0.85rem;
@@ -3315,12 +3374,12 @@
             }
         }
         @media (max-width: 480px) {
-            .stats-form-jersey {
-                height: 2.45rem;
-                min-width: 2.45rem;
+            .stats-player-list .stats-form-jersey {
+                height: 2.8rem;
+                min-width: 2.8rem;
             }
-            .stats-form-jersey-value {
-                font-size: 0.76rem;
+            .stats-player-list .stats-form-jersey-value {
+                font-size: 0.9rem;
             }
         }
         .stats-hero-leaders {
