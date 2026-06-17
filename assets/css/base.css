@@ -3328,9 +3328,15 @@
             font-weight: 900;
             opacity: 1;
         }
-        .stats-form-jersey.is-sort-active {
+        .stats-form-jersey.is-sort-active,
+        .stats-form-jersey.is-sort-active.is-high,
+        .stats-form-jersey.is-sort-active.is-mid,
+        .stats-form-jersey.is-sort-active.is-low,
+        .stats-form-jersey.is-sort-active.is-neutral {
+            background: linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
             border-color: #f5c542;
-            box-shadow: 0 0 0 1px rgba(245, 197, 66, 0.28);
+            box-shadow: 0 0 0 1px rgba(245, 197, 66, 0.35);
+            color: #f5c542;
         }
         .stats-form-jersey.is-sort-active .stats-form-jersey-value,
         .stats-form-jersey.is-sort-active .stats-form-jersey-label {
