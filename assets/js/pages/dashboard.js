@@ -46,6 +46,13 @@ window.goToPlayerAnalysis = function(playerName) {
     }
 };
 
+window.goToInjuredRoster = function() {
+    switchTab('tropp');
+    if (typeof window.setPlayerStatusFilter === 'function') {
+        window.setPlayerStatusFilter('skadet');
+    }
+};
+
 window.activateDashboardCardFromKeyboard = function(event) {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
@@ -302,6 +309,57 @@ window.buildNextSessionAttendanceStats = function(event) {
     };
 };
 
+window.buildInjuryOverviewStats = function(teamName) {
+    const allActivePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    const squadPlayers = teamName
+        ? allActivePlayers.filter(p => p.spillerLag === teamName)
+        : allActivePlayers;
+
+    const injured = [];
+    let langvarigCount = 0;
+    let dagTilDagCount = 0;
+    const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
+
+    squadPlayers.forEach(player => {
+        const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+            ? window.getPlayerInjuryInfo(player)
+            : { isInjured: false, type: 'frisk' };
+        if (!injuryInfo.isInjured) return;
+
+        const category = window.getPositionCategoryFromPos1(player.pos1);
+        if (category) positionCounts[category] += 1;
+        if (injuryInfo.type === 'langvarig') langvarigCount += 1;
+        else if (injuryInfo.type === 'dag-til-dag') dagTilDagCount += 1;
+
+        injured.push({
+            id: player.id,
+            navn: player.navn,
+            pos1: player.pos1,
+            spillerLag: player.spillerLag,
+            skadeNotat: player.skadeNotat,
+            skadeTilDato: player.skadeTilDato,
+            info: injuryInfo
+        });
+    });
+
+    injured.sort((a, b) => {
+        const typeOrder = { langvarig: 0, 'dag-til-dag': 1 };
+        const typeDiff = (typeOrder[a.info.type] ?? 2) - (typeOrder[b.info.type] ?? 2);
+        if (typeDiff !== 0) return typeDiff;
+        return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
+    });
+
+    return {
+        squadSize: squadPlayers.length,
+        injuredCount: injured.length,
+        availableCount: squadPlayers.length - injured.length,
+        langvarigCount,
+        dagTilDagCount,
+        positionCounts,
+        injured
+    };
+};
+
 window.updateHjemWidget = function() {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
@@ -416,111 +474,122 @@ window.updateHjemWidget = function() {
         `;
     }
 
-    // 2. FORBERED "UKENS MASKIN" (Høyre blokk)
-    let topPlayer = null;
-    let topScore = -1;
-    
-    (window.activePlayers || []).filter(p => p.status !== 'Passiv').forEach(p => {
-        const score = typeof window.calculatePlayerPerformanceChemistry === 'function' ? window.calculatePlayerPerformanceChemistry(p.navn) : 0;
-        if (score > topScore) { topScore = score; topPlayer = p; }
-    });
+    // 2. FORBERED SKADESTATUS (Høyre blokk)
+    const injuryStats = window.buildInjuryOverviewStats();
+    const formatInjuryReturnDate = (dateStr) => {
+        if (!dateStr) return '';
+        const dateValue = new Date(dateStr);
+        if (Number.isNaN(dateValue.getTime())) return dateStr;
+        return dateValue.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
+    };
+
+    const buildInjuryDetailLine = (player) => {
+        if (player.info.type === 'langvarig' && player.skadeTilDato) {
+            return `Tilbake ${formatInjuryReturnDate(player.skadeTilDato)}`;
+        }
+        if (player.skadeNotat) return player.skadeNotat;
+        if (player.info.type === 'dag-til-dag') return 'Avventer daglig vurdering';
+        return player.info.label || 'Skade registrert';
+    };
+
+    const injuryPositionLine = ['K', 'F', 'M', 'A']
+        .filter(letter => injuryStats.positionCounts[letter] > 0)
+        .map(letter => `${injuryStats.positionCounts[letter]}${letter}`)
+        .join(' · ');
 
     let rightWidgetHtml = '';
-    if (topPlayer && topScore > 0) {
-        let kamper = 0, mal = 0, assist = 0, attendedEvents = 0;
-        
-        const allEvents = [
-    ...(window.activeEvents || []),
-    ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))
-];
+    if (injuryStats.injuredCount > 0) {
+        const visibleInjuries = injuryStats.injured.slice(0, 3);
+        const hiddenInjuryCount = Math.max(0, injuryStats.injuredCount - visibleInjuries.length);
+        const injuryChipLabel = injuryStats.langvarigCount > 0
+            ? `${injuryStats.langvarigCount} langvarig`
+            : `${injuryStats.injuredCount} skadet`;
+        const injuryRowsHtml = visibleInjuries.map(player => {
+            const badgeClass = player.info.type === 'langvarig' ? 'is-critical' : 'is-warning';
+            const firstName = (player.navn || '').trim().split(/\s+/)[0] || player.navn;
+            return `
+                <div class="dashboard-injury-row">
+                    <div class="dashboard-injury-row-main min-w-0">
+                        <span class="dashboard-injury-name">${escapeHtml(firstName)}</span>
+                        <span class="dashboard-injury-detail">${escapeHtml(buildInjuryDetailLine(player))}</span>
+                    </div>
+                    <span class="dashboard-injury-badge ${badgeClass}">${escapeHtml(player.info.shortLabel)}</span>
+                </div>
+            `;
+        }).join('');
 
-        const todayForChemistry = new Date();
-        todayForChemistry.setHours(0, 0, 0, 0);
-        
-        const teamEvents = allEvents.filter(e => {
-            // RETTET: La til topPlayer. foran spillerLag
-            if (e.team !== topPlayer.spillerLag) return false; 
-        
-            if (e.date) {
-                const eventDate = new Date(e.date);
-                eventDate.setHours(0, 0, 0, 0);
-                if (eventDate > todayForChemistry) return false;
-            }
-        
-            return true;
-        });
-        
-        teamEvents.forEach(e => { 
-            if (window.isPlayerAttending(e.attendance, topPlayer)) {
-                attendedEvents++;
-                if (e.type === 'Kamp') {
-	                    kamper++;
-	                    mal += Number(window.getPlayerRefMapValue(e.scorers, topPlayer, 0)) || 0;
-	                    assist += Number(window.getPlayerRefMapValue(e.assists, topPlayer, 0)) || 0;
-	                }
-            } 
-        });
-
-        const oppmotePct = teamEvents.length > 0 ? Math.round((attendedEvents / teamEvents.length) * 100) : 0;
-        const topPlayerNameForJs = escapeJsString(topPlayer.navn);
+        const injuryFooterLine = hiddenInjuryCount > 0
+            ? `${injuryStats.availableCount} av ${injuryStats.squadSize} tilgjengelige · +${hiddenInjuryCount} flere skadet`
+            : `${injuryStats.availableCount} av ${injuryStats.squadSize} spillere tilgjengelige`;
 
         rightWidgetHtml = `
-            <div onclick="window.goToPlayerAnalysis('${topPlayerNameForJs}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group h-full transition border hover:border-bsk-yellow/40">
-                <div class="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                    <i class="fa-solid fa-fire-flame-curved text-[14rem] text-bsk-yellow"></i>
+            <article onclick="window.goToInjuredRoster()" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-injury-card dashboard-click-card h-full">
+                <div class="dashboard-next-match-watermark">
+                    <i class="fa-solid fa-user-injured"></i>
                 </div>
-                
-                <div class="relative z-10 flex flex-col h-full justify-between">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
-                        <div class="portal-status-label">
-                            <i class="fa-solid fa-bolt"></i>
-                            <span>Ukens Maskin</span>
-                        </div>
-                        <span class="portal-status-label portal-status-label-sm animate-pulse">Hot Streak</span>
-                    </div>
-                    
-                    <div class="flex-1 flex items-center justify-between mb-2">
-                        <div class="space-y-1 min-w-0 pr-4">
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${topPlayer.pos1}</p>
-                            <h4 class="text-xl md:text-2xl font-black text-bsk-blue tracking-tight uppercase truncate pb-1">${topPlayer.navn.split(' ')[0]}</h4>
-                        </div>
-                        
-                        <div class="bg-bsk-yellow/15 border border-bsk-yellow/30 w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-500">
-                            <span class="text-lg font-black text-amber-700 leading-none">${topScore}/100</span>
-                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider mt-1">Form</span>
-                        </div>
-                    </div>
 
-                    <div class="flex items-center gap-5 pt-3 mt-auto border-t border-slate-100">
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${kamper}</span> Kamper
+                <div class="match-detail-card-top relative z-10">
+                    <div class="match-detail-meta">
+                        <i class="fa-solid fa-kit-medical"></i>
+                        <span>Skadestatus</span>
+                    </div>
+                    <div class="match-detail-chip${injuryStats.langvarigCount > 0 ? ' dashboard-injury-chip-alert' : ''}">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>${escapeHtml(injuryChipLabel)}</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-injury-main relative z-10">
+                    <div class="dashboard-injury-middle">
+                        <div class="dashboard-injury-list min-w-0 flex-1">
+                            ${injuryRowsHtml}
                         </div>
-	                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-	                            <span class="text-slate-900 text-base block font-black mb-0.5 leading-none">${mal}</span> Mål
-	                        </div>
-	                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-	                            <span class="text-sky-700 text-base block font-black mb-0.5 leading-none">${assist}</span> Assist
-	                        </div>
-	                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200 pl-4">
-                            <span class="text-amber-700 text-base block font-black mb-0.5 leading-none">${oppmotePct}%</span> Trening
+
+                        <div class="dashboard-series-goal-stack shrink-0">
+                            <div class="match-bench-count dashboard-series-goal-count dashboard-injury-count">
+                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value is-critical">${injuryStats.langvarigCount}</span>
+                                <span>Langvarig</span>
+                            </div>
+                            <div class="match-bench-count dashboard-series-goal-count dashboard-injury-count">
+                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value is-warning">${injuryStats.dagTilDagCount}</span>
+                                <span>Dag-til-dag</span>
+                            </div>
+                            <div class="match-bench-count dashboard-series-goal-count dashboard-injury-count">
+                                <span class="dashboard-series-goal-count-value dashboard-injury-count-value is-good">${injuryStats.availableCount}</span>
+                                <span>Friske</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="match-detail-footer relative z-10">
+                    <div class="match-detail-footer-item dashboard-series-footer-line">
+                        <span>${escapeHtml(injuryFooterLine)}</span>
+                    </div>
+                    ${injuryPositionLine ? `
+                        <div class="match-detail-footer-item">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>${escapeHtml(injuryPositionLine)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </article>
         `;
     } else {
         rightWidgetHtml = `
-            <div onclick="window.goToPlayerAnalysis('')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center text-center h-full min-h-[220px] border">
-                <div class="absolute -right-8 -bottom-8 opacity-5 pointer-events-none">
-                    <i class="fa-solid fa-bolt text-[12rem] text-bsk-yellow"></i>
+            <article onclick="window.goToInjuredRoster()" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-injury-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
+                <div class="dashboard-next-match-watermark">
+                    <i class="fa-solid fa-user-injured"></i>
                 </div>
-                <div class="portal-status-label mb-4 relative z-10">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Ukens Maskin</span>
+                <div class="relative z-10 px-6 py-8">
+                    <div class="match-detail-chip mb-4 mx-auto">
+                        <i class="fa-solid fa-kit-medical"></i>
+                        <span>Skadestatus</span>
+                    </div>
+                    <h3 class="font-black text-white text-sm">Ingen registrerte skader</h3>
+                    <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Alle aktive spillere er markert som friske. Oppdater status i troppen ved behov.</p>
                 </div>
-                <h3 class="font-black text-bsk-blue text-sm relative z-10">Venter på formdata</h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-[220px] relative z-10">Når spillere har oppmøte og kampdata, kåres ukens spiller automatisk.</p>
-            </div>
+            </article>
         `;
     }
 
