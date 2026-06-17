@@ -319,9 +319,10 @@ window.checkIndividualChemistry = function() {
         };
 
 
-window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
+window.getPlayerFormComponents = function(playerName, asOfDate) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
-    if (!playerObj) return 0;
+    if (!playerObj) return { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
+
     const spillerLag = playerObj.spillerLag;
     const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
     const todayForChemistry = new Date();
@@ -367,22 +368,22 @@ window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
         .slice(0, 5);
 
-    let performanceScore = 0;
-    if (recentMatches.length > 0) {
-        let weightedPoints = 0;
-        let totalWeight = 0;
-
-        recentMatches.forEach((m, index) => {
-            const weight = recentMatches.length - index;
-            weightedPoints += window.calculatePlayerMatchPoints(m, playerName) * weight;
-            totalWeight += weight;
-        });
-
-        const weightedAverage = totalWeight > 0 ? weightedPoints / totalWeight : 0;
-        performanceScore = Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
+    if (recentMatches.length === 0) {
+        return { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
     }
 
-    if (recentMatches.length === 0) return 0;
+    let performanceScore = 0;
+    let weightedPoints = 0;
+    let totalWeight = 0;
+
+    recentMatches.forEach((m, index) => {
+        const weight = recentMatches.length - index;
+        weightedPoints += window.calculatePlayerMatchPoints(m, playerName) * weight;
+        totalWeight += weight;
+    });
+
+    const weightedAverage = totalWeight > 0 ? weightedPoints / totalWeight : 0;
+    performanceScore = Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
 
     let totalYellowCards = 0;
     let totalRedCards = 0;
@@ -393,19 +394,24 @@ window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
         if (window.playerRefListIncludes(m.rodeKort, playerObj)) totalRedCards++;
     });
 
-    // NFF-logikk for gule kort: første karantene er gratis, gjentatte karantener trekker.
     let karantener = 0;
     if (totalYellowCards >= 4) {
         karantener = 1 + Math.floor((totalYellowCards - 4) / 2);
     }
 
-    const hasFormData = recentMatches.length > 0;
     const disciplinePenalty = (totalRedCards * 10) + (karantener > 1 ? (karantener - 1) * 5 : 0);
-    const disciplineScore = hasFormData ? Math.max(0, 10 - disciplinePenalty) : 0;
+    const disciplineScore = Math.max(0, 10 - disciplinePenalty);
+    const kamp = Math.round(performanceScore);
+    const oppm = Math.round(availabilityScore);
+    const dis = Math.round(disciplineScore);
+    const total = Math.max(0, Math.min(100, kamp + oppm + dis));
 
-    const formScore = performanceScore + availabilityScore + disciplineScore;
-    return Math.max(0, Math.min(100, Math.round(formScore)));
-}
+    return { total, kamp, oppm, dis, hasFormData: true };
+};
+
+window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
+    return window.getPlayerFormComponents(playerName, asOfDate).total;
+};
 
 window.getTeamFormMedian = function(teamName, asOfDate) {
     const scores = (window.activePlayers || [])
@@ -1289,9 +1295,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const trendData = typeof window.getPlayerPerformanceTrend === 'function'
                 ? window.getPlayerPerformanceTrend(playerName)
                 : [];
-            const matchHistoryHtml = history.map((h, index) =>
-                window.renderPlayerMatchHistoryItem(h, player, index === 0)
-            ).join('');
+            const matchHistoryHtml = typeof window.renderPlayerFormHistoryTableHtml === 'function'
+                ? window.renderPlayerFormHistoryTableHtml(playerName, history)
+                : '';
 
             container.innerHTML = `
                 <div class="stats-player-detail">
@@ -1330,11 +1336,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         </div>
                     </div>
 
-                    <div class="stats-panel stats-match-history-panel">
+                    <div class="stats-panel stats-form-history-panel">
                         <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Poenghistorikk per kamp</h3>
+                            <h3 class="stats-panel-title">Form etter hver kamp — kamp for kamp</h3>
                         </div>
-                        <div class="stats-match-history-list">${matchHistoryHtml}</div>
+                        <div class="stats-form-history-table-wrap">${matchHistoryHtml}</div>
                     </div>
                 </div>
             `;
@@ -1948,73 +1954,107 @@ window.renderPlayerPointBreakdownHtml = function(details) {
     `;
 };
 
-window.renderPlayerMatchHistoryItem = function(entry, player, expanded) {
-    const safeMatchId = String(entry.matchId).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    const dateText = entry.date
-        ? new Date(entry.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short', year: 'numeric' })
-        : '-';
-    const shortDate = entry.date
-        ? new Date(entry.date).toLocaleDateString('no-NO', { day: '2-digit', month: 'short' })
-        : '-';
-    const toneClass = window.getPlayerPointsToneClass(entry.points);
-    const metaParts = [];
-
-    if (entry.matchType) metaParts.push(entry.matchType);
-    if (entry.rating && entry.rating !== '-') metaParts.push(`Børs ${entry.rating}`);
-    if (entry.goals > 0) metaParts.push(`${entry.goals} mål`);
-    if (entry.assists > 0) metaParts.push(`${entry.assists} assist`);
-    if (entry.bb) metaParts.push('BB');
-    if (entry.yellow) metaParts.push('Gult');
-    if (entry.red) metaParts.push('Rødt');
-
-    return `
-        <article class="stats-match-history-item${expanded ? ' is-expanded' : ''}" data-match-history-id="${entry.matchId}">
-            <button type="button" class="stats-match-history-trigger" onclick="window.togglePlayerMatchHistory('${safeMatchId}')" aria-expanded="${expanded ? 'true' : 'false'}">
-                <div class="stats-match-history-leading">
-                    <span class="stats-match-history-date">${shortDate}</span>
-                    <div class="stats-match-history-main">
-                        <span class="stats-match-history-opponent">${entry.opponent || 'Motstander'}${entry.onPitch === false ? ' <span class="stats-match-history-bench">Benk</span>' : ''}</span>
-                        <span class="stats-match-history-meta">${metaParts.join(' · ') || entry.result || 'Ingen detaljer'}</span>
-                    </div>
-                </div>
-                <div class="stats-match-history-trailing">
-                    <span class="stats-match-history-result">${entry.result || '-'}</span>
-                    <span class="stats-match-history-points ${toneClass}">${entry.points}</span>
-                    <i class="fa-solid fa-chevron-down stats-match-history-chevron" aria-hidden="true"></i>
-                </div>
-            </button>
-            <div class="stats-match-history-body">
-                <div class="stats-match-history-body-head">
-                    <div>
-                        <p class="stats-match-history-body-title">${dateText} · ${entry.opponent || 'Motstander'}</p>
-                        <p class="stats-match-history-body-sub">${entry.matchType || 'Kamp'} · Resultat ${entry.result || '-'}</p>
-                    </div>
-                    <button type="button" onclick="openMatchStatsEditor('${safeMatchId}')" title="Rediger kampstatistikk" class="portal-btn portal-btn-icon-sm portal-btn-warning">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                </div>
-                ${window.renderPlayerPointBreakdownHtml(entry.breakdownDetails)}
-            </div>
-        </article>
-    `;
+window.formatStatsShortDate = function(dateValue) {
+    if (!dateValue) return '–';
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return '–';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}.${month}`;
 };
 
-window.togglePlayerMatchHistory = function(matchId) {
-    const item = document.querySelector(`[data-match-history-id="${matchId}"]`);
-    if (!item) return;
+window.formatStatsMatchResult = function(result) {
+    if (!result || result === 'Ikke spilt' || !String(result).includes('-')) {
+        return '(ikke spilt)';
+    }
+    return String(result).replace(/\s*-\s*/, '–');
+};
 
-    const isExpanded = item.classList.contains('is-expanded');
-    document.querySelectorAll('.stats-match-history-item.is-expanded').forEach(openItem => {
-        if (openItem !== item) {
-            openItem.classList.remove('is-expanded');
-            const trigger = openItem.querySelector('.stats-match-history-trigger');
-            if (trigger) trigger.setAttribute('aria-expanded', 'false');
-        }
-    });
+window.formatStatsOpponentLabel = function(entry) {
+    let label = entry.opponent || 'Motstander';
+    if (entry.matchType === 'Cup') label += ' (cup)';
+    const notPlayed = !entry.result || entry.result === 'Ikke spilt' || !String(entry.result).includes('-');
+    if (notPlayed) label += '*';
+    return label;
+};
 
-    item.classList.toggle('is-expanded', !isExpanded);
-    const trigger = item.querySelector('.stats-match-history-trigger');
-    if (trigger) trigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
+    if (!history.length) {
+        return `<div class="stats-form-history-empty">Ingen kamper registrert.</div>`;
+    }
+
+    const rows = [...history]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map(entry => {
+            const formParts = window.getPlayerFormComponents(playerName, entry.date);
+            return {
+                ...entry,
+                form: formParts.total,
+                formKamp: formParts.kamp,
+                formOppm: formParts.oppm,
+                formDis: formParts.dis,
+                hasForm: formParts.hasFormData
+            };
+        });
+
+    const formValues = rows.filter(row => row.hasForm && row.form > 0).map(row => row.form);
+    const minForm = formValues.length ? Math.min(...formValues) : null;
+    const maxForm = formValues.length ? Math.max(...formValues) : null;
+    const showExtremes = formValues.length > 1;
+
+    const bodyRows = rows.map(entry => {
+        const pointsClass = window.getPlayerPointsToneClass(entry.points);
+        const ratingText = entry.rating && entry.rating !== '-' ? entry.rating : '–';
+        const formClass = showExtremes && entry.form === minForm
+            ? 'is-lowest'
+            : showExtremes && entry.form === maxForm
+                ? 'is-highest'
+                : '';
+        const formNote = showExtremes && entry.form === minForm
+            ? ' <span class="stats-form-history-flag">← laveste</span>'
+            : showExtremes && entry.form === maxForm
+                ? ' <span class="stats-form-history-flag">← høyeste</span>'
+                : '';
+        const breakdown = entry.hasForm
+            ? `${entry.formKamp}+${entry.formOppm}+${entry.formDis}`
+            : '–';
+        const safeMatchId = String(entry.matchId).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+        return `
+            <tr class="stats-form-history-row">
+                <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
+                <td class="stats-form-history-opponent">${window.formatStatsOpponentLabel(entry)}</td>
+                <td class="stats-form-history-result">${window.formatStatsMatchResult(entry.result)}</td>
+                <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
+                <td class="stats-form-history-rating">${ratingText}</td>
+                <td class="stats-form-history-form ${formClass}">${entry.hasForm ? entry.form : '–'}${formNote}</td>
+                <td class="stats-form-history-breakdown">${breakdown}</td>
+                <td class="stats-form-history-action">
+                    <button type="button" onclick="openMatchStatsEditor('${safeMatchId}')" title="Rediger kamp" class="portal-btn portal-btn-icon-sm portal-btn-warning">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <table class="stats-form-history-table">
+            <thead>
+                <tr>
+                    <th>Dato</th>
+                    <th>Motstander</th>
+                    <th>Resultat</th>
+                    <th>Kampoeng</th>
+                    <th>Børs</th>
+                    <th>Form</th>
+                    <th>Kamp+Oppm+Dis</th>
+                    <th class="stats-form-history-action-head" aria-label="Rediger"></th>
+                </tr>
+            </thead>
+            <tbody>${bodyRows}</tbody>
+        </table>
+    `;
 };
 
 window.renderPlayerTrendChartSvg = function(trendData) {
