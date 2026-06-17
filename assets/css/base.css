@@ -2816,6 +2816,37 @@
             background: rgba(245, 197, 66, 0.12);
             border-color: rgba(245, 197, 66, 0.35);
         }
+        .stats-sort-context-value {
+            align-items: center;
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.45rem;
+            justify-content: center;
+        }
+        .stats-sort-context-icon,
+        .stats-sort-context-value .stats-sort-glyph {
+            flex-shrink: 0;
+            font-size: 0.95rem;
+            line-height: 1;
+            width: 1em;
+        }
+        .stats-sort-context-main {
+            line-height: 1.1;
+        }
+        .stats-sort-context-delta {
+            font-size: 0.82rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .stats-sort-context-delta.is-above {
+            color: #166534;
+        }
+        .stats-sort-context-delta.is-below {
+            color: #b91c1c;
+        }
+        .stats-sort-context-delta.is-equal {
+            color: #64748b;
+        }
         .stats-inline-metric-label {
             color: #64748b;
             display: block;

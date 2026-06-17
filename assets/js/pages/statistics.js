@@ -684,6 +684,105 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.getStatsTeamMedian = function(statsData, column) {
+            const values = statsData
+                .map(stat => Number(stat[column]))
+                .filter(value => !Number.isNaN(value));
+            if (!values.length) return null;
+
+            values.sort((a, b) => a - b);
+            const mid = Math.floor(values.length / 2);
+            return values.length % 2 === 0
+                ? (values[mid - 1] + values[mid]) / 2
+                : values[mid];
+        };
+
+        window.formatStatsSortValue = function(column, value) {
+            const numeric = Number(value);
+            if (Number.isNaN(numeric)) return '-';
+
+            if (column === 'oppmotePct') return `${Math.round(numeric)}%`;
+            if (column === 'kjemi') return String(Math.round(numeric));
+            if (column === 'kampbonus' || column === 'snittBors') return numeric > 0 ? numeric.toFixed(1) : '-';
+            if (numeric > 0 || column === 'kamper') return String(Math.round(numeric));
+            return '-';
+        };
+
+        window.formatStatsMedianDelta = function(column, playerValue, median) {
+            if (median === null || median === undefined) return { text: '', tone: 'is-equal' };
+
+            const delta = Number(playerValue) - Number(median);
+            if (Number.isNaN(delta)) return { text: '', tone: 'is-equal' };
+
+            if (Math.abs(delta) < 0.05) {
+                return { text: '±0', tone: 'is-equal' };
+            }
+
+            const rounded = column === 'oppmotePct'
+                ? Math.round(delta)
+                : (column === 'kampbonus' || column === 'snittBors')
+                    ? Math.round(delta * 10) / 10
+                    : Math.round(delta);
+            const suffix = column === 'oppmotePct' ? '%' : '';
+            const sign = rounded > 0 ? '+' : '';
+            return {
+                text: `${sign}${rounded}${suffix}`,
+                tone: rounded > 0 ? 'is-above' : 'is-below'
+            };
+        };
+
+        window.getStatsSortedLeader = function(sortCol, statsData) {
+            const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, sortCol));
+            relevantStats.sort((a, b) => (
+                currentStatSortDesc
+                    ? b[sortCol] - a[sortCol]
+                    : a[sortCol] - b[sortCol]
+            ));
+            return relevantStats[0] || null;
+        };
+
+        window.getStatsSortMedian = function(sortCol, statsData, filterLag) {
+            const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, sortCol));
+
+            if (sortCol === 'kjemi' && typeof window.getTeamFormMedian === 'function') {
+                return window.getTeamFormMedian(filterLag === 'Alle' ? '' : filterLag);
+            }
+
+            return window.getStatsTeamMedian(relevantStats, sortCol);
+        };
+
+        window.renderStatsSpillerePrimaryMetricHtml = function(statsData, filterLag) {
+            const useDefaultFormCard = currentStatSortCol === 'kampbonus' || currentStatSortCol === 'kjemi';
+            if (useDefaultFormCard) {
+                const avgForm = statsData.length
+                    ? Math.round(statsData.reduce((sum, stat) => sum + stat.kjemi, 0) / statsData.length)
+                    : 0;
+                return window.renderStatsInlineMetricHtml('Snitt form', avgForm || '-', 'is-win');
+            }
+
+            const leader = window.getStatsSortedLeader(currentStatSortCol, statsData);
+            if (!leader) {
+                return window.renderStatsInlineMetricHtml('Snitt form', '-', 'is-win');
+            }
+
+            const option = window.getStatsSortOption(currentStatSortCol);
+            const iconHtml = window.renderStatsSortIconHtml(option, 'stats-sort-context-icon');
+            const value = leader[currentStatSortCol];
+            const median = window.getStatsSortMedian(currentStatSortCol, statsData, filterLag);
+            const mainText = window.formatStatsSortValue(currentStatSortCol, value);
+            const delta = window.formatStatsMedianDelta(currentStatSortCol, value, median);
+
+            return `
+                <div class="stats-inline-metric">
+                    <span class="stats-inline-metric-value stats-sort-context-value is-win">
+                        ${iconHtml}
+                        <span class="stats-sort-context-main">${mainText}</span>
+                        ${delta.text ? `<span class="stats-sort-context-delta ${delta.tone}">${delta.text}</span>` : ''}
+                    </span>
+                </div>
+            `;
+        };
+
         window.renderStatsLagSummary = function() {
             const container = document.getElementById('stats-lag-summary');
             const data = window._statsLagData;
@@ -728,9 +827,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const analysis = window.buildPlayerAnalysisStats(filterLag);
             const allStats = window.buildPlayerStatsData();
             const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
-            const avgForm = statsData.length
-                ? Math.round(statsData.reduce((sum, s) => sum + s.kjemi, 0) / statsData.length)
-                : 0;
             const avgBonus = statsData.length
                 ? (statsData.reduce((sum, s) => sum + s.kampbonus, 0) / statsData.length).toFixed(1)
                 : '-';
@@ -756,7 +852,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             container.innerHTML = `
                 <div class="stats-summary-panel">
                     <div class="stats-inline-metrics">
-                        ${window.renderStatsInlineMetricHtml('Snitt form', avgForm || '-', 'is-win')}
+                        ${window.renderStatsSpillerePrimaryMetricHtml(statsData, filterLag)}
                         ${window.renderStatsInlineMetricHtml('Snitt kampbidrag', avgBonus, 'is-accent')}
                         ${buildLeaderMetric('Toppscorer', topScorer, topScorerDetail, 'is-goals')}
                         ${buildLeaderMetric('Formspiller', formPlayer, formPlayerDetail, 'is-draw')}
@@ -1834,6 +1930,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             window.updateStatsSortButtons();
             window.renderPlayerStatsList();
+
+            const spillereView = document.getElementById('stat-view-spillere');
+            if (spillereView && !spillereView.classList.contains('hidden') && typeof window.renderStatsSpillereSummary === 'function') {
+                window.renderStatsSpillereSummary();
+            }
         };
 
         
