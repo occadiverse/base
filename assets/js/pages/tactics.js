@@ -338,10 +338,10 @@
             ${badgesHtml}
             <span class="text-[14px] font-black tracking-tight z-10 ${bonusTextColor}" title="Kampbidrag">${bonusTekst}</span>
             <div class="absolute -bottom-5 flex flex-col items-center pointer-events-none z-10">
-                <span class="text-[9px] font-bold text-bsk-blue whitespace-nowrap bg-white/90 border border-bsk-blue/10 shadow-sm px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
+                <span class="player-node-name text-[9px] font-bold whitespace-nowrap px-1.5 py-0.5 rounded-md">${displayBottomName}</span>
             </div>
         `;
-        node.classList.add('bg-bsk-blue', 'text-white', 'border-[3px]', borderClass);
+        node.classList.add('bg-bsk-blue', 'border-[3px]', borderClass);
     }
 };
 
