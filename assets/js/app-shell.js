@@ -134,13 +134,15 @@ function animateMobileSwipeTab(tabId, direction) {
     if (!activeEl) return;
 
     activeEl.classList.remove('portal-view-swipe-enter-left', 'portal-view-swipe-enter-right');
+    activeEl.style.setProperty('--portal-swipe-enter-distance', `${Math.min(118, Math.max(74, window.innerWidth * 0.24))}px`);
     // Restart the keyframe if the user swipes several tabs in quick succession.
     void activeEl.offsetWidth;
     activeEl.classList.add(direction === 'right' ? 'portal-view-swipe-enter-right' : 'portal-view-swipe-enter-left');
 
     window.setTimeout(() => {
         activeEl.classList.remove('portal-view-swipe-enter-left', 'portal-view-swipe-enter-right');
-    }, 680);
+        activeEl.style.removeProperty('--portal-swipe-enter-distance');
+    }, 760);
 }
 
 function setupMobileSwipeNavigation() {

@@ -55,10 +55,12 @@
                 touch-action: pan-y;
             }
             .portal-view-swipe-enter-left {
-                animation: portal-view-swipe-in-left 620ms cubic-bezier(0.22, 1, 0.36, 1);
+                animation: portal-view-swipe-in-left 680ms cubic-bezier(0.16, 1, 0.3, 1);
+                will-change: transform, opacity;
             }
             .portal-view-swipe-enter-right {
-                animation: portal-view-swipe-in-right 620ms cubic-bezier(0.22, 1, 0.36, 1);
+                animation: portal-view-swipe-in-right 680ms cubic-bezier(0.16, 1, 0.3, 1);
+                will-change: transform, opacity;
             }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -69,8 +71,8 @@
         }
         @keyframes portal-view-swipe-in-left {
             from {
-                opacity: 0.68;
-                transform: translate3d(24px, 0, 0);
+                opacity: 0.58;
+                transform: translate3d(var(--portal-swipe-enter-distance, 88px), 0, 0);
             }
             to {
                 opacity: 1;
@@ -79,8 +81,8 @@
         }
         @keyframes portal-view-swipe-in-right {
             from {
-                opacity: 0.68;
-                transform: translate3d(-24px, 0, 0);
+                opacity: 0.58;
+                transform: translate3d(calc(var(--portal-swipe-enter-distance, 88px) * -1), 0, 0);
             }
             to {
                 opacity: 1;
