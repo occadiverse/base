@@ -71,45 +71,47 @@ window.openAttendanceModal = function(eventId) {
         '"': '&quot;',
         "'": '&#39;'
     }[char]));
+    const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
     const container = document.getElementById('attendance-players-list');
     const alertsContainer = document.getElementById('attendanceModalAlerts');
     container.innerHTML = '';
     if (alertsContainer) {
-        const alerts = isMatchClick && typeof window.buildMatchAlertData === 'function'
-            ? window.buildMatchAlertData(ev)
-            : [];
-
         alertsContainer.innerHTML = '';
         alertsContainer.classList.add('hidden');
-
-        if (alerts.length > 0) {
-            alertsContainer.innerHTML = `
-                <button type="button" onclick="window.showMatchAlertModal('${escapeAttr(ev.id)}')" class="attendance-modal-alert-card">
-                    <div class="attendance-modal-alert-icon">
-                        <i class="fa-solid ${escapeAttr(alerts[0].icon || 'fa-triangle-exclamation')}"></i>
-                    </div>
-                    <div class="attendance-modal-alert-copy">
-                        <span>Varsel</span>
-                        <strong>${escapeAttr(alerts[0].playerName)} · ${escapeAttr(alerts[0].badge)}</strong>
-                        <p>${escapeAttr(alerts[0].detail)}</p>
-                    </div>
-                    <i class="fa-solid fa-chevron-right attendance-modal-alert-chevron"></i>
-                </button>
-            `;
-            alertsContainer.classList.remove('hidden');
-        }
     }
 
     const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
         ? window.getAttendanceModalTeamPlayers(ev)
         : (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    const disciplineStatus = isMatchClick && typeof window.getDisciplineStatusForTeam === 'function'
+        ? window.getDisciplineStatusForTeam(ev.matchGroup, ev.date)
+        : {};
 
     const appendPlayerRow = (player) => {
         const playerId = window.getPlayerStorageKey(player);
         if (!playerId) return;
 
         const isRegistered = window.getAttendanceForPlayer(ev.attendance, player) === true;
+        const playerDiscipline = disciplineStatus[playerId] || disciplineStatus[player.navn] || {};
+        const hasDisciplineWarning = playerDiscipline.isSuspended || playerDiscipline.isAtRisk;
+        const warningLabel = playerDiscipline.isSuspended
+            ? (playerDiscipline.reason || 'Karantene')
+            : 'Faresone';
+        const warningTitle = playerDiscipline.isSuspended
+            ? `${player.navn} har karantene i neste seriekamp.`
+            : `${player.navn} står i faresone for karantene.`;
+        const warningChipHtml = hasDisciplineWarning
+            ? `
+                <button type="button"
+                        onclick="event.preventDefault(); event.stopPropagation(); window.showMatchAlertModal('${escapeJsString(ev.id)}')"
+                        class="attendance-modal-player-alert-chip ${playerDiscipline.isSuspended ? 'is-critical' : 'is-warning'}"
+                        title="${escapeAttr(warningTitle)}">
+                    <i class="fa-solid ${playerDiscipline.cardType === 'red' ? 'fa-square' : 'fa-triangle-exclamation'}"></i>
+                    <span>${escapeAttr(warningLabel)}</span>
+                </button>
+            `
+            : '';
         const div = document.createElement('div');
         div.className = 'attendance-modal-player';
         div.setAttribute('data-player-id', playerId);
@@ -123,7 +125,10 @@ window.openAttendanceModal = function(eventId) {
                     onchange="window.updateAttendanceModalSummary()"
                 >
                 <div class="attendance-modal-player-info">
-                    <span class="attendance-modal-player-name">${escapeAttr(player.navn)}</span>
+                    <span class="attendance-modal-player-name-row">
+                        <span class="attendance-modal-player-name">${escapeAttr(player.navn)}</span>
+                        ${warningChipHtml}
+                    </span>
                     <span class="attendance-modal-player-pos">${escapeAttr(player.pos1 || '-')}</span>
                 </div>
             </label>

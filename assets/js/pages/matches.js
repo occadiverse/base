@@ -237,7 +237,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
             <i class="fa-solid fa-futbol"></i>
             <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
         </div>
-        ${alertChipHtml}
     `;
     const footerAttendanceHtml = showAttendance && data.attendingCount > 0
         ? `<div class="match-detail-footer-item">
@@ -256,6 +255,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
                 <div class="match-detail-meta">
                     <i class="fa-regular fa-calendar-days"></i>
                     <span>${escapeMatchHtml(data.dateLabel)}</span>
+                    ${alertChipHtml}
                 </div>
                 <div class="match-detail-top-chips">
                     ${topChipsHtml}

@@ -1578,6 +1578,12 @@
             gap: 0.2rem;
             min-width: 0;
         }
+        .attendance-modal-player-name-row {
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            min-width: 0;
+        }
         .attendance-modal-player-name {
             color: #ffffff;
             font-size: 0.88rem;
@@ -1585,6 +1591,40 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .attendance-modal-player-alert-chip {
+            align-items: center;
+            appearance: none;
+            border-radius: 999px;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.56rem;
+            font-weight: 950;
+            gap: 0.26rem;
+            letter-spacing: 0.06em;
+            padding: 0.22rem 0.45rem;
+            text-transform: uppercase;
+            transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+            white-space: nowrap;
+        }
+        .attendance-modal-player-alert-chip:hover {
+            transform: translateY(-1px);
+        }
+        .attendance-modal-player-alert-chip.is-critical {
+            background: rgba(248, 113, 113, 0.18);
+            border: 1px solid rgba(248, 113, 113, 0.38);
+            color: #fecaca;
+        }
+        .attendance-modal-player-alert-chip.is-critical i {
+            color: #ef4444;
+            filter: drop-shadow(0 1px 3px rgba(127, 29, 29, 0.25));
+            transform: rotate(3deg) scaleY(1.12);
+        }
+        .attendance-modal-player-alert-chip.is-warning {
+            background: rgba(245, 197, 66, 0.16);
+            border: 1px solid rgba(245, 197, 66, 0.34);
+            color: #fde68a;
         }
         .attendance-modal-player-pos {
             color: rgba(255, 255, 255, 0.55);
