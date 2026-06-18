@@ -1461,6 +1461,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     `<span class="stats-meta-pos">${stat.pos1 || 'Spiller'}</span>`,
                     window.renderStatsMetaPartHtml('kamper', String(stat.kamper)),
                     window.renderStatsMetaPartHtml('totalScore', totalText),
+                    window.renderStatsMetaPartHtml('kampbonus', bonusText),
+                    window.renderStatsMetaPartHtml('kjemi', String(stat.kjemi)),
                     window.renderStatsMetaPartHtml('oppmotePct', `${stat.oppmotePct}%`),
                     window.renderStatsMetaPartHtml('snittBors', borsText)
                 ];
