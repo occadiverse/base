@@ -394,14 +394,6 @@
             box-shadow: none;
             color: #64748b !important;
         }
-        #floating-action-btn {
-            bottom: calc(var(--portal-mobile-nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
-        }
-        @media (min-width: 768px) {
-            #floating-action-btn {
-                bottom: 2rem;
-            }
-        }
         .portal-page-toolbar {
             display: flex;
             flex-wrap: wrap;

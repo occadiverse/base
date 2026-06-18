@@ -118,14 +118,6 @@ function renderMobileNav() {
     `;
 }
 
-function renderFloatingActionButton() {
-    return `
-        <button id="floating-action-btn" class="portal-btn portal-btn-warning fixed right-6 md:bottom-8 w-14 h-14 rounded-full text-xl z-30 hidden" onclick="openActivityModal('Trening')" title="Registrer ny oppføring">
-            <i id="floating-btn-icon" class="fa-solid fa-plus"></i>
-        </button>
-    `;
-}
-
 function mountHtml(id, html) {
     const target = document.getElementById(id);
     if (target) target.innerHTML = html;
@@ -136,7 +128,7 @@ window.renderPortalNavigation = function renderPortalNavigation() {
     mountHtml('portal-mobile-header', renderMobileHeader());
     mountHtml('portal-action-bar', renderActionBar());
     mountHtml('portal-mobile-nav', renderMobileNav());
-    mountHtml('portal-floating-action', renderFloatingActionButton());
+    mountHtml('portal-floating-action', '');
 };
 
 window.renderPortalNavigation();

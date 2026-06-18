@@ -64,29 +64,13 @@ function switchTab(tabId, options = {}) {
     const scrollHost = document.querySelector('.portal-main-shell');
     if (scrollHost) scrollHost.scrollTop = 0;
 
-    const floatingBtn = document.getElementById('floating-action-btn');
-    const floatingIcon = document.getElementById('floating-btn-icon');
-
-    if (tabId === 'kamper') {
-        floatingBtn.classList.remove('hidden');
-        floatingIcon.className = "fa-solid fa-plus";
-        floatingBtn.onclick = function() { window.openMatchModal(); };
-    } else if (tabId === 'oppmote') {
-        floatingBtn.classList.remove('hidden');
-        floatingIcon.className = "fa-solid fa-calendar-plus";
-
+    if (tabId === 'oppmote') {
         const d = new Date();
         window.currentCalendarDate = d;
         window.selectedCalendarDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
         if (typeof window.renderCalendar === 'function') window.renderCalendar();
         if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
-
-        floatingBtn.onclick = function() { window.openActivityModal(); };
-    } else if (tabId === 'tropp') {
-        floatingBtn.classList.add('hidden');
-    } else {
-        floatingBtn.classList.add('hidden');
     }
 
     const titles = {
@@ -521,12 +505,6 @@ function setupMobileSwipeNavigation() {
 }
 
 window.setupMobileSwipeNavigation = setupMobileSwipeNavigation;
-
-function handleFloatingAction() {
-    if (currentTab === 'kamper') window.openMatchModal();
-    else if (currentTab === 'oppmote') window.openActivityModal();
-    else if (currentTab === 'tropp') window.openPlayerModal();
-}
 
 function parseScore(resultStr) {
     if (!resultStr || !resultStr.includes('-')) return null;
