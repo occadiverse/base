@@ -93,10 +93,10 @@ window.checkIndividualChemistry = function() {
 
         window.buildPlayerAnalysisStats = function(filterLag) {
             const players = (window.activePlayers || []).filter(p => {
-                if (p.status === 'Passiv') return false;
                 if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
                 return true;
             });
+            const currentPlayers = players.filter(p => p.status !== 'Passiv');
 
             const matches = (window.activeMatches || [])
                 .filter(m => {
@@ -158,6 +158,7 @@ window.checkIndividualChemistry = function() {
 
                 return {
                     name,
+                    status: player.status || '',
                     spillerLag: player.spillerLag || '',
                     matches: playerMatches.length || 0,
                     totalPoints: totalPoints || 0,
@@ -177,7 +178,7 @@ window.checkIndividualChemistry = function() {
             const activeStats = playerStats.filter(p => p.matches > 0);
 
             const followUpMap = new Map();
-            activeStats.forEach(p => {
+            activeStats.filter(p => p.status !== 'Passiv').forEach(p => {
                 if (!(p.redSerie > 0 || p.yellowSerie >= 3 || (p.formLastFive > 0 && p.formLastFive < 5.5) || p.matches <= 2)) return;
 
                     const reason = [];
@@ -195,7 +196,7 @@ window.checkIndividualChemistry = function() {
                 if (reason.length) followUpMap.set(p.name, reason);
             });
 
-            players.forEach(player => {
+            currentPlayers.forEach(player => {
                 const name = player.navn || player.name || player.fullName || player.spiller || '';
                 if (!name) return;
 
@@ -230,6 +231,38 @@ window.checkIndividualChemistry = function() {
                 topAssist: [...activeStats].sort((a, b) => b.assists - a.assists)[0] || null,
                 topKampbidrag: [...activeStats].sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)[0] || null
             };
+        };
+
+        window.getStatsHistoricalEventSquad = function(event, scopedPlayers, activePlayers) {
+            const eventTeam = event?.team || event?.matchGroup;
+            const scoped = Array.isArray(scopedPlayers) ? scopedPlayers : [];
+            const current = Array.isArray(activePlayers)
+                ? activePlayers
+                : scoped.filter(p => p.status !== 'Passiv');
+            const squadMap = new Map();
+            const addPlayer = (player) => {
+                if (!player) return;
+                const key = typeof window.getPlayerStorageKey === 'function'
+                    ? window.getPlayerStorageKey(player)
+                    : (player.id || player.navn);
+                if (!key || squadMap.has(key)) return;
+                squadMap.set(key, player);
+            };
+
+            current
+                .filter(p => !eventTeam || p.spillerLag === eventTeam)
+                .forEach(addPlayer);
+
+            // Passive players should count historically when the event itself says they attended.
+            if (event?.attendance) {
+                scoped.forEach(player => {
+                    if (player.status !== 'Passiv') return;
+                    if (eventTeam && player.spillerLag !== eventTeam) return;
+                    if (window.isPlayerAttending(event.attendance, player)) addPlayer(player);
+                });
+            }
+
+            return [...squadMap.values()];
         };
 
         window.buildTeamReportData = function(filterLag, lagData, analysis) {
@@ -270,8 +303,7 @@ window.checkIndividualChemistry = function() {
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
             const recentAttendance = historicalEvents.slice(0, 5).map(e => {
-                const eventTeam = e.team || filterLag || 'Lag A';
-                const squad = activePlayers.filter(p => !eventTeam || p.spillerLag === eventTeam);
+                const squad = window.getStatsHistoricalEventSquad(e, scopedPlayers, activePlayers);
                 const attending = squad.filter(p => window.isPlayerAttending(e.attendance, p)).length;
                 const pct = squad.length > 0 ? Math.round((attending / squad.length) * 100) : 0;
                 return {
@@ -324,7 +356,8 @@ window.checkIndividualChemistry = function() {
                 return Math.round((sum / matches.length) * 10) / 10;
             };
             const avgTeamMatchPoints = (match) => {
-                const attendingPlayers = activePlayers.filter(p => window.isPlayerAttending(match.attendance, p));
+                const attendingPlayers = window.getStatsHistoricalEventSquad(match, scopedPlayers, activePlayers)
+                    .filter(p => window.isPlayerAttending(match.attendance, p));
                 if (!attendingPlayers.length || typeof window.calculatePlayerMatchPoints !== 'function') return 0;
                 const sum = attendingPlayers.reduce((total, p) => total + window.calculatePlayerMatchPoints(match, p), 0);
                 return Math.round((sum / attendingPlayers.length) * 10) / 10;
@@ -342,8 +375,7 @@ window.checkIndividualChemistry = function() {
                 let possibleTotal = 0;
 
                 events.forEach(e => {
-                    const eventTeam = e.team || filterLag || 'Lag A';
-                    const squad = activePlayers.filter(p => !eventTeam || p.spillerLag === eventTeam);
+                    const squad = window.getStatsHistoricalEventSquad(e, scopedPlayers, activePlayers);
                     if (!squad.length) return;
                     possibleTotal += squad.length;
                     attendingTotal += squad.filter(p => window.isPlayerAttending(e.attendance, p)).length;
@@ -447,9 +479,12 @@ window.checkIndividualChemistry = function() {
         
         window.renderStatistikkSide = function() {
             const filterLag = window.getStatsTeamFilter();
-            const teamPlayers = (window.activePlayers || []).filter(p => {
-                if (p.status === 'Passiv') return false;
+            const scopedPlayers = (window.activePlayers || []).filter(p => {
                 if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
+                return true;
+            });
+            const teamPlayers = scopedPlayers.filter(p => {
+                if (p.status === 'Passiv') return false;
                 return true;
             });
 
@@ -486,7 +521,9 @@ window.checkIndividualChemistry = function() {
                     if (eventDate > todayForStats) return;
                 }
                 const eventTeam = e.team || 'Lag A';
-                const squad = teamPlayers.filter(p => p.spillerLag === eventTeam);
+                const squad = typeof window.getStatsHistoricalEventSquad === 'function'
+                    ? window.getStatsHistoricalEventSquad(e, scopedPlayers, teamPlayers)
+                    : teamPlayers.filter(p => p.spillerLag === eventTeam);
                 if (!squad.length) return;
                 totalPossibleTicks += squad.length;
                 if (e.attendance) {
@@ -642,11 +679,12 @@ window.getTeamFormMedian = function(teamName, asOfDate) {
 window.getTeamMatchAveragePoints = function(match, teamName) {
     if (!match || !teamName || !match.attendance) return null;
 
-    const players = (window.activePlayers || []).filter(p =>
-        p.status !== 'Passiv' &&
-        p.spillerLag === teamName &&
-        window.isPlayerAttending(match.attendance, p)
-    );
+    const scopedPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName);
+    const activePlayers = scopedPlayers.filter(p => p.status !== 'Passiv');
+    const players = (typeof window.getStatsHistoricalEventSquad === 'function'
+        ? window.getStatsHistoricalEventSquad(match, scopedPlayers, activePlayers)
+        : activePlayers
+    ).filter(p => window.isPlayerAttending(match.attendance, p));
 
     if (!players.length) return null;
 
