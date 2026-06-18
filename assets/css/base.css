@@ -392,6 +392,7 @@
         .portal-mobile-nav-shell.portal-mobile-nav-settling .mobile-nav-btn.active-nav {
             background: transparent;
             box-shadow: none;
+            color: #64748b !important;
         }
         #floating-action-btn {
             bottom: calc(var(--portal-mobile-nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
