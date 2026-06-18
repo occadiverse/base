@@ -140,7 +140,7 @@ function animateMobileSwipeTab(tabId, direction) {
 
     window.setTimeout(() => {
         activeEl.classList.remove('portal-view-swipe-enter-left', 'portal-view-swipe-enter-right');
-    }, 420);
+    }, 680);
 }
 
 function setupMobileSwipeNavigation() {
@@ -178,7 +178,8 @@ function setupMobileSwipeNavigation() {
         const deltaY = event.changedTouches[0].clientY - startY;
         isTracking = false;
 
-        if (Math.abs(deltaX) < 80 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
+        const minSwipeDistance = Math.max(115, window.innerWidth * 0.32);
+        if (Math.abs(deltaX) < minSwipeDistance || Math.abs(deltaX) < Math.abs(deltaY) * 1.6) return;
 
         const currentIndex = swipeTabs.indexOf(currentTab);
         if (currentIndex === -1) return;

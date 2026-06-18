@@ -51,10 +51,10 @@
         }
         @media (max-width: 767px) {
             .portal-view-swipe-enter-left {
-                animation: portal-view-swipe-in-left 380ms cubic-bezier(0.22, 1, 0.36, 1);
+                animation: portal-view-swipe-in-left 620ms cubic-bezier(0.22, 1, 0.36, 1);
             }
             .portal-view-swipe-enter-right {
-                animation: portal-view-swipe-in-right 380ms cubic-bezier(0.22, 1, 0.36, 1);
+                animation: portal-view-swipe-in-right 620ms cubic-bezier(0.22, 1, 0.36, 1);
             }
         }
         @media (prefers-reduced-motion: reduce) {
