@@ -11,7 +11,7 @@ window.activeMatches = [];
         window.currentTab = 'hjem';
         let isAdminUnlocked = false;
         let activeDetailsId = null;
-        let currentStatSortCol = 'kampbonus';
+        let currentStatSortCol = 'totalScore';
         let currentStatSortDesc = true;
         
         // Finner dagens dato dynamisk

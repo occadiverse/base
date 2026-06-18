@@ -732,11 +732,48 @@ window.getFormScoreBorderClass = function(score, teamName) {
     return 'border-slate-300';
 }
 
+        window.calculatePlayerTotalDisciplineScore = function(stat) {
+            if (!stat) return 0;
+            const yellowCards = (Number(stat.guleSerie) || 0) + (Number(stat.guleCup) || 0);
+            const redCards = (Number(stat.rodeSerie) || 0) + (Number(stat.rodeCup) || 0);
+            const atRiskPenalty = stat.serieAtRisk ? 10 : 0;
+            return Math.max(0, 100 - (yellowCards * 8) - (redCards * 25) - atRiskPenalty);
+        };
+
+        window.applyPlayerTotalScores = function(statsData) {
+            const rows = Array.isArray(statsData) ? statsData : [];
+            const bestKampbonus = rows.reduce((max, stat) => {
+                if (!stat || !stat.attendedMatches) return max;
+                return Math.max(max, Number(stat.kampbonus) || 0);
+            }, 0);
+
+            rows.forEach(stat => {
+                const kampbidragScore = bestKampbonus > 0
+                    ? ((Number(stat.kampbonus) || 0) / bestKampbonus) * 100
+                    : 0;
+                const borsScore = stat.snittBors > 0
+                    ? Math.max(0, Math.min(100, Number(stat.snittBors) * 10))
+                    : 0;
+                const oppmoteScore = Math.max(0, Math.min(100, Number(stat.oppmotePct) || 0));
+                const disciplineScore = window.calculatePlayerTotalDisciplineScore(stat);
+
+                stat.disiplinScore = disciplineScore;
+                stat.totalScore = Math.round((
+                    (kampbidragScore * 0.50) +
+                    (borsScore * 0.25) +
+                    (oppmoteScore * 0.15) +
+                    (disciplineScore * 0.10)
+                ) * 10) / 10;
+            });
+
+            return rows;
+        };
+
         window.buildPlayerStatsData = function() {
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
 
-            return (window.activePlayers || [])
+            const statsData = (window.activePlayers || [])
                 .filter(p => filterLag === 'Alle' || p.spillerLag === filterLag)
                 .map(p => {
                     const teamEvents = allEvents.filter(e => {
@@ -801,6 +838,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         bb
                     };
                 });
+
+            return window.applyPlayerTotalScores(statsData);
         };
 
         window.renderStatsHeroTabsHtml = function(activeTabId) {
@@ -837,6 +876,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.playerStatsRelevantForSort = function(stat, column) {
             switch (column) {
+                case 'totalScore': return stat.totalScore > 0;
                 case 'guleSerie': return stat.guleSerie > 0;
                 case 'rodeSerie': return stat.rodeSerie > 0;
                 case 'mal': return stat.mal > 0;
@@ -857,6 +897,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const labels = {
                 guleSerie: 'gule kort',
                 rodeSerie: 'røde kort',
+                totalScore: 'total score',
                 mal: 'mål',
                 assist: 'assist',
                 bb: 'banens beste',
@@ -952,7 +993,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             if (column === 'oppmotePct') return `${Math.round(numeric)}%`;
             if (column === 'kjemi') return String(Math.round(numeric));
-            if (column === 'kampbonus' || column === 'snittBors') return numeric > 0 ? numeric.toFixed(1) : '-';
+            if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') return numeric > 0 ? numeric.toFixed(1) : '-';
             if (numeric > 0 || column === 'kamper') return String(Math.round(numeric));
             return '-';
         };
@@ -969,7 +1010,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const rounded = column === 'oppmotePct'
                 ? Math.round(delta)
-                : (column === 'kampbonus' || column === 'snittBors')
+                : (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore')
                     ? Math.round(delta * 10) / 10
                     : Math.round(delta);
             const suffix = column === 'oppmotePct' ? '%' : '';
@@ -1406,6 +1447,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const kbSortActiveClass = activeSortCol === 'kampbonus' ? ' is-sort-active' : '';
                 const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
                 const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
+                const totalText = stat.totalScore > 0 ? stat.totalScore.toFixed(1) : '-';
                 const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
                 const extras = [];
@@ -1418,6 +1460,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const metaParts = [
                     `<span class="stats-meta-pos">${stat.pos1 || 'Spiller'}</span>`,
                     window.renderStatsMetaPartHtml('kamper', String(stat.kamper)),
+                    window.renderStatsMetaPartHtml('totalScore', totalText),
                     window.renderStatsMetaPartHtml('oppmotePct', `${stat.oppmotePct}%`),
                     window.renderStatsMetaPartHtml('snittBors', borsText)
                 ];
@@ -1426,7 +1469,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const kampbidragIcon = window.renderStatsSortIconHtml(window.getStatsSortOption('kampbonus'), 'stats-kb-icon');
 
                 return `
-                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
+                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, total score ${totalText}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
                         <div class="stats-form-jersey ${formClass}${formSortActiveClass}" aria-hidden="true">
                             <span class="stats-form-jersey-value">${stat.kjemi}</span>
                             <span class="stats-form-jersey-label">Form</span>
@@ -1531,6 +1574,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
         
         window.STATS_PLAYER_SORT_OPTIONS = [
+            { id: 'totalScore', label: 'Total', icon: 'fa-ranking-star' },
             { id: 'kampbonus', label: 'Kampbidrag', icon: 'fa-chart-line' },
             { id: 'kjemi', label: 'Form', icon: 'fa-heart-pulse' },
             { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
@@ -1731,33 +1775,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : 'Ingen sammenligning';
 
             const totalMatches = history.length;
-            const ratings = history.map(h => Number(h.rating)).filter(r => !isNaN(r) && r > 0);
-            const avgRating = ratings.length ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : 0;
             const totalPoints = history.reduce((sum, h) => sum + (Number(h.points) || 0), 0);
             const avgPoints = totalMatches ? totalPoints / totalMatches : 0;
-
-            let totalGoals = 0;
-            let totalAssists = 0;
-            let totalYellowSerie = 0;
-            let totalYellowCup = 0;
-            let totalRedSerie = 0;
-            let totalRedCup = 0;
-            let totalBb = 0;
-
-            history.forEach(h => {
-                const m = (window.activeMatches || []).find(match => match.id === h.matchId);
-                if (!m) return;
-                totalGoals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
-                totalAssists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
-                if (m.matchType === 'Serie') {
-                    totalYellowSerie += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
-                    totalRedSerie += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
-                } else if (m.matchType === 'Cup') {
-                    totalYellowCup += window.playerRefListIncludes(m.guleKort, player) ? 1 : 0;
-                    totalRedCup += window.playerRefListIncludes(m.rodeKort, player) ? 1 : 0;
-                }
-                totalBb += window.motmMatchesPlayer(m.motm, player) ? 1 : 0;
-            });
+            const playerStatsData = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData()
+                : [];
+            const playerTotalStat = playerStatsData.find(stat => stat.navn === playerName);
+            const totalRank = playerTotalStat
+                ? [...playerStatsData]
+                    .filter(stat => window.playerStatsRelevantForSort(stat, 'totalScore'))
+                    .sort((a, b) => b.totalScore - a.totalScore)
+                    .findIndex(stat => stat.navn === playerName) + 1
+                : 0;
+            const totalScoreText = playerTotalStat && playerTotalStat.totalScore > 0
+                ? playerTotalStat.totalScore.toFixed(1)
+                : '-';
 
             window.renderSpillerDetailHero(playerName, avgPoints, totalPoints, chemistry, formComparison, teamMedian, player);
 
@@ -1778,8 +1810,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-metric-grid is-four">
                         ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
                         ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
-                        ${card('Snittbørs', avgRating ? avgRating.toFixed(1) : '-', 'Gjennomsnittlig spillerbørs', 'fa-star', 'text-bsk-yellow')}
-                        ${card('Mål / Assist', `${totalGoals} / ${totalAssists}`, `${totalBb} BB · Serie ${totalYellowSerie}/${totalRedSerie} · Cup ${totalYellowCup}/${totalRedCup}`, 'fa-chart-line', 'text-bsk-blue')}
+                        ${card('Total plassering', totalRank > 0 ? `#${totalRank}` : '-', 'Rangert etter total score', 'fa-ranking-star', 'text-bsk-blue')}
+                        ${card('Total score', totalScoreText, '50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin', 'fa-gauge-high', 'text-bsk-blue')}
                     </div>
 
                     <div class="stats-panel stats-player-chart-panel">
