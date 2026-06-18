@@ -2732,7 +2732,6 @@
             margin-top: 0.9rem;
         }
         .team-report-trend-card,
-        .team-report-subpanel,
         .team-report-leader-card {
             background:
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 38%),
@@ -2758,23 +2757,19 @@
             background: rgba(185, 28, 28, 0.05);
             border-color: rgba(185, 28, 28, 0.14);
         }
-        .team-report-subpanel {
+        .team-report-detail-card {
             overflow: hidden;
+            padding: 0;
         }
-        .team-report-subpanel h4 {
+        .team-report-detail-card > .team-report-card-label {
             background:
-                linear-gradient(90deg, rgba(245, 197, 66, 0.16) 0%, rgba(245, 197, 66, 0) 50%),
-                #123f73;
-            border-bottom: 1px solid rgba(245, 197, 66, 0.22);
-            color: #ffffff;
-            font-size: 0.72rem;
-            font-weight: 950;
-            letter-spacing: 0.06em;
+                linear-gradient(90deg, rgba(245, 197, 66, 0.16) 0%, rgba(245, 197, 66, 0) 52%),
+                rgba(18, 63, 115, 0.06);
+            border-bottom: 1px solid rgba(18, 63, 115, 0.08);
             padding: 0.75rem 0.9rem;
-            text-transform: uppercase;
         }
         .team-report-list {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.82);
         }
         .team-report-match-row,
         .team-report-attendance-row {
@@ -3066,6 +3061,10 @@
             justify-content: center;
             margin-left: 0;
             width: 100%;
+        }
+        .stats-chrome-bar-centered .stats-hero-tabs {
+            margin-left: auto;
+            margin-right: auto;
         }
         .stats-chrome-bar-stacked {
             flex-direction: column;

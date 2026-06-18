@@ -1144,12 +1144,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         </div>
 
                         <div class="team-report-two-col">
-                            <div class="team-report-subpanel">
-                                <h4>Siste kamper</h4>
+                            <div class="team-report-trend-card team-report-detail-card">
+                                <span class="team-report-card-label">Kampbidrag siste 5</span>
                                 <div class="team-report-list">${matchesHtml}</div>
                             </div>
-                            <div class="team-report-subpanel">
-                                <h4>Nylig oppmøte</h4>
+                            <div class="team-report-trend-card team-report-detail-card">
+                                <span class="team-report-card-label">Oppmøte siste 5</span>
                                 <div class="team-report-list">${attendanceHtml}</div>
                             </div>
                         </div>
