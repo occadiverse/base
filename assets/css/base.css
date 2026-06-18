@@ -2749,6 +2749,34 @@
             font-weight: 950;
             margin-top: 0.2rem;
         }
+        .team-report-trend-values {
+            align-items: center;
+            display: flex !important;
+            gap: 0.45rem;
+            justify-content: center;
+        }
+        .team-report-trend-arrow {
+            align-items: center;
+            border-radius: 999px;
+            display: inline-flex;
+            font-size: 1rem;
+            height: 1.5rem;
+            justify-content: center;
+            line-height: 1;
+            width: 1.5rem;
+        }
+        .team-report-trend-arrow.is-good {
+            background: rgba(22, 101, 52, 0.1);
+            color: #166534;
+        }
+        .team-report-trend-arrow.is-alert {
+            background: rgba(185, 28, 28, 0.1);
+            color: #b91c1c;
+        }
+        .team-report-trend-arrow.is-neutral {
+            background: rgba(161, 98, 7, 0.12);
+            color: #a16207;
+        }
         .team-report-trend-card.is-good {
             background: rgba(22, 101, 52, 0.06);
             border-color: rgba(22, 101, 52, 0.16);

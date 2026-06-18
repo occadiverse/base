@@ -306,8 +306,9 @@ window.checkIndividualChemistry = function() {
             });
 
             const lastFiveMatches = playedMatches.slice(0, 5);
+            const previousMatches = playedMatches.slice(5);
             const avgFor = (matches) => {
-                if (!matches.length) return 0;
+                if (!matches.length) return null;
                 const sum = matches.reduce((total, m) => {
                     const score = parseScore(m.result);
                     return total + (score ? score.bsk : 0);
@@ -315,7 +316,7 @@ window.checkIndividualChemistry = function() {
                 return Math.round((sum / matches.length) * 10) / 10;
             };
             const avgAgainst = (matches) => {
-                if (!matches.length) return 0;
+                if (!matches.length) return null;
                 const sum = matches.reduce((total, m) => {
                     const score = parseScore(m.result);
                     return total + (score ? score.opponent : 0);
@@ -332,7 +333,7 @@ window.checkIndividualChemistry = function() {
                 const values = matches
                     .map(m => avgTeamMatchPoints(m))
                     .filter(value => value > 0);
-                if (!values.length) return 0;
+                if (!values.length) return null;
                 const sum = values.reduce((total, value) => total + value, 0);
                 return Math.round((sum / values.length) * 10) / 10;
             };
@@ -348,7 +349,7 @@ window.checkIndividualChemistry = function() {
                     attendingTotal += squad.filter(p => window.isPlayerAttending(e.attendance, p)).length;
                 });
 
-                return possibleTotal > 0 ? Math.round((attendingTotal / possibleTotal) * 100) : 0;
+                return possibleTotal > 0 ? Math.round((attendingTotal / possibleTotal) * 100) : null;
             };
 
             const latestMatches = [...lastFiveMatches].reverse().map(m => {
@@ -382,13 +383,13 @@ window.checkIndividualChemistry = function() {
                 },
                 trends: {
                     lastFiveFor: avgFor(lastFiveMatches),
-                    allFor: avgFor(playedMatches),
+                    allFor: avgFor(previousMatches),
                     lastFiveAgainst: avgAgainst(lastFiveMatches),
-                    allAgainst: avgAgainst(playedMatches),
+                    allAgainst: avgAgainst(previousMatches),
                     lastFiveKampbidrag: avgKampbidrag(lastFiveMatches),
-                    allKampbidrag: avgKampbidrag(playedMatches),
+                    allKampbidrag: avgKampbidrag(previousMatches),
                     lastFiveAttendance: avgAttendancePct(historicalEvents.slice(0, 5)),
-                    allAttendance: avgAttendancePct(historicalEvents),
+                    allAttendance: avgAttendancePct(historicalEvents.slice(5)),
                     latestMatches,
                     recentAttendance
                 },
@@ -1106,13 +1107,32 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderTeamReportDevelopmentHtml = function(report) {
-            const trendClass = (current, total, inverted = false) => {
-                if (!report.matchCount || current === total) return 'is-neutral';
-                const better = inverted ? current < total : current > total;
-                return better ? 'is-good' : 'is-alert';
+            const trendMeta = (current, baseline, inverted = false) => {
+                if (current === null || current === undefined || baseline === null || baseline === undefined || current === baseline) {
+                    return { tone: 'is-neutral', arrow: '→' };
+                }
+                const better = inverted ? current < baseline : current > baseline;
+                return {
+                    tone: better ? 'is-good' : 'is-alert',
+                    arrow: current > baseline ? '↑' : '↓'
+                };
             };
-            const trendText = (current, total) => `${current || 0} mot ${total || 0}`;
-            const pctTrendText = (current, total) => `${current || 0}% mot ${total || 0}%`;
+            const trendValue = (value, suffix = '') => (
+                value === null || value === undefined ? '-' : `${value}${suffix}`
+            );
+            const trendCard = (label, current, baseline, inverted = false, suffix = '') => {
+                const meta = trendMeta(current, baseline, inverted);
+                return `
+                    <div class="team-report-trend-card ${meta.tone}">
+                        <span class="team-report-card-label">${label}</span>
+                        <strong class="team-report-trend-values">
+                            <span>${trendValue(current, suffix)}</span>
+                            <span class="team-report-trend-arrow ${meta.tone}">${meta.arrow}</span>
+                            <span>${trendValue(baseline, suffix)}</span>
+                        </strong>
+                    </div>
+                `;
+            };
 
             return `
                 <section class="stats-panel team-report-panel">
@@ -1124,26 +1144,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                     <div class="team-report-body">
                         <div class="team-report-trend-grid">
-                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveFor, report.trends.allFor)}">
-                                <span class="team-report-card-label">Mål scoret siste 5</span>
-                                <strong>${trendText(report.trends.lastFiveFor, report.trends.allFor)}</strong>
-                                <span class="team-report-card-sub">siste 5 mot hele perioden</span>
-                            </div>
-                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveAgainst, report.trends.allAgainst, true)}">
-                                <span class="team-report-card-label">Mål imot siste 5</span>
-                                <strong>${trendText(report.trends.lastFiveAgainst, report.trends.allAgainst)}</strong>
-                                <span class="team-report-card-sub">lavere er bedre</span>
-                            </div>
-                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveKampbidrag, report.trends.allKampbidrag)}">
-                                <span class="team-report-card-label">Kampbidrag siste 5</span>
-                                <strong>${trendText(report.trends.lastFiveKampbidrag, report.trends.allKampbidrag)}</strong>
-                                <span class="team-report-card-sub">siste 5 mot hele perioden</span>
-                            </div>
-                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveAttendance, report.trends.allAttendance)}">
-                                <span class="team-report-card-label">Oppmøte siste 5</span>
-                                <strong>${pctTrendText(report.trends.lastFiveAttendance, report.trends.allAttendance)}</strong>
-                                <span class="team-report-card-sub">siste 5 mot hele perioden</span>
-                            </div>
+                            ${trendCard('Mål scoret siste 5', report.trends.lastFiveFor, report.trends.allFor)}
+                            ${trendCard('Mål imot siste 5', report.trends.lastFiveAgainst, report.trends.allAgainst, true)}
+                            ${trendCard('Kampbidrag siste 5', report.trends.lastFiveKampbidrag, report.trends.allKampbidrag)}
+                            ${trendCard('Oppmøte siste 5', report.trends.lastFiveAttendance, report.trends.allAttendance, false, '%')}
                         </div>
 
                         <div class="team-report-leader-grid">
