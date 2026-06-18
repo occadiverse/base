@@ -2679,15 +2679,40 @@
             background: rgba(245, 197, 66, 0.08);
         }
         .team-report-panel {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.16), transparent 34%),
+                linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border-color: rgba(18, 63, 115, 0.18);
+            box-shadow: 0 16px 34px rgba(11, 43, 76, 0.1);
             overflow: hidden;
         }
         .team-report-header {
             align-items: flex-start;
+            background:
+                linear-gradient(90deg, rgba(245, 197, 66, 0.18) 0%, rgba(245, 197, 66, 0) 42%),
+                linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
+            border-bottom-color: rgba(245, 197, 66, 0.24);
             display: flex;
             justify-content: space-between;
         }
+        .team-report-header .stats-panel-title {
+            color: #ffffff;
+        }
+        .team-report-header .stats-panel-subtitle {
+            color: rgba(255, 255, 255, 0.74);
+        }
         .team-report-body {
             padding: 1rem;
+        }
+        .team-report-body .stats-form-row.is-light {
+            background: rgba(18, 63, 115, 0.06);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 0.95rem;
+            margin-bottom: 0.85rem;
+            padding: 0.75rem 0.85rem;
+        }
+        .team-report-body .stats-form-row.is-light .stats-form-label {
+            color: #0b2b4c;
         }
         .team-report-status-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2700,7 +2725,7 @@
         }
         .team-report-trend-grid,
         .team-report-leader-grid {
-            grid-template-columns: repeat(1, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .team-report-two-col {
             grid-template-columns: 1fr;
@@ -2709,8 +2734,10 @@
         .team-report-trend-card,
         .team-report-subpanel,
         .team-report-leader-card {
-            background: rgba(18, 63, 115, 0.035);
-            border: 1px solid rgba(18, 63, 115, 0.08);
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 38%),
+                rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(18, 63, 115, 0.14);
             border-radius: 1rem;
         }
         .team-report-trend-card {
@@ -2735,9 +2762,11 @@
             overflow: hidden;
         }
         .team-report-subpanel h4 {
-            background: rgba(18, 63, 115, 0.04);
-            border-bottom: 1px solid rgba(18, 63, 115, 0.08);
-            color: #0b2b4c;
+            background:
+                linear-gradient(90deg, rgba(245, 197, 66, 0.16) 0%, rgba(245, 197, 66, 0) 50%),
+                #123f73;
+            border-bottom: 1px solid rgba(245, 197, 66, 0.22);
+            color: #ffffff;
             font-size: 0.72rem;
             font-weight: 950;
             letter-spacing: 0.06em;
@@ -2781,10 +2810,21 @@
             margin-top: 0.1rem;
         }
         .team-report-match-points {
+            align-items: center;
             color: #123f73 !important;
+            display: inline-flex !important;
+            flex-direction: column;
             font-size: 0.8rem !important;
             font-weight: 950;
+            gap: 0.05rem;
             text-align: right;
+        }
+        .team-report-match-points span {
+            color: #64748b;
+            font-size: 0.5rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            line-height: 1;
         }
         .team-report-attendance-row {
             grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 7rem) auto;
@@ -2851,6 +2891,22 @@
         }
         .team-report-empty-state i {
             color: #16a34a;
+        }
+        #stat-view-lag > #stats-lag-followups .stats-panel {
+            border-color: rgba(18, 63, 115, 0.18);
+            box-shadow: 0 16px 34px rgba(11, 43, 76, 0.08);
+        }
+        #stat-view-lag > #stats-lag-followups .stats-panel-header {
+            background:
+                linear-gradient(90deg, rgba(245, 197, 66, 0.18) 0%, rgba(245, 197, 66, 0) 42%),
+                linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
+            border-bottom-color: rgba(245, 197, 66, 0.24);
+        }
+        #stat-view-lag > #stats-lag-followups .stats-panel-title {
+            color: #ffffff;
+        }
+        #stat-view-lag > #stats-lag-followups .stats-panel-subtitle {
+            color: rgba(255, 255, 255, 0.74);
         }
         .stats-mini-grid {
             display: grid;
@@ -3009,6 +3065,14 @@
         .stats-chrome-bar-centered .stats-chrome-actions {
             justify-content: center;
             margin-left: 0;
+            width: 100%;
+        }
+        .stats-chrome-bar-stacked {
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+        .stats-chrome-bar-stacked .stats-chrome-main {
             width: 100%;
         }
         .stats-chrome-title {

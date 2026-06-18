@@ -269,7 +269,7 @@ window.checkIndividualChemistry = function() {
                 })
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-            const recentAttendance = historicalEvents.slice(0, 6).map(e => {
+            const recentAttendance = historicalEvents.slice(0, 5).map(e => {
                 const eventTeam = e.team || filterLag || 'Lag A';
                 const squad = activePlayers.filter(p => !eventTeam || p.spillerLag === eventTeam);
                 const attending = squad.filter(p => window.isPlayerAttending(e.attendance, p)).length;
@@ -741,8 +741,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsHeroTabsHtml = function(activeTabId) {
             const tabs = [
                 { id: 'lag', label: 'Lag' },
-                { id: 'spillere', label: 'Spillere' },
-                { id: 'kampstat', label: 'Kamper' }
+                { id: 'spillere', label: 'Spiller' },
+                { id: 'kampstat', label: 'Kamp' }
             ];
 
             return `
@@ -845,7 +845,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.renderStatsChromeBar = function(title, tabsHtml, subtitleHtml = '') {
             return `
-                <div class="stats-chrome-bar">
+                <div class="stats-chrome-bar stats-chrome-bar-centered stats-chrome-bar-stacked">
                     <div class="stats-chrome-main">
                         <h2 class="stats-chrome-title">${title}</h2>
                         ${subtitleHtml}
@@ -1097,7 +1097,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <strong>${m.opponent}</strong>
                                 <span>${[dateText, m.result].filter(Boolean).join(' · ')}</span>
                             </div>
-                            <span class="team-report-match-points">${m.points ? m.points.toFixed(1) : '-'}</span>
+                            <span class="team-report-match-points" title="Snitt kampbidrag for spillerne i kampen"><span>KB</span>${m.points ? m.points.toFixed(1) : '-'}</span>
                         </div>
                     `;
                 }).join('')
@@ -1277,7 +1277,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return;
                 }
 
-                window.paintStatsChrome(window.renderStatsChromeBar('Laganalyse', heroTabsHtml));
+                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
                 window.renderStatsLagSummary();
                 return;
             }
