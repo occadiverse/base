@@ -388,7 +388,8 @@
         .portal-mobile-nav-shell.portal-mobile-nav-swiping .portal-mobile-nav-indicator {
             transition: none;
         }
-        .portal-mobile-nav-shell.portal-mobile-nav-swiping .mobile-nav-btn.active-nav {
+        .portal-mobile-nav-shell.portal-mobile-nav-swiping .mobile-nav-btn.active-nav,
+        .portal-mobile-nav-shell.portal-mobile-nav-settling .mobile-nav-btn.active-nav {
             background: transparent;
             box-shadow: none;
         }

@@ -34,10 +34,17 @@ function setMobileNavProgress(progress, isSwiping = false) {
     mobileNav.classList.toggle('portal-mobile-nav-swiping', isSwiping);
 }
 
+function setMobileNavSettling(isSettling) {
+    const mobileNav = document.querySelector('.portal-mobile-nav-shell');
+    if (!mobileNav) return;
+    mobileNav.classList.toggle('portal-mobile-nav-settling', isSettling);
+}
+
 function setMobileNavTab(tabId) {
     const tabIndex = getMobileTabIndex(tabId);
     if (tabIndex === -1) return;
     setMobileNavProgress(tabIndex, false);
+    setMobileNavSettling(false);
 }
 
 function switchTab(tabId, options = {}) {
@@ -369,6 +376,7 @@ function setupMobileSwipeNavigation() {
         nextEl.style.transition = transition;
         nextEl.style.transform = 'translate3d(0, 0, 0)';
         nextEl.style.opacity = '1';
+        setMobileNavSettling(true);
         setMobileNavProgress(nextIndex, false);
 
         swipeCompletionTimer = window.setTimeout(() => {
