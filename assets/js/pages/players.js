@@ -398,6 +398,8 @@ window.openPlayerModal = function(editPlayerId = null) {
         }
     } else {
         document.getElementById('playerFormTitle').innerText = 'Ny spiller';
+        document.getElementById('playerPos1Input').value = '-';
+        document.getElementById('playerPos2Input').value = '-';
         document.getElementById('playerSkadeStatusInput').value = 'frisk';
         document.getElementById('playerSkadeNotatInput').value = '';
         document.getElementById('playerSkadeTilDatoInput').value = '';
