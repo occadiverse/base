@@ -16,14 +16,22 @@ window.updateDynamicSelectors = function() {
     if (filterSelect) {
         const previousFilter = filterSelect.value;
         filterSelect.innerHTML = '';
+        if (teams.length > 1) {
+            const allOpt = document.createElement('option');
+            allOpt.value = 'Alle';
+            allOpt.innerText = 'ALLE LAG';
+            filterSelect.appendChild(allOpt);
+        }
         teams.forEach(t => {
             const optFilter = document.createElement('option');
             optFilter.value = t.name;
             optFilter.innerText = t.name.toUpperCase();
             filterSelect.appendChild(optFilter);
         });
-        if (previousFilter && teams.some(t => t.name === previousFilter)) {
+        if (previousFilter && (previousFilter === 'Alle' || teams.some(t => t.name === previousFilter))) {
             filterSelect.value = previousFilter;
+        } else if (teams.length > 1) {
+            filterSelect.value = 'Alle';
         } else if (teams[0]) {
             filterSelect.value = teams[0].name;
         }
@@ -208,7 +216,7 @@ function getRosterFilteredPlayers() {
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
     return players.filter(p => {
-        if (filterLag && p.spillerLag !== filterLag) return false;
+        if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
 
         const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
             ? window.getPlayerInjuryInfo(p)
