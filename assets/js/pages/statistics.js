@@ -106,6 +106,13 @@ window.checkIndividualChemistry = function() {
                     return true;
                 })
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
+            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))]
+                .filter(e => {
+                    if (filterLag && filterLag !== 'Alle' && e.team !== filterLag) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
+                    return Boolean(e.attendance);
+                })
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
             const playerStats = players.map(player => {
                 const name = player.navn || player.name || player.fullName || player.spiller || '';
@@ -169,9 +176,10 @@ window.checkIndividualChemistry = function() {
 
             const activeStats = playerStats.filter(p => p.matches > 0);
 
-            const followUps = activeStats
-                .filter(p => p.redSerie > 0 || p.yellowSerie >= 3 || p.formLastFive < 5.5 || p.matches <= 2)
-                .map(p => {
+            const followUpMap = new Map();
+            activeStats.forEach(p => {
+                if (!(p.redSerie > 0 || p.yellowSerie >= 3 || (p.formLastFive > 0 && p.formLastFive < 5.5) || p.matches <= 2)) return;
+
                     const reason = [];
                     if (p.redSerie > 0) reason.push('Rødt kort i serie');
                     if (p.yellowSerie >= 3) {
@@ -184,9 +192,33 @@ window.checkIndividualChemistry = function() {
                     }
                     if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
                     if (p.matches <= 2) reason.push('Få kamper registrert');
-                    return { name: p.name, reason: reason.join(', ') };
-                })
-                .slice(0, 6);
+                if (reason.length) followUpMap.set(p.name, reason);
+            });
+
+            players.forEach(player => {
+                const name = player.navn || player.name || player.fullName || player.spiller || '';
+                if (!name) return;
+
+                const reason = followUpMap.get(name) || [];
+                const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+                    ? window.getPlayerInjuryInfo(player)
+                    : { isInjured: false };
+                if (injuryInfo.isInjured) reason.push(injuryInfo.label || 'Skadestatus');
+
+                const relevantRecentEvents = allEvents
+                    .filter(e => !e.team || e.team === player.spillerLag)
+                    .slice(0, 5);
+                if (relevantRecentEvents.length >= 3) {
+                    const attended = relevantRecentEvents.filter(e => window.isPlayerAttending(e.attendance, player)).length;
+                    if (attended === 0) reason.push('Ingen nylig oppmøte registrert');
+                }
+
+                if (reason.length) followUpMap.set(name, reason);
+            });
+
+            const followUps = [...followUpMap.entries()]
+                .map(([name, reason]) => ({ name, reason: reason.slice(0, 3).join(', ') }))
+                .slice(0, 8);
 
             return {
                 matches,
@@ -200,15 +232,160 @@ window.checkIndividualChemistry = function() {
             };
         };
 
+        window.buildTeamReportData = function(filterLag, lagData, analysis) {
+            const teamFilterActive = filterLag && filterLag !== 'Alle';
+            const allPlayers = window.activePlayers || [];
+            const scopedPlayers = allPlayers.filter(p => !teamFilterActive || p.spillerLag === filterLag);
+            const activePlayers = scopedPlayers.filter(p => p.status !== 'Passiv');
+            const passivePlayers = scopedPlayers.filter(p => p.status === 'Passiv');
+            const injuredPlayers = activePlayers.filter(p => {
+                const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+                    ? window.getPlayerInjuryInfo(p)
+                    : { isInjured: false };
+                return injuryInfo.isInjured;
+            });
+
+            const playedMatches = (window.activeMatches || [])
+                .filter(m => {
+                    if (!m.result || !m.result.includes('-')) return false;
+                    if (teamFilterActive && m.matchGroup !== filterLag) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
+                    return true;
+                })
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+            let conceded = 0;
+            playedMatches.forEach(m => {
+                const score = parseScore(m.result);
+                if (score) conceded += score.opponent;
+            });
+
+            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+            const historicalEvents = allEvents
+                .filter(e => {
+                    if (teamFilterActive && e.team !== filterLag) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
+                    return Boolean(e.attendance);
+                })
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+            const recentAttendance = historicalEvents.slice(0, 6).map(e => {
+                const eventTeam = e.team || filterLag || 'Lag A';
+                const squad = activePlayers.filter(p => !eventTeam || p.spillerLag === eventTeam);
+                const attending = squad.filter(p => window.isPlayerAttending(e.attendance, p)).length;
+                const pct = squad.length > 0 ? Math.round((attending / squad.length) * 100) : 0;
+                return {
+                    title: e.type === 'Kamp' ? `Kamp vs ${e.opponent || 'motstander'}` : (e.title || e.type || 'Aktivitet'),
+                    date: e.date || '',
+                    pct,
+                    attending,
+                    possible: squad.length
+                };
+            });
+
+            const relevantTeams = teamFilterActive
+                ? [filterLag]
+                : [...new Set(activePlayers.map(p => p.spillerLag).filter(Boolean))];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+            const disciplinePlayers = new Set();
+            let suspendedCount = 0;
+            let atRiskCount = 0;
+
+            relevantTeams.forEach(teamName => {
+                const discipline = typeof window.getDisciplineStatusForTeam === 'function'
+                    ? window.getDisciplineStatusForTeam(teamName, tomorrowStr)
+                    : {};
+                Object.entries(discipline).forEach(([key, status]) => {
+                    if (disciplinePlayers.has(key)) return;
+                    if (status.isSuspended || status.isAtRisk) disciplinePlayers.add(key);
+                    if (status.isSuspended) suspendedCount++;
+                    else if (status.isAtRisk) atRiskCount++;
+                });
+            });
+
+            const lastFiveMatches = playedMatches.slice(0, 5);
+            const avgFor = (matches) => {
+                if (!matches.length) return 0;
+                const sum = matches.reduce((total, m) => {
+                    const score = parseScore(m.result);
+                    return total + (score ? score.bsk : 0);
+                }, 0);
+                return Math.round((sum / matches.length) * 10) / 10;
+            };
+            const avgAgainst = (matches) => {
+                if (!matches.length) return 0;
+                const sum = matches.reduce((total, m) => {
+                    const score = parseScore(m.result);
+                    return total + (score ? score.opponent : 0);
+                }, 0);
+                return Math.round((sum / matches.length) * 10) / 10;
+            };
+            const avgTeamMatchPoints = (match) => {
+                const attendingPlayers = activePlayers.filter(p => window.isPlayerAttending(match.attendance, p));
+                if (!attendingPlayers.length || typeof window.calculatePlayerMatchPoints !== 'function') return 0;
+                const sum = attendingPlayers.reduce((total, p) => total + window.calculatePlayerMatchPoints(match, p), 0);
+                return Math.round((sum / attendingPlayers.length) * 10) / 10;
+            };
+
+            const latestMatches = [...lastFiveMatches].reverse().map(m => {
+                const score = parseScore(m.result);
+                let form = 'U';
+                if (score && score.bsk > score.opponent) form = 'S';
+                else if (score && score.bsk < score.opponent) form = 'T';
+                return {
+                    opponent: m.opponent || 'Motstander',
+                    date: m.date || '',
+                    result: m.result || '-',
+                    form,
+                    points: avgTeamMatchPoints(m)
+                };
+            });
+
+            return {
+                title: lagData?.title || (teamFilterActive ? filterLag : 'Lagstatistikk'),
+                filterLag,
+                matchCount: playedMatches.length,
+                conceded,
+                squad: {
+                    active: activePlayers.length,
+                    passive: passivePlayers.length,
+                    injured: injuredPlayers.length,
+                    available: Math.max(0, activePlayers.length - injuredPlayers.length)
+                },
+                discipline: {
+                    suspended: suspendedCount,
+                    atRisk: atRiskCount
+                },
+                trends: {
+                    lastFiveFor: avgFor(lastFiveMatches),
+                    allFor: avgFor(playedMatches),
+                    lastFiveAgainst: avgAgainst(lastFiveMatches),
+                    allAgainst: avgAgainst(playedMatches),
+                    latestMatches,
+                    recentAttendance
+                },
+                leaders: {
+                    topKampbidrag: analysis?.topKampbidrag || null,
+                    topScorer: analysis?.topScorer || null,
+                    topAssist: analysis?.topAssist || null,
+                    bbLeader: analysis?.bbLeader || null,
+                    topFormPlayer: analysis?.topFormPlayer || null
+                }
+            };
+        };
+
         window.renderStatsFollowUpsHtml = function(followUps) {
             if (!followUps.length) {
                 return `
                     <div class="stats-panel">
                         <div class="stats-panel-header">
                             <h3 class="stats-panel-title">Oppfølging</h3>
-                            <p class="stats-panel-subtitle">Spillere som trenerteamet bør følge litt ekstra med på.</p>
+                            <p class="stats-panel-subtitle">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
                         </div>
-                        <div class="stats-empty-state">
+                        <div class="stats-empty-state team-report-empty-state">
+                            <i class="fa-solid fa-circle-check"></i>
                             <p class="text-slate-400 italic text-xs">Ingen tydelige varsler akkurat nå.</p>
                         </div>
                     </div>
@@ -219,7 +396,7 @@ window.checkIndividualChemistry = function() {
                 <div class="stats-panel">
                     <div class="stats-panel-header">
                         <h3 class="stats-panel-title">Oppfølging</h3>
-                        <p class="stats-panel-subtitle">Spillere som trenerteamet bør følge litt ekstra med på.</p>
+                        <p class="stats-panel-subtitle">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
                     </div>
                     <div class="stats-followup-list">
                         ${followUps.map(p => `
@@ -251,6 +428,7 @@ window.checkIndividualChemistry = function() {
 
             const filteredMatches = (window.activeMatches || []).filter(m => {
                 if (!m.result || !m.result.includes('-')) return false;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
                 if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
                 return true;
             });
@@ -307,13 +485,19 @@ window.checkIndividualChemistry = function() {
                     : 0
             };
 
+            const analysis = typeof window.buildPlayerAnalysisStats === 'function'
+                ? window.buildPlayerAnalysisStats(filterLag)
+                : { followUps: [] };
+            window._statsTeamReportData = typeof window.buildTeamReportData === 'function'
+                ? window.buildTeamReportData(filterLag, window._statsLagData, analysis)
+                : null;
+
             if (document.querySelector('#stat-tab-lag.is-active') || document.getElementById('stat-view-lag')?.classList.contains('block')) {
                 window.renderStatsTabHero('lag');
             }
 
             const followUpsContainer = document.getElementById('stats-lag-followups');
             if (followUpsContainer) {
-                const analysis = window.buildPlayerAnalysisStats(filterLag);
                 followUpsContainer.innerHTML = window.renderStatsFollowUpsHtml(analysis.followUps);
             }
         };
@@ -827,15 +1011,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderStatsLagSummary = function() {
-            const container = document.getElementById('stats-lag-summary');
-            const data = window._statsLagData;
-            if (!container) return;
-            if (!data) {
-                container.innerHTML = '';
-                return;
-            }
+        window.renderTeamReportLeaderCard = function(label, leader, valueFormatter, icon, tone = '') {
+            const hasLeader = leader && valueFormatter(leader) !== null;
+            const safeName = hasLeader ? String(leader.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'") : '';
+            const value = hasLeader ? valueFormatter(leader) : '-';
+            const content = `
+                <div class="team-report-leader-card ${tone}">
+                    <div class="stats-metric-icon"><i class="fa-solid ${icon}"></i></div>
+                    <div class="min-w-0">
+                        <span class="team-report-card-label">${label}</span>
+                        <strong class="team-report-leader-name">${hasLeader ? leader.name : 'Ingen data'}</strong>
+                        <span class="team-report-card-sub">${value}</span>
+                    </div>
+                </div>
+            `;
+            return hasLeader
+                ? `<button type="button" onclick="window.openSpillerDetail('${safeName}')" class="team-report-leader-btn">${content}</button>`
+                : content;
+        };
 
+        window.renderTeamReportStatusHtml = function(data, report) {
             const formGuide = window.getTeamFormGuide(data.filterLag);
             const getPillClass = (form) => {
                 if (form === 'S') return 'is-win';
@@ -846,21 +1041,146 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
                 : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
 
-            container.innerHTML = `
-                <div class="stats-summary-panel">
-                    <div class="stats-form-row is-light">${formRowHtml}</div>
-                    <div class="stats-inline-metrics">
-                        ${window.renderStatsInlineMetricHtml('Seire', data.wins, 'is-win')}
-                        ${window.renderStatsInlineMetricHtml('Uavgjorte', data.draws, 'is-draw')}
-                        ${window.renderStatsInlineMetricHtml('Tap', data.losses, 'is-loss')}
-                        ${window.renderStatsInlineMetricHtml('Mål scoret', data.goals, 'is-goals')}
-                        ${window.renderStatsInlineMetricHtml('Snitt scoret', data.goalsAvg)}
-                        ${window.renderStatsInlineMetricHtml('Snitt innslipp', data.concededAvg, 'is-loss')}
-                        ${window.renderStatsInlineMetricHtml('Spillere', data.playerCount)}
-                        ${window.renderStatsInlineMetricHtml('Oppmøte', `${data.avgAttendance}%`, 'is-win')}
+            const disciplineText = report.discipline.suspended > 0
+                ? `${report.discipline.suspended} ute`
+                : report.discipline.atRisk > 0
+                    ? `${report.discipline.atRisk} i faresone`
+                    : 'Ingen varsler';
+            const disciplineTone = report.discipline.suspended > 0
+                ? 'is-loss'
+                : report.discipline.atRisk > 0 ? 'is-draw' : 'is-win';
+
+            return `
+                <section class="stats-panel team-report-panel">
+                    <div class="stats-panel-header team-report-header">
+                        <div>
+                            <h3 class="stats-panel-title">Status</h3>
+                            <p class="stats-panel-subtitle">Nåbildet for ${report.title}: resultater, tropp, oppmøte og risiko.</p>
+                        </div>
                     </div>
-                </div>
+                    <div class="team-report-body">
+                        <div class="stats-form-row is-light">${formRowHtml}</div>
+                        <div class="stats-inline-metrics team-report-status-grid">
+                            ${window.renderStatsInlineMetricHtml('Seire', data.wins, 'is-win')}
+                            ${window.renderStatsInlineMetricHtml('Uavgjort', data.draws, 'is-draw')}
+                            ${window.renderStatsInlineMetricHtml('Tap', data.losses, 'is-loss')}
+                            ${window.renderStatsInlineMetricHtml('Mål for', data.goals, 'is-goals')}
+                            ${window.renderStatsInlineMetricHtml('Mål imot', report.conceded, 'is-loss')}
+                            ${window.renderStatsInlineMetricHtml('Oppmøte', `${data.avgAttendance}%`, 'is-win')}
+                            ${window.renderStatsInlineMetricHtml('Aktive', report.squad.active)}
+                            ${window.renderStatsInlineMetricHtml('Tilgjengelige', report.squad.available, 'is-win')}
+                            ${window.renderStatsInlineMetricHtml('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '')}
+                            ${window.renderStatsInlineMetricHtml('Passiv', report.squad.passive)}
+                            ${window.renderStatsInlineMetricHtml('Formmedian', data.teamFormMedian || '-')}
+                            ${window.renderStatsInlineMetricHtml('Disiplin', disciplineText, disciplineTone)}
+                        </div>
+                    </div>
+                </section>
             `;
+        };
+
+        window.renderTeamReportDevelopmentHtml = function(report) {
+            const trendClass = (current, total, inverted = false) => {
+                if (!report.matchCount || current === total) return 'is-neutral';
+                const better = inverted ? current < total : current > total;
+                return better ? 'is-good' : 'is-alert';
+            };
+            const trendText = (current, total) => `${current || 0} mot ${total || 0}`;
+            const matchesHtml = report.trends.latestMatches.length
+                ? report.trends.latestMatches.map(m => {
+                    const resultClass = m.form === 'S' ? 'is-win' : m.form === 'T' ? 'is-loss' : 'is-draw';
+                    const dateText = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' }) : '';
+                    return `
+                        <div class="team-report-match-row">
+                            <span class="dashboard-series-form-pill ${resultClass}">${m.form}</span>
+                            <div class="min-w-0">
+                                <strong>${m.opponent}</strong>
+                                <span>${[dateText, m.result].filter(Boolean).join(' · ')}</span>
+                            </div>
+                            <span class="team-report-match-points">${m.points ? m.points.toFixed(1) : '-'}</span>
+                        </div>
+                    `;
+                }).join('')
+                : `<div class="team-report-empty-row">Ingen spilte kamper med resultat ennå.</div>`;
+
+            const attendanceHtml = report.trends.recentAttendance.length
+                ? report.trends.recentAttendance.map(e => {
+                    const dateText = e.date ? new Date(e.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' }) : '';
+                    return `
+                        <div class="team-report-attendance-row">
+                            <div class="team-report-attendance-meta">
+                                <strong>${e.title}</strong>
+                                <span>${[dateText, `${e.attending}/${e.possible}`].filter(Boolean).join(' · ')}</span>
+                            </div>
+                            <div class="team-report-mini-bar" aria-label="Oppmøte ${e.pct}%">
+                                <span style="width: ${Math.max(0, Math.min(100, e.pct))}%"></span>
+                            </div>
+                            <strong>${e.pct}%</strong>
+                        </div>
+                    `;
+                }).join('')
+                : `<div class="team-report-empty-row">Ingen nylige oppmøteregistreringer.</div>`;
+
+            return `
+                <section class="stats-panel team-report-panel">
+                    <div class="stats-panel-header team-report-header">
+                        <div>
+                            <h3 class="stats-panel-title">Utvikling</h3>
+                            <p class="stats-panel-subtitle">Retning over tid: siste kamper, måltrend, oppmøte og prestasjonsledere.</p>
+                        </div>
+                    </div>
+                    <div class="team-report-body">
+                        <div class="team-report-trend-grid">
+                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveFor, report.trends.allFor)}">
+                                <span class="team-report-card-label">Mål scoret siste 5</span>
+                                <strong>${trendText(report.trends.lastFiveFor, report.trends.allFor)}</strong>
+                                <span class="team-report-card-sub">siste 5 mot hele perioden</span>
+                            </div>
+                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveAgainst, report.trends.allAgainst, true)}">
+                                <span class="team-report-card-label">Mål imot siste 5</span>
+                                <strong>${trendText(report.trends.lastFiveAgainst, report.trends.allAgainst)}</strong>
+                                <span class="team-report-card-sub">lavere er bedre</span>
+                            </div>
+                        </div>
+
+                        <div class="team-report-two-col">
+                            <div class="team-report-subpanel">
+                                <h4>Siste kamper</h4>
+                                <div class="team-report-list">${matchesHtml}</div>
+                            </div>
+                            <div class="team-report-subpanel">
+                                <h4>Nylig oppmøte</h4>
+                                <div class="team-report-list">${attendanceHtml}</div>
+                            </div>
+                        </div>
+
+                        <div class="team-report-leader-grid">
+                            ${window.renderTeamReportLeaderCard('Kampbidrag', report.leaders.topKampbidrag, p => p.pointsPerMatch > 0 ? `${p.pointsPerMatch.toFixed(1)} pr kamp` : null, 'fa-bolt', 'is-gold')}
+                            ${window.renderTeamReportLeaderCard('Toppscorer', report.leaders.topScorer, p => p.goals > 0 ? `${p.goals} mål` : null, 'fa-futbol', 'is-blue')}
+                            ${window.renderTeamReportLeaderCard('Assist', report.leaders.topAssist, p => p.assists > 0 ? `${p.assists} assist` : null, 'fa-handshake-angle', 'is-green')}
+                            ${window.renderTeamReportLeaderCard('BB-leder', report.leaders.bbLeader, p => p.bb > 0 ? `${p.bb} BB` : null, 'fa-star', 'is-gold')}
+                        </div>
+                    </div>
+                </section>
+            `;
+        };
+
+        window.renderStatsLagSummary = function() {
+            const container = document.getElementById('stats-lag-summary');
+            const developmentContainer = document.getElementById('stats-lag-development');
+            const data = window._statsLagData;
+            const report = window._statsTeamReportData;
+            if (!container) return;
+            if (!data || !report) {
+                container.innerHTML = '';
+                if (developmentContainer) developmentContainer.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = window.renderTeamReportStatusHtml(data, report);
+            if (developmentContainer) {
+                developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
+            }
         };
 
         window.renderStatsSpillereSummary = function() {
@@ -950,6 +1270,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     window.clearStatsTabHero();
                     const summary = document.getElementById('stats-lag-summary');
                     if (summary) summary.innerHTML = '';
+                    const development = document.getElementById('stats-lag-development');
+                    if (development) development.innerHTML = '';
+                    const followUps = document.getElementById('stats-lag-followups');
+                    if (followUps) followUps.innerHTML = '';
                     return;
                 }
 

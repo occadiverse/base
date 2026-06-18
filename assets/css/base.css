@@ -2678,6 +2678,180 @@
         .stats-followup-item:hover {
             background: rgba(245, 197, 66, 0.08);
         }
+        .team-report-panel {
+            overflow: hidden;
+        }
+        .team-report-header {
+            align-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+        }
+        .team-report-body {
+            padding: 1rem;
+        }
+        .team-report-status-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .team-report-trend-grid,
+        .team-report-leader-grid,
+        .team-report-two-col {
+            display: grid;
+            gap: 0.85rem;
+        }
+        .team-report-trend-grid,
+        .team-report-leader-grid {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        .team-report-two-col {
+            grid-template-columns: 1fr;
+            margin-top: 0.9rem;
+        }
+        .team-report-trend-card,
+        .team-report-subpanel,
+        .team-report-leader-card {
+            background: rgba(18, 63, 115, 0.035);
+            border: 1px solid rgba(18, 63, 115, 0.08);
+            border-radius: 1rem;
+        }
+        .team-report-trend-card {
+            padding: 0.9rem 1rem;
+        }
+        .team-report-trend-card strong {
+            color: #0b2b4c;
+            display: block;
+            font-size: 1.35rem;
+            font-weight: 950;
+            margin-top: 0.2rem;
+        }
+        .team-report-trend-card.is-good {
+            background: rgba(22, 101, 52, 0.06);
+            border-color: rgba(22, 101, 52, 0.16);
+        }
+        .team-report-trend-card.is-alert {
+            background: rgba(185, 28, 28, 0.05);
+            border-color: rgba(185, 28, 28, 0.14);
+        }
+        .team-report-subpanel {
+            overflow: hidden;
+        }
+        .team-report-subpanel h4 {
+            background: rgba(18, 63, 115, 0.04);
+            border-bottom: 1px solid rgba(18, 63, 115, 0.08);
+            color: #0b2b4c;
+            font-size: 0.72rem;
+            font-weight: 950;
+            letter-spacing: 0.06em;
+            padding: 0.75rem 0.9rem;
+            text-transform: uppercase;
+        }
+        .team-report-list {
+            background: #ffffff;
+        }
+        .team-report-match-row,
+        .team-report-attendance-row {
+            align-items: center;
+            border-top: 1px solid rgba(18, 63, 115, 0.07);
+            display: grid;
+            gap: 0.65rem;
+            padding: 0.75rem 0.9rem;
+        }
+        .team-report-match-row:first-child,
+        .team-report-attendance-row:first-child {
+            border-top: 0;
+        }
+        .team-report-match-row {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+        .team-report-match-row strong,
+        .team-report-attendance-meta strong {
+            color: #0b2b4c;
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .team-report-match-row span:not(.dashboard-series-form-pill),
+        .team-report-attendance-meta span,
+        .team-report-card-sub {
+            color: #64748b;
+            display: block;
+            font-size: 0.68rem;
+            margin-top: 0.1rem;
+        }
+        .team-report-match-points {
+            color: #123f73 !important;
+            font-size: 0.8rem !important;
+            font-weight: 950;
+            text-align: right;
+        }
+        .team-report-attendance-row {
+            grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 7rem) auto;
+        }
+        .team-report-mini-bar {
+            background: rgba(18, 63, 115, 0.08);
+            border-radius: 999px;
+            height: 0.45rem;
+            overflow: hidden;
+        }
+        .team-report-mini-bar span {
+            background: linear-gradient(90deg, #f5c542 0%, #38b978 100%);
+            border-radius: inherit;
+            display: block;
+            height: 100%;
+        }
+        .team-report-empty-row {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
+        }
+        .team-report-leader-grid {
+            margin-top: 0.9rem;
+        }
+        .team-report-leader-btn {
+            appearance: none;
+            cursor: pointer;
+            display: block;
+            font: inherit;
+            text-align: left;
+            width: 100%;
+        }
+        .team-report-leader-card {
+            align-items: center;
+            display: flex;
+            gap: 0.8rem;
+            min-height: 5rem;
+            padding: 0.85rem;
+            transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+        }
+        .team-report-leader-btn:hover .team-report-leader-card {
+            border-color: rgba(245, 197, 66, 0.38);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            transform: translateY(-1px);
+        }
+        .team-report-leader-name {
+            color: #0b2b4c;
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 950;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .team-report-card-label {
+            color: #64748b;
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .team-report-empty-state i {
+            color: #16a34a;
+        }
         .stats-mini-grid {
             display: grid;
             gap: 0.65rem;
@@ -2737,6 +2911,13 @@
             .stats-metric-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+            .team-report-status-grid,
+            .team-report-leader-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .team-report-trend-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
         @media (min-width: 768px) {
             .stats-stat-grid {
@@ -2759,6 +2940,15 @@
             }
             .stats-metric-grid.is-three {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .team-report-status-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .team-report-two-col {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .team-report-leader-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
         .stats-toolbar {
