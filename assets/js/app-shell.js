@@ -19,7 +19,8 @@ function verifyAdminPin() {
     }, 1500);
 }
 
-function switchTab(tabId) {
+function switchTab(tabId, options = {}) {
+    const previousTab = currentTab;
     currentTab = tabId;
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
@@ -91,6 +92,11 @@ function switchTab(tabId) {
     const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
     if (activeMobileBtn) activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
 
+    const mobileToolsBtn = document.querySelector('.portal-mobile-admin-btn');
+    if (mobileToolsBtn) {
+        mobileToolsBtn.classList.toggle('is-active', tabId === 'tropp' || tabId === 'admin');
+    }
+
     if (tabId === 'oppmote') {
         window.renderEvents();
         window.recalculateOppmoteAndKjemi();
@@ -114,6 +120,27 @@ function switchTab(tabId) {
         if (typeof window.setTacticalPhase === 'function') window.setTacticalPhase('fase1');
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
     }
+
+    if (options.animate === 'swipe' && previousTab !== tabId) {
+        animateMobileSwipeTab(tabId, options.direction);
+    }
+}
+
+function animateMobileSwipeTab(tabId, direction) {
+    if (window.innerWidth >= 768) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const activeEl = document.getElementById(`view-${tabId}`);
+    if (!activeEl) return;
+
+    activeEl.classList.remove('portal-view-swipe-enter-left', 'portal-view-swipe-enter-right');
+    // Restart the keyframe if the user swipes several tabs in quick succession.
+    void activeEl.offsetWidth;
+    activeEl.classList.add(direction === 'right' ? 'portal-view-swipe-enter-right' : 'portal-view-swipe-enter-left');
+
+    window.setTimeout(() => {
+        activeEl.classList.remove('portal-view-swipe-enter-left', 'portal-view-swipe-enter-right');
+    }, 420);
 }
 
 function setupMobileSwipeNavigation() {
@@ -159,7 +186,10 @@ function setupMobileSwipeNavigation() {
         const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
         if (nextIndex < 0 || nextIndex >= swipeTabs.length) return;
 
-        switchTab(swipeTabs[nextIndex]);
+        switchTab(swipeTabs[nextIndex], {
+            animate: 'swipe',
+            direction: deltaX < 0 ? 'left' : 'right'
+        });
     }, { passive: true });
 }
 

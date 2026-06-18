@@ -49,6 +49,40 @@
             margin-top: 0;
             width: 100%;
         }
+        @media (max-width: 767px) {
+            .portal-view-swipe-enter-left {
+                animation: portal-view-swipe-in-left 380ms cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .portal-view-swipe-enter-right {
+                animation: portal-view-swipe-in-right 380ms cubic-bezier(0.22, 1, 0.36, 1);
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .portal-view-swipe-enter-left,
+            .portal-view-swipe-enter-right {
+                animation: none;
+            }
+        }
+        @keyframes portal-view-swipe-in-left {
+            from {
+                opacity: 0.68;
+                transform: translate3d(24px, 0, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
+        @keyframes portal-view-swipe-in-right {
+            from {
+                opacity: 0.68;
+                transform: translate3d(-24px, 0, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
         .portal-view > :first-child {
             margin-top: 0;
         }
@@ -80,6 +114,11 @@
             border-color: rgba(18, 63, 115, 0.12);
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
             color: #123f73;
+        }
+        .portal-mobile-admin-btn.is-active {
+            background: rgba(245, 197, 66, 0.2);
+            border-color: rgba(245, 197, 66, 0.5);
+            color: #0b2b4c;
         }
         .portal-mobile-tools {
             position: relative;
