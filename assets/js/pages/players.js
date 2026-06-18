@@ -511,20 +511,32 @@ window.savePlayer = async function(event) {
     const existingPlayer = playerData.id ? (window.activePlayers || []).find(p => p.id === playerData.id) : null;
     const oldName = existingPlayer?.navn;
 
-    await window.savePlayerToDatabase(playerData);
+    try {
+        await window.savePlayerToDatabase(playerData);
 
-    if (playerData.id && oldName && oldName !== playerData.navn && typeof window.remapPlayerRefsAfterRename === 'function') {
-        await window.remapPlayerRefsAfterRename(playerData.id, oldName);
+        if (playerData.id && oldName && oldName !== playerData.navn && typeof window.remapPlayerRefsAfterRename === 'function') {
+            await window.remapPlayerRefsAfterRename(playerData.id, oldName);
+        }
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke lagre spiller i databasen. Prøv igjen.');
+        return;
     }
+
     window.closePlayerModal();
     window.renderPlayerRoster();
 };
 
 window.promptDeletePlayer = function(id) {
     window.customConfirm("Slette spiller?", "Er du sikker på at du vil slette denne spilleren fra troppen permanent?", async () => {
-        await window.deletePlayerFromDatabase(id);
-        window.closePlayerModal();
-        window.renderPlayerRoster();
+        try {
+            await window.deletePlayerFromDatabase(id);
+            window.closePlayerModal();
+            window.renderPlayerRoster();
+        } catch (error) {
+            console.error(error);
+            alert(error.message || 'Kunne ikke slette spiller i databasen. Prøv igjen.');
+        }
     });
 };
 

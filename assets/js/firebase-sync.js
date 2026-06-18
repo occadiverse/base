@@ -395,13 +395,12 @@
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', playerObject.id), playerObject);
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (e) {
+                    console.error('Kunne ikke lagre spiller i databasen:', e);
+                    throw new Error('Kunne ikke lagre spiller i databasen. Prøv igjen, eller sjekk Firebase-tilgangen.');
+                }
             }
-            const current = [...window.activePlayers];
-            const idx = current.findIndex(p => p.id === playerObject.id);
-            if (idx > -1) { current[idx] = playerObject; } else { current.push(playerObject); }
-            syncPlayers(current);
-            return true;
+            throw new Error('Database er ikke tilgjengelig. Spilleren ble ikke lagret.');
         };
 
         window.deletePlayerFromDatabase = async function(playerId) {
@@ -409,11 +408,12 @@
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId));
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (e) {
+                    console.error('Kunne ikke slette spiller i databasen:', e);
+                    throw new Error('Kunne ikke slette spiller i databasen. Prøv igjen, eller sjekk Firebase-tilgangen.');
+                }
             }
-            const current = window.activePlayers.filter(p => p.id !== playerId);
-            syncPlayers(current);
-            return true;
+            throw new Error('Database er ikke tilgjengelig. Spilleren ble ikke slettet.');
         };
 
         window.saveEventToDatabase = async function(eventObject) {
