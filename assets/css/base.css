@@ -2714,6 +2714,25 @@
         .team-report-body .stats-form-row.is-light .stats-form-label {
             color: #0b2b4c;
         }
+        .team-report-body .stats-form-row.is-light .dashboard-series-form-pill {
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+            font-weight: 950;
+        }
+        .team-report-body .stats-form-row.is-light .dashboard-series-form-pill.is-win {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #14532d;
+        }
+        .team-report-body .stats-form-row.is-light .dashboard-series-form-pill.is-draw {
+            background: #fef3c7;
+            border-color: #f5c542;
+            color: #713f12;
+        }
+        .team-report-body .stats-form-row.is-light .dashboard-series-form-pill.is-loss {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #7f1d1d;
+        }
         .team-report-status-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
