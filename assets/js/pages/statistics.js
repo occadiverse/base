@@ -1090,7 +1090,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const median = window.getStatsSortMedian(column, statsData, leader.spillerLag || '');
             const mainText = window.formatStatsSortValue(column, value);
             const delta = window.formatStatsMedianDelta(column, value, median);
-            const rank = window.getStatsPlayerRank(leader.navn, column, statsData);
 
             return `
                 <div class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card">
@@ -1098,21 +1097,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ${iconHtml}
                         <span class="stats-sort-context-main">${mainText}</span>
                         ${delta.text ? `<span class="stats-sort-context-delta ${delta.tone}">${delta.text}</span>` : ''}
-                        ${rank ? `<span class="stats-sort-context-rank"><span class="stats-sort-context-rank-sep" aria-hidden="true">·</span>${rank}</span>` : ''}
                     </span>
                 </div>
             `;
         };
 
         window.renderStatsSpillereSummaryCardsHtml = function(statsData) {
-            const leader = window.getStatsSortedLeader(currentStatSortCol, statsData);
+            const leader = statsData
+                .filter(stat => window.playerStatsRelevantForSort(stat, 'totalScore'))
+                .sort((a, b) => b.totalScore - a.totalScore)[0] || null;
 
             return `
                 <div class="stats-spillere-summary-metrics">
                     ${window.renderStatsSpillereLeaderNameCardHtml(leader)}
-                    ${window.renderStatsSpillereMetricCardHtml(currentStatSortCol, leader, statsData)}
-                    ${window.renderStatsSpillereMetricCardHtml('kjemi', leader, statsData)}
-                    ${window.renderStatsSpillereMetricCardHtml('kampbonus', leader, statsData)}
+                    ${window.renderStatsSpillereMetricCardHtml('totalScore', leader, statsData)}
                 </div>
             `;
         };
