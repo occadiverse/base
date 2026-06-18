@@ -155,8 +155,10 @@ function setupMobileSwipeNavigation() {
     let startY = 0;
     let currentX = 0;
     let activeSwipeEl = null;
+    let nextSwipeEl = null;
     let hasHorizontalIntent = false;
     let isTracking = false;
+    let swipeCompletionTimer = null;
 
     const shouldIgnoreSwipe = (target) => {
         if (!target || !target.closest) return false;
@@ -174,27 +176,147 @@ function setupMobileSwipeNavigation() {
         return nextIndex;
     };
 
-    const resetSwipeDragStyles = (animateBack = false) => {
-        if (!activeSwipeEl) return;
-        const el = activeSwipeEl;
+    const getSwipePageOffset = () => window.innerWidth * 0.92;
 
-        if (animateBack) {
-            el.style.transition = 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease';
-            el.style.transform = 'translate3d(0, 0, 0)';
-            el.style.opacity = '';
-        } else {
-            el.style.transition = '';
-            el.style.transform = '';
-            el.style.opacity = '';
+    const cleanupNextSwipePreview = (hideNext = true) => {
+        if (!nextSwipeEl) return;
+
+        if (hideNext && nextSwipeEl.id !== `view-${currentTab}`) {
+            nextSwipeEl.classList.add('hidden');
         }
 
-        el.classList.remove('portal-view-mobile-dragging');
+        nextSwipeEl.classList.remove('portal-view-mobile-peek');
+        nextSwipeEl.removeAttribute('aria-hidden');
+        nextSwipeEl.inert = false;
+        nextSwipeEl.style.transition = '';
+        nextSwipeEl.style.transform = '';
+        nextSwipeEl.style.opacity = '';
+        nextSwipeEl = null;
+    };
 
-        window.setTimeout(() => {
-            el.style.transition = '';
-            el.style.transform = '';
-            el.style.opacity = '';
-        }, 240);
+    const cleanupSwipeDrag = (hideNext = true) => {
+        if (swipeCompletionTimer) {
+            window.clearTimeout(swipeCompletionTimer);
+            swipeCompletionTimer = null;
+        }
+
+        const mainView = document.getElementById('main-view');
+        if (mainView) mainView.classList.remove('portal-swipe-peeking');
+
+        if (activeSwipeEl) {
+            activeSwipeEl.classList.remove('portal-view-mobile-dragging');
+            activeSwipeEl.style.transition = '';
+            activeSwipeEl.style.transform = '';
+            activeSwipeEl.style.opacity = '';
+        }
+
+        cleanupNextSwipePreview(hideNext);
+    };
+
+    const prepareNextSwipePreview = (nextIndex, direction) => {
+        const nextEl = document.getElementById(`view-${swipeTabs[nextIndex]}`);
+        if (!nextEl) return null;
+
+        if (nextSwipeEl && nextSwipeEl !== nextEl) cleanupNextSwipePreview(true);
+
+        nextSwipeEl = nextEl;
+        nextSwipeEl.classList.remove('hidden');
+        nextSwipeEl.classList.add('portal-view-mobile-peek');
+        nextSwipeEl.setAttribute('aria-hidden', 'true');
+        nextSwipeEl.inert = true;
+        nextSwipeEl.style.transition = 'none';
+        nextSwipeEl.style.transform = `translate3d(${direction * getSwipePageOffset()}px, 0, 0)`;
+        nextSwipeEl.style.opacity = '0.86';
+
+        const mainView = document.getElementById('main-view');
+        if (mainView) mainView.classList.add('portal-swipe-peeking');
+
+        return nextSwipeEl;
+    };
+
+    const resetSwipeDragStyles = (animateBack = false, direction = 0) => {
+        if (!activeSwipeEl) return;
+        const activeEl = activeSwipeEl;
+        const nextEl = nextSwipeEl;
+        const pageOffset = getSwipePageOffset();
+
+        if (animateBack) {
+            activeEl.style.transition = 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease';
+            activeEl.style.transform = 'translate3d(0, 0, 0)';
+            activeEl.style.opacity = '';
+
+            if (nextEl) {
+                nextEl.style.transition = 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease';
+                nextEl.style.transform = `translate3d(${direction * pageOffset}px, 0, 0)`;
+                nextEl.style.opacity = '0';
+            }
+
+            window.setTimeout(() => {
+                const mainView = document.getElementById('main-view');
+                if (mainView) mainView.classList.remove('portal-swipe-peeking');
+
+                activeEl.classList.remove('portal-view-mobile-dragging');
+                activeEl.style.transition = '';
+                activeEl.style.transform = '';
+                activeEl.style.opacity = '';
+
+                if (nextEl) {
+                    if (nextEl.id !== `view-${currentTab}`) nextEl.classList.add('hidden');
+                    nextEl.classList.remove('portal-view-mobile-peek');
+                    nextEl.removeAttribute('aria-hidden');
+                    nextEl.inert = false;
+                    nextEl.style.transition = '';
+                    nextEl.style.transform = '';
+                    nextEl.style.opacity = '';
+                }
+
+                if (activeSwipeEl === activeEl) activeSwipeEl = null;
+                if (nextSwipeEl === nextEl) nextSwipeEl = null;
+            }, 260);
+            return;
+        }
+
+        cleanupSwipeDrag(true);
+    };
+
+    const finishSwipeToTab = (nextIndex, direction) => {
+        if (!activeSwipeEl || !nextSwipeEl) return;
+
+        const activeEl = activeSwipeEl;
+        const nextEl = nextSwipeEl;
+        const pageOffset = getSwipePageOffset();
+        const transition = 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease';
+
+        activeEl.style.transition = transition;
+        activeEl.style.transform = `translate3d(${-direction * pageOffset}px, 0, 0)`;
+        activeEl.style.opacity = '0.62';
+
+        nextEl.style.transition = transition;
+        nextEl.style.transform = 'translate3d(0, 0, 0)';
+        nextEl.style.opacity = '1';
+
+        swipeCompletionTimer = window.setTimeout(() => {
+            const mainView = document.getElementById('main-view');
+            if (mainView) mainView.classList.remove('portal-swipe-peeking');
+
+            switchTab(swipeTabs[nextIndex]);
+
+            activeEl.classList.remove('portal-view-mobile-dragging');
+            activeEl.style.transition = '';
+            activeEl.style.transform = '';
+            activeEl.style.opacity = '';
+
+            nextEl.classList.remove('portal-view-mobile-peek');
+            nextEl.removeAttribute('aria-hidden');
+            nextEl.inert = false;
+            nextEl.style.transition = '';
+            nextEl.style.transform = '';
+            nextEl.style.opacity = '';
+
+            activeSwipeEl = null;
+            nextSwipeEl = null;
+            swipeCompletionTimer = null;
+        }, 380);
     };
 
     document.addEventListener('touchstart', event => {
@@ -203,6 +325,7 @@ function setupMobileSwipeNavigation() {
             return;
         }
 
+        cleanupSwipeDrag(true);
         startX = event.touches[0].clientX;
         startY = event.touches[0].clientY;
         currentX = startX;
@@ -233,15 +356,31 @@ function setupMobileSwipeNavigation() {
 
         event.preventDefault();
 
-        const hasNextTab = getSwipeTargetIndex(deltaX) !== -1;
-        const dragResistance = hasNextTab ? 0.42 : 0.16;
-        const maxDragDistance = window.innerWidth * 0.28;
+        const nextIndex = getSwipeTargetIndex(deltaX);
+        const direction = deltaX < 0 ? 1 : -1;
+        const hasNextTab = nextIndex !== -1;
+        const maxDragDistance = hasNextTab ? window.innerWidth * 0.72 : window.innerWidth * 0.18;
+        const dragResistance = hasNextTab ? 1 : 0.28;
         const dragDistance = Math.max(-maxDragDistance, Math.min(maxDragDistance, deltaX * dragResistance));
-        const dragProgress = Math.min(1, Math.abs(dragDistance) / maxDragDistance);
+        const dragProgress = Math.min(1, Math.abs(dragDistance) / window.innerWidth);
 
         activeSwipeEl.style.transition = 'none';
         activeSwipeEl.style.transform = `translate3d(${dragDistance}px, 0, 0)`;
-        activeSwipeEl.style.opacity = String(1 - dragProgress * 0.12);
+        activeSwipeEl.style.opacity = String(1 - dragProgress * 0.24);
+
+        if (hasNextTab) {
+            const nextEl = prepareNextSwipePreview(nextIndex, direction);
+            if (nextEl) {
+                const pageOffset = getSwipePageOffset();
+                const nextDistance = Math.max(-pageOffset, Math.min(pageOffset, direction * pageOffset + dragDistance));
+                const nextProgress = Math.min(1, Math.abs(dragDistance) / (window.innerWidth * 0.42));
+
+                nextEl.style.transform = `translate3d(${nextDistance}px, 0, 0)`;
+                nextEl.style.opacity = String(0.72 + nextProgress * 0.28);
+            }
+        } else {
+            cleanupNextSwipePreview(true);
+        }
     }, { passive: false });
 
     document.addEventListener('touchend', event => {
@@ -252,31 +391,29 @@ function setupMobileSwipeNavigation() {
         isTracking = false;
 
         const minSwipeDistance = Math.max(90, window.innerWidth * 0.24);
+        const direction = deltaX < 0 ? 1 : -1;
         if (!hasHorizontalIntent || Math.abs(deltaX) < minSwipeDistance || Math.abs(deltaX) < Math.abs(deltaY) * 1.6) {
-            resetSwipeDragStyles(hasHorizontalIntent);
+            resetSwipeDragStyles(hasHorizontalIntent, direction);
             activeSwipeEl = null;
             return;
         }
 
         const nextIndex = getSwipeTargetIndex(deltaX);
         if (nextIndex === -1) {
-            resetSwipeDragStyles(hasHorizontalIntent);
+            resetSwipeDragStyles(hasHorizontalIntent, direction);
             activeSwipeEl = null;
             return;
         }
 
-        resetSwipeDragStyles(false);
-        activeSwipeEl = null;
-        switchTab(swipeTabs[nextIndex], {
-            animate: 'swipe',
-            direction: deltaX < 0 ? 'left' : 'right'
-        });
+        if (!nextSwipeEl) prepareNextSwipePreview(nextIndex, direction);
+        finishSwipeToTab(nextIndex, direction);
     }, { passive: true });
 
     document.addEventListener('touchcancel', () => {
         if (!isTracking) return;
         isTracking = false;
-        resetSwipeDragStyles(hasHorizontalIntent);
+        const deltaX = currentX - startX;
+        resetSwipeDragStyles(hasHorizontalIntent, deltaX < 0 ? 1 : -1);
         activeSwipeEl = null;
     }, { passive: true });
 }

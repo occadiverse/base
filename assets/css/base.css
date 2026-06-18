@@ -97,6 +97,26 @@
             padding-bottom: 1.5rem;
             padding-top: 1rem;
         }
+        @media (max-width: 767px) {
+            #main-view.portal-swipe-peeking {
+                overflow: hidden;
+                position: relative;
+            }
+            .portal-view-mobile-dragging {
+                position: relative;
+                z-index: 1;
+            }
+            .portal-view-mobile-peek {
+                display: block;
+                left: 1rem;
+                pointer-events: none;
+                position: absolute;
+                right: 1rem;
+                top: 1rem;
+                width: auto;
+                z-index: 2;
+            }
+        }
         @media (min-width: 768px) {
             .portal-main-view,
             #main-view {
