@@ -21,6 +21,7 @@
         let activePlayersCollectionRef = null;
         let activeEventsCollectionRef = null;
         let firebaseEnabled = false;
+        let hasHandledInitialPlayersSnapshot = false;
 
 
         async function loadFirestoreConfig() {
@@ -91,6 +92,60 @@
                     console.warn('Kunne ikke gjenopprette oppmøte for kamp:', match.id, error);
                 }
             }
+        }
+
+        function getCachedCollection(key) {
+            const raw = window.localStorage.getItem('bsk_local_' + key);
+            if (!raw) return [];
+
+            try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                console.warn(`Kunne ikke lese lokal cache for ${key}:`, error);
+                return [];
+            }
+        }
+
+        function getPlayerIdentityKeys(player) {
+            const keys = [];
+            if (window.isValidPlayerRefKey(player?.id)) keys.push(`id:${player.id}`);
+            const normalizedName = (player?.navn || '').trim().toLowerCase();
+            if (normalizedName) keys.push(`name:${normalizedName}`);
+            return keys;
+        }
+
+        function mergeInitialPlayersWithLocalCache(firebasePlayers) {
+            const cachedPlayers = getCachedCollection('players');
+            if (cachedPlayers.length <= firebasePlayers.length) return firebasePlayers;
+
+            const seenKeys = new Set();
+            firebasePlayers.forEach(player => {
+                getPlayerIdentityKeys(player).forEach(key => seenKeys.add(key));
+            });
+
+            const recoveredPlayers = [];
+            const mergedPlayers = [...firebasePlayers];
+
+            cachedPlayers.forEach(player => {
+                const keys = getPlayerIdentityKeys(player);
+                if (keys.some(key => seenKeys.has(key))) return;
+
+                const recovered = typeof window.ensurePlayerId === 'function'
+                    ? window.ensurePlayerId(player)
+                    : { ...player, id: player.id || crypto.randomUUID() };
+
+                recoveredPlayers.push(recovered);
+                mergedPlayers.push(recovered);
+                getPlayerIdentityKeys(recovered).forEach(key => seenKeys.add(key));
+            });
+
+            if (recoveredPlayers.length > 0) {
+                console.warn(`Gjenopprettet ${recoveredPlayers.length} spillere fra lokal cache.`);
+                setTimeout(() => persistRepairedPlayers(recoveredPlayers), 0);
+            }
+
+            return mergedPlayers;
         }
 
         function attendanceMapsEqual(left, right) {
@@ -219,8 +274,23 @@
                 const fb = [];
                 snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
                 if (fb.length === 0) {
-                    initialMockPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
-                } else { syncPlayers(fb); }
+                    const cachedPlayers = getCachedCollection('players');
+                    const seedPlayers = cachedPlayers.length > 0 ? cachedPlayers : initialMockPlayers;
+                    const normalizedSeedPlayers = seedPlayers.map(player => (
+                        typeof window.ensurePlayerId === 'function'
+                            ? window.ensurePlayerId(player)
+                            : { ...player, id: player.id || crypto.randomUUID() }
+                    ));
+                    hasHandledInitialPlayersSnapshot = true;
+                    syncPlayers(normalizedSeedPlayers);
+                    normalizedSeedPlayers.forEach(async (p) => { try { await setDoc(doc(activePlayersCollectionRef, p.id), p); } catch(e){} });
+                } else {
+                    const playersToSync = hasHandledInitialPlayersSnapshot
+                        ? fb
+                        : mergeInitialPlayersWithLocalCache(fb);
+                    hasHandledInitialPlayersSnapshot = true;
+                    syncPlayers(playersToSync);
+                }
             }, (error) => handleSyncError('players', syncPlayers, initialMockPlayers, error));
 
             onSnapshot(activeEventsCollectionRef, (snapshot) => {
