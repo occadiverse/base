@@ -1366,7 +1366,11 @@
             width: 2.25rem;
         }
         .dashboard-alert-modal-item.is-critical .dashboard-alert-modal-icon {
-            color: #fecaca;
+            color: #ef4444;
+        }
+        .dashboard-alert-modal-item.is-critical .dashboard-alert-modal-icon i {
+            filter: drop-shadow(0 2px 4px rgba(127, 29, 29, 0.28));
+            transform: rotate(3deg) scaleY(1.18);
         }
         .dashboard-alert-modal-copy {
             flex: 1 1 auto;

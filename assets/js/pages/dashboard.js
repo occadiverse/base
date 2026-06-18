@@ -65,7 +65,7 @@ window.buildDashboardAlertData = function(match, teamSuspensions, suspendedPlaye
             return {
                 type: 'suspended',
                 tone: isRedCard ? 'critical' : 'warning',
-                icon: isRedCard ? 'fa-square-xmark' : 'fa-ban',
+                icon: isRedCard ? 'fa-square' : 'fa-ban',
                 playerName,
                 badge: status.reason || 'Karantene',
                 detail: isRedCard
