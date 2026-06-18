@@ -64,13 +64,6 @@ window.openAttendanceModal = function(eventId) {
     const dateLabel = new Date(ev.date).toLocaleDateString('no-NO');
     document.getElementById('attendanceModalTitle').innerText = `Oppmøte ${activityLabel} • ${dateLabel}`;
 
-    const container = document.getElementById('attendance-players-list');
-    container.innerHTML = '';
-
-    const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
-        ? window.getAttendanceModalTeamPlayers(ev)
-        : (window.activePlayers || []).filter(p => p.status !== 'Passiv');
-
     const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
         '<': '&lt;',
@@ -78,6 +71,39 @@ window.openAttendanceModal = function(eventId) {
         '"': '&quot;',
         "'": '&#39;'
     }[char]));
+
+    const container = document.getElementById('attendance-players-list');
+    const alertsContainer = document.getElementById('attendanceModalAlerts');
+    container.innerHTML = '';
+    if (alertsContainer) {
+        const alerts = isMatchClick && typeof window.buildMatchAlertData === 'function'
+            ? window.buildMatchAlertData(ev)
+            : [];
+
+        alertsContainer.innerHTML = '';
+        alertsContainer.classList.add('hidden');
+
+        if (alerts.length > 0) {
+            alertsContainer.innerHTML = `
+                <button type="button" onclick="window.showMatchAlertModal('${escapeAttr(ev.id)}')" class="attendance-modal-alert-card">
+                    <div class="attendance-modal-alert-icon">
+                        <i class="fa-solid ${escapeAttr(alerts[0].icon || 'fa-triangle-exclamation')}"></i>
+                    </div>
+                    <div class="attendance-modal-alert-copy">
+                        <span>Varsel</span>
+                        <strong>${escapeAttr(alerts[0].playerName)} · ${escapeAttr(alerts[0].badge)}</strong>
+                        <p>${escapeAttr(alerts[0].detail)}</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right attendance-modal-alert-chevron"></i>
+                </button>
+            `;
+            alertsContainer.classList.remove('hidden');
+        }
+    }
+
+    const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
+        ? window.getAttendanceModalTeamPlayers(ev)
+        : (window.activePlayers || []).filter(p => p.status !== 'Passiv');
 
     const appendPlayerRow = (player) => {
         const playerId = window.getPlayerStorageKey(player);

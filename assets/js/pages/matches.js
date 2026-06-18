@@ -220,11 +220,24 @@ function buildMatchDetailCardHtml(match, options = {}) {
     const watermarkHtml = showWatermark
         ? `<div class="dashboard-next-match-watermark"><i class="fa-solid fa-shield-halved"></i></div>`
         : '';
+    const matchAlerts = typeof window.buildMatchAlertData === 'function' ? window.buildMatchAlertData(match) : [];
+    const alertChipHtml = matchAlerts.length > 0
+        ? `
+            <button type="button"
+                    onclick="event.stopPropagation(); window.showMatchAlertModal('${escapeMatchJsString(match.id)}')"
+                    class="dashboard-alert-chip"
+                    title="Vis varsel for denne kampen">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Varsel</span>
+            </button>
+        `
+        : '';
     const topChipsHtml = `
         <div class="match-detail-chip">
             <i class="fa-solid fa-futbol"></i>
             <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
         </div>
+        ${alertChipHtml}
     `;
     const footerAttendanceHtml = showAttendance && data.attendingCount > 0
         ? `<div class="match-detail-footer-item">

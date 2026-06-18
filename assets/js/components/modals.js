@@ -12,6 +12,57 @@ window.escapeModalHtml = function(value) {
     }[char]));
 };
 
+window.buildMatchAlertData = function(match) {
+    if (!match || typeof window.getDisciplineStatusForTeam !== 'function') return [];
+
+    const teamSuspensions = window.getDisciplineStatusForTeam(match.matchGroup, match.date) || {};
+    const suspendedPlayers = Object.keys(teamSuspensions).filter(playerRef => teamSuspensions[playerRef].isSuspended);
+    const atRiskPlayers = Object.keys(teamSuspensions).filter(playerRef => teamSuspensions[playerRef].isAtRisk && !teamSuspensions[playerRef].isSuspended);
+    const cleanText = (value) => String(value || '').trim();
+    const matchLabel = [match.opponent, match.matchType].filter(Boolean).join(' · ') || 'neste kamp';
+
+    return [
+        ...suspendedPlayers.map(playerRef => {
+            const status = teamSuspensions[playerRef] || {};
+            const playerName = window.getPlayerNameFromRef(playerRef);
+            const isRedCard = status.cardType === 'red';
+
+            return {
+                type: 'suspended',
+                tone: isRedCard ? 'critical' : 'warning',
+                icon: isRedCard ? 'fa-square' : 'fa-ban',
+                playerName,
+                badge: status.reason || 'Karantene',
+                detail: isRedCard
+                    ? `${playerName} fikk rødt kort i forrige seriekamp og har karantene i neste seriekamp.`
+                    : `${playerName} har karantene i neste seriekamp (${cleanText(status.reason) || 'kortgrense'}).`,
+                meta: matchLabel
+            };
+        }),
+        ...atRiskPlayers.map(playerRef => {
+            const status = teamSuspensions[playerRef] || {};
+            const playerName = window.getPlayerNameFromRef(playerRef);
+
+            return {
+                type: 'at-risk',
+                tone: 'notice',
+                icon: 'fa-triangle-exclamation',
+                playerName,
+                badge: 'Faresone',
+                detail: `${playerName} står med ${status.yellows || 0} gule kort og får karantene ved ${status.nextKaranteneAt || 4} gule kort.`,
+                meta: matchLabel
+            };
+        })
+    ];
+};
+
+window.showMatchAlertModal = function(matchId) {
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+
+    window.showDashboardAlertModal(window.buildMatchAlertData(match));
+};
+
 window.captureModalReturnContext = function() {
     const tab = window.currentTab || 'hjem';
     return {
@@ -76,11 +127,12 @@ window.closeSessionInjuryModal = function() {
     window.restoreModalReturnContext(context);
 };
 
-window.showDashboardAlertModal = function() {
+window.showDashboardAlertModal = function(alertsOverride) {
     window._modalReturnContext = window.captureModalReturnContext();
 
-    const alerts = window._dashboardAlertPopupData || [];
+    const alerts = Array.isArray(alertsOverride) ? alertsOverride : (window._dashboardAlertPopupData || []);
     if (alerts.length === 0) return;
+    window._dashboardAlertPopupData = alerts;
 
     const titleEl = document.getElementById('dashboardAlertModalTitle');
     const leadEl = document.getElementById('dashboardAlertModalLead');

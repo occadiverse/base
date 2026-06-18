@@ -53,43 +53,6 @@ window.goToInjuredRoster = function() {
     }
 };
 
-window.buildDashboardAlertData = function(match, teamSuspensions, suspendedPlayers, atRiskPlayers) {
-    const escapeText = (value) => String(value || '').trim();
-    const matchLabel = [match?.opponent, match?.matchType].filter(Boolean).join(' · ') || 'neste kamp';
-
-    return [
-        ...suspendedPlayers.map(playerRef => {
-            const status = teamSuspensions[playerRef] || {};
-            const playerName = window.getPlayerNameFromRef(playerRef);
-            const isRedCard = status.cardType === 'red';
-            return {
-                type: 'suspended',
-                tone: isRedCard ? 'critical' : 'warning',
-                icon: isRedCard ? 'fa-square' : 'fa-ban',
-                playerName,
-                badge: status.reason || 'Karantene',
-                detail: isRedCard
-                    ? `${playerName} fikk rødt kort i forrige seriekamp og har karantene i neste seriekamp.`
-                    : `${playerName} har karantene i neste seriekamp (${escapeText(status.reason) || 'kortgrense'}).`,
-                meta: matchLabel
-            };
-        }),
-        ...atRiskPlayers.map(playerRef => {
-            const status = teamSuspensions[playerRef] || {};
-            const playerName = window.getPlayerNameFromRef(playerRef);
-            return {
-                type: 'at-risk',
-                tone: 'notice',
-                icon: 'fa-triangle-exclamation',
-                playerName,
-                badge: 'Faresone',
-                detail: `${playerName} står med ${status.yellows || 0} gule kort og får karantene ved ${status.nextKaranteneAt || 4} gule kort.`,
-                meta: matchLabel
-            };
-        })
-    ];
-};
-
 window.activateDashboardCardFromKeyboard = function(event) {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
@@ -149,7 +112,7 @@ window.updateDashboard = function() {
             const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
             const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
             const atRiskPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isAtRisk && !teamSuspensions[p].isSuspended);
-            const dashboardAlerts = window.buildDashboardAlertData(nm, teamSuspensions, suspendedPlayers, atRiskPlayers);
+            const dashboardAlerts = typeof window.buildMatchAlertData === 'function' ? window.buildMatchAlertData(nm) : [];
             window._dashboardAlertPopupData = dashboardAlerts;
 
             const injuredPlayers = (window.activePlayers || [])
