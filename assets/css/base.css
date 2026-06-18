@@ -2757,17 +2757,6 @@
             background: rgba(185, 28, 28, 0.05);
             border-color: rgba(185, 28, 28, 0.14);
         }
-        .team-report-detail-card {
-            overflow: hidden;
-            padding: 0;
-        }
-        .team-report-detail-card > .team-report-card-label {
-            background:
-                linear-gradient(90deg, rgba(245, 197, 66, 0.16) 0%, rgba(245, 197, 66, 0) 52%),
-                rgba(18, 63, 115, 0.06);
-            border-bottom: 1px solid rgba(18, 63, 115, 0.08);
-            padding: 0.75rem 0.9rem;
-        }
         .team-report-list {
             background: rgba(255, 255, 255, 0.82);
         }
@@ -3314,11 +3303,13 @@
             color: #94a3b8;
         }
         .stats-kamp-bar {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-            border: 1px solid rgba(18, 63, 115, 0.1);
-            border-radius: 1rem;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
-            padding: 0.75rem 0.9rem;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.16), transparent 34%),
+                linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.24);
+            border-radius: 1.25rem;
+            box-shadow: 0 16px 34px rgba(11, 43, 76, 0.14);
+            padding: 0.95rem 1rem;
         }
         .stats-kamp-bar-row {
             align-items: center;
@@ -3335,28 +3326,32 @@
             min-width: 0;
         }
         .stats-kamp-bar .stats-kamp-vs {
-            color: #0b2b4c;
+            color: #ffffff;
             font-size: 1rem;
             font-weight: 950;
         }
         .stats-kamp-bar .stats-kamp-vs-sep {
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.55);
         }
         .stats-kamp-bar .stats-kamp-select-wrap .portal-field {
-            background: rgba(18, 63, 115, 0.04);
-            border-color: rgba(18, 63, 115, 0.12);
-            color: #0b2b4c;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
             font-size: 0.92rem;
             font-weight: 950;
             max-width: 14rem;
             padding-right: 2rem;
         }
+        .stats-kamp-bar .stats-kamp-select-wrap .portal-field option {
+            background: #0b2b4c;
+            color: #ffffff;
+        }
         .stats-kamp-bar .stats-kamp-select-wrap i {
-            color: #123f73;
+            color: #f5c542;
         }
         .stats-kamp-bar-meta {
             align-items: center;
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.68);
             display: flex;
             flex-wrap: wrap;
             font-size: 0.68rem;
@@ -3366,7 +3361,7 @@
             margin-top: 0.45rem;
         }
         .stats-kamp-bar-result {
-            color: #0b2b4c;
+            color: #f5c542;
             font-size: 0.95rem;
             font-weight: 950;
         }
@@ -3374,7 +3369,18 @@
             margin-top: 0;
         }
         .stats-kamp-bar .stats-kamp-nav span {
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 900;
+        }
+        .stats-kamp-bar .stats-kamp-nav .portal-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+        }
+        .stats-kamp-bar .stats-kamp-nav .portal-btn:not(:disabled):hover {
+            background: rgba(245, 197, 66, 0.18);
+            border-color: rgba(245, 197, 66, 0.34);
+            color: #f5c542;
         }
         .stats-player-tools {
             display: flex;

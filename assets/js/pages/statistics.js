@@ -328,6 +328,28 @@ window.checkIndividualChemistry = function() {
                 const sum = attendingPlayers.reduce((total, p) => total + window.calculatePlayerMatchPoints(match, p), 0);
                 return Math.round((sum / attendingPlayers.length) * 10) / 10;
             };
+            const avgKampbidrag = (matches) => {
+                const values = matches
+                    .map(m => avgTeamMatchPoints(m))
+                    .filter(value => value > 0);
+                if (!values.length) return 0;
+                const sum = values.reduce((total, value) => total + value, 0);
+                return Math.round((sum / values.length) * 10) / 10;
+            };
+            const avgAttendancePct = (events) => {
+                let attendingTotal = 0;
+                let possibleTotal = 0;
+
+                events.forEach(e => {
+                    const eventTeam = e.team || filterLag || 'Lag A';
+                    const squad = activePlayers.filter(p => !eventTeam || p.spillerLag === eventTeam);
+                    if (!squad.length) return;
+                    possibleTotal += squad.length;
+                    attendingTotal += squad.filter(p => window.isPlayerAttending(e.attendance, p)).length;
+                });
+
+                return possibleTotal > 0 ? Math.round((attendingTotal / possibleTotal) * 100) : 0;
+            };
 
             const latestMatches = [...lastFiveMatches].reverse().map(m => {
                 const score = parseScore(m.result);
@@ -363,6 +385,10 @@ window.checkIndividualChemistry = function() {
                     allFor: avgFor(playedMatches),
                     lastFiveAgainst: avgAgainst(lastFiveMatches),
                     allAgainst: avgAgainst(playedMatches),
+                    lastFiveKampbidrag: avgKampbidrag(lastFiveMatches),
+                    allKampbidrag: avgKampbidrag(playedMatches),
+                    lastFiveAttendance: avgAttendancePct(historicalEvents.slice(0, 5)),
+                    allAttendance: avgAttendancePct(historicalEvents),
                     latestMatches,
                     recentAttendance
                 },
@@ -1086,40 +1112,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return better ? 'is-good' : 'is-alert';
             };
             const trendText = (current, total) => `${current || 0} mot ${total || 0}`;
-            const matchesHtml = report.trends.latestMatches.length
-                ? report.trends.latestMatches.map(m => {
-                    const resultClass = m.form === 'S' ? 'is-win' : m.form === 'T' ? 'is-loss' : 'is-draw';
-                    const dateText = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' }) : '';
-                    return `
-                        <div class="team-report-match-row">
-                            <span class="dashboard-series-form-pill ${resultClass}">${m.form}</span>
-                            <div class="min-w-0">
-                                <strong>${m.opponent}</strong>
-                                <span>${[dateText, m.result].filter(Boolean).join(' · ')}</span>
-                            </div>
-                            <span class="team-report-match-points" title="Snitt kampbidrag for spillerne i kampen"><span>KB</span>${m.points ? m.points.toFixed(1) : '-'}</span>
-                        </div>
-                    `;
-                }).join('')
-                : `<div class="team-report-empty-row">Ingen spilte kamper med resultat ennå.</div>`;
-
-            const attendanceHtml = report.trends.recentAttendance.length
-                ? report.trends.recentAttendance.map(e => {
-                    const dateText = e.date ? new Date(e.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' }) : '';
-                    return `
-                        <div class="team-report-attendance-row">
-                            <div class="team-report-attendance-meta">
-                                <strong>${e.title}</strong>
-                                <span>${[dateText, `${e.attending}/${e.possible}`].filter(Boolean).join(' · ')}</span>
-                            </div>
-                            <div class="team-report-mini-bar" aria-label="Oppmøte ${e.pct}%">
-                                <span style="width: ${Math.max(0, Math.min(100, e.pct))}%"></span>
-                            </div>
-                            <strong>${e.pct}%</strong>
-                        </div>
-                    `;
-                }).join('')
-                : `<div class="team-report-empty-row">Ingen nylige oppmøteregistreringer.</div>`;
+            const pctTrendText = (current, total) => `${current || 0}% mot ${total || 0}%`;
 
             return `
                 <section class="stats-panel team-report-panel">
@@ -1141,16 +1134,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <strong>${trendText(report.trends.lastFiveAgainst, report.trends.allAgainst)}</strong>
                                 <span class="team-report-card-sub">lavere er bedre</span>
                             </div>
-                        </div>
-
-                        <div class="team-report-two-col">
-                            <div class="team-report-trend-card team-report-detail-card">
+                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveKampbidrag, report.trends.allKampbidrag)}">
                                 <span class="team-report-card-label">Kampbidrag siste 5</span>
-                                <div class="team-report-list">${matchesHtml}</div>
+                                <strong>${trendText(report.trends.lastFiveKampbidrag, report.trends.allKampbidrag)}</strong>
+                                <span class="team-report-card-sub">siste 5 mot hele perioden</span>
                             </div>
-                            <div class="team-report-trend-card team-report-detail-card">
+                            <div class="team-report-trend-card ${trendClass(report.trends.lastFiveAttendance, report.trends.allAttendance)}">
                                 <span class="team-report-card-label">Oppmøte siste 5</span>
-                                <div class="team-report-list">${attendanceHtml}</div>
+                                <strong>${pctTrendText(report.trends.lastFiveAttendance, report.trends.allAttendance)}</strong>
+                                <span class="team-report-card-sub">siste 5 mot hele perioden</span>
                             </div>
                         </div>
 
@@ -1289,7 +1281,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             if (tabId === 'kampstat') {
-                window.paintStatsChrome(window.renderStatsChromeBar('Kampanalyse', heroTabsHtml));
+                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
                 window.renderStatsKampContext();
             }
         };
