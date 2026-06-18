@@ -156,6 +156,8 @@ function setupMobileSwipeNavigation() {
     let currentX = 0;
     let activeSwipeEl = null;
     let nextSwipeEl = null;
+    let preparedSwipeIndex = -1;
+    let swipePageOffset = 0;
     let hasHorizontalIntent = false;
     let isTracking = false;
     let swipeCompletionTimer = null;
@@ -176,7 +178,19 @@ function setupMobileSwipeNavigation() {
         return nextIndex;
     };
 
-    const getSwipePageOffset = () => window.innerWidth * 0.92;
+    const getSwipePageOffset = () => {
+        if (swipePageOffset) return swipePageOffset;
+
+        const mainView = document.getElementById('main-view');
+        const styles = mainView ? window.getComputedStyle(mainView) : null;
+        const naturalGap = styles ? parseFloat(styles.paddingLeft) || 16 : 16;
+        const pageWidth = activeSwipeEl
+            ? activeSwipeEl.getBoundingClientRect().width
+            : window.innerWidth - naturalGap * 2;
+
+        swipePageOffset = pageWidth + naturalGap;
+        return swipePageOffset;
+    };
 
     const cleanupNextSwipePreview = (hideNext = true) => {
         if (!nextSwipeEl) return;
@@ -192,6 +206,7 @@ function setupMobileSwipeNavigation() {
         nextSwipeEl.style.transform = '';
         nextSwipeEl.style.opacity = '';
         nextSwipeEl = null;
+        preparedSwipeIndex = -1;
     };
 
     const cleanupSwipeDrag = (hideNext = true) => {
@@ -211,15 +226,18 @@ function setupMobileSwipeNavigation() {
         }
 
         cleanupNextSwipePreview(hideNext);
+        swipePageOffset = 0;
     };
 
     const prepareNextSwipePreview = (nextIndex, direction) => {
         const nextEl = document.getElementById(`view-${swipeTabs[nextIndex]}`);
         if (!nextEl) return null;
 
+        if (nextSwipeEl === nextEl && preparedSwipeIndex === nextIndex) return nextSwipeEl;
         if (nextSwipeEl && nextSwipeEl !== nextEl) cleanupNextSwipePreview(true);
 
         nextSwipeEl = nextEl;
+        preparedSwipeIndex = nextIndex;
         nextSwipeEl.classList.remove('hidden');
         nextSwipeEl.classList.add('portal-view-mobile-peek');
         nextSwipeEl.setAttribute('aria-hidden', 'true');
@@ -272,6 +290,8 @@ function setupMobileSwipeNavigation() {
 
                 if (activeSwipeEl === activeEl) activeSwipeEl = null;
                 if (nextSwipeEl === nextEl) nextSwipeEl = null;
+                preparedSwipeIndex = -1;
+                swipePageOffset = 0;
             }, 260);
             return;
         }
@@ -315,6 +335,8 @@ function setupMobileSwipeNavigation() {
 
             activeSwipeEl = null;
             nextSwipeEl = null;
+            preparedSwipeIndex = -1;
+            swipePageOffset = 0;
             swipeCompletionTimer = null;
         }, 380);
     };
@@ -330,6 +352,12 @@ function setupMobileSwipeNavigation() {
         startY = event.touches[0].clientY;
         currentX = startX;
         activeSwipeEl = document.getElementById(`view-${currentTab}`);
+        const mainView = document.getElementById('main-view');
+        const styles = mainView ? window.getComputedStyle(mainView) : null;
+        const naturalGap = styles ? parseFloat(styles.paddingLeft) || 16 : 16;
+        swipePageOffset = activeSwipeEl
+            ? activeSwipeEl.getBoundingClientRect().width + naturalGap
+            : 0;
         hasHorizontalIntent = false;
         isTracking = true;
     }, { passive: true });
