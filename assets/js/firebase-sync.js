@@ -223,6 +223,8 @@
             window.localStorage.setItem('bsk_local_events', JSON.stringify(normalized));
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
+            if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget();
             refreshVisibleStatistics();
         }
 
@@ -300,9 +302,6 @@
                     initialMockEvents.forEach(async (e) => { try { await setDoc(doc(activeEventsCollectionRef, e.id), e); } catch(e){} });
                 } else { 
                     syncEvents(fb); 
-                    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
-                    if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget(); 
-                    if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi(); 
                 }
             }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
         } else {
