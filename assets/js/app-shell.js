@@ -19,6 +19,27 @@ function verifyAdminPin() {
     }, 1500);
 }
 
+const MOBILE_TAB_ORDER = ['hjem', 'kamper', 'oppmote', 'statistikk', 'taktikk'];
+
+function getMobileTabIndex(tabId) {
+    return MOBILE_TAB_ORDER.indexOf(tabId);
+}
+
+function setMobileNavProgress(progress, isSwiping = false) {
+    const mobileNav = document.querySelector('.portal-mobile-nav-shell');
+    if (!mobileNav) return;
+
+    const clampedProgress = Math.max(0, Math.min(MOBILE_TAB_ORDER.length - 1, progress));
+    mobileNav.style.setProperty('--portal-mobile-nav-progress', String(clampedProgress));
+    mobileNav.classList.toggle('portal-mobile-nav-swiping', isSwiping);
+}
+
+function setMobileNavTab(tabId) {
+    const tabIndex = getMobileTabIndex(tabId);
+    if (tabIndex === -1) return;
+    setMobileNavProgress(tabIndex, false);
+}
+
 function switchTab(tabId, options = {}) {
     const previousTab = currentTab;
     currentTab = tabId;
@@ -88,9 +109,9 @@ function switchTab(tabId, options = {}) {
 
     document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active-nav', 'text-bsk-yellow'));
 
-    const mobileBtnMap = { hjem: 0, kamper: 1, oppmote: 2, statistikk: 3, taktikk: 4 };
-    const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[mobileBtnMap[tabId]];
+    const activeMobileBtn = document.querySelectorAll('.mobile-nav-btn')[getMobileTabIndex(tabId)];
     if (activeMobileBtn) activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
+    setMobileNavTab(tabId);
 
     const mobileToolsBtn = document.querySelector('.portal-mobile-admin-btn');
     if (mobileToolsBtn) {
@@ -150,7 +171,7 @@ function setupMobileSwipeNavigation() {
     window.mobileSwipeNavigationReady = true;
     document.documentElement.dataset.mobileSwipeNavigation = 'ready';
 
-    const swipeTabs = ['hjem', 'kamper', 'oppmote', 'statistikk', 'taktikk'];
+    const swipeTabs = MOBILE_TAB_ORDER;
     let startX = 0;
     let startY = 0;
     let currentX = 0;
@@ -251,6 +272,7 @@ function setupMobileSwipeNavigation() {
         cleanupNextSwipePreview(hideNext);
         swipePageOffset = 0;
         swipeLayout = null;
+        setMobileNavTab(currentTab);
     };
 
     const prepareNextSwipePreview = (nextIndex, direction) => {
@@ -324,6 +346,7 @@ function setupMobileSwipeNavigation() {
                 preparedSwipeIndex = -1;
                 swipePageOffset = 0;
                 swipeLayout = null;
+                setMobileNavTab(currentTab);
             }, 260);
             return;
         }
@@ -346,6 +369,7 @@ function setupMobileSwipeNavigation() {
         nextEl.style.transition = transition;
         nextEl.style.transform = 'translate3d(0, 0, 0)';
         nextEl.style.opacity = '1';
+        setMobileNavProgress(nextIndex, false);
 
         swipeCompletionTimer = window.setTimeout(() => {
             const mainView = document.getElementById('main-view');
@@ -425,6 +449,7 @@ function setupMobileSwipeNavigation() {
         const maxDragDistance = hasNextTab ? window.innerWidth * 0.72 : window.innerWidth * 0.18;
         const dragResistance = hasNextTab ? 1 : 0.28;
         const dragDistance = Math.max(-maxDragDistance, Math.min(maxDragDistance, deltaX * dragResistance));
+        const currentIndex = getMobileTabIndex(currentTab);
 
         activeSwipeEl.style.transition = 'none';
         activeSwipeEl.style.transform = `translate3d(${dragDistance}px, 0, 0)`;
@@ -435,12 +460,20 @@ function setupMobileSwipeNavigation() {
             if (nextEl) {
                 const pageOffset = getSwipePageOffset();
                 const nextDistance = Math.max(-pageOffset, Math.min(pageOffset, direction * pageOffset + dragDistance));
+                const swipeProgress = Math.min(1, Math.abs(dragDistance) / Math.max(1, pageOffset * 0.48));
 
                 nextEl.style.transform = `translate3d(${nextDistance}px, 0, 0)`;
                 nextEl.style.opacity = '1';
+                if (currentIndex !== -1) {
+                    setMobileNavProgress(currentIndex + (nextIndex - currentIndex) * swipeProgress, true);
+                }
             }
         } else {
             cleanupNextSwipePreview(true);
+            if (currentIndex !== -1) {
+                const edgePull = Math.min(0.16, Math.abs(dragDistance) / Math.max(1, window.innerWidth) * 0.35);
+                setMobileNavProgress(currentIndex + (deltaX < 0 ? edgePull : -edgePull), true);
+            }
         }
     }, { passive: false });
 
