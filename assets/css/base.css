@@ -50,6 +50,10 @@
             width: 100%;
         }
         @media (max-width: 767px) {
+            .portal-view-mobile-dragging {
+                will-change: transform, opacity;
+                touch-action: pan-y;
+            }
             .portal-view-swipe-enter-left {
                 animation: portal-view-swipe-in-left 620ms cubic-bezier(0.22, 1, 0.36, 1);
             }

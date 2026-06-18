@@ -151,6 +151,9 @@ function setupMobileSwipeNavigation() {
     const swipeTabs = ['hjem', 'kamper', 'oppmote', 'statistikk', 'taktikk'];
     let startX = 0;
     let startY = 0;
+    let currentX = 0;
+    let activeSwipeEl = null;
+    let hasHorizontalIntent = false;
     let isTracking = false;
 
     const shouldIgnoreSwipe = (target) => {
@@ -158,6 +161,38 @@ function setupMobileSwipeNavigation() {
         return Boolean(target.closest(
             'button, a, input, textarea, select, label, table, .overflow-x-auto, .portal-segmented, .modal-base, [role="dialog"], [data-no-swipe]'
         ));
+    };
+
+    const getSwipeTargetIndex = (deltaX) => {
+        const currentIndex = swipeTabs.indexOf(currentTab);
+        if (currentIndex === -1) return -1;
+
+        const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
+        if (nextIndex < 0 || nextIndex >= swipeTabs.length) return -1;
+        return nextIndex;
+    };
+
+    const resetSwipeDragStyles = (animateBack = false) => {
+        if (!activeSwipeEl) return;
+        const el = activeSwipeEl;
+
+        if (animateBack) {
+            el.style.transition = 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease';
+            el.style.transform = 'translate3d(0, 0, 0)';
+            el.style.opacity = '';
+        } else {
+            el.style.transition = '';
+            el.style.transform = '';
+            el.style.opacity = '';
+        }
+
+        el.classList.remove('portal-view-mobile-dragging');
+
+        window.setTimeout(() => {
+            el.style.transition = '';
+            el.style.transform = '';
+            el.style.opacity = '';
+        }, 240);
     };
 
     document.addEventListener('touchstart', event => {
@@ -168,8 +203,44 @@ function setupMobileSwipeNavigation() {
 
         startX = event.touches[0].clientX;
         startY = event.touches[0].clientY;
+        currentX = startX;
+        activeSwipeEl = document.getElementById(`view-${currentTab}`);
+        hasHorizontalIntent = false;
         isTracking = true;
     }, { passive: true });
+
+    document.addEventListener('touchmove', event => {
+        if (!isTracking || window.innerWidth >= 768 || event.touches.length !== 1 || !activeSwipeEl) return;
+
+        currentX = event.touches[0].clientX;
+        const deltaX = currentX - startX;
+        const deltaY = event.touches[0].clientY - startY;
+
+        if (!hasHorizontalIntent) {
+            if (Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12) return;
+            if (Math.abs(deltaX) < Math.abs(deltaY) * 1.15) {
+                isTracking = false;
+                resetSwipeDragStyles(false);
+                activeSwipeEl = null;
+                return;
+            }
+
+            hasHorizontalIntent = true;
+            activeSwipeEl.classList.add('portal-view-mobile-dragging');
+        }
+
+        event.preventDefault();
+
+        const hasNextTab = getSwipeTargetIndex(deltaX) !== -1;
+        const dragResistance = hasNextTab ? 0.42 : 0.16;
+        const maxDragDistance = window.innerWidth * 0.28;
+        const dragDistance = Math.max(-maxDragDistance, Math.min(maxDragDistance, deltaX * dragResistance));
+        const dragProgress = Math.min(1, Math.abs(dragDistance) / maxDragDistance);
+
+        activeSwipeEl.style.transition = 'none';
+        activeSwipeEl.style.transform = `translate3d(${dragDistance}px, 0, 0)`;
+        activeSwipeEl.style.opacity = String(1 - dragProgress * 0.12);
+    }, { passive: false });
 
     document.addEventListener('touchend', event => {
         if (!isTracking || window.innerWidth >= 768 || event.changedTouches.length !== 1) return;
@@ -178,19 +249,33 @@ function setupMobileSwipeNavigation() {
         const deltaY = event.changedTouches[0].clientY - startY;
         isTracking = false;
 
-        const minSwipeDistance = Math.max(115, window.innerWidth * 0.32);
-        if (Math.abs(deltaX) < minSwipeDistance || Math.abs(deltaX) < Math.abs(deltaY) * 1.6) return;
+        const minSwipeDistance = Math.max(90, window.innerWidth * 0.24);
+        if (!hasHorizontalIntent || Math.abs(deltaX) < minSwipeDistance || Math.abs(deltaX) < Math.abs(deltaY) * 1.6) {
+            resetSwipeDragStyles(hasHorizontalIntent);
+            activeSwipeEl = null;
+            return;
+        }
 
-        const currentIndex = swipeTabs.indexOf(currentTab);
-        if (currentIndex === -1) return;
+        const nextIndex = getSwipeTargetIndex(deltaX);
+        if (nextIndex === -1) {
+            resetSwipeDragStyles(hasHorizontalIntent);
+            activeSwipeEl = null;
+            return;
+        }
 
-        const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
-        if (nextIndex < 0 || nextIndex >= swipeTabs.length) return;
-
+        resetSwipeDragStyles(false);
+        activeSwipeEl = null;
         switchTab(swipeTabs[nextIndex], {
             animate: 'swipe',
             direction: deltaX < 0 ? 'left' : 'right'
         });
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', () => {
+        if (!isTracking) return;
+        isTracking = false;
+        resetSwipeDragStyles(hasHorizontalIntent);
+        activeSwipeEl = null;
     }, { passive: true });
 }
 
