@@ -1,4 +1,5 @@
 window._sessionInjuryPopupData = [];
+window._dashboardAlertPopupData = [];
 window._modalReturnContext = null;
 
 window.escapeModalHtml = function(value) {
@@ -75,6 +76,61 @@ window.closeSessionInjuryModal = function() {
     window.restoreModalReturnContext(context);
 };
 
+window.showDashboardAlertModal = function() {
+    window._modalReturnContext = window.captureModalReturnContext();
+
+    const alerts = window._dashboardAlertPopupData || [];
+    if (alerts.length === 0) return;
+
+    const titleEl = document.getElementById('dashboardAlertModalTitle');
+    const leadEl = document.getElementById('dashboardAlertModalLead');
+    const listEl = document.getElementById('dashboardAlertList');
+
+    if (titleEl) {
+        titleEl.textContent = alerts.length === 1
+            ? 'Varsel før neste kamp'
+            : `${alerts.length} varsler før neste kamp`;
+    }
+
+    if (leadEl) {
+        leadEl.textContent = alerts.length === 1
+            ? 'Dette må tas hensyn til i laguttaket.'
+            : 'Disse punktene må tas hensyn til i laguttaket.';
+    }
+
+    if (listEl) {
+        listEl.innerHTML = alerts.map(alert => `
+            <div class="dashboard-alert-modal-item is-${window.escapeModalHtml(alert.tone || 'notice')}">
+                <div class="dashboard-alert-modal-icon">
+                    <i class="fa-solid ${window.escapeModalHtml(alert.icon || 'fa-triangle-exclamation')}"></i>
+                </div>
+                <div class="dashboard-alert-modal-copy min-w-0">
+                    <div class="dashboard-alert-modal-row">
+                        <span class="dashboard-alert-modal-name">${window.escapeModalHtml(alert.playerName)}</span>
+                        <span class="dashboard-alert-modal-badge">${window.escapeModalHtml(alert.badge)}</span>
+                    </div>
+                    <p>${window.escapeModalHtml(alert.detail)}</p>
+                    <span>${window.escapeModalHtml(alert.meta)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    const modal = document.getElementById('dashboardAlertModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.closeDashboardAlertModal = function() {
+    const modal = document.getElementById('dashboardAlertModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    const context = window._modalReturnContext;
+    window._modalReturnContext = null;
+    window.restoreModalReturnContext(context);
+};
+
 window.customConfirm = function(title, message, callback) {
     customConfirmCallback = callback;
     document.getElementById('confirmTitle').innerText = title;
@@ -102,7 +158,7 @@ document.getElementById('confirmNoBtn').onclick = function() {
 };
 
 window.onclick = function(event) {
-    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'eventModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'kjemi-info-modal', 'activityModal', 'tacticalPlayerModal'];
+    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'eventModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'activityModal', 'tacticalPlayerModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
@@ -114,6 +170,7 @@ window.onclick = function(event) {
             if (modalId === 'attendanceModal') window.closeAttendanceModal();
             if (modalId === 'confirmModal') window.closeConfirmModal();
             if (modalId === 'sessionInjuryModal') window.closeSessionInjuryModal();
+            if (modalId === 'dashboardAlertModal') window.closeDashboardAlertModal();
             if (modalId === 'activityModal') window.closeActivityModal();
             if (modalId === 'tacticalPlayerModal') window.closePlayerSelect();
             if (modalId === 'kjemi-info-modal') {

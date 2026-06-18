@@ -53,6 +53,43 @@ window.goToInjuredRoster = function() {
     }
 };
 
+window.buildDashboardAlertData = function(match, teamSuspensions, suspendedPlayers, atRiskPlayers) {
+    const escapeText = (value) => String(value || '').trim();
+    const matchLabel = [match?.opponent, match?.matchType].filter(Boolean).join(' · ') || 'neste kamp';
+
+    return [
+        ...suspendedPlayers.map(playerRef => {
+            const status = teamSuspensions[playerRef] || {};
+            const playerName = window.getPlayerNameFromRef(playerRef);
+            const isRedCard = status.cardType === 'red';
+            return {
+                type: 'suspended',
+                tone: isRedCard ? 'critical' : 'warning',
+                icon: isRedCard ? 'fa-square-xmark' : 'fa-ban',
+                playerName,
+                badge: status.reason || 'Karantene',
+                detail: isRedCard
+                    ? `${playerName} fikk rødt kort i forrige seriekamp og har karantene i neste seriekamp.`
+                    : `${playerName} har karantene i neste seriekamp (${escapeText(status.reason) || 'kortgrense'}).`,
+                meta: matchLabel
+            };
+        }),
+        ...atRiskPlayers.map(playerRef => {
+            const status = teamSuspensions[playerRef] || {};
+            const playerName = window.getPlayerNameFromRef(playerRef);
+            return {
+                type: 'at-risk',
+                tone: 'notice',
+                icon: 'fa-triangle-exclamation',
+                playerName,
+                badge: 'Faresone',
+                detail: `${playerName} står med ${status.yellows || 0} gule kort og får karantene ved ${status.nextKaranteneAt || 4} gule kort.`,
+                meta: matchLabel
+            };
+        })
+    ];
+};
+
 window.activateDashboardCardFromKeyboard = function(event) {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
@@ -112,6 +149,8 @@ window.updateDashboard = function() {
             const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
             const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
             const atRiskPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isAtRisk && !teamSuspensions[p].isSuspended);
+            const dashboardAlerts = window.buildDashboardAlertData(nm, teamSuspensions, suspendedPlayers, atRiskPlayers);
+            window._dashboardAlertPopupData = dashboardAlerts;
 
             const injuredPlayers = (window.activePlayers || [])
                 .filter(p => p.spillerLag === nm.matchGroup && typeof window.getPlayerInjuryInfo === 'function' && window.getPlayerInjuryInfo(p).isInjured)
@@ -171,16 +210,18 @@ window.updateDashboard = function() {
                 }
             }
 
-            // --- OPPGRADERTE KLIKKBAR BADGE (Tar deg rett til kampen) ---
+            // --- KLIKKBAR VARSELCHIP FOR KARANTENER OG FARESONE ---
             let herosuspensionBadgeHtml = '';
             const totalWarnings = suspendedPlayers.length + atRiskPlayers.length;
             if (totalWarnings > 0) {
                 herosuspensionBadgeHtml = `
-                    <span onclick="event.stopPropagation(); switchTab('kamper'); showMatchDetails('${nm.id}')" 
-                          class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse border border-white/20 cursor-pointer z-20 hover:bg-red-700 hover:scale-115 transition-all" 
-                          title="Karantene eller faresone registrert! Klikk for detaljer.">
-                        ${totalWarnings}
-                    </span>
+                    <button type="button"
+                            onclick="event.stopPropagation(); window.showDashboardAlertModal()"
+                            class="dashboard-alert-chip"
+                            title="Vis varsel for neste seriekamp">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Varsel</span>
+                    </button>
                 `;
             }
 
@@ -193,9 +234,9 @@ window.updateDashboard = function() {
 
                     <div class="match-detail-card-top relative z-10">
                         <div class="match-detail-meta relative">
-                            ${herosuspensionBadgeHtml}
                             <i class="fa-regular fa-calendar-days"></i>
                             <span>${dateLabel}</span>
+                            ${herosuspensionBadgeHtml}
                         </div>
                         <div class="match-detail-chip">
                             <i class="fa-solid fa-futbol"></i>
