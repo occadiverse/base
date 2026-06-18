@@ -108,6 +108,7 @@
             window.localStorage.setItem('bsk_local_matches', JSON.stringify(normalized));
             if (typeof window.updateDashboard === 'function') window.updateDashboard();
             if (typeof window.applyFilters === 'function') window.applyFilters();
+            refreshVisibleStatistics();
         }
 
         function syncTeams(teamsData) {
@@ -115,6 +116,7 @@
             window.localStorage.setItem('bsk_local_teams', JSON.stringify(teamsData));
             if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
             if (typeof window.renderAdminTeamsList === 'function') window.renderAdminTeamsList();
+            refreshVisibleStatistics();
         }
 
         function syncPlayers(playersData) {
@@ -140,6 +142,7 @@
             window.localStorage.setItem('bsk_local_players', JSON.stringify(normalized));
             if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+            refreshVisibleStatistics();
 
             if (repairedPlayers.length > 0) {
                 persistRepairedPlayers(repairedPlayers);
@@ -165,6 +168,25 @@
             window.localStorage.setItem('bsk_local_events', JSON.stringify(normalized));
             if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            refreshVisibleStatistics();
+        }
+
+        function refreshVisibleStatistics() {
+            if (window.currentTab !== 'statistikk') return;
+            if (typeof window.switchStatTab !== 'function') return;
+
+            if (typeof window.updateDynamicSelectors === 'function') {
+                window.updateDynamicSelectors();
+            }
+
+            const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
+            const activeTab = activeStatTab && activeStatTab.id
+                ? activeStatTab.id.replace('stat-tab-', '')
+                : (document.getElementById('stat-view-spillere')?.classList.contains('block')
+                    ? 'spillere'
+                    : (document.getElementById('stat-view-kampstat')?.classList.contains('block') ? 'kampstat' : 'lag'));
+
+            window.switchStatTab(activeTab);
         }
 
         if (firebaseEnabled && auth && auth.currentUser) {
