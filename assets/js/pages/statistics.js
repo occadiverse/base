@@ -437,18 +437,7 @@ window.checkIndividualChemistry = function() {
 
         window.renderStatsFollowUpsHtml = function(followUps) {
             if (!followUps.length) {
-                return `
-                    <div class="stats-panel">
-                        <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Oppfølging</h3>
-                            <p class="stats-panel-subtitle">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
-                        </div>
-                        <div class="stats-empty-state team-report-empty-state">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <p class="text-slate-400 italic text-xs">Ingen tydelige varsler akkurat nå.</p>
-                        </div>
-                    </div>
-                `;
+                return '';
             }
 
             return `
@@ -1420,11 +1409,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <h4>Lesing av diagrammet</h4>
                             ${isTotal ? `
                                 <p>Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs. Boblen viser total score, som fortsatt tar med oppmøte og disiplin.</p>
-                                <p>Kilde: Spillerdata per 19.06.2026. Begge akser er tall som allerede finnes i spillerstatistikken.</p>
+                                <p>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</p>
                             ` : `
                                 <p>Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode. Boblen viser 5 siste score, som også tar med nylig kampoppmøte og disiplin.</p>
                                 <p>Grønn kant betyr at spilleren er over egen total score, rød kant betyr under.</p>
-                                <p>Kilde: Spillerdata per 19.06.2026. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</p>
+                                <p>Kilde: spillerstatistikken. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</p>
                             `}
                             <div class="team-score-diagram-legend">
                                 <span><strong class="is-green">Grønn</strong> 75+</span>

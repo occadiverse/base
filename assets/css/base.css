@@ -3506,9 +3506,6 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
-        .team-report-empty-state i {
-            color: #16a34a;
-        }
         #stat-view-lag > #stats-lag-followups .stats-panel {
             border-color: rgba(18, 63, 115, 0.18);
             box-shadow: 0 16px 34px rgba(11, 43, 76, 0.08);
