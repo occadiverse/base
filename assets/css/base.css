@@ -3381,20 +3381,30 @@
             font-weight: 950;
         }
         @media (max-width: 640px) {
+            .team-score-diagram-wrap {
+                margin-top: 0.85rem;
+            }
             .team-score-diagram-card {
-                padding: 0.65rem;
+                border-left: 0;
+                border-radius: 0;
+                border-right: 0;
+                padding: 0.65rem 0.35rem 0.8rem;
+            }
+            .team-score-diagram-scroll {
+                overflow-x: visible;
             }
             .team-score-diagram-svg {
-                min-width: 34rem;
+                min-width: 0;
+                width: 100%;
             }
             .team-score-diagram-axis-label {
-                font-size: 12px;
+                font-size: 15px;
             }
             .team-score-diagram-tick {
-                font-size: 10px;
+                font-size: 12px;
             }
             .team-score-diagram-initials {
-                font-size: 9px;
+                font-size: 12px;
             }
         }
         .team-report-leader-btn {

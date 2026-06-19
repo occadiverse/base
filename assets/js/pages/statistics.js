@@ -1358,10 +1358,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
-            const width = isCompact ? 680 : 860;
-            const height = isCompact ? 420 : 520;
+            const width = isCompact ? 390 : 860;
+            const height = isCompact ? 360 : 520;
             const pad = isCompact
-                ? { left: 58, right: 24, top: 30, bottom: 58 }
+                ? { left: 42, right: 14, top: 40, bottom: 58 }
                 : { left: 72, right: 32, top: 36, bottom: 72 };
             const plotW = width - pad.left - pad.right;
             const plotH = height - pad.top - pad.bottom;
@@ -1372,14 +1372,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const x = value => pad.left + ((Math.max(xMin, Math.min(xMax, value)) - xMin) / (xMax - xMin)) * plotW;
             const y = value => pad.top + (1 - ((Math.max(yMin, Math.min(yMax, value)) - yMin) / (yMax - yMin))) * plotH;
             const gridX = isTotal
-                ? [8, 10, 12, 14, 16, 18, 20, 22, 24]
-                : [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28];
-            const gridY = [4, 4.5, 5, 5.5, 6, 6.5, 7];
+                ? (isCompact ? [8, 12, 16, 20, 24] : [8, 10, 12, 14, 16, 18, 20, 22, 24])
+                : (isCompact ? [8, 12, 16, 20, 24, 28] : [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28]);
+            const gridY = isCompact ? [4, 5, 6, 7] : [4, 4.5, 5, 5.5, 6, 6.5, 7];
             const escapeHtml = window.escapeModalHtml || (value => String(value || ''));
 
             const pointsHtml = rows.map(row => {
                 const radius = isCompact
-                    ? 5 + ((row.score - 20) / 65) * 4
+                    ? 4 + ((row.score - 20) / 65) * 3
                     : 7 + ((row.score - 20) / 65) * 8;
                 const fill = window.getStatsDiagramScoreColor(row.score);
                 const trendStroke = isTotal
@@ -1392,7 +1392,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return `
                     <g>
                         <title>${escapeHtml(row.name)}: ${row.score.toFixed(1)}</title>
-                        <text x="${pointX}" y="${pointY - radius - 6}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
+                        <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${trendStroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
                         ${isCompact ? '' : `<text x="${pointX}" y="${pointY + 4}" text-anchor="middle" class="team-score-diagram-score">${Math.round(row.score)}</text>`}
                     </g>
@@ -1506,9 +1506,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ${window.renderTeamReportLeaderCard('BB-leder', report.leaders.bbLeader, p => p.bb > 0 ? `${p.bb} BB` : null, 'fa-star', 'is-gold')}
                         </div>
 
-                        <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
-                            ${window.renderTeamScoreDiagramHtml()}
-                        </div>
+                    </div>
+                    <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
+                        ${window.renderTeamScoreDiagramHtml()}
                     </div>
                 </section>
             `;
