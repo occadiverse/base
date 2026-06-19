@@ -634,27 +634,42 @@ window.getPlayerFormComponents = function(playerName, asOfDate) {
     performanceScore = Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
 
     let totalYellowCards = 0;
-    let totalRedCards = 0;
 
     (window.activeMatches || []).forEach(m => {
         if (!isHistorical(m) || m.matchGroup !== spillerLag || m.matchType !== 'Serie') return;
         if (window.playerRefListIncludes(m.guleKort, playerObj)) totalYellowCards++;
-        if (window.playerRefListIncludes(m.rodeKort, playerObj)) totalRedCards++;
     });
+
+    const recentSerieMatches = (window.activeMatches || [])
+        .filter(m => (
+            isHistorical(m) &&
+            m.matchGroup === spillerLag &&
+            m.matchType === 'Serie' &&
+            m.attendance &&
+            window.isPlayerAttending(m.attendance, playerObj) &&
+            (typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(m, playerObj))
+        ))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, 5);
+
+    const recentRedCards = recentSerieMatches.reduce((total, m) => {
+        return total + (window.playerRefListIncludes(m.rodeKort, playerObj) ? 1 : 0);
+    }, 0);
+    const recentRedCardPenalty = Math.min(50, recentRedCards * 10);
 
     let karantener = 0;
     if (totalYellowCards >= 4) {
         karantener = 1 + Math.floor((totalYellowCards - 4) / 2);
     }
 
-    const disciplinePenalty = (totalRedCards * 10) + (karantener > 1 ? (karantener - 1) * 5 : 0);
+    const disciplinePenalty = karantener > 1 ? (karantener - 1) * 5 : 0;
     const disciplineScore = Math.max(0, 10 - disciplinePenalty);
     const kamp = Math.round(performanceScore);
     const oppm = Math.round(availabilityScore);
     const dis = Math.round(disciplineScore);
-    const total = Math.max(0, Math.min(100, kamp + oppm + dis));
+    const total = Math.max(0, Math.min(100, kamp + oppm + dis - recentRedCardPenalty));
 
-    return { total, kamp, oppm, dis, hasFormData: true };
+    return { total, kamp, oppm, dis, recentRedCardPenalty, hasFormData: true };
 };
 
 window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
@@ -1808,7 +1823,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </button>
 
                     <div class="stats-metric-grid is-four">
-                        ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
+                        ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og nylig disiplin', 'fa-heart-pulse', 'text-emerald-600')}
                         ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
                         ${card('Total plassering', totalRank > 0 ? `#${totalRank}` : '-', 'Rangert etter total score', 'fa-ranking-star', 'text-bsk-blue')}
                         ${card('Total score', totalScoreText, '50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin', 'fa-gauge-high', 'text-bsk-blue')}
