@@ -3380,6 +3380,23 @@
             font-size: 10px;
             font-weight: 950;
         }
+        @media (max-width: 640px) {
+            .team-score-diagram-card {
+                padding: 0.65rem;
+            }
+            .team-score-diagram-svg {
+                min-width: 34rem;
+            }
+            .team-score-diagram-axis-label {
+                font-size: 12px;
+            }
+            .team-score-diagram-tick {
+                font-size: 10px;
+            }
+            .team-score-diagram-initials {
+                font-size: 9px;
+            }
+        }
         .team-report-leader-btn {
             appearance: none;
             cursor: pointer;
@@ -4548,6 +4565,14 @@
             gap: 0.45rem;
             padding: 0.65rem 0.85rem;
         }
+        .match-bench-actions > .match-bench-action-btn {
+            padding-left: 0;
+            padding-right: 0;
+            width: 2.85rem;
+        }
+        .match-bench-actions > .match-bench-action-btn span {
+            display: none;
+        }
         .match-bench-icon-btn {
             width: 2.85rem;
         }
@@ -4860,6 +4885,11 @@
             .match-bench-action-btn {
                 min-height: 2.65rem;
                 padding: 0.55rem 0.62rem;
+            }
+            .match-bench-actions > .match-bench-action-btn {
+                padding-left: 0;
+                padding-right: 0;
+                width: 2.65rem;
             }
             .match-bench-icon-btn {
                 min-height: 2.65rem;

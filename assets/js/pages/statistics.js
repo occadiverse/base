@@ -1357,9 +1357,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return '';
             }
 
-            const width = 860;
-            const height = 520;
-            const pad = { left: 72, right: 32, top: 36, bottom: 72 };
+            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+            const width = isCompact ? 680 : 860;
+            const height = isCompact ? 420 : 520;
+            const pad = isCompact
+                ? { left: 58, right: 24, top: 30, bottom: 58 }
+                : { left: 72, right: 32, top: 36, bottom: 72 };
             const plotW = width - pad.left - pad.right;
             const plotH = height - pad.top - pad.bottom;
             const xMin = isTotal ? 8 : 8;
@@ -1375,7 +1378,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const escapeHtml = window.escapeModalHtml || (value => String(value || ''));
 
             const pointsHtml = rows.map(row => {
-                const radius = 7 + ((row.score - 20) / 65) * 8;
+                const radius = isCompact
+                    ? 5 + ((row.score - 20) / 65) * 4
+                    : 7 + ((row.score - 20) / 65) * 8;
                 const fill = window.getStatsDiagramScoreColor(row.score);
                 const trendStroke = isTotal
                     ? '#ffffff'
@@ -1389,7 +1394,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         <title>${escapeHtml(row.name)}: ${row.score.toFixed(1)}</title>
                         <text x="${pointX}" y="${pointY - radius - 6}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${trendStroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
-                        <text x="${pointX}" y="${pointY + 4}" text-anchor="middle" class="team-score-diagram-score">${Math.round(row.score)}</text>
+                        ${isCompact ? '' : `<text x="${pointX}" y="${pointY + 4}" text-anchor="middle" class="team-score-diagram-score">${Math.round(row.score)}</text>`}
                     </g>
                 `;
             }).join('');
@@ -1441,8 +1446,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             `).join('')}
                             <line x1="${pad.left}" x2="${width - pad.right}" y1="${height - pad.bottom}" y2="${height - pad.bottom}" class="team-score-diagram-axis"></line>
                             <line x1="${pad.left}" x2="${pad.left}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-axis"></line>
-                            <text x="${width / 2}" y="${height - 14}" text-anchor="middle" class="team-score-diagram-axis-label">${isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5'}</text>
-                            <text transform="translate(18 ${height / 2}) rotate(-90)" text-anchor="middle" class="team-score-diagram-axis-label">${isTotal ? 'Snittbørs' : 'Snittbørs siste 5'}</text>
+                            <text x="${width / 2}" y="${height - 14}" text-anchor="middle" class="team-score-diagram-axis-label">${isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5')}</text>
+                            <text transform="translate(18 ${height / 2}) rotate(-90)" text-anchor="middle" class="team-score-diagram-axis-label">${isCompact ? 'Snittbørs' : (isTotal ? 'Snittbørs' : 'Snittbørs siste 5')}</text>
                             ${pointsHtml}
                         </svg>
                     </div>
