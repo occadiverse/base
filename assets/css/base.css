@@ -3931,6 +3931,7 @@
             scroll-behavior: smooth;
             scroll-padding-inline: 0.35rem;
             scrollbar-width: none;
+            touch-action: pan-x;
             width: 100%;
         }
         .stats-sort-scroller::-webkit-scrollbar {

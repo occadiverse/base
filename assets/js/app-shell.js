@@ -178,7 +178,7 @@ function setupMobileSwipeNavigation() {
     const shouldIgnoreSwipe = (target) => {
         if (!target || !target.closest) return false;
         return Boolean(target.closest(
-            'input, textarea, select, table, .overflow-x-auto, .portal-segmented, .portal-mobile-nav-shell, .portal-mobile-tools, .modal-base, [role="dialog"], [data-no-swipe]'
+            'input, textarea, select, table, .overflow-x-auto, .stats-sort-scroller, .stats-player-sort-dock, .portal-segmented, .portal-mobile-nav-shell, .portal-mobile-tools, .modal-base, [role="dialog"], [data-no-swipe]'
         ));
     };
 

@@ -1691,13 +1691,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         </div>
                     </div>
                     <div id="stats-player-list" class="roster-list stats-player-list"></div>
-                    <div class="stats-player-sort-dock" aria-label="Sorter spillere">
+                    <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
                         <div class="stats-player-toolbar">
                             <div class="stats-sort-scroller-wrap">
                                 <div class="stats-sort-scroller-fade stats-sort-scroller-fade-left" aria-hidden="true">
                                     <i class="fa-solid fa-chevron-left"></i>
                                 </div>
-                                <div class="stats-sort-scroller" id="stats-player-sort-scroller">
+                                <div class="stats-sort-scroller" id="stats-player-sort-scroller" data-no-swipe>
                                     <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
                                         ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
                                     </div>
