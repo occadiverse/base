@@ -1170,30 +1170,36 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const disciplineTone = report.discipline.suspended > 0
                 ? 'is-loss'
                 : report.discipline.atRisk > 0 ? 'is-draw' : 'is-win';
+            const detailChip = (label, value, tone = '') => `
+                <div class="team-report-detail-chip ${tone}">
+                    <span>${label}</span>
+                    <strong>${value}</strong>
+                </div>
+            `;
 
             return `
                 <section class="stats-panel team-report-panel">
                     <div class="stats-panel-header team-report-header">
                         <div>
-                            <h3 class="stats-panel-title">Status</h3>
-                            <p class="stats-panel-subtitle">Nåbildet for ${report.title}: resultater, tropp, oppmøte og risiko.</p>
+                            <h3 class="stats-panel-title">Lagstatus</h3>
+                            <p class="stats-panel-subtitle">Kort oversikt for ${report.title}: resultater, oppmøte, tropp og risiko.</p>
                         </div>
                     </div>
                     <div class="team-report-body">
                         <div class="stats-form-row is-light">${formRowHtml}</div>
                         <div class="stats-inline-metrics team-report-status-grid">
-                            ${window.renderStatsInlineMetricHtml('Seire', data.wins, 'is-win')}
-                            ${window.renderStatsInlineMetricHtml('Uavgjort', data.draws, 'is-draw')}
-                            ${window.renderStatsInlineMetricHtml('Tap', data.losses, 'is-loss')}
-                            ${window.renderStatsInlineMetricHtml('Mål for', data.goals, 'is-goals')}
-                            ${window.renderStatsInlineMetricHtml('Mål imot', report.conceded, 'is-loss')}
-                            ${window.renderStatsInlineMetricHtml('Oppmøte', `${data.avgAttendance}%`, 'is-win')}
-                            ${window.renderStatsInlineMetricHtml('Aktive', report.squad.active)}
-                            ${window.renderStatsInlineMetricHtml('Tilgjengelige', report.squad.available, 'is-win')}
-                            ${window.renderStatsInlineMetricHtml('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '')}
-                            ${window.renderStatsInlineMetricHtml('Passiv', report.squad.passive)}
-                            ${window.renderStatsInlineMetricHtml('Formmedian', data.teamFormMedian || '-')}
-                            ${window.renderStatsInlineMetricHtml('Disiplin', disciplineText, disciplineTone)}
+                            ${window.renderStatsInlineMetricHtml('Kamper', report.matchCount)}
+                            ${window.renderStatsInlineMetricHtml('Resultat', `${data.wins}-${data.draws}-${data.losses}`, data.wins >= data.losses ? 'is-win' : 'is-loss')}
+                            ${window.renderStatsInlineMetricHtml('Mål', `${data.goals}-${report.conceded}`, data.goals >= report.conceded ? 'is-goals' : 'is-loss')}
+                            ${window.renderStatsInlineMetricHtml('Oppmøte', `${data.avgAttendance}%`, data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss')}
+                        </div>
+                        <div class="team-report-detail-grid" aria-label="Tropp og risiko">
+                            ${detailChip('Tilgjengelige', report.squad.available, 'is-win')}
+                            ${detailChip('Aktive', report.squad.active)}
+                            ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '')}
+                            ${detailChip('Passiv', report.squad.passive)}
+                            ${detailChip('Formmedian', data.teamFormMedian || '-')}
+                            ${detailChip('Disiplin', disciplineText, disciplineTone)}
                         </div>
                     </div>
                 </section>
