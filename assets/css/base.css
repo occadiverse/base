@@ -3790,6 +3790,7 @@
             width: 100%;
         }
         .stats-player-sort-dock {
+            order: -1;
             width: 100%;
         }
         .stats-player-sort-dock .stats-player-toolbar {
@@ -3843,27 +3844,6 @@
             .stats-player-sort-dock {
                 flex-shrink: 0;
             }
-            #view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-player-sort-dock {
-                backdrop-filter: blur(12px);
-                background: rgba(255, 255, 255, 0.55);
-                border-top: 1px solid rgba(148, 163, 184, 0.14);
-                bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
-                box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.04);
-                left: 0;
-                padding: 0.65rem 1rem 0.3rem;
-                position: fixed;
-                right: 0;
-                z-index: 35;
-            }
-            #view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-player-sort-dock .stats-sort-scroller-fade-left {
-                background: linear-gradient(to right, rgba(255, 255, 255, 0.55) 10%, rgba(255, 255, 255, 0.18) 45%, transparent 100%);
-            }
-            #view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-player-sort-dock .stats-sort-scroller-fade-right {
-                background: linear-gradient(to left, rgba(255, 255, 255, 0.55) 10%, rgba(255, 255, 255, 0.18) 45%, transparent 100%);
-            }
-            #view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-player-list {
-                padding-bottom: calc(4.1rem + env(safe-area-inset-bottom, 0px));
-            }
             .stats-player-list .stats-player-row .roster-player-name {
                 font-size: 1.04rem;
             }
@@ -3914,9 +3894,6 @@
         @media (min-width: 768px) {
             .stats-spillere-layout {
                 gap: 0.85rem;
-            }
-            .stats-player-sort-dock {
-                order: -1;
             }
         }
         .stats-player-toolbar {
