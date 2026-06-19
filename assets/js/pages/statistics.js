@@ -652,10 +652,12 @@ window.getPlayerFormComponents = function(playerName, asOfDate) {
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
         .slice(0, 5);
 
-    const recentRedCards = recentSerieMatches.reduce((total, m) => {
-        return total + (window.playerRefListIncludes(m.rodeKort, playerObj) ? 1 : 0);
+    const recentRedCardWeights = [10, 8, 6, 4, 2];
+    const recentRedCardPenalty = recentSerieMatches.reduce((total, m, index) => {
+        return total + (window.playerRefListIncludes(m.rodeKort, playerObj)
+            ? recentRedCardWeights[index]
+            : 0);
     }, 0);
-    const recentRedCardPenalty = Math.min(50, recentRedCards * 10);
 
     let karantener = 0;
     if (totalYellowCards >= 4) {
