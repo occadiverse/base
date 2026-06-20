@@ -1179,6 +1179,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
         };
 
+        window.setStatsDiagramPointTooltip = function(point, isActive) {
+            if (!point) return;
+            if (isActive) {
+                const svg = point.closest('.team-score-diagram-svg');
+                if (svg) {
+                    svg.querySelectorAll('.team-score-diagram-point.is-active').forEach(activePoint => {
+                        if (activePoint !== point) activePoint.classList.remove('is-active');
+                    });
+                }
+                point.classList.add('is-active');
+                return;
+            }
+            point.classList.remove('is-active');
+        };
+
         window.getStatsDiagramInitials = function(name) {
             return String(name || '')
                 .trim()
@@ -1335,12 +1350,28 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const strokeWidth = 1.5;
                 const pointX = x(row.x);
                 const pointY = y(row.y);
+                const tooltipWidth = isCompact ? 142 : 160;
+                const tooltipHeight = 52;
+                const tooltipX = Math.max(8, Math.min(width - tooltipWidth - 8, pointX - (tooltipWidth / 2)));
+                const tooltipY = Math.max(8, pointY - radius - tooltipHeight - (isCompact ? 14 : 12));
+                const recentDelta = row.score - (row.totalScore || 0);
+                const recentDeltaLabel = `${recentDelta >= 0 ? '+' : '-'}${Math.abs(recentDelta).toFixed(1)}`;
+                const tooltipValueClass = isTotal
+                    ? 'is-season'
+                    : recentDelta >= 0 ? 'is-up' : 'is-down';
 
                 return `
-                    <g>
-                        <title>${escapeHtml(row.name)}: ${row.score.toFixed(1)}</title>
+                    <g class="team-score-diagram-point" tabindex="0" aria-label="${escapeHtml(isTotal ? `${row.name}. Sesongform ${row.score.toFixed(1)}` : `${row.name}. Form 5 siste ${recentDeltaLabel}`)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
                         <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
+                        <g class="team-score-diagram-tooltip" transform="translate(${tooltipX} ${tooltipY})">
+                            <rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
+                            <text x="12" y="19" class="team-score-diagram-tooltip-name">${escapeHtml(row.name)}</text>
+                            <text x="12" y="38" class="team-score-diagram-tooltip-meta">
+                                <tspan>${isTotal ? 'Sesongform' : 'Form 5 siste'}</tspan>
+                                <tspan class="team-score-diagram-tooltip-value ${tooltipValueClass}" dx="6">${isTotal ? row.score.toFixed(1) : recentDeltaLabel}</tspan>
+                            </text>
+                        </g>
                     </g>
                 `;
             }).join('');
