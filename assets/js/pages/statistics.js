@@ -1328,7 +1328,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const pointsHtml = rows.map(row => {
                 const radius = 4 + ((row.score - 20) / 65) * 3;
-                const fill = '#0b2b4c';
+                const fill = isTotal
+                    ? '#0b2b4c'
+                    : row.score >= row.totalScore ? '#00c853' : '#ff1744';
                 const stroke = '#ffffff';
                 const strokeWidth = 1.5;
                 const pointX = x(row.x);
@@ -1361,6 +1363,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <p>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</p>
                             ` : `
                                 <p>Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode. Boblen viser 5 siste score, som også tar med nylig kampoppmøte og disiplin.</p>
+                                <p>Grønn boble betyr at spilleren er over egen total score. Rød boble betyr under.</p>
                                 <p>Kilde: spillerstatistikken. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</p>
                             `}
                         </div>
