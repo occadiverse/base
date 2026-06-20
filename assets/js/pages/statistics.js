@@ -224,12 +224,7 @@ window.checkIndividualChemistry = function() {
             return {
                 matches,
                 activeStats,
-                followUps,
-                topFormPlayer: [...activeStats].sort((a, b) => b.formLastFive - a.formLastFive)[0] || null,
-                bbLeader: [...activeStats].sort((a, b) => b.bb - a.bb)[0] || null,
-                topScorer: [...activeStats].sort((a, b) => b.goals - a.goals)[0] || null,
-                topAssist: [...activeStats].sort((a, b) => b.assists - a.assists)[0] || null,
-                topKampbidrag: [...activeStats].sort((a, b) => b.pointsPerMatch - a.pointsPerMatch)[0] || null
+                followUps
             };
         };
 
@@ -424,13 +419,6 @@ window.checkIndividualChemistry = function() {
                     allAttendance: avgAttendancePct(historicalEvents.slice(5)),
                     latestMatches,
                     recentAttendance
-                },
-                leaders: {
-                    topKampbidrag: analysis?.topKampbidrag || null,
-                    topScorer: analysis?.topScorer || null,
-                    topAssist: analysis?.topAssist || null,
-                    bbLeader: analysis?.bbLeader || null,
-                    topFormPlayer: analysis?.topFormPlayer || null
                 }
             };
         };
@@ -1121,25 +1109,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderTeamReportLeaderCard = function(label, leader, valueFormatter, icon, tone = '') {
-            const hasLeader = leader && valueFormatter(leader) !== null;
-            const safeName = hasLeader ? String(leader.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'") : '';
-            const value = hasLeader ? valueFormatter(leader) : '-';
-            const content = `
-                <div class="team-report-leader-card ${tone}">
-                    <div class="stats-metric-icon"><i class="fa-solid ${icon}"></i></div>
-                    <div class="min-w-0">
-                        <span class="team-report-card-label">${label}</span>
-                        <strong class="team-report-leader-name">${hasLeader ? leader.name : 'Ingen data'}</strong>
-                        <span class="team-report-card-sub">${value}</span>
-                    </div>
-                </div>
-            `;
-            return hasLeader
-                ? `<button type="button" onclick="window.openSpillerDetail('${safeName}')" class="team-report-leader-btn">${content}</button>`
-                : content;
-        };
-
         window.renderTeamReportStatusHtml = function(data, report) {
             const formGuide = window.getTeamFormGuide(data.filterLag);
             const getPillClass = (form) => {
@@ -1377,10 +1346,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? 4 + ((row.score - 20) / 65) * 3
                     : 7 + ((row.score - 20) / 65) * 8;
                 const fill = window.getStatsDiagramScoreColor(row.score);
-                const trendStroke = isTotal
+                const trendStroke = isTotal || isCompact
                     ? '#ffffff'
                     : row.score >= row.totalScore ? '#00C853' : '#FF1744';
-                const strokeWidth = isTotal ? 1.5 : 3;
+                const strokeWidth = isTotal || isCompact ? 1.5 : 3;
                 const pointX = x(row.x);
                 const pointY = y(row.y);
 
@@ -1453,25 +1422,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderTeamReportDevelopmentHtml = function(report) {
             const trendMeta = (current, baseline, inverted = false) => {
                 if (current === null || current === undefined || baseline === null || baseline === undefined || current === baseline) {
-                    return { tone: 'is-neutral', arrow: '→' };
+                    return { tone: 'is-neutral', arrow: '→', direction: 'is-neutral' };
                 }
                 const better = inverted ? current < baseline : current > baseline;
                 return {
                     tone: better ? 'is-good' : 'is-alert',
-                    arrow: current > baseline ? '↑' : '↓'
+                    arrow: current > baseline ? '↑' : '↓',
+                    direction: current > baseline ? 'is-up' : 'is-down'
                 };
             };
             const trendValue = (value, suffix = '') => (
                 value === null || value === undefined ? '-' : `${value}${suffix}`
             );
-            const trendCard = (label, current, baseline, inverted = false, suffix = '') => {
+            const trendCard = (label, current, baseline, inverted = false, suffix = '', icon = '') => {
                 const meta = trendMeta(current, baseline, inverted);
                 return `
                     <div class="team-report-trend-card ${meta.tone}">
                         <span class="team-report-card-label">${label}</span>
                         <strong class="team-report-trend-values">
                             <span>${trendValue(current, suffix)}</span>
-                            <span class="team-report-trend-arrow ${meta.tone}">${meta.arrow}</span>
+                            ${icon ? `<i class="fa-solid ${icon} team-report-trend-icon" aria-hidden="true"></i>` : ''}
+                            <span class="team-report-trend-arrow ${meta.direction}">${meta.arrow}</span>
                             <span>${trendValue(baseline, suffix)}</span>
                         </strong>
                     </div>
@@ -1483,24 +1454,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-panel-header team-report-header">
                         <div>
                             <h3 class="stats-panel-title">Utvikling</h3>
-                            <p class="stats-panel-subtitle">Retning over tid: siste kamper, måltrend, oppmøte og prestasjonsledere.</p>
+                            <p class="stats-panel-subtitle">Retning over tid: siste kamper, måltrend, oppmøte og scoreutvikling.</p>
                         </div>
                     </div>
                     <div class="team-report-body">
                         <div class="team-report-trend-grid">
-                            ${trendCard('Mål scoret siste 5', report.trends.lastFiveFor, report.trends.allFor)}
-                            ${trendCard('Mål imot siste 5', report.trends.lastFiveAgainst, report.trends.allAgainst, true)}
-                            ${trendCard('Kampbidrag siste 5', report.trends.lastFiveKampbidrag, report.trends.allKampbidrag)}
-                            ${trendCard('Oppmøte siste 5', report.trends.lastFiveAttendance, report.trends.allAttendance, false, '%')}
+                            ${trendCard('Mål scoret siste 5', report.trends.lastFiveFor, report.trends.allFor, false, '', 'fa-futbol')}
+                            ${trendCard('Mål imot siste 5', report.trends.lastFiveAgainst, report.trends.allAgainst, true, '', 'fa-futbol')}
+                            ${trendCard('Kampbidrag siste 5', report.trends.lastFiveKampbidrag, report.trends.allKampbidrag, false, '', 'fa-chart-line')}
+                            ${trendCard('Oppmøte siste 5', report.trends.lastFiveAttendance, report.trends.allAttendance, false, '%', 'fa-user-check')}
                         </div>
-
-                        <div class="team-report-leader-grid">
-                            ${window.renderTeamReportLeaderCard('Kampbidrag', report.leaders.topKampbidrag, p => p.pointsPerMatch > 0 ? `${p.pointsPerMatch.toFixed(1)} pr kamp` : null, 'fa-bolt', 'is-gold')}
-                            ${window.renderTeamReportLeaderCard('Toppscorer', report.leaders.topScorer, p => p.goals > 0 ? `${p.goals} mål` : null, 'fa-futbol', 'is-blue')}
-                            ${window.renderTeamReportLeaderCard('Assist', report.leaders.topAssist, p => p.assists > 0 ? `${p.assists} assist` : null, 'fa-handshake-angle', 'is-green')}
-                            ${window.renderTeamReportLeaderCard('BB-leder', report.leaders.bbLeader, p => p.bb > 0 ? `${p.bb} BB` : null, 'fa-star', 'is-gold')}
-                        </div>
-
                     </div>
                     <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
                         ${window.renderTeamScoreDiagramHtml()}

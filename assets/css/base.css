@@ -3145,21 +3145,18 @@
             color: #b91c1c;
         }
         .team-report-trend-grid,
-        .team-report-leader-grid,
         .team-report-two-col {
             display: grid;
             gap: 0.85rem;
         }
-        .team-report-trend-grid,
-        .team-report-leader-grid {
+        .team-report-trend-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .team-report-two-col {
             grid-template-columns: 1fr;
             margin-top: 0.9rem;
         }
-        .team-report-trend-card,
-        .team-report-leader-card {
+        .team-report-trend-card {
             background:
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 38%),
                 rgba(255, 255, 255, 0.96);
@@ -3182,6 +3179,11 @@
             gap: 0.45rem;
             justify-content: center;
         }
+        .team-report-trend-icon {
+            color: #64748b;
+            font-size: 0.95rem;
+            line-height: 1;
+        }
         .team-report-trend-arrow {
             align-items: center;
             border-radius: 999px;
@@ -3191,6 +3193,14 @@
             justify-content: center;
             line-height: 1;
             width: 1.5rem;
+        }
+        .team-report-trend-arrow.is-up {
+            background: #00c853;
+            color: #ffffff;
+        }
+        .team-report-trend-arrow.is-down {
+            background: #ff1744;
+            color: #ffffff;
         }
         .team-report-trend-arrow.is-good {
             background: rgba(22, 101, 52, 0.1);
@@ -3241,8 +3251,7 @@
             white-space: nowrap;
         }
         .team-report-match-row span:not(.dashboard-series-form-pill),
-        .team-report-attendance-meta span,
-        .team-report-card-sub {
+        .team-report-attendance-meta span {
             color: #64748b;
             display: block;
             font-size: 0.68rem;
@@ -3286,9 +3295,6 @@
             font-style: italic;
             padding: 1rem;
             text-align: center;
-        }
-        .team-report-leader-grid {
-            margin-top: 0.9rem;
         }
         .team-score-diagram-wrap {
             margin-top: 1rem;
@@ -3468,36 +3474,6 @@
                 font-size: 12px;
             }
         }
-        .team-report-leader-btn {
-            appearance: none;
-            cursor: pointer;
-            display: block;
-            font: inherit;
-            text-align: left;
-            width: 100%;
-        }
-        .team-report-leader-card {
-            align-items: center;
-            display: flex;
-            gap: 0.8rem;
-            min-height: 5rem;
-            padding: 0.85rem;
-            transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
-        }
-        .team-report-leader-btn:hover .team-report-leader-card {
-            border-color: rgba(245, 197, 66, 0.38);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-            transform: translateY(-1px);
-        }
-        .team-report-leader-name {
-            color: #0b2b4c;
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 950;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
         .team-report-card-label {
             color: #64748b;
             display: block;
@@ -3581,8 +3557,7 @@
             .stats-metric-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .team-report-status-grid,
-            .team-report-leader-grid {
+            .team-report-status-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             .team-report-detail-grid {
@@ -3622,9 +3597,6 @@
             }
             .team-report-two-col {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            .team-report-leader-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
         .stats-toolbar {
