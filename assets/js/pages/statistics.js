@@ -845,18 +845,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (form === 'T') return 'is-loss';
                 return 'is-draw';
             };
-            const getPillIcon = (form) => {
-                if (form === 'S') return 'fa-arrow-trend-up';
-                if (form === 'T') return 'fa-arrow-trend-down';
-                return 'fa-equals';
-            };
 
             return `
-                <div class="stats-chrome-form-row" aria-label="Lagform">
-                    <div class="stats-form-pills stats-form-pills-visual">
+                <div class="stats-chrome-form-row" aria-label="Lagform siste kamper">
+                    <div class="stats-chrome-form-track">
                         ${formGuide.map((item, index) => `
-                            <span class="dashboard-series-form-pill stats-form-pill-visual ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${item.tooltip}">
-                                <i class="fa-solid ${getPillIcon(item.form)}"></i>
+                            <span class="stats-chrome-form-item ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${item.tooltip}">
+                                <span class="stats-chrome-form-dot" aria-hidden="true"></span>
                                 <span>${item.text}</span>
                             </span>
                         `).join('')}
@@ -1175,24 +1170,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
 
             return `
-                <section class="stats-panel team-report-panel">
-                    <div class="team-report-body">
-                        <div class="stats-inline-metrics team-report-status-grid">
-                            ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days', 'is-matches')}
-                            ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'is-result', '<div class="team-report-mini-bars" aria-hidden="true"><span class="is-win"></span><span class="is-draw"></span><span class="is-loss"></span></div>')}
-                            ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'is-goal-card', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
-                            ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check', 'is-attendance')}
-                        </div>
-                        <div class="team-report-detail-grid" aria-label="Tropp og risiko">
-                            ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check')}
-                            ${detailChip('Aktive', report.squad.active, '', 'fa-users')}
-                            ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '', 'fa-briefcase-medical')}
-                            ${detailChip('Passiv', report.squad.passive, '', 'fa-moon')}
-                            ${detailChip('Formmedian', data.teamFormMedian || '-', data.teamFormMedian >= 70 ? 'is-win' : data.teamFormMedian >= 55 ? 'is-draw' : 'is-loss', 'fa-bolt')}
-                            ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list')}
-                        </div>
+                <div class="team-report-status-stack">
+                    <div class="stats-inline-metrics team-report-status-grid">
+                        ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days', 'is-matches')}
+                        ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'is-result', '<div class="team-report-mini-bars" aria-hidden="true"><span class="is-win"></span><span class="is-draw"></span><span class="is-loss"></span></div>')}
+                        ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'is-goal-card', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
+                        ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check', 'is-attendance')}
                     </div>
-                </section>
+                    <div class="team-report-detail-grid" aria-label="Tropp og risiko">
+                        ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check')}
+                        ${detailChip('Aktive', report.squad.active, '', 'fa-users')}
+                        ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '', 'fa-briefcase-medical')}
+                        ${detailChip('Passiv', report.squad.passive, '', 'fa-moon')}
+                        ${detailChip('Formmedian', data.teamFormMedian || '-', data.teamFormMedian >= 70 ? 'is-win' : data.teamFormMedian >= 55 ? 'is-draw' : 'is-loss', 'fa-bolt')}
+                        ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list')}
+                    </div>
+                </div>
             `;
         };
 

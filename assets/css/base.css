@@ -3132,7 +3132,13 @@
             border-color: #fca5a5;
             color: #7f1d1d;
         }
+        .team-report-status-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
         .team-report-status-grid {
+            gap: 0.85rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .team-report-status-grid .stats-inline-metric {
@@ -3328,24 +3334,27 @@
         }
         .team-report-detail-grid {
             display: grid;
-            gap: 0.5rem;
+            gap: 0.55rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .team-report-detail-chip {
             align-items: center;
             background:
-                linear-gradient(90deg, rgba(245, 197, 66, 0.09), transparent 32%),
-                rgba(18, 63, 115, 0.045);
-            border: 1px solid rgba(18, 63, 115, 0.12);
-            border-radius: 0.75rem;
-            color: #64748b;
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.14), transparent 38%),
+                linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 999px;
+            box-shadow: 0 10px 22px rgba(11, 43, 76, 0.16);
+            color: rgba(255, 255, 255, 0.62);
             display: flex;
             font-size: 0.68rem;
             font-weight: 850;
             gap: 0.45rem;
             justify-content: space-between;
             min-width: 0;
-            padding: 0.55rem 0.65rem;
+            overflow: hidden;
+            padding: 0.6rem 0.75rem;
+            position: relative;
         }
         .team-report-detail-chip span {
             align-items: center;
@@ -3356,46 +3365,54 @@
             white-space: nowrap;
         }
         .team-report-detail-chip i {
-            color: #123f73;
+            color: #f5c542;
             flex-shrink: 0;
             font-size: 0.72rem;
             width: 0.9rem;
         }
         .team-report-detail-chip strong {
-            color: #0b2b4c;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            color: #ffffff;
             flex-shrink: 0;
             font-size: 0.74rem;
             font-weight: 950;
+            line-height: 1;
+            padding: 0.22rem 0.48rem;
         }
         .team-report-detail-chip.is-win {
-            background: rgba(22, 101, 52, 0.07);
-            border-color: rgba(22, 101, 52, 0.14);
+            border-color: rgba(134, 239, 172, 0.28);
         }
         .team-report-detail-chip.is-win strong {
-            color: #166534;
+            background: rgba(22, 101, 52, 0.28);
+            border-color: rgba(134, 239, 172, 0.3);
+            color: #dcfce7;
         }
         .team-report-detail-chip.is-win i {
-            color: #166534;
+            color: #86efac;
         }
         .team-report-detail-chip.is-draw {
-            background: rgba(245, 197, 66, 0.12);
             border-color: rgba(245, 197, 66, 0.22);
         }
         .team-report-detail-chip.is-draw strong {
-            color: #a16207;
+            background: rgba(245, 197, 66, 0.18);
+            border-color: rgba(245, 197, 66, 0.3);
+            color: #fef3c7;
         }
         .team-report-detail-chip.is-draw i {
-            color: #a16207;
+            color: #f5c542;
         }
         .team-report-detail-chip.is-loss {
-            background: rgba(185, 28, 28, 0.06);
-            border-color: rgba(185, 28, 28, 0.14);
+            border-color: rgba(252, 165, 165, 0.24);
         }
         .team-report-detail-chip.is-loss strong {
-            color: #b91c1c;
+            background: rgba(185, 28, 28, 0.24);
+            border-color: rgba(252, 165, 165, 0.28);
+            color: #fee2e2;
         }
         .team-report-detail-chip.is-loss i {
-            color: #b91c1c;
+            color: #fca5a5;
         }
         .team-report-trend-grid,
         .team-report-two-col {
@@ -4027,47 +4044,47 @@
             justify-content: center;
             width: 100%;
         }
-        .stats-chrome-form-row .stats-form-pills-visual {
-            gap: 0.35rem;
-            justify-content: center;
-        }
-        .stats-chrome-form-row .stats-form-pill-visual {
+        .stats-chrome-form-track {
             align-items: center;
-            border-width: 2px;
+            background: rgba(18, 63, 115, 0.08);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 999px;
             display: inline-flex;
-            font-size: 0.66rem;
+            gap: 0.22rem;
+            padding: 0.22rem;
+        }
+        .stats-chrome-form-item {
+            align-items: center;
+            border-radius: 999px;
+            color: #64748b;
+            display: inline-flex;
+            font-size: 0.6rem;
+            font-weight: 950;
             gap: 0.24rem;
-            height: 1.7rem;
-            justify-content: center;
+            height: 1.42rem;
+            letter-spacing: 0.03em;
             min-width: 1.7rem;
-            padding: 0 0.5rem;
-            transition: transform 150ms ease, box-shadow 150ms ease;
+            padding: 0 0.44rem;
         }
-        .stats-chrome-form-row .stats-form-pill-visual i {
-            font-size: 0.68rem;
-            line-height: 1;
+        .stats-chrome-form-dot {
+            border-radius: 999px;
+            display: inline-block;
+            height: 0.42rem;
+            width: 0.42rem;
         }
-        .stats-chrome-form-row .stats-form-pill-visual.is-latest {
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
-            font-size: 0.74rem;
-            height: 2.05rem;
-            min-width: 2.05rem;
-            transform: translateY(-1px);
+        .stats-chrome-form-item.is-win .stats-chrome-form-dot {
+            background: #16a34a;
         }
-        .stats-chrome-form-row .dashboard-series-form-pill.is-win {
-            background: #dcfce7;
-            border-color: #86efac;
-            color: #14532d;
+        .stats-chrome-form-item.is-draw .stats-chrome-form-dot {
+            background: #f5c542;
         }
-        .stats-chrome-form-row .dashboard-series-form-pill.is-draw {
-            background: #fef3c7;
-            border-color: #f5c542;
-            color: #713f12;
+        .stats-chrome-form-item.is-loss .stats-chrome-form-dot {
+            background: #dc2626;
         }
-        .stats-chrome-form-row .dashboard-series-form-pill.is-loss {
-            background: #fee2e2;
-            border-color: #fca5a5;
-            color: #7f1d1d;
+        .stats-chrome-form-item.is-latest {
+            background: #ffffff;
+            box-shadow: 0 8px 18px rgba(11, 43, 76, 0.12);
+            color: #0b2b4c;
         }
         .stats-chrome-info-btn {
             padding-inline: 0.72rem;
