@@ -1187,6 +1187,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     svg.querySelectorAll('.team-score-diagram-point.is-active').forEach(activePoint => {
                         if (activePoint !== point) activePoint.classList.remove('is-active');
                     });
+                    svg.appendChild(point);
                 }
                 point.classList.add('is-active');
                 return;
