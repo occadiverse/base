@@ -836,12 +836,45 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.applyPlayerTotalScores(statsData);
         };
 
+        window.renderStatsTeamFormPillsHtml = function(teamName) {
+            const formGuide = window.getTeamFormGuide(teamName);
+            if (!formGuide.length) return '';
+
+            const getPillClass = (form) => {
+                if (form === 'S') return 'is-win';
+                if (form === 'T') return 'is-loss';
+                return 'is-draw';
+            };
+            const getPillIcon = (form) => {
+                if (form === 'S') return 'fa-arrow-trend-up';
+                if (form === 'T') return 'fa-arrow-trend-down';
+                return 'fa-equals';
+            };
+
+            return `
+                <div class="stats-chrome-form-row" aria-label="Lagform">
+                    <div class="stats-form-pills stats-form-pills-visual">
+                        ${formGuide.map((item, index) => `
+                            <span class="dashboard-series-form-pill stats-form-pill-visual ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${item.tooltip}">
+                                <i class="fa-solid ${getPillIcon(item.form)}"></i>
+                                <span>${item.text}</span>
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        };
+
         window.renderStatsHeroTabsHtml = function(activeTabId) {
             const tabs = [
                 { id: 'lag', label: 'Lag' },
                 { id: 'spillere', label: 'Spiller' },
                 { id: 'kampstat', label: 'Kamp' }
             ];
+            const showTeamForm = activeTabId === 'lag' && window._statsLagData;
+            const teamFormHtml = showTeamForm
+                ? window.renderStatsTeamFormPillsHtml(window._statsLagData.filterLag)
+                : '';
 
             return `
                 <div class="stats-hero-tabs">
@@ -864,6 +897,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <i class="fa-solid fa-circle-info"></i>
                         </button>
                     </div>
+                    ${teamFormHtml}
                 </div>
             `;
         };
@@ -1110,21 +1144,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderTeamReportStatusHtml = function(data, report) {
-            const formGuide = window.getTeamFormGuide(data.filterLag);
-            const getPillClass = (form) => {
-                if (form === 'S') return 'is-win';
-                if (form === 'T') return 'is-loss';
-                return 'is-draw';
-            };
-            const getPillIcon = (form) => {
-                if (form === 'S') return 'fa-arrow-trend-up';
-                if (form === 'T') return 'fa-arrow-trend-down';
-                return 'fa-equals';
-            };
-            const formRowHtml = formGuide.length
-                ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills stats-form-pills-visual">${formGuide.map((item, index) => `<span class="dashboard-series-form-pill stats-form-pill-visual ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${item.tooltip}"><i class="fa-solid ${getPillIcon(item.form)}"></i><span>${item.text}</span></span>`).join('')}</div>`
-                : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
-
             const disciplineText = report.discipline.suspended > 0
                 ? `${report.discipline.suspended} ute`
                 : report.discipline.atRisk > 0
@@ -1157,14 +1176,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             return `
                 <section class="stats-panel team-report-panel">
-                    <div class="stats-panel-header team-report-header">
-                        <div>
-                            <h3 class="stats-panel-title">Lagstatus</h3>
-                            <p class="stats-panel-subtitle">Kort oversikt for ${report.title}: resultater, oppmøte, tropp og risiko.</p>
-                        </div>
-                    </div>
                     <div class="team-report-body">
-                        <div class="stats-form-row is-light">${formRowHtml}</div>
                         <div class="stats-inline-metrics team-report-status-grid">
                             ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days', 'is-matches')}
                             ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'is-result', '<div class="team-report-mini-bars" aria-hidden="true"><span class="is-win"></span><span class="is-draw"></span><span class="is-loss"></span></div>')}
