@@ -968,21 +968,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderStatsLagHeroMetricHtml = function(label, value, sub, icon, tone = '') {
-            return `
-                <div class="stats-lag-hero-metric ${tone}">
-                    <div class="stats-lag-hero-metric-icon">
-                        <i class="fa-solid ${icon}"></i>
-                    </div>
-                    <div>
-                        <span>${label}</span>
-                        <strong>${value}</strong>
-                        <small>${sub}</small>
-                    </div>
-                </div>
-            `;
-        };
-
         window.renderStatsLagHeroHtml = function(data, report, heroTabsHtml) {
             report = report || {
                 title: data.title,
@@ -991,6 +976,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 squad: { available: data.playerCount || 0 },
                 trends: {}
             };
+            const escapeHtml = window.escapeModalHtml || (value => String(value || ''));
             const formGuide = window.getTeamFormGuide(data.filterLag);
             const formGuideHtml = formGuide.length
                 ? formGuide.map(item => {
@@ -1003,53 +989,123 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const goalDiff = data.goals - report.conceded;
             const goalDiffText = goalDiff > 0 ? `+${goalDiff}` : String(goalDiff);
             const resultTone = data.wins >= data.losses ? 'is-win' : 'is-loss';
-            const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
             const goalTone = goalDiff >= 0 ? 'is-win' : 'is-loss';
             const trendFor = report.trends.lastFiveFor ?? data.goalsAvg;
             const trendAgainst = report.trends.lastFiveAgainst ?? data.concededAvg;
             const title = report.title || data.title || 'Lagstatistikk';
-            const discoveryText = report.matchCount > 0
-                ? `Start med helhetsbildet for ${title}, og dykk videre i form, oppmøte og spillerbidrag under.`
-                : `Når kampene registreres, blir dette inngangen til form, oppmøte og spillerbidrag for ${title}.`;
+            const latestMatch = Array.isArray(report.trends.latestMatches) && report.trends.latestMatches.length
+                ? report.trends.latestMatches[report.trends.latestMatches.length - 1]
+                : null;
+            const latestMatchText = latestMatch
+                ? `${latestMatch.form === 'S' ? 'Seier' : latestMatch.form === 'T' ? 'Tap' : 'Uavgjort'} mot ${latestMatch.opponent} · ${latestMatch.result}`
+                : 'Ingen kampresultater registrert ennå';
+            const playerRows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData().filter(row => row.kamper > 0 || row.totalScore > 0 || row.kjemi > 0)
+                : [];
+            const topPlayer = [...playerRows].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))[0];
+            const topFormPlayer = [...playerRows].sort((a, b) => (b.kjemi || 0) - (a.kjemi || 0))[0];
+            const safeTopPlayerName = topPlayer
+                ? String(topPlayer.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+                : '';
+            const followUps = typeof window.buildPlayerAnalysisStats === 'function'
+                ? window.buildPlayerAnalysisStats(data.filterLag).followUps || []
+                : [];
+            const riskCount = followUps.length + (report.discipline.suspended || 0) + (report.discipline.atRisk || 0);
+            const headlineQuestion = report.matchCount > 0
+                ? (data.avgAttendance < 70
+                    ? 'Er oppmøtet godt nok til å holde trykket oppe?'
+                    : goalDiff < 0
+                        ? 'Hva må strammes inn for at resultatene skal snu?'
+                        : 'Hvem og hva driver laget akkurat nå?')
+                : 'Hvor starter historien når de første kampene kommer inn?';
+            const storyItems = [
+                {
+                    label: 'Formbildet',
+                    value: record,
+                    text: latestMatchText,
+                    tone: resultTone,
+                    icon: 'fa-bolt',
+                    action: "document.getElementById('stats-lag-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                },
+                {
+                    label: 'Utvikling',
+                    value: `${trendFor}-${trendAgainst}`,
+                    text: `Siste 5 i mål for/imot per kamp · målforskjell ${goalDiffText}`,
+                    tone: goalTone,
+                    icon: 'fa-chart-line',
+                    action: "document.getElementById('stats-lag-development')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                },
+                {
+                    label: 'Noe å sjekke',
+                    value: riskCount > 0 ? `${riskCount} signaler` : 'Rolig bilde',
+                    text: riskCount > 0 ? 'Oppfølging, skade eller disiplin kan påvirke neste steg.' : 'Ingen tydelige varsler, se heller etter hvem som kan løfte nivået.',
+                    tone: riskCount > 0 ? 'is-draw' : 'is-win',
+                    icon: 'fa-magnifying-glass-chart',
+                    action: riskCount > 0
+                        ? "document.getElementById('stats-lag-followups')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                        : "switchStatTab('spillere')"
+                }
+            ];
+            const storyCardsHtml = storyItems.map(item => `
+                <button type="button" onclick="${item.action}" class="stats-lag-story-card ${item.tone}">
+                    <span class="stats-lag-story-icon"><i class="fa-solid ${item.icon}"></i></span>
+                    <span class="stats-lag-story-main">
+                        <span class="stats-lag-story-label">${item.label}</span>
+                        <strong>${item.value}</strong>
+                        <small>${item.text}</small>
+                    </span>
+                </button>
+            `).join('');
 
             return `
                 <div class="stats-lag-hero-top">
                     <div class="stats-lag-hero-copy">
                         <p class="stats-hero-kicker">Lagpuls</p>
-                        <h2 class="stats-hero-title">Hva forteller tallene om ${title}?</h2>
-                        <p class="stats-hero-subtitle">${discoveryText}</p>
+                        <h2 class="stats-hero-title">${title}</h2>
+                        <p class="stats-hero-subtitle">En rask inngang til historien bak tallene: form, momentum, spillere og ting trenerteamet bør sjekke først.</p>
                     </div>
                     <div class="stats-lag-hero-tabs-wrap">
                         ${heroTabsHtml}
                     </div>
                 </div>
 
-                <div class="stats-lag-hero-content">
-                    <div class="stats-lag-hero-scorecard">
-                        <span class="stats-lag-hero-label">Sesongstatus</span>
-                        <strong class="stats-lag-hero-record ${resultTone}">${record}</strong>
+                <div class="stats-lag-story-grid">
+                    <article class="stats-lag-feature-card">
+                        <i class="fa-solid fa-futbol stats-lag-feature-watermark" aria-hidden="true"></i>
+                        <span class="stats-lag-hero-label">Før du scroller</span>
+                        <h3>${headlineQuestion}</h3>
+                        <p>${latestMatchText}. Bruk denne siden til å finne hvorfor bildet ser slik ut, ikke bare hva tabellen sier.</p>
                         <div class="stats-lag-hero-form" aria-label="Form siste kamper">${formGuideHtml}</div>
-                    </div>
-                    <div class="stats-lag-hero-metrics">
-                        ${window.renderStatsLagHeroMetricHtml('Målforskjell', goalDiffText, `${data.goals} scoret · ${report.conceded} imot`, 'fa-futbol', goalTone)}
-                        ${window.renderStatsLagHeroMetricHtml('Oppmøte', `${data.avgAttendance}%`, `${report.squad.available} tilgjengelige spillere`, 'fa-user-check', attendanceTone)}
-                        ${window.renderStatsLagHeroMetricHtml('Siste 5', `${trendFor}-${trendAgainst}`, 'mål for/imot per kamp', 'fa-chart-line')}
-                    </div>
+                        <div class="stats-lag-feature-meta">
+                            <span><strong>${record}</strong> resultat</span>
+                            <span><strong>${data.avgAttendance}%</strong> oppmøte</span>
+                            <span><strong>${goalDiffText}</strong> målforskjell</span>
+                        </div>
+                    </article>
+
+                    <aside class="stats-lag-spotlight-card">
+                        <span class="stats-lag-hero-label">Spiller å følge</span>
+                        ${topPlayer ? `
+                            <button type="button" onclick="window.openSpillerDetail('${safeTopPlayerName}')" class="stats-lag-spotlight-player">
+                                <span class="stats-lag-spotlight-avatar">${escapeHtml(String(topPlayer.navn || '?').trim().charAt(0).toUpperCase())}</span>
+                                <span class="stats-lag-spotlight-main">
+                                    <strong>${escapeHtml(topPlayer.navn)}</strong>
+                                    <small>Total score ${Number(topPlayer.totalScore || 0).toFixed(1)} · ${topPlayer.kamper || 0} kamper</small>
+                                </span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <p>${topFormPlayer && topFormPlayer.navn !== topPlayer.navn ? `${escapeHtml(topFormPlayer.navn)} har høyest form akkurat nå (${topFormPlayer.kjemi}).` : 'Klikk inn og se hva som bygger scoren.'}</p>
+                        ` : `
+                            <div class="stats-lag-spotlight-empty">
+                                <strong>Ingen spillerdata ennå</strong>
+                                <small>Når kamper og oppmøte registreres, løftes nøkkelspillere frem her.</small>
+                            </div>
+                        `}
+                    </aside>
                 </div>
 
-                <div class="stats-lag-hero-actions" aria-label="Utforsk lagstatistikk">
-                    <button type="button" onclick="document.getElementById('stats-lag-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        Se lagstatus
-                    </button>
-                    <button type="button" onclick="document.getElementById('stats-lag-development')?.scrollIntoView({ behavior: 'smooth', block: 'start' })">
-                        <i class="fa-solid fa-chart-line"></i>
-                        Utforsk utvikling
-                    </button>
-                    <button type="button" onclick="switchStatTab('spillere')">
-                        <i class="fa-solid fa-ranking-star"></i>
-                        Finn spillerbidrag
-                    </button>
+                <div class="stats-lag-story-cards" aria-label="Utforsk lagstatistikk">
+                    ${storyCardsHtml}
                 </div>
             `;
         };
