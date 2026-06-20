@@ -1146,8 +1146,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const goalsForPct = Math.round((data.goals / goalTotal) * 100);
             const goalsAgainstPct = Math.max(0, 100 - goalsForPct);
             const attendancePct = Math.max(0, Math.min(100, Number(data.avgAttendance) || 0));
-            const metricCard = (label, valueHtml, tone, icon, extraHtml = '') => `
-                <div class="stats-inline-metric team-report-metric-card ${tone}">
+            const metricCard = (label, valueHtml, tone, icon, variant, extraHtml = '') => `
+                <div class="stats-inline-metric team-report-metric-card ${tone} ${variant}">
                     <i class="fa-solid ${icon} team-report-metric-icon"></i>
                     <span class="stats-inline-metric-label">${label}</span>
                     <span class="stats-inline-metric-value ${tone}">${valueHtml}</span>
@@ -1166,10 +1166,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="team-report-body">
                         <div class="stats-form-row is-light">${formRowHtml}</div>
                         <div class="stats-inline-metrics team-report-status-grid">
-                            ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days')}
-                            ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-ranking-star')}
-                            ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
-                            ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check')}
+                            ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days', 'is-matches', '<div class="team-report-card-ribbon" aria-hidden="true"></div>')}
+                            ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'is-result', '<div class="team-report-mini-bars" aria-hidden="true"><span class="is-win"></span><span class="is-draw"></span><span class="is-loss"></span></div>')}
+                            ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'is-goal-card', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
+                            ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check', 'is-attendance')}
                         </div>
                         <div class="team-report-detail-grid" aria-label="Tropp og risiko">
                             ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check')}
