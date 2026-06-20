@@ -1166,7 +1166,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="team-report-body">
                         <div class="stats-form-row is-light">${formRowHtml}</div>
                         <div class="stats-inline-metrics team-report-status-grid">
-                            ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days', 'is-matches', '<div class="team-report-card-ribbon" aria-hidden="true"></div>')}
+                            ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days', 'is-matches')}
                             ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'is-result', '<div class="team-report-mini-bars" aria-hidden="true"><span class="is-win"></span><span class="is-draw"></span><span class="is-loss"></span></div>')}
                             ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'is-goal-card', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
                             ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check', 'is-attendance')}
