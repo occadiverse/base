@@ -3379,28 +3379,6 @@
             line-height: 1.45;
             margin: 0.35rem 0 0;
         }
-        .team-score-diagram-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 0.5rem;
-        }
-        .team-score-diagram-legend span {
-            color: #334155;
-            font-size: 0.82rem;
-        }
-        .team-score-diagram-legend .is-green {
-            color: #16a34a;
-        }
-        .team-score-diagram-legend .is-yellow {
-            color: #b45309;
-        }
-        .team-score-diagram-legend .is-orange {
-            color: #f97316;
-        }
-        .team-score-diagram-legend .is-gray {
-            color: #64748b;
-        }
         .team-score-diagram-scroll {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -3440,12 +3418,6 @@
             font-family: Inter, sans-serif;
             font-size: 10px;
             font-weight: 900;
-        }
-        .team-score-diagram-score {
-            fill: #ffffff;
-            font-family: Inter, sans-serif;
-            font-size: 10px;
-            font-weight: 950;
         }
         @media (max-width: 640px) {
             .team-score-diagram-wrap {

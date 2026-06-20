@@ -1189,21 +1189,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 .join('');
         };
 
-        window.getStatsDiagramScoreTone = function(score) {
-            if (score >= 75) return 'high';
-            if (score >= 65) return 'mid';
-            if (score >= 55) return 'low';
-            return 'neutral';
-        };
-
-        window.getStatsDiagramScoreColor = function(score) {
-            const tone = window.getStatsDiagramScoreTone(score);
-            if (tone === 'high') return '#16a34a';
-            if (tone === 'mid') return '#f5c542';
-            if (tone === 'low') return '#f97316';
-            return '#94a3b8';
-        };
-
         window.buildStatsTotalScoreDiagramData = function() {
             const playerByName = new Map((window.activePlayers || []).map(player => [player.navn, player]));
             const rows = typeof window.buildPlayerStatsData === 'function'
@@ -1342,14 +1327,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const escapeHtml = window.escapeModalHtml || (value => String(value || ''));
 
             const pointsHtml = rows.map(row => {
-                const radius = isCompact
-                    ? 4 + ((row.score - 20) / 65) * 3
-                    : 7 + ((row.score - 20) / 65) * 8;
-                const fill = window.getStatsDiagramScoreColor(row.score);
-                const trendStroke = isTotal || isCompact
-                    ? '#ffffff'
-                    : row.score >= row.totalScore ? '#00C853' : '#FF1744';
-                const strokeWidth = isTotal || isCompact ? 1.5 : 3;
+                const radius = 4 + ((row.score - 20) / 65) * 3;
+                const fill = '#0b2b4c';
+                const stroke = '#ffffff';
+                const strokeWidth = 1.5;
                 const pointX = x(row.x);
                 const pointY = y(row.y);
 
@@ -1357,8 +1338,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <g>
                         <title>${escapeHtml(row.name)}: ${row.score.toFixed(1)}</title>
                         <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
-                        <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${trendStroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
-                        ${isCompact ? '' : `<text x="${pointX}" y="${pointY + 4}" text-anchor="middle" class="team-score-diagram-score">${Math.round(row.score)}</text>`}
+                        <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
                     </g>
                 `;
             }).join('');
@@ -1381,15 +1361,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <p>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</p>
                             ` : `
                                 <p>Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode. Boblen viser 5 siste score, som også tar med nylig kampoppmøte og disiplin.</p>
-                                <p>Grønn kant betyr at spilleren er over egen total score, rød kant betyr under.</p>
                                 <p>Kilde: spillerstatistikken. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</p>
                             `}
-                            <div class="team-score-diagram-legend">
-                                <span><strong class="is-green">Grønn</strong> 75+</span>
-                                <span><strong class="is-yellow">Gul</strong> 65-74</span>
-                                <span><strong class="is-orange">Oransje</strong> 55-64</span>
-                                <span><strong class="is-gray">Grå</strong> under 55</span>
-                            </div>
                         </div>
                     ` : ''}
 
