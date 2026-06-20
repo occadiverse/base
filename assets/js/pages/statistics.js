@@ -968,6 +968,92 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.renderStatsLagHeroMetricHtml = function(label, value, sub, icon, tone = '') {
+            return `
+                <div class="stats-lag-hero-metric ${tone}">
+                    <div class="stats-lag-hero-metric-icon">
+                        <i class="fa-solid ${icon}"></i>
+                    </div>
+                    <div>
+                        <span>${label}</span>
+                        <strong>${value}</strong>
+                        <small>${sub}</small>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderStatsLagHeroHtml = function(data, report, heroTabsHtml) {
+            report = report || {
+                title: data.title,
+                matchCount: 0,
+                conceded: 0,
+                squad: { available: data.playerCount || 0 },
+                trends: {}
+            };
+            const formGuide = window.getTeamFormGuide(data.filterLag);
+            const formGuideHtml = formGuide.length
+                ? formGuide.map(item => {
+                    const toneClass = item.form === 'S' ? 'is-win' : item.form === 'T' ? 'is-loss' : 'is-draw';
+                    return `<span class="dashboard-series-form-pill ${toneClass}" title="${item.tooltip}">${item.text}</span>`;
+                }).join('')
+                : '<span class="stats-lag-hero-empty">Ingen kampform ennå</span>';
+
+            const record = `${data.wins}-${data.draws}-${data.losses}`;
+            const goalDiff = data.goals - report.conceded;
+            const goalDiffText = goalDiff > 0 ? `+${goalDiff}` : String(goalDiff);
+            const resultTone = data.wins >= data.losses ? 'is-win' : 'is-loss';
+            const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
+            const goalTone = goalDiff >= 0 ? 'is-win' : 'is-loss';
+            const trendFor = report.trends.lastFiveFor ?? data.goalsAvg;
+            const trendAgainst = report.trends.lastFiveAgainst ?? data.concededAvg;
+            const title = report.title || data.title || 'Lagstatistikk';
+            const discoveryText = report.matchCount > 0
+                ? `Start med helhetsbildet for ${title}, og dykk videre i form, oppmøte og spillerbidrag under.`
+                : `Når kampene registreres, blir dette inngangen til form, oppmøte og spillerbidrag for ${title}.`;
+
+            return `
+                <div class="stats-lag-hero-top">
+                    <div class="stats-lag-hero-copy">
+                        <p class="stats-hero-kicker">Lagpuls</p>
+                        <h2 class="stats-hero-title">Hva forteller tallene om ${title}?</h2>
+                        <p class="stats-hero-subtitle">${discoveryText}</p>
+                    </div>
+                    <div class="stats-lag-hero-tabs-wrap">
+                        ${heroTabsHtml}
+                    </div>
+                </div>
+
+                <div class="stats-lag-hero-content">
+                    <div class="stats-lag-hero-scorecard">
+                        <span class="stats-lag-hero-label">Sesongstatus</span>
+                        <strong class="stats-lag-hero-record ${resultTone}">${record}</strong>
+                        <div class="stats-lag-hero-form" aria-label="Form siste kamper">${formGuideHtml}</div>
+                    </div>
+                    <div class="stats-lag-hero-metrics">
+                        ${window.renderStatsLagHeroMetricHtml('Målforskjell', goalDiffText, `${data.goals} scoret · ${report.conceded} imot`, 'fa-futbol', goalTone)}
+                        ${window.renderStatsLagHeroMetricHtml('Oppmøte', `${data.avgAttendance}%`, `${report.squad.available} tilgjengelige spillere`, 'fa-user-check', attendanceTone)}
+                        ${window.renderStatsLagHeroMetricHtml('Siste 5', `${trendFor}-${trendAgainst}`, 'mål for/imot per kamp', 'fa-chart-line')}
+                    </div>
+                </div>
+
+                <div class="stats-lag-hero-actions" aria-label="Utforsk lagstatistikk">
+                    <button type="button" onclick="document.getElementById('stats-lag-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        Se lagstatus
+                    </button>
+                    <button type="button" onclick="document.getElementById('stats-lag-development')?.scrollIntoView({ behavior: 'smooth', block: 'start' })">
+                        <i class="fa-solid fa-chart-line"></i>
+                        Utforsk utvikling
+                    </button>
+                    <button type="button" onclick="switchStatTab('spillere')">
+                        <i class="fa-solid fa-ranking-star"></i>
+                        Finn spillerbidrag
+                    </button>
+                </div>
+            `;
+        };
+
         window.getStatsTeamMedian = function(statsData, column) {
             const values = statsData
                 .map(stat => Number(stat[column]))
@@ -1592,7 +1678,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return;
                 }
 
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
+                window.paintStatsTabHero(window.renderStatsLagHeroHtml(data, window._statsTeamReportData, heroTabsHtml));
                 window.renderStatsLagSummary();
                 return;
             }

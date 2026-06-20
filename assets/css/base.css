@@ -3083,6 +3083,172 @@
             border-color: #fca5a5;
             color: #7f1d1d;
         }
+        .stats-lag-hero-top {
+            align-items: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            justify-content: space-between;
+        }
+        .stats-lag-hero-copy {
+            min-width: 0;
+        }
+        .stats-lag-hero-tabs-wrap {
+            width: 100%;
+        }
+        .stats-lag-hero-tabs-wrap .stats-hero-tabs {
+            width: 100%;
+        }
+        .stats-lag-hero-tabs-wrap .stats-hero-tablist {
+            width: 100%;
+        }
+        .stats-lag-hero-content {
+            display: grid;
+            gap: 0.85rem;
+            margin-top: 1rem;
+        }
+        .stats-lag-hero-scorecard {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.22), transparent 42%),
+                rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 1.05rem;
+            padding: 0.95rem;
+        }
+        .stats-lag-hero-label {
+            color: rgba(255, 255, 255, 0.58);
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .stats-lag-hero-record {
+            color: #f5c542;
+            display: block;
+            font-size: clamp(2.25rem, 12vw, 3.35rem);
+            font-weight: 950;
+            letter-spacing: -0.04em;
+            line-height: 0.95;
+            margin-top: 0.35rem;
+        }
+        .stats-lag-hero-record.is-win {
+            color: #b8d4b4;
+        }
+        .stats-lag-hero-record.is-loss {
+            color: #f0bbb6;
+        }
+        .stats-lag-hero-form {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+            margin-top: 0.8rem;
+        }
+        .stats-lag-hero-form .dashboard-series-form-pill {
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+            font-weight: 950;
+        }
+        .stats-lag-hero-empty {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.78rem;
+            font-style: italic;
+        }
+        .stats-lag-hero-metrics {
+            display: grid;
+            gap: 0.55rem;
+        }
+        .stats-lag-hero-metric {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.95rem;
+            display: grid;
+            gap: 0.65rem;
+            grid-template-columns: auto minmax(0, 1fr);
+            padding: 0.78rem 0.85rem;
+        }
+        .stats-lag-hero-metric-icon {
+            align-items: center;
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.2);
+            border-radius: 0.85rem;
+            color: #f5c542;
+            display: flex;
+            height: 2.45rem;
+            justify-content: center;
+            width: 2.45rem;
+        }
+        .stats-lag-hero-metric span,
+        .stats-lag-hero-metric small {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .stats-lag-hero-metric span {
+            color: rgba(255, 255, 255, 0.54);
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .stats-lag-hero-metric strong {
+            color: #ffffff;
+            display: block;
+            font-size: 1.28rem;
+            font-weight: 950;
+            line-height: 1.05;
+            margin-top: 0.12rem;
+        }
+        .stats-lag-hero-metric small {
+            color: rgba(255, 255, 255, 0.64);
+            font-size: 0.68rem;
+            font-weight: 750;
+            margin-top: 0.16rem;
+        }
+        .stats-lag-hero-metric.is-win strong {
+            color: #b8d4b4;
+        }
+        .stats-lag-hero-metric.is-draw strong {
+            color: #f5c542;
+        }
+        .stats-lag-hero-metric.is-loss strong {
+            color: #f0bbb6;
+        }
+        .stats-lag-hero-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: 1fr;
+            margin-top: 1rem;
+            padding-top: 0.9rem;
+        }
+        .stats-lag-hero-actions button {
+            align-items: center;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            color: #ffffff;
+            cursor: pointer;
+            display: inline-flex;
+            font: inherit;
+            font-size: 0.72rem;
+            font-weight: 900;
+            gap: 0.45rem;
+            justify-content: center;
+            padding: 0.68rem 0.85rem;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+        }
+        .stats-lag-hero-actions button i {
+            color: #f5c542;
+        }
+        .stats-lag-hero-actions button:hover {
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.36);
+            transform: translateY(-1px);
+        }
         .team-report-status-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -3585,6 +3751,12 @@
             .stats-metric-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+            .stats-lag-hero-content {
+                grid-template-columns: minmax(11rem, 0.9fr) minmax(0, 1.35fr);
+            }
+            .stats-lag-hero-actions {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
             .team-report-status-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -3605,6 +3777,21 @@
             }
             .stats-hero-ring-value {
                 font-size: 1.85rem;
+            }
+            .stats-lag-hero-top {
+                align-items: flex-start;
+                flex-direction: row;
+            }
+            .stats-lag-hero-copy {
+                max-width: 28rem;
+            }
+            .stats-lag-hero-tabs-wrap {
+                flex: 0 0 auto;
+                width: auto;
+            }
+            .stats-lag-hero-tabs-wrap .stats-hero-tabs,
+            .stats-lag-hero-tabs-wrap .stats-hero-tablist {
+                width: auto;
             }
         }
         @media (min-width: 1280px) {
