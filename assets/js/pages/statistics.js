@@ -1116,8 +1116,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (form === 'T') return 'is-loss';
                 return 'is-draw';
             };
+            const getPillIcon = (form) => {
+                if (form === 'S') return 'fa-arrow-trend-up';
+                if (form === 'T') return 'fa-arrow-trend-down';
+                return 'fa-equals';
+            };
             const formRowHtml = formGuide.length
-                ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills">${formGuide.map(item => `<span class="dashboard-series-form-pill ${getPillClass(item.form)}" title="${item.tooltip}">${item.text}</span>`).join('')}</div>`
+                ? `<span class="stats-form-label">Form siste ${formGuide.length}</span><div class="stats-form-pills stats-form-pills-visual">${formGuide.map((item, index) => `<span class="dashboard-series-form-pill stats-form-pill-visual ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${item.tooltip}"><i class="fa-solid ${getPillIcon(item.form)}"></i><span>${item.text}</span></span>`).join('')}</div>`
                 : `<span class="stats-form-empty">Ingen registrerte kamper ennå</span>`;
 
             const disciplineText = report.discipline.suspended > 0
@@ -1128,10 +1133,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const disciplineTone = report.discipline.suspended > 0
                 ? 'is-loss'
                 : report.discipline.atRisk > 0 ? 'is-draw' : 'is-win';
-            const detailChip = (label, value, tone = '') => `
+            const detailChip = (label, value, tone = '', icon = 'fa-circle') => `
                 <div class="team-report-detail-chip ${tone}">
-                    <span>${label}</span>
+                    <span><i class="fa-solid ${icon}"></i>${label}</span>
                     <strong>${value}</strong>
+                </div>
+            `;
+            const recordClass = data.wins >= data.losses ? 'is-win' : 'is-loss';
+            const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
+            const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
+            const goalTotal = Math.max(1, data.goals + report.conceded);
+            const goalsForPct = Math.round((data.goals / goalTotal) * 100);
+            const goalsAgainstPct = Math.max(0, 100 - goalsForPct);
+            const attendancePct = Math.max(0, Math.min(100, Number(data.avgAttendance) || 0));
+            const metricCard = (label, valueHtml, tone, icon, extraHtml = '') => `
+                <div class="stats-inline-metric team-report-metric-card ${tone}">
+                    <i class="fa-solid ${icon} team-report-metric-icon"></i>
+                    <span class="stats-inline-metric-label">${label}</span>
+                    <span class="stats-inline-metric-value ${tone}">${valueHtml}</span>
+                    ${extraHtml}
                 </div>
             `;
 
@@ -1146,18 +1166,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="team-report-body">
                         <div class="stats-form-row is-light">${formRowHtml}</div>
                         <div class="stats-inline-metrics team-report-status-grid">
-                            ${window.renderStatsInlineMetricHtml('Kamper', report.matchCount)}
-                            ${window.renderStatsInlineMetricHtml('Resultat', `${data.wins}-${data.draws}-${data.losses}`, data.wins >= data.losses ? 'is-win' : 'is-loss')}
-                            ${window.renderStatsInlineMetricHtml('Mål', `${data.goals}-${report.conceded}`, data.goals >= report.conceded ? 'is-goals' : 'is-loss')}
-                            ${window.renderStatsInlineMetricHtml('Oppmøte', `${data.avgAttendance}%`, data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss')}
+                            ${metricCard('Kamper', report.matchCount, '', 'fa-calendar-days')}
+                            ${metricCard('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-ranking-star')}
+                            ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
+                            ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check')}
                         </div>
                         <div class="team-report-detail-grid" aria-label="Tropp og risiko">
-                            ${detailChip('Tilgjengelige', report.squad.available, 'is-win')}
-                            ${detailChip('Aktive', report.squad.active)}
-                            ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '')}
-                            ${detailChip('Passiv', report.squad.passive)}
-                            ${detailChip('Formmedian', data.teamFormMedian || '-')}
-                            ${detailChip('Disiplin', disciplineText, disciplineTone)}
+                            ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check')}
+                            ${detailChip('Aktive', report.squad.active, '', 'fa-users')}
+                            ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '', 'fa-briefcase-medical')}
+                            ${detailChip('Passiv', report.squad.passive, '', 'fa-moon')}
+                            ${detailChip('Formmedian', data.teamFormMedian || '-', data.teamFormMedian >= 70 ? 'is-win' : data.teamFormMedian >= 55 ? 'is-draw' : 'is-loss', 'fa-bolt')}
+                            ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list')}
                         </div>
                     </div>
                 </section>

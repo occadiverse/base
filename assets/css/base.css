@@ -3036,11 +3036,30 @@
         .team-report-header {
             align-items: flex-start;
             background:
+                linear-gradient(120deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 5.75rem),
+                linear-gradient(30deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 4.5rem),
                 linear-gradient(90deg, rgba(245, 197, 66, 0.18) 0%, rgba(245, 197, 66, 0) 42%),
                 linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
             border-bottom-color: rgba(245, 197, 66, 0.24);
             display: flex;
             justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+        }
+        .team-report-header::after {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            bottom: -2.6rem;
+            content: "";
+            height: 6rem;
+            pointer-events: none;
+            position: absolute;
+            right: 1rem;
+            width: 6rem;
+        }
+        .team-report-header > * {
+            position: relative;
+            z-index: 1;
         }
         .team-report-header .stats-panel-title {
             color: #ffffff;
@@ -3068,6 +3087,32 @@
             box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
             font-weight: 950;
         }
+        .team-report-body .stats-form-row.is-light .stats-form-pills-visual {
+            gap: 0.35rem;
+        }
+        .team-report-body .stats-form-row.is-light .stats-form-pill-visual {
+            align-items: center;
+            border-width: 2px;
+            display: inline-flex;
+            font-size: 0.66rem;
+            gap: 0.24rem;
+            height: 1.7rem;
+            justify-content: center;
+            min-width: 1.7rem;
+            padding: 0 0.5rem;
+            transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+        .team-report-body .stats-form-row.is-light .stats-form-pill-visual i {
+            font-size: 0.68rem;
+            line-height: 1;
+        }
+        .team-report-body .stats-form-row.is-light .stats-form-pill-visual.is-latest {
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+            font-size: 0.74rem;
+            height: 2.05rem;
+            min-width: 2.05rem;
+            transform: translateY(-1px);
+        }
         .team-report-body .stats-form-row.is-light .dashboard-series-form-pill.is-win {
             background: #dcfce7;
             border-color: #86efac;
@@ -3093,6 +3138,106 @@
             border-color: rgba(18, 63, 115, 0.12);
             padding: 0.72rem 0.75rem;
         }
+        .team-report-status-grid .team-report-metric-card {
+            min-height: 6.15rem;
+            overflow: hidden;
+            padding: 0.8rem;
+            position: relative;
+        }
+        .team-report-metric-icon {
+            color: rgba(18, 63, 115, 0.13);
+            font-size: 1.65rem;
+            position: absolute;
+            right: 0.75rem;
+            top: 0.68rem;
+        }
+        .team-report-metric-card.is-win .team-report-metric-icon {
+            color: rgba(22, 101, 52, 0.16);
+        }
+        .team-report-metric-card.is-draw .team-report-metric-icon {
+            color: rgba(245, 197, 66, 0.34);
+        }
+        .team-report-metric-card.is-loss .team-report-metric-icon {
+            color: rgba(185, 28, 28, 0.17);
+        }
+        .team-report-metric-card.is-goals .team-report-metric-icon {
+            color: rgba(29, 78, 216, 0.16);
+        }
+        .team-report-metric-card .stats-inline-metric-label,
+        .team-report-metric-card .stats-inline-metric-value {
+            position: relative;
+            z-index: 1;
+        }
+        .team-report-record,
+        .team-report-goals {
+            align-items: baseline;
+            display: inline-flex;
+            gap: 0.22rem;
+            justify-content: center;
+        }
+        .team-report-record span {
+            color: #a16207;
+        }
+        .team-report-record .is-win,
+        .team-report-goals .is-win {
+            color: #166534;
+        }
+        .team-report-record .is-loss,
+        .team-report-goals .is-loss {
+            color: #b91c1c;
+        }
+        .team-report-goal-sep {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .team-report-goal-bars {
+            background: rgba(185, 28, 28, 0.14);
+            border-radius: 999px;
+            display: flex;
+            height: 0.42rem;
+            margin: 0.62rem auto 0;
+            max-width: 7.5rem;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        .team-report-goal-bars span {
+            display: block;
+            height: 100%;
+        }
+        .team-report-goal-bars .is-for {
+            background: linear-gradient(90deg, #16a34a 0%, #86efac 100%);
+        }
+        .team-report-goal-bars .is-against {
+            background: linear-gradient(90deg, #fca5a5 0%, #dc2626 100%);
+        }
+        .team-report-attendance-ring {
+            align-items: center;
+            background:
+                radial-gradient(circle, #ffffff 0 54%, transparent 55%),
+                conic-gradient(#dc2626 var(--attendance-pct), rgba(185, 28, 28, 0.13) 0);
+            border-radius: 999px;
+            display: inline-flex;
+            height: 3.35rem;
+            justify-content: center;
+            margin-top: 0.08rem;
+            width: 3.35rem;
+        }
+        .team-report-metric-card.is-draw .team-report-attendance-ring {
+            background:
+                radial-gradient(circle, #ffffff 0 54%, transparent 55%),
+                conic-gradient(#f5c542 var(--attendance-pct), rgba(245, 197, 66, 0.16) 0);
+        }
+        .team-report-metric-card.is-win .team-report-attendance-ring {
+            background:
+                radial-gradient(circle, #ffffff 0 54%, transparent 55%),
+                conic-gradient(#16a34a var(--attendance-pct), rgba(22, 101, 52, 0.13) 0);
+        }
+        .team-report-attendance-ring span {
+            color: inherit;
+            font-size: 0.9rem;
+            font-weight: 950;
+        }
         .team-report-detail-grid {
             display: grid;
             gap: 0.5rem;
@@ -3113,9 +3258,18 @@
             padding: 0.55rem 0.65rem;
         }
         .team-report-detail-chip span {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.35rem;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .team-report-detail-chip i {
+            color: rgba(18, 63, 115, 0.52);
+            flex-shrink: 0;
+            font-size: 0.72rem;
+            width: 0.9rem;
         }
         .team-report-detail-chip strong {
             color: #0b2b4c;
@@ -3130,6 +3284,9 @@
         .team-report-detail-chip.is-win strong {
             color: #166534;
         }
+        .team-report-detail-chip.is-win i {
+            color: #166534;
+        }
         .team-report-detail-chip.is-draw {
             background: rgba(245, 197, 66, 0.12);
             border-color: rgba(245, 197, 66, 0.22);
@@ -3137,11 +3294,17 @@
         .team-report-detail-chip.is-draw strong {
             color: #a16207;
         }
+        .team-report-detail-chip.is-draw i {
+            color: #a16207;
+        }
         .team-report-detail-chip.is-loss {
             background: rgba(185, 28, 28, 0.06);
             border-color: rgba(185, 28, 28, 0.14);
         }
         .team-report-detail-chip.is-loss strong {
+            color: #b91c1c;
+        }
+        .team-report-detail-chip.is-loss i {
             color: #b91c1c;
         }
         .team-report-trend-grid,
