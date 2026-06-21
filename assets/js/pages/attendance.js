@@ -468,7 +468,7 @@ window.updateDailySchedule = function() {
                         <div class="min-w-0 pr-24">
                             <span class="calendar-detail-date">${selectedDateLabel}</span>
                             <h4 class="calendar-detail-title truncate">${m.opponent || 'Kamp'}</h4>
-                            <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                            <div class="calendar-detail-meta-row text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
@@ -506,9 +506,10 @@ window.updateDailySchedule = function() {
                             <i class="fa-solid ${theme.icon}"></i>
                         </div>
                         <div class="min-w-0 pr-24">
+                            <h4 class="calendar-detail-title truncate">${theme.label}</h4>
                             <span class="calendar-detail-date">${selectedDateLabel}</span>
-                            <h4 class="calendar-detail-title truncate">${e.title || theme.label}</h4>
-                            <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                            ${e.title && e.title !== theme.label ? `<p class="calendar-detail-subtitle truncate">${e.title}</p>` : ''}
+                            <div class="calendar-detail-meta-row text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>

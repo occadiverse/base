@@ -5572,8 +5572,15 @@
             color: #ffffff;
         }
         .calendar-attendance-btn {
-            margin-top: 0.75rem;
+            font-size: 0.78rem;
+            gap: 0.55rem;
+            margin-top: 0.85rem;
+            min-height: 2.85rem;
+            padding: 0.72rem 0.95rem;
             width: max-content;
+        }
+        .calendar-attendance-btn i {
+            font-size: 0.95rem;
         }
         .calendar-attendance-btn span {
             display: inline;
@@ -5602,17 +5609,29 @@
         .calendar-detail-date {
             color: rgba(245, 197, 66, 0.9);
             display: block;
-            font-size: 0.78rem;
+            font-size: 0.84rem;
             font-weight: 900;
             line-height: 1.15;
-            margin-bottom: 0.25rem;
+            margin-top: 0.25rem;
             text-transform: capitalize;
         }
         .calendar-detail-title {
             color: #ffffff;
-            font-size: 0.95rem;
+            font-size: 1.08rem;
             font-weight: 900;
             line-height: 1.2;
+        }
+        .calendar-detail-subtitle {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.82rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-top: 0.35rem;
+        }
+        .calendar-detail-meta-row {
+            font-size: 0.78rem;
+            line-height: 1.35;
+            margin-top: 0.55rem;
         }
         .calendar-detail-card .text-slate-500,
         .calendar-detail-card .text-slate-400 {
