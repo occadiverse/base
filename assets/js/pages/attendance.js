@@ -336,9 +336,9 @@ window.renderCalendar = function() {
             cell.onclick = () => window.selectCalendarDate(dateStr);
 
             const visibleItems = items.slice(0, 2).map(item => `
-                <span class="flex items-center gap-1 min-w-0 text-[9px] font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
-                    <span class="w-1.5 h-1.5 rounded-full ${item.color} shrink-0"></span>
-                    <span class="hidden sm:inline truncate">${item.label}</span>
+                <span class="calendar-day-event flex items-center gap-1 min-w-0 font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
+                    <span class="calendar-day-event-dot rounded-full ${item.color} shrink-0"></span>
+                    <span class="calendar-day-event-label hidden sm:inline truncate">${item.label}</span>
                 </span>
             `).join('');
 

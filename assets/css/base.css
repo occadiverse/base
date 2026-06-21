@@ -5399,6 +5399,7 @@
             max-width: 100%;
         }
         .calendar-hero-action-btn i,
+        .calendar-empty-action i,
         .calendar-action-btn i {
             font-size: 1rem;
         }
@@ -5442,6 +5443,14 @@
         .calendar-day-cell > div:first-child > span {
             font-size: 1.02rem;
             line-height: 1;
+        }
+        .calendar-day-event {
+            font-size: 0.68rem;
+            line-height: 1.08;
+        }
+        .calendar-day-event-dot {
+            height: 0.48rem;
+            width: 0.48rem;
         }
         .calendar-day-cell.is-outside-month {
             opacity: 0.58;
@@ -5727,6 +5736,13 @@
             }
             .calendar-day-cell > div:first-child > span {
                 font-size: 0.82rem;
+            }
+            .calendar-day-event {
+                font-size: 0.62rem;
+            }
+            .calendar-day-event-dot {
+                height: 0.46rem;
+                width: 0.46rem;
             }
             .match-detail-card-top,
             .match-detail-footer {
