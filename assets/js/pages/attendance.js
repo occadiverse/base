@@ -219,6 +219,8 @@ window.recalculateOppmoteAndKjemi = function() {
     // Kalenderens gamle statistikkbokser er fjernet, men andre moduler kaller fortsatt denne kroken.
 };
 
+const calendarMonthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
+
 window.navigateCalendar = function(direction) {
     const current = window.currentCalendarDate;
     window.currentCalendarDate = new Date(current.getFullYear(), current.getMonth() + direction, 1);
@@ -252,6 +254,31 @@ function escapeCalendarJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+function updateCalendarHeading(date) {
+    if (!date) return;
+    if (document.getElementById('calendar-month-year')) {
+        document.getElementById('calendar-month-year').innerText = calendarMonthNames[date.getMonth()];
+    }
+    if (document.getElementById('calendar-year')) {
+        document.getElementById('calendar-year').innerText = String(date.getFullYear());
+    }
+}
+
+function updateCalendarHeadingFromScroll(grid) {
+    const weekCells = [...grid.querySelectorAll('[data-calendar-week-start]')];
+    if (weekCells.length === 0) return;
+
+    const scrollTop = grid.scrollTop + 4;
+    const activeWeekCell = weekCells.reduce((current, cell) => (
+        cell.offsetTop <= scrollTop ? cell : current
+    ), weekCells[0]);
+    const weekStart = parseCalendarDate(activeWeekCell.dataset.calendarWeekStart);
+    const headingDate = addCalendarDays(weekStart, 3);
+
+    window.currentCalendarDate = new Date(headingDate.getFullYear(), headingDate.getMonth(), 1);
+    updateCalendarHeading(window.currentCalendarDate);
+}
+
 window.goToToday = function() {
     const today = new Date();
     window.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -267,14 +294,7 @@ window.renderCalendar = function() {
     const date = window.currentCalendarDate;
     const year = date.getFullYear();
     const month = date.getMonth();
-    const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
-
-    if (document.getElementById('calendar-month-year')) {
-        document.getElementById('calendar-month-year').innerText = monthNames[month];
-    }
-    if (document.getElementById('calendar-year')) {
-        document.getElementById('calendar-year').innerText = String(year);
-    }
+    updateCalendarHeading(date);
 
     const previousScrollTop = grid.scrollTop;
     const shouldPreserveScroll = grid.dataset.calendarRendered === 'true' && !window.calendarScrollTargetDateStr;
@@ -311,6 +331,7 @@ window.renderCalendar = function() {
 
             const cell = document.createElement('div');
             cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today' : ''} ${isOutsideActiveMonth ? 'is-outside-month' : ''}`;
+            cell.dataset.calendarDate = dateStr;
             if (dayOffset === 0) cell.dataset.calendarWeekStart = formatCalendarDate(weekStart);
             cell.onclick = () => window.selectCalendarDate(dateStr);
 
@@ -346,6 +367,19 @@ window.renderCalendar = function() {
     }
     grid.dataset.calendarRendered = 'true';
     window.calendarScrollTargetDateStr = null;
+    updateCalendarHeadingFromScroll(grid);
+
+    if (!grid.dataset.calendarScrollBound) {
+        let scrollFrame = null;
+        grid.addEventListener('scroll', () => {
+            if (scrollFrame) return;
+            scrollFrame = requestAnimationFrame(() => {
+                scrollFrame = null;
+                updateCalendarHeadingFromScroll(grid);
+            });
+        }, { passive: true });
+        grid.dataset.calendarScrollBound = 'true';
+    }
 
     window.updateDailySchedule();
 };

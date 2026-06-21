@@ -5346,6 +5346,32 @@
             letter-spacing: 0.08em;
             line-height: 1;
         }
+        .calendar-year-block {
+            align-items: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .calendar-today-mini-btn {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.22);
+            border-radius: 999px;
+            color: #f5c542;
+            display: inline-flex;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            padding: 0.35rem 0.55rem;
+            text-transform: uppercase;
+            transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+        }
+        .calendar-today-mini-btn:hover {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.36);
+            color: #ffe08a;
+        }
         .calendar-month-nav {
             align-items: center;
             display: inline-flex;
