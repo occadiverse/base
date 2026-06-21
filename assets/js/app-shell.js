@@ -82,6 +82,7 @@ function switchTab(tabId, options = {}) {
             : new Date();
         window.pendingCalendarDateStr = null;
         window.currentCalendarDate = d;
+        window.visibleCalendarMonthDate = new Date(d.getFullYear(), d.getMonth(), 1);
         window.selectedCalendarDateStr = pendingDateStr || `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         window.calendarScrollTargetDateStr = window.selectedCalendarDateStr;
 
