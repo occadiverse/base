@@ -434,6 +434,8 @@ window.promptDeleteMatch = function(id) {
     window.customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
         await window.deleteMatchFromDatabase(id);
         window.closeMatchInfo();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
     });
 };
 

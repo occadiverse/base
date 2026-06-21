@@ -260,7 +260,7 @@ window.renderCalendar = function() {
     const totalDays = new Date(year, month + 1, 0).getDate();
 
     for (let i = 0; i < startOffset; i++) {
-        grid.innerHTML += `<div class="bg-slate-50/70 rounded-2xl min-h-[64px] md:min-h-[82px] border border-slate-100"></div>`;
+        grid.innerHTML += `<div class="calendar-day-empty rounded-2xl min-h-[64px] md:min-h-[82px]"></div>`;
     }
 
     for (let day = 1; day <= totalDays; day++) {
@@ -284,7 +284,7 @@ window.renderCalendar = function() {
         ];
 
         const cell = document.createElement('div');
-        cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
+        cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
         cell.onclick = () => window.selectCalendarDate(dateStr);
 
         const visibleItems = items.slice(0, 2).map(item => `
@@ -339,13 +339,13 @@ window.updateDailySchedule = function() {
 
     if (dayMatches.length === 0 && dayEvents.length === 0) {
         listContainer.innerHTML = `
-            <div class="bg-slate-50 border border-slate-100 rounded-2xl py-8 px-4 text-center">
+            <div class="calendar-empty-state bg-slate-50 border border-slate-100 rounded-2xl py-8 px-4 text-center">
                 <div class="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center mx-auto mb-3">
                     <i class="fa-regular fa-calendar text-slate-300 text-xl"></i>
                 </div>
                 <p class="font-black text-slate-700 text-sm">Ingen aktiviteter denne dagen</p>
                 <p class="text-xs text-slate-500 mt-1">Legg inn trening, sosialt eller dugnad når planen er klar.</p>
-                <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-secondary portal-btn-sm mt-4">
+                <button type="button" onclick="window.openActivityModal('Trening')" class="portal-btn portal-btn-secondary portal-btn-sm mt-4 calendar-inline-action">
                     Legg til
                 </button>
             </div>`;
@@ -358,8 +358,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" onclick="window.promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger calendar-action-btn" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
@@ -396,8 +396,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button onclick="editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" onclick="window.deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger calendar-action-btn" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
@@ -474,7 +474,7 @@ window.openActivityModal = function(defaultType = 'Trening') {
     if (header) header.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet`;
     if (submitBtn) submitBtn.innerText = "OPPRETT AKTIVITET";
 
-    document.getElementById('editEventId').value = '';
+    document.getElementById('editActivityId').value = '';
     document.getElementById('activityDate').value = window.selectedCalendarDateStr || new Date().toISOString().split('T')[0];
     document.getElementById('activityTitle').value = '';
     document.getElementById('activityLocation').value = '';
@@ -506,7 +506,7 @@ window.editActivity = function(id) {
     if (header) header.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Endre Aktivitet`;
     if (submitBtn) submitBtn.innerText = "OPPDATER AKTIVITET";
 
-    document.getElementById('editEventId').value = ev.id;
+    document.getElementById('editActivityId').value = ev.id;
     document.getElementById('activityTitle').value = ev.title;
     document.getElementById('activityDate').value = ev.date;
     document.getElementById('activityTime').value = ev.time || '';
@@ -519,6 +519,8 @@ window.deleteActivity = function(id) {
         if (id.startsWith('match_')) await window.deleteMatchFromDatabase(id.replace('match_', ''));
         else await window.deleteEventFromDatabase(id);
 
+        if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
         window.updateDailySchedule();
         if (typeof window.renderEvents === 'function') window.renderEvents();
     });
@@ -539,7 +541,7 @@ window.updateActivityTitlePlaceholder = function() {
 };
 
 window.saveNewActivity = async function() {
-    const editId = document.getElementById('editEventId').value;
+    const editId = document.getElementById('editActivityId').value;
     const type = document.getElementById('activityType').value;
     const title = document.getElementById('activityTitle').value;
     const date = document.getElementById('activityDate').value;

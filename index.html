@@ -95,47 +95,48 @@
                 </div>
             </div>
 
-            <div id="view-oppmote" class="hidden portal-view space-y-6">
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="calendar-heading-panel p-4 md:p-5 border-b border-slate-100 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-2">
+            <div id="view-oppmote" class="hidden portal-view space-y-6 calendar-page">
+                <div class="calendar-shell-panel">
+                    <div class="calendar-heading-panel p-4 md:p-5 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-2">
                         <div class="min-w-0">
-                            <h2 id="calendar-month-year" class="text-lg sm:text-xl font-black text-bsk-blue tracking-tight whitespace-nowrap">Mai 2026</h2>
+                            <p class="calendar-heading-kicker">BSK Fotball</p>
+                            <h2 id="calendar-month-year" class="calendar-heading-title">Mai 2026</h2>
                         </div>
 
                         <div class="flex items-center justify-center gap-2 sm:gap-3">
-                            <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Forrige måned">
+                            <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary calendar-nav-btn" title="Forrige måned">
                                 <i class="fa-solid fa-chevron-left text-xs"></i>
                             </button>
-                            <button onclick="goToToday()" class="portal-btn portal-btn-primary">
+                            <button onclick="goToToday()" class="portal-btn portal-btn-primary calendar-today-btn">
                                 I dag
                             </button>
-                            <button onclick="navigateCalendar(1)" class="portal-btn portal-btn-icon portal-btn-secondary" title="Neste måned">
+                            <button onclick="navigateCalendar(1)" class="portal-btn portal-btn-icon portal-btn-secondary calendar-nav-btn" title="Neste måned">
                                 <i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
                         </div>
 
                         <div class="flex justify-end">
-                            <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-icon portal-btn-primary" title="Legg til aktivitet">
-                                <i class="fa-solid fa-plus text-bsk-blue"></i>
+                            <button onclick="openActivityModal('Trening')" class="portal-btn portal-btn-icon portal-btn-primary calendar-add-btn" title="Legg til aktivitet">
+                                <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
 
-                        <div class="col-span-3 flex flex-wrap gap-3 text-[10px] font-bold text-slate-500 uppercase justify-start sm:justify-center lg:justify-start">
+                        <div class="calendar-legend col-span-3 flex flex-wrap gap-3 text-[10px] font-bold uppercase justify-start sm:justify-center lg:justify-start">
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamp</span></div>
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Trening</span></div>
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
                         </div>
                     </div>
 
-                    <div class="p-4 md:p-5 space-y-4">
-                        <div class="grid grid-cols-7 gap-1.5 text-center text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                    <div class="calendar-body p-4 md:p-5 space-y-4">
+                        <div class="calendar-weekday-row grid grid-cols-7 gap-1.5 text-center text-[10px] font-black uppercase tracking-wider">
                             <div>Man</div><div>Tir</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
                         </div>
 
                         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 min-h-[320px]">
                         </div>
 
-                        <div class="border-t border-slate-100 pt-4">
+                        <div class="calendar-daily-panel pt-4">
                             <h3 id="selected-calendar-date" class="sr-only">Velg en dato</h3>
                             <div id="daily-events-list" class="space-y-2 mt-3">
                             </div>
@@ -833,7 +834,7 @@
             </div>
 
             <form id="activityForm" class="space-y-4">
-                <input type="hidden" id="editEventId">
+                <input type="hidden" id="editActivityId">
                 <div>
                     <label class="portal-label" id="activityTitleLabel">Hva skal dere?</label>
                     <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="portal-field">
