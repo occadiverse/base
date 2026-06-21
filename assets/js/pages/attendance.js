@@ -410,14 +410,15 @@ window.updateDailySchedule = function() {
 
     if (dayMatches.length === 0 && dayEvents.length === 0) {
         listContainer.innerHTML = `
-            <div class="calendar-empty-state bg-slate-50 border border-slate-100 rounded-2xl py-8 px-4 text-center">
-                <div class="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-regular fa-calendar text-slate-300 text-xl"></i>
+            <div class="calendar-empty-state rounded-2xl py-8 px-4 text-center">
+                <div class="calendar-empty-icon">
+                    <i class="fa-regular fa-calendar"></i>
                 </div>
-                <p class="font-black text-slate-700 text-sm">Ingen aktiviteter denne dagen</p>
-                <p class="text-xs text-slate-500 mt-1">Legg inn trening, sosialt eller dugnad når planen er klar.</p>
-                <button type="button" onclick="window.openActivityModal('Trening')" class="portal-btn portal-btn-secondary portal-btn-sm mt-4 calendar-inline-action">
-                    Legg til
+                <p class="calendar-empty-title">Ingen aktiviteter denne dagen</p>
+                <p class="calendar-empty-text">Legg inn trening, sosialt eller dugnad når planen er klar.</p>
+                <button type="button" onclick="window.openActivityModal('Trening')" class="match-bench-action-btn calendar-empty-action">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <span>Legg til</span>
                 </button>
             </div>`;
         return;
