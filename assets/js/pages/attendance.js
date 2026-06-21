@@ -473,7 +473,7 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="match-bench-action-btn calendar-attendance-btn">
+                            <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="calendar-attendance-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
@@ -514,7 +514,7 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="match-bench-action-btn calendar-attendance-btn">
+                            <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="calendar-attendance-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
