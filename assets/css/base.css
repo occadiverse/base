@@ -4640,18 +4640,18 @@
                 rgba(7, 31, 56, 0.98);
             color: #ffe08a;
         }
+        .stats-player-sort-dock .stats-sort-scroll-btn {
+            display: inline-flex;
+        }
+        .stats-player-sort-dock .stats-sort-scroller-wrap.can-scroll-left .stats-sort-scroll-btn-left,
+        .stats-player-sort-dock .stats-sort-scroller-wrap.can-scroll-right .stats-sort-scroll-btn-right {
+            opacity: 1;
+            pointer-events: auto;
+        }
         @media (max-width: 767px) {
             .stats-player-sort-dock .stats-sort-scroller {
                 padding-inline: 2.25rem;
                 scroll-padding-inline: 2.25rem;
-            }
-            .stats-player-sort-dock .stats-sort-scroll-btn {
-                display: inline-flex;
-            }
-            .stats-player-sort-dock .stats-sort-scroller-wrap.can-scroll-left .stats-sort-scroll-btn-left,
-            .stats-player-sort-dock .stats-sort-scroller-wrap.can-scroll-right .stats-sort-scroll-btn-right {
-                opacity: 1;
-                pointer-events: auto;
             }
         }
         .stats-sort-btn {

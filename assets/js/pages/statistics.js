@@ -2069,7 +2069,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
                         <div class="stats-player-toolbar">
                             <div class="stats-sort-scroller-wrap">
-                                <button type="button" class="stats-sort-scroll-btn stats-sort-scroll-btn-left" onclick="window.scrollStatsSortMenu(-1)" aria-label="Scroll sorteringsmeny til venstre" data-no-swipe>
+                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-left" onclick="window.scrollStatsSortMenu(-1)" aria-label="Scroll sorteringsmeny til venstre" data-no-swipe>
                                     <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                                 </button>
                                 <div class="stats-sort-scroller" id="stats-player-sort-scroller" data-no-swipe>
@@ -2077,7 +2077,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                         ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
                                     </div>
                                 </div>
-                                <button type="button" class="stats-sort-scroll-btn stats-sort-scroll-btn-right" onclick="window.scrollStatsSortMenu(1)" aria-label="Scroll sorteringsmeny til høyre" data-no-swipe>
+                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-right" onclick="window.scrollStatsSortMenu(1)" aria-label="Scroll sorteringsmeny til høyre" data-no-swipe>
                                     <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                                 </button>
                             </div>
