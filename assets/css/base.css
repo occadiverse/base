@@ -4602,6 +4602,58 @@
         .stats-sort-scroller-fade i {
             display: none;
         }
+        .stats-sort-scroll-btn {
+            align-items: center;
+            background:
+                radial-gradient(circle, rgba(245, 197, 66, 0.22), rgba(245, 197, 66, 0.08)),
+                rgba(7, 31, 56, 0.92);
+            border: 1px solid rgba(245, 197, 66, 0.46);
+            border-radius: 999px;
+            box-shadow: 0 8px 18px rgba(11, 43, 76, 0.22);
+            color: #f5c542;
+            cursor: pointer;
+            display: none;
+            height: 2rem;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease;
+            width: 2rem;
+            z-index: 4;
+        }
+        .stats-sort-scroll-btn i {
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+        .stats-sort-scroll-btn-left {
+            left: 0.28rem;
+        }
+        .stats-sort-scroll-btn-right {
+            right: 0.28rem;
+        }
+        .stats-sort-scroll-btn:hover {
+            background:
+                radial-gradient(circle, rgba(245, 197, 66, 0.34), rgba(245, 197, 66, 0.14)),
+                rgba(7, 31, 56, 0.98);
+            color: #ffe08a;
+        }
+        @media (max-width: 767px) {
+            .stats-player-sort-dock .stats-sort-scroller {
+                padding-inline: 2.25rem;
+                scroll-padding-inline: 2.25rem;
+            }
+            .stats-player-sort-dock .stats-sort-scroll-btn {
+                display: inline-flex;
+            }
+            .stats-player-sort-dock .stats-sort-scroller-wrap.can-scroll-left .stats-sort-scroll-btn-left,
+            .stats-player-sort-dock .stats-sort-scroller-wrap.can-scroll-right .stats-sort-scroll-btn-right {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
         .stats-sort-btn {
             align-items: center;
             display: inline-flex;

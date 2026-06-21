@@ -2031,6 +2031,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.centerStatsSortButton('auto');
         };
 
+        window.scrollStatsSortMenu = function(direction) {
+            const scroller = document.getElementById('stats-player-sort-scroller');
+            if (!scroller) return;
+
+            scroller.scrollBy({
+                left: direction * Math.max(160, Math.round(scroller.clientWidth * 0.72)),
+                behavior: 'smooth'
+            });
+            setTimeout(window.syncStatsSortScroller, 280);
+        };
+
         window.openStatsFormInfoModal = function() {
             const modal = document.getElementById('kjemi-info-modal');
             if (!modal) return;
@@ -2058,17 +2069,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
                         <div class="stats-player-toolbar">
                             <div class="stats-sort-scroller-wrap">
-                                <div class="stats-sort-scroller-fade stats-sort-scroller-fade-left" aria-hidden="true">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </div>
+                                <button type="button" class="stats-sort-scroll-btn stats-sort-scroll-btn-left" onclick="window.scrollStatsSortMenu(-1)" aria-label="Scroll sorteringsmeny til venstre" data-no-swipe>
+                                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                                </button>
                                 <div class="stats-sort-scroller" id="stats-player-sort-scroller" data-no-swipe>
                                     <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
                                         ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
                                     </div>
                                 </div>
-                                <div class="stats-sort-scroller-fade stats-sort-scroller-fade-right" aria-hidden="true">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </div>
+                                <button type="button" class="stats-sort-scroll-btn stats-sort-scroll-btn-right" onclick="window.scrollStatsSortMenu(1)" aria-label="Scroll sorteringsmeny til høyre" data-no-swipe>
+                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
