@@ -5357,6 +5357,10 @@
         .calendar-hero-action-btn {
             max-width: 100%;
         }
+        .calendar-hero-action-btn i,
+        .calendar-action-btn i {
+            font-size: 1rem;
+        }
         .calendar-today-btn {
             background: #f5c542;
             border: 1px solid rgba(245, 197, 66, 0.75);
@@ -5452,6 +5456,13 @@
         .calendar-action-btn.calendar-action-danger:hover i {
             color: #ffffff;
         }
+        .calendar-attendance-btn {
+            margin-top: 0.75rem;
+            width: max-content;
+        }
+        .calendar-attendance-btn span {
+            display: inline;
+        }
         .calendar-detail-watermark {
             bottom: -1.8rem;
             color: #ffffff;
@@ -5494,6 +5505,118 @@
         }
         .calendar-detail-card .portal-btn-primary {
             color: #ffffff;
+        }
+        .bsk-modal-card {
+            background: linear-gradient(135deg, #123f73 0%, #0b2b4c 76%, #082039 100%);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-bottom: 3px solid #f5c542;
+            border-radius: 1.25rem;
+            box-shadow: 0 24px 48px rgba(2, 6, 23, 0.42);
+            color: #ffffff;
+            overflow: hidden;
+            padding: 1.25rem;
+        }
+        .bsk-modal-card::before {
+            background:
+                radial-gradient(circle at 10% 0%, rgba(245, 197, 66, 0.22), transparent 30%),
+                radial-gradient(circle at 95% 15%, rgba(255, 255, 255, 0.13), transparent 28%);
+            content: "";
+            inset: 0;
+            pointer-events: none;
+            position: absolute;
+        }
+        .bsk-modal-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .bsk-modal-header {
+            align-items: center;
+            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin: -1.25rem -1.25rem 1rem;
+            padding: 1rem 1.25rem;
+        }
+        .bsk-modal-title {
+            align-items: center;
+            color: #ffffff;
+            display: flex;
+            font-size: 1.05rem;
+            font-weight: 950;
+            gap: 0.55rem;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+        .bsk-modal-title i {
+            color: #f5c542;
+        }
+        .bsk-modal-close {
+            flex: 0 0 auto;
+        }
+        .bsk-modal-card .portal-label {
+            color: rgba(245, 197, 66, 0.88);
+        }
+        .bsk-modal-card .portal-field {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+        .bsk-modal-card .portal-field::placeholder {
+            color: rgba(255, 255, 255, 0.38);
+        }
+        .bsk-modal-card .portal-field:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+        }
+        .bsk-modal-card select.portal-field option {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        .bsk-modal-card input[type="date"].portal-field,
+        .bsk-modal-card input[type="time"].portal-field {
+            color-scheme: dark;
+        }
+        .bsk-modal-card input[type="date"].portal-field::-webkit-calendar-picker-indicator,
+        .bsk-modal-card input[type="time"].portal-field::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+        .bsk-modal-card .text-slate-500 {
+            color: rgba(255, 255, 255, 0.62) !important;
+        }
+        .bsk-modal-footer {
+            border-top: 1px solid rgba(245, 197, 66, 0.16);
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            padding-top: 1rem;
+        }
+        .bsk-modal-footer .bsk-modal-action-btn {
+            width: 100%;
+        }
+        .bsk-modal-footer .bsk-modal-action-btn:only-child {
+            grid-column: 1 / -1;
+        }
+        .bsk-modal-footer .bsk-modal-action-btn span {
+            display: inline;
+        }
+        .bsk-confirm-card {
+            padding: 1.5rem;
+        }
+        .bsk-confirm-card .bsk-modal-footer {
+            border-top: 0;
+            padding-top: 0.35rem;
+        }
+        .bsk-modal-alert-icon {
+            background: rgba(245, 197, 66, 0.16);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            color: #f5c542;
+        }
+        .bsk-modal-message {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            line-height: 1.5;
         }
         @media (max-width: 640px) {
             .match-detail-card-top,

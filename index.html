@@ -459,27 +459,33 @@
     </div>
 
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center space-y-4">
-            <div class="bg-amber-100 text-amber-800 inline-flex p-3 rounded-full">
+        <div class="bsk-modal-card bsk-confirm-card w-full max-w-sm relative text-center space-y-4">
+            <div class="bsk-modal-alert-icon inline-flex p-3 rounded-full">
                 <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
             </div>
-            <h3 class="font-extrabold text-lg text-bsk-blue" id="confirmTitle">Bekreft handling</h3>
-            <p class="text-xs text-slate-500 leading-relaxed" id="confirmMessage">Er du sikker på at du ønsker å utføre denne handlingen?</p>
-            <div class="flex gap-3 pt-2">
-                <button id="confirmYesBtn" class="portal-btn portal-btn-primary portal-btn-flex">JA, UTFØR</button>
-                <button id="confirmNoBtn" class="portal-btn portal-btn-muted portal-btn-flex">AVBRYT</button>
+            <h3 class="bsk-modal-title justify-center" id="confirmTitle">Bekreft handling</h3>
+            <p class="bsk-modal-message" id="confirmMessage">Er du sikker på at du ønsker å utføre denne handlingen?</p>
+            <div class="bsk-modal-footer">
+                <button id="confirmYesBtn" class="match-bench-action-btn bsk-modal-action-btn">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Ja, utfør</span>
+                </button>
+                <button id="confirmNoBtn" class="match-bench-action-btn bsk-modal-action-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Avbryt</span>
+                </button>
             </div>
         </div>
     </div>
 
     <div id="matchModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
-                <h3 id="modalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+        <div class="bsk-modal-card w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+            <div class="bsk-modal-header">
+                <h3 id="modalTitle" class="bsk-modal-title">
                     <i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Kamp
                 </h3>
-                <button onclick="window.closeMatchModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button type="button" onclick="window.closeMatchModal()" class="match-bench-icon-btn bsk-modal-close" title="Lukk">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
@@ -537,12 +543,14 @@
                     </div>
                 </div>
 
-                <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
-                        LAGRE KAMP
+                <div class="bsk-modal-footer">
+                    <button type="submit" class="match-bench-action-btn bsk-modal-action-btn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Lagre kamp</span>
                     </button>
-                    <button type="button" onclick="window.closeMatchModal()" class="portal-btn portal-btn-muted portal-btn-lg">
-                        AVBRYT
+                    <button type="button" onclick="window.closeMatchModal()" class="match-bench-action-btn bsk-modal-action-btn">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Avbryt</span>
                     </button>
                 </div>
             </form>
@@ -821,15 +829,15 @@
     </div>
 
     <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+        <div class="bsk-modal-card w-full max-w-md relative">
+            <div class="bsk-modal-header">
                 <div>
-                    <h3 class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
+                    <h3 class="bsk-modal-title">
                         <i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet
                     </h3>
                 </div>
-                <button onclick="closeActivityModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button type="button" onclick="closeActivityModal()" class="match-bench-icon-btn bsk-modal-close" title="Lukk">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
@@ -875,9 +883,10 @@
                     </div>
                 </div>
 
-                <div class="flex gap-3 pt-4 border-t border-slate-100 mt-6">
-                    <button type="button" onclick="saveNewActivity()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
-                        OPPRETT AKTIVITET
+                <div class="bsk-modal-footer mt-6">
+                    <button type="button" onclick="saveNewActivity()" class="match-bench-action-btn bsk-modal-action-btn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Opprett aktivitet</span>
                     </button>
                 </div>
             </form>

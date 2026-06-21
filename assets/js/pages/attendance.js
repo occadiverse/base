@@ -379,8 +379,9 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
-                                <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
+                            <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="match-bench-action-btn calendar-attendance-btn">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>Oppmøte</span>
                             </button>
                         </div>
                     </div>
@@ -418,8 +419,9 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
-                                <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
+                            <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="match-bench-action-btn calendar-attendance-btn">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>Oppmøte</span>
                             </button>
                         </div>
                     </div>
@@ -478,7 +480,7 @@ window.openActivityModal = function(defaultType = 'Trening') {
     const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
 
     if (header) header.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet`;
-    if (submitBtn) submitBtn.innerText = "OPPRETT AKTIVITET";
+    if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Opprett aktivitet</span>`;
 
     document.getElementById('editActivityId').value = '';
     document.getElementById('activityDate').value = window.selectedCalendarDateStr || new Date().toISOString().split('T')[0];
@@ -510,7 +512,7 @@ window.editActivity = function(id) {
     const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
 
     if (header) header.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Endre Aktivitet`;
-    if (submitBtn) submitBtn.innerText = "OPPDATER AKTIVITET";
+    if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Oppdater aktivitet</span>`;
 
     document.getElementById('editActivityId').value = ev.id;
     document.getElementById('activityTitle').value = ev.title;
