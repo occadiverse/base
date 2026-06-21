@@ -5435,10 +5435,11 @@
             align-items: center;
             display: flex;
             gap: 0.55rem;
+            pointer-events: auto;
             position: absolute;
             right: 1rem;
             top: 1rem;
-            z-index: 2;
+            z-index: 30;
         }
         .calendar-action-btn {
             border-radius: 0.8rem;

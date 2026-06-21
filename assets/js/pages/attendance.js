@@ -234,6 +234,10 @@ function parseCalendarDate(dateStr) {
     return new Date(year, month - 1, day);
 }
 
+function escapeCalendarJsString(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 window.goToToday = function() {
     const today = new Date();
     window.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -354,12 +358,13 @@ window.updateDailySchedule = function() {
 
     dayMatches.forEach(m => {
         const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
+        const matchId = escapeCalendarJsString(m.id);
         listContainer.innerHTML += `
             <div class="calendar-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" onclick="window.openMatchModal('${m.id}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type="button" onclick="window.promptDeleteMatch('${m.id}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.openMatchModal('${matchId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" onclick="window.promptDeleteMatch('${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
@@ -374,7 +379,7 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button onclick="openAttendanceModal('match_${m.id}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
+                            <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
                                 <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
                             </button>
                         </div>
@@ -392,12 +397,13 @@ window.updateDailySchedule = function() {
                     ? { icon: 'fa-users', label: 'Sosialt', box: 'bg-purple-50 border-purple-100 text-purple-600', badge: 'bg-purple-50 text-purple-700 border-purple-100', text: 'text-purple-700' }
                     : { icon: 'fa-calendar-check', label: e.type || 'Aktivitet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
+        const eventId = escapeCalendarJsString(e.id);
         listContainer.innerHTML += `
             <div class="calendar-detail-card">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" onclick="window.editActivity('${e.id}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type="button" onclick="window.deleteActivity('${e.id}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.editActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" onclick="window.deleteActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
@@ -412,7 +418,7 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button onclick="openAttendanceModal('${e.id}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
+                            <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="portal-btn portal-btn-primary portal-btn-sm mt-2">
                                 <i class="fa-solid fa-user-check text-bsk-yellow"></i> Oppmøte
                             </button>
                         </div>
