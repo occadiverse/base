@@ -1180,7 +1180,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                     <div class="team-report-detail-menu stats-player-toolbar" aria-label="Tropp og risiko" data-no-swipe>
                         <div class="stats-sort-scroller-wrap team-report-detail-scroller-wrap">
-                            <div class="stats-sort-scroller team-report-detail-scroller" data-no-swipe>
+                            <button type="button" class="team-report-detail-scroll-btn team-report-detail-scroll-btn-left" onclick="window.scrollTeamReportDetailMenu(-1)" aria-label="Scroll meny til venstre" data-no-swipe>
+                                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                            </button>
+                            <div class="stats-sort-scroller team-report-detail-scroller" id="team-report-detail-scroller" data-no-swipe>
                                 <div class="roster-status-filter stats-sort-filter team-report-detail-grid" role="menu" aria-label="Tropp og risiko">
                                     ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check', 'available')}
                                     ${detailChip('Aktive', report.squad.active, '', 'fa-users', 'active')}
@@ -1190,10 +1193,47 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list', report.discipline.suspended > 0 ? 'redCards' : 'yellowCards')}
                                 </div>
                             </div>
+                            <button type="button" class="team-report-detail-scroll-btn team-report-detail-scroll-btn-right" onclick="window.scrollTeamReportDetailMenu(1)" aria-label="Scroll meny til høyre" data-no-swipe>
+                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             `;
+        };
+
+        window.syncTeamReportDetailMenuScroll = function() {
+            const scroller = document.getElementById('team-report-detail-scroller');
+            const wrap = scroller?.closest('.team-report-detail-scroller-wrap');
+            if (!scroller || !wrap) return;
+
+            const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+            wrap.classList.toggle('can-scroll-left', scroller.scrollLeft > 6);
+            wrap.classList.toggle('can-scroll-right', maxScroll > 6 && scroller.scrollLeft < maxScroll - 6);
+        };
+
+        window.bindTeamReportDetailMenuScroll = function() {
+            const scroller = document.getElementById('team-report-detail-scroller');
+            if (!scroller || scroller.dataset.scrollBound === 'true') return;
+
+            scroller.dataset.scrollBound = 'true';
+            scroller.addEventListener('scroll', window.syncTeamReportDetailMenuScroll, { passive: true });
+            if (!window.teamReportDetailMenuResizeBound) {
+                window.teamReportDetailMenuResizeBound = true;
+                window.addEventListener('resize', window.syncTeamReportDetailMenuScroll);
+            }
+            requestAnimationFrame(window.syncTeamReportDetailMenuScroll);
+        };
+
+        window.scrollTeamReportDetailMenu = function(direction) {
+            const scroller = document.getElementById('team-report-detail-scroller');
+            if (!scroller) return;
+
+            scroller.scrollBy({
+                left: direction * Math.max(160, Math.round(scroller.clientWidth * 0.72)),
+                behavior: 'smooth'
+            });
+            setTimeout(window.syncTeamReportDetailMenuScroll, 280);
         };
 
         window.openTeamReportMetaTarget = function(target) {
@@ -1572,6 +1612,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             container.innerHTML = window.renderTeamReportStatusHtml(data, report);
+            if (typeof window.bindTeamReportDetailMenuScroll === 'function') {
+                window.bindTeamReportDetailMenuScroll();
+            }
             if (developmentContainer) {
                 developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
             }
