@@ -5334,25 +5334,40 @@
             font-weight: 950;
             letter-spacing: -0.03em;
             line-height: 1;
+            min-width: 7.5rem;
+            text-align: center;
             white-space: nowrap;
+        }
+        .calendar-heading-year {
+            color: rgba(255, 255, 255, 0.72);
+            display: inline-flex;
+            font-size: 0.95rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            line-height: 1;
+        }
+        .calendar-month-nav {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.8rem;
+            justify-content: center;
+            min-width: 0;
+        }
+        .calendar-month-chevron {
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 2rem;
+            opacity: 1;
+            pointer-events: auto;
+            position: static;
+            transform: none;
+            width: 2rem;
+        }
+        .calendar-month-chevron:hover {
+            transform: none;
         }
         .calendar-legend {
             color: rgba(255, 255, 255, 0.72);
-        }
-        .calendar-nav-btn,
-        .calendar-today-btn {
-            color: #ffffff;
-            text-decoration: none;
-        }
-        .calendar-nav-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 999px;
-            color: #ffffff;
-        }
-        .calendar-nav-btn:hover {
-            background: rgba(245, 197, 66, 0.18);
-            color: #ffffff;
         }
         .calendar-hero-action-btn {
             max-width: 100%;
@@ -5360,14 +5375,6 @@
         .calendar-hero-action-btn i,
         .calendar-action-btn i {
             font-size: 1rem;
-        }
-        .calendar-today-btn {
-            background: #f5c542;
-            border: 1px solid rgba(245, 197, 66, 0.75);
-            border-radius: 999px;
-            color: #0b2b4c;
-            padding: 0.55rem 0.85rem;
-            text-decoration: none;
         }
         .calendar-body {
             background: linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);

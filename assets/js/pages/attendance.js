@@ -255,7 +255,10 @@ window.renderCalendar = function() {
     const monthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
 
     if (document.getElementById('calendar-month-year')) {
-        document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
+        document.getElementById('calendar-month-year').innerText = monthNames[month];
+    }
+    if (document.getElementById('calendar-year')) {
+        document.getElementById('calendar-year').innerText = String(year);
     }
 
     grid.innerHTML = '';

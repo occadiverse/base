@@ -97,20 +97,18 @@
 
             <div id="view-oppmote" class="hidden portal-view space-y-6 calendar-page">
                 <div class="calendar-shell-panel">
-                    <div class="calendar-heading-panel p-4 md:p-5 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-2">
+                    <div class="calendar-heading-panel p-4 md:p-5 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-3">
                         <div class="min-w-0">
-                            <h2 id="calendar-month-year" class="calendar-heading-title">Mai 2026</h2>
+                            <span id="calendar-year" class="calendar-heading-year">2026</span>
                         </div>
 
-                        <div class="flex items-center justify-center gap-2 sm:gap-3">
-                            <button onclick="navigateCalendar(-1)" class="portal-btn portal-btn-icon portal-btn-secondary calendar-nav-btn" title="Forrige måned">
-                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                        <div class="calendar-month-nav" aria-label="Velg måned">
+                            <button type="button" onclick="window.navigateCalendar(-1)" class="team-report-detail-scroll-btn calendar-month-chevron" title="Forrige måned">
+                                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                             </button>
-                            <button onclick="goToToday()" class="portal-btn portal-btn-primary calendar-today-btn">
-                                I dag
-                            </button>
-                            <button onclick="navigateCalendar(1)" class="portal-btn portal-btn-icon portal-btn-secondary calendar-nav-btn" title="Neste måned">
-                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            <h2 id="calendar-month-year" class="calendar-heading-title">Mai</h2>
+                            <button type="button" onclick="window.navigateCalendar(1)" class="team-report-detail-scroll-btn calendar-month-chevron" title="Neste måned">
+                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                             </button>
                         </div>
 
@@ -121,7 +119,7 @@
                             </button>
                         </div>
 
-                        <div class="calendar-legend col-span-3 flex flex-wrap gap-3 text-[10px] font-bold uppercase justify-start sm:justify-center lg:justify-start">
+                        <div class="calendar-legend col-span-3 flex flex-wrap gap-3 text-[10px] font-bold uppercase justify-center">
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamp</span></div>
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Trening</span></div>
                             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
