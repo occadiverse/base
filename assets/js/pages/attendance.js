@@ -277,22 +277,20 @@ window.renderCalendar = function() {
         const items = [
             ...matches.map(m => ({
                 color: 'bg-emerald-500',
-                tint: 'bg-emerald-50 text-emerald-700 border-emerald-100',
                 label: m.opponent || 'Kamp'
             })),
             ...events.map(e => ({
                 color: e.type === 'Trening' ? 'bg-blue-500' : e.type === 'Dugnad' ? 'bg-amber-500' : e.type === 'Sosialt' ? 'bg-purple-500' : 'bg-slate-400',
-                tint: e.type === 'Trening' ? 'bg-blue-50 text-blue-700 border-blue-100' : e.type === 'Dugnad' ? 'bg-amber-50 text-amber-700 border-amber-100' : e.type === 'Sosialt' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-slate-100 text-slate-600 border-slate-200',
                 label: e.title || e.type || 'Aktivitet'
             }))
         ];
 
         const cell = document.createElement('div');
-        cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today ring-2 ring-bsk-yellow ring-offset-1' : ''}`;
+        cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today' : ''}`;
         cell.onclick = () => window.selectCalendarDate(dateStr);
 
         const visibleItems = items.slice(0, 2).map(item => `
-            <span class="flex items-center gap-1 min-w-0 rounded-full border px-1.5 py-0.5 text-[9px] font-black ${isSelected ? 'bg-bsk-yellow/10 text-bsk-blue border-bsk-yellow/30' : item.tint}">
+            <span class="flex items-center gap-1 min-w-0 text-[9px] font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
                 <span class="w-1.5 h-1.5 rounded-full ${item.color} shrink-0"></span>
                 <span class="hidden sm:inline truncate">${item.label}</span>
             </span>
@@ -305,7 +303,6 @@ window.renderCalendar = function() {
         cell.innerHTML = `
             <div class="flex items-start justify-between gap-1">
                 <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
-                ${isToday ? `<span class="text-[8px] font-black uppercase text-bsk-blue">I dag</span>` : ''}
             </div>
             <div class="mt-auto space-y-1 min-h-[22px]">
                 ${visibleItems || `<span class="block h-1"></span>`}
