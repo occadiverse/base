@@ -358,15 +358,15 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" onclick="window.openMatchModal('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type="button" onclick="window.promptDeleteMatch('${m.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger calendar-action-btn" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.openMatchModal('${m.id}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" onclick="window.promptDeleteMatch('${m.id}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
                         <div class="calendar-detail-icon">
                             <i class="fa-solid fa-futbol"></i>
                         </div>
-                        <div class="min-w-0 pr-14">
+                        <div class="min-w-0 pr-24">
                             <span class="calendar-detail-date">${selectedDateLabel}</span>
                             <h4 class="calendar-detail-title truncate">${m.opponent || 'Kamp'}</h4>
                             <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
@@ -396,15 +396,15 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" onclick="window.editActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type="button" onclick="window.deleteActivity('${e.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger calendar-action-btn" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.editActivity('${e.id}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" onclick="window.deleteActivity('${e.id}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-start gap-3 min-w-0">
                         <div class="calendar-detail-icon">
                             <i class="fa-solid ${theme.icon}"></i>
                         </div>
-                        <div class="min-w-0 pr-14">
+                        <div class="min-w-0 pr-24">
                             <span class="calendar-detail-date">${selectedDateLabel}</span>
                             <h4 class="calendar-detail-title truncate">${e.title || theme.label}</h4>
                             <div class="text-[11px] text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">

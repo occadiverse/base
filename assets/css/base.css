@@ -5328,15 +5328,6 @@
             position: relative;
             z-index: 1;
         }
-        .calendar-heading-kicker {
-            color: rgba(245, 197, 66, 0.9);
-            font-size: 0.62rem;
-            font-weight: 900;
-            letter-spacing: 0.12em;
-            line-height: 1;
-            margin-bottom: 0.28rem;
-            text-transform: uppercase;
-        }
         .calendar-heading-title {
             color: #ffffff;
             font-size: clamp(1.15rem, 3.5vw, 1.55rem);
@@ -5349,31 +5340,22 @@
             color: rgba(255, 255, 255, 0.72);
         }
         .calendar-nav-btn,
-        .calendar-add-btn,
         .calendar-today-btn {
             color: #ffffff;
             text-decoration: none;
         }
-        .calendar-nav-btn,
-        .calendar-add-btn {
+        .calendar-nav-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 999px;
             color: #ffffff;
         }
-        .calendar-nav-btn:hover,
-        .calendar-add-btn:hover {
+        .calendar-nav-btn:hover {
             background: rgba(245, 197, 66, 0.18);
             color: #ffffff;
         }
-        .calendar-add-btn {
-            background: #f5c542;
-            border-color: rgba(245, 197, 66, 0.75);
-            color: #0b2b4c;
-        }
-        .calendar-add-btn:hover {
-            background: #ffd966;
-            color: #0b2b4c;
+        .calendar-hero-action-btn {
+            max-width: 100%;
         }
         .calendar-today-btn {
             background: #f5c542;
@@ -5459,19 +5441,14 @@
             z-index: 2;
         }
         .calendar-action-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 999px;
-            color: #ffffff;
+            border-radius: 0.8rem;
+            min-height: 2.65rem;
+            width: 2.65rem;
         }
-        .calendar-action-btn.portal-btn-danger {
+        .calendar-action-btn.calendar-action-danger i {
             color: #fecdd3;
         }
-        .calendar-action-btn:hover {
-            background: rgba(245, 197, 66, 0.18);
-            color: #ffffff;
-        }
-        .calendar-action-btn.portal-btn-danger:hover {
+        .calendar-action-btn.calendar-action-danger:hover i {
             color: #ffffff;
         }
         .calendar-detail-watermark {
