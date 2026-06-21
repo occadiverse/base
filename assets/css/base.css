@@ -3333,86 +3333,91 @@
             height: 0.72rem;
         }
         .team-report-detail-grid {
-            display: grid;
-            gap: 0.55rem;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            display: inline-flex;
+            flex: 0 0 max-content;
+            flex-wrap: nowrap;
+            gap: 0;
+            max-width: none;
+            overflow: visible;
+            width: max-content;
+        }
+        .team-report-detail-menu {
+            justify-content: center;
+            min-width: 0;
+            width: 100%;
+        }
+        .team-report-detail-scroller-wrap {
+            box-shadow: 0 12px 26px rgba(11, 43, 76, 0.14);
+            max-width: 100%;
+            width: 100%;
+        }
+        .team-report-detail-scroller {
+            padding-inline: 0.35rem;
         }
         .team-report-detail-chip {
             align-items: center;
-            background:
-                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.14), transparent 38%),
-                linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
-            border: 1px solid rgba(245, 197, 66, 0.18);
-            border-radius: 999px;
-            box-shadow: 0 10px 22px rgba(11, 43, 76, 0.16);
-            color: rgba(255, 255, 255, 0.62);
-            display: flex;
-            font-size: 0.68rem;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font: inherit;
+            font-size: 0.66rem;
             font-weight: 850;
-            gap: 0.45rem;
-            justify-content: space-between;
+            gap: 0.38rem;
+            justify-content: center;
+            min-height: 2.55rem;
             min-width: 0;
-            overflow: hidden;
-            padding: 0.6rem 0.75rem;
-            position: relative;
+            padding: 0.58rem 0.7rem;
+            text-align: left;
         }
-        .team-report-detail-chip span {
+        .team-report-detail-chip .team-report-detail-text {
             align-items: center;
             display: inline-flex;
-            gap: 0.35rem;
+            font-weight: 900;
+            line-height: 1.15;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .team-report-detail-chip i {
-            color: #f5c542;
+            color: rgba(255, 255, 255, 0.72);
             flex-shrink: 0;
-            font-size: 0.72rem;
-            width: 0.9rem;
+            font-size: 0.88rem;
+            transition: color 150ms ease;
+            width: 1em;
         }
         .team-report-detail-chip strong {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 999px;
-            color: #ffffff;
+            color: rgba(255, 255, 255, 0.88);
             flex-shrink: 0;
-            font-size: 0.74rem;
+            font-size: 0.68rem;
             font-weight: 950;
             line-height: 1;
-            padding: 0.22rem 0.48rem;
+            padding: 0.22rem 0.46rem;
+            transition: background-color 150ms ease, color 150ms ease;
         }
-        .team-report-detail-chip.is-win {
-            border-color: rgba(134, 239, 172, 0.28);
+        .team-report-detail-chip:hover:not(.is-active) i,
+        .team-report-detail-chip:hover:not(.is-active) .team-report-detail-text {
+            color: #ffffff;
         }
+        .team-report-detail-chip.is-win i,
         .team-report-detail-chip.is-win strong {
-            background: rgba(22, 101, 52, 0.28);
-            border-color: rgba(134, 239, 172, 0.3);
-            color: #dcfce7;
-        }
-        .team-report-detail-chip.is-win i {
             color: #86efac;
         }
-        .team-report-detail-chip.is-draw {
-            border-color: rgba(245, 197, 66, 0.22);
-        }
+        .team-report-detail-chip.is-draw i,
         .team-report-detail-chip.is-draw strong {
-            background: rgba(245, 197, 66, 0.18);
-            border-color: rgba(245, 197, 66, 0.3);
-            color: #fef3c7;
-        }
-        .team-report-detail-chip.is-draw i {
             color: #f5c542;
         }
-        .team-report-detail-chip.is-loss {
-            border-color: rgba(252, 165, 165, 0.24);
-        }
+        .team-report-detail-chip.is-loss i,
         .team-report-detail-chip.is-loss strong {
-            background: rgba(185, 28, 28, 0.24);
-            border-color: rgba(252, 165, 165, 0.28);
-            color: #fee2e2;
-        }
-        .team-report-detail-chip.is-loss i {
             color: #fca5a5;
+        }
+        @media (min-width: 768px) {
+            .team-report-detail-grid {
+                width: 100%;
+            }
+            .team-report-detail-chip {
+                flex: 1 1 0;
+            }
         }
         .team-report-trend-grid,
         .team-report-two-col {
@@ -4508,6 +4513,15 @@
             overflow: visible;
             width: max-content;
         }
+        .team-report-detail-menu .team-report-detail-scroller-wrap {
+            max-width: 100%;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .team-report-detail-menu .team-report-detail-grid {
+                width: 100%;
+            }
+        }
         .stats-sort-scroller-fade {
             align-items: center;
             display: flex;
@@ -4546,6 +4560,15 @@
             min-width: 2.55rem;
             padding: 0.62rem 0.72rem;
         }
+        .team-report-detail-menu .team-report-detail-chip {
+            gap: 0.38rem;
+            padding: 0.58rem 0.7rem;
+        }
+        @media (min-width: 768px) {
+            .team-report-detail-menu .team-report-detail-chip {
+                flex: 1 1 0;
+            }
+        }
         .stats-sort-btn .fa-solid,
         .stats-sort-btn .stats-sort-glyph {
             color: inherit;
@@ -4580,6 +4603,18 @@
         .stats-sort-filter .roster-status-btn.stats-sort-btn.is-active .fa-solid,
         .stats-sort-filter .roster-status-btn.stats-sort-btn.is-active .stats-sort-glyph {
             color: #f5c542;
+        }
+        .team-report-detail-menu .team-report-detail-chip.is-win .fa-solid,
+        .team-report-detail-menu .team-report-detail-chip.is-win .team-report-detail-value {
+            color: #86efac;
+        }
+        .team-report-detail-menu .team-report-detail-chip.is-draw .fa-solid,
+        .team-report-detail-menu .team-report-detail-chip.is-draw .team-report-detail-value {
+            color: #f5c542;
+        }
+        .team-report-detail-menu .team-report-detail-chip.is-loss .fa-solid,
+        .team-report-detail-menu .team-report-detail-chip.is-loss .team-report-detail-value {
+            color: #fca5a5;
         }
         .stats-sort-btn.is-active {
             min-width: 0;

@@ -49,6 +49,16 @@ function setMobileNavTab(tabId) {
 
 function switchTab(tabId, options = {}) {
     const previousTab = currentTab;
+    if (previousTab && previousTab !== tabId && !options.skipHistory) {
+        window.portalBackStack = window.portalBackStack || [];
+        const backTarget = options.backTarget || previousTab;
+        const lastTarget = window.portalBackStack[window.portalBackStack.length - 1];
+        if (backTarget && backTarget !== tabId && lastTarget !== backTarget) {
+            window.portalBackStack.push(backTarget);
+            if (window.portalBackStack.length > 12) window.portalBackStack.shift();
+        }
+    }
+
     currentTab = tabId;
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
@@ -137,6 +147,29 @@ function switchTab(tabId, options = {}) {
         animateMobileSwipeTab(tabId, options.direction);
     }
 }
+
+window.goBackToPreviousPortalPage = function(options = {}) {
+    if (currentTab === 'statistikk' && window.statsBackTarget === 'lag' && typeof window.switchStatTab === 'function') {
+        const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
+        const activeStatId = activeStatTab?.id ? activeStatTab.id.replace('stat-tab-', '') : 'lag';
+        if (activeStatId !== 'lag') {
+            window.statsBackTarget = null;
+            window.switchStatTab('lag');
+            return true;
+        }
+    }
+
+    const stack = window.portalBackStack || [];
+    const previous = stack.pop();
+    if (!previous || previous === currentTab) return false;
+
+    switchTab(previous, {
+        skipHistory: true,
+        animate: options.animate,
+        direction: options.direction
+    });
+    return true;
+};
 
 function animateMobileSwipeTab(tabId, direction) {
     if (window.innerWidth >= 768) return;
@@ -482,6 +515,18 @@ function setupMobileSwipeNavigation() {
             resetSwipeDragStyles(hasHorizontalIntent, direction);
             activeSwipeEl = null;
             return;
+        }
+
+        const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
+        const activeStatId = activeStatTab?.id ? activeStatTab.id.replace('stat-tab-', '') : 'lag';
+        const hasStatsBackTarget = currentTab === 'statistikk' && window.statsBackTarget === 'lag' && activeStatId !== 'lag';
+        const hasPortalBackTarget = swipeTabs.indexOf(currentTab) === -1 && (window.portalBackStack || []).length > 0;
+        if (deltaX > 0 && (hasStatsBackTarget || hasPortalBackTarget)) {
+            cleanupSwipeDrag(true);
+            activeSwipeEl = null;
+            if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage({ animate: 'swipe', direction: 'right' })) {
+                return;
+            }
         }
 
         const nextIndex = getSwipeTargetIndex(deltaX);

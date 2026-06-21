@@ -555,7 +555,9 @@ window.showMatchDetails = function(id) {
     `;
 
     renderPlayerRowForm(match);
-    switchTab('kampdetaljer');
+    const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
+    window.pendingMatchDetailsBackTab = null;
+    switchTab('kampdetaljer', { backTarget });
 };
 
 window.closeMatchInfo = function() {

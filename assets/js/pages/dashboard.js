@@ -1,6 +1,7 @@
 window.goToMatchDetails = function(matchId) {
     if (!matchId) return;
-    switchTab('kamper');
+    window.pendingMatchDetailsBackTab = window.currentTab || 'hjem';
+    switchTab('kamper', { skipHistory: true });
     if (typeof window.showMatchDetails === 'function') window.showMatchDetails(matchId);
 };
 

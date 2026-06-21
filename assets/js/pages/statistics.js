@@ -1147,11 +1147,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const disciplineTone = report.discipline.suspended > 0
                 ? 'is-loss'
                 : report.discipline.atRisk > 0 ? 'is-draw' : 'is-win';
-            const detailChip = (label, value, tone = '', icon = 'fa-circle') => `
-                <div class="team-report-detail-chip ${tone}">
-                    <span><i class="fa-solid ${icon}"></i>${label}</span>
-                    <strong>${value}</strong>
-                </div>
+            const detailChip = (label, value, tone = '', icon = 'fa-circle', target = '') => `
+                <button type="button" onclick="window.openTeamReportMetaTarget('${target}')" class="roster-status-btn stats-sort-btn team-report-detail-chip ${tone}" title="${label}">
+                    <i class="fa-solid ${icon}" aria-hidden="true"></i>
+                    <span class="team-report-detail-text">${label}</span>
+                    <strong class="team-report-detail-value">${value}</strong>
+                </button>
             `;
             const recordClass = data.wins >= data.losses ? 'is-win' : 'is-loss';
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
@@ -1177,16 +1178,69 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ${metricCard('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'is-goal-card', `<div class="team-report-goal-bars" aria-hidden="true"><span class="is-for" style="width: ${goalsForPct}%"></span><span class="is-against" style="width: ${goalsAgainstPct}%"></span></div>`)}
                         ${metricCard('Oppmøte', `<span class="team-report-attendance-ring" style="--attendance-pct: ${attendancePct}%"><span>${data.avgAttendance}%</span></span>`, attendanceTone, 'fa-user-check', 'is-attendance')}
                     </div>
-                    <div class="team-report-detail-grid" aria-label="Tropp og risiko">
-                        ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check')}
-                        ${detailChip('Aktive', report.squad.active, '', 'fa-users')}
-                        ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '', 'fa-briefcase-medical')}
-                        ${detailChip('Passiv', report.squad.passive, '', 'fa-moon')}
-                        ${detailChip('Formmedian', data.teamFormMedian || '-', data.teamFormMedian >= 70 ? 'is-win' : data.teamFormMedian >= 55 ? 'is-draw' : 'is-loss', 'fa-bolt')}
-                        ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list')}
+                    <div class="team-report-detail-menu stats-player-toolbar" aria-label="Tropp og risiko" data-no-swipe>
+                        <div class="stats-sort-scroller-wrap team-report-detail-scroller-wrap">
+                            <div class="stats-sort-scroller team-report-detail-scroller" data-no-swipe>
+                                <div class="roster-status-filter stats-sort-filter team-report-detail-grid" role="menu" aria-label="Tropp og risiko">
+                                    ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check', 'available')}
+                                    ${detailChip('Aktive', report.squad.active, '', 'fa-users', 'active')}
+                                    ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '', 'fa-briefcase-medical', 'injured')}
+                                    ${detailChip('Passiv', report.squad.passive, '', 'fa-moon', 'passive')}
+                                    ${detailChip('Formmedian', data.teamFormMedian || '-', data.teamFormMedian >= 70 ? 'is-win' : data.teamFormMedian >= 55 ? 'is-draw' : 'is-loss', 'fa-bolt', 'form')}
+                                    ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list', report.discipline.suspended > 0 ? 'redCards' : 'yellowCards')}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
+        };
+
+        window.openTeamReportMetaTarget = function(target) {
+            const data = window._statsLagData || {};
+            const teamName = data.filterLag || '';
+            const setTeamFilter = (selectId) => {
+                const select = document.getElementById(selectId);
+                if (!select || !teamName || teamName === 'Alle') return;
+                if ([...select.options].some(option => option.value === teamName)) {
+                    select.value = teamName;
+                }
+            };
+            const openRoster = (status) => {
+                if (typeof window.switchTab === 'function') window.switchTab('tropp');
+                setTeamFilter('lagFilterSelect');
+                const searchInput = document.getElementById('playerSearchInput');
+                if (searchInput) searchInput.value = '';
+                if (typeof window.setPlayerStatusFilter === 'function') {
+                    window.setPlayerStatusFilter(status);
+                } else if (typeof window.renderPlayerRoster === 'function') {
+                    window.renderPlayerRoster();
+                }
+            };
+            const openPlayerStats = (sortColumn) => {
+                if (typeof window.switchTab === 'function') window.switchTab('statistikk');
+                setTeamFilter('statsLagFilterSelect');
+                window.statsBackTarget = 'lag';
+                if (typeof window.switchStatTab === 'function') window.switchStatTab('spillere');
+
+                if (sortColumn) {
+                    if (currentStatSortCol !== sortColumn) {
+                        currentStatSortCol = sortColumn;
+                        currentStatSortDesc = true;
+                    }
+                    if (typeof window.updateStatsSortButtons === 'function') window.updateStatsSortButtons();
+                    if (typeof window.renderPlayerStatsList === 'function') window.renderPlayerStatsList();
+                    if (typeof window.renderStatsSpillereSummary === 'function') window.renderStatsSpillereSummary();
+                }
+            };
+
+            if (target === 'available') return openRoster('alle');
+            if (target === 'active') return openRoster('Aktiv');
+            if (target === 'injured') return openRoster('skadet');
+            if (target === 'passive') return openRoster('Passiv');
+            if (target === 'form') return openPlayerStats('kjemi');
+            if (target === 'redCards') return openPlayerStats('rodeSerie');
+            if (target === 'yellowCards') return openPlayerStats('guleSerie');
         };
 
         window.statsScoreDiagramMode = window.statsScoreDiagramMode || 'total';
