@@ -222,6 +222,7 @@ window.recalculateOppmoteAndKjemi = function() {
 window.navigateCalendar = function(direction) {
     const current = window.currentCalendarDate;
     window.currentCalendarDate = new Date(current.getFullYear(), current.getMonth() + direction, 1);
+    window.calendarScrollTargetDateStr = formatCalendarDate(window.currentCalendarDate);
     window.renderCalendar();
 };
 
@@ -234,6 +235,19 @@ function parseCalendarDate(dateStr) {
     return new Date(year, month - 1, day);
 }
 
+function startOfCalendarWeek(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dayIndex = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    d.setDate(d.getDate() - dayIndex);
+    return d;
+}
+
+function addCalendarDays(date, days) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    d.setDate(d.getDate() + days);
+    return d;
+}
+
 function escapeCalendarJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
@@ -242,6 +256,7 @@ window.goToToday = function() {
     const today = new Date();
     window.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
     window.selectedCalendarDateStr = formatCalendarDate(today);
+    window.calendarScrollTargetDateStr = window.selectedCalendarDateStr;
     window.renderCalendar();
 };
 
@@ -261,65 +276,83 @@ window.renderCalendar = function() {
         document.getElementById('calendar-year').innerText = String(year);
     }
 
+    const previousScrollTop = grid.scrollTop;
+    const shouldPreserveScroll = grid.dataset.calendarRendered === 'true' && !window.calendarScrollTargetDateStr;
+    const targetDateStr = window.calendarScrollTargetDateStr || window.selectedCalendarDateStr || formatCalendarDate(new Date());
+    const targetDate = parseCalendarDate(targetDateStr);
+    const targetWeekStart = startOfCalendarWeek(targetDate);
+    const rangeStart = addCalendarDays(targetWeekStart, -26 * 7);
+    const weeksToRender = 80;
+
     grid.innerHTML = '';
-    const firstDayIndex = new Date(year, month, 1).getDay();
-    const startOffset = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
-    const totalDays = new Date(year, month + 1, 0).getDate();
 
-    for (let i = 0; i < startOffset; i++) {
-        grid.innerHTML += `<div class="calendar-day-empty rounded-2xl min-h-[64px] md:min-h-[82px]"></div>`;
+    for (let week = 0; week < weeksToRender; week++) {
+        const weekStart = addCalendarDays(rangeStart, week * 7);
+
+        for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+            const dayDate = addCalendarDays(weekStart, dayOffset);
+            const day = dayDate.getDate();
+            const dateStr = formatCalendarDate(dayDate);
+            const isSelected = window.selectedCalendarDateStr === dateStr;
+            const isToday = new Date().toDateString() === dayDate.toDateString();
+            const isOutsideActiveMonth = dayDate.getMonth() !== month;
+            const matches = (window.activeMatches || []).filter(m => m.date === dateStr);
+            const events = (window.activeEvents || []).filter(e => e.date === dateStr);
+            const items = [
+                ...matches.map(m => ({
+                    color: 'bg-emerald-500',
+                    label: m.opponent || 'Kamp'
+                })),
+                ...events.map(e => ({
+                    color: e.type === 'Trening' ? 'bg-blue-500' : e.type === 'Dugnad' ? 'bg-amber-500' : e.type === 'Sosialt' ? 'bg-purple-500' : 'bg-slate-400',
+                    label: e.title || e.type || 'Aktivitet'
+                }))
+            ];
+
+            const cell = document.createElement('div');
+            cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today' : ''} ${isOutsideActiveMonth ? 'is-outside-month' : ''}`;
+            if (dayOffset === 0) cell.dataset.calendarWeekStart = formatCalendarDate(weekStart);
+            cell.onclick = () => window.selectCalendarDate(dateStr);
+
+            const visibleItems = items.slice(0, 2).map(item => `
+                <span class="flex items-center gap-1 min-w-0 text-[9px] font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
+                    <span class="w-1.5 h-1.5 rounded-full ${item.color} shrink-0"></span>
+                    <span class="hidden sm:inline truncate">${item.label}</span>
+                </span>
+            `).join('');
+
+            const moreHtml = items.length > 2
+                ? `<span class="text-[9px] font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-400'}">+${items.length - 2}</span>`
+                : '';
+
+            cell.innerHTML = `
+                <div class="flex items-start justify-between gap-1">
+                    <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
+                </div>
+                <div class="mt-auto space-y-1 min-h-[22px]">
+                    ${visibleItems || `<span class="block h-1"></span>`}
+                    ${moreHtml}
+                </div>
+            `;
+            grid.appendChild(cell);
+        }
     }
 
-    for (let day = 1; day <= totalDays; day++) {
-        const dayDate = new Date(year, month, day);
-        const dateStr = formatCalendarDate(dayDate);
-        const isSelected = window.selectedCalendarDateStr === dateStr;
-        const isToday = new Date().toDateString() === dayDate.toDateString();
-        const matches = (window.activeMatches || []).filter(m => m.date === dateStr);
-        const events = (window.activeEvents || []).filter(e => e.date === dateStr);
-        const items = [
-            ...matches.map(m => ({
-                color: 'bg-emerald-500',
-                label: m.opponent || 'Kamp'
-            })),
-            ...events.map(e => ({
-                color: e.type === 'Trening' ? 'bg-blue-500' : e.type === 'Dugnad' ? 'bg-amber-500' : e.type === 'Sosialt' ? 'bg-purple-500' : 'bg-slate-400',
-                label: e.title || e.type || 'Aktivitet'
-            }))
-        ];
-
-        const cell = document.createElement('div');
-        cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today' : ''}`;
-        cell.onclick = () => window.selectCalendarDate(dateStr);
-
-        const visibleItems = items.slice(0, 2).map(item => `
-            <span class="flex items-center gap-1 min-w-0 text-[9px] font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
-                <span class="w-1.5 h-1.5 rounded-full ${item.color} shrink-0"></span>
-                <span class="hidden sm:inline truncate">${item.label}</span>
-            </span>
-        `).join('');
-
-        const moreHtml = items.length > 2
-            ? `<span class="text-[9px] font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-400'}">+${items.length - 2}</span>`
-            : '';
-
-        cell.innerHTML = `
-            <div class="flex items-start justify-between gap-1">
-                <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
-            </div>
-            <div class="mt-auto space-y-1 min-h-[22px]">
-                ${visibleItems || `<span class="block h-1"></span>`}
-                ${moreHtml}
-            </div>
-        `;
-        grid.appendChild(cell);
+    const targetWeekCell = grid.querySelector(`[data-calendar-week-start="${formatCalendarDate(targetWeekStart)}"]`);
+    if (shouldPreserveScroll) {
+        grid.scrollTop = previousScrollTop;
+    } else if (targetWeekCell) {
+        grid.scrollTop = targetWeekCell.offsetTop - grid.offsetTop;
     }
+    grid.dataset.calendarRendered = 'true';
+    window.calendarScrollTargetDateStr = null;
 
     window.updateDailySchedule();
 };
 
 window.selectCalendarDate = function(dateStr) {
     window.selectedCalendarDateStr = dateStr;
+    window.currentCalendarDate = parseCalendarDate(dateStr);
     window.renderCalendar();
 };
 

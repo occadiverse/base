@@ -9,14 +9,11 @@ window.goToCalendarDate = function(dateStr) {
     if (dateStr) {
         const [year, month, day] = dateStr.split('-').map(Number);
         if (year && month && day) {
-            window.currentCalendarDate = new Date(year, month - 1, 1);
-            window.selectedCalendarDateStr = dateStr;
+            window.pendingCalendarDateStr = dateStr;
         }
     }
 
     switchTab('oppmote');
-    if (typeof window.renderCalendar === 'function') window.renderCalendar();
-    if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
 };
 
 window.goToMatchSummaryNotes = function(matchId) {

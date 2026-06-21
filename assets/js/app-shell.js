@@ -75,9 +75,15 @@ function switchTab(tabId, options = {}) {
     if (scrollHost) scrollHost.scrollTop = 0;
 
     if (tabId === 'oppmote') {
-        const d = new Date();
+        const pendingDateStr = window.pendingCalendarDateStr || null;
+        const pendingParts = pendingDateStr ? pendingDateStr.split('-').map(Number) : null;
+        const d = pendingParts && pendingParts.length === 3
+            ? new Date(pendingParts[0], pendingParts[1] - 1, pendingParts[2])
+            : new Date();
+        window.pendingCalendarDateStr = null;
         window.currentCalendarDate = d;
-        window.selectedCalendarDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        window.selectedCalendarDateStr = pendingDateStr || `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        window.calendarScrollTargetDateStr = window.selectedCalendarDateStr;
 
         if (typeof window.renderCalendar === 'function') window.renderCalendar();
         if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
