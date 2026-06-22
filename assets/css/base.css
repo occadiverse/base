@@ -2117,7 +2117,7 @@
             font-weight: 950;
             line-height: 1.1;
         }
-        .roster-hero-action-btn {
+        .roster-toolbar .match-bench-action-btn.roster-hero-action-btn {
             background: #0b2b4c;
             border-color: rgba(245, 197, 66, 0.24);
             border-radius: 999px;
@@ -2127,11 +2127,11 @@
             max-width: 100%;
             min-width: 2.85rem;
         }
-        .roster-hero-action-btn:hover {
+        .roster-toolbar .match-bench-action-btn.roster-hero-action-btn:hover {
             background: #123f73;
             border-color: rgba(245, 197, 66, 0.44);
         }
-        .roster-hero-action-btn i {
+        .roster-toolbar .match-bench-action-btn.roster-hero-action-btn i {
             color: #f5c542;
         }
         .roster-empty-action-btn {
@@ -2191,20 +2191,21 @@
             color: #94a3b8;
             font-weight: 500;
         }
-        .roster-status-filter {
+        #view-tropp > .roster-status-filter {
             background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             border: 1px solid rgba(245, 197, 66, 0.18);
             border-radius: 999px;
             box-shadow: 0 10px 24px rgba(11, 43, 76, 0.18);
-            display: inline-flex;
+            display: flex;
             gap: 0.2rem;
             justify-content: center;
-            margin: 0 auto;
+            margin-left: auto;
+            margin-right: auto;
             max-width: 100%;
             overflow-x: auto;
             padding: 0.32rem;
             scrollbar-width: none;
-            width: fit-content;
+            width: max-content;
         }
         .roster-status-filter::-webkit-scrollbar {
             display: none;
@@ -2610,19 +2611,26 @@
             .roster-search-input {
                 font-size: 16px;
             }
-            .roster-hero-action-btn {
+            .roster-toolbar .match-bench-action-btn.roster-hero-action-btn {
+                background: #0b2b4c;
+                border-color: rgba(245, 197, 66, 0.24);
+                border-radius: 999px;
+                box-shadow: 0 8px 18px rgba(11, 43, 76, 0.18);
+                color: #ffffff;
                 height: 2.75rem;
                 min-height: 2.75rem;
                 padding-left: 0;
                 padding-right: 0;
                 width: 2.75rem;
             }
-            .roster-hero-action-btn span {
+            .roster-toolbar .match-bench-action-btn.roster-hero-action-btn span {
                 display: none;
             }
-            .roster-status-filter {
+            #view-tropp > .roster-status-filter {
                 justify-content: center;
-                width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+                width: max-content;
             }
             .roster-player-row {
                 gap: 0.55rem;
