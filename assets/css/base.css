@@ -2118,15 +2118,17 @@
             line-height: 1.1;
         }
         .roster-hero-action-btn {
-            background: linear-gradient(90deg, #123f73 0%, #0b2b4c 100%);
+            background: #0b2b4c;
             border-color: rgba(245, 197, 66, 0.24);
+            border-radius: 999px;
+            box-shadow: 0 8px 18px rgba(11, 43, 76, 0.18);
             color: #ffffff;
             flex: 0 0 auto;
             max-width: 100%;
             min-width: 2.85rem;
         }
         .roster-hero-action-btn:hover {
-            background: linear-gradient(90deg, #164a82 0%, #123f73 100%);
+            background: #123f73;
             border-color: rgba(245, 197, 66, 0.44);
         }
         .roster-hero-action-btn i {
@@ -2202,6 +2204,7 @@
             overflow-x: auto;
             padding: 0.32rem;
             scrollbar-width: none;
+            width: fit-content;
         }
         .roster-status-filter::-webkit-scrollbar {
             display: none;
@@ -2590,19 +2593,36 @@
         }
         @media (max-width: 640px) {
             .roster-toolbar {
-                align-items: stretch;
-                flex-direction: column;
+                align-items: center;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .roster-toolbar .match-list-lag-filter {
+                flex: 1 0 100%;
+                justify-content: center;
+                min-width: 0;
             }
             .roster-search-wrap {
-                flex: 0 0 auto;
-                width: 100%;
+                flex: 1 1 auto;
+                min-width: 0;
+                width: auto;
             }
             .roster-search-input {
                 font-size: 16px;
             }
+            .roster-hero-action-btn {
+                height: 2.75rem;
+                min-height: 2.75rem;
+                padding-left: 0;
+                padding-right: 0;
+                width: 2.75rem;
+            }
+            .roster-hero-action-btn span {
+                display: none;
+            }
             .roster-status-filter {
-                justify-content: flex-start;
-                width: 100%;
+                justify-content: center;
+                width: fit-content;
             }
             .roster-player-row {
                 gap: 0.55rem;
