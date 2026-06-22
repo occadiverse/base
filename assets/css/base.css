@@ -2118,9 +2118,19 @@
             line-height: 1.1;
         }
         .roster-hero-action-btn {
+            background: linear-gradient(90deg, #123f73 0%, #0b2b4c 100%);
+            border-color: rgba(245, 197, 66, 0.24);
+            color: #ffffff;
             flex: 0 0 auto;
             max-width: 100%;
             min-width: 2.85rem;
+        }
+        .roster-hero-action-btn:hover {
+            background: linear-gradient(90deg, #164a82 0%, #123f73 100%);
+            border-color: rgba(245, 197, 66, 0.44);
+        }
+        .roster-hero-action-btn i {
+            color: #f5c542;
         }
         .roster-empty-action-btn {
             background: linear-gradient(90deg, #123f73 0%, #0b2b4c 100%);
