@@ -1552,10 +1552,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return { tone: 'is-neutral', arrow: '→', direction: 'is-neutral' };
                 }
                 const better = inverted ? current < baseline : current > baseline;
+                const arrowIsUp = current > baseline;
                 return {
                     tone: better ? 'is-good' : 'is-alert',
-                    arrow: current > baseline ? '↑' : '↓',
-                    direction: current > baseline ? 'is-up' : 'is-down'
+                    arrow: arrowIsUp ? '↑' : '↓',
+                    direction: arrowIsUp === inverted ? 'is-down' : 'is-up'
                 };
             };
             const trendValue = (value, suffix = '') => (
