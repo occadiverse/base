@@ -100,13 +100,28 @@ window.showSessionInjuryModal = function() {
     if (listEl) {
         listEl.innerHTML = players.map(player => {
             const injuryLabel = window.escapeModalHtml(player.label || player.shortLabel || 'Skade registrert');
+            const playerId = window.escapeModalHtml(player.id || '');
+            const healthyButton = player.id
+                ? `
+                    <button type="button"
+                            class="session-injury-healthy-btn"
+                            onclick="event.stopPropagation(); window.markSessionInjuryPlayerHealthy('${playerId}')"
+                            title="Marker ${window.escapeModalHtml(player.navn)} som frisk">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Frisk</span>
+                    </button>
+                `
+                : '';
             const badgeClass = player.type === 'langvarig'
                 ? 'session-injury-badge is-critical'
                 : 'session-injury-badge is-warning';
             return `
                 <div class="session-injury-item">
-                    <span class="session-injury-name">${window.escapeModalHtml(player.navn)}</span>
-                    <span class="${badgeClass}">${injuryLabel}</span>
+                    <div class="session-injury-copy min-w-0">
+                        <span class="session-injury-name">${window.escapeModalHtml(player.navn)}</span>
+                        <span class="${badgeClass}">${injuryLabel}</span>
+                    </div>
+                    ${healthyButton}
                 </div>
             `;
         }).join('');
@@ -115,6 +130,35 @@ window.showSessionInjuryModal = function() {
     const modal = document.getElementById('sessionInjuryModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+};
+
+window.markSessionInjuryPlayerHealthy = async function(playerId) {
+    if (!playerId || typeof window.markPlayerHealthy !== 'function') return;
+
+    const trigger = document.activeElement;
+    if (trigger && trigger.classList?.contains('session-injury-healthy-btn')) {
+        trigger.disabled = true;
+        trigger.classList.add('is-loading');
+    }
+
+    try {
+        await window.markPlayerHealthy(playerId);
+        window._sessionInjuryPopupData = (window._sessionInjuryPopupData || []).filter(player => player.id !== playerId);
+
+        if (window._sessionInjuryPopupData.length === 0) {
+            window.closeSessionInjuryModal();
+            return;
+        }
+
+        window.showSessionInjuryModal();
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke markere spilleren som frisk. Prøv igjen.');
+        if (trigger && trigger.classList?.contains('session-injury-healthy-btn')) {
+            trigger.disabled = false;
+            trigger.classList.remove('is-loading');
+        }
+    }
 };
 
 window.closeSessionInjuryModal = function() {

@@ -208,6 +208,51 @@ function comparePlayersByFirstName(a, b) {
     return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
 }
 
+function getTodayDateString() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function isPlayerCurrentlyInjured(player) {
+    const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+        ? window.getPlayerInjuryInfo(player)
+        : { isInjured: Boolean(player?.skadeStatus && player.skadeStatus !== 'frisk') };
+    return injuryInfo.isInjured;
+}
+
+function buildPlayerInjuryHistoryEntry(player, tilDato = getTodayDateString()) {
+    if (!isPlayerCurrentlyInjured(player)) return null;
+
+    const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+        ? window.getPlayerInjuryInfo(player)
+        : { type: player.skadeStatus, label: player.skadeStatus };
+
+    return {
+        id: crypto.randomUUID(),
+        skadeStatus: player.skadeStatus || injuryInfo.type || '',
+        skadeType: injuryInfo.shortLabel || injuryInfo.label || player.skadeStatus || 'Skade',
+        skadeNotat: player.skadeNotat || '',
+        fraDato: player.skadeFraDato || tilDato,
+        tilDato,
+        forventetTilDato: player.skadeTilDato || ''
+    };
+}
+
+function finishPlayerInjury(player, tilDato = getTodayDateString()) {
+    const historyEntry = buildPlayerInjuryHistoryEntry(player, tilDato);
+    const skadeHistorikk = Array.isArray(player.skadeHistorikk) ? [...player.skadeHistorikk] : [];
+    if (historyEntry) skadeHistorikk.push(historyEntry);
+
+    return {
+        ...player,
+        skadeStatus: 'frisk',
+        skadeNotat: '',
+        skadeFraDato: '',
+        skadeTilDato: '',
+        skadeHistorikk
+    };
+}
+
 function getRosterFilteredPlayers() {
     const filterLagEl = document.getElementById('lagFilterSelect');
     const filterLag = filterLagEl ? filterLagEl.value : '';
@@ -402,6 +447,7 @@ window.openPlayerModal = function(editPlayerId = null) {
             document.getElementById('playerFootInput').value = pObj.fot || 'Høyre';
             document.getElementById('playerSkadeStatusInput').value = pObj.skadeStatus || 'frisk';
             document.getElementById('playerSkadeNotatInput').value = pObj.skadeNotat || '';
+            document.getElementById('playerSkadeFraDatoInput').value = pObj.skadeFraDato || '';
             document.getElementById('playerSkadeTilDatoInput').value = pObj.skadeTilDato || '';
             window.togglePlayerSkadeFields();
         }
@@ -411,6 +457,7 @@ window.openPlayerModal = function(editPlayerId = null) {
         document.getElementById('playerPos2Input').value = '-';
         document.getElementById('playerSkadeStatusInput').value = 'frisk';
         document.getElementById('playerSkadeNotatInput').value = '';
+        document.getElementById('playerSkadeFraDatoInput').value = '';
         document.getElementById('playerSkadeTilDatoInput').value = '';
         window.togglePlayerSkadeFields();
     }
@@ -427,8 +474,10 @@ window.openPlayerModal = function(editPlayerId = null) {
 window.togglePlayerSkadeFields = function() {
     const status = document.getElementById('playerSkadeStatusInput')?.value || 'frisk';
     const isInjured = status !== 'frisk';
+    const fromDateWrap = document.getElementById('playerSkadeFraDatoWrap');
     const dateWrap = document.getElementById('playerSkadeTilDatoWrap');
     const notatWrap = document.getElementById('playerSkadeNotatWrap');
+    if (fromDateWrap) fromDateWrap.classList.toggle('hidden', !isInjured);
     if (dateWrap) dateWrap.classList.toggle('hidden', !isInjured);
     if (notatWrap) notatWrap.classList.toggle('hidden', !isInjured);
 };
@@ -494,7 +543,13 @@ window.promptDeleteTeam = function(id) {
 window.savePlayer = async function(event) {
     event.preventDefault();
 
-    const playerData = {
+    const existingPlayerId = document.getElementById('editPlayerId').value || null;
+    const existingPlayer = existingPlayerId ? (window.activePlayers || []).find(p => p.id === existingPlayerId) : null;
+    const selectedSkadeStatus = document.getElementById('playerSkadeStatusInput').value || 'frisk';
+    const isSavingInjury = selectedSkadeStatus !== 'frisk';
+    const todayStr = getTodayDateString();
+
+    let playerData = {
         id: document.getElementById('editPlayerId').value || null,
         navn: document.getElementById('playerNameInput').value,
         draktnummer: document.getElementById('playerJerseyInput').value ? parseInt(document.getElementById('playerJerseyInput').value) : '',
@@ -504,12 +559,36 @@ window.savePlayer = async function(event) {
         pos1: document.getElementById('playerPos1Input').value,
         pos2: document.getElementById('playerPos2Input').value,
         fot: document.getElementById('playerFootInput').value,
-        skadeStatus: document.getElementById('playerSkadeStatusInput').value || 'frisk',
-        skadeNotat: document.getElementById('playerSkadeNotatInput').value.trim(),
-        skadeTilDato: document.getElementById('playerSkadeTilDatoInput').value || ''
+        skadeStatus: selectedSkadeStatus,
+        skadeNotat: isSavingInjury ? document.getElementById('playerSkadeNotatInput').value.trim() : '',
+        skadeFraDato: isSavingInjury
+            ? (document.getElementById('playerSkadeFraDatoInput').value || existingPlayer?.skadeFraDato || todayStr)
+            : '',
+        skadeTilDato: isSavingInjury ? (document.getElementById('playerSkadeTilDatoInput').value || '') : ''
     };
 
-    const existingPlayer = playerData.id ? (window.activePlayers || []).find(p => p.id === playerData.id) : null;
+    playerData = {
+        ...(existingPlayer || {}),
+        ...playerData,
+        skadeHistorikk: Array.isArray(existingPlayer?.skadeHistorikk) ? existingPlayer.skadeHistorikk : []
+    };
+
+    if (existingPlayer && isPlayerCurrentlyInjured(existingPlayer) && playerData.skadeStatus === 'frisk') {
+        playerData = finishPlayerInjury(existingPlayer, todayStr);
+        playerData = {
+            ...playerData,
+            id: existingPlayer.id,
+            navn: document.getElementById('playerNameInput').value,
+            draktnummer: document.getElementById('playerJerseyInput').value ? parseInt(document.getElementById('playerJerseyInput').value) : '',
+            fodselsaar: parseInt(document.getElementById('playerBirthYearInput').value),
+            status: document.getElementById('playerStatusInput').value,
+            spillerLag: document.getElementById('playerTeamInput').value,
+            pos1: document.getElementById('playerPos1Input').value,
+            pos2: document.getElementById('playerPos2Input').value,
+            fot: document.getElementById('playerFootInput').value
+        };
+    }
+
     const oldName = existingPlayer?.navn;
 
     try {
@@ -526,6 +605,27 @@ window.savePlayer = async function(event) {
 
     window.closePlayerModal();
     window.renderPlayerRoster();
+};
+
+window.markPlayerHealthy = async function(playerId) {
+    const playerIndex = (window.activePlayers || []).findIndex(p => p.id === playerId);
+    if (playerIndex === -1) throw new Error('Fant ikke spilleren som skulle markeres frisk.');
+
+    const player = window.activePlayers[playerIndex];
+    if (!isPlayerCurrentlyInjured(player)) return player;
+
+    const updatedPlayer = finishPlayerInjury(player);
+    await window.savePlayerToDatabase(updatedPlayer);
+
+    window.activePlayers[playerIndex] = updatedPlayer;
+    window.localStorage.setItem('bsk_local_players', JSON.stringify(window.activePlayers));
+
+    if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
+    if (typeof window.updateDashboard === 'function') window.updateDashboard();
+    if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+    if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
+
+    return updatedPlayer;
 };
 
 window.promptDeletePlayer = function(id) {

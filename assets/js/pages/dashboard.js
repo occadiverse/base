@@ -284,10 +284,14 @@ window.buildNextSessionAttendanceStats = function(event) {
             : { isInjured: false, type: 'frisk' };
         if (injuryInfo.isInjured) {
             injuredReady.push({
+                id: player.id,
                 navn: player.navn,
                 type: injuryInfo.type,
                 label: injuryInfo.label,
-                shortLabel: injuryInfo.shortLabel
+                shortLabel: injuryInfo.shortLabel,
+                skadeNotat: player.skadeNotat || '',
+                skadeFraDato: player.skadeFraDato || '',
+                skadeTilDato: player.skadeTilDato || ''
             });
         }
     });
