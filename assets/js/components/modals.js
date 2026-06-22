@@ -117,11 +117,11 @@ window.showSessionInjuryModal = function() {
                 : 'session-injury-badge is-warning';
             return `
                 <div class="session-injury-item">
-                    <div class="session-injury-copy min-w-0">
+                    <div class="session-injury-topline">
                         <span class="session-injury-name">${window.escapeModalHtml(player.navn)}</span>
-                        <span class="${badgeClass}">${injuryLabel}</span>
+                        ${healthyButton}
                     </div>
-                    ${healthyButton}
+                    <span class="${badgeClass}">${injuryLabel}</span>
                 </div>
             `;
         }).join('');

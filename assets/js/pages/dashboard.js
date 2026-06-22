@@ -302,6 +302,13 @@ window.buildNextSessionAttendanceStats = function(event) {
     if (positionCounts.K === 0) fractionTone = 'critical';
     else if (påmeldtAntall < lowAttendanceThreshold) fractionTone = 'warning';
 
+    injuredReady.sort((a, b) => {
+        const typeOrder = { langvarig: 0, 'dag-til-dag': 1 };
+        const typeDiff = (typeOrder[a.type] ?? 2) - (typeOrder[b.type] ?? 2);
+        if (typeDiff !== 0) return typeDiff;
+        return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
+    });
+
     const hasLangvarigInjury = injuredReady.some(p => p.type === 'langvarig');
     const injuryTone = hasLangvarigInjury ? 'critical' : 'warning';
 
