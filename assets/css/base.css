@@ -2128,11 +2128,16 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .roster-stat-card {
+            align-items: center;
             background: linear-gradient(135deg, #fff3bf 0%, #f5c542 100%);
             border: 1px solid rgba(245, 197, 66, 0.72);
             border-radius: 0.95rem;
             box-shadow: 0 10px 22px rgba(245, 197, 66, 0.16);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             padding: 0.75rem 0.85rem;
+            text-align: center;
         }
         .roster-stat-label {
             color: rgba(11, 43, 76, 0.72);
@@ -2153,16 +2158,18 @@
         .roster-toolbar .match-bench-action-btn.roster-hero-action-btn {
             background: #0b2b4c;
             border-color: rgba(245, 197, 66, 0.24);
-            border-radius: 999px;
+            border-radius: 0.8rem;
             box-shadow: 0 8px 18px rgba(11, 43, 76, 0.18);
             color: #ffffff;
             flex: 0 0 auto;
-            height: 2.75rem;
+            font-size: 0.72rem;
+            gap: 0.45rem;
+            height: auto;
             justify-content: center;
             max-width: 100%;
-            min-width: 8.5rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
+            min-height: 2.85rem;
+            min-width: 7.75rem;
+            padding: 0.65rem 0.85rem;
         }
         .roster-toolbar .match-bench-action-btn.roster-hero-action-btn:hover {
             background: #123f73;
