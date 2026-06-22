@@ -2171,6 +2171,9 @@
         .roster-toolbar .match-bench-action-btn.roster-hero-action-btn i {
             color: #f5c542;
         }
+        .roster-toolbar .match-bench-action-btn.roster-hero-action-btn span {
+            display: inline;
+        }
         .roster-empty-action-btn {
             background: linear-gradient(90deg, #123f73 0%, #0b2b4c 100%);
             border-color: rgba(245, 197, 66, 0.16);
