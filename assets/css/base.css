@@ -2095,13 +2095,14 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .roster-stat-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #ffffff;
+            border: 1px solid rgba(18, 63, 115, 0.1);
             border-radius: 0.95rem;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
             padding: 0.75rem 0.85rem;
         }
         .roster-stat-label {
-            color: rgba(255, 255, 255, 0.52);
+            color: #64748b;
             display: block;
             font-size: 0.58rem;
             font-weight: 900;
@@ -2110,7 +2111,7 @@
             text-transform: uppercase;
         }
         .roster-stat-value {
-            color: #ffffff;
+            color: #0b2b4c;
             display: block;
             font-size: 1rem;
             font-weight: 950;
@@ -2185,6 +2186,8 @@
             box-shadow: 0 10px 24px rgba(11, 43, 76, 0.18);
             display: inline-flex;
             gap: 0.2rem;
+            justify-content: center;
+            margin: 0 auto;
             max-width: 100%;
             overflow-x: auto;
             padding: 0.32rem;

@@ -160,7 +160,7 @@ window.rosterStatusFilter = 'alle';
 
 window.setPlayerStatusFilter = function(status) {
     window.rosterStatusFilter = status;
-    document.querySelectorAll('.roster-status-btn').forEach(btn => btn.classList.remove('is-active'));
+    document.querySelectorAll('#view-tropp .roster-status-btn').forEach(btn => btn.classList.remove('is-active'));
     const activeBtn = document.getElementById(`roster-filter-${status === 'alle' ? 'alle' : status === 'skadet' ? 'skadet' : status.toLowerCase()}`);
     if (activeBtn) activeBtn.classList.add('is-active');
     window.renderPlayerRoster();
@@ -223,7 +223,8 @@ function getRosterFilteredPlayers() {
             : { isInjured: false };
 
         if (window.rosterStatusFilter === 'skadet' && !injuryInfo.isInjured) return false;
-        if (window.rosterStatusFilter !== 'alle' && window.rosterStatusFilter !== 'skadet' && p.status !== window.rosterStatusFilter) return false;
+        if (window.rosterStatusFilter === 'tilgjengelig' && (p.status === 'Passiv' || injuryInfo.isInjured)) return false;
+        if (!['alle', 'skadet', 'tilgjengelig'].includes(window.rosterStatusFilter) && p.status !== window.rosterStatusFilter) return false;
 
         if (!searchTerm) return true;
 
