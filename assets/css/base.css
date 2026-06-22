@@ -6,6 +6,7 @@
         }
         html {
             background: var(--portal-bg);
+            scrollbar-gutter: stable;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -34,6 +35,7 @@
         }
         .portal-main-shell {
             padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+            scrollbar-gutter: stable;
         }
         @media (max-width: 767px) {
             .portal-main-shell {
