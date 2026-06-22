@@ -387,9 +387,9 @@ window.renderPlayerRoster = function() {
     const statRekruttEl = document.getElementById('stat-total-rekrutt');
     const statInjuredEl = document.getElementById('stat-total-injured');
 
-    if (statPlayersEl) statPlayersEl.innerText = `${filteredPlayers.length} spillere`;
+    if (statPlayersEl) statPlayersEl.innerText = String(filteredPlayers.length);
     if (statAvgAgeEl) statAvgAgeEl.innerText = `${avgAge} år`;
-    if (statRekruttEl) statRekruttEl.innerText = `${countRekrutt} rekrutter`;
+    if (statRekruttEl) statRekruttEl.innerText = String(countRekrutt);
     if (statInjuredEl) statInjuredEl.innerText = String(countInjured);
 
     listContainer.innerHTML = '';
