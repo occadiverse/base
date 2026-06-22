@@ -2157,8 +2157,12 @@
             box-shadow: 0 8px 18px rgba(11, 43, 76, 0.18);
             color: #ffffff;
             flex: 0 0 auto;
+            height: 2.75rem;
+            justify-content: center;
             max-width: 100%;
-            min-width: 2.85rem;
+            min-width: 8.5rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
         .roster-toolbar .match-bench-action-btn.roster-hero-action-btn:hover {
             background: #123f73;
