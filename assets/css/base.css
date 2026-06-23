@@ -5527,7 +5527,13 @@
         }
         .match-stats-save-btn {
             gap: 0.45rem;
+            min-width: 5.5rem;
             padding: 0.65rem 0.85rem;
+            white-space: nowrap;
+            width: auto;
+        }
+        .match-stats-save-btn span {
+            display: inline;
             white-space: nowrap;
         }
         .calendar-page {
