@@ -6432,29 +6432,25 @@
             background: rgba(8, 25, 47, 0.98);
             border: 1px solid rgba(245, 197, 66, 0.32);
             border-radius: 0.9rem;
-            bottom: calc(100% + 0.45rem);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 5.75rem);
             box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
             color: #ffffff;
             display: none;
+            left: 50%;
             padding: 0.55rem;
-            position: absolute;
-            right: -0.4rem;
+            position: fixed;
+            right: auto;
             text-align: left;
-            width: min(20rem, calc(100vw - 2rem));
-            z-index: 60;
+            transform: translateX(-50%);
+            width: min(22rem, calc(100vw - 2rem));
+            z-index: 80;
         }
         .match-rating-field:hover .match-rating-tooltip,
         .match-rating-field:focus-within .match-rating-tooltip {
             display: block;
         }
         .match-rating-tooltip::after {
-            border-left: 0.45rem solid transparent;
-            border-right: 0.45rem solid transparent;
-            border-top: 0.45rem solid rgba(8, 25, 47, 0.98);
-            bottom: -0.42rem;
-            content: '';
-            position: absolute;
-            right: 1rem;
+            display: none;
         }
         .match-rating-tooltip-title {
             color: #f5c542;
@@ -6467,7 +6463,7 @@
         .match-rating-tooltip-list {
             display: grid;
             gap: 0.18rem;
-            max-height: 17rem;
+            max-height: min(17rem, 44vh);
             overflow-y: auto;
             padding-right: 0.15rem;
         }
@@ -6518,6 +6514,12 @@
             font-size: 0.64rem;
             font-weight: 700;
             line-height: 1.25;
+        }
+        @media (min-width: 768px) {
+            .match-rating-field:hover .match-rating-tooltip,
+            .match-rating-field:focus-within .match-rating-tooltip {
+                display: none;
+            }
         }
         .portal-field-strong {
             color: #123f73;
