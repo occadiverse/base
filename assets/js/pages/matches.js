@@ -543,13 +543,15 @@ window.showMatchDetails = function(id) {
         </section>
 
         <section class="match-coach-notes-panel">
-            <div class="match-coach-notes-header">
-                <div>
-                    <span class="match-detail-summary-label">Trenernotater</span>
-                    <p class="match-coach-notes-lead">Sett fokus for treningsuka basert på kampen. Notatene vises på kampstatus-kortet på forsiden.</p>
+            <div class="match-bench-action-row match-coach-notes-topline">
+                <div class="match-bench-heading">
+                    <h3>Trenernotater</h3>
                 </div>
             </div>
-            ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
+            <div class="match-coach-notes-body">
+                ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
+            </div>
+            <div class="match-coach-notes-footer" aria-hidden="true"></div>
         </section>
     `;
 
