@@ -795,8 +795,8 @@ window.renderPlayerRowForm = function(match) {
     playersToRender.forEach(playerObj => {
         const player = playerObj.navn;
         const playerId = playerObj.id;
-        const playerAttr = escapeHtml(player);
-        const playerIdAttr = escapeHtml(playerId || '');
+        const playerAttr = escapeMatchHtml(player);
+        const playerIdAttr = escapeMatchHtml(playerId || '');
         const prevGoals = window.getPlayerRefMapValue(match.scorers, playerObj, 0);
         const prevAssists = window.getPlayerRefMapValue(match.assists, playerObj, 0);
         const prevRating = window.getPlayerRefMapValue(match.ratings, playerObj, 0);
@@ -814,9 +814,9 @@ window.renderPlayerRowForm = function(match) {
         div.className = "match-stats-player-row";
         div.innerHTML = `
             <div class="match-stats-player-info">
-                <span class="match-stats-player-name">${escapeHtml(player)}</span>
+                <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
                 ${isBenchOnly ? '<span class="match-stats-bench-badge">Kun oppmøte</span>' : ''}
-                <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeHtml(ratingHint)}</span>
+                <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
                 <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
@@ -845,13 +845,13 @@ window.renderPlayerRowForm = function(match) {
                         onchange="window.updateMatchRatingHint(this)"
                         onfocus="window.updateMatchRatingHint(this)"
                         onmouseenter="window.updateMatchRatingHint(this)"
-                        title="${escapeHtml(ratingHint)}"
+                        title="${escapeMatchHtml(ratingHint)}"
                     >
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
                         ${[1,2,3,4,5,6,7,8,9,10].map(v => {
                             const ratingEntry = getMatchRatingGuideEntry(v);
                             const optionTitle = ratingEntry.tooltip || `${ratingEntry.label}. ${ratingEntry.description}`;
-                            return `<option value="${v}" ${prevRating === v ? 'selected' : ''} title="${escapeHtml(optionTitle)}">${v} ★</option>`;
+                            return `<option value="${v}" ${prevRating === v ? 'selected' : ''} title="${escapeMatchHtml(optionTitle)}">${v} ★</option>`;
                         }).join('')}
                     </select>
                     ${buildMatchRatingTooltipHtml(prevRating)}
