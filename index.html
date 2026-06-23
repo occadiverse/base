@@ -77,22 +77,23 @@
                         </div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50">
-                        <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-star text-bsk-yellow text-lg"></i> Registrer mål, assist, spillerbørs, kort og BB
-                        </h3>
-                    </div>
-                    <div>
-                        <div id="kampdetaljer-spillerbors" class="divide-y divide-slate-100 px-5 bg-white">
-                            </div>
-                        <div class="p-5 bg-slate-50 border-t border-slate-100 mt-2">
-                            <button onclick="savePlayerMatchStats()" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">
-                                LAGRE KAMPSTATISTIKK
-                            </button>
+                <section class="match-stats-panel">
+                    <div class="match-bench-action-row match-stats-topline">
+                        <div class="match-bench-heading">
+                            <h3>Registrer mål, assist, spillerbørs, kort og BB</h3>
                         </div>
                     </div>
-                </div>
+                    <div class="match-stats-body">
+                        <div id="kampdetaljer-spillerbors" class="match-stats-list">
+                        </div>
+                    </div>
+                    <div class="match-stats-footer">
+                        <button onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Lagre kampstatistikk</span>
+                        </button>
+                    </div>
+                </section>
             </div>
 
             <div id="view-oppmote" class="hidden portal-view space-y-6 calendar-page">

@@ -605,10 +605,10 @@ window.renderPlayerRowForm = function(match) {
 
     if (participantRefs.length === 0) {
         formList.innerHTML = `
-            <div class="py-8 text-center text-slate-500 text-sm">
-                <i class="fa-solid fa-clipboard-user text-3xl text-slate-300 mb-3 block"></i>
+            <div class="match-stats-empty">
+                <i class="fa-solid fa-clipboard-user"></i>
                 Ingen spillere er registrert med oppmøte på denne kampen enda.<br>
-                <span class="text-xs mt-1 block">Trykk på <b>"Oppmøte"</b> for å velge hvem som spilte!</span>
+                <span>Trykk på <b>"Legg til"</b> for å velge hvem som spilte!</span>
             </div>`;
         return;
     }
@@ -627,8 +627,8 @@ window.renderPlayerRowForm = function(match) {
 
     if (!hasStoredAttendance) {
         const notice = document.createElement('div');
-        notice.className = 'py-3 px-1 text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg mb-2';
-        notice.innerHTML = 'Oppmøteliste mangler for denne kampen, men lagret kampstatistikk vises her. Trykk <b>Oppmøte</b> for å bekrefte troppen.';
+        notice.className = 'match-stats-notice';
+        notice.innerHTML = 'Oppmøteliste mangler for denne kampen, men lagret kampstatistikk vises her. Trykk <b>Legg til</b> for å bekrefte troppen.';
         formList.appendChild(notice);
     }
 
@@ -648,15 +648,15 @@ window.renderPlayerRowForm = function(match) {
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
 
         const div = document.createElement('div');
-        div.className = "py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
+        div.className = "match-stats-player-row";
         div.innerHTML = `
-            <div class="min-w-0">
-                <span class="font-bold text-slate-800 text-xs">${player}</span>
-                ${isBenchOnly ? '<span class="ml-2 text-[9px] font-black uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Kun oppmøte</span>' : ''}
+            <div class="match-stats-player-info">
+                <span class="match-stats-player-name">${player}</span>
+                ${isBenchOnly ? '<span class="match-stats-bench-badge">Kun oppmøte</span>' : ''}
             </div>
-            <div class="flex items-end gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <div class="match-stats-controls">
                 <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
-                <div class="player-pitch-stats flex items-end gap-2 ${pitchDisabled}">
+                <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
                     <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerId}" data-player="${player}" aria-label="Mål for ${player}">
@@ -679,7 +679,7 @@ window.renderPlayerRowForm = function(match) {
                     </select>
                 </div>
 
-                <div class="flex items-center space-x-1 border-l border-slate-200 pl-2 ml-1">
+                <div class="match-stats-card-group">
                     <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerId}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
                     <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerId}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
                     <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-indigo-100 border-indigo-300 text-indigo-950 shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
