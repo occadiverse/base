@@ -5521,7 +5521,7 @@
         }
         .match-stats-footer {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             margin-top: 0.75rem;
             min-height: 2.85rem;
         }
@@ -6112,10 +6112,7 @@
                 padding-left: 0.45rem;
             }
             .match-stats-footer {
-                justify-content: stretch;
-            }
-            .match-stats-save-btn {
-                width: 100%;
+                justify-content: flex-start;
             }
             .match-bench-position-line {
                 font-size: 0.78rem;

@@ -581,14 +581,14 @@ window.toggleMotm = function(btn) {
 
     document.querySelectorAll('.player-motm-btn').forEach(b => {
         b.setAttribute('data-active', 'false');
-        b.classList.remove('bg-indigo-100', 'border-indigo-300', 'text-indigo-950', 'shadow-sm', 'scale-95');
+        b.classList.remove('bg-purple-700', 'border-purple-800', 'text-white', 'shadow-sm', 'scale-95');
         b.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-300');
     });
 
     if (!isActive) {
         btn.setAttribute('data-active', 'true');
         btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-300');
-        btn.classList.add('bg-indigo-100', 'border-indigo-300', 'text-indigo-950', 'shadow-sm', 'scale-95');
+        btn.classList.add('bg-purple-700', 'border-purple-800', 'text-white', 'shadow-sm', 'scale-95');
     }
 };
 
@@ -682,7 +682,7 @@ window.renderPlayerRowForm = function(match) {
                 <div class="match-stats-card-group">
                     <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerId}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
                     <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerId}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-indigo-100 border-indigo-300 text-indigo-950 shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
+                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-purple-700 border-purple-800 text-white shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
                 </div>
                 </div>
             </div>
