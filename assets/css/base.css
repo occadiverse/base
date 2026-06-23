@@ -5166,6 +5166,44 @@
             justify-content: space-between;
             margin-bottom: 0.75rem;
         }
+        .match-bench-topline {
+            min-height: 2.85rem;
+            position: relative;
+        }
+        .match-panel-toggle-btn {
+            align-items: center;
+            background: rgba(245, 197, 66, 0.16);
+            border: 1px solid rgba(245, 197, 66, 0.34);
+            border-radius: 999px;
+            color: #f5c542;
+            display: inline-flex;
+            height: 2.1rem;
+            justify-content: center;
+            left: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            width: 2.1rem;
+            z-index: 1;
+        }
+        .match-panel-toggle-btn:hover {
+            background: rgba(245, 197, 66, 0.24);
+            border-color: rgba(245, 197, 66, 0.48);
+        }
+        .match-panel-toggle-btn i {
+            font-size: 0.82rem;
+            transition: transform 0.2s ease;
+        }
+        .match-bench-panel.is-collapsed .match-bench-action-row {
+            margin-bottom: 0;
+        }
+        .match-bench-panel.is-collapsed .match-bench-collapsible {
+            display: none;
+        }
+        .match-bench-panel.is-collapsed .match-panel-toggle-btn i {
+            transform: rotate(180deg);
+        }
         .match-bench-count {
             align-items: center;
             background: linear-gradient(135deg, #fff3bf 0%, #f5c542 100%);

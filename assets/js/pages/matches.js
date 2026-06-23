@@ -517,10 +517,13 @@ window.showMatchDetails = function(id) {
         ${buildMatchDetailCardHtml(match)}
 
         <section class="match-bench-panel">
-            <div class="match-bench-action-row">
+            <div class="match-bench-action-row match-bench-topline">
                 <div class="match-bench-heading">
                     <h3>Påmeldte spillere</h3>
                 </div>
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchBenchPanel(this)" aria-expanded="true" aria-label="Skjul påmeldte spillere">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
                 <div class="match-bench-actions">
                     <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-bench-action-btn" title="Legg til spillere">
                         <i class="fa-solid fa-user-check"></i>
@@ -533,12 +536,14 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
 
-            <div class="match-bench-list">
-                ${benchPlayersHtml}
-            </div>
+            <div class="match-bench-collapsible">
+                <div class="match-bench-list">
+                    ${benchPlayersHtml}
+                </div>
 
-            <div class="match-bench-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
-                ${benchPositionHtml}
+                <div class="match-bench-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
+                    ${benchPositionHtml}
+                </div>
             </div>
         </section>
 
@@ -559,6 +564,15 @@ window.showMatchDetails = function(id) {
     const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
+};
+
+window.toggleMatchBenchPanel = function(btn) {
+    const panel = btn?.closest('.match-bench-panel');
+    if (!panel) return;
+
+    const isCollapsed = panel.classList.toggle('is-collapsed');
+    btn.setAttribute('aria-expanded', String(!isCollapsed));
+    btn.setAttribute('aria-label', isCollapsed ? 'Vis påmeldte spillere' : 'Skjul påmeldte spillere');
 };
 
 window.closeMatchInfo = function() {
