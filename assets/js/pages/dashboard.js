@@ -412,8 +412,8 @@ window.updateHjemWidget = function() {
         if (sessionStats.injuredReady.length > 0) {
             const injuredCount = sessionStats.injuredReady.length;
             const injuryLabel = injuredCount === 1
-                ? '1 spiller med skade'
-                : `${injuredCount} spillere med skade`;
+                ? '1 skadet'
+                : `${injuredCount} skadet`;
             injuryButtonHtml = `
                 <button type="button" onclick="event.stopPropagation(); window.showSessionInjuryModal()" class="match-bench-action-btn dashboard-session-action-btn">
                     <i class="fa-solid fa-triangle-exclamation"></i>

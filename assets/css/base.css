@@ -1273,15 +1273,16 @@
             min-height: 5.5rem;
         }
         .dashboard-session-focus-block {
-            align-items: flex-start;
+            align-items: center;
             display: flex;
             flex: 1 1 auto;
             flex-direction: column;
             justify-content: center;
             min-width: 0;
+            text-align: center;
         }
         .dashboard-session-stats-line {
-            align-items: flex-start;
+            align-items: center;
             display: flex;
             flex-direction: column;
             gap: 0.45rem;
@@ -1327,11 +1328,6 @@
             text-align: center;
             width: 100%;
         }
-        @container (max-width: 7.5rem) {
-            .dashboard-session-action-btn span {
-                display: none;
-            }
-        }
         .match-bench-action-btn {
             container-type: inline-size;
         }
@@ -1345,6 +1341,14 @@
                 padding-left: 0;
                 padding-right: 0;
                 width: 2.85rem;
+            }
+            .dashboard-session-action-btn {
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+                width: 100%;
+            }
+            .dashboard-session-action-btn span {
+                display: inline;
             }
         }
         .session-injury-modal-card {
