@@ -5215,10 +5215,12 @@
             min-width: 5.5rem;
             padding-left: 0.8rem;
             padding-right: 0.8rem;
+            white-space: nowrap;
             width: auto;
         }
         .match-bench-actions > .match-bench-action-btn span {
             display: inline;
+            white-space: nowrap;
         }
         .match-bench-icon-btn {
             width: 2.85rem;
@@ -5905,9 +5907,13 @@
                 padding: 0.55rem 0.62rem;
             }
             .match-bench-actions > .match-bench-action-btn {
-                padding-left: 0.65rem;
-                padding-right: 0.65rem;
-                width: auto;
+                min-width: 2.65rem;
+                padding-left: 0;
+                padding-right: 0;
+                width: 2.65rem;
+            }
+            .match-bench-actions > .match-bench-action-btn span {
+                display: none;
             }
             .match-bench-icon-btn {
                 min-height: 2.65rem;
