@@ -5475,10 +5475,9 @@
             align-items: center;
             color: rgba(255, 255, 255, 0.58);
             display: flex;
-            flex-direction: column;
             font-size: 0.8rem;
             font-weight: 800;
-            gap: 0.35rem;
+            gap: 0.6rem;
             justify-content: center;
             min-height: 6rem;
             padding: 1rem;
@@ -5486,11 +5485,11 @@
         }
         .match-stats-empty i {
             color: #f5c542;
-            font-size: 1.75rem;
+            font-size: 1rem;
         }
         .match-stats-empty span {
-            color: rgba(255, 255, 255, 0.45);
-            font-size: 0.72rem;
+            color: inherit;
+            font-size: inherit;
         }
         .match-stats-notice {
             background: rgba(245, 197, 66, 0.12);
