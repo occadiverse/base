@@ -455,7 +455,6 @@ window.showMatchDetails = function(id) {
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
-    const hasStoredAttendance = window.getAttendingPlayerRefs(match.attendance).length > 0;
     const benchPlayers = teamPlayers
         .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
@@ -464,14 +463,6 @@ window.showMatchDetails = function(id) {
         .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
         .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
     const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
-    const teamCount = teamPlayers.length || selectedPlayers.length;
-    const selectedCountLabel = hasStoredAttendance
-        ? (teamCount
-            ? `${selectedPlayers.length} av ${teamCount} påmeldt`
-            : `${selectedPlayers.length} påmeldt`)
-        : (selectedPlayers.length
-            ? `${selectedPlayers.length} spillere fra kampstatistikk`
-            : 'Ingen spillere registrert');
     const getLastName = (name) => {
         const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
         return parts.length ? parts[parts.length - 1] : 'Spiller';
@@ -522,28 +513,10 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
 
-            <div class="match-bench-count">
-                <i class="fa-solid fa-clipboard-user"></i>
-                <span>${selectedCountLabel}</span>
-            </div>
-
             <div class="match-bench-list">
                 ${benchPlayersHtml}
             </div>
         </section>
-
-        <div class="match-detail-summary match-detail-summary-single">
-            <div class="match-detail-bb-card">
-                <i class="fa-solid fa-crown match-detail-bb-watermark"></i>
-                <div class="match-detail-bb-icon">
-                    <i class="fa-solid fa-crown"></i>
-                </div>
-                <div class="min-w-0">
-                    <span class="match-detail-bb-label">Banens Beste (BB)</span>
-                    <span class="match-detail-bb-value">${match.motm ? window.getPlayerNameFromRef(match.motm) : '<span class="text-slate-400">Ikke kåret</span>'}</span>
-                </div>
-            </div>
-        </div>
 
         <section class="match-coach-notes-panel">
             <div class="match-coach-notes-header">
