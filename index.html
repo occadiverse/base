@@ -77,21 +77,26 @@
                         </div>
                 </div>
 
-                <section class="match-stats-panel">
-                    <div class="match-bench-action-row match-stats-topline">
+                <section class="match-stats-panel match-collapsible-panel">
+                    <div class="match-bench-action-row match-bench-topline match-stats-topline">
                         <div class="match-bench-heading">
                             <h3>Registrer mål, assist, spillerbørs, kort og BB</h3>
                         </div>
-                    </div>
-                    <div class="match-stats-body">
-                        <div id="kampdetaljer-spillerbors" class="match-stats-list">
-                        </div>
-                    </div>
-                    <div class="match-stats-footer">
-                        <button onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>Lagre</span>
+                        <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="true" aria-label="Skjul kampstatistikk" data-show-label="Vis kampstatistikk" data-hide-label="Skjul kampstatistikk">
+                            <i class="fa-solid fa-chevron-up"></i>
                         </button>
+                    </div>
+                    <div class="match-collapsible-content">
+                        <div class="match-stats-body">
+                            <div id="kampdetaljer-spillerbors" class="match-stats-list">
+                            </div>
+                        </div>
+                        <div class="match-stats-footer">
+                            <button onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Lagre</span>
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>

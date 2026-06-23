@@ -5195,13 +5195,14 @@
             font-size: 0.82rem;
             transition: transform 0.2s ease;
         }
-        .match-bench-panel.is-collapsed .match-bench-action-row {
+        .match-collapsible-panel.is-collapsed .match-bench-action-row {
             margin-bottom: 0;
         }
-        .match-bench-panel.is-collapsed .match-bench-collapsible {
+        .match-collapsible-panel.is-collapsed .match-bench-collapsible,
+        .match-collapsible-panel.is-collapsed .match-collapsible-content {
             display: none;
         }
-        .match-bench-panel.is-collapsed .match-panel-toggle-btn i {
+        .match-collapsible-panel.is-collapsed .match-panel-toggle-btn i {
             transform: rotate(180deg);
         }
         .match-bench-count {

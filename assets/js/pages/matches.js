@@ -516,12 +516,12 @@ window.showMatchDetails = function(id) {
     container.innerHTML = `
         ${buildMatchDetailCardHtml(match)}
 
-        <section class="match-bench-panel">
+        <section class="match-bench-panel match-collapsible-panel">
             <div class="match-bench-action-row match-bench-topline">
                 <div class="match-bench-heading">
                     <h3>Påmeldte spillere</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchBenchPanel(this)" aria-expanded="true" aria-label="Skjul påmeldte spillere">
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="true" aria-label="Skjul påmeldte spillere" data-show-label="Vis påmeldte spillere" data-hide-label="Skjul påmeldte spillere">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
                 <div class="match-bench-actions">
@@ -547,16 +547,21 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-coach-notes-panel">
-            <div class="match-bench-action-row match-coach-notes-topline">
+        <section class="match-coach-notes-panel match-collapsible-panel">
+            <div class="match-bench-action-row match-bench-topline match-coach-notes-topline">
                 <div class="match-bench-heading">
                     <h3>Trenernotater</h3>
                 </div>
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="true" aria-label="Skjul trenernotater" data-show-label="Vis trenernotater" data-hide-label="Skjul trenernotater">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
             </div>
-            <div class="match-coach-notes-body">
-                ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
+            <div class="match-collapsible-content">
+                <div class="match-coach-notes-body">
+                    ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
+                </div>
+                <div class="match-coach-notes-footer" aria-hidden="true"></div>
             </div>
-            <div class="match-coach-notes-footer" aria-hidden="true"></div>
         </section>
     `;
 
@@ -566,14 +571,16 @@ window.showMatchDetails = function(id) {
     switchTab('kampdetaljer', { backTarget });
 };
 
-window.toggleMatchBenchPanel = function(btn) {
-    const panel = btn?.closest('.match-bench-panel');
+window.toggleMatchPanel = function(btn) {
+    const panel = btn?.closest('.match-collapsible-panel');
     if (!panel) return;
 
     const isCollapsed = panel.classList.toggle('is-collapsed');
     btn.setAttribute('aria-expanded', String(!isCollapsed));
-    btn.setAttribute('aria-label', isCollapsed ? 'Vis påmeldte spillere' : 'Skjul påmeldte spillere');
+    btn.setAttribute('aria-label', isCollapsed ? (btn.dataset.showLabel || 'Vis seksjon') : (btn.dataset.hideLabel || 'Skjul seksjon'));
 };
+
+window.toggleMatchBenchPanel = window.toggleMatchPanel;
 
 window.closeMatchInfo = function() {
     switchTab('kamper');
