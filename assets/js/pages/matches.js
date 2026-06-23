@@ -607,8 +607,7 @@ window.renderPlayerRowForm = function(match) {
         formList.innerHTML = `
             <div class="match-stats-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
-                Ingen spillere er registrert med oppmøte på denne kampen enda.<br>
-                <span>Trykk på <b>"Legg til"</b> for å velge hvem som spilte!</span>
+                Ingen spillere er registrert med oppmøte på denne kampen enda.
             </div>`;
         return;
     }
