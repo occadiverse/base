@@ -507,9 +507,9 @@ window.showMatchDetails = function(id) {
 
         <section class="match-bench-panel">
             <div class="match-bench-action-row">
-                <div class="match-bench-count">
-                    <i class="fa-solid fa-clipboard-user"></i>
-                    <span>${selectedCountLabel}</span>
+                <div class="match-bench-heading">
+                    <h3>Benk</h3>
+                    <span>Påmeldte spillere</span>
                 </div>
                 <div class="match-bench-actions">
                     <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-bench-action-btn">
@@ -522,9 +522,9 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
 
-            <div class="match-bench-heading">
-                <h3>Benk</h3>
-                <span>Påmeldte spillere</span>
+            <div class="match-bench-count">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>${selectedCountLabel}</span>
             </div>
 
             <div class="match-bench-list">

@@ -5163,7 +5163,7 @@
             display: flex;
             gap: 0.75rem;
             justify-content: space-between;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
         .match-bench-count {
             align-items: center;
@@ -5172,16 +5172,18 @@
             border-radius: 0.8rem;
             box-shadow: 0 8px 18px rgba(2, 6, 23, 0.16);
             color: #0b2b4c;
-            display: flex;
-            flex: 1 1 auto;
+            display: inline-flex;
             font-size: 0.78rem;
             font-weight: 950;
             gap: 0.55rem;
             justify-content: center;
             letter-spacing: 0.06em;
+            margin: 0 0 0.85rem 0.25rem;
+            max-width: calc(100% - 0.5rem);
             min-height: 2.85rem;
             padding: 0.65rem 1rem;
             text-transform: uppercase;
+            width: fit-content;
         }
         .match-bench-count i {
             font-size: 0.95rem;
@@ -5235,7 +5237,8 @@
             align-items: center;
             display: flex;
             gap: 0.85rem;
-            margin: 0.35rem 0 0.8rem;
+            margin: 0;
+            min-width: 0;
             padding: 0 0.25rem;
         }
         .match-bench-heading h3 {
@@ -5938,11 +5941,12 @@
                 padding: 0.75rem;
             }
             .match-bench-action-row {
-                align-items: stretch;
+                align-items: center;
                 gap: 0.55rem;
             }
             .match-bench-count {
                 font-size: 0.66rem;
+                max-width: calc(100% - 0.5rem);
                 min-height: 2.65rem;
                 padding: 0.55rem 0.65rem;
             }
@@ -5963,7 +5967,7 @@
                 width: 2.65rem;
             }
             .match-bench-heading {
-                margin-top: 0.25rem;
+                margin: 0;
             }
             .match-bench-list {
                 gap: 0.5rem;
