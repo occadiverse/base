@@ -980,18 +980,22 @@
                 line-height: 1.18 !important;
             }
             .dashboard-session-main {
-                padding: 1.75rem 0.8rem 1.6rem !important;
+                padding: 1rem 1rem 0.85rem !important;
+            }
+            .dashboard-session-middle {
+                gap: 0.75rem !important;
+                min-height: 0 !important;
             }
             .dashboard-session-stats-line {
-                gap: 0.55rem 0.75rem !important;
-                margin-bottom: 0.65rem !important;
+                gap: 0.38rem !important;
+                margin-bottom: 0 !important;
             }
             .dashboard-session-radar-inline {
-                font-size: 0.95rem !important;
+                font-size: 0.78rem !important;
                 white-space: normal !important;
             }
             .dashboard-session-actions {
-                width: min(100%, 14rem) !important;
+                flex-basis: 8rem !important;
             }
             .dashboard-hero-card {
                 padding: 1rem !important;
@@ -1254,22 +1258,35 @@
             min-height: 220px;
         }
         .dashboard-session-main {
+            display: flex;
             flex: 1 1 auto;
-            grid-template-columns: 1fr;
+            flex-direction: column;
+            justify-content: center;
             min-height: 0;
-            padding: 2.25rem 1.25rem 2rem;
+            padding: 1.35rem 1.25rem 1.1rem;
         }
-        .dashboard-session-center {
+        .dashboard-session-middle {
+            align-items: stretch;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            min-height: 5.5rem;
+        }
+        .dashboard-session-focus-block {
+            align-items: flex-start;
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            justify-content: center;
             min-width: 0;
-            width: 100%;
         }
         .dashboard-session-stats-line {
-            align-items: baseline;
+            align-items: flex-start;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem 1.1rem;
+            flex-direction: column;
+            gap: 0.45rem;
             justify-content: center;
-            margin-bottom: 0.85rem;
+            margin-bottom: 0;
         }
         .match-detail-time.is-warning {
             color: #fde68a;
@@ -1284,9 +1301,9 @@
         }
         .dashboard-session-radar-inline {
             color: rgba(255, 255, 255, 0.88);
-            font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+            font-size: clamp(0.78rem, 1.65vw, 0.98rem);
             font-weight: 900;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.06em;
             line-height: 1.2;
             white-space: nowrap;
         }
@@ -1297,14 +1314,17 @@
         }
         .dashboard-session-actions {
             display: flex;
+            flex: 0 0 8.75rem;
             flex-direction: column;
             gap: 0.5rem;
-            margin: 0.15rem auto 0;
-            width: min(100%, 16rem);
+            margin: 0;
+            min-width: 0;
         }
         .dashboard-session-action-btn {
             container-type: inline-size;
             justify-content: center;
+            line-height: 1.15;
+            text-align: center;
             width: 100%;
         }
         @container (max-width: 7.5rem) {

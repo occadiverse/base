@@ -441,11 +441,13 @@ window.updateHjemWidget = function() {
                     </div>
                 </div>
 
-                <div class="match-detail-main dashboard-session-main relative z-10">
-                    <div class="match-detail-center dashboard-session-center">
-                        <div class="dashboard-session-stats-line">
-                            <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
-                            <span class="dashboard-session-radar-inline">${radarParts}</span>
+                <div class="dashboard-session-main relative z-10">
+                    <div class="dashboard-session-middle">
+                        <div class="dashboard-session-focus-block min-w-0">
+                            <div class="dashboard-session-stats-line">
+                                <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                                <span class="dashboard-session-radar-inline">${radarParts}</span>
+                            </div>
                         </div>
                         <div class="dashboard-session-actions">
                             <button type="button" onclick="event.stopPropagation(); window.openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn dashboard-session-action-btn">
