@@ -463,6 +463,29 @@ window.showMatchDetails = function(id) {
         .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
         .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
     const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
+    const getPositionCategory = (pos1) => {
+        if (typeof window.getPositionCategoryFromPos1 === 'function') {
+            return window.getPositionCategoryFromPos1(pos1);
+        }
+        if (!pos1) return null;
+        const normalized = String(pos1).trim();
+        if (normalized === 'Keeper' || normalized.toLowerCase().includes('keeper')) return 'K';
+        if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(normalized)) return 'F';
+        if (['Spiss', 'Playmaker', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
+        return 'M';
+    };
+    const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
+    attendingRefs.forEach(ref => {
+        const player = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null;
+        const category = getPositionCategory(player?.pos1);
+        if (category) positionCounts[category] += 1;
+    });
+    const benchPositionHtml = ['K', 'F', 'M', 'A'].map(letter => `
+        <div class="match-bench-position-pill">
+            <span>${letter}</span>
+            <strong>${positionCounts[letter]}</strong>
+        </div>
+    `).join('');
     const getLastName = (name) => {
         const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
         return parts.length ? parts[parts.length - 1] : 'Spiller';
@@ -499,22 +522,26 @@ window.showMatchDetails = function(id) {
         <section class="match-bench-panel">
             <div class="match-bench-action-row">
                 <div class="match-bench-heading">
-                    <h3>Benk</h3>
-                    <span>Påmeldte spillere</span>
+                    <h3>Påmeldte spillere</h3>
                 </div>
                 <div class="match-bench-actions">
-                    <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-bench-action-btn">
+                    <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-bench-action-btn" title="Legg til spillere">
                         <i class="fa-solid fa-user-check"></i>
-                        <span>Oppmøte</span>
+                        <span>Legg til</span>
                     </button>
-                    <button type="button" onclick="window.openMatchModal('${escapeJsString(match.id)}')" class="match-bench-icon-btn" title="Rediger kamp">
+                    <button type="button" onclick="window.openMatchModal('${escapeJsString(match.id)}')" class="match-bench-action-btn" title="Rediger kamp">
                         <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Rediger</span>
                     </button>
                 </div>
             </div>
 
             <div class="match-bench-list">
                 ${benchPlayersHtml}
+            </div>
+
+            <div class="match-bench-position-row" aria-label="Posisjonsfordeling">
+                ${benchPositionHtml}
             </div>
         </section>
 
