@@ -5212,8 +5212,13 @@
             padding: 0.65rem 0.85rem;
         }
         .match-bench-actions > .match-bench-action-btn {
+            min-width: 5.5rem;
             padding-left: 0.8rem;
             padding-right: 0.8rem;
+            width: auto;
+        }
+        .match-bench-actions > .match-bench-action-btn span {
+            display: inline;
         }
         .match-bench-icon-btn {
             width: 2.85rem;
@@ -5241,9 +5246,8 @@
             color: #ffffff;
             font-size: 1rem;
             font-weight: 950;
-            letter-spacing: 0.08em;
+            letter-spacing: 0;
             line-height: 1;
-            text-transform: uppercase;
         }
         .match-bench-heading span {
             color: rgba(255, 255, 255, 0.5);
@@ -5309,38 +5313,11 @@
         .match-bench-empty i {
             color: #f5c542;
         }
-        .match-bench-position-row {
+        .match-bench-position-line {
             align-items: center;
-            background: rgba(255, 255, 255, 0.055);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 0.95rem;
-            display: grid;
-            gap: 0.45rem;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            margin-top: 0.75rem;
-            padding: 0.45rem;
-        }
-        .match-bench-position-pill {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
             display: flex;
-            gap: 0.35rem;
             justify-content: center;
-            min-height: 2.15rem;
-        }
-        .match-bench-position-pill span {
-            color: rgba(255, 255, 255, 0.52);
-            font-size: 0.66rem;
-            font-weight: 950;
-            letter-spacing: 0.08em;
-        }
-        .match-bench-position-pill strong {
-            color: #f5c542;
-            font-size: 0.95rem;
-            font-weight: 950;
-            line-height: 1;
+            margin-top: 0.75rem;
         }
         .match-detail-summary {
             display: grid;
@@ -5930,6 +5907,7 @@
             .match-bench-actions > .match-bench-action-btn {
                 padding-left: 0.65rem;
                 padding-right: 0.65rem;
+                width: auto;
             }
             .match-bench-icon-btn {
                 min-height: 2.65rem;
@@ -5943,12 +5921,9 @@
                 min-height: 5rem;
                 padding: 0.65rem;
             }
-            .match-bench-position-row {
-                gap: 0.35rem;
-                padding: 0.35rem;
-            }
-            .match-bench-position-pill {
-                min-height: 2rem;
+            .match-bench-position-line {
+                font-size: 0.78rem;
+                white-space: normal;
             }
             .match-bench-name {
                 max-width: 6.4rem;

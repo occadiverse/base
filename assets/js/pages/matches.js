@@ -480,12 +480,9 @@ window.showMatchDetails = function(id) {
         const category = getPositionCategory(player?.pos1);
         if (category) positionCounts[category] += 1;
     });
-    const benchPositionHtml = ['K', 'F', 'M', 'A'].map(letter => `
-        <div class="match-bench-position-pill">
-            <span>${letter}</span>
-            <strong>${positionCounts[letter]}</strong>
-        </div>
-    `).join('');
+    const benchPositionHtml = ['K', 'F', 'M', 'A'].map(letter => (
+        `${positionCounts[letter]}${letter}`
+    )).join('<span class="dashboard-session-radar-sep"> - </span>');
     const getLastName = (name) => {
         const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
         return parts.length ? parts[parts.length - 1] : 'Spiller';
@@ -540,7 +537,7 @@ window.showMatchDetails = function(id) {
                 ${benchPlayersHtml}
             </div>
 
-            <div class="match-bench-position-row" aria-label="Posisjonsfordeling">
+            <div class="match-bench-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
                 ${benchPositionHtml}
             </div>
         </section>
