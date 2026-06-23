@@ -563,6 +563,29 @@ window.showMatchDetails = function(id) {
                 <div class="match-coach-notes-footer" aria-hidden="true"></div>
             </div>
         </section>
+
+        <section class="match-stats-panel match-collapsible-panel is-collapsed">
+            <div class="match-bench-action-row match-bench-topline match-stats-topline">
+                <div class="match-bench-heading">
+                    <h3>Spillerbørs</h3>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis spillerbørs" data-show-label="Vis spillerbørs" data-hide-label="Skjul spillerbørs">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="match-stats-body">
+                    <div id="kampdetaljer-spillerbors" class="match-stats-list">
+                    </div>
+                </div>
+                <div class="match-stats-footer">
+                    <button onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Lagre</span>
+                    </button>
+                </div>
+            </div>
+        </section>
     `;
 
     renderPlayerRowForm(match);
