@@ -12,6 +12,90 @@ function escapeMatchJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+const matchRatingGuide = {
+    1: {
+        label: 'Katastrofalt',
+        description: 'Grove feil som førte til baklengs, tidlig rødt kort eller total mangel på innsats'
+    },
+    2: {
+        label: 'Svært svakt',
+        description: 'Involvert i baklengsmål, mange feilpasninger og fullstendig utspilt'
+    },
+    3: {
+        label: 'Svakt',
+        description: 'Kom aldri inn i kampen. Tapte de fleste dueller og slurvet mye'
+    },
+    4: {
+        label: 'Skuffende',
+        description: 'Slet med tempoet og posisjoneringen. Presterte merkbart under sitt vanlige nivå'
+    },
+    5: {
+        label: 'Under par',
+        description: 'Prøvde, men fikk det ikke helt til å stemme. Litt for mange feilvalg i dag'
+    },
+    6: {
+        label: 'Godkjent',
+        tooltip: 'Godkjent. Gjorde jobben sin, stabil',
+        description: 'Stabil og godkjent. Gjorde det som forventes i posisjonen, uten store feil'
+    },
+    7: {
+        label: 'God kamp',
+        description: 'God kamp! Flere viktige involveringer, skapte sjanser eller holdt tett bakover'
+    },
+    8: {
+        label: 'Banens beste-kandidat',
+        tooltip: 'Fremragende. Matchvinner eller dominerende',
+        description: 'Banens beste-kandidat. Dominerende i banespillet og leverte avgjørende målpoeng/redninger'
+    },
+    9: {
+        label: 'Særdeles god',
+        description: 'Helt outstanding. Hevet lagkameratene, gjorde knapt feil og herjet med motstanderen'
+    },
+    10: {
+        label: 'Perfekt matchvinner',
+        description: 'Perfekt og historisk! Avgjorde kampen på egen hånd (f.eks. hat-trick eller total defensiv mur)'
+    }
+};
+
+function getMatchRatingGuideEntry(value) {
+    return matchRatingGuide[Number(value)] || null;
+}
+
+function formatMatchRatingHint(value) {
+    const entry = getMatchRatingGuideEntry(value);
+    if (!entry) return 'Ingen børs satt ennå';
+
+    return `${Number(value)}: ${entry.description}`;
+}
+
+function buildMatchRatingTooltipHtml(selectedRating) {
+    return `
+        <div class="match-rating-tooltip" role="tooltip">
+            <div class="match-rating-tooltip-title">Spillerbørs</div>
+            <div class="match-rating-tooltip-list">
+                ${[1,2,3,4,5,6,7,8,9,10].map(value => {
+                    const entry = getMatchRatingGuideEntry(value);
+                    const tooltipText = entry.tooltip || `${entry.label}. ${entry.description}`;
+                    return `
+                        <button
+                            type="button"
+                            class="match-rating-tooltip-row ${Number(selectedRating) === value ? 'is-selected' : ''}"
+                            onclick="window.selectMatchRatingFromGuide(this, ${value})"
+                            title="${escapeMatchHtml(tooltipText)}"
+                        >
+                            <span class="match-rating-tooltip-score">${value}</span>
+                            <span class="match-rating-tooltip-copy">
+                                <strong>${escapeMatchHtml(entry.label)}</strong>
+                                <span>${escapeMatchHtml(tooltipText)}</span>
+                            </span>
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function renderMatchTeamHtml(team) {
     const crestClass = team.isBsk ? 'match-detail-crest' : 'match-detail-crest match-detail-crest-opponent';
     const iconClass = team.isBsk ? 'fa-shield-halved' : 'fa-shield';
@@ -605,6 +689,39 @@ window.toggleMatchPanel = function(btn) {
 
 window.toggleMatchBenchPanel = window.toggleMatchPanel;
 
+window.updateMatchRatingHint = function(select) {
+    if (!select) return;
+
+    const row = select.closest('.match-stats-player-row');
+    const hint = row ? row.querySelector('[data-rating-current-hint]') : null;
+    const rating = Number(select.value) || 0;
+    const hintText = formatMatchRatingHint(rating);
+
+    select.title = hintText;
+
+    if (hint) {
+        hint.textContent = hintText;
+        hint.classList.toggle('is-empty', rating === 0);
+    }
+
+    const tooltipRows = row ? row.querySelectorAll('.match-rating-tooltip-row') : [];
+    tooltipRows.forEach(tooltipRow => {
+        tooltipRow.classList.toggle(
+            'is-selected',
+            Number(tooltipRow.querySelector('.match-rating-tooltip-score')?.textContent) === rating
+        );
+    });
+};
+
+window.selectMatchRatingFromGuide = function(button, rating) {
+    const row = button?.closest('.match-stats-player-row');
+    const select = row ? row.querySelector('.player-rating-select') : null;
+    if (!select) return;
+
+    select.value = String(rating);
+    window.updateMatchRatingHint(select);
+};
+
 window.closeMatchInfo = function() {
     switchTab('kamper');
 };
@@ -678,6 +795,8 @@ window.renderPlayerRowForm = function(match) {
     playersToRender.forEach(playerObj => {
         const player = playerObj.navn;
         const playerId = playerObj.id;
+        const playerAttr = escapeHtml(player);
+        const playerIdAttr = escapeHtml(playerId || '');
         const prevGoals = window.getPlayerRefMapValue(match.scorers, playerObj, 0);
         const prevAssists = window.getPlayerRefMapValue(match.assists, playerObj, 0);
         const prevRating = window.getPlayerRefMapValue(match.ratings, playerObj, 0);
@@ -689,43 +808,59 @@ window.renderPlayerRowForm = function(match) {
             : false;
         const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
+        const ratingHint = formatMatchRatingHint(prevRating);
 
         const div = document.createElement('div');
         div.className = "match-stats-player-row";
         div.innerHTML = `
             <div class="match-stats-player-info">
-                <span class="match-stats-player-name">${player}</span>
+                <span class="match-stats-player-name">${escapeHtml(player)}</span>
                 ${isBenchOnly ? '<span class="match-stats-bench-badge">Kun oppmøte</span>' : ''}
+                <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
-                <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
+                <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
                 <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
-                    <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerId}" data-player="${player}" aria-label="Mål for ${player}">
+                    <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
                         ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="match-stat-field">
                     <span class="match-stat-label">Ass</span>
-                    <select class="player-assists-input portal-field portal-field-sm match-stat-select" data-player-id="${playerId}" data-player="${player}" aria-label="Assist for ${player}">
+                    <select class="player-assists-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Assist for ${playerAttr}">
                         ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
                     </select>
                 </div>
 
-                <div class="match-stat-field">
+                <div class="match-stat-field match-rating-field">
                     <span class="match-stat-label">Børs</span>
-                    <select class="player-rating-select portal-field portal-field-sm match-stat-select match-stat-select-rating" data-player-id="${playerId}" data-player="${player}" aria-label="Børs for ${player}">
+                    <select
+                        class="player-rating-select portal-field portal-field-sm match-stat-select match-stat-select-rating"
+                        data-player-id="${playerIdAttr}"
+                        data-player="${playerAttr}"
+                        aria-label="Børs for ${playerAttr}"
+                        onchange="window.updateMatchRatingHint(this)"
+                        onfocus="window.updateMatchRatingHint(this)"
+                        onmouseenter="window.updateMatchRatingHint(this)"
+                        title="${escapeHtml(ratingHint)}"
+                    >
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
-                        ${[1,2,3,4,5,6,7,8,9,10].map(v => `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`).join('')}
+                        ${[1,2,3,4,5,6,7,8,9,10].map(v => {
+                            const ratingEntry = getMatchRatingGuideEntry(v);
+                            const optionTitle = ratingEntry.tooltip || `${ratingEntry.label}. ${ratingEntry.description}`;
+                            return `<option value="${v}" ${prevRating === v ? 'selected' : ''} title="${escapeHtml(optionTitle)}">${v} ★</option>`;
+                        }).join('')}
                     </select>
+                    ${buildMatchRatingTooltipHtml(prevRating)}
                 </div>
 
                 <div class="match-stats-card-group">
-                    <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerId}" data-player="${player}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
-                    <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerId}" data-player="${player}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-purple-700 border-purple-800 text-white shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'}" data-player-id="${playerId}" data-player="${player}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
+                    <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
+                    <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
+                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-purple-700 border-purple-800 text-white shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
                 </div>
                 </div>
             </div>
