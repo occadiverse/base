@@ -1173,6 +1173,19 @@ window.toggleMatchPanel = function(btn) {
     btn.setAttribute('aria-expanded', String(!isCollapsed));
     btn.setAttribute('aria-label', isCollapsed ? (btn.dataset.showLabel || 'Vis seksjon') : (btn.dataset.hideLabel || 'Skjul seksjon'));
 
+    if (!isCollapsed) {
+        document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel').forEach(otherPanel => {
+            if (otherPanel === panel) return;
+
+            otherPanel.classList.add('is-collapsed');
+            const otherToggle = otherPanel.querySelector('.match-panel-toggle-btn');
+            if (otherToggle) {
+                otherToggle.setAttribute('aria-expanded', 'false');
+                otherToggle.setAttribute('aria-label', otherToggle.dataset.showLabel || 'Vis seksjon');
+            }
+        });
+    }
+
     if (!isCollapsed && panel.classList.contains('match-game-plan-panel')) {
         requestAnimationFrame(() => {
             window.initMatchGamePlanScroller();
