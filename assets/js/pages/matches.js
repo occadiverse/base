@@ -317,7 +317,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
         `
         : '';
     const topChipsHtml = `
-        <button type="button" class="match-detail-chip match-detail-edit-btn" onclick="window.openMatchModal('${escapeMatchJsString(match.id)}')" title="Rediger kamp">
+        <button type="button" class="match-detail-chip match-topline-action-btn" onclick="window.openMatchModal('${escapeMatchJsString(match.id)}')" title="Rediger kamp">
             <i class="fa-solid fa-pen-to-square"></i>
             <span>Rediger</span>
         </button>
