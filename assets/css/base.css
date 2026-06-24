@@ -5851,8 +5851,60 @@
             transform: translateY(-1px);
         }
         .match-game-plan-select-modal h3 {
+            align-items: center;
             color: #ffffff !important;
+            display: flex !important;
             font-size: 1rem !important;
+            gap: 0.7rem !important;
+            min-width: 0;
+        }
+        .match-game-plan-heading-avatar {
+            align-items: center;
+            background:
+                radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.9), rgba(245, 197, 66, 0.95) 34%, #c99016 100%);
+            border: 2px solid rgba(255, 255, 255, 0.82);
+            border-radius: 999px;
+            box-shadow:
+                0 8px 18px rgba(2, 6, 23, 0.28),
+                inset 0 -6px 12px rgba(11, 43, 76, 0.16);
+            color: #0b2b4c;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.82rem;
+            font-weight: 950;
+            height: 2.75rem;
+            justify-content: center;
+            line-height: 1;
+            overflow: hidden;
+            width: 2.75rem;
+        }
+        .match-game-plan-heading-avatar-img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-game-plan-heading-copy {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+            min-width: 0;
+        }
+        .match-game-plan-heading-kicker {
+            color: rgba(245, 197, 66, 0.88);
+            font-size: 0.56rem;
+            font-weight: 950;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.22rem;
+            text-transform: uppercase;
+        }
+        .match-game-plan-heading-title {
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 950;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .match-game-plan-select-modal #tactical-pos-label {
             color: rgba(245, 197, 66, 0.88) !important;

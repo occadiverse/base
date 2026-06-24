@@ -432,6 +432,30 @@ function getMatchGamePlanPlayerShortName(player) {
     return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}` : parts[0];
 }
 
+function getMatchGamePlanPlayerInitials(player) {
+    return String(player?.navn || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0])
+        .join('')
+        .toUpperCase() || 'S';
+}
+
+function buildMatchGamePlanHeadingAvatarHtml(player, posId) {
+    const photoUrl = player?.photoUrl || player?.bildeUrl || player?.avatarUrl || '';
+    const fallbackText = player ? getMatchGamePlanPlayerInitials(player) : posId;
+
+    return `
+        <span class="match-game-plan-heading-avatar" data-player-id="${escapeMatchHtml(player?.id || '')}">
+            ${photoUrl
+                ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" class="match-game-plan-heading-avatar-img">`
+                : `<span>${escapeMatchHtml(fallbackText)}</span>`}
+        </span>
+    `;
+}
+
 function getMatchGamePlanLineup(match) {
     return match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
 }
@@ -1017,7 +1041,13 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     });
 
     if (title) {
-        title.innerHTML = `<i class="fa-solid fa-shirt text-bsk-yellow"></i> ${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}`;
+        title.innerHTML = `
+            ${buildMatchGamePlanHeadingAvatarHtml(selectedPlayer, posId)}
+            <span class="match-game-plan-heading-copy">
+                <span class="match-game-plan-heading-kicker">Starter11</span>
+                <span class="match-game-plan-heading-title">${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}</span>
+            </span>
+        `;
     }
     if (label) label.innerText = selectedPlayer ? selectedPlayer.navn : 'Ledig';
     list.innerHTML = '';
