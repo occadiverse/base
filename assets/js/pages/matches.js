@@ -1072,14 +1072,16 @@ window.syncMatchGamePlanScroller = function() {
     wrap.classList.toggle('can-scroll-left', activeIndex > 0 || contentScroller.scrollLeft > 6);
     wrap.classList.toggle('can-scroll-right', activeIndex < matchGamePlanTabs.length - 1 || (maxScroll > 6 && contentScroller.scrollLeft < maxScroll - 6));
 
+    const previousActiveTabId = tabsScroller.dataset.activeGamePlanTab || '';
     tabsScroller.querySelectorAll('.match-game-plan-tab').forEach(btn => {
         const isActive = btn.dataset.gamePlanTab === activeTab.id;
         btn.classList.toggle('is-active', isActive);
         btn.setAttribute('aria-selected', String(isActive));
     });
+    tabsScroller.dataset.activeGamePlanTab = activeTab.id;
 
     const activeButton = tabsScroller.querySelector('.match-game-plan-tab.is-active');
-    if (activeButton) {
+    if (activeButton && previousActiveTabId !== activeTab.id) {
         const target = activeButton.offsetLeft - (tabsScroller.clientWidth / 2) + (activeButton.offsetWidth / 2);
         tabsScroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
     }
