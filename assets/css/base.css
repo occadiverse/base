@@ -5918,9 +5918,16 @@
             padding: 0.75rem !important;
         }
         .match-game-plan-select-actions {
+            background:
+                linear-gradient(180deg, rgba(16, 47, 84, 0.98) 0%, rgba(16, 47, 84, 0.92) 72%, rgba(16, 47, 84, 0) 100%);
             display: grid;
             gap: 0.45rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin: -0.75rem -0.75rem 0;
+            padding: 0.75rem 0.75rem 0.6rem;
+            position: sticky;
+            top: -0.75rem;
+            z-index: 3;
         }
         .match-game-plan-select-action {
             align-items: center;
