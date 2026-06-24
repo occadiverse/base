@@ -1119,13 +1119,16 @@
             font-size: 1rem;
         }
         .match-detail-chip {
+            align-items: center;
             background: rgba(245, 197, 66, 0.14);
             border: 1px solid rgba(245, 197, 66, 0.28);
             border-radius: 999px;
             color: #f5c542;
+            display: inline-flex;
             font-size: 0.64rem;
             font-weight: 900;
             gap: 0.4rem;
+            justify-content: center;
             letter-spacing: 0.08em;
             padding: 0.38rem 0.62rem;
             text-transform: uppercase;
