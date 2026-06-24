@@ -1049,12 +1049,10 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
 
     if (title) {
         title.innerHTML = `
+            ${buildMatchGamePlanHeadingAvatarHtml(selectedPlayer, posId)}
             <span class="match-game-plan-heading-copy">
-                <span class="match-game-plan-heading-title">${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}</span>
-                <span class="match-game-plan-heading-player">
-                    ${buildMatchGamePlanHeadingAvatarHtml(selectedPlayer, posId)}
-                    <span>${escapeMatchHtml(selectedPlayer ? selectedPlayer.navn : 'Ledig')}</span>
-                </span>
+                <span class="match-game-plan-heading-title">${escapeMatchHtml(selectedPlayer ? selectedPlayer.navn : 'Ledig')}</span>
+                <span class="match-game-plan-heading-subtitle">${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}</span>
             </span>
         `;
     }
