@@ -5827,6 +5827,7 @@
             padding: 0.8rem 4.15rem 0.8rem 0.85rem !important;
             position: relative;
         }
+        .match-gold-round-icon-btn,
         .match-game-plan-select-modal [onclick="closePlayerSelect()"] {
             align-items: center;
             background: rgba(8, 27, 50, 0.92) !important;
@@ -5849,10 +5850,12 @@
             transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
             width: 2.8rem !important;
         }
+        .match-gold-round-icon-btn i,
         .match-game-plan-select-modal [onclick="closePlayerSelect()"] i {
             color: #f5c542 !important;
             font-size: 1.05rem !important;
         }
+        .match-gold-round-icon-btn:hover,
         .match-game-plan-select-modal [onclick="closePlayerSelect()"]:hover {
             background: rgba(245, 197, 66, 0.16) !important;
             border-color: rgba(245, 197, 66, 0.38) !important;
@@ -5904,23 +5907,16 @@
             flex-direction: column;
             line-height: 1;
             min-width: 0;
-            padding-left: 3.05rem;
+            padding-left: 0;
             width: 100%;
         }
         .match-game-plan-heading-title {
-            background: linear-gradient(90deg, rgba(8, 27, 50, 0.98), rgba(15, 45, 79, 0.98) 54%, rgba(8, 27, 50, 0.98));
-            border: 1px solid rgba(245, 197, 66, 0.5);
-            border-bottom-color: rgba(245, 197, 66, 0.28);
-            border-radius: 0.9rem 0.9rem 0.28rem 0.28rem;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 -0.34rem 0 -0.08rem rgba(245, 197, 66, 0.72);
             color: #ffffff;
             display: block;
-            font-size: 1.18rem;
+            font-size: 1.35rem;
             font-weight: 950;
             line-height: 1;
-            min-height: 2.15rem;
             overflow: hidden;
-            padding: 0.5rem 1rem 0.46rem;
             text-overflow: ellipsis;
             text-shadow: 0 2px 2px rgba(2, 6, 23, 0.72);
             white-space: nowrap;
@@ -5937,16 +5933,16 @@
             font-size: 1.08rem;
             font-weight: 950;
             justify-content: flex-start;
-            margin-top: -0.05rem;
+            margin-top: 0.7rem;
             max-width: 100%;
             min-height: 2.35rem;
-            padding: 0.52rem 1rem 0.52rem 1.35rem;
+            padding: 0.52rem 1rem 0.52rem 4.25rem;
             position: relative;
             text-shadow: 0 2px 2px rgba(2, 6, 23, 0.72);
             width: 100%;
         }
         .match-game-plan-heading-player .match-game-plan-heading-avatar {
-            left: -3rem;
+            left: 0.28rem;
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
