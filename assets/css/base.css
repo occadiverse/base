@@ -5296,14 +5296,10 @@
             font-weight: 800;
         }
         .match-bench-list {
-            background: rgba(255, 255, 255, 0.055);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1rem;
             display: flex;
             flex-direction: column;
             gap: 0.8rem;
             min-height: 5.2rem;
-            padding: 0.85rem;
         }
         .match-bench-group {
             display: flex;
@@ -6169,7 +6165,6 @@
             .match-bench-list {
                 gap: 0.7rem;
                 min-height: 5rem;
-                padding: 0.65rem;
             }
             .match-bench-group {
                 gap: 0.38rem;
