@@ -789,10 +789,10 @@ window.syncMatchGamePlanScroller = function() {
 
 window.goToMatchGamePlanTab = function(tabId, behavior = 'smooth') {
     const contentScroller = document.getElementById('match-game-plan-content-scroll');
-    const page = contentScroller?.querySelector(`[data-game-plan-page="${tabId}"]`);
-    if (!contentScroller || !page) return;
+    const tabIndex = matchGamePlanTabs.findIndex(tab => tab.id === tabId);
+    if (!contentScroller || tabIndex === -1) return;
 
-    contentScroller.scrollTo({ left: page.offsetLeft, behavior });
+    contentScroller.scrollTo({ left: tabIndex * contentScroller.clientWidth, behavior });
     setTimeout(window.syncMatchGamePlanScroller, behavior === 'auto' ? 0 : 280);
 };
 
