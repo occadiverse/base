@@ -5692,10 +5692,6 @@
             background: rgba(18, 63, 115, 0.05);
             border-color: rgba(18, 63, 115, 0.14);
         }
-        .match-game-plan-player-option.is-disabled {
-            cursor: not-allowed;
-            opacity: 0.45;
-        }
         .match-game-plan-player-avatar {
             align-items: center;
             background: #123f73;
@@ -5784,6 +5780,8 @@
         }
         .match-game-plan-select-modal #tactical-pos-label {
             color: rgba(245, 197, 66, 0.88) !important;
+            font-size: 0.72rem !important;
+            margin-top: 0.2rem !important;
         }
         .match-game-plan-select-modal #tactical-player-list {
             display: flex;

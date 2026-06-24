@@ -862,14 +862,6 @@ function getMatchGamePlanSelectablePlayers(match) {
     );
 }
 
-function isMatchGamePlanPlayerSelected(lineup, player, currentPosId) {
-    return Object.entries(lineup || {}).some(([posId, selectedPlayer]) => {
-        if (posId === currentPosId || !selectedPlayer || !player) return false;
-        return (selectedPlayer.id && player.id && selectedPlayer.id === player.id)
-            || (selectedPlayer.navn && player.navn && selectedPlayer.navn === player.navn);
-    });
-}
-
 window.renderMatchGamePlanStarterNode = function(match, posId) {
     const coords = matchGamePlanStarterPositions[posId];
     const existingNode = document.querySelector(`[data-game-plan-node="${posId}"]`);
@@ -989,6 +981,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     const modal = document.getElementById('tacticalPlayerModal');
     const list = document.getElementById('tactical-player-list');
     const label = document.getElementById('tactical-pos-label');
+    const title = modal.querySelector('h3');
     if (!match || !modal || !list) return;
 
     const lineup = getMatchGamePlanLineup(match);
@@ -1004,7 +997,10 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
     });
 
-    if (label) label.innerText = `Velger for: ${posId}`;
+    if (title) {
+        title.innerHTML = `<i class="fa-solid fa-shirt text-bsk-yellow"></i> ${escapeMatchHtml(posId)}`;
+    }
+    if (label) label.innerText = selectedPlayer ? selectedPlayer.navn : 'Ledig';
     list.innerHTML = '';
 
     if (selectedPlayer) {
@@ -1027,14 +1023,12 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         players
             .filter(player => !selectedPlayer || !window.playerRefMatches(player.id || player.navn, selectedPlayer))
             .forEach(player => {
-                const isSelectedElsewhere = isMatchGamePlanPlayerSelected(lineup, player, posId);
                 const score = getMatchGamePlanPositionScore(player, posId);
                 const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
                 const jersey = player.drakt || player.draktnummer || '-';
                 const row = document.createElement('button');
                 row.type = 'button';
-                row.className = `match-game-plan-player-option ${isSelectedElsewhere ? 'is-disabled' : ''}`;
-                row.disabled = isSelectedElsewhere;
+                row.className = 'match-game-plan-player-option';
                 row.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, player.id);
                 row.innerHTML = `
                     <span class="match-game-plan-player-avatar">${escapeMatchHtml(jersey)}</span>
@@ -1042,7 +1036,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
                         <strong>${escapeMatchHtml(player.navn)}</strong>
                         <span>${escapeMatchHtml(player.pos1 || 'Ukjent posisjon')}</span>
                     </span>
-                    <span class="match-game-plan-player-tag">${isSelectedElsewhere ? 'Opptatt' : matchLabel}</span>
+                    <span class="match-game-plan-player-tag">${matchLabel}</span>
                 `;
                 list.appendChild(row);
             });
