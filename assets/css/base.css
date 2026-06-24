@@ -5320,6 +5320,20 @@
             font-size: 0.72rem;
             font-weight: 800;
         }
+        .match-bench-heading-count {
+            align-items: center;
+            background: rgba(245, 197, 66, 0.16);
+            border: 1px solid rgba(245, 197, 66, 0.38);
+            border-radius: 999px;
+            color: #f5c542 !important;
+            display: inline-flex;
+            font-size: 0.68rem !important;
+            font-weight: 950 !important;
+            height: 1.55rem;
+            justify-content: center;
+            min-width: 1.55rem;
+            padding: 0 0.42rem;
+        }
         .match-bench-list {
             display: flex;
             flex-direction: column;

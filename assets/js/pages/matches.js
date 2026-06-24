@@ -761,6 +761,7 @@ window.showMatchDetails = function(id) {
             <div class="match-bench-action-row match-bench-topline">
                 <div class="match-bench-heading">
                     <h3>Påmeldte spillere</h3>
+                    <span class="match-bench-heading-count" aria-label="${selectedPlayers.length} påmeldte spillere">${selectedPlayers.length}</span>
                 </div>
                 <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis påmeldte spillere" data-show-label="Vis påmeldte spillere" data-hide-label="Skjul påmeldte spillere">
                     <i class="fa-solid fa-chevron-up"></i>
