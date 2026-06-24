@@ -860,6 +860,33 @@ window.initMatchGamePlanScroller = function() {
             window.syncMatchGamePlanScroller();
         });
     }, { passive: true });
+
+    contentScroller.querySelectorAll('.match-game-plan-pitch-wrap').forEach(pitchWrap => {
+        if (pitchWrap.dataset.pitchSwipeBound === 'true') return;
+
+        let pitchStartX = 0;
+        let pitchStartY = 0;
+        pitchWrap.dataset.pitchSwipeBound = 'true';
+
+        pitchWrap.addEventListener('touchstart', event => {
+            if (event.touches.length !== 1) return;
+            pitchStartX = event.touches[0].clientX;
+            pitchStartY = event.touches[0].clientY;
+        }, { passive: true });
+
+        pitchWrap.addEventListener('touchend', event => {
+            const touch = event.changedTouches && event.changedTouches[0];
+            if (!touch) return;
+
+            const deltaX = touch.clientX - pitchStartX;
+            const deltaY = touch.clientY - pitchStartY;
+            const hasHorizontalIntent = Math.abs(deltaX) > 44 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25;
+            if (!hasHorizontalIntent) return;
+
+            window.navigateMatchGamePlan(deltaX < 0 ? 1 : -1);
+        }, { passive: true });
+    });
+
     window.goToMatchGamePlanTab(matchGamePlanTabs[0].id, 'auto');
 };
 
