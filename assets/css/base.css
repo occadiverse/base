@@ -5450,12 +5450,16 @@
         .match-coach-notes-topline {
             margin-bottom: 0.75rem;
         }
-        .match-game-plan-body,
         .match-coach-notes-body {
             background: rgba(255, 255, 255, 0.055);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1rem;
             padding: 0.85rem;
+        }
+        .match-game-plan-body {
+            display: flex;
+            flex-direction: column;
+            min-height: 4rem;
         }
         .match-game-plan-empty {
             align-items: center;
