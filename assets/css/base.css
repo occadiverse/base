@@ -5677,7 +5677,7 @@
         .match-game-plan-player-option {
             align-items: center;
             background: #ffffff;
-            border: 1px solid transparent;
+            border: 1px solid rgba(226, 232, 240, 0.95);
             border-radius: 0.85rem;
             color: #0f172a;
             cursor: pointer;
@@ -5685,12 +5685,14 @@
             gap: 0.7rem;
             padding: 0.75rem;
             text-align: left;
-            transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease;
+            transition: background 100ms ease, border-color 100ms ease, transform 100ms ease, box-shadow 100ms ease;
             width: 100%;
         }
         .match-game-plan-player-option:hover {
-            background: rgba(18, 63, 115, 0.05);
-            border-color: rgba(18, 63, 115, 0.14);
+            background: #f8fafc;
+            border-color: rgba(245, 197, 66, 0.48);
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.12);
+            transform: translateY(-1px);
         }
         .match-game-plan-player-avatar {
             align-items: center;
@@ -5788,21 +5790,6 @@
             flex-direction: column;
             gap: 0.45rem;
             padding: 0.75rem !important;
-        }
-        .match-game-plan-selected-summary {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 0.9rem;
-            display: flex;
-            gap: 0.7rem;
-            padding: 0.7rem;
-        }
-        .match-game-plan-selected-summary .match-game-plan-player-copy strong {
-            color: #ffffff;
-        }
-        .match-game-plan-selected-summary .match-game-plan-player-copy span {
-            color: rgba(255, 255, 255, 0.58);
         }
         .match-game-plan-select-actions {
             display: grid;

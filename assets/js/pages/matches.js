@@ -1004,16 +1004,6 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     list.innerHTML = '';
 
     if (selectedPlayer) {
-        const summary = document.createElement('div');
-        summary.className = 'match-game-plan-selected-summary';
-        summary.innerHTML = `
-            <span class="match-game-plan-player-avatar">${escapeMatchHtml(selectedPlayer.drakt || selectedPlayer.draktnummer || '-')}</span>
-            <span class="match-game-plan-player-copy">
-                <strong>${escapeMatchHtml(selectedPlayer.navn)}</strong>
-                <span>${escapeMatchHtml(selectedPlayer.pos1 || 'Ukjent posisjon')}</span>
-            </span>
-        `;
-        list.appendChild(summary);
         renderMatchGamePlanSelectActions(list, matchId, posId, currentMode);
     }
 
