@@ -815,9 +815,9 @@ window.showMatchDetails = function(id) {
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
                 <div class="match-bench-actions">
-                    <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-detail-chip match-topline-action-btn" title="Legg til spillere">
+                    <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-detail-chip match-topline-action-btn" title="Åpne oppmøte">
                         <i class="fa-solid fa-user-check"></i>
-                        <span>Legg til</span>
+                        <span>Oppmøte</span>
                     </button>
                 </div>
             </div>
