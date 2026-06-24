@@ -5549,6 +5549,7 @@
         .match-game-plan-pitch-wrap {
             display: flex;
             justify-content: center;
+            touch-action: pan-y;
             width: 100%;
         }
         .match-game-plan-pitch {
@@ -5559,6 +5560,7 @@
             max-width: 24rem;
             overflow: hidden;
             position: relative;
+            touch-action: pan-y;
             width: min(100%, 24rem);
         }
         .match-game-plan-pitch-halfway {
@@ -5637,6 +5639,7 @@
             height: 2.45rem;
             justify-content: center;
             position: absolute;
+            touch-action: pan-y;
             transform: translate(-50%, -50%);
             width: 2.45rem;
             z-index: 2;
