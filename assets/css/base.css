@@ -5480,7 +5480,7 @@
             padding: 0.35rem;
             scroll-behavior: smooth;
             scrollbar-width: none;
-            touch-action: pan-x;
+            touch-action: pan-x pan-y;
             width: 100%;
         }
         .match-game-plan-tabs::-webkit-scrollbar {
@@ -5535,7 +5535,7 @@
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
-            touch-action: pan-x;
+            touch-action: pan-x pan-y;
             width: 100%;
         }
         .match-game-plan-content-scroll::-webkit-scrollbar {
