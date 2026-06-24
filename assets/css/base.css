@@ -5546,6 +5546,23 @@
             min-width: 100%;
             scroll-snap-align: start;
         }
+        @media (min-width: 768px) {
+            .match-game-plan-content-scroll {
+                display: block;
+                overflow: visible;
+                scroll-behavior: auto;
+                scroll-snap-type: none;
+            }
+            .match-game-plan-page {
+                display: none;
+                flex: none;
+                min-width: 0;
+                width: 100%;
+            }
+            .match-game-plan-page.is-active {
+                display: block;
+            }
+        }
         .match-game-plan-pitch-wrap {
             display: flex;
             justify-content: center;

@@ -1061,16 +1061,20 @@ window.syncMatchGamePlanScroller = function() {
     const wrap = tabsScroller?.closest('.match-game-plan-tabs-wrap');
     if (!contentScroller || !tabsScroller || !wrap) return;
 
+    const isDesktop = window.innerWidth >= 768;
+    const storedActiveTabId = contentScroller.dataset.activeGamePlanTab || matchGamePlanTabs[0].id;
     const pageWidth = contentScroller.clientWidth || 1;
-    const activeIndex = Math.max(0, Math.min(
-        matchGamePlanTabs.length - 1,
-        Math.round(contentScroller.scrollLeft / pageWidth)
-    ));
+    const activeIndex = isDesktop
+        ? Math.max(0, matchGamePlanTabs.findIndex(tab => tab.id === storedActiveTabId))
+        : Math.max(0, Math.min(
+            matchGamePlanTabs.length - 1,
+            Math.round(contentScroller.scrollLeft / pageWidth)
+        ));
     const activeTab = matchGamePlanTabs[activeIndex];
     const maxScroll = contentScroller.scrollWidth - contentScroller.clientWidth;
 
-    wrap.classList.toggle('can-scroll-left', activeIndex > 0 || contentScroller.scrollLeft > 6);
-    wrap.classList.toggle('can-scroll-right', activeIndex < matchGamePlanTabs.length - 1 || (maxScroll > 6 && contentScroller.scrollLeft < maxScroll - 6));
+    wrap.classList.toggle('can-scroll-left', activeIndex > 0 || (!isDesktop && contentScroller.scrollLeft > 6));
+    wrap.classList.toggle('can-scroll-right', activeIndex < matchGamePlanTabs.length - 1 || (!isDesktop && maxScroll > 6 && contentScroller.scrollLeft < maxScroll - 6));
 
     const previousActiveTabId = tabsScroller.dataset.activeGamePlanTab || '';
     tabsScroller.querySelectorAll('.match-game-plan-tab').forEach(btn => {
@@ -1078,12 +1082,16 @@ window.syncMatchGamePlanScroller = function() {
         btn.classList.toggle('is-active', isActive);
         btn.setAttribute('aria-selected', String(isActive));
     });
+    contentScroller.querySelectorAll('.match-game-plan-page').forEach(page => {
+        page.classList.toggle('is-active', page.dataset.gamePlanPage === activeTab.id);
+    });
     tabsScroller.dataset.activeGamePlanTab = activeTab.id;
+    contentScroller.dataset.activeGamePlanTab = activeTab.id;
 
     const activeButton = tabsScroller.querySelector('.match-game-plan-tab.is-active');
     if (activeButton && previousActiveTabId !== activeTab.id) {
         const target = activeButton.offsetLeft - (tabsScroller.clientWidth / 2) + (activeButton.offsetWidth / 2);
-        tabsScroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+        tabsScroller.scrollTo({ left: Math.max(0, target), behavior: isDesktop ? 'auto' : 'smooth' });
     }
 };
 
@@ -1091,6 +1099,13 @@ window.goToMatchGamePlanTab = function(tabId, behavior = 'smooth') {
     const contentScroller = document.getElementById('match-game-plan-content-scroll');
     const tabIndex = matchGamePlanTabs.findIndex(tab => tab.id === tabId);
     if (!contentScroller || tabIndex === -1) return;
+
+    contentScroller.dataset.activeGamePlanTab = tabId;
+
+    if (window.innerWidth >= 768) {
+        window.syncMatchGamePlanScroller();
+        return;
+    }
 
     contentScroller.scrollTo({ left: tabIndex * contentScroller.clientWidth, behavior });
     setTimeout(window.syncMatchGamePlanScroller, behavior === 'auto' ? 0 : 280);
@@ -1100,8 +1115,9 @@ window.navigateMatchGamePlan = function(direction) {
     const contentScroller = document.getElementById('match-game-plan-content-scroll');
     if (!contentScroller) return;
 
-    const pageWidth = contentScroller.clientWidth || 1;
-    const currentIndex = Math.round(contentScroller.scrollLeft / pageWidth);
+    const currentIndex = window.innerWidth >= 768
+        ? Math.max(0, matchGamePlanTabs.findIndex(tab => tab.id === (contentScroller.dataset.activeGamePlanTab || matchGamePlanTabs[0].id)))
+        : Math.round(contentScroller.scrollLeft / (contentScroller.clientWidth || 1));
     const nextIndex = Math.max(0, Math.min(matchGamePlanTabs.length - 1, currentIndex + direction));
     window.goToMatchGamePlanTab(matchGamePlanTabs[nextIndex].id);
 };
