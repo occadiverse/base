@@ -588,20 +588,24 @@ window.showMatchDetails = function(id) {
         `;
     };
     const benchPositionRows = [
-        { key: 'defence', categories: ['K', 'F'], players: [] },
-        { key: 'midfield', categories: ['M'], players: [] },
-        { key: 'attack', categories: ['A'], players: [] }
+        { key: 'keeper', label: 'Keeper', categories: ['K'], players: [] },
+        { key: 'defence', label: 'Forsvar', categories: ['F'], players: [] },
+        { key: 'midfield', label: 'Midtbane', categories: ['M'], players: [] },
+        { key: 'attack', label: 'Angrep', categories: ['A'], players: [] }
     ];
     selectedPlayers.forEach(player => {
         const category = getPositionCategory(player.pos1) || 'M';
-        const row = benchPositionRows.find(positionRow => positionRow.categories.includes(category)) || benchPositionRows[1];
+        const row = benchPositionRows.find(positionRow => positionRow.categories.includes(category)) || benchPositionRows[2];
         row.players.push(player);
     });
     const benchPlayersHtml = selectedPlayers.length
         ? benchPositionRows.map(row => `
-            <div class="match-bench-row match-bench-row-${row.key}">
-                ${row.players.map(renderBenchPlayerHtml).join('')}
-            </div>
+            <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeHtml(row.label)}">
+                <div class="match-bench-group-title">${escapeHtml(row.label)}</div>
+                <div class="match-bench-row">
+                    ${row.players.map(renderBenchPlayerHtml).join('')}
+                </div>
+            </section>
         `).join('')
         : `
             <div class="match-bench-empty">
