@@ -5430,6 +5430,7 @@
             font-weight: 900;
             line-height: 1.2;
         }
+        .match-game-plan-panel,
         .match-coach-notes-panel {
             background:
                 radial-gradient(circle at 92% 0%, rgba(245, 197, 66, 0.13), transparent 28%),
@@ -5442,14 +5443,29 @@
             overflow: hidden;
             padding: 0.9rem;
         }
+        .match-game-plan-topline,
         .match-coach-notes-topline {
             margin-bottom: 0.75rem;
         }
+        .match-game-plan-body,
         .match-coach-notes-body {
             background: rgba(255, 255, 255, 0.055);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1rem;
             padding: 0.85rem;
+        }
+        .match-game-plan-empty {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.58);
+            display: flex;
+            font-size: 0.8rem;
+            font-weight: 800;
+            gap: 0.6rem;
+            justify-content: center;
+            min-height: 4rem;
+        }
+        .match-game-plan-empty i {
+            color: #f5c542;
         }
         .match-coach-notes-fields {
             display: grid;
@@ -6145,6 +6161,7 @@
                 grid-template-columns: 1fr;
             }
             .match-bench-panel,
+            .match-game-plan-panel,
             .match-coach-notes-panel,
             .match-stats-panel {
                 padding: 0.75rem;

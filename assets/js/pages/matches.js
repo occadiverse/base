@@ -648,6 +648,25 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
+        <section class="match-game-plan-panel match-collapsible-panel is-collapsed">
+            <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
+                <div class="match-bench-heading">
+                    <h3>Kampplan</h3>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis kampplan" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="match-game-plan-body">
+                    <div class="match-game-plan-empty">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span>Kampplan kommer her.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="match-coach-notes-panel match-collapsible-panel is-collapsed">
             <div class="match-bench-action-row match-bench-topline match-coach-notes-topline">
                 <div class="match-bench-heading">
