@@ -5856,7 +5856,10 @@
             display: flex !important;
             font-size: 1rem !important;
             gap: 0.7rem !important;
+            justify-content: center;
             min-width: 0;
+            text-align: center;
+            width: 100%;
         }
         .match-game-plan-heading-avatar {
             align-items: center;
@@ -5887,21 +5890,35 @@
         .match-game-plan-heading-copy {
             display: flex;
             flex-direction: column;
+            align-items: center;
             line-height: 1;
             min-width: 0;
         }
-        .match-game-plan-heading-kicker {
-            color: rgba(245, 197, 66, 0.88);
-            font-size: 0.56rem;
-            font-weight: 950;
-            letter-spacing: 0.12em;
-            margin-bottom: 0.22rem;
-            text-transform: uppercase;
-        }
         .match-game-plan-heading-title {
             color: #ffffff;
-            font-size: 1.05rem;
+            font-size: 1.12rem;
             font-weight: 950;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-game-plan-heading-player {
+            align-items: center;
+            color: rgba(245, 197, 66, 0.9);
+            display: inline-flex;
+            font-size: 0.74rem;
+            font-weight: 900;
+            gap: 0.45rem;
+            justify-content: center;
+            margin-top: 0.42rem;
+            max-width: 100%;
+        }
+        .match-game-plan-heading-player .match-game-plan-heading-avatar {
+            height: 1.8rem;
+            width: 1.8rem;
+            font-size: 0.62rem;
+        }
+        .match-game-plan-heading-player > span:last-child {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
