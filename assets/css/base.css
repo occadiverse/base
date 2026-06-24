@@ -5451,10 +5451,8 @@
             margin-bottom: 0.75rem;
         }
         .match-coach-notes-body {
-            background: rgba(255, 255, 255, 0.055);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1rem;
-            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
         }
         .match-game-plan-body {
             display: flex;
