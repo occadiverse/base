@@ -761,7 +761,7 @@ window.showMatchDetails = function(id) {
             <div class="match-bench-action-row match-bench-topline">
                 <div class="match-bench-heading">
                     <h3>Kamptropp</h3>
-                    <span class="match-bench-heading-count" aria-label="${selectedPlayers.length} påmeldte spillere">${selectedPlayers.length}</span>
+                    <span class="match-bench-heading-count" aria-label="${selectedPlayers.length} spillere i kamptropp">${selectedPlayers.length}</span>
                 </div>
                 <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis kamptropp" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
                     <i class="fa-solid fa-chevron-up"></i>
