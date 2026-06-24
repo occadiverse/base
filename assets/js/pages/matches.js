@@ -1169,14 +1169,10 @@ window.toggleMatchPanel = function(btn) {
     const panel = btn?.closest('.match-collapsible-panel');
     if (!panel) return;
 
-    const isCollapsed = panel.classList.toggle('is-collapsed');
-    btn.setAttribute('aria-expanded', String(!isCollapsed));
-    btn.setAttribute('aria-label', isCollapsed ? (btn.dataset.showLabel || 'Vis seksjon') : (btn.dataset.hideLabel || 'Skjul seksjon'));
+    const shouldOpen = panel.classList.contains('is-collapsed');
 
-    if (!isCollapsed) {
+    if (shouldOpen) {
         document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel').forEach(otherPanel => {
-            if (otherPanel === panel) return;
-
             otherPanel.classList.add('is-collapsed');
             const otherToggle = otherPanel.querySelector('.match-panel-toggle-btn');
             if (otherToggle) {
@@ -1184,9 +1180,16 @@ window.toggleMatchPanel = function(btn) {
                 otherToggle.setAttribute('aria-label', otherToggle.dataset.showLabel || 'Vis seksjon');
             }
         });
+
+        panel.classList.remove('is-collapsed');
+    } else {
+        panel.classList.add('is-collapsed');
     }
 
-    if (!isCollapsed && panel.classList.contains('match-game-plan-panel')) {
+    btn.setAttribute('aria-expanded', String(shouldOpen));
+    btn.setAttribute('aria-label', shouldOpen ? (btn.dataset.hideLabel || 'Skjul seksjon') : (btn.dataset.showLabel || 'Vis seksjon'));
+
+    if (shouldOpen && panel.classList.contains('match-game-plan-panel')) {
         requestAnimationFrame(() => {
             window.initMatchGamePlanScroller();
             window.syncMatchGamePlanScroller();
