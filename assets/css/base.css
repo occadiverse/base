@@ -5307,18 +5307,12 @@
             gap: 0.45rem;
         }
         .match-bench-group-title {
-            align-items: center;
-            align-self: flex-start;
-            background: rgba(245, 197, 66, 0.12);
-            border: 1px solid rgba(245, 197, 66, 0.22);
-            border-radius: 999px;
-            color: rgba(255, 255, 255, 0.72);
-            display: inline-flex;
-            font-size: 0.58rem;
-            font-weight: 950;
-            letter-spacing: 0.12em;
-            line-height: 1;
-            padding: 0.28rem 0.5rem;
+            color: rgba(245, 197, 66, 0.88);
+            display: block;
+            font-size: 0.625rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            line-height: 1.1;
             text-transform: uppercase;
         }
         .match-bench-row {
@@ -6171,10 +6165,6 @@
             }
             .match-bench-group {
                 gap: 0.38rem;
-            }
-            .match-bench-group-title {
-                font-size: 0.52rem;
-                padding: 0.24rem 0.45rem;
             }
             .match-bench-row {
                 gap: 0.5rem;
