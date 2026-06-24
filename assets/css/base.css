@@ -5167,7 +5167,11 @@
             margin-bottom: 0.75rem;
         }
         .match-bench-topline {
+            background: rgba(255, 255, 255, 0.07);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+            margin: -0.9rem -0.9rem 0.9rem;
             min-height: 2.85rem;
+            padding: 0.9rem;
             position: relative;
         }
         .match-panel-toggle-btn {
@@ -5372,9 +5376,12 @@
         }
         .match-bench-position-line {
             align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(245, 197, 66, 0.18);
             display: flex;
             justify-content: center;
-            margin-top: 0.75rem;
+            margin: 0.9rem -0.9rem -0.9rem;
+            padding: 0.85rem 0.9rem;
         }
         .match-detail-summary {
             display: grid;
@@ -6128,6 +6135,10 @@
                 align-items: center;
                 gap: 0.55rem;
             }
+            .match-bench-topline {
+                margin: -0.75rem -0.75rem 0.75rem;
+                padding: 0.75rem;
+            }
             .match-bench-count {
                 font-size: 0.66rem;
                 min-height: 2.65rem;
@@ -6196,6 +6207,8 @@
             }
             .match-bench-position-line {
                 font-size: 0.78rem;
+                margin: 0.75rem -0.75rem -0.75rem;
+                padding: 0.75rem;
                 white-space: normal;
             }
             .match-bench-name {
