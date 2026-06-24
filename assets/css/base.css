@@ -6609,6 +6609,23 @@
                 height: 2.1rem !important;
                 width: 2.1rem !important;
             }
+            .match-bench-topline .match-topline-action-btn,
+            .match-detail-card-top .match-topline-action-btn {
+                border-radius: 999px;
+                font-size: 0;
+                height: 2.1rem;
+                min-width: 2.1rem;
+                padding: 0;
+                width: 2.1rem;
+            }
+            .match-bench-topline .match-topline-action-btn span,
+            .match-detail-card-top .match-topline-action-btn span {
+                display: none;
+            }
+            .match-bench-topline .match-topline-action-btn i,
+            .match-detail-card-top .match-topline-action-btn i {
+                font-size: 0.82rem;
+            }
             .match-bench-list {
                 background: transparent;
                 border: 0;
