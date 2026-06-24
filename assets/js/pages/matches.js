@@ -546,18 +546,15 @@ window.showMatchDetails = function(id) {
         .filter(ref => !benchPlayers.some(p => window.playerRefMatches(ref, p)))
         .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
         .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
-    const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
     const getPositionCategory = (pos1) => {
-        if (typeof window.getPositionCategoryFromPos1 === 'function') {
-            return window.getPositionCategoryFromPos1(pos1);
-        }
         if (!pos1) return null;
         const normalized = String(pos1).trim();
         if (normalized === 'Keeper' || normalized.toLowerCase().includes('keeper')) return 'K';
         if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(normalized)) return 'F';
-        if (['Spiss', 'Playmaker', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
+        if (['Spiss', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
         return 'M';
     };
+    const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
     const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
     attendingRefs.forEach(ref => {
         const player = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null;
@@ -579,17 +576,33 @@ window.showMatchDetails = function(id) {
         .map(part => part[0])
         .join('')
         .toUpperCase() || 'S';
+    const renderBenchPlayerHtml = (player) => {
+        const jersey = player.drakt ? `${escapeHtml(player.drakt)}. ` : '';
+        const lastName = getLastName(player.navn);
+
+        return `
+            <div class="match-bench-player">
+                <span class="match-bench-avatar">${escapeHtml(getInitials(player.navn))}</span>
+                <span class="match-bench-name">${jersey}${escapeHtml(lastName)}</span>
+            </div>
+        `;
+    };
+    const benchPositionRows = [
+        { key: 'defence', categories: ['K', 'F'], players: [] },
+        { key: 'midfield', categories: ['M'], players: [] },
+        { key: 'attack', categories: ['A'], players: [] }
+    ];
+    selectedPlayers.forEach(player => {
+        const category = getPositionCategory(player.pos1) || 'M';
+        const row = benchPositionRows.find(positionRow => positionRow.categories.includes(category)) || benchPositionRows[1];
+        row.players.push(player);
+    });
     const benchPlayersHtml = selectedPlayers.length
-        ? selectedPlayers.map(player => {
-            const jersey = player.drakt ? `${escapeHtml(player.drakt)}. ` : '';
-            const lastName = getLastName(player.navn);
-            return `
-                <div class="match-bench-player">
-                    <span class="match-bench-avatar">${escapeHtml(getInitials(player.navn))}</span>
-                    <span class="match-bench-name">${jersey}${escapeHtml(lastName)}</span>
-                </div>
-            `;
-        }).join('')
+        ? benchPositionRows.map(row => `
+            <div class="match-bench-row match-bench-row-${row.key}">
+                ${row.players.map(renderBenchPlayerHtml).join('')}
+            </div>
+        `).join('')
         : `
             <div class="match-bench-empty">
                 <i class="fa-solid fa-clipboard-user"></i>

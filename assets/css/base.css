@@ -5300,10 +5300,16 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1rem;
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 0.65rem;
             min-height: 5.2rem;
             padding: 0.85rem;
+        }
+        .match-bench-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            min-height: 2.45rem;
         }
         .match-bench-player {
             align-items: center;
@@ -6144,6 +6150,9 @@
                 gap: 0.5rem;
                 min-height: 5rem;
                 padding: 0.65rem;
+            }
+            .match-bench-row {
+                gap: 0.5rem;
             }
             .match-coach-notes-body {
                 padding: 0.65rem;
