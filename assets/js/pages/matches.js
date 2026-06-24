@@ -801,6 +801,9 @@ window.showMatchDetails = function(id) {
                 <span>Ingen spillere er meldt på ennå.</span>
             </div>
         `;
+    const openPanel = window.pendingMatchDetailsOpenPanel || '';
+    const isGamePlanOpen = openPanel === 'kampplan';
+    window.pendingMatchDetailsOpenPanel = null;
 
     container.innerHTML = `
         ${buildMatchDetailCardHtml(match)}
@@ -833,12 +836,12 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-game-plan-panel match-collapsible-panel is-collapsed">
+        <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}">
             <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
                 <div class="match-bench-heading">
                     <h3>Kampplan</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis kampplan" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isGamePlanOpen ? 'true' : 'false'}" aria-label="${isGamePlanOpen ? 'Skjul kampplan' : 'Vis kampplan'}" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
             </div>
@@ -925,6 +928,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match) return;
 
+    window.pendingMatchDetailsOpenPanel = 'kampplan';
     const selectedPlayer = playerId
         ? (window.activePlayers || []).find(player => player.id === playerId)
         : null;
@@ -952,6 +956,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match || fromPosId === toPosId) return;
 
+    window.pendingMatchDetailsOpenPanel = 'kampplan';
     const lineup = { ...getMatchGamePlanLineup(match) };
     const movingPlayer = lineup[fromPosId] || null;
     const targetPlayer = lineup[toPosId] || null;
