@@ -855,7 +855,7 @@ function getMatchGamePlanSelectablePlayers(match) {
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
 
-    if (!participantRefs.length) return activePlayers;
+    if (!participantRefs.length) return [];
 
     return activePlayers.filter(player =>
         participantRefs.some(ref => window.playerRefMatches(ref, player))
