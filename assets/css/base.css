@@ -6626,6 +6626,21 @@
             .match-detail-card-top .match-topline-action-btn i {
                 font-size: 0.82rem;
             }
+            .dashboard-alert-chip {
+                border-radius: 999px;
+                height: 2.1rem;
+                justify-content: center;
+                margin-left: 0;
+                min-width: 2.1rem;
+                padding: 0;
+                width: 2.1rem;
+            }
+            .dashboard-alert-chip span {
+                display: none;
+            }
+            .dashboard-alert-chip i {
+                font-size: 0.82rem;
+            }
             .match-bench-list {
                 background: transparent;
                 border: 0;
