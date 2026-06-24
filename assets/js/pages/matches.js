@@ -376,6 +376,51 @@ function buildMatchDetailCardHtml(match, options = {}) {
     `;
 }
 
+const matchGamePlanTabs = [
+    { id: 'starter11', label: 'Starter11' },
+    { id: 'offc', label: 'OffC' },
+    { id: 'defc', label: 'DefC' },
+    { id: 'roller', label: 'Roller' },
+    { id: 'bench', label: 'Benk' }
+];
+
+function buildMatchGamePlanHtml() {
+    return `
+        <div class="match-game-plan-tabs-wrap" data-no-swipe>
+            <button type="button" class="team-report-detail-scroll-btn match-game-plan-scroll-btn match-game-plan-scroll-btn-left" onclick="window.navigateMatchGamePlan(-1)" aria-label="Forrige del av kampplan" data-no-swipe>
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <div class="match-game-plan-tabs" id="match-game-plan-tabs" role="tablist" aria-label="Kampplan meny" data-no-swipe>
+                ${matchGamePlanTabs.map((tab, index) => `
+                    <button
+                        type="button"
+                        class="match-game-plan-tab ${index === 0 ? 'is-active' : ''}"
+                        role="tab"
+                        aria-selected="${index === 0 ? 'true' : 'false'}"
+                        onclick="window.goToMatchGamePlanTab('${tab.id}')"
+                        data-game-plan-tab="${tab.id}"
+                        data-no-swipe
+                    >${escapeMatchHtml(tab.label)}</button>
+                `).join('')}
+            </div>
+            <button type="button" class="team-report-detail-scroll-btn match-game-plan-scroll-btn match-game-plan-scroll-btn-right" onclick="window.navigateMatchGamePlan(1)" aria-label="Neste del av kampplan" data-no-swipe>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="match-game-plan-content-scroll" id="match-game-plan-content-scroll" data-no-swipe>
+            ${matchGamePlanTabs.map(tab => `
+                <section class="match-game-plan-page" data-game-plan-page="${tab.id}" aria-label="${escapeMatchHtml(tab.label)}">
+                    <div class="match-game-plan-empty">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span>${escapeMatchHtml(tab.label)} kommer her.</span>
+                    </div>
+                </section>
+            `).join('')}
+        </div>
+    `;
+}
+
 function setMatchTimeFilter(filterType) {
     window.activeTimeFilter = filterType;
 
@@ -659,10 +704,7 @@ window.showMatchDetails = function(id) {
             </div>
             <div class="match-collapsible-content">
                 <div class="match-game-plan-body">
-                    <div class="match-game-plan-empty">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <span>Kampplan kommer her.</span>
-                    </div>
+                    ${buildMatchGamePlanHtml()}
                 </div>
             </div>
         </section>
@@ -709,9 +751,75 @@ window.showMatchDetails = function(id) {
     `;
 
     renderPlayerRowForm(match);
+    window.initMatchGamePlanScroller();
     const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
+};
+
+window.syncMatchGamePlanScroller = function() {
+    const contentScroller = document.getElementById('match-game-plan-content-scroll');
+    const tabsScroller = document.getElementById('match-game-plan-tabs');
+    const wrap = tabsScroller?.closest('.match-game-plan-tabs-wrap');
+    if (!contentScroller || !tabsScroller || !wrap) return;
+
+    const pageWidth = contentScroller.clientWidth || 1;
+    const activeIndex = Math.max(0, Math.min(
+        matchGamePlanTabs.length - 1,
+        Math.round(contentScroller.scrollLeft / pageWidth)
+    ));
+    const activeTab = matchGamePlanTabs[activeIndex];
+    const maxScroll = contentScroller.scrollWidth - contentScroller.clientWidth;
+
+    wrap.classList.toggle('can-scroll-left', activeIndex > 0 || contentScroller.scrollLeft > 6);
+    wrap.classList.toggle('can-scroll-right', activeIndex < matchGamePlanTabs.length - 1 || (maxScroll > 6 && contentScroller.scrollLeft < maxScroll - 6));
+
+    tabsScroller.querySelectorAll('.match-game-plan-tab').forEach(btn => {
+        const isActive = btn.dataset.gamePlanTab === activeTab.id;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', String(isActive));
+    });
+
+    const activeButton = tabsScroller.querySelector('.match-game-plan-tab.is-active');
+    if (activeButton) {
+        const target = activeButton.offsetLeft - (tabsScroller.clientWidth / 2) + (activeButton.offsetWidth / 2);
+        tabsScroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+    }
+};
+
+window.goToMatchGamePlanTab = function(tabId, behavior = 'smooth') {
+    const contentScroller = document.getElementById('match-game-plan-content-scroll');
+    const page = contentScroller?.querySelector(`[data-game-plan-page="${tabId}"]`);
+    if (!contentScroller || !page) return;
+
+    contentScroller.scrollTo({ left: page.offsetLeft, behavior });
+    setTimeout(window.syncMatchGamePlanScroller, behavior === 'auto' ? 0 : 280);
+};
+
+window.navigateMatchGamePlan = function(direction) {
+    const contentScroller = document.getElementById('match-game-plan-content-scroll');
+    if (!contentScroller) return;
+
+    const pageWidth = contentScroller.clientWidth || 1;
+    const currentIndex = Math.round(contentScroller.scrollLeft / pageWidth);
+    const nextIndex = Math.max(0, Math.min(matchGamePlanTabs.length - 1, currentIndex + direction));
+    window.goToMatchGamePlanTab(matchGamePlanTabs[nextIndex].id);
+};
+
+window.initMatchGamePlanScroller = function() {
+    const contentScroller = document.getElementById('match-game-plan-content-scroll');
+    if (!contentScroller || contentScroller.dataset.scrollBound === 'true') return;
+
+    contentScroller.dataset.scrollBound = 'true';
+    contentScroller.addEventListener('scroll', () => {
+        if (contentScroller.dataset.scrollFrame === 'true') return;
+        contentScroller.dataset.scrollFrame = 'true';
+        requestAnimationFrame(() => {
+            contentScroller.dataset.scrollFrame = 'false';
+            window.syncMatchGamePlanScroller();
+        });
+    }, { passive: true });
+    window.goToMatchGamePlanTab(matchGamePlanTabs[0].id, 'auto');
 };
 
 window.toggleMatchPanel = function(btn) {
@@ -721,6 +829,13 @@ window.toggleMatchPanel = function(btn) {
     const isCollapsed = panel.classList.toggle('is-collapsed');
     btn.setAttribute('aria-expanded', String(!isCollapsed));
     btn.setAttribute('aria-label', isCollapsed ? (btn.dataset.showLabel || 'Vis seksjon') : (btn.dataset.hideLabel || 'Skjul seksjon'));
+
+    if (!isCollapsed && panel.classList.contains('match-game-plan-panel')) {
+        requestAnimationFrame(() => {
+            window.initMatchGamePlanScroller();
+            window.syncMatchGamePlanScroller();
+        });
+    }
 };
 
 window.toggleMatchBenchPanel = window.toggleMatchPanel;

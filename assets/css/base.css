@@ -5459,6 +5459,93 @@
             flex-direction: column;
             min-height: 4rem;
         }
+        .match-game-plan-tabs-wrap {
+            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border-radius: 999px;
+            box-shadow: 0 12px 26px rgba(11, 43, 76, 0.14);
+            margin-bottom: 0.85rem;
+            min-width: 0;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        .match-game-plan-tabs {
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            gap: 0.35rem;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-x: contain;
+            padding: 0.35rem;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            touch-action: pan-x;
+            width: 100%;
+        }
+        .match-game-plan-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .match-game-plan-tab {
+            appearance: none;
+            background: transparent;
+            border: 0;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.62);
+            cursor: pointer;
+            flex: 1 0 auto;
+            font: inherit;
+            font-size: 0.66rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            min-height: 2.35rem;
+            padding: 0.58rem 0.74rem;
+            text-transform: uppercase;
+            transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+            white-space: nowrap;
+        }
+        .match-game-plan-tab.is-active {
+            background: rgba(245, 197, 66, 0.18);
+            color: #f5c542;
+        }
+        .match-game-plan-tab:hover {
+            color: #ffffff;
+        }
+        .match-game-plan-scroll-btn {
+            display: inline-flex;
+        }
+        .match-game-plan-scroll-btn-left {
+            left: 0.28rem;
+        }
+        .match-game-plan-scroll-btn-right {
+            right: 0.28rem;
+        }
+        .match-game-plan-tabs-wrap.can-scroll-left .match-game-plan-scroll-btn-left,
+        .match-game-plan-tabs-wrap.can-scroll-right .match-game-plan-scroll-btn-right {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .match-game-plan-content-scroll {
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-x: contain;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            touch-action: pan-x;
+            width: 100%;
+        }
+        .match-game-plan-content-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .match-game-plan-page {
+            flex: 0 0 100%;
+            min-width: 100%;
+            scroll-snap-align: start;
+        }
         .match-game-plan-empty {
             align-items: center;
             color: rgba(255, 255, 255, 0.58);
@@ -6220,6 +6307,9 @@
             .match-bench-row {
                 gap: 0.5rem;
                 min-height: 2.25rem;
+            }
+            .match-game-plan-tabs {
+                padding-inline: 2.25rem;
             }
             .match-coach-notes-body {
                 padding: 0.65rem;
