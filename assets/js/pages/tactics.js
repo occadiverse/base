@@ -394,6 +394,7 @@
     currentSelectPos = posId;
     const modal = document.getElementById('tacticalPlayerModal');
     modal.classList.remove('match-game-plan-select-modal');
+    modal.querySelector('[data-match-game-plan-position-action]')?.remove();
     const title = modal.querySelector('h3');
     if (title) title.innerHTML = '<i class="fa-solid fa-shirt text-bsk-yellow"></i> Velg spiller';
     const list = document.getElementById('tactical-player-list');
@@ -506,6 +507,7 @@
 
         window.closePlayerSelect = function() {
             document.getElementById('tacticalPlayerModal').classList.remove('match-game-plan-select-modal');
+            document.getElementById('tacticalPlayerModal').querySelector('[data-match-game-plan-position-action]')?.remove();
             const title = document.getElementById('tacticalPlayerModal').querySelector('h3');
             if (title) title.innerHTML = '<i class="fa-solid fa-shirt text-bsk-yellow"></i> Velg spiller';
             document.getElementById('tacticalPlayerModal').classList.add('hidden');
