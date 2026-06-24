@@ -163,7 +163,22 @@
             window.localStorage.setItem('bsk_local_matches', JSON.stringify(normalized));
             if (typeof window.updateDashboard === 'function') window.updateDashboard();
             if (typeof window.applyFilters === 'function') window.applyFilters();
+            refreshOpenMatchDetails();
             refreshVisibleStatistics();
+        }
+
+        function refreshOpenMatchDetails() {
+            if (window.currentTab !== 'kampdetaljer') return;
+            if (!window.activeDetailsId || typeof window.showMatchDetails !== 'function') return;
+            if (!window.activeMatches?.some(match => match.id === window.activeDetailsId)) return;
+
+            const activeElement = document.activeElement;
+            const isEditing = activeElement && activeElement.closest && activeElement.closest(
+                '#kampdetaljer-info input, #kampdetaljer-info textarea, #kampdetaljer-info select'
+            );
+            if (isEditing) return;
+
+            requestAnimationFrame(() => window.showMatchDetails(window.activeDetailsId));
         }
 
         function syncTeams(teamsData) {
@@ -324,6 +339,15 @@
                 try {
                     const id = matchObject.id || crypto.randomUUID();
                     matchObject.id = id;
+                    const current = [...(window.activeMatches || [])];
+                    const idx = current.findIndex(m => m.id === id);
+                    if (idx > -1) {
+                        current[idx] = { ...current[idx], ...matchObject, id };
+                    } else {
+                        current.push(matchObject);
+                    }
+                    syncMatches(current);
+                    if (typeof window.renderCalendar === 'function') window.renderCalendar();
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject);
                     return true;
                 } catch (e) { console.error(e); }
