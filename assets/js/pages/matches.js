@@ -398,7 +398,59 @@ const matchGamePlanStarterPositions = {
     SP: { top: '50%', left: '40%' }
 };
 
-function buildMatchGamePlanStarter11Html() {
+const matchGamePlanPositionRequirements = {
+    GK: ['Keeper'],
+    VMS: ['Venstre stopper', 'Høyre stopper'],
+    HMS: ['Høyre stopper', 'Venstre stopper'],
+    VB: ['Venstre bekk'],
+    HB: ['Høyre bekk'],
+    DM: ['Defensiv midtbane'],
+    OM: ['Offensiv midtbane'],
+    PM: ['Playmaker'],
+    VK: ['Venstre kant', 'Venstre bekk'],
+    HK: ['Høyre kant', 'Høyre bekk'],
+    SP: ['Spiss']
+};
+
+function getMatchGamePlanPlayerShortName(player) {
+    const parts = String(player?.navn || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'Spiller';
+    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}` : parts[0];
+}
+
+function getMatchGamePlanLineup(match) {
+    return match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
+}
+
+function getMatchGamePlanPositionScore(player, posId) {
+    const acceptedPositions = matchGamePlanPositionRequirements[posId] || [];
+    if (acceptedPositions.includes(player?.pos1)) return 0;
+    if (acceptedPositions.includes(player?.pos2)) return 1;
+    return 2;
+}
+
+function buildMatchGamePlanNodeHtml(match, posId, coords) {
+    const selectedPlayer = getMatchGamePlanLineup(match)[posId] || null;
+    const playerNameHtml = selectedPlayer
+        ? `<span class="match-game-plan-node-name">${escapeMatchHtml(getMatchGamePlanPlayerShortName(selectedPlayer))}</span>`
+        : '';
+
+    return `
+        <button
+            type="button"
+            class="match-game-plan-node ${selectedPlayer ? 'is-filled' : ''}"
+            style="top: ${coords.top}; left: ${coords.left};"
+            onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}')"
+            data-game-plan-node="${escapeMatchHtml(posId)}"
+            aria-label="Velg spiller for ${escapeMatchHtml(posId)}"
+        >
+            <span class="player-node-pos">${escapeMatchHtml(posId)}</span>
+            ${playerNameHtml}
+        </button>
+    `;
+}
+
+function buildMatchGamePlanStarter11Html(match) {
     return `
         <div class="match-game-plan-pitch-wrap">
             <div class="tactical-pitch match-game-plan-pitch" aria-label="Starter 11 bane">
@@ -412,16 +464,14 @@ function buildMatchGamePlanStarter11Html() {
                 <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-top"></div>
 
                 ${Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
-                    <div class="match-game-plan-node" style="top: ${coords.top}; left: ${coords.left};">
-                        <span class="player-node-pos">${escapeMatchHtml(posId)}</span>
-                    </div>
+                    ${buildMatchGamePlanNodeHtml(match, posId, coords)}
                 `).join('')}
             </div>
         </div>
     `;
 }
 
-function buildMatchGamePlanHtml() {
+function buildMatchGamePlanHtml(match) {
     return `
         <div class="match-game-plan-tabs-wrap" data-no-swipe>
             <button type="button" class="team-report-detail-scroll-btn match-game-plan-scroll-btn match-game-plan-scroll-btn-left" onclick="window.navigateMatchGamePlan(-1)" aria-label="Forrige del av kampplan" data-no-swipe>
@@ -449,7 +499,7 @@ function buildMatchGamePlanHtml() {
             ${matchGamePlanTabs.map(tab => `
                 <section class="match-game-plan-page" data-game-plan-page="${tab.id}" aria-label="${escapeMatchHtml(tab.label)}">
                     ${tab.id === 'starter11'
-                        ? buildMatchGamePlanStarter11Html()
+                        ? buildMatchGamePlanStarter11Html(match)
                         : `
                             <div class="match-game-plan-empty">
                                 <i class="fa-solid fa-clipboard-list"></i>
@@ -745,7 +795,7 @@ window.showMatchDetails = function(id) {
             </div>
             <div class="match-collapsible-content">
                 <div class="match-game-plan-body">
-                    ${buildMatchGamePlanHtml()}
+                    ${buildMatchGamePlanHtml(match)}
                 </div>
             </div>
         </section>
@@ -796,6 +846,127 @@ window.showMatchDetails = function(id) {
     const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
+};
+
+function getMatchGamePlanSelectablePlayers(match) {
+    const activePlayers = (window.activePlayers || [])
+        .filter(player => player.status !== 'Passiv' && (!match.matchGroup || player.spillerLag === match.matchGroup));
+    const participantRefs = typeof window.getMatchParticipantRefs === 'function'
+        ? window.getMatchParticipantRefs(match)
+        : window.getAttendingPlayerRefs(match.attendance);
+
+    if (!participantRefs.length) return activePlayers;
+
+    return activePlayers.filter(player =>
+        participantRefs.some(ref => window.playerRefMatches(ref, player))
+    );
+}
+
+function isMatchGamePlanPlayerSelected(lineup, player, currentPosId) {
+    return Object.entries(lineup || {}).some(([posId, selectedPlayer]) => {
+        if (posId === currentPosId || !selectedPlayer || !player) return false;
+        return (selectedPlayer.id && player.id && selectedPlayer.id === player.id)
+            || (selectedPlayer.navn && player.navn && selectedPlayer.navn === player.navn);
+    });
+}
+
+window.renderMatchGamePlanStarterNode = function(match, posId) {
+    const coords = matchGamePlanStarterPositions[posId];
+    const existingNode = document.querySelector(`[data-game-plan-node="${posId}"]`);
+    if (!coords || !existingNode) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = buildMatchGamePlanNodeHtml(match, posId, coords).trim();
+    existingNode.replaceWith(wrapper.firstElementChild);
+};
+
+window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '') {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
+
+    const selectedPlayer = playerId
+        ? (window.activePlayers || []).find(player => player.id === playerId)
+        : null;
+
+    match.lineup = {
+        ...getMatchGamePlanLineup(match),
+        [posId]: selectedPlayer ? { ...selectedPlayer } : null
+    };
+
+    window.renderMatchGamePlanStarterNode(match, posId);
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+
+    const modal = document.getElementById('tacticalPlayerModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
+window.openMatchGamePlanPlayerSelect = function(matchId, posId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    const modal = document.getElementById('tacticalPlayerModal');
+    const list = document.getElementById('tactical-player-list');
+    const label = document.getElementById('tactical-pos-label');
+    if (!match || !modal || !list) return;
+
+    const lineup = getMatchGamePlanLineup(match);
+    const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) => {
+        const scoreA = getMatchGamePlanPositionScore(a, posId);
+        const scoreB = getMatchGamePlanPositionScore(b, posId);
+        if (scoreA !== scoreB) return scoreA - scoreB;
+
+        const jerseyA = Number(a.drakt || a.draktnummer) || 999;
+        const jerseyB = Number(b.drakt || b.draktnummer) || 999;
+        return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
+    });
+
+    if (label) label.innerText = `Velger for: ${posId}`;
+    list.innerHTML = '';
+
+    players.forEach(player => {
+        const isSelectedElsewhere = isMatchGamePlanPlayerSelected(lineup, player, posId);
+        const score = getMatchGamePlanPositionScore(player, posId);
+        const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
+        const jersey = player.drakt || player.draktnummer || '-';
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = `match-game-plan-player-option ${isSelectedElsewhere ? 'is-disabled' : ''}`;
+        row.disabled = isSelectedElsewhere;
+        row.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, player.id);
+        row.innerHTML = `
+            <span class="match-game-plan-player-avatar">${escapeMatchHtml(jersey)}</span>
+            <span class="match-game-plan-player-copy">
+                <strong>${escapeMatchHtml(player.navn)}</strong>
+                <span>${escapeMatchHtml(player.pos1 || 'Ukjent posisjon')}</span>
+            </span>
+            <span class="match-game-plan-player-tag">${isSelectedElsewhere ? 'Opptatt' : matchLabel}</span>
+        `;
+        list.appendChild(row);
+    });
+
+    if (!players.length) {
+        list.innerHTML = `
+            <div class="match-game-plan-player-empty">
+                Ingen påmeldte spillere å velge mellom ennå.
+            </div>
+        `;
+    }
+
+    if (lineup[posId]) {
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'match-game-plan-player-clear';
+        clearButton.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, '');
+        clearButton.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${escapeMatchHtml(posId)}`;
+        list.appendChild(clearButton);
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 };
 
 window.syncMatchGamePlanScroller = function() {
