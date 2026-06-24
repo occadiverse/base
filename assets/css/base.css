@@ -5202,6 +5202,9 @@
         .match-collapsible-panel.is-collapsed .match-bench-action-row {
             margin-bottom: 0;
         }
+        .match-collapsible-panel.is-collapsed {
+            padding-bottom: 0;
+        }
         .match-collapsible-panel.is-collapsed .match-bench-collapsible,
         .match-collapsible-panel.is-collapsed .match-collapsible-content {
             display: none;
