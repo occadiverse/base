@@ -393,6 +393,7 @@
         window.openPlayerSelect = function(posId) {
     currentSelectPos = posId;
     const modal = document.getElementById('tacticalPlayerModal');
+    modal.classList.remove('match-game-plan-select-modal');
     const list = document.getElementById('tactical-player-list');
     document.getElementById('tactical-pos-label').innerText = `Velger for: ${posId}`;
     list.innerHTML = '';
@@ -502,6 +503,7 @@
 };
 
         window.closePlayerSelect = function() {
+            document.getElementById('tacticalPlayerModal').classList.remove('match-game-plan-select-modal');
             document.getElementById('tacticalPlayerModal').classList.add('hidden');
             document.getElementById('tacticalPlayerModal').classList.remove('flex');
             currentSelectPos = null;

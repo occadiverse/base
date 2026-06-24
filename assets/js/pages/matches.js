@@ -901,12 +901,90 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
 
     const modal = document.getElementById('tacticalPlayerModal');
     if (modal) {
+        modal.classList.remove('match-game-plan-select-modal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
 };
 
-window.openMatchGamePlanPlayerSelect = function(matchId, posId) {
+window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPosId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match || fromPosId === toPosId) return;
+
+    const lineup = { ...getMatchGamePlanLineup(match) };
+    const movingPlayer = lineup[fromPosId] || null;
+    const targetPlayer = lineup[toPosId] || null;
+    if (!movingPlayer) return;
+
+    lineup[toPosId] = movingPlayer;
+    lineup[fromPosId] = targetPlayer || null;
+    match.lineup = lineup;
+
+    window.renderMatchGamePlanStarterNode(match, fromPosId);
+    window.renderMatchGamePlanStarterNode(match, toPosId);
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+
+    const modal = document.getElementById('tacticalPlayerModal');
+    if (modal) {
+        modal.classList.remove('match-game-plan-select-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
+function renderMatchGamePlanSelectActions(list, matchId, posId, mode) {
+    const actions = document.createElement('div');
+    actions.className = 'match-game-plan-select-actions';
+    actions.innerHTML = `
+        <button type="button" class="match-game-plan-select-action ${mode === 'player' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'player')">
+            <i class="fa-solid fa-user-pen"></i>
+            <span>Bytt spiller</span>
+        </button>
+        <button type="button" class="match-game-plan-select-action ${mode === 'position' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'position')">
+            <i class="fa-solid fa-arrows-left-right"></i>
+            <span>Bytt posisjon</span>
+        </button>
+    `;
+    list.appendChild(actions);
+}
+
+function renderMatchGamePlanPositionOptions(list, match, posId) {
+    const lineup = getMatchGamePlanLineup(match);
+    const currentPlayer = lineup[posId];
+    if (!currentPlayer) return;
+
+    const options = Object.keys(matchGamePlanStarterPositions)
+        .filter(targetPosId => targetPosId !== posId)
+        .sort((a, b) => {
+            const scoreA = getMatchGamePlanPositionScore(currentPlayer, a);
+            const scoreB = getMatchGamePlanPositionScore(currentPlayer, b);
+            return scoreA - scoreB || a.localeCompare(b);
+        });
+
+    options.forEach(targetPosId => {
+        const targetPlayer = lineup[targetPosId];
+        const score = getMatchGamePlanPositionScore(currentPlayer, targetPosId);
+        const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'match-game-plan-player-option';
+        row.onclick = () => window.moveMatchGamePlanPlayerPosition(match.id, posId, targetPosId);
+        row.innerHTML = `
+            <span class="match-game-plan-player-avatar">${escapeMatchHtml(targetPosId)}</span>
+            <span class="match-game-plan-player-copy">
+                <strong>${escapeMatchHtml(targetPosId)}</strong>
+                <span>${targetPlayer ? `Bytt med ${escapeMatchHtml(getMatchGamePlanPlayerShortName(targetPlayer))}` : 'Ledig posisjon'}</span>
+            </span>
+            <span class="match-game-plan-player-tag">${matchLabel}</span>
+        `;
+        list.appendChild(row);
+    });
+}
+
+window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     const modal = document.getElementById('tacticalPlayerModal');
     const list = document.getElementById('tactical-player-list');
@@ -914,6 +992,8 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId) {
     if (!match || !modal || !list) return;
 
     const lineup = getMatchGamePlanLineup(match);
+    const selectedPlayer = lineup[posId] || null;
+    const currentMode = mode || 'player';
     const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) => {
         const scoreA = getMatchGamePlanPositionScore(a, posId);
         const scoreB = getMatchGamePlanPositionScore(b, posId);
@@ -927,36 +1007,57 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId) {
     if (label) label.innerText = `Velger for: ${posId}`;
     list.innerHTML = '';
 
-    players.forEach(player => {
-        const isSelectedElsewhere = isMatchGamePlanPlayerSelected(lineup, player, posId);
-        const score = getMatchGamePlanPositionScore(player, posId);
-        const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
-        const jersey = player.drakt || player.draktnummer || '-';
-        const row = document.createElement('button');
-        row.type = 'button';
-        row.className = `match-game-plan-player-option ${isSelectedElsewhere ? 'is-disabled' : ''}`;
-        row.disabled = isSelectedElsewhere;
-        row.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, player.id);
-        row.innerHTML = `
-            <span class="match-game-plan-player-avatar">${escapeMatchHtml(jersey)}</span>
+    if (selectedPlayer) {
+        const summary = document.createElement('div');
+        summary.className = 'match-game-plan-selected-summary';
+        summary.innerHTML = `
+            <span class="match-game-plan-player-avatar">${escapeMatchHtml(selectedPlayer.drakt || selectedPlayer.draktnummer || '-')}</span>
             <span class="match-game-plan-player-copy">
-                <strong>${escapeMatchHtml(player.navn)}</strong>
-                <span>${escapeMatchHtml(player.pos1 || 'Ukjent posisjon')}</span>
+                <strong>${escapeMatchHtml(selectedPlayer.navn)}</strong>
+                <span>${escapeMatchHtml(selectedPlayer.pos1 || 'Ukjent posisjon')}</span>
             </span>
-            <span class="match-game-plan-player-tag">${isSelectedElsewhere ? 'Opptatt' : matchLabel}</span>
         `;
-        list.appendChild(row);
-    });
-
-    if (!players.length) {
-        list.innerHTML = `
-            <div class="match-game-plan-player-empty">
-                Ingen påmeldte spillere å velge mellom ennå.
-            </div>
-        `;
+        list.appendChild(summary);
+        renderMatchGamePlanSelectActions(list, matchId, posId, currentMode);
     }
 
-    if (lineup[posId]) {
+    if (currentMode === 'position' && selectedPlayer) {
+        renderMatchGamePlanPositionOptions(list, match, posId);
+    } else {
+        players
+            .filter(player => !selectedPlayer || !window.playerRefMatches(player.id || player.navn, selectedPlayer))
+            .forEach(player => {
+                const isSelectedElsewhere = isMatchGamePlanPlayerSelected(lineup, player, posId);
+                const score = getMatchGamePlanPositionScore(player, posId);
+                const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
+                const jersey = player.drakt || player.draktnummer || '-';
+                const row = document.createElement('button');
+                row.type = 'button';
+                row.className = `match-game-plan-player-option ${isSelectedElsewhere ? 'is-disabled' : ''}`;
+                row.disabled = isSelectedElsewhere;
+                row.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, player.id);
+                row.innerHTML = `
+                    <span class="match-game-plan-player-avatar">${escapeMatchHtml(jersey)}</span>
+                    <span class="match-game-plan-player-copy">
+                        <strong>${escapeMatchHtml(player.navn)}</strong>
+                        <span>${escapeMatchHtml(player.pos1 || 'Ukjent posisjon')}</span>
+                    </span>
+                    <span class="match-game-plan-player-tag">${isSelectedElsewhere ? 'Opptatt' : matchLabel}</span>
+                `;
+                list.appendChild(row);
+            });
+    }
+
+    if (!list.querySelector('.match-game-plan-player-option')) {
+        const empty = document.createElement('div');
+        empty.className = 'match-game-plan-player-empty';
+        empty.textContent = currentMode === 'position'
+            ? 'Ingen posisjoner å bytte til.'
+            : 'Ingen påmeldte spillere å velge mellom ennå.';
+        list.appendChild(empty);
+    }
+
+    if (selectedPlayer) {
         const clearButton = document.createElement('button');
         clearButton.type = 'button';
         clearButton.className = 'match-game-plan-player-clear';
@@ -965,6 +1066,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId) {
         list.appendChild(clearButton);
     }
 
+    modal.classList.add('match-game-plan-select-modal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 };
