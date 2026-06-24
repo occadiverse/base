@@ -467,6 +467,12 @@ function getMatchGamePlanPositionScore(player, posId) {
     return 2;
 }
 
+function matchGamePlanSamePlayer(left, right) {
+    if (!left || !right) return false;
+    return (left.id && right.id && left.id === right.id)
+        || (left.navn && right.navn && left.navn === right.navn);
+}
+
 function getMatchGamePlanPositionLabel(posId) {
     return matchGamePlanPositionLabels[posId] || posId;
 }
@@ -993,6 +999,7 @@ function renderMatchGamePlanPositionOptions(list, match, posId) {
 
     const options = Object.keys(matchGamePlanStarterPositions)
         .filter(targetPosId => targetPosId !== posId)
+        .filter(targetPosId => !matchGamePlanSamePlayer(lineup[targetPosId], currentPlayer))
         .sort((a, b) => {
             const scoreA = getMatchGamePlanPositionScore(currentPlayer, a);
             const scoreB = getMatchGamePlanPositionScore(currentPlayer, b);
@@ -1060,6 +1067,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         renderMatchGamePlanPositionOptions(list, match, posId);
     } else {
         players
+            .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer))
             .forEach(player => {
                 const score = getMatchGamePlanPositionScore(player, posId);
                 const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
