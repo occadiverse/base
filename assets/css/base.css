@@ -5320,20 +5320,22 @@
             font-size: 0.72rem;
             font-weight: 800;
         }
-        .match-bench-heading-count {
+        .match-bench-heading .match-bench-heading-count {
             align-items: center;
-            background: #f5c542;
-            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: #f5c542 !important;
+            border: 1px solid rgba(255, 255, 255, 0.24) !important;
             border-radius: 999px;
             color: #0b2b4c !important;
             display: inline-flex;
             flex: 0 0 auto;
             font-size: 0.82rem !important;
             font-weight: 950 !important;
-            height: 2.1rem;
+            height: 2.1rem !important;
             justify-content: center;
-            min-width: 2.1rem;
-            padding: 0 0.58rem;
+            line-height: 1 !important;
+            min-width: 0;
+            padding: 0 !important;
+            width: 2.1rem !important;
         }
         .match-bench-list {
             display: flex;
@@ -6603,9 +6605,9 @@
             .match-bench-heading {
                 margin: 0;
             }
-            .match-bench-heading-count {
-                height: 2.1rem;
-                min-width: 2.1rem;
+            .match-bench-heading .match-bench-heading-count {
+                height: 2.1rem !important;
+                width: 2.1rem !important;
             }
             .match-bench-list {
                 background: transparent;
