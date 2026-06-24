@@ -760,10 +760,10 @@ window.showMatchDetails = function(id) {
         <section class="match-bench-panel match-collapsible-panel is-collapsed">
             <div class="match-bench-action-row match-bench-topline">
                 <div class="match-bench-heading">
-                    <h3>Påmeldte spillere</h3>
+                    <h3>Kamptropp</h3>
                     <span class="match-bench-heading-count" aria-label="${selectedPlayers.length} påmeldte spillere">${selectedPlayers.length}</span>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis påmeldte spillere" data-show-label="Vis påmeldte spillere" data-hide-label="Skjul påmeldte spillere">
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis kamptropp" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
                 <div class="match-bench-actions">
