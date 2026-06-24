@@ -317,6 +317,10 @@ function buildMatchDetailCardHtml(match, options = {}) {
         `
         : '';
     const topChipsHtml = `
+        <button type="button" class="match-detail-chip match-detail-edit-btn" onclick="window.openMatchModal('${escapeMatchJsString(match.id)}')" title="Rediger kamp">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Rediger</span>
+        </button>
         <div class="match-detail-chip">
             <i class="fa-solid fa-futbol"></i>
             <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
@@ -629,10 +633,6 @@ window.showMatchDetails = function(id) {
                     <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-bench-action-btn" title="Legg til spillere">
                         <i class="fa-solid fa-user-check"></i>
                         <span>Legg til</span>
-                    </button>
-                    <button type="button" onclick="window.openMatchModal('${escapeJsString(match.id)}')" class="match-bench-action-btn" title="Rediger kamp">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        <span>Rediger</span>
                     </button>
                 </div>
             </div>
