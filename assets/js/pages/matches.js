@@ -384,6 +384,43 @@ const matchGamePlanTabs = [
     { id: 'bench', label: 'Benk' }
 ];
 
+const matchGamePlanStarterPositions = {
+    GK: { top: '94%', left: '50%' },
+    VMS: { top: '95%', left: '34%' },
+    HMS: { top: '95%', left: '66%' },
+    VB: { top: '85%', left: '16%' },
+    HB: { top: '85%', left: '84%' },
+    DM: { top: '80%', left: '63%' },
+    OM: { top: '80%', left: '37%' },
+    PM: { top: '55%', left: '60%' },
+    VK: { top: '50%', left: '5%' },
+    HK: { top: '50%', left: '95%' },
+    SP: { top: '50%', left: '40%' }
+};
+
+function buildMatchGamePlanStarter11Html() {
+    return `
+        <div class="match-game-plan-pitch-wrap">
+            <div class="tactical-pitch match-game-plan-pitch" aria-label="Starter 11 bane">
+                <div class="match-game-plan-pitch-halfway"></div>
+                <div class="match-game-plan-pitch-center-circle"></div>
+                <div class="match-game-plan-pitch-box match-game-plan-pitch-box-bottom"></div>
+                <div class="match-game-plan-pitch-arc match-game-plan-pitch-arc-bottom"></div>
+                <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-bottom"></div>
+                <div class="match-game-plan-pitch-box match-game-plan-pitch-box-top"></div>
+                <div class="match-game-plan-pitch-arc match-game-plan-pitch-arc-top"></div>
+                <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-top"></div>
+
+                ${Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
+                    <div class="match-game-plan-node" style="top: ${coords.top}; left: ${coords.left};">
+                        <span class="player-node-pos">${escapeMatchHtml(posId)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function buildMatchGamePlanHtml() {
     return `
         <div class="match-game-plan-tabs-wrap" data-no-swipe>
@@ -411,10 +448,14 @@ function buildMatchGamePlanHtml() {
         <div class="match-game-plan-content-scroll" id="match-game-plan-content-scroll" data-no-swipe>
             ${matchGamePlanTabs.map(tab => `
                 <section class="match-game-plan-page" data-game-plan-page="${tab.id}" aria-label="${escapeMatchHtml(tab.label)}">
-                    <div class="match-game-plan-empty">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <span>${escapeMatchHtml(tab.label)} kommer her.</span>
-                    </div>
+                    ${tab.id === 'starter11'
+                        ? buildMatchGamePlanStarter11Html()
+                        : `
+                            <div class="match-game-plan-empty">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <span>${escapeMatchHtml(tab.label)} kommer her.</span>
+                            </div>
+                        `}
                 </section>
             `).join('')}
         </div>

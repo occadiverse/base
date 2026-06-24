@@ -5546,6 +5546,101 @@
             min-width: 100%;
             scroll-snap-align: start;
         }
+        .match-game-plan-pitch-wrap {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .match-game-plan-pitch {
+            aspect-ratio: 2 / 3;
+            border: 1px solid rgba(18, 63, 115, 0.22);
+            border-radius: 1rem;
+            box-shadow: 0 12px 26px rgba(2, 6, 23, 0.18);
+            max-width: 24rem;
+            overflow: hidden;
+            position: relative;
+            width: min(100%, 24rem);
+        }
+        .match-game-plan-pitch-halfway {
+            background: rgba(255, 255, 255, 0.45);
+            height: 2px;
+            left: 0;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+        }
+        .match-game-plan-pitch-center-circle {
+            aspect-ratio: 1 / 1;
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            border-radius: 999px;
+            left: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 35%;
+        }
+        .match-game-plan-pitch-box,
+        .match-game-plan-pitch-arc,
+        .match-game-plan-pitch-goal {
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            left: 50%;
+            position: absolute;
+            transform: translateX(-50%);
+        }
+        .match-game-plan-pitch-box {
+            height: 15%;
+            width: 60%;
+        }
+        .match-game-plan-pitch-arc {
+            height: 8%;
+            width: 25%;
+        }
+        .match-game-plan-pitch-goal {
+            height: 5%;
+            width: 25%;
+        }
+        .match-game-plan-pitch-box-bottom {
+            border-bottom: 0;
+            bottom: 0;
+        }
+        .match-game-plan-pitch-arc-bottom {
+            border-bottom: 0;
+            border-radius: 999px 999px 0 0;
+            bottom: 15%;
+        }
+        .match-game-plan-pitch-goal-bottom {
+            border-bottom: 0;
+            bottom: 0;
+        }
+        .match-game-plan-pitch-box-top {
+            border-top: 0;
+            top: 0;
+        }
+        .match-game-plan-pitch-arc-top {
+            border-radius: 0 0 999px 999px;
+            border-top: 0;
+            top: 15%;
+        }
+        .match-game-plan-pitch-goal-top {
+            border-top: 0;
+            top: 0;
+        }
+        .match-game-plan-node {
+            align-items: center;
+            background: #123f73;
+            border: 2px solid rgba(245, 197, 66, 0.6);
+            border-radius: 999px;
+            box-shadow: 0 10px 18px rgba(2, 6, 23, 0.28);
+            color: #ffffff;
+            display: flex;
+            height: 2.45rem;
+            justify-content: center;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 2.45rem;
+            z-index: 2;
+        }
         .match-game-plan-empty {
             align-items: center;
             color: rgba(255, 255, 255, 0.58);
@@ -6310,6 +6405,14 @@
             }
             .match-game-plan-tabs {
                 padding-inline: 2.25rem;
+            }
+            .match-game-plan-pitch {
+                max-width: 19rem;
+                width: min(100%, 19rem);
+            }
+            .match-game-plan-node {
+                height: 2.1rem;
+                width: 2.1rem;
             }
             .match-coach-notes-body {
                 padding: 0.65rem;
