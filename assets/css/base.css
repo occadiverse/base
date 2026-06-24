@@ -5824,7 +5824,6 @@
             border-bottom: 1px solid rgba(245, 197, 66, 0.16) !important;
             padding: 0.9rem 1rem !important;
         }
-        .match-game-plan-header-action,
         .match-game-plan-select-modal [onclick="closePlayerSelect()"] {
             align-items: center;
             background: rgba(255, 255, 255, 0.08) !important;
@@ -5842,23 +5841,14 @@
             transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
             width: 2.1rem !important;
         }
-        .match-game-plan-header-action {
-            margin-left: auto;
-        }
-        .match-game-plan-header-action i,
         .match-game-plan-select-modal [onclick="closePlayerSelect()"] i {
             color: #f5c542 !important;
             font-size: 0.82rem !important;
         }
-        .match-game-plan-header-action:hover,
         .match-game-plan-select-modal [onclick="closePlayerSelect()"]:hover {
             background: rgba(245, 197, 66, 0.16) !important;
             border-color: rgba(245, 197, 66, 0.38) !important;
             transform: translateY(-1px);
-        }
-        .match-game-plan-header-action.is-active {
-            background: rgba(245, 197, 66, 0.22) !important;
-            border-color: rgba(245, 197, 66, 0.48) !important;
         }
         .match-game-plan-select-modal h3 {
             color: #ffffff !important;

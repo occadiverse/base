@@ -913,7 +913,6 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     const modal = document.getElementById('tacticalPlayerModal');
     if (modal) {
         modal.classList.remove('match-game-plan-select-modal');
-        modal.querySelector('[data-match-game-plan-position-action]')?.remove();
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
@@ -942,15 +941,12 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     const modal = document.getElementById('tacticalPlayerModal');
     if (modal) {
         modal.classList.remove('match-game-plan-select-modal');
-        modal.querySelector('[data-match-game-plan-position-action]')?.remove();
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
 };
 
 function renderMatchGamePlanSelectActions(list, matchId, posId, mode) {
-    if (mode === 'player') return;
-
     const actions = document.createElement('div');
     actions.className = 'match-game-plan-select-actions';
     actions.innerHTML = `
@@ -958,28 +954,12 @@ function renderMatchGamePlanSelectActions(list, matchId, posId, mode) {
             <i class="fa-solid fa-user-pen"></i>
             <span>Bytt spiller</span>
         </button>
+        <button type="button" class="match-game-plan-select-action ${mode === 'position' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'position')">
+            <i class="fa-solid fa-arrows-left-right"></i>
+            <span>Bytt posisjon</span>
+        </button>
     `;
     list.appendChild(actions);
-}
-
-function renderMatchGamePlanHeaderAction(modal, matchId, posId, mode, selectedPlayer) {
-    const closeButton = modal.querySelector('[onclick="closePlayerSelect()"]');
-    modal.querySelector('[data-match-game-plan-position-action]')?.remove();
-    if (!closeButton || !selectedPlayer) return;
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `match-game-plan-header-action ${mode === 'position' ? 'is-active' : ''}`;
-    button.setAttribute('data-match-game-plan-position-action', 'true');
-    button.setAttribute('aria-label', mode === 'position' ? 'Vis spillerliste' : 'Bytt posisjon');
-    button.title = mode === 'position' ? 'Bytt spiller' : 'Bytt posisjon';
-    button.onclick = () => window.openMatchGamePlanPlayerSelect(
-        matchId,
-        posId,
-        mode === 'position' ? 'player' : 'position'
-    );
-    button.innerHTML = `<i class="fa-solid ${mode === 'position' ? 'fa-user-pen' : 'fa-arrows-left-right'}"></i>`;
-    closeButton.parentNode.insertBefore(button, closeButton);
 }
 
 function renderMatchGamePlanPositionOptions(list, match, posId) {
@@ -1041,7 +1021,6 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     }
     if (label) label.innerText = selectedPlayer ? selectedPlayer.navn : 'Ledig';
     list.innerHTML = '';
-    renderMatchGamePlanHeaderAction(modal, matchId, posId, currentMode, selectedPlayer);
 
     if (selectedPlayer) {
         renderMatchGamePlanSelectActions(list, matchId, posId, currentMode);
