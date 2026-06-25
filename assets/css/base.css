@@ -5739,6 +5739,11 @@
             width: min(92%, 21rem);
             z-index: 4;
         }
+        .match-game-plan-role-controls {
+            bottom: auto;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
         .match-game-plan-offc-select-field {
             align-items: center;
             background: rgba(255, 255, 255, 0.96);

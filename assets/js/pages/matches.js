@@ -425,6 +425,14 @@ const matchGamePlanDefCPositions = {
     10: { top: '50%', left: '75%', tone: 'green' }
 };
 
+const matchGamePlanRoleSlots = ['K', 'K2', 'Cv', 'Ch', 'F', 'F2', 'S', 'S2'];
+
+const matchGamePlanAssignmentKeys = {
+    offc: 'offcAssignments',
+    defc: 'defcAssignments',
+    roller: 'rolePlanAssignments'
+};
+
 const matchGamePlanPositionRequirements = {
     GK: ['Keeper'],
     VMS: ['Venstre stopper', 'Høyre stopper'],
@@ -492,7 +500,7 @@ function getMatchGamePlanOffCAssignments(match) {
 }
 
 function getMatchGamePlanSetPieceAssignments(match, planId) {
-    const key = planId === 'defc' ? 'defcAssignments' : 'offcAssignments';
+    const key = matchGamePlanAssignmentKeys[planId] || matchGamePlanAssignmentKeys.offc;
     return match && typeof match[key] === 'object' && match[key] ? match[key] : {};
 }
 
@@ -551,7 +559,7 @@ function getMatchGamePlanStarterPlayerValue(player) {
 function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 'offc') {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
     const selectedValue = assignments[slot] || '';
-    const planLabel = planId === 'defc' ? 'DefC' : 'OffC';
+    const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
 
     return `
         <label class="match-game-plan-offc-select-field">
@@ -572,16 +580,17 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
     `;
 }
 
-function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc') {
+function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}) {
     const lineup = getMatchGamePlanLineup(match);
     const starterPlayers = Object.keys(matchGamePlanStarterPositions)
         .map(posId => ({ posId, player: lineup[posId] }))
         .filter(item => item.player);
-    const slots = ['1', '6', '2', '7', '3', '8', '4', '9', '5', '10'];
-    const planLabel = planId === 'defc' ? 'DefC' : 'OffC';
+    const slots = options.slots || ['1', '6', '2', '7', '3', '8', '4', '9', '5', '10'];
+    const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
+    const extraClass = options.className ? ` ${options.className}` : '';
 
     return `
-        <div class="match-game-plan-offc-controls" aria-label="${escapeMatchHtml(planLabel)} spillervalg">
+        <div class="match-game-plan-offc-controls${extraClass}" aria-label="${escapeMatchHtml(planLabel)} spillervalg">
             ${slots.map(slot => buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId)).join('')}
         </div>
     `;
@@ -638,13 +647,37 @@ function buildMatchGamePlanDefCHtml(match) {
     });
 }
 
+function buildMatchGamePlanRolesHtml(match) {
+    return buildMatchGamePlanPitchHtml({
+        ariaLabel: 'Roller bane',
+        childrenHtml: buildMatchGamePlanOffCControlsHtml(match, 'roller', {
+            slots: matchGamePlanRoleSlots,
+            className: 'match-game-plan-role-controls'
+        })
+    });
+}
+
+function buildMatchGamePlanBenchHtml() {
+    return buildMatchGamePlanPitchHtml({
+        ariaLabel: 'Benk bane'
+    });
+}
+
 function renderMatchGamePlanSetPiecePage(match, planId) {
     const page = document.querySelector(`[data-game-plan-page="${planId}"]`);
     if (!page) return;
 
-    page.innerHTML = planId === 'defc'
-        ? buildMatchGamePlanDefCHtml(match)
-        : buildMatchGamePlanOffCHtml(match);
+    if (planId === 'defc') {
+        page.innerHTML = buildMatchGamePlanDefCHtml(match);
+        return;
+    }
+
+    if (planId === 'roller') {
+        page.innerHTML = buildMatchGamePlanRolesHtml(match);
+        return;
+    }
+
+    page.innerHTML = buildMatchGamePlanOffCHtml(match);
 }
 
 function renderMatchGamePlanOffCPage(match) {
@@ -653,6 +686,10 @@ function renderMatchGamePlanOffCPage(match) {
 
 function renderMatchGamePlanDefCPage(match) {
     renderMatchGamePlanSetPiecePage(match, 'defc');
+}
+
+function renderMatchGamePlanRolesPage(match) {
+    renderMatchGamePlanSetPiecePage(match, 'roller');
 }
 
 function buildMatchGamePlanTabContentHtml(match, tab) {
@@ -668,6 +705,14 @@ function buildMatchGamePlanTabContentHtml(match, tab) {
         return buildMatchGamePlanDefCHtml(match);
     }
 
+    if (tab.id === 'roller') {
+        return buildMatchGamePlanRolesHtml(match);
+    }
+
+    if (tab.id === 'bench') {
+        return buildMatchGamePlanBenchHtml();
+    }
+
     return `
         <div class="match-game-plan-empty">
             <i class="fa-solid fa-clipboard-list"></i>
@@ -677,7 +722,7 @@ function buildMatchGamePlanTabContentHtml(match, tab) {
 }
 
 function ensureMatchGamePlanPitchPages(root = document) {
-    ['offc', 'defc'].forEach(tabId => {
+    ['offc', 'defc', 'roller', 'bench'].forEach(tabId => {
         const page = root.querySelector(`[data-game-plan-page="${tabId}"]`);
         if (!page) return;
 
@@ -692,12 +737,19 @@ function ensureMatchGamePlanPitchPages(root = document) {
                 : buildMatchGamePlanOffCHtml(match);
             return;
         }
+        if (tabId === 'roller' && (!hasPitch || !hasSetPieceControls)) {
+            const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+            if (!match) return;
+            page.innerHTML = buildMatchGamePlanRolesHtml(match);
+            return;
+        }
         if (hasPitch) return;
 
-        const tab = matchGamePlanTabs.find(item => item.id === tabId);
-        page.innerHTML = buildMatchGamePlanPitchHtml({
-            ariaLabel: `${tab?.label || tabId} bane`
-        });
+        page.innerHTML = tabId === 'bench'
+            ? buildMatchGamePlanBenchHtml()
+            : buildMatchGamePlanPitchHtml({
+                ariaLabel: `${matchGamePlanTabs.find(item => item.id === tabId)?.label || tabId} bane`
+            });
     });
 }
 
@@ -1122,6 +1174,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     window.renderMatchGamePlanStarterNode(match, posId);
     renderMatchGamePlanOffCPage(match);
     renderMatchGamePlanDefCPage(match);
+    renderMatchGamePlanRolesPage(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
@@ -1143,7 +1196,7 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match) return;
 
-    const key = planId === 'defc' ? 'defcAssignments' : 'offcAssignments';
+    const key = matchGamePlanAssignmentKeys[planId] || matchGamePlanAssignmentKeys.offc;
     window.pendingMatchDetailsOpenPanel = 'kampplan';
     window.activeMatchDetailsOpenPanel = 'kampplan';
     match[key] = {
@@ -1175,6 +1228,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     window.renderMatchGamePlanStarterNode(match, toPosId);
     renderMatchGamePlanOffCPage(match);
     renderMatchGamePlanDefCPage(match);
+    renderMatchGamePlanRolesPage(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
