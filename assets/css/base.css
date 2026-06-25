@@ -5737,10 +5737,10 @@
             width: 0.68rem;
         }
         .match-game-plan-player-status-dot.is-on-pitch {
-            background: #22c55e;
+            background: #ef4444;
         }
         .match-game-plan-player-status-dot.is-off-pitch {
-            background: #ef4444;
+            background: #22c55e;
         }
         .match-game-plan-player-avatar {
             align-items: center;

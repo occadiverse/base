@@ -1090,7 +1090,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
                 row.className = 'match-game-plan-player-option';
                 row.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, player.id);
                 row.innerHTML = `
-                    <span class="match-game-plan-player-status-dot ${isOnPitch ? 'is-on-pitch' : 'is-off-pitch'}" title="${isOnPitch ? 'På banen' : 'Ikke på banen'}"></span>
+                    <span class="match-game-plan-player-status-dot ${isOnPitch ? 'is-on-pitch' : 'is-off-pitch'}" title="${isOnPitch ? 'Allerede på banen' : 'Ledig'}"></span>
                     <span class="match-game-plan-player-avatar">${escapeMatchHtml(jersey)}</span>
                     <span class="match-game-plan-player-copy">
                         <strong>${escapeMatchHtml(player.navn)}</strong>
