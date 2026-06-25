@@ -398,6 +398,19 @@ const matchGamePlanStarterPositions = {
     SP: { top: '50%', left: '40%' }
 };
 
+const matchGamePlanOffCPositions = {
+    1: { top: '4%', left: '95%', tone: 'neutral' },
+    2: { top: '24%', left: '60%', tone: 'green' },
+    3: { top: '24%', left: '50%', tone: 'green' },
+    4: { top: '24%', left: '40%', tone: 'green' },
+    5: { top: '16%', left: '71%', tone: 'green' },
+    6: { top: '40%', left: '78%', tone: 'yellow' },
+    7: { top: '31%', left: '50%', tone: 'yellow' },
+    8: { top: '40%', left: '22%', tone: 'yellow' },
+    9: { top: '43%', left: '50%', tone: 'pink' },
+    10: { top: '50%', left: '50%', tone: 'pink' }
+};
+
 const matchGamePlanPositionRequirements = {
     GK: ['Keeper'],
     VMS: ['Venstre stopper', 'Høyre stopper'],
@@ -498,6 +511,16 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
     `;
 }
 
+function buildMatchGamePlanDiagramNodeHtml(value, coords) {
+    return `
+        <span
+            class="match-game-plan-diagram-node is-${escapeMatchHtml(coords.tone || 'neutral')}"
+            style="top: ${coords.top}; left: ${coords.left};"
+            aria-label="OffC ${escapeMatchHtml(value)}"
+        >${escapeMatchHtml(value)}</span>
+    `;
+}
+
 function buildMatchGamePlanPitchLinesHtml() {
     return `
         <div class="match-game-plan-pitch-halfway"></div>
@@ -531,12 +554,25 @@ function buildMatchGamePlanStarter11Html(match) {
     });
 }
 
+function buildMatchGamePlanOffCHtml() {
+    return buildMatchGamePlanPitchHtml({
+        ariaLabel: 'OffC bane',
+        childrenHtml: Object.entries(matchGamePlanOffCPositions).map(([value, coords]) => `
+            ${buildMatchGamePlanDiagramNodeHtml(value, coords)}
+        `).join('')
+    });
+}
+
 function buildMatchGamePlanTabContentHtml(match, tab) {
     if (tab.id === 'starter11') {
         return buildMatchGamePlanStarter11Html(match);
     }
 
-    if (tab.id === 'offc' || tab.id === 'defc') {
+    if (tab.id === 'offc') {
+        return buildMatchGamePlanOffCHtml();
+    }
+
+    if (tab.id === 'defc') {
         return buildMatchGamePlanPitchHtml({
             ariaLabel: `${tab.label} bane`
         });
@@ -556,9 +592,11 @@ function ensureMatchGamePlanPitchPages(root = document) {
         if (!page || page.querySelector('.match-game-plan-pitch-wrap')) return;
 
         const tab = matchGamePlanTabs.find(item => item.id === tabId);
-        page.innerHTML = buildMatchGamePlanPitchHtml({
-            ariaLabel: `${tab?.label || tabId} bane`
-        });
+        page.innerHTML = tabId === 'offc'
+            ? buildMatchGamePlanOffCHtml()
+            : buildMatchGamePlanPitchHtml({
+                ariaLabel: `${tab?.label || tabId} bane`
+            });
     });
 }
 

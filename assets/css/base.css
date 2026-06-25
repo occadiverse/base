@@ -5689,6 +5689,34 @@
                 0 10px 18px rgba(2, 6, 23, 0.28),
                 0 0 0 3px rgba(245, 197, 66, 0.28);
         }
+        .match-game-plan-diagram-node {
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.34);
+            box-shadow: 0 8px 16px rgba(2, 6, 23, 0.12);
+            color: #111827;
+            display: inline-flex;
+            font-size: 1.15rem;
+            font-weight: 950;
+            height: 2.2rem;
+            justify-content: center;
+            line-height: 1;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 2.45rem;
+            z-index: 2;
+        }
+        .match-game-plan-diagram-node.is-neutral {
+            background: rgba(226, 232, 240, 0.86);
+        }
+        .match-game-plan-diagram-node.is-green {
+            background: rgba(140, 198, 111, 0.88);
+        }
+        .match-game-plan-diagram-node.is-yellow {
+            background: rgba(254, 240, 177, 0.9);
+        }
+        .match-game-plan-diagram-node.is-pink {
+            background: rgba(254, 202, 202, 0.9);
+        }
         .match-game-plan-node-name {
             background: rgba(255, 255, 255, 0.96);
             border: 1px solid rgba(18, 63, 115, 0.12);
@@ -6793,6 +6821,11 @@
             .match-game-plan-node {
                 height: 2.1rem;
                 width: 2.1rem;
+            }
+            .match-game-plan-diagram-node {
+                font-size: 0.98rem;
+                height: 1.9rem;
+                width: 2.15rem;
             }
             .match-game-plan-node-name {
                 font-size: 0.5rem;
