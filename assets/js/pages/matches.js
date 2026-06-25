@@ -538,9 +538,9 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers) {
         <label class="match-game-plan-offc-select-field">
             <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slot)}</span>
             <select
-                class="match-game-plan-offc-select"
+                class="match-game-plan-offc-select ${selectedValue ? '' : 'is-empty'}"
                 aria-label="Velg spiller for OffC ${escapeMatchHtml(slot)}"
-                onchange="window.updateMatchGamePlanOffCPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(slot)}', this.value)"
+                onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanOffCPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(slot)}', this.value)"
             >
                 <option value="">Velg spiller</option>
                 ${starterPlayers.map(({ player }) => {
