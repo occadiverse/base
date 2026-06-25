@@ -412,9 +412,17 @@ const matchGamePlanOffCPositions = {
     10: { top: '50%', left: '50%', tone: 'pink' }
 };
 
-// DefC starts as a copy of OffC and can be tuned independently.
 const matchGamePlanDefCPositions = {
-    ...matchGamePlanOffCPositions
+    1: { top: '3%', left: '63%', tone: 'neutral' },
+    2: { top: '3%', left: '50%', tone: 'green' },
+    3: { top: '3%', left: '42%', tone: 'green' },
+    4: { top: '7%', left: '58%', tone: 'green' },
+    5: { top: '7%', left: '50%', tone: 'green' },
+    6: { top: '7%', left: '42%', tone: 'yellow' },
+    7: { top: '12%', left: '50%', tone: 'yellow' },
+    8: { top: '30%', left: '32%', tone: 'yellow' },
+    9: { top: '50%', left: '25%', tone: 'pink' },
+    10: { top: '50%', left: '75%', tone: 'pink' }
 };
 
 const matchGamePlanPositionRequirements = {
