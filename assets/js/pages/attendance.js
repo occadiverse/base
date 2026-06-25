@@ -186,8 +186,22 @@ window.saveAttendanceRegistry = async function() {
     ev.attendance = typeof window.buildAttendanceMapFromModal === 'function'
         ? window.buildAttendanceMapFromModal(container, ev.attendance, teamPlayers)
         : ev.attendance;
-    if (isMatch) await window.saveMatchToDatabase(ev);
-    else await window.saveEventToDatabase(ev);
+
+    if (isMatch) {
+        const pruneResult = typeof window.pruneMatchPlanUnavailablePlayers === 'function'
+            ? window.pruneMatchPlanUnavailablePlayers(ev)
+            : { match: ev, changed: false };
+        const matchToSave = pruneResult.match;
+        Object.assign(ev, matchToSave);
+        await window.saveMatchToDatabase(matchToSave);
+
+        const tacticalSelect = document.getElementById('tacticalMatchSelect');
+        if (pruneResult.changed && tacticalSelect?.value === ev.id && typeof window.loadMatchTactics === 'function') {
+            window.loadMatchTactics();
+        }
+    } else {
+        await window.saveEventToDatabase(ev);
+    }
 
     window.closeAttendanceModal();
     window.recalculateOppmoteAndKjemi();

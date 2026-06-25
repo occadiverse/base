@@ -123,7 +123,48 @@ window.getMatchStatPlayerRefs = function(match) {
 window.getMatchParticipantRefs = function(match) {
     const attendingRefs = window.getAttendingPlayerRefs(match?.attendance);
     if (attendingRefs.length > 0) return attendingRefs;
+    if (window.hasRegisteredAttendance(match?.attendance)) return [];
     return window.getMatchStatPlayerRefs(match);
+};
+
+window.pruneMatchPlanUnavailablePlayers = function(match) {
+    if (!match || !window.hasRegisteredAttendance(match.attendance)) {
+        return { match, changed: false };
+    }
+
+    let changed = false;
+    const nextMatch = { ...match };
+
+    if (match.lineup && typeof match.lineup === 'object') {
+        nextMatch.lineup = {};
+        Object.entries(match.lineup).forEach(([pos, playerObj]) => {
+            if (!playerObj) {
+                nextMatch.lineup[pos] = null;
+                return;
+            }
+
+            if (window.isPlayerAttending(match.attendance, playerObj)) {
+                nextMatch.lineup[pos] = playerObj;
+            } else {
+                nextMatch.lineup[pos] = null;
+                changed = true;
+            }
+        });
+    }
+
+    if (match.roles && typeof match.roles === 'object') {
+        nextMatch.roles = {};
+        Object.entries(match.roles).forEach(([role, ref]) => {
+            if (!ref || window.isPlayerAttending(match.attendance, ref)) {
+                nextMatch.roles[role] = ref || '';
+            } else {
+                nextMatch.roles[role] = '';
+                changed = true;
+            }
+        });
+    }
+
+    return { match: changed ? nextMatch : match, changed };
 };
 
 window.clearPlayerAttendanceKeys = function(map, playerOrRef) {
