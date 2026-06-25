@@ -398,6 +398,7 @@ const matchGamePlanStarterPositions = {
     SP: { top: '50%', left: '40%' }
 };
 
+// OffC corner diagram. top/left are percentages of the pitch: top moves down, left moves right.
 const matchGamePlanOffCPositions = {
     1: { top: '4%', left: '95%', tone: 'neutral' },
     2: { top: '24%', left: '60%', tone: 'green' },
