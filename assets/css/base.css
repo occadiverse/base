@@ -5720,6 +5720,53 @@
         .match-game-plan-diagram-node.is-pink {
             background: rgba(254, 202, 202, 0.9);
         }
+        .match-game-plan-offc-controls {
+            background: rgba(219, 237, 212, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            bottom: 1.1rem;
+            box-shadow: 0 14px 28px rgba(2, 6, 23, 0.14);
+            display: grid;
+            gap: 1px 2.35rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            left: 50%;
+            padding: 0.2rem;
+            position: absolute;
+            transform: translateX(-50%);
+            width: min(92%, 21rem);
+            z-index: 4;
+        }
+        .match-game-plan-offc-select-field {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(140, 198, 111, 0.36);
+            display: grid;
+            grid-template-columns: 2rem minmax(0, 1fr);
+            min-height: 2.12rem;
+        }
+        .match-game-plan-offc-select-number {
+            color: #020617;
+            font-size: 1rem;
+            font-weight: 900;
+            line-height: 1;
+            padding-left: 0.65rem;
+        }
+        .match-game-plan-offc-select {
+            appearance: auto;
+            background: transparent;
+            border: 0;
+            color: #020617;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.72rem;
+            font-weight: 800;
+            min-width: 0;
+            outline: none;
+            padding: 0.35rem 0.4rem;
+            width: 100%;
+        }
+        .match-game-plan-offc-select option {
+            color: #0f172a;
+        }
         .match-game-plan-node-name {
             background: rgba(255, 255, 255, 0.96);
             border: 1px solid rgba(18, 63, 115, 0.12);
@@ -6829,6 +6876,23 @@
                 font-size: 0.88rem;
                 height: 1.72rem;
                 width: 1.72rem;
+            }
+            .match-game-plan-offc-controls {
+                bottom: 0.75rem;
+                gap: 1px 1.6rem;
+                width: min(94%, 17rem);
+            }
+            .match-game-plan-offc-select-field {
+                grid-template-columns: 1.7rem minmax(0, 1fr);
+                min-height: 1.86rem;
+            }
+            .match-game-plan-offc-select-number {
+                font-size: 0.9rem;
+                padding-left: 0.5rem;
+            }
+            .match-game-plan-offc-select {
+                font-size: 0.62rem;
+                padding: 0.28rem 0.28rem;
             }
             .match-game-plan-node-name {
                 font-size: 0.5rem;

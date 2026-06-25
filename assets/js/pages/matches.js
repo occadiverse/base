@@ -474,6 +474,10 @@ function getMatchGamePlanLineup(match) {
     return match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
 }
 
+function getMatchGamePlanOffCAssignments(match) {
+    return match && typeof match.offcAssignments === 'object' && match.offcAssignments ? match.offcAssignments : {};
+}
+
 function getMatchGamePlanPositionScore(player, posId) {
     const acceptedPositions = matchGamePlanPositionRequirements[posId] || [];
     if (acceptedPositions.includes(player?.pos1)) return 0;
@@ -522,6 +526,47 @@ function buildMatchGamePlanDiagramNodeHtml(value, coords) {
     `;
 }
 
+function getMatchGamePlanStarterPlayerValue(player) {
+    return player?.id || player?.navn || '';
+}
+
+function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers) {
+    const assignments = getMatchGamePlanOffCAssignments(match);
+    const selectedValue = assignments[slot] || '';
+
+    return `
+        <label class="match-game-plan-offc-select-field">
+            <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slot)}</span>
+            <select
+                class="match-game-plan-offc-select"
+                aria-label="Velg spiller for OffC ${escapeMatchHtml(slot)}"
+                onchange="window.updateMatchGamePlanOffCPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(slot)}', this.value)"
+            >
+                <option value="">Velg spiller</option>
+                ${starterPlayers.map(({ posId, player }) => {
+                    const value = getMatchGamePlanStarterPlayerValue(player);
+                    const label = `${getMatchGamePlanPlayerShortName(player)} (${posId})`;
+                    return `<option value="${escapeMatchHtml(value)}" ${selectedValue === value ? 'selected' : ''}>${escapeMatchHtml(label)}</option>`;
+                }).join('')}
+            </select>
+        </label>
+    `;
+}
+
+function buildMatchGamePlanOffCControlsHtml(match) {
+    const lineup = getMatchGamePlanLineup(match);
+    const starterPlayers = Object.keys(matchGamePlanStarterPositions)
+        .map(posId => ({ posId, player: lineup[posId] }))
+        .filter(item => item.player);
+    const slots = ['1', '6', '2', '7', '3', '8', '4', '9', '5', '10'];
+
+    return `
+        <div class="match-game-plan-offc-controls" aria-label="OffC spillervalg">
+            ${slots.map(slot => buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers)).join('')}
+        </div>
+    `;
+}
+
 function buildMatchGamePlanPitchLinesHtml() {
     return `
         <div class="match-game-plan-pitch-halfway"></div>
@@ -555,13 +600,20 @@ function buildMatchGamePlanStarter11Html(match) {
     });
 }
 
-function buildMatchGamePlanOffCHtml() {
+function buildMatchGamePlanOffCHtml(match) {
     return buildMatchGamePlanPitchHtml({
         ariaLabel: 'OffC bane',
         childrenHtml: Object.entries(matchGamePlanOffCPositions).map(([value, coords]) => `
             ${buildMatchGamePlanDiagramNodeHtml(value, coords)}
-        `).join('')
+        `).join('') + buildMatchGamePlanOffCControlsHtml(match)
     });
+}
+
+function renderMatchGamePlanOffCPage(match) {
+    const page = document.querySelector('[data-game-plan-page="offc"]');
+    if (!page) return;
+
+    page.innerHTML = buildMatchGamePlanOffCHtml(match);
 }
 
 function buildMatchGamePlanTabContentHtml(match, tab) {
@@ -570,7 +622,7 @@ function buildMatchGamePlanTabContentHtml(match, tab) {
     }
 
     if (tab.id === 'offc') {
-        return buildMatchGamePlanOffCHtml();
+        return buildMatchGamePlanOffCHtml(match);
     }
 
     if (tab.id === 'defc') {
@@ -594,8 +646,11 @@ function ensureMatchGamePlanPitchPages(root = document) {
 
         const hasPitch = page.querySelector('.match-game-plan-pitch-wrap');
         const hasOffCNodes = page.querySelector('.match-game-plan-diagram-node');
-        if (tabId === 'offc' && (!hasPitch || !hasOffCNodes)) {
-            page.innerHTML = buildMatchGamePlanOffCHtml();
+        const hasOffCControls = page.querySelector('.match-game-plan-offc-controls');
+        if (tabId === 'offc' && (!hasPitch || !hasOffCNodes || !hasOffCControls)) {
+            const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+            if (!match) return;
+            page.innerHTML = buildMatchGamePlanOffCHtml(match);
             return;
         }
         if (hasPitch) return;
@@ -1026,6 +1081,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     };
 
     window.renderMatchGamePlanStarterNode(match, posId);
+    renderMatchGamePlanOffCPage(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
@@ -1036,6 +1092,22 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
         modal.classList.remove('match-game-plan-select-modal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+    }
+};
+
+window.updateMatchGamePlanOffCPlayer = async function(matchId, slot, playerRef = '') {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
+
+    window.pendingMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchDetailsOpenPanel = 'kampplan';
+    match.offcAssignments = {
+        ...getMatchGamePlanOffCAssignments(match),
+        [slot]: playerRef || ''
+    };
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
     }
 };
 
@@ -1056,6 +1128,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
 
     window.renderMatchGamePlanStarterNode(match, fromPosId);
     window.renderMatchGamePlanStarterNode(match, toPosId);
+    renderMatchGamePlanOffCPage(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
