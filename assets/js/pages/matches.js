@@ -1000,6 +1000,15 @@ function renderMatchGamePlanSelectActions(list, matchId, posId, mode) {
     list.appendChild(actions);
 }
 
+function renderMatchGamePlanClearPlayerButton(list, matchId, posId) {
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.className = 'match-game-plan-player-clear';
+    clearButton.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, '');
+    clearButton.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${escapeMatchHtml(posId)}`;
+    list.appendChild(clearButton);
+}
+
 function renderMatchGamePlanPositionOptions(list, match, posId) {
     const lineup = getMatchGamePlanLineup(match);
     const currentPlayer = lineup[posId];
@@ -1069,6 +1078,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
 
     if (selectedPlayer) {
         renderMatchGamePlanSelectActions(list, matchId, posId, currentMode);
+        renderMatchGamePlanClearPlayerButton(list, matchId, posId);
     }
 
     if (currentMode === 'position' && selectedPlayer) {
@@ -1109,15 +1119,6 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
             ? 'Ingen posisjoner å bytte til.'
             : 'Ingen påmeldte spillere å velge mellom ennå.';
         list.appendChild(empty);
-    }
-
-    if (selectedPlayer) {
-        const clearButton = document.createElement('button');
-        clearButton.type = 'button';
-        clearButton.className = 'match-game-plan-player-clear';
-        clearButton.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, '');
-        clearButton.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${escapeMatchHtml(posId)}`;
-        list.appendChild(clearButton);
     }
 
     modal.classList.add('match-game-plan-select-modal');
