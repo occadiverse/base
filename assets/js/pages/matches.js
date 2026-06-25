@@ -550,6 +550,18 @@ function buildMatchGamePlanTabContentHtml(match, tab) {
     `;
 }
 
+function ensureMatchGamePlanPitchPages(root = document) {
+    ['offc', 'defc'].forEach(tabId => {
+        const page = root.querySelector(`[data-game-plan-page="${tabId}"]`);
+        if (!page || page.querySelector('.match-game-plan-pitch-wrap')) return;
+
+        const tab = matchGamePlanTabs.find(item => item.id === tabId);
+        page.innerHTML = buildMatchGamePlanPitchHtml({
+            ariaLabel: `${tab?.label || tabId} bane`
+        });
+    });
+}
+
 function buildMatchGamePlanHtml(match) {
     return `
         <div class="match-game-plan-tabs-wrap" data-no-swipe>
@@ -919,10 +931,14 @@ window.showMatchDetails = function(id) {
     `;
 
     renderPlayerRowForm(match);
-    window.initMatchGamePlanScroller();
     const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
+
+    requestAnimationFrame(() => {
+        window.initMatchGamePlanScroller();
+        window.syncMatchGamePlanScroller();
+    });
 };
 
 function getMatchGamePlanSelectablePlayers(match) {
@@ -1231,7 +1247,10 @@ window.navigateMatchGamePlan = function(direction) {
 
 window.initMatchGamePlanScroller = function() {
     const contentScroller = document.getElementById('match-game-plan-content-scroll');
-    if (!contentScroller || contentScroller.dataset.scrollBound === 'true') return;
+    if (!contentScroller) return;
+
+    ensureMatchGamePlanPitchPages(contentScroller);
+    if (contentScroller.dataset.scrollBound === 'true') return;
 
     contentScroller.dataset.scrollBound = 'true';
     contentScroller.addEventListener('scroll', () => {
