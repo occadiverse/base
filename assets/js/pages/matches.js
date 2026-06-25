@@ -543,9 +543,9 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers) {
                 onchange="window.updateMatchGamePlanOffCPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(slot)}', this.value)"
             >
                 <option value="">Velg spiller</option>
-                ${starterPlayers.map(({ posId, player }) => {
+                ${starterPlayers.map(({ player }) => {
                     const value = getMatchGamePlanStarterPlayerValue(player);
-                    const label = `${getMatchGamePlanPlayerShortName(player)} (${posId})`;
+                    const label = getMatchGamePlanPlayerShortName(player);
                     return `<option value="${escapeMatchHtml(value)}" ${selectedValue === value ? 'selected' : ''}>${escapeMatchHtml(label)}</option>`;
                 }).join('')}
             </select>
