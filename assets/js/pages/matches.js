@@ -1000,13 +1000,24 @@ function renderMatchGamePlanSelectActions(list, matchId, posId, mode) {
     list.appendChild(actions);
 }
 
-function renderMatchGamePlanClearPlayerButton(list, matchId, posId) {
+function removeMatchGamePlanClearPlayerButton(modal) {
+    modal?.querySelector('[data-match-game-plan-clear-player]')?.remove();
+}
+
+function renderMatchGamePlanClearPlayerButton(modal, matchId, posId) {
+    removeMatchGamePlanClearPlayerButton(modal);
+    const header = modal?.firstElementChild?.firstElementChild;
+    if (!header) return;
+
     const clearButton = document.createElement('button');
     clearButton.type = 'button';
-    clearButton.className = 'match-game-plan-player-clear';
+    clearButton.className = 'match-gold-round-icon-btn match-game-plan-clear-icon-btn';
+    clearButton.dataset.matchGamePlanClearPlayer = 'true';
+    clearButton.title = `Fjern spiller fra ${posId}`;
+    clearButton.setAttribute('aria-label', `Fjern spiller fra ${posId}`);
     clearButton.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, '');
-    clearButton.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${escapeMatchHtml(posId)}`;
-    list.appendChild(clearButton);
+    clearButton.innerHTML = '<i class="fa-solid fa-user-minus"></i>';
+    header.appendChild(clearButton);
 }
 
 function renderMatchGamePlanPositionOptions(list, match, posId) {
@@ -1075,10 +1086,11 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     }
     if (label) label.innerText = '';
     list.innerHTML = '';
+    removeMatchGamePlanClearPlayerButton(modal);
 
     if (selectedPlayer) {
         renderMatchGamePlanSelectActions(list, matchId, posId, currentMode);
-        renderMatchGamePlanClearPlayerButton(list, matchId, posId);
+        renderMatchGamePlanClearPlayerButton(modal, matchId, posId);
     }
 
     if (currentMode === 'position' && selectedPlayer) {

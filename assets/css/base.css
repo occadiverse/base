@@ -5824,7 +5824,7 @@
             border-bottom: 1px solid rgba(245, 197, 66, 0.16) !important;
             min-height: 5.7rem;
             overflow: visible;
-            padding: 0.8rem 4.15rem 0.8rem 0.85rem !important;
+            padding: 0.8rem 7.35rem 0.8rem 0.85rem !important;
             position: relative;
         }
         .match-gold-round-icon-btn,
@@ -5860,6 +5860,9 @@
             background: rgba(245, 197, 66, 0.16) !important;
             border-color: rgba(245, 197, 66, 0.38) !important;
             transform: translateY(calc(-50% - 1px));
+        }
+        .match-game-plan-clear-icon-btn {
+            right: 4.05rem;
         }
         .match-game-plan-select-modal h3 {
             align-items: center;
