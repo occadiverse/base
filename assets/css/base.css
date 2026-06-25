@@ -5720,6 +5720,9 @@
         .match-game-plan-diagram-node.is-pink {
             background: rgba(254, 202, 202, 0.9);
         }
+        .match-game-plan-diagram-node.is-red {
+            background: rgba(254, 202, 202, 0.92);
+        }
         .match-game-plan-offc-controls {
             background: linear-gradient(135deg, rgba(18, 63, 115, 0.92), rgba(8, 31, 61, 0.9));
             border: 1px solid rgba(245, 197, 66, 0.3);

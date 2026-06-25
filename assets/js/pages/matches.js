@@ -413,16 +413,16 @@ const matchGamePlanOffCPositions = {
 };
 
 const matchGamePlanDefCPositions = {
-    1: { top: '3%', left: '63%', tone: 'neutral' },
-    2: { top: '3%', left: '50%', tone: 'green' },
-    3: { top: '3%', left: '42%', tone: 'green' },
-    4: { top: '7%', left: '58%', tone: 'green' },
-    5: { top: '7%', left: '50%', tone: 'green' },
-    6: { top: '7%', left: '42%', tone: 'yellow' },
+    1: { top: '3%', left: '63%', tone: 'red' },
+    2: { top: '3%', left: '50%', tone: 'red' },
+    3: { top: '3%', left: '42%', tone: 'red' },
+    4: { top: '7%', left: '58%', tone: 'red' },
+    5: { top: '7%', left: '50%', tone: 'red' },
+    6: { top: '7%', left: '42%', tone: 'red' },
     7: { top: '12%', left: '50%', tone: 'yellow' },
     8: { top: '30%', left: '32%', tone: 'yellow' },
-    9: { top: '50%', left: '25%', tone: 'pink' },
-    10: { top: '50%', left: '75%', tone: 'pink' }
+    9: { top: '50%', left: '25%', tone: 'green' },
+    10: { top: '50%', left: '75%', tone: 'green' }
 };
 
 const matchGamePlanPositionRequirements = {
