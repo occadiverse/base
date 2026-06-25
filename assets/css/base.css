@@ -5691,19 +5691,20 @@
         }
         .match-game-plan-diagram-node {
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.34);
-            box-shadow: 0 8px 16px rgba(2, 6, 23, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            border-radius: 999px;
+            box-shadow: 0 9px 18px rgba(2, 6, 23, 0.24);
             color: #111827;
             display: inline-flex;
             font-size: 1.15rem;
             font-weight: 950;
-            height: 2.2rem;
+            height: 2.35rem;
             justify-content: center;
             line-height: 1;
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 2.45rem;
-            z-index: 2;
+            width: 2.35rem;
+            z-index: 3;
         }
         .match-game-plan-diagram-node.is-neutral {
             background: rgba(226, 232, 240, 0.86);
@@ -6824,8 +6825,8 @@
             }
             .match-game-plan-diagram-node {
                 font-size: 0.98rem;
-                height: 1.9rem;
-                width: 2.15rem;
+                height: 2rem;
+                width: 2rem;
             }
             .match-game-plan-node-name {
                 font-size: 0.5rem;

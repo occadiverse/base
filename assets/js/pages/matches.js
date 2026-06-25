@@ -589,14 +589,20 @@ function buildMatchGamePlanTabContentHtml(match, tab) {
 function ensureMatchGamePlanPitchPages(root = document) {
     ['offc', 'defc'].forEach(tabId => {
         const page = root.querySelector(`[data-game-plan-page="${tabId}"]`);
-        if (!page || page.querySelector('.match-game-plan-pitch-wrap')) return;
+        if (!page) return;
+
+        const hasPitch = page.querySelector('.match-game-plan-pitch-wrap');
+        const hasOffCNodes = page.querySelector('.match-game-plan-diagram-node');
+        if (tabId === 'offc' && (!hasPitch || !hasOffCNodes)) {
+            page.innerHTML = buildMatchGamePlanOffCHtml();
+            return;
+        }
+        if (hasPitch) return;
 
         const tab = matchGamePlanTabs.find(item => item.id === tabId);
-        page.innerHTML = tabId === 'offc'
-            ? buildMatchGamePlanOffCHtml()
-            : buildMatchGamePlanPitchHtml({
-                ariaLabel: `${tab?.label || tabId} bane`
-            });
+        page.innerHTML = buildMatchGamePlanPitchHtml({
+            ariaLabel: `${tab?.label || tabId} bane`
+        });
     });
 }
 
