@@ -405,9 +405,9 @@ const matchGamePlanOffCPositions = {
     3: { top: '7%', left: '50%', tone: 'green' },
     4: { top: '7%', left: '42%', tone: 'green' },
     5: { top: '3%', left: '63%', tone: 'green' },
-    6: { top: '16%', left: '78%', tone: 'yellow' },
+    6: { top: '17%', left: '75%', tone: 'yellow' },
     7: { top: '12%', left: '50%', tone: 'yellow' },
-    8: { top: '16%', left: '22%', tone: 'yellow' },
+    8: { top: '17%', left: '25%', tone: 'yellow' },
     9: { top: '41%', left: '50%', tone: 'pink' },
     10: { top: '50%', left: '50%', tone: 'pink' }
 };
