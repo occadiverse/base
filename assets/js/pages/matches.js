@@ -1022,7 +1022,7 @@ function renderMatchGamePlanPositionOptions(list, match, posId) {
         row.innerHTML = `
             <span class="match-game-plan-player-avatar">${escapeMatchHtml(targetPosId)}</span>
             <span class="match-game-plan-player-copy">
-                <strong>${escapeMatchHtml(targetPosId)}</strong>
+                <strong>${escapeMatchHtml(getMatchGamePlanPositionLabel(targetPosId))}</strong>
                 <span>${targetPlayer ? `Bytt med ${escapeMatchHtml(getMatchGamePlanPlayerShortName(targetPlayer))}` : 'Ledig posisjon'}</span>
             </span>
             <span class="match-game-plan-player-tag">${matchLabel}</span>
