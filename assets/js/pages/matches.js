@@ -498,23 +498,54 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
     `;
 }
 
-function buildMatchGamePlanStarter11Html(match) {
+function buildMatchGamePlanPitchLinesHtml() {
+    return `
+        <div class="match-game-plan-pitch-halfway"></div>
+        <div class="match-game-plan-pitch-center-circle"></div>
+        <div class="match-game-plan-pitch-box match-game-plan-pitch-box-bottom"></div>
+        <div class="match-game-plan-pitch-arc match-game-plan-pitch-arc-bottom"></div>
+        <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-bottom"></div>
+        <div class="match-game-plan-pitch-box match-game-plan-pitch-box-top"></div>
+        <div class="match-game-plan-pitch-arc match-game-plan-pitch-arc-top"></div>
+        <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-top"></div>
+    `;
+}
+
+function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '' }) {
     return `
         <div class="match-game-plan-pitch-wrap">
-            <div class="tactical-pitch match-game-plan-pitch" aria-label="Starter 11 bane">
-                <div class="match-game-plan-pitch-halfway"></div>
-                <div class="match-game-plan-pitch-center-circle"></div>
-                <div class="match-game-plan-pitch-box match-game-plan-pitch-box-bottom"></div>
-                <div class="match-game-plan-pitch-arc match-game-plan-pitch-arc-bottom"></div>
-                <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-bottom"></div>
-                <div class="match-game-plan-pitch-box match-game-plan-pitch-box-top"></div>
-                <div class="match-game-plan-pitch-arc match-game-plan-pitch-arc-top"></div>
-                <div class="match-game-plan-pitch-goal match-game-plan-pitch-goal-top"></div>
-
-                ${Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
-                    ${buildMatchGamePlanNodeHtml(match, posId, coords)}
-                `).join('')}
+            <div class="tactical-pitch match-game-plan-pitch" aria-label="${escapeMatchHtml(ariaLabel)}">
+                ${buildMatchGamePlanPitchLinesHtml()}
+                ${childrenHtml}
             </div>
+        </div>
+    `;
+}
+
+function buildMatchGamePlanStarter11Html(match) {
+    return buildMatchGamePlanPitchHtml({
+        ariaLabel: 'Starter 11 bane',
+        childrenHtml: Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
+            ${buildMatchGamePlanNodeHtml(match, posId, coords)}
+        `).join('')
+    });
+}
+
+function buildMatchGamePlanTabContentHtml(match, tab) {
+    if (tab.id === 'starter11') {
+        return buildMatchGamePlanStarter11Html(match);
+    }
+
+    if (tab.id === 'offc' || tab.id === 'defc') {
+        return buildMatchGamePlanPitchHtml({
+            ariaLabel: `${tab.label} bane`
+        });
+    }
+
+    return `
+        <div class="match-game-plan-empty">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>${escapeMatchHtml(tab.label)} kommer her.</span>
         </div>
     `;
 }
@@ -546,14 +577,7 @@ function buildMatchGamePlanHtml(match) {
         <div class="match-game-plan-content-scroll" id="match-game-plan-content-scroll" data-no-swipe>
             ${matchGamePlanTabs.map(tab => `
                 <section class="match-game-plan-page" data-game-plan-page="${tab.id}" aria-label="${escapeMatchHtml(tab.label)}">
-                    ${tab.id === 'starter11'
-                        ? buildMatchGamePlanStarter11Html(match)
-                        : `
-                            <div class="match-game-plan-empty">
-                                <i class="fa-solid fa-clipboard-list"></i>
-                                <span>${escapeMatchHtml(tab.label)} kommer her.</span>
-                            </div>
-                        `}
+                    ${buildMatchGamePlanTabContentHtml(match, tab)}
                 </section>
             `).join('')}
         </div>
