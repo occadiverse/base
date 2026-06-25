@@ -801,9 +801,10 @@ window.showMatchDetails = function(id) {
                 <span>Ingen spillere er meldt på ennå.</span>
             </div>
         `;
-    const openPanel = window.pendingMatchDetailsOpenPanel || '';
+    const openPanel = window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '';
     const isGamePlanOpen = openPanel === 'kampplan';
     window.pendingMatchDetailsOpenPanel = null;
+    window.activeMatchDetailsOpenPanel = openPanel;
 
     container.innerHTML = `
         ${buildMatchDetailCardHtml(match)}
@@ -929,6 +930,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     if (!match) return;
 
     window.pendingMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchDetailsOpenPanel = 'kampplan';
     const selectedPlayer = playerId
         ? (window.activePlayers || []).find(player => player.id === playerId)
         : null;
@@ -957,6 +959,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     if (!match || fromPosId === toPosId) return;
 
     window.pendingMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchDetailsOpenPanel = 'kampplan';
     const lineup = { ...getMatchGamePlanLineup(match) };
     const movingPlayer = lineup[fromPosId] || null;
     const targetPlayer = lineup[toPosId] || null;
@@ -1249,8 +1252,16 @@ window.toggleMatchPanel = function(btn) {
         });
 
         panel.classList.remove('is-collapsed');
+        window.activeMatchDetailsOpenPanel = panel.classList.contains('match-game-plan-panel')
+            ? 'kampplan'
+            : (panel.classList.contains('match-bench-panel')
+                ? 'kamptropp'
+                : (panel.classList.contains('match-coach-notes-panel')
+                    ? 'trenernotater'
+                    : (panel.classList.contains('match-stats-panel') ? 'spillerbors' : '')));
     } else {
         panel.classList.add('is-collapsed');
+        window.activeMatchDetailsOpenPanel = '';
     }
 
     btn.setAttribute('aria-expanded', String(shouldOpen));
