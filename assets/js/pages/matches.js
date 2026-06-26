@@ -872,9 +872,10 @@ function buildMatchGamePlanPitchLinesHtml() {
     `;
 }
 
-function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '' }) {
+function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '', extraClass = '' }) {
+    const className = ['match-game-plan-pitch-wrap', extraClass].filter(Boolean).join(' ');
     return `
-        <div class="match-game-plan-pitch-wrap">
+        <div class="${className}">
             <div class="tactical-pitch match-game-plan-pitch" aria-label="${escapeMatchHtml(ariaLabel)}">
                 ${buildMatchGamePlanPitchLinesHtml()}
                 ${childrenHtml}
@@ -923,6 +924,7 @@ function buildMatchGamePlanRolesHtml(match) {
 function buildMatchGamePlanBenchHtml(match) {
     return buildMatchGamePlanPitchHtml({
         ariaLabel: 'Benk bane',
+        extraClass: 'match-game-plan-bench-wrap',
         childrenHtml: buildMatchGamePlanBenchPlanHtml(match)
     });
 }

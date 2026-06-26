@@ -7223,6 +7223,27 @@
                 max-width: 20.75rem;
                 width: min(100%, calc(100vw - 2.15rem), 20.75rem);
             }
+            .match-game-plan-bench-wrap {
+                display: block;
+            }
+            .match-game-plan-bench-wrap .match-game-plan-pitch {
+                aspect-ratio: auto;
+                background: transparent;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                max-width: none;
+                min-height: 0;
+                overflow: visible;
+                width: 100%;
+            }
+            .match-game-plan-bench-wrap .match-game-plan-pitch-halfway,
+            .match-game-plan-bench-wrap .match-game-plan-pitch-center-circle,
+            .match-game-plan-bench-wrap .match-game-plan-pitch-box,
+            .match-game-plan-bench-wrap .match-game-plan-pitch-arc,
+            .match-game-plan-bench-wrap .match-game-plan-pitch-goal {
+                display: none;
+            }
             .match-game-plan-node {
                 height: 2rem;
                 width: 2rem;
@@ -7255,9 +7276,14 @@
             }
             .match-game-plan-bench-panel {
                 border-radius: 0.85rem;
-                max-height: 74%;
+                left: auto;
+                max-height: none;
+                overflow: visible;
                 padding: 0.5rem;
-                width: min(96%, 19.4rem);
+                position: relative;
+                top: auto;
+                transform: none;
+                width: 100%;
             }
             .match-game-plan-bench-summary {
                 gap: 0.34rem;
@@ -7282,7 +7308,7 @@
             .match-game-plan-bench-row {
                 gap: 0.34rem;
                 min-height: 3.95rem;
-                padding: 0.38rem;
+                padding: 0.46rem;
             }
             .match-game-plan-bench-jersey {
                 font-size: 0.68rem;
@@ -7299,7 +7325,7 @@
             }
             .match-game-plan-bench-controls {
                 gap: 0.34rem;
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 1.78rem;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2rem;
             }
             .match-game-plan-bench-select {
                 min-height: 1.78rem;
