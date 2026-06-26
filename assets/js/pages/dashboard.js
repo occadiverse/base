@@ -1,8 +1,11 @@
 window.goToMatchDetails = function(matchId) {
     if (!matchId) return;
     window.pendingMatchDetailsBackTab = window.currentTab || 'hjem';
+    if (typeof window.showMatchDetails === 'function') {
+        window.showMatchDetails(matchId);
+        return;
+    }
     switchTab('kamper', { skipHistory: true });
-    if (typeof window.showMatchDetails === 'function') window.showMatchDetails(matchId);
 };
 
 window.goToCalendarDate = function(dateStr) {

@@ -1193,6 +1193,18 @@ window.showMatchDetails = function(id) {
     const isGamePlanOpen = openPanel === 'kampplan';
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
+    let gamePlanHtml = '';
+    try {
+        gamePlanHtml = buildMatchGamePlanHtml(match);
+    } catch (error) {
+        console.error('Kunne ikke rendere kampplan', error);
+        gamePlanHtml = `
+            <div class="match-game-plan-empty">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Kampplanen kunne ikke vises akkurat nå.</span>
+            </div>
+        `;
+    }
 
     container.innerHTML = `
         ${buildMatchDetailCardHtml(match)}
@@ -1236,7 +1248,7 @@ window.showMatchDetails = function(id) {
             </div>
             <div class="match-collapsible-content">
                 <div class="match-game-plan-body">
-                    ${buildMatchGamePlanHtml(match)}
+                    ${gamePlanHtml}
                 </div>
             </div>
         </section>
