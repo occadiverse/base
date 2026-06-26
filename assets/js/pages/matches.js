@@ -1462,6 +1462,7 @@ window.updateMatchGamePlanBenchMinute = async function(matchId, playerRef, minut
 
     window.pendingMatchDetailsOpenPanel = 'kampplan';
     window.activeMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchGamePlanTab = 'bench';
     const currentAssignment = getMatchGamePlanBenchAssignment(match, playerRef);
     match.benchSubstitutionPlan = {
         ...getMatchGamePlanBenchAssignments(match),
@@ -1483,6 +1484,7 @@ window.updateMatchGamePlanBenchPosition = async function(matchId, playerRef, pos
 
     window.pendingMatchDetailsOpenPanel = 'kampplan';
     window.activeMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchGamePlanTab = 'bench';
     const currentAssignment = getMatchGamePlanBenchAssignment(match, playerRef);
     match.benchSubstitutionPlan = {
         ...getMatchGamePlanBenchAssignments(match),
@@ -1723,6 +1725,7 @@ window.syncMatchGamePlanScroller = function() {
     });
     tabsScroller.dataset.activeGamePlanTab = activeTab.id;
     contentScroller.dataset.activeGamePlanTab = activeTab.id;
+    window.activeMatchGamePlanTab = activeTab.id;
 
     const activeButton = tabsScroller.querySelector('.match-game-plan-tab.is-active');
     if (activeButton && previousActiveTabId !== activeTab.id) {
@@ -1737,6 +1740,7 @@ window.goToMatchGamePlanTab = function(tabId, behavior = 'smooth') {
     if (!contentScroller || tabIndex === -1) return;
 
     contentScroller.dataset.activeGamePlanTab = tabId;
+    window.activeMatchGamePlanTab = tabId;
 
     if (window.innerWidth >= 768) {
         window.syncMatchGamePlanScroller();
@@ -1801,7 +1805,10 @@ window.initMatchGamePlanScroller = function() {
         }, { passive: true });
     });
 
-    window.goToMatchGamePlanTab(matchGamePlanTabs[0].id, 'auto');
+    const initialTabId = window.activeMatchGamePlanTab && matchGamePlanTabs.some(tab => tab.id === window.activeMatchGamePlanTab)
+        ? window.activeMatchGamePlanTab
+        : matchGamePlanTabs[0].id;
+    window.goToMatchGamePlanTab(initialTabId, 'auto');
 };
 
 window.toggleMatchPanel = function(btn) {
