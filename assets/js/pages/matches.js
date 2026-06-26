@@ -474,9 +474,7 @@ const matchGamePlanPositionLabels = {
 };
 
 function getMatchGamePlanPlayerShortName(player) {
-    const parts = String(player?.navn || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return 'Spiller';
-    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}` : parts[0];
+    return String(player?.navn || '').trim() || 'Spiller';
 }
 
 function getMatchGamePlanPlayerInitials(player) {
