@@ -5970,6 +5970,15 @@
             transform: translateX(-50%);
             white-space: nowrap;
         }
+        .match-game-plan-node-vk .match-game-plan-node-name {
+            left: 0;
+            transform: translateX(0);
+        }
+        .match-game-plan-node-hk .match-game-plan-node-name {
+            left: auto;
+            right: 0;
+            transform: translateX(0);
+        }
         .match-game-plan-player-option {
             align-items: center;
             background: #ffffff;

@@ -547,7 +547,7 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
     return `
         <button
             type="button"
-            class="match-game-plan-node ${selectedPlayer ? 'is-filled' : ''}"
+            class="match-game-plan-node match-game-plan-node-${escapeMatchHtml(posId).toLowerCase()} ${selectedPlayer ? 'is-filled' : ''}"
             style="top: ${coords.top}; left: ${coords.left};"
             onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}')"
             data-game-plan-node="${escapeMatchHtml(posId)}"
@@ -1556,6 +1556,11 @@ window.syncMatchGamePlanScroller = function() {
     const tabsScroller = document.getElementById('match-game-plan-tabs');
     const wrap = tabsScroller?.closest('.match-game-plan-tabs-wrap');
     if (!contentScroller || !tabsScroller || !wrap) return;
+
+    const starterTabButton = tabsScroller.querySelector('[data-game-plan-tab="starter11"]');
+    if (starterTabButton && starterTabButton.textContent.trim() !== '11er') {
+        starterTabButton.textContent = '11er';
+    }
 
     const isDesktop = window.innerWidth >= 768;
     const storedActiveTabId = contentScroller.dataset.activeGamePlanTab || matchGamePlanTabs[0].id;
