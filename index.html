@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260627-match-list-responsive-card">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260627-match-list-footer-spacer">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -55,8 +55,8 @@
                                 <span>Kommende kamper</span>
                             </div>
                             <div class="match-detail-chip">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                <span>Neste opp</span>
+                                <i class="fa-solid fa-futbol"></i>
+                                <span id="matchListUpcomingCount">0 kamper</span>
                             </div>
                         </div>
 
@@ -64,16 +64,7 @@
                             <div id="matchListUpcomingContainer" class="match-list-grid"></div>
                         </div>
 
-                        <div class="match-detail-footer match-list-column-footer relative z-10">
-                            <div class="match-detail-footer-item">
-                                <i class="fa-solid fa-futbol"></i>
-                                <span id="matchListUpcomingCount">0 kamper</span>
-                            </div>
-                            <div class="match-detail-footer-item">
-                                <i class="fa-regular fa-clock"></i>
-                                <span>Planlagt</span>
-                            </div>
-                        </div>
+                        <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                     </section>
 
                     <section class="match-detail-card match-list-column match-list-column-past">
@@ -87,8 +78,8 @@
                                 <span>Tidligere kamper</span>
                             </div>
                             <div class="match-detail-chip match-detail-chip-muted">
-                                <i class="fa-solid fa-chart-line"></i>
-                                <span>Historikk</span>
+                                <i class="fa-solid fa-futbol"></i>
+                                <span id="matchListPastCount">0 kamper</span>
                             </div>
                         </div>
 
@@ -96,16 +87,7 @@
                             <div id="matchListPastContainer" class="match-list-grid"></div>
                         </div>
 
-                        <div class="match-detail-footer match-list-column-footer relative z-10">
-                            <div class="match-detail-footer-item">
-                                <i class="fa-solid fa-futbol"></i>
-                                <span id="matchListPastCount">0 kamper</span>
-                            </div>
-                            <div class="match-detail-footer-item">
-                                <i class="fa-solid fa-trophy"></i>
-                                <span>Resultater</span>
-                            </div>
-                        </div>
+                        <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                     </section>
                 </div>
 
@@ -120,8 +102,8 @@
                             <span>Kamper</span>
                         </div>
                         <div class="match-detail-chip">
-                            <i class="fa-solid fa-filter"></i>
-                            <span id="matchListMobileFilterLabel">Kommende</span>
+                            <i class="fa-solid fa-futbol"></i>
+                            <span id="matchListMobileCount">0 kamper</span>
                         </div>
                     </div>
 
@@ -158,16 +140,7 @@
                         </div>
                     </div>
 
-                    <div class="match-detail-footer match-list-column-footer relative z-10">
-                        <div class="match-detail-footer-item">
-                            <i class="fa-solid fa-futbol"></i>
-                            <span id="matchListMobileCount">0 kamper</span>
-                        </div>
-                        <div class="match-detail-footer-item">
-                            <i class="fa-solid fa-list-check"></i>
-                            <span id="matchListMobileStatus">Planlagt</span>
-                        </div>
-                    </div>
+                    <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                 </section>
             </div>
             <div id="view-kampdetaljer" class="hidden portal-view space-y-4 max-w-4xl mx-auto w-full">

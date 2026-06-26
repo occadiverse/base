@@ -2027,6 +2027,9 @@
         .match-list-column-footer .match-detail-footer-item {
             font-size: 0.8rem;
         }
+        .match-list-footer-spacer {
+            min-height: 3.25rem;
+        }
         .match-list-mobile-card .match-list-column-footer {
             background: rgba(255, 255, 255, 0.06);
             border-top: 1px solid rgba(245, 197, 66, 0.18);

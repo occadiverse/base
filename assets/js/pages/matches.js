@@ -218,7 +218,6 @@ function applyFilters() {
     updateMatchListCount('matchListUpcomingCount', upcomingMatches.length);
     updateMatchListCount('matchListPastCount', pastMatches.length);
     updateMatchListCount('matchListMobileCount', sortedMatches.length);
-    updateMatchListMobileMeta(currentTimeFilter);
 
     renderMatchListIntoContainer(upcomingContainer, upcomingMatches, {
         isUpcoming: true,
@@ -245,15 +244,6 @@ function updateMatchListCount(elementId, count) {
     if (!element) return;
 
     element.textContent = count === 1 ? '1 kamp' : `${count} kamper`;
-}
-
-function updateMatchListMobileMeta(filterType) {
-    const label = document.getElementById('matchListMobileFilterLabel');
-    const status = document.getElementById('matchListMobileStatus');
-    const isUpcoming = filterType !== 'tidligere';
-
-    if (label) label.textContent = isUpcoming ? 'Kommende' : 'Tidligere';
-    if (status) status.textContent = isUpcoming ? 'Planlagt' : 'Resultater';
 }
 
 function renderMatchListIntoContainer(container, matches, options = {}) {
@@ -305,7 +295,7 @@ function buildMatchFixtureRowHtml(match, options = {}) {
     const sideValue = isUpcoming
         ? (match.time || '--:--')
         : data.displayedResult;
-    const sideLabel = isUpcoming ? 'Avspark' : 'Resultat';
+    const sideLabel = isUpcoming ? 'Avspark' : '';
 
     return `
         <article class="match-fixture-row dashboard-click-card ${data.resultTone}" ${clickAttrs}>
@@ -322,7 +312,7 @@ function buildMatchFixtureRowHtml(match, options = {}) {
 
             <div class="match-fixture-side">
                 <span class="match-fixture-side-value">${escapeMatchHtml(sideValue)}</span>
-                <span class="match-fixture-side-label">${sideLabel}</span>
+                ${sideLabel ? `<span class="match-fixture-side-label">${sideLabel}</span>` : ''}
             </div>
 
             <div class="match-fixture-chevron" aria-hidden="true">
