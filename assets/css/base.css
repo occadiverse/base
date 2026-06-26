@@ -7114,20 +7114,6 @@
             .match-stats-panel {
                 padding: 0.75rem;
             }
-            .match-game-plan-panel:has(.match-game-plan-page[data-game-plan-page="bench"].is-active) {
-                background: transparent;
-                border: 0;
-                box-shadow: none;
-                margin-top: 0;
-                overflow: visible;
-                padding: 0;
-            }
-            .match-game-plan-panel:has(.match-game-plan-page[data-game-plan-page="bench"].is-active) .match-game-plan-topline {
-                margin: 0 0 0.75rem;
-            }
-            .match-game-plan-panel:has(.match-game-plan-page[data-game-plan-page="bench"].is-active) .match-game-plan-body {
-                min-height: 0;
-            }
             .match-bench-action-row {
                 align-items: center;
                 gap: 0.55rem;
