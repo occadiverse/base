@@ -377,7 +377,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
 }
 
 const matchGamePlanTabs = [
-    { id: 'starter11', label: 'Starter11' },
+    { id: 'starter11', label: '11er' },
     { id: 'offc', label: 'OffC' },
     { id: 'defc', label: 'DefC' },
     { id: 'roller', label: 'Roller' },
@@ -720,7 +720,7 @@ function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '' }) {
 
 function buildMatchGamePlanStarter11Html(match) {
     return buildMatchGamePlanPitchHtml({
-        ariaLabel: 'Starter 11 bane',
+        ariaLabel: '11er bane',
         childrenHtml: Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
             ${buildMatchGamePlanNodeHtml(match, posId, coords)}
         `).join('')
