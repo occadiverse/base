@@ -5767,11 +5767,15 @@
             z-index: 4;
         }
         .match-game-plan-role-controls {
+            background: transparent;
+            border: 0;
             bottom: auto;
+            box-shadow: none;
             grid-template-columns: 1fr;
+            padding: 0;
             top: 50%;
             transform: translate(-50%, -50%);
-            width: min(94%, 18rem);
+            width: min(96%, 21rem);
         }
         .match-game-plan-role-controls .match-game-plan-offc-select-field {
             grid-template-columns: 5.9rem minmax(0, 1fr);
@@ -7245,7 +7249,7 @@
                 width: min(96%, 19.4rem);
             }
             .match-game-plan-role-controls {
-                width: min(96%, 18.2rem);
+                width: min(98%, 19.8rem);
             }
             .match-game-plan-role-controls .match-game-plan-offc-select-field {
                 grid-template-columns: 5.45rem minmax(0, 1fr);
