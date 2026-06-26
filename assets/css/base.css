@@ -5808,27 +5808,45 @@
             padding-right: 0.12rem;
         }
         .match-game-plan-bench-summary {
-            align-items: center;
+            align-items: stretch;
             background: linear-gradient(135deg, rgba(18, 63, 115, 0.96), rgba(8, 31, 61, 0.94));
-            color: rgba(255, 255, 255, 0.82);
-            display: flex;
-            flex-wrap: wrap;
-            font-size: 0.62rem;
-            font-weight: 900;
-            gap: 0.34rem;
-            letter-spacing: 0.04em;
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             margin: -0.55rem -0.55rem 0.48rem;
             padding: 0.55rem;
             position: sticky;
             top: -0.55rem;
-            text-transform: uppercase;
             z-index: 2;
         }
         .match-game-plan-bench-summary span {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 999px;
-            padding: 0.24rem 0.42rem;
+            align-items: center;
+            background: linear-gradient(135deg, #fff3bf 0%, #f5c542 100%);
+            border: 1px solid rgba(245, 197, 66, 0.72);
+            border-radius: 0.8rem;
+            box-shadow: 0 8px 16px rgba(245, 197, 66, 0.14);
+            color: #0b2b4c;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 3rem;
+            padding: 0.48rem 0.42rem;
+            text-align: center;
+        }
+        .match-game-plan-bench-summary strong {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 950;
+            line-height: 1.05;
+        }
+        .match-game-plan-bench-summary small {
+            color: rgba(11, 43, 76, 0.72);
+            display: block;
+            font-size: 0.52rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin-top: 0.18rem;
+            text-transform: uppercase;
         }
         .match-game-plan-bench-row {
             align-items: stretch;
@@ -7240,6 +7258,23 @@
                 max-height: 74%;
                 padding: 0.5rem;
                 width: min(96%, 19.4rem);
+            }
+            .match-game-plan-bench-summary {
+                gap: 0.34rem;
+                margin: -0.5rem -0.5rem 0.42rem;
+                padding: 0.5rem;
+                top: -0.5rem;
+            }
+            .match-game-plan-bench-summary span {
+                border-radius: 0.7rem;
+                min-height: 2.65rem;
+                padding: 0.4rem 0.32rem;
+            }
+            .match-game-plan-bench-summary strong {
+                font-size: 0.76rem;
+            }
+            .match-game-plan-bench-summary small {
+                font-size: 0.46rem;
             }
             .match-game-plan-bench-list {
                 gap: 0.3rem;

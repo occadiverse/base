@@ -692,15 +692,15 @@ function buildMatchGamePlanBenchPlanHtml(match) {
             return jerseyA - jerseyB || a.player.navn.localeCompare(b.player.navn);
         });
     const completeCount = benchItems.filter(item => item.isComplete).length;
-    const missingTimeCount = benchItems.filter(item => item.assignment.position && !item.assignment.minute).length;
-    const missingPositionCount = benchItems.filter(item => item.assignment.minute && !item.assignment.position).length;
+    const missingTimeCount = benchItems.filter(item => !item.assignment.minute).length;
+    const missingPositionCount = benchItems.filter(item => !item.assignment.position).length;
 
     return `
         <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
             <div class="match-game-plan-bench-summary" aria-label="Bytteplan oppsummering">
-                <span data-bench-summary-ready>${completeCount} av ${benchItems.length} klare</span>
-                <span data-bench-summary-missing-time>${missingTimeCount} uten tid</span>
-                <span data-bench-summary-missing-position>${missingPositionCount} uten pos</span>
+                <span data-bench-summary-ready><strong>${completeCount} av ${benchItems.length}</strong><small>Klare</small></span>
+                <span data-bench-summary-missing-time><strong>${missingTimeCount}</strong><small>Uten tid</small></span>
+                <span data-bench-summary-missing-position><strong>${missingPositionCount}</strong><small>Uten pos</small></span>
             </div>
             <div class="match-game-plan-bench-list">
                 ${benchItems.map(({ player, playerKey, assignment, isComplete }) => {
@@ -806,15 +806,15 @@ window.syncMatchGamePlanBenchPanel = function(match) {
         };
     });
     const completeCount = benchItems.filter(item => item.isComplete).length;
-    const missingTimeCount = benchItems.filter(item => item.assignment.position && !item.assignment.minute).length;
-    const missingPositionCount = benchItems.filter(item => item.assignment.minute && !item.assignment.position).length;
+    const missingTimeCount = benchItems.filter(item => !item.assignment.minute).length;
+    const missingPositionCount = benchItems.filter(item => !item.assignment.position).length;
 
     const readySummary = panel.querySelector('[data-bench-summary-ready]');
     const missingTimeSummary = panel.querySelector('[data-bench-summary-missing-time]');
     const missingPositionSummary = panel.querySelector('[data-bench-summary-missing-position]');
-    if (readySummary) readySummary.textContent = `${completeCount} av ${benchItems.length} klare`;
-    if (missingTimeSummary) missingTimeSummary.textContent = `${missingTimeCount} uten tid`;
-    if (missingPositionSummary) missingPositionSummary.textContent = `${missingPositionCount} uten pos`;
+    if (readySummary) readySummary.innerHTML = `<strong>${completeCount} av ${benchItems.length}</strong><small>Klare</small>`;
+    if (missingTimeSummary) missingTimeSummary.innerHTML = `<strong>${missingTimeCount}</strong><small>Uten tid</small>`;
+    if (missingPositionSummary) missingPositionSummary.innerHTML = `<strong>${missingPositionCount}</strong><small>Uten pos</small>`;
 
     benchItems.forEach(({ playerKey, assignment, isComplete }) => {
         const row = [...list.querySelectorAll('.match-game-plan-bench-row')]
