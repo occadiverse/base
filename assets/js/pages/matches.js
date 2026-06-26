@@ -739,6 +739,15 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                                     ${Object.keys(matchGamePlanStarterPositions).map(posId => `<option value="${escapeMatchHtml(posId)}" ${assignment.position === posId ? 'selected' : ''}>${escapeMatchHtml(posId)}</option>`).join('')}
                                 </select>
                             </span>
+                            <button
+                                type="button"
+                                class="match-game-plan-bench-clear-btn"
+                                onclick="window.clearMatchGamePlanBenchAssignment('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}')"
+                                title="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
+                                aria-label="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
+                            >
+                                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                            </button>
                         </label>
                     `;
                 }).join('')}
@@ -804,8 +813,14 @@ window.syncMatchGamePlanBenchPanel = function(match) {
         row.classList.toggle('is-complete', isComplete);
 
         const selects = row.querySelectorAll('.match-game-plan-bench-select');
-        if (selects[0]) selects[0].classList.toggle('is-empty', !assignment.minute);
-        if (selects[1]) selects[1].classList.toggle('is-empty', !assignment.position);
+        if (selects[0]) {
+            selects[0].value = assignment.minute || '';
+            selects[0].classList.toggle('is-empty', !assignment.minute);
+        }
+        if (selects[1]) {
+            selects[1].value = assignment.position || '';
+            selects[1].classList.toggle('is-empty', !assignment.position);
+        }
     });
 
     sortMatchGamePlanBenchRows(list);
@@ -1491,6 +1506,27 @@ window.updateMatchGamePlanBenchPosition = async function(matchId, playerRef, pos
         [playerRef]: {
             ...currentAssignment,
             position: position || ''
+        }
+    };
+    window.syncMatchGamePlanBenchPanel(match);
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+};
+
+window.clearMatchGamePlanBenchAssignment = async function(matchId, playerRef) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match || !playerRef) return;
+
+    window.pendingMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchGamePlanTab = 'bench';
+    match.benchSubstitutionPlan = {
+        ...getMatchGamePlanBenchAssignments(match),
+        [playerRef]: {
+            minute: '',
+            position: ''
         }
     };
     window.syncMatchGamePlanBenchPanel(match);

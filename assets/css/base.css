@@ -5838,7 +5838,7 @@
             box-shadow: 0 7px 14px rgba(2, 6, 23, 0.14);
             display: grid;
             gap: 0.55rem;
-            grid-template-columns: minmax(0, 1fr) 5.35rem 4.85rem;
+            grid-template-columns: minmax(0, 1fr) 5.1rem 4.65rem 2rem;
             min-height: 2.5rem;
             padding: 0.36rem;
         }
@@ -5923,6 +5923,31 @@
         }
         .match-game-plan-bench-select option {
             color: #0f172a;
+        }
+        .match-game-plan-bench-clear-btn {
+            align-items: center;
+            appearance: none;
+            align-self: stretch;
+            background: rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 0.58rem;
+            color: #64748b;
+            cursor: pointer;
+            display: inline-flex;
+            font: inherit;
+            justify-content: center;
+            min-height: 2rem;
+            padding: 0;
+            transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+        }
+        .match-game-plan-bench-clear-btn:hover {
+            background: rgba(248, 113, 113, 0.12);
+            border-color: rgba(248, 113, 113, 0.32);
+            color: #b91c1c;
+            transform: translateY(-1px);
+        }
+        .match-game-plan-bench-clear-btn i {
+            font-size: 0.72rem;
         }
         .match-game-plan-bench-empty {
             align-items: center;
@@ -7181,7 +7206,7 @@
             }
             .match-game-plan-bench-row {
                 gap: 0.38rem;
-                grid-template-columns: minmax(0, 1fr) 4.55rem 4.05rem;
+                grid-template-columns: minmax(0, 1fr) 4.25rem 3.8rem 1.78rem;
                 min-height: 2.2rem;
                 padding: 0.28rem;
             }
@@ -7197,6 +7222,12 @@
             .match-game-plan-bench-select {
                 min-height: 1.78rem;
                 padding: 0.36rem 1.16rem 0.36rem 0.45rem;
+            }
+            .match-game-plan-bench-clear-btn {
+                min-height: 1.78rem;
+            }
+            .match-game-plan-bench-clear-btn i {
+                font-size: 0.66rem;
             }
             .match-game-plan-offc-select-field {
                 grid-template-columns: 1.78rem minmax(0, 1fr);
