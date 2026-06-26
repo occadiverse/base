@@ -1856,7 +1856,7 @@
         }
         .match-list-page {
             margin: 0 auto;
-            max-width: 52rem;
+            max-width: 88rem;
             width: 100%;
         }
         .match-list-toolbar {
@@ -1947,6 +1947,54 @@
             display: flex;
             flex-direction: column;
             gap: 1.15rem;
+        }
+        .match-list-desktop-columns {
+            display: none;
+        }
+        .match-list-column {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(248, 251, 255, 0.94) 100%);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 1.35rem;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.07);
+            min-width: 0;
+            padding: 1rem;
+        }
+        .match-list-column-past {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(241, 245, 249, 0.88) 100%);
+        }
+        .match-list-column-header {
+            align-items: center;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            min-height: 3rem;
+        }
+        .match-list-column-header h2 {
+            color: #0b2b4c;
+            font-size: 1.05rem;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        .match-list-column-header > i {
+            align-items: center;
+            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border-radius: 999px;
+            color: #f5c542;
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 2.45rem;
+            justify-content: center;
+            width: 2.45rem;
+        }
+        .match-list-column-kicker {
+            color: #64748b;
+            font-size: 0.62rem;
+            font-weight: 950;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.18rem;
+            text-transform: uppercase;
         }
         .match-fixture-group {
             display: flex;
@@ -2117,6 +2165,28 @@
             font-size: 0.78rem;
             margin: 0 auto;
             max-width: 22rem;
+        }
+        .match-list-column-empty {
+            padding: 2rem 1rem;
+        }
+        .match-list-column-empty .match-list-empty-icon {
+            height: 3.25rem;
+            width: 3.25rem;
+        }
+        @media (min-width: 1024px) {
+            .match-list-toolbar {
+                display: none;
+            }
+            .match-list-desktop-columns {
+                align-items: start;
+                display: grid;
+                gap: 1.25rem;
+                grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            }
+            .match-list-mobile-grid,
+            .match-list-page > #no-matches-view {
+                display: none !important;
+            }
         }
         .roster-page {
             margin: 0 auto;

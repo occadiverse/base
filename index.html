@@ -64,7 +64,31 @@
                     </div>
                 </div>
 
-                <div id="matchListContainer" class="match-list-grid"></div>
+                <div id="matchListDesktopColumns" class="match-list-desktop-columns" aria-label="Kommende og tidligere kamper">
+                    <section class="match-list-column">
+                        <div class="match-list-column-header">
+                            <div>
+                                <p class="match-list-column-kicker">Neste opp</p>
+                                <h2>Kommende kamper</h2>
+                            </div>
+                            <i class="fa-solid fa-calendar-day"></i>
+                        </div>
+                        <div id="matchListUpcomingContainer" class="match-list-grid"></div>
+                    </section>
+
+                    <section class="match-list-column match-list-column-past">
+                        <div class="match-list-column-header">
+                            <div>
+                                <p class="match-list-column-kicker">Historikk</p>
+                                <h2>Tidligere kamper</h2>
+                            </div>
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div id="matchListPastContainer" class="match-list-grid"></div>
+                    </section>
+                </div>
+
+                <div id="matchListContainer" class="match-list-grid match-list-mobile-grid"></div>
 
                 <div id="no-matches-view" class="hidden match-list-empty">
                     <div class="match-list-empty-icon">
