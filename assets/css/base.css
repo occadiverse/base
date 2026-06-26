@@ -5723,6 +5723,23 @@
         .match-game-plan-diagram-node.is-red {
             background: rgba(254, 202, 202, 0.92);
         }
+        .match-game-plan-ball-marker {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.94);
+            border: 2px solid rgba(18, 63, 115, 0.34);
+            border-radius: 999px;
+            box-shadow: 0 8px 16px rgba(2, 6, 23, 0.2);
+            color: #0f172a;
+            display: inline-flex;
+            font-size: 1rem;
+            height: 1.85rem;
+            justify-content: center;
+            line-height: 1;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 1.85rem;
+            z-index: 5;
+        }
         .match-game-plan-offc-controls {
             background: linear-gradient(135deg, rgba(18, 63, 115, 0.92), rgba(8, 31, 61, 0.9));
             border: 1px solid rgba(245, 197, 66, 0.3);
@@ -6916,6 +6933,11 @@
                 font-size: 0.88rem;
                 height: 1.72rem;
                 width: 1.72rem;
+            }
+            .match-game-plan-ball-marker {
+                font-size: 0.85rem;
+                height: 1.58rem;
+                width: 1.58rem;
             }
             .match-game-plan-offc-controls {
                 bottom: 0.75rem;

@@ -552,6 +552,18 @@ function buildMatchGamePlanDiagramNodeHtml(value, coords, planLabel = 'OffC') {
     `;
 }
 
+function buildMatchGamePlanBallMarkerHtml(coords, planLabel = 'DefC') {
+    return `
+        <span
+            class="match-game-plan-ball-marker"
+            style="top: ${coords.top}; left: ${coords.left};"
+            aria-label="${escapeMatchHtml(planLabel)} ball"
+        >
+            <i class="fa-regular fa-futbol" aria-hidden="true"></i>
+        </span>
+    `;
+}
+
 function getMatchGamePlanStarterPlayerValue(player) {
     return player?.id || player?.navn || '';
 }
@@ -643,7 +655,7 @@ function buildMatchGamePlanDefCHtml(match) {
         ariaLabel: 'DefC bane',
         childrenHtml: Object.entries(matchGamePlanDefCPositions).map(([value, coords]) => `
             ${buildMatchGamePlanDiagramNodeHtml(value, coords, 'DefC')}
-        `).join('') + buildMatchGamePlanOffCControlsHtml(match, 'defc')
+        `).join('') + buildMatchGamePlanBallMarkerHtml({ top: '3%', left: '95%' }, 'DefC') + buildMatchGamePlanOffCControlsHtml(match, 'defc')
     });
 }
 
