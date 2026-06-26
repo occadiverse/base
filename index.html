@@ -43,27 +43,6 @@
             </div> <!-- Dette er den lukkende taggen for view-hjem -->
                         
             <div id="view-kamper" class="hidden portal-view space-y-5 match-list-page">
-                <div class="match-list-toolbar">
-                    <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
-                        <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="match-filter-btn is-active" aria-selected="true">
-                            <i class="fa-solid fa-calendar-day"></i>
-                            <span>Kommende</span>
-                        </button>
-                        <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="match-filter-btn" aria-selected="false">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                            <span>Tidligere</span>
-                        </button>
-                    </div>
-
-                    <div class="match-list-lag-filter hidden" aria-hidden="true">
-                        <i class="fa-solid fa-users"></i>
-                        <select id="kamperLagFilterSelect" onchange="applyFilters()" class="match-list-lag-select" aria-label="Filtrer kamper etter lag" tabindex="-1">
-                            <option value="Alle">Alle lag</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
-                    </div>
-                </div>
-
                 <div id="matchListDesktopColumns" class="match-list-desktop-columns" aria-label="Kommende og tidligere kamper">
                     <section class="match-detail-card match-list-column">
                         <div class="dashboard-next-match-watermark match-list-column-watermark">
@@ -130,15 +109,66 @@
                     </section>
                 </div>
 
-                <div id="matchListContainer" class="match-list-grid match-list-mobile-grid"></div>
-
-                <div id="no-matches-view" class="hidden match-list-empty">
-                    <div class="match-list-empty-icon">
-                        <i class="fa-solid fa-futbol"></i>
+                <section class="match-detail-card match-list-mobile-card">
+                    <div class="dashboard-next-match-watermark match-list-column-watermark match-list-mobile-watermark">
+                        <i class="fa-solid fa-calendar-days"></i>
                     </div>
-                    <p class="match-list-empty-title">Ingen kamper funnet</p>
-                    <p class="match-list-empty-text">Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.</p>
-                </div>
+
+                    <div class="match-detail-card-top match-list-mobile-top relative z-10">
+                        <div class="match-detail-meta match-list-column-title">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <span>Kamper</span>
+                        </div>
+                        <div class="match-detail-chip">
+                            <i class="fa-solid fa-filter"></i>
+                            <span id="matchListMobileFilterLabel">Kommende</span>
+                        </div>
+                    </div>
+
+                    <div class="match-list-toolbar match-list-mobile-toolbar relative z-10">
+                        <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
+                            <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="match-filter-btn is-active" aria-selected="true">
+                                <i class="fa-solid fa-calendar-day"></i>
+                                <span>Kommende</span>
+                            </button>
+                            <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="match-filter-btn" aria-selected="false">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span>Tidligere</span>
+                            </button>
+                        </div>
+
+                        <div class="match-list-lag-filter hidden" aria-hidden="true">
+                            <i class="fa-solid fa-users"></i>
+                            <select id="kamperLagFilterSelect" onchange="applyFilters()" class="match-list-lag-select" aria-label="Filtrer kamper etter lag" tabindex="-1">
+                                <option value="Alle">Alle lag</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
+                        </div>
+                    </div>
+
+                    <div class="match-list-column-main match-list-mobile-main relative z-10">
+                        <div id="matchListContainer" class="match-list-grid match-list-mobile-grid"></div>
+
+                        <div id="no-matches-view" class="hidden match-list-empty">
+                            <div class="match-list-empty-icon">
+                                <i class="fa-solid fa-futbol"></i>
+                            </div>
+                            <p class="match-list-empty-title">Ingen kamper funnet</p>
+                            <p class="match-list-empty-text">Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.</p>
+                        </div>
+                    </div>
+
+                    <div class="match-detail-footer match-list-column-footer relative z-10">
+                        <div class="match-detail-footer-item">
+                            <i class="fa-solid fa-futbol"></i>
+                            <span id="matchListMobileCount">0 kamper</span>
+                        </div>
+                        <div class="match-detail-footer-item">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span id="matchListMobileStatus">Planlagt</span>
+                        </div>
+                    </div>
+                </section>
             </div>
             <div id="view-kampdetaljer" class="hidden portal-view space-y-4 max-w-4xl mx-auto w-full">
                 <div class="rounded-2xl overflow-visible">

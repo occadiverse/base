@@ -1957,20 +1957,33 @@
             min-height: 100%;
             min-width: 0;
         }
+        .match-list-mobile-card {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
         .match-list-column-past {
             background:
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
                 linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
         }
         .match-list-column-watermark {
-            bottom: -2.8rem;
+            bottom: auto;
             opacity: 0.045;
             right: -2.8rem;
+            top: -3.5rem;
         }
         .match-list-column-watermark i {
             font-size: clamp(10rem, 22vw, 16rem);
         }
+        .match-list-mobile-watermark {
+            right: -3.25rem;
+            top: -3rem;
+        }
         .match-list-column-header {
+            min-height: 3rem;
+        }
+        .match-list-mobile-top {
             min-height: 3rem;
         }
         .match-list-column-title {
@@ -1985,6 +1998,15 @@
         .match-list-column-main {
             flex: 1 1 auto;
             padding: 1rem;
+        }
+        .match-list-mobile-main {
+            padding-top: 0.85rem;
+        }
+        .match-list-mobile-toolbar {
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.14);
+            justify-content: center;
+            padding: 0.85rem 1rem;
         }
         .match-list-column-footer .match-detail-footer-item {
             font-size: 0.8rem;
@@ -2010,10 +2032,12 @@
             flex: 1 1 auto;
             height: 1px;
         }
-        .match-list-column .match-fixture-month {
+        .match-list-column .match-fixture-month,
+        .match-list-mobile-card .match-fixture-month {
             color: rgba(255, 255, 255, 0.72);
         }
-        .match-list-column .match-fixture-month::after {
+        .match-list-column .match-fixture-month::after,
+        .match-list-mobile-card .match-fixture-month::after {
             background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
         }
         .match-fixture-group-rows {
@@ -2033,7 +2057,8 @@
             padding: 0.8rem 0.95rem;
             position: relative;
         }
-        .match-list-column .match-fixture-row {
+        .match-list-column .match-fixture-row,
+        .match-list-mobile-card .match-fixture-row {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
@@ -2170,18 +2195,22 @@
             margin: 0 auto;
             max-width: 22rem;
         }
-        .match-list-column .match-list-empty {
+        .match-list-column .match-list-empty,
+        .match-list-mobile-card .match-list-empty {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(245, 197, 66, 0.22);
         }
-        .match-list-column .match-list-empty-icon {
+        .match-list-column .match-list-empty-icon,
+        .match-list-mobile-card .match-list-empty-icon {
             background: rgba(245, 197, 66, 0.14);
             border: 1px solid rgba(245, 197, 66, 0.28);
         }
-        .match-list-column .match-list-empty-title {
+        .match-list-column .match-list-empty-title,
+        .match-list-mobile-card .match-list-empty-title {
             color: #ffffff;
         }
-        .match-list-column .match-list-empty-text {
+        .match-list-column .match-list-empty-text,
+        .match-list-mobile-card .match-list-empty-text {
             color: rgba(255, 255, 255, 0.62);
         }
         .match-list-column-empty {
@@ -2192,17 +2221,13 @@
             width: 3.25rem;
         }
         @media (min-width: 1024px) {
-            .match-list-toolbar {
-                display: none;
-            }
             .match-list-desktop-columns {
                 align-items: start;
                 display: grid;
                 gap: 1.25rem;
-                grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .match-list-mobile-grid,
-            .match-list-page > #no-matches-view {
+            .match-list-mobile-card {
                 display: none !important;
             }
         }
