@@ -587,7 +587,10 @@ function getMatchGamePlanStarterPlayerValue(player) {
 
 function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 'offc') {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
-    const selectedValue = assignments[slot] || '';
+    const storedSelectedValue = assignments[slot] || '';
+    const selectedValue = starterPlayers.some(({ player }) => getMatchGamePlanStarterPlayerValue(player) === storedSelectedValue)
+        ? storedSelectedValue
+        : '';
     const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
 
     return `
