@@ -716,7 +716,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                             </span>
                             <span class="match-game-plan-bench-select-wrap">
                                 <select
-                                    class="match-game-plan-bench-select ${selectedAssignment.minute ? '' : 'is-empty'}"
+                                    class="match-game-plan-bench-select ${assignment.minute ? '' : 'is-empty'}"
                                     aria-label="Planlagt innbytte for ${escapeMatchHtml(player.navn)}"
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchMinute('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
@@ -726,7 +726,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                             </span>
                             <span class="match-game-plan-bench-select-wrap">
                                 <select
-                                    class="match-game-plan-bench-select ${selectedAssignment.position ? '' : 'is-empty'}"
+                                    class="match-game-plan-bench-select ${assignment.position ? '' : 'is-empty'}"
                                     aria-label="Planlagt posisjon for ${escapeMatchHtml(player.navn)}"
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
