@@ -170,7 +170,17 @@
         function refreshOpenMatchDetails() {
             if (window.currentTab !== 'kampdetaljer') return;
             if (!window.activeDetailsId || typeof window.showMatchDetails !== 'function') return;
-            if (!window.activeMatches?.some(match => match.id === window.activeDetailsId)) return;
+            const activeMatch = window.activeMatches?.find(match => match.id === window.activeDetailsId);
+            if (!activeMatch) return;
+
+            if (
+                window.activeMatchGamePlanTab === 'bench'
+                && typeof window.syncMatchGamePlanBenchPanel === 'function'
+                && document.querySelector('[data-game-plan-page="bench"] .match-game-plan-bench-panel')
+            ) {
+                requestAnimationFrame(() => window.syncMatchGamePlanBenchPanel(activeMatch));
+                return;
+            }
 
             const activeElement = document.activeElement;
             const isEditing = activeElement && activeElement.closest && activeElement.closest(
