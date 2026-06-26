@@ -705,12 +705,6 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                     const jersey = player.drakt || player.draktnummer || '-';
                     const jerseySort = Number(player.drakt || player.draktnummer) || 999;
                     const isPlanned = Boolean(assignment.minute || assignment.position);
-                    const statusText = isComplete
-                        ? 'Klar'
-                        : (assignment.minute ? 'Mangler pos' : (assignment.position ? 'Mangler tid' : 'Ikke satt'));
-                    const statusClass = isComplete
-                        ? 'is-complete'
-                        : (isPlanned ? 'is-partial' : 'is-empty');
                     return `
                         <div
                             class="match-game-plan-bench-row ${isComplete ? 'is-complete' : ''}"
@@ -720,45 +714,38 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                             data-bench-jersey-sort="${jerseySort}"
                             data-bench-name-sort="${escapeMatchHtml(player.navn)}"
                         >
-                            <div class="match-game-plan-bench-player">
-                                <span class="match-game-plan-bench-player-main">
-                                    <span class="match-game-plan-bench-jersey">${escapeMatchHtml(jersey)}</span>
-                                    <span class="match-game-plan-bench-name">${escapeMatchHtml(player.navn)}</span>
-                                </span>
-                                <span class="match-game-plan-bench-status ${statusClass}">${escapeMatchHtml(statusText)}</span>
-                            </div>
-                            <div class="match-game-plan-bench-controls">
-                                <span class="match-game-plan-bench-select-wrap">
-                                    <select
-                                        class="match-game-plan-bench-select ${assignment.minute ? '' : 'is-empty'}"
-                                        aria-label="Planlagt innbytte for ${escapeMatchHtml(player.navn)}"
-                                        onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchMinute('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
-                                    >
-                                        <option value="">Tid</option>
-                                        ${matchGamePlanBenchMinutes.map(minute => `<option value="${minute}" ${assignment.minute === minute ? 'selected' : ''}>${minute}'</option>`).join('')}
-                                    </select>
-                                </span>
-                                <span class="match-game-plan-bench-select-wrap">
-                                    <select
-                                        class="match-game-plan-bench-select ${assignment.position ? '' : 'is-empty'}"
-                                        aria-label="Planlagt posisjon for ${escapeMatchHtml(player.navn)}"
-                                        onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
-                                    >
-                                        <option value="">Pos</option>
-                                        ${Object.keys(matchGamePlanStarterPositions).map(posId => `<option value="${escapeMatchHtml(posId)}" ${assignment.position === posId ? 'selected' : ''}>${escapeMatchHtml(posId)}</option>`).join('')}
-                                    </select>
-                                </span>
-                                <button
-                                    type="button"
-                                    class="match-game-plan-bench-clear-btn ${isPlanned ? '' : 'is-disabled'}"
-                                    onclick="window.clearMatchGamePlanBenchAssignment('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}')"
-                                    title="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
-                                    aria-label="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
-                                    ${isPlanned ? '' : 'disabled'}
+                            <span class="match-game-plan-bench-jersey">${escapeMatchHtml(jersey)}</span>
+                            <span class="match-game-plan-bench-name">${escapeMatchHtml(player.navn)}</span>
+                            <span class="match-game-plan-bench-select-wrap">
+                                <select
+                                    class="match-game-plan-bench-select ${assignment.minute ? '' : 'is-empty'}"
+                                    aria-label="Planlagt innbytte for ${escapeMatchHtml(player.navn)}"
+                                    onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchMinute('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
-                                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-                                </button>
-                            </div>
+                                    <option value="">Tid</option>
+                                    ${matchGamePlanBenchMinutes.map(minute => `<option value="${minute}" ${assignment.minute === minute ? 'selected' : ''}>${minute}'</option>`).join('')}
+                                </select>
+                            </span>
+                            <span class="match-game-plan-bench-select-wrap">
+                                <select
+                                    class="match-game-plan-bench-select ${assignment.position ? '' : 'is-empty'}"
+                                    aria-label="Planlagt posisjon for ${escapeMatchHtml(player.navn)}"
+                                    onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
+                                >
+                                    <option value="">Pos</option>
+                                    ${Object.keys(matchGamePlanStarterPositions).map(posId => `<option value="${escapeMatchHtml(posId)}" ${assignment.position === posId ? 'selected' : ''}>${escapeMatchHtml(posId)}</option>`).join('')}
+                                </select>
+                            </span>
+                            <button
+                                type="button"
+                                class="match-game-plan-bench-clear-btn ${isPlanned ? '' : 'is-disabled'}"
+                                onclick="window.clearMatchGamePlanBenchAssignment('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}')"
+                                title="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
+                                aria-label="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
+                                ${isPlanned ? '' : 'disabled'}
+                            >
+                                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                            </button>
                         </div>
                     `;
                 }).join('')}
@@ -820,20 +807,11 @@ window.syncMatchGamePlanBenchPanel = function(match) {
         if (!row) return;
 
         const isPlanned = Boolean(assignment.minute || assignment.position);
-        const status = row.querySelector('.match-game-plan-bench-status');
         const clearButton = row.querySelector('.match-game-plan-bench-clear-btn');
         row.dataset.benchMinute = assignment.minute || '';
         row.dataset.benchPosition = assignment.position || '';
         row.classList.toggle('is-complete', isComplete);
 
-        if (status) {
-            status.textContent = isComplete
-                ? 'Klar'
-                : (assignment.minute ? 'Mangler pos' : (assignment.position ? 'Mangler tid' : 'Ikke satt'));
-            status.classList.toggle('is-complete', isComplete);
-            status.classList.toggle('is-partial', !isComplete && isPlanned);
-            status.classList.toggle('is-empty', !isPlanned);
-        }
         if (clearButton) {
             clearButton.disabled = !isPlanned;
             clearButton.classList.toggle('is-disabled', !isPlanned);
