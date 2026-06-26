@@ -5768,9 +5768,13 @@
             box-shadow: 0 18px 34px rgba(2, 6, 23, 0.24);
             left: 50%;
             max-height: 76%;
-            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+            overflow-y: auto;
+            overscroll-behavior: contain;
             padding: 0.55rem;
             position: absolute;
+            scrollbar-color: rgba(245, 197, 66, 0.65) rgba(255, 255, 255, 0.12);
+            scrollbar-width: thin;
             top: 50%;
             transform: translate(-50%, -50%);
             width: min(92%, 21rem);
@@ -5780,10 +5784,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.38rem;
-            max-height: 100%;
-            overflow-y: auto;
             padding-right: 0.12rem;
-            scrollbar-width: thin;
         }
         .match-game-plan-bench-row {
             align-items: center;
