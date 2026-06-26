@@ -692,6 +692,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
     const completeCount = benchItems.filter(item => item.isComplete).length;
     const missingTimeCount = benchItems.filter(item => !item.assignment.minute).length;
     const missingPositionCount = benchItems.filter(item => !item.assignment.position).length;
+    const hasUnsavedBenchChanges = window.dirtyMatchGamePlanBenchMatchIds?.has(match.id) || false;
 
     return `
         <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
@@ -699,6 +700,19 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                 <span data-bench-summary-ready><strong>${completeCount} av ${benchItems.length}</strong><small>Klare</small></span>
                 <span data-bench-summary-missing-time><strong>${missingTimeCount}</strong><small>Uten tid</small></span>
                 <span data-bench-summary-missing-position><strong>${missingPositionCount}</strong><small>Uten pos</small></span>
+            </div>
+            <div class="match-game-plan-bench-save-row">
+                <span class="match-game-plan-bench-save-state" data-bench-save-state>${hasUnsavedBenchChanges ? 'Ulagrede endringer' : 'Lagret'}</span>
+                <button
+                    type="button"
+                    class="match-game-plan-bench-save-btn ${hasUnsavedBenchChanges ? 'is-dirty' : ''}"
+                    data-bench-save-match-id="${escapeMatchHtml(match.id)}"
+                    onclick="window.saveMatchGamePlanBenchPlan('${escapeMatchJsString(match.id)}')"
+                    ${hasUnsavedBenchChanges ? '' : 'disabled'}
+                >
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    <span>${hasUnsavedBenchChanges ? 'Lagre bytteplan' : 'Lagret'}</span>
+                </button>
             </div>
             <div class="match-game-plan-bench-list">
                 ${benchItems.map(({ player, playerKey, assignment, isComplete }) => {
@@ -775,6 +789,34 @@ function sortMatchGamePlanBenchRows(list) {
         .forEach(row => list.appendChild(row));
 }
 
+function getMatchGamePlanBenchSaveButton(matchId) {
+    return [...document.querySelectorAll('[data-bench-save-match-id]')]
+        .find(button => button.dataset.benchSaveMatchId === matchId);
+}
+
+function setMatchGamePlanBenchDirty(matchId, isDirty = true) {
+    window.dirtyMatchGamePlanBenchMatchIds = window.dirtyMatchGamePlanBenchMatchIds || new Set();
+    if (isDirty) {
+        window.dirtyMatchGamePlanBenchMatchIds.add(matchId);
+    } else {
+        window.dirtyMatchGamePlanBenchMatchIds.delete(matchId);
+    }
+    updateMatchGamePlanBenchSaveState(matchId);
+}
+
+function updateMatchGamePlanBenchSaveState(matchId) {
+    const isDirty = window.dirtyMatchGamePlanBenchMatchIds?.has(matchId) || false;
+    const saveButton = getMatchGamePlanBenchSaveButton(matchId);
+    const saveState = saveButton?.closest('.match-game-plan-bench-save-row')?.querySelector('[data-bench-save-state]');
+    if (saveState) saveState.textContent = isDirty ? 'Ulagrede endringer' : 'Lagret';
+    if (!saveButton) return;
+
+    saveButton.disabled = !isDirty;
+    saveButton.classList.toggle('is-dirty', isDirty);
+    const label = saveButton.querySelector('span');
+    if (label) label.textContent = isDirty ? 'Lagre bytteplan' : 'Lagret';
+}
+
 window.syncMatchGamePlanBenchPanel = function(match) {
     const panel = document.querySelector('[data-game-plan-page="bench"] .match-game-plan-bench-panel');
     const list = panel?.querySelector('.match-game-plan-bench-list');
@@ -829,6 +871,7 @@ window.syncMatchGamePlanBenchPanel = function(match) {
     });
 
     sortMatchGamePlanBenchRows(list);
+    updateMatchGamePlanBenchSaveState(match.id);
     panel.scrollTop = scrollTop;
     requestAnimationFrame(() => {
         panel.scrollTop = scrollTop;
@@ -1494,10 +1537,7 @@ window.updateMatchGamePlanBenchMinute = async function(matchId, playerRef, minut
         }
     };
     window.syncMatchGamePlanBenchPanel(match);
-
-    if (typeof window.saveMatchToDatabase === 'function') {
-        await window.saveMatchToDatabase(match);
-    }
+    setMatchGamePlanBenchDirty(matchId, true);
 };
 
 window.updateMatchGamePlanBenchPosition = async function(matchId, playerRef, position = '') {
@@ -1516,10 +1556,7 @@ window.updateMatchGamePlanBenchPosition = async function(matchId, playerRef, pos
         }
     };
     window.syncMatchGamePlanBenchPanel(match);
-
-    if (typeof window.saveMatchToDatabase === 'function') {
-        await window.saveMatchToDatabase(match);
-    }
+    setMatchGamePlanBenchDirty(matchId, true);
 };
 
 window.clearMatchGamePlanBenchAssignment = async function(matchId, playerRef) {
@@ -1537,9 +1574,42 @@ window.clearMatchGamePlanBenchAssignment = async function(matchId, playerRef) {
         }
     };
     window.syncMatchGamePlanBenchPanel(match);
+    setMatchGamePlanBenchDirty(matchId, true);
+};
 
-    if (typeof window.saveMatchToDatabase === 'function') {
+window.saveMatchGamePlanBenchPlan = async function(matchId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
+
+    window.pendingMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchGamePlanTab = 'bench';
+    const saveButton = getMatchGamePlanBenchSaveButton(matchId);
+    const label = saveButton?.querySelector('span');
+    const saveState = saveButton?.closest('.match-game-plan-bench-save-row')?.querySelector('[data-bench-save-state]');
+
+    if (typeof window.saveMatchToDatabase !== 'function') {
+        if (saveState) saveState.textContent = 'Kunne ikke lagre';
+        return;
+    }
+
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.classList.add('is-saving');
+    }
+    if (label) label.textContent = 'Lagrer...';
+    if (saveState) saveState.textContent = 'Lagrer endringer';
+
+    try {
         await window.saveMatchToDatabase(match);
+        setMatchGamePlanBenchDirty(matchId, false);
+    } catch (error) {
+        console.error('Kunne ikke lagre bytteplan', error);
+        if (saveButton) saveButton.disabled = false;
+        if (label) label.textContent = 'Prøv igjen';
+        if (saveState) saveState.textContent = 'Lagring feilet';
+    } finally {
+        if (saveButton) saveButton.classList.remove('is-saving');
     }
 };
 

@@ -173,11 +173,18 @@
             const activeMatch = window.activeMatches?.find(match => match.id === window.activeDetailsId);
             if (!activeMatch) return;
 
+            const activeGamePlanTab = document.querySelector('[data-game-plan-tab].is-active')?.dataset?.gamePlanTab || '';
+            const activeGamePlanPage = document.querySelector('[data-game-plan-page].is-active')?.dataset?.gamePlanPage || '';
+            const isBenchGamePlanVisible = window.activeMatchGamePlanTab === 'bench'
+                || activeGamePlanTab === 'bench'
+                || activeGamePlanPage === 'bench';
+
             if (
-                window.activeMatchGamePlanTab === 'bench'
+                isBenchGamePlanVisible
                 && typeof window.syncMatchGamePlanBenchPanel === 'function'
                 && document.querySelector('[data-game-plan-page="bench"] .match-game-plan-bench-panel')
             ) {
+                window.activeMatchGamePlanTab = 'bench';
                 requestAnimationFrame(() => window.syncMatchGamePlanBenchPanel(activeMatch));
                 return;
             }
