@@ -65,26 +65,68 @@
                 </div>
 
                 <div id="matchListDesktopColumns" class="match-list-desktop-columns" aria-label="Kommende og tidligere kamper">
-                    <section class="match-list-column">
-                        <div class="match-list-column-header">
-                            <div>
-                                <p class="match-list-column-kicker">Neste opp</p>
-                                <h2>Kommende kamper</h2>
-                            </div>
+                    <section class="match-detail-card match-list-column">
+                        <div class="dashboard-next-match-watermark match-list-column-watermark">
                             <i class="fa-solid fa-calendar-day"></i>
                         </div>
-                        <div id="matchListUpcomingContainer" class="match-list-grid"></div>
+
+                        <div class="match-detail-card-top match-list-column-header relative z-10">
+                            <div class="match-detail-meta match-list-column-title">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <span>Kommende kamper</span>
+                            </div>
+                            <div class="match-detail-chip">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>Neste opp</span>
+                            </div>
+                        </div>
+
+                        <div class="match-list-column-main relative z-10">
+                            <div id="matchListUpcomingContainer" class="match-list-grid"></div>
+                        </div>
+
+                        <div class="match-detail-footer match-list-column-footer relative z-10">
+                            <div class="match-detail-footer-item">
+                                <i class="fa-solid fa-futbol"></i>
+                                <span id="matchListUpcomingCount">0 kamper</span>
+                            </div>
+                            <div class="match-detail-footer-item">
+                                <i class="fa-regular fa-clock"></i>
+                                <span>Planlagt</span>
+                            </div>
+                        </div>
                     </section>
 
-                    <section class="match-list-column match-list-column-past">
-                        <div class="match-list-column-header">
-                            <div>
-                                <p class="match-list-column-kicker">Historikk</p>
-                                <h2>Tidligere kamper</h2>
-                            </div>
+                    <section class="match-detail-card match-list-column match-list-column-past">
+                        <div class="dashboard-next-match-watermark match-list-column-watermark">
                             <i class="fa-solid fa-clock-rotate-left"></i>
                         </div>
-                        <div id="matchListPastContainer" class="match-list-grid"></div>
+
+                        <div class="match-detail-card-top match-list-column-header relative z-10">
+                            <div class="match-detail-meta match-list-column-title">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span>Tidligere kamper</span>
+                            </div>
+                            <div class="match-detail-chip match-detail-chip-muted">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>Historikk</span>
+                            </div>
+                        </div>
+
+                        <div class="match-list-column-main relative z-10">
+                            <div id="matchListPastContainer" class="match-list-grid"></div>
+                        </div>
+
+                        <div class="match-detail-footer match-list-column-footer relative z-10">
+                            <div class="match-detail-footer-item">
+                                <i class="fa-solid fa-futbol"></i>
+                                <span id="matchListPastCount">0 kamper</span>
+                            </div>
+                            <div class="match-detail-footer-item">
+                                <i class="fa-solid fa-trophy"></i>
+                                <span>Resultater</span>
+                            </div>
+                        </div>
                     </section>
                 </div>
 

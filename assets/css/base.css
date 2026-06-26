@@ -1952,49 +1952,42 @@
             display: none;
         }
         .match-list-column {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(248, 251, 255, 0.94) 100%);
-            border: 1px solid rgba(18, 63, 115, 0.12);
-            border-radius: 1.35rem;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.07);
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
             min-width: 0;
-            padding: 1rem;
         }
         .match-list-column-past {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(241, 245, 249, 0.88) 100%);
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
+                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+        }
+        .match-list-column-watermark {
+            bottom: -2.8rem;
+            opacity: 0.045;
+            right: -2.8rem;
+        }
+        .match-list-column-watermark i {
+            font-size: clamp(10rem, 22vw, 16rem);
         }
         .match-list-column-header {
-            align-items: center;
-            display: flex;
-            gap: 1rem;
-            justify-content: space-between;
-            margin-bottom: 1rem;
             min-height: 3rem;
         }
-        .match-list-column-header h2 {
-            color: #0b2b4c;
-            font-size: 1.05rem;
-            font-weight: 950;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
+        .match-list-column-title {
+            font-size: 0.94rem;
+            min-width: 0;
         }
-        .match-list-column-header > i {
-            align-items: center;
-            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
-            border-radius: 999px;
-            color: #f5c542;
-            display: inline-flex;
-            flex: 0 0 auto;
-            height: 2.45rem;
-            justify-content: center;
-            width: 2.45rem;
+        .match-list-column-title span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .match-list-column-kicker {
-            color: #64748b;
-            font-size: 0.62rem;
-            font-weight: 950;
-            letter-spacing: 0.12em;
-            margin-bottom: 0.18rem;
-            text-transform: uppercase;
+        .match-list-column-main {
+            flex: 1 1 auto;
+            padding: 1rem;
+        }
+        .match-list-column-footer .match-detail-footer-item {
+            font-size: 0.8rem;
         }
         .match-fixture-group {
             display: flex;
@@ -2017,6 +2010,12 @@
             flex: 1 1 auto;
             height: 1px;
         }
+        .match-list-column .match-fixture-month {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .match-list-column .match-fixture-month::after {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
+        }
         .match-fixture-group-rows {
             display: flex;
             flex-direction: column;
@@ -2033,6 +2032,11 @@
             grid-template-columns: auto minmax(0, 1fr) auto auto;
             padding: 0.8rem 0.95rem;
             position: relative;
+        }
+        .match-list-column .match-fixture-row {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
         }
         .match-fixture-row.is-win {
             border-left: 3px solid #86efac;
@@ -2165,6 +2169,20 @@
             font-size: 0.78rem;
             margin: 0 auto;
             max-width: 22rem;
+        }
+        .match-list-column .match-list-empty {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(245, 197, 66, 0.22);
+        }
+        .match-list-column .match-list-empty-icon {
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+        }
+        .match-list-column .match-list-empty-title {
+            color: #ffffff;
+        }
+        .match-list-column .match-list-empty-text {
+            color: rgba(255, 255, 255, 0.62);
         }
         .match-list-column-empty {
             padding: 2rem 1rem;

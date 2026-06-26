@@ -215,6 +215,9 @@ function applyFilters() {
         currentTimeFilter === 'kommende' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date)
     );
 
+    updateMatchListCount('matchListUpcomingCount', upcomingMatches.length);
+    updateMatchListCount('matchListPastCount', pastMatches.length);
+
     renderMatchListIntoContainer(upcomingContainer, upcomingMatches, {
         isUpcoming: true,
         emptyTitle: 'Ingen kommende kamper',
@@ -233,6 +236,13 @@ function applyFilters() {
     });
 
     if (noMatchesView) noMatchesView.classList.toggle('hidden', sortedMatches.length > 0);
+}
+
+function updateMatchListCount(elementId, count) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    element.textContent = count === 1 ? '1 kamp' : `${count} kamper`;
 }
 
 function renderMatchListIntoContainer(container, matches, options = {}) {
