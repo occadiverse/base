@@ -5768,8 +5768,19 @@
         }
         .match-game-plan-role-controls {
             bottom: auto;
+            grid-template-columns: 1fr;
             top: 50%;
             transform: translate(-50%, -50%);
+            width: min(94%, 18rem);
+        }
+        .match-game-plan-role-controls .match-game-plan-offc-select-field {
+            grid-template-columns: 5.9rem minmax(0, 1fr);
+        }
+        .match-game-plan-role-controls .match-game-plan-offc-select-number {
+            font-size: 0.62rem;
+            letter-spacing: 0.02em;
+            padding-inline: 0.32rem;
+            text-transform: uppercase;
         }
         .match-game-plan-bench-panel {
             background: linear-gradient(135deg, rgba(18, 63, 115, 0.94), rgba(8, 31, 61, 0.9));
@@ -5796,6 +5807,24 @@
             gap: 0.38rem;
             padding-right: 0.12rem;
         }
+        .match-game-plan-bench-summary {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.82);
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.62rem;
+            font-weight: 900;
+            gap: 0.34rem;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.48rem;
+            text-transform: uppercase;
+        }
+        .match-game-plan-bench-summary span {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            padding: 0.24rem 0.42rem;
+        }
         .match-game-plan-bench-row {
             align-items: center;
             background: rgba(255, 255, 255, 0.96);
@@ -5807,6 +5836,15 @@
             grid-template-columns: minmax(0, 1fr) 5.35rem 4.85rem;
             min-height: 2.5rem;
             padding: 0.36rem;
+        }
+        .match-game-plan-bench-row.is-complete {
+            background: linear-gradient(135deg, rgba(236, 253, 245, 0.98), rgba(220, 252, 231, 0.96));
+            border-color: rgba(34, 197, 94, 0.56);
+            box-shadow: 0 8px 18px rgba(22, 163, 74, 0.18);
+        }
+        .match-game-plan-bench-row.is-complete .match-game-plan-bench-jersey {
+            background: #15803d;
+            color: #ffffff;
         }
         .match-game-plan-bench-player {
             align-items: center;
@@ -5931,6 +5969,7 @@
             font-weight: 900;
             justify-content: center;
             line-height: 1;
+            text-align: center;
         }
         .match-game-plan-offc-select {
             -moz-appearance: none;
@@ -7116,6 +7155,15 @@
                 gap: 0.34rem 0.58rem;
                 padding: 0.5rem;
                 width: min(96%, 19.4rem);
+            }
+            .match-game-plan-role-controls {
+                width: min(96%, 18.2rem);
+            }
+            .match-game-plan-role-controls .match-game-plan-offc-select-field {
+                grid-template-columns: 5.45rem minmax(0, 1fr);
+            }
+            .match-game-plan-role-controls .match-game-plan-offc-select-number {
+                font-size: 0.58rem;
             }
             .match-game-plan-bench-panel {
                 border-radius: 0.85rem;

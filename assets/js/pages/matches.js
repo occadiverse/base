@@ -428,6 +428,17 @@ const matchGamePlanDefCPositions = {
 const matchGamePlanRoleSlots = ['K', 'K2', 'Cv', 'Ch', 'F', 'F2', 'S', 'S2'];
 const matchGamePlanBenchMinutes = ['10', '20', '30', '45', '50', '55', '60', '65', '70', '75', '80', '85'];
 
+const matchGamePlanRoleLabels = {
+    K: 'Kaptein',
+    K2: 'Visekaptein',
+    Cv: 'Corner v.',
+    Ch: 'Corner h.',
+    F: 'Frispark',
+    F2: 'Frispark 2',
+    S: 'Straffe',
+    S2: 'Straffe 2'
+};
+
 const matchGamePlanAssignmentKeys = {
     offc: 'offcAssignments',
     defc: 'defcAssignments',
@@ -538,6 +549,10 @@ function getMatchGamePlanPositionLabel(posId) {
     return matchGamePlanPositionLabels[posId] || posId;
 }
 
+function getMatchGamePlanRoleLabel(slot) {
+    return matchGamePlanRoleLabels[slot] || slot;
+}
+
 function buildMatchGamePlanNodeHtml(match, posId, coords) {
     const selectedPlayer = getMatchGamePlanLineup(match)[posId] || null;
     const playerNameHtml = selectedPlayer
@@ -592,13 +607,15 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
         ? storedSelectedValue
         : '';
     const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
+    const slotLabel = planId === 'roller' ? getMatchGamePlanRoleLabel(slot) : slot;
 
     return `
         <label class="match-game-plan-offc-select-field">
-            <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slot)}</span>
+            <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slotLabel)}</span>
             <select
                 class="match-game-plan-offc-select ${selectedValue ? '' : 'is-empty'}"
                 aria-label="Velg spiller for ${escapeMatchHtml(planLabel)} ${escapeMatchHtml(slot)}"
+                title="${escapeMatchHtml(planId === 'roller' ? `${slot}: ${slotLabel}` : `${planLabel} ${slot}`)}"
                 onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanSetPiecePlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}', this.value)"
             >
                 <option value="">Velg spiller</option>
@@ -653,15 +670,46 @@ function buildMatchGamePlanBenchPlanHtml(match) {
         `;
     }
 
+    const benchItems = benchPlayers
+        .map(player => {
+            const playerKey = getMatchGamePlanStarterPlayerValue(player);
+            const assignment = getMatchGamePlanBenchAssignment(match, playerKey);
+            return {
+                player,
+                playerKey,
+                assignment,
+                minuteValue: Number(assignment.minute) || 999,
+                isPlanned: Boolean(assignment.minute || assignment.position),
+                isComplete: Boolean(assignment.minute && assignment.position)
+            };
+        })
+        .sort((a, b) => {
+            if (a.assignment.minute && !b.assignment.minute) return -1;
+            if (!a.assignment.minute && b.assignment.minute) return 1;
+            if (a.minuteValue !== b.minuteValue) return a.minuteValue - b.minuteValue;
+
+            const jerseyA = Number(a.player.drakt || a.player.draktnummer) || 999;
+            const jerseyB = Number(b.player.drakt || b.player.draktnummer) || 999;
+            return jerseyA - jerseyB || a.player.navn.localeCompare(b.player.navn);
+        });
+    const completeCount = benchItems.filter(item => item.isComplete).length;
+    const plannedCount = benchItems.filter(item => item.isPlanned).length;
+    const missingTimeCount = benchItems.filter(item => item.assignment.position && !item.assignment.minute).length;
+    const missingPositionCount = benchItems.filter(item => item.assignment.minute && !item.assignment.position).length;
+
     return `
         <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
+            <div class="match-game-plan-bench-summary" aria-label="Bytteplan oppsummering">
+                <span>${completeCount} klare</span>
+                <span>${plannedCount} planlagt</span>
+                <span>${missingTimeCount} uten tid</span>
+                <span>${missingPositionCount} uten pos</span>
+            </div>
             <div class="match-game-plan-bench-list">
-                ${benchPlayers.map(player => {
-                    const playerKey = getMatchGamePlanStarterPlayerValue(player);
+                ${benchItems.map(({ player, playerKey, assignment, isComplete }) => {
                     const jersey = player.drakt || player.draktnummer || '-';
-                    const selectedAssignment = getMatchGamePlanBenchAssignment(match, playerKey);
                     return `
-                        <label class="match-game-plan-bench-row">
+                        <label class="match-game-plan-bench-row ${isComplete ? 'is-complete' : ''}">
                             <span class="match-game-plan-bench-player">
                                 <span class="match-game-plan-bench-jersey">${escapeMatchHtml(jersey)}</span>
                                 <span class="match-game-plan-bench-name">${escapeMatchHtml(player.navn)}</span>
@@ -673,7 +721,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchMinute('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
                                     <option value="">Tid</option>
-                                    ${matchGamePlanBenchMinutes.map(minute => `<option value="${minute}" ${selectedAssignment.minute === minute ? 'selected' : ''}>${minute}'</option>`).join('')}
+                                    ${matchGamePlanBenchMinutes.map(minute => `<option value="${minute}" ${assignment.minute === minute ? 'selected' : ''}>${minute}'</option>`).join('')}
                                 </select>
                             </span>
                             <span class="match-game-plan-bench-select-wrap">
@@ -683,7 +731,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
                                     <option value="">Pos</option>
-                                    ${Object.keys(matchGamePlanStarterPositions).map(posId => `<option value="${escapeMatchHtml(posId)}" ${selectedAssignment.position === posId ? 'selected' : ''}>${escapeMatchHtml(posId)}</option>`).join('')}
+                                    ${Object.keys(matchGamePlanStarterPositions).map(posId => `<option value="${escapeMatchHtml(posId)}" ${assignment.position === posId ? 'selected' : ''}>${escapeMatchHtml(posId)}</option>`).join('')}
                                 </select>
                             </span>
                         </label>
