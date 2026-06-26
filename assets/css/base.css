@@ -5809,6 +5809,7 @@
         }
         .match-game-plan-bench-summary {
             align-items: center;
+            background: linear-gradient(135deg, rgba(18, 63, 115, 0.96), rgba(8, 31, 61, 0.94));
             color: rgba(255, 255, 255, 0.82);
             display: flex;
             flex-wrap: wrap;
@@ -5816,8 +5817,12 @@
             font-weight: 900;
             gap: 0.34rem;
             letter-spacing: 0.04em;
-            margin-bottom: 0.48rem;
+            margin: -0.55rem -0.55rem 0.48rem;
+            padding: 0.55rem;
+            position: sticky;
+            top: -0.55rem;
             text-transform: uppercase;
+            z-index: 2;
         }
         .match-game-plan-bench-summary span {
             background: rgba(255, 255, 255, 0.1);

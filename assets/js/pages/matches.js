@@ -679,7 +679,6 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                 playerKey,
                 assignment,
                 minuteValue: Number(assignment.minute) || 999,
-                isPlanned: Boolean(assignment.minute || assignment.position),
                 isComplete: Boolean(assignment.minute && assignment.position)
             };
         })
@@ -693,23 +692,29 @@ function buildMatchGamePlanBenchPlanHtml(match) {
             return jerseyA - jerseyB || a.player.navn.localeCompare(b.player.navn);
         });
     const completeCount = benchItems.filter(item => item.isComplete).length;
-    const plannedCount = benchItems.filter(item => item.isPlanned).length;
     const missingTimeCount = benchItems.filter(item => item.assignment.position && !item.assignment.minute).length;
     const missingPositionCount = benchItems.filter(item => item.assignment.minute && !item.assignment.position).length;
 
     return `
         <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
             <div class="match-game-plan-bench-summary" aria-label="Bytteplan oppsummering">
-                <span>${completeCount} klare</span>
-                <span>${plannedCount} planlagt</span>
-                <span>${missingTimeCount} uten tid</span>
-                <span>${missingPositionCount} uten pos</span>
+                <span data-bench-summary-ready>${completeCount} av ${benchItems.length} klare</span>
+                <span data-bench-summary-missing-time>${missingTimeCount} uten tid</span>
+                <span data-bench-summary-missing-position>${missingPositionCount} uten pos</span>
             </div>
             <div class="match-game-plan-bench-list">
                 ${benchItems.map(({ player, playerKey, assignment, isComplete }) => {
                     const jersey = player.drakt || player.draktnummer || '-';
+                    const jerseySort = Number(player.drakt || player.draktnummer) || 999;
                     return `
-                        <label class="match-game-plan-bench-row ${isComplete ? 'is-complete' : ''}">
+                        <label
+                            class="match-game-plan-bench-row ${isComplete ? 'is-complete' : ''}"
+                            data-bench-player-ref="${escapeMatchHtml(playerKey)}"
+                            data-bench-minute="${escapeMatchHtml(assignment.minute || '')}"
+                            data-bench-position="${escapeMatchHtml(assignment.position || '')}"
+                            data-bench-jersey-sort="${jerseySort}"
+                            data-bench-name-sort="${escapeMatchHtml(player.navn)}"
+                        >
                             <span class="match-game-plan-bench-player">
                                 <span class="match-game-plan-bench-jersey">${escapeMatchHtml(jersey)}</span>
                                 <span class="match-game-plan-bench-name">${escapeMatchHtml(player.navn)}</span>
@@ -741,6 +746,74 @@ function buildMatchGamePlanBenchPlanHtml(match) {
         </div>
     `;
 }
+
+function sortMatchGamePlanBenchRows(list) {
+    if (!list) return;
+
+    [...list.querySelectorAll('.match-game-plan-bench-row')]
+        .sort((a, b) => {
+            const aHasMinute = Boolean(a.dataset.benchMinute);
+            const bHasMinute = Boolean(b.dataset.benchMinute);
+            if (aHasMinute && !bHasMinute) return -1;
+            if (!aHasMinute && bHasMinute) return 1;
+
+            const minuteA = Number(a.dataset.benchMinute) || 999;
+            const minuteB = Number(b.dataset.benchMinute) || 999;
+            if (minuteA !== minuteB) return minuteA - minuteB;
+
+            const jerseyA = Number(a.dataset.benchJerseySort) || 999;
+            const jerseyB = Number(b.dataset.benchJerseySort) || 999;
+            return jerseyA - jerseyB || String(a.dataset.benchNameSort || '').localeCompare(String(b.dataset.benchNameSort || ''));
+        })
+        .forEach(row => list.appendChild(row));
+}
+
+window.syncMatchGamePlanBenchPanel = function(match) {
+    const panel = document.querySelector('[data-game-plan-page="bench"] .match-game-plan-bench-panel');
+    const list = panel?.querySelector('.match-game-plan-bench-list');
+    if (!panel || !list || !match) return;
+
+    const scrollTop = panel.scrollTop;
+    const benchItems = getMatchGamePlanBenchPlayers(match).map(player => {
+        const playerKey = getMatchGamePlanStarterPlayerValue(player);
+        const assignment = getMatchGamePlanBenchAssignment(match, playerKey);
+        return {
+            playerKey,
+            assignment,
+            isComplete: Boolean(assignment.minute && assignment.position)
+        };
+    });
+    const completeCount = benchItems.filter(item => item.isComplete).length;
+    const missingTimeCount = benchItems.filter(item => item.assignment.position && !item.assignment.minute).length;
+    const missingPositionCount = benchItems.filter(item => item.assignment.minute && !item.assignment.position).length;
+
+    const readySummary = panel.querySelector('[data-bench-summary-ready]');
+    const missingTimeSummary = panel.querySelector('[data-bench-summary-missing-time]');
+    const missingPositionSummary = panel.querySelector('[data-bench-summary-missing-position]');
+    if (readySummary) readySummary.textContent = `${completeCount} av ${benchItems.length} klare`;
+    if (missingTimeSummary) missingTimeSummary.textContent = `${missingTimeCount} uten tid`;
+    if (missingPositionSummary) missingPositionSummary.textContent = `${missingPositionCount} uten pos`;
+
+    benchItems.forEach(({ playerKey, assignment, isComplete }) => {
+        const row = [...list.querySelectorAll('.match-game-plan-bench-row')]
+            .find(item => item.dataset.benchPlayerRef === playerKey);
+        if (!row) return;
+
+        row.dataset.benchMinute = assignment.minute || '';
+        row.dataset.benchPosition = assignment.position || '';
+        row.classList.toggle('is-complete', isComplete);
+
+        const selects = row.querySelectorAll('.match-game-plan-bench-select');
+        if (selects[0]) selects[0].classList.toggle('is-empty', !assignment.minute);
+        if (selects[1]) selects[1].classList.toggle('is-empty', !assignment.position);
+    });
+
+    sortMatchGamePlanBenchRows(list);
+    panel.scrollTop = scrollTop;
+    requestAnimationFrame(() => {
+        panel.scrollTop = scrollTop;
+    });
+};
 
 function buildMatchGamePlanPitchLinesHtml() {
     return `
@@ -1397,6 +1470,7 @@ window.updateMatchGamePlanBenchMinute = async function(matchId, playerRef, minut
             minute: minute || ''
         }
     };
+    window.syncMatchGamePlanBenchPanel(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
@@ -1417,6 +1491,7 @@ window.updateMatchGamePlanBenchPosition = async function(matchId, playerRef, pos
             position: position || ''
         }
     };
+    window.syncMatchGamePlanBenchPanel(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
