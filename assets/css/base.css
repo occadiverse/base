@@ -5528,6 +5528,16 @@
         .match-game-plan-tab:hover {
             color: #ffffff;
         }
+        .match-game-plan-tab[data-game-plan-tab="starter11"] {
+            font-size: 0;
+        }
+        .match-game-plan-tab[data-game-plan-tab="starter11"]::after {
+            content: "11er";
+            font-size: 0.66rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            line-height: 1;
+        }
         .match-game-plan-scroll-btn {
             display: inline-flex;
         }
@@ -5975,6 +5985,15 @@
             transform: translateX(0);
         }
         .match-game-plan-node-hk .match-game-plan-node-name {
+            left: auto;
+            right: 0;
+            transform: translateX(0);
+        }
+        .match-game-plan-node[data-game-plan-node="VK"] .match-game-plan-node-name {
+            left: 0;
+            transform: translateX(0);
+        }
+        .match-game-plan-node[data-game-plan-node="HK"] .match-game-plan-node-name {
             left: auto;
             right: 0;
             transform: translateX(0);
@@ -7061,6 +7080,12 @@
                 font-size: 0.62rem;
                 min-height: 2.2rem;
                 padding: 0.52rem 0.66rem;
+            }
+            .match-game-plan-tab[data-game-plan-tab="starter11"] {
+                font-size: 0;
+            }
+            .match-game-plan-tab[data-game-plan-tab="starter11"]::after {
+                font-size: 0.62rem;
             }
             .match-game-plan-content-scroll {
                 margin-inline: -0.15rem;
