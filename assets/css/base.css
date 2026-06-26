@@ -5761,6 +5761,131 @@
             top: 50%;
             transform: translate(-50%, -50%);
         }
+        .match-game-plan-bench-panel {
+            background: linear-gradient(135deg, rgba(18, 63, 115, 0.94), rgba(8, 31, 61, 0.9));
+            border: 1px solid rgba(245, 197, 66, 0.3);
+            border-radius: 1rem;
+            box-shadow: 0 18px 34px rgba(2, 6, 23, 0.24);
+            left: 50%;
+            max-height: 76%;
+            overflow: hidden;
+            padding: 0.55rem;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: min(92%, 21rem);
+            z-index: 4;
+        }
+        .match-game-plan-bench-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.38rem;
+            max-height: 100%;
+            overflow-y: auto;
+            padding-right: 0.12rem;
+            scrollbar-width: thin;
+        }
+        .match-game-plan-bench-row {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.78rem;
+            box-shadow: 0 7px 14px rgba(2, 6, 23, 0.14);
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: minmax(0, 1fr) 5.6rem;
+            min-height: 2.25rem;
+            padding: 0.3rem;
+        }
+        .match-game-plan-bench-player {
+            align-items: center;
+            display: flex;
+            gap: 0.45rem;
+            min-width: 0;
+        }
+        .match-game-plan-bench-jersey {
+            align-items: center;
+            background: #123f73;
+            border-radius: 0.55rem;
+            color: #f5c542;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.74rem;
+            font-weight: 950;
+            height: 1.65rem;
+            justify-content: center;
+            line-height: 1;
+            min-width: 1.65rem;
+            padding-inline: 0.32rem;
+        }
+        .match-game-plan-bench-name {
+            color: #123f73;
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 900;
+            line-height: 1.1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-game-plan-bench-select-wrap {
+            position: relative;
+        }
+        .match-game-plan-bench-select-wrap::after {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 5px solid #f5c542;
+            content: "";
+            pointer-events: none;
+            position: absolute;
+            right: 0.55rem;
+            top: 50%;
+            transform: translateY(-40%);
+        }
+        .match-game-plan-bench-select {
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #f8fafc;
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 0.58rem;
+            color: #123f73;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.68rem;
+            font-weight: 900;
+            outline: none;
+            padding: 0.42rem 1.25rem 0.42rem 0.5rem;
+            width: 100%;
+        }
+        .match-game-plan-bench-select.is-empty {
+            color: rgba(100, 116, 139, 0.72);
+            font-weight: 800;
+        }
+        .match-game-plan-bench-select:focus {
+            box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.48);
+        }
+        .match-game-plan-bench-select option {
+            color: #0f172a;
+        }
+        .match-game-plan-bench-empty {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 0.85rem;
+            color: #64748b;
+            display: flex;
+            font-size: 0.76rem;
+            font-weight: 900;
+            gap: 0.5rem;
+            justify-content: center;
+            min-height: 3.2rem;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .match-game-plan-bench-empty i {
+            color: #123f73;
+        }
         .match-game-plan-offc-select-field {
             align-items: center;
             background: rgba(255, 255, 255, 0.96);
@@ -6945,6 +7070,33 @@
                 gap: 0.28rem 0.5rem;
                 padding: 0.45rem;
                 width: min(94%, 17rem);
+            }
+            .match-game-plan-bench-panel {
+                border-radius: 0.85rem;
+                max-height: 74%;
+                padding: 0.45rem;
+                width: min(94%, 17rem);
+            }
+            .match-game-plan-bench-list {
+                gap: 0.3rem;
+            }
+            .match-game-plan-bench-row {
+                gap: 0.32rem;
+                grid-template-columns: minmax(0, 1fr) 4.9rem;
+                min-height: 2.05rem;
+                padding: 0.25rem;
+            }
+            .match-game-plan-bench-jersey {
+                font-size: 0.68rem;
+                height: 1.48rem;
+                min-width: 1.48rem;
+            }
+            .match-game-plan-bench-name,
+            .match-game-plan-bench-select {
+                font-size: 0.62rem;
+            }
+            .match-game-plan-bench-select {
+                padding: 0.34rem 1.12rem 0.34rem 0.42rem;
             }
             .match-game-plan-offc-select-field {
                 grid-template-columns: 1.7rem minmax(0, 1fr);

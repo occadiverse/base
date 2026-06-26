@@ -426,6 +426,7 @@ const matchGamePlanDefCPositions = {
 };
 
 const matchGamePlanRoleSlots = ['K', 'K2', 'Cv', 'Ch', 'F', 'F2', 'S', 'S2'];
+const matchGamePlanBenchMinutes = ['10', '20', '30', '45', '50', '55', '60', '65', '70', '75', '80', '85'];
 
 const matchGamePlanAssignmentKeys = {
     offc: 'offcAssignments',
@@ -502,6 +503,12 @@ function getMatchGamePlanOffCAssignments(match) {
 function getMatchGamePlanSetPieceAssignments(match, planId) {
     const key = matchGamePlanAssignmentKeys[planId] || matchGamePlanAssignmentKeys.offc;
     return match && typeof match[key] === 'object' && match[key] ? match[key] : {};
+}
+
+function getMatchGamePlanBenchAssignments(match) {
+    return match && typeof match.benchSubstitutionPlan === 'object' && match.benchSubstitutionPlan
+        ? match.benchSubstitutionPlan
+        : {};
 }
 
 function getMatchGamePlanPositionScore(player, posId) {
@@ -608,6 +615,63 @@ function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}
     `;
 }
 
+function getMatchGamePlanBenchPlayers(match) {
+    const lineup = getMatchGamePlanLineup(match);
+    return getMatchGamePlanSelectablePlayers(match)
+        .filter(player => !Object.values(lineup).some(lineupPlayer => matchGamePlanSamePlayer(lineupPlayer, player)))
+        .sort((a, b) => {
+            const jerseyA = Number(a.drakt || a.draktnummer) || 999;
+            const jerseyB = Number(b.drakt || b.draktnummer) || 999;
+            return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
+        });
+}
+
+function buildMatchGamePlanBenchPlanHtml(match) {
+    const benchPlayers = getMatchGamePlanBenchPlayers(match);
+    const assignments = getMatchGamePlanBenchAssignments(match);
+
+    if (!benchPlayers.length) {
+        return `
+            <div class="match-game-plan-bench-panel">
+                <div class="match-game-plan-bench-empty">
+                    <i class="fa-solid fa-users-slash"></i>
+                    <span>Ingen påmeldte spillere på benken.</span>
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
+            <div class="match-game-plan-bench-list">
+                ${benchPlayers.map(player => {
+                    const playerKey = getMatchGamePlanStarterPlayerValue(player);
+                    const jersey = player.drakt || player.draktnummer || '-';
+                    const selectedValue = assignments[playerKey] || '';
+                    return `
+                        <label class="match-game-plan-bench-row">
+                            <span class="match-game-plan-bench-player">
+                                <span class="match-game-plan-bench-jersey">${escapeMatchHtml(jersey)}</span>
+                                <span class="match-game-plan-bench-name">${escapeMatchHtml(player.navn)}</span>
+                            </span>
+                            <span class="match-game-plan-bench-select-wrap">
+                                <select
+                                    class="match-game-plan-bench-select ${selectedValue ? '' : 'is-empty'}"
+                                    aria-label="Planlagt innbytte for ${escapeMatchHtml(player.navn)}"
+                                    onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchMinute('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
+                                >
+                                    <option value="">Tid</option>
+                                    ${matchGamePlanBenchMinutes.map(minute => `<option value="${minute}" ${selectedValue === minute ? 'selected' : ''}>${minute}'</option>`).join('')}
+                                </select>
+                            </span>
+                        </label>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function buildMatchGamePlanPitchLinesHtml() {
     return `
         <div class="match-game-plan-pitch-halfway"></div>
@@ -669,9 +733,10 @@ function buildMatchGamePlanRolesHtml(match) {
     });
 }
 
-function buildMatchGamePlanBenchHtml() {
+function buildMatchGamePlanBenchHtml(match) {
     return buildMatchGamePlanPitchHtml({
-        ariaLabel: 'Benk bane'
+        ariaLabel: 'Benk bane',
+        childrenHtml: buildMatchGamePlanBenchPlanHtml(match)
     });
 }
 
@@ -704,6 +769,12 @@ function renderMatchGamePlanRolesPage(match) {
     renderMatchGamePlanSetPiecePage(match, 'roller');
 }
 
+function renderMatchGamePlanBenchPage(match) {
+    const page = document.querySelector('[data-game-plan-page="bench"]');
+    if (!page) return;
+    page.innerHTML = buildMatchGamePlanBenchHtml(match);
+}
+
 function buildMatchGamePlanTabContentHtml(match, tab) {
     if (tab.id === 'starter11') {
         return buildMatchGamePlanStarter11Html(match);
@@ -722,7 +793,7 @@ function buildMatchGamePlanTabContentHtml(match, tab) {
     }
 
     if (tab.id === 'bench') {
-        return buildMatchGamePlanBenchHtml();
+        return buildMatchGamePlanBenchHtml(match);
     }
 
     return `
@@ -741,6 +812,7 @@ function ensureMatchGamePlanPitchPages(root = document) {
         const hasPitch = page.querySelector('.match-game-plan-pitch-wrap');
         const hasSetPieceNodes = page.querySelector('.match-game-plan-diagram-node');
         const hasSetPieceControls = page.querySelector('.match-game-plan-offc-controls');
+        const hasBenchPanel = page.querySelector('.match-game-plan-bench-panel');
         if ((tabId === 'offc' || tabId === 'defc') && (!hasPitch || !hasSetPieceNodes || !hasSetPieceControls)) {
             const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (!match) return;
@@ -755,10 +827,17 @@ function ensureMatchGamePlanPitchPages(root = document) {
             page.innerHTML = buildMatchGamePlanRolesHtml(match);
             return;
         }
+        if (tabId === 'bench' && (!hasPitch || !hasBenchPanel)) {
+            const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+            if (!match) return;
+            page.innerHTML = buildMatchGamePlanBenchHtml(match);
+            return;
+        }
         if (hasPitch) return;
 
-        page.innerHTML = tabId === 'bench'
-            ? buildMatchGamePlanBenchHtml()
+        const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+        page.innerHTML = tabId === 'bench' && match
+            ? buildMatchGamePlanBenchHtml(match)
             : buildMatchGamePlanPitchHtml({
                 ariaLabel: `${matchGamePlanTabs.find(item => item.id === tabId)?.label || tabId} bane`
             });
@@ -1187,6 +1266,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     renderMatchGamePlanOffCPage(match);
     renderMatchGamePlanDefCPage(match);
     renderMatchGamePlanRolesPage(match);
+    renderMatchGamePlanBenchPage(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);
@@ -1221,6 +1301,22 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
     }
 };
 
+window.updateMatchGamePlanBenchMinute = async function(matchId, playerRef, minute = '') {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match || !playerRef) return;
+
+    window.pendingMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchDetailsOpenPanel = 'kampplan';
+    match.benchSubstitutionPlan = {
+        ...getMatchGamePlanBenchAssignments(match),
+        [playerRef]: minute || ''
+    };
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+};
+
 window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPosId) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match || fromPosId === toPosId) return;
@@ -1241,6 +1337,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     renderMatchGamePlanOffCPage(match);
     renderMatchGamePlanDefCPage(match);
     renderMatchGamePlanRolesPage(match);
+    renderMatchGamePlanBenchPage(match);
 
     if (typeof window.saveMatchToDatabase === 'function') {
         await window.saveMatchToDatabase(match);

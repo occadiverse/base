@@ -164,6 +164,17 @@ window.pruneMatchPlanUnavailablePlayers = function(match) {
         });
     }
 
+    if (match.benchSubstitutionPlan && typeof match.benchSubstitutionPlan === 'object') {
+        nextMatch.benchSubstitutionPlan = {};
+        Object.entries(match.benchSubstitutionPlan).forEach(([ref, minute]) => {
+            if (!ref || window.isPlayerAttending(match.attendance, ref)) {
+                nextMatch.benchSubstitutionPlan[ref] = minute || '';
+            } else {
+                changed = true;
+            }
+        });
+    }
+
     return { match: changed ? nextMatch : match, changed };
 };
 
@@ -344,6 +355,7 @@ window.normalizeMatchPlayerRefs = function(match) {
     if (match.assists) normalized.assists = window.normalizePlayerRefMap(match.assists);
     if (match.ratings) normalized.ratings = window.normalizePlayerRefMap(match.ratings);
     if (match.benchOnly) normalized.benchOnly = window.normalizePlayerRefMap(match.benchOnly);
+    if (match.benchSubstitutionPlan) normalized.benchSubstitutionPlan = window.normalizePlayerRefMap(match.benchSubstitutionPlan);
     if (match.guleKort) normalized.guleKort = window.normalizePlayerRefList(match.guleKort);
     if (match.rodeKort) normalized.rodeKort = window.normalizePlayerRefList(match.rodeKort);
 
@@ -406,7 +418,7 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
         let changed = false;
         const updated = { ...entity };
 
-        ['attendance', 'scorers', 'assists', 'ratings', 'benchOnly'].forEach((field) => {
+        ['attendance', 'scorers', 'assists', 'ratings', 'benchOnly', 'benchSubstitutionPlan'].forEach((field) => {
             if (!entity[field]) return;
             const newMap = {};
             Object.entries(entity[field]).forEach(([key, value]) => {
