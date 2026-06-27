@@ -288,6 +288,11 @@ function buildMatchFixtureRowHtml(match, options = {}) {
     const opponentLogoHtml = typeof window.buildClubLogoImgHtml === 'function'
         ? window.buildClubLogoImgHtml(match.opponent, 'match-fixture-opponent-logo')
         : '';
+    const opponentMarkHtml = opponentLogoHtml || `
+        <span class="match-fixture-opponent-logo match-fixture-opponent-fallback" aria-hidden="true">
+            <i class="fa-solid fa-shield"></i>
+        </span>
+    `;
     const clickAttrs = `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`;
     const sideValue = isUpcoming
         ? (match.time || '--:--')
@@ -304,7 +309,7 @@ function buildMatchFixtureRowHtml(match, options = {}) {
             <div class="match-fixture-main">
                 <span class="match-fixture-weekday">${escapeMatchHtml(data.weekday)}</span>
                 <span class="match-fixture-opponent-line">
-                    ${opponentLogoHtml}
+                    ${opponentMarkHtml}
                     <span class="match-fixture-opponent">${escapeMatchHtml(match.opponent)}</span>
                 </span>
                 ${data.meta ? `<span class="match-fixture-meta">${escapeMatchHtml(data.meta)}</span>` : ''}

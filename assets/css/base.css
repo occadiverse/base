@@ -2159,6 +2159,7 @@
             min-width: 0;
         }
         .match-fixture-opponent-logo {
+            align-items: center;
             background: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.76);
             border-radius: 999px;
@@ -2168,6 +2169,15 @@
             height: 1.55rem;
             object-fit: contain;
             width: 1.55rem;
+        }
+        .match-fixture-opponent-fallback {
+            color: #123f73;
+            display: inline-flex;
+            justify-content: center;
+        }
+        .match-fixture-opponent-fallback i {
+            color: #123f73;
+            font-size: 0.72rem;
         }
         .match-fixture-meta {
             color: rgba(255, 255, 255, 0.56);
