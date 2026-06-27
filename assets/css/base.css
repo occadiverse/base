@@ -1213,6 +1213,19 @@
             border-color: rgba(255, 255, 255, 0.72);
             color: #64748b;
         }
+        .match-detail-crest-has-logo {
+            background: #ffffff;
+            border-color: rgba(255, 255, 255, 0.82);
+            overflow: hidden;
+            padding: 0.16rem;
+        }
+        .match-detail-crest-logo {
+            border-radius: 999px;
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
         .match-detail-team-name {
             color: #ffffff;
             font-size: clamp(1.15rem, 3vw, 1.9rem);
@@ -2137,6 +2150,23 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .match-fixture-opponent-line {
+            align-items: center;
+            display: flex;
+            gap: 0.48rem;
+            min-width: 0;
+        }
+        .match-fixture-opponent-logo {
+            background: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.76);
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.16);
+            display: block;
+            flex: 0 0 auto;
+            height: 1.55rem;
+            object-fit: cover;
+            width: 1.55rem;
         }
         .match-fixture-meta {
             color: rgba(255, 255, 255, 0.56);

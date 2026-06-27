@@ -97,13 +97,20 @@ function buildMatchRatingTooltipHtml(selectedRating) {
 }
 
 function renderMatchTeamHtml(team) {
-    const crestClass = team.isBsk ? 'match-detail-crest' : 'match-detail-crest match-detail-crest-opponent';
+    const logoHtml = !team.isBsk && typeof window.buildClubLogoImgHtml === 'function'
+        ? window.buildClubLogoImgHtml(team.name, 'match-detail-crest-logo')
+        : '';
+    const crestClass = [
+        'match-detail-crest',
+        team.isBsk ? '' : 'match-detail-crest-opponent',
+        logoHtml ? 'match-detail-crest-has-logo' : ''
+    ].filter(Boolean).join(' ');
     const iconClass = team.isBsk ? 'fa-shield-halved' : 'fa-shield';
 
     return `
         <div class="match-detail-team">
             <div class="${crestClass}">
-                <i class="fa-solid ${iconClass}"></i>
+                ${logoHtml || `<i class="fa-solid ${iconClass}"></i>`}
             </div>
             <span class="match-detail-team-name">${escapeMatchHtml(team.name)}</span>
         </div>
@@ -278,6 +285,9 @@ function buildMatchListEmptyHtml(title, text) {
 function buildMatchFixtureRowHtml(match, options = {}) {
     const { isUpcoming = true } = options;
     const data = getMatchFixturePresentation(match);
+    const opponentLogoHtml = typeof window.buildClubLogoImgHtml === 'function'
+        ? window.buildClubLogoImgHtml(match.opponent, 'match-fixture-opponent-logo')
+        : '';
     const clickAttrs = `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`;
     const sideValue = isUpcoming
         ? (match.time || '--:--')
@@ -293,7 +303,10 @@ function buildMatchFixtureRowHtml(match, options = {}) {
 
             <div class="match-fixture-main">
                 <span class="match-fixture-weekday">${escapeMatchHtml(data.weekday)}</span>
-                <span class="match-fixture-opponent">${escapeMatchHtml(match.opponent)}</span>
+                <span class="match-fixture-opponent-line">
+                    ${opponentLogoHtml}
+                    <span class="match-fixture-opponent">${escapeMatchHtml(match.opponent)}</span>
+                </span>
                 ${data.meta ? `<span class="match-fixture-meta">${escapeMatchHtml(data.meta)}</span>` : ''}
             </div>
 

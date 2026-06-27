@@ -97,12 +97,19 @@ window.updateDashboard = function() {
                     right: { name: 'Bækkelaget', isBsk: true }
                 };
             const renderHeroTeamHtml = (team) => {
-                const crestClass = team.isBsk ? 'match-detail-crest' : 'match-detail-crest match-detail-crest-opponent';
+                const logoHtml = !team.isBsk && typeof window.buildClubLogoImgHtml === 'function'
+                    ? window.buildClubLogoImgHtml(team.name, 'match-detail-crest-logo')
+                    : '';
+                const crestClass = [
+                    'match-detail-crest',
+                    team.isBsk ? '' : 'match-detail-crest-opponent',
+                    logoHtml ? 'match-detail-crest-has-logo' : ''
+                ].filter(Boolean).join(' ');
                 const iconClass = team.isBsk ? 'fa-shield-halved' : 'fa-shield';
                 return `
                     <div class="match-detail-team">
                         <div class="${crestClass}">
-                            <i class="fa-solid ${iconClass}"></i>
+                            ${logoHtml || `<i class="fa-solid ${iconClass}"></i>`}
                         </div>
                         <span class="match-detail-team-name">${team.name}</span>
                     </div>
