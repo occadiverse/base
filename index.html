@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-board-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-board-v3">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -201,7 +201,7 @@
                     <div class="match-detail-card-top roster-board-top relative z-10">
                         <div class="match-detail-meta match-list-column-title">
                             <i class="fa-solid fa-users"></i>
-                            <span>Spillertropp</span>
+                            <span id="rosterBoardTitle">Alle spillere</span>
                         </div>
                         <div class="roster-board-top-right">
                             <div class="roster-bottomline-legend roster-topline-legend" aria-label="Forklaring av spillerstatus">
@@ -210,7 +210,6 @@
                                 <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
                                 <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
                             </div>
-                            <div class="match-detail-chip" id="rosterToplineSummary">0 spillere i utvalget</div>
                         </div>
                     </div>
 
@@ -287,6 +286,7 @@
 
                     <footer class="match-detail-footer roster-bottomline relative z-10">
                         <p id="rosterBottomlineSummary">Viser 0 spillere.</p>
+                        <span class="roster-bottomline-title">Spillertropp</span>
                     </footer>
                 </section>
             </div>
@@ -1086,7 +1086,7 @@
     <script src="assets/js/domain/player-refs.js?v=20260626-bench-sub-plan"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
-    <script src="assets/js/pages/players.js?v=20260627-roster-desktop-v2"></script>
+    <script src="assets/js/pages/players.js?v=20260627-roster-board-v3"></script>
     <script src="assets/js/pages/matches.js?v=20260627-club-logo-fallback"></script>
     <script src="assets/js/pages/attendance.js?v=20260627-calendar-layout-v3"></script>
     <script src="assets/js/pages/statistics.js?v=20260620-score-diagram-tooltips-v3"></script>

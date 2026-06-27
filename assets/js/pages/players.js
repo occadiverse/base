@@ -161,6 +161,14 @@ window.handlePlayerSearchChange = function() {
     window.renderPlayerRoster();
 };
 
+function getRosterStatusFilterLabel(status = window.rosterStatusFilter) {
+    if (status === 'tilgjengelig') return 'Tilgjengelige';
+    if (status === 'Aktiv') return 'Aktive';
+    if (status === 'Rekrutt') return 'Rekrutter';
+    if (status === 'skadet') return 'Skadede';
+    return 'Alle spillere';
+}
+
 const ROSTER_POSITION_GROUPS = [
     {
         id: 'keeper',
@@ -375,7 +383,6 @@ window.renderPlayerRoster = function() {
     let totalAge = 0;
     let countRekrutt = 0;
     let countInjured = 0;
-    let countAvailable = 0;
 
     filteredPlayers.forEach(p => {
         totalAge += currentYear - parseInt(p.fodselsaar || 2000);
@@ -384,7 +391,6 @@ window.renderPlayerRoster = function() {
             ? window.getPlayerInjuryInfo(p)
             : { isInjured: false };
         if (injuryInfo.isInjured) countInjured++;
-        if (p.status !== 'Passiv' && !injuryInfo.isInjured) countAvailable++;
     });
 
     const avgAge = filteredPlayers.length > 0 ? (totalAge / filteredPlayers.length).toFixed(1) : 0;
@@ -392,16 +398,14 @@ window.renderPlayerRoster = function() {
     const statAvgAgeEl = document.getElementById('stat-avg-age');
     const statRekruttEl = document.getElementById('stat-total-rekrutt');
     const statInjuredEl = document.getElementById('stat-total-injured');
-    const toplineSummaryEl = document.getElementById('rosterToplineSummary');
+    const boardTitleEl = document.getElementById('rosterBoardTitle');
     const bottomlineSummaryEl = document.getElementById('rosterBottomlineSummary');
 
     if (statPlayersEl) statPlayersEl.innerText = String(filteredPlayers.length);
     if (statAvgAgeEl) statAvgAgeEl.innerText = `${avgAge} år`;
     if (statRekruttEl) statRekruttEl.innerText = String(countRekrutt);
     if (statInjuredEl) statInjuredEl.innerText = String(countInjured);
-    if (toplineSummaryEl) {
-        toplineSummaryEl.innerText = `${filteredPlayers.length} spillere · ${countAvailable} tilgjengelig · ${countInjured} skadet`;
-    }
+    if (boardTitleEl) boardTitleEl.innerText = getRosterStatusFilterLabel();
     if (bottomlineSummaryEl) {
         bottomlineSummaryEl.innerText = `Viser ${filteredPlayers.length} av ${allPlayers.length} spillere i troppen.`;
     }
