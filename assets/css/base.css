@@ -1214,16 +1214,17 @@
             color: #64748b;
         }
         .match-detail-crest-has-logo {
-            background: #ffffff;
+            background: transparent;
             border-color: rgba(255, 255, 255, 0.82);
+            border-width: 1px;
             overflow: hidden;
-            padding: 0.16rem;
+            padding: 0.035rem;
         }
         .match-detail-crest-logo {
             border-radius: 999px;
             display: block;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             width: 100%;
         }
         .match-detail-team-name {
@@ -2158,14 +2159,14 @@
             min-width: 0;
         }
         .match-fixture-opponent-logo {
-            background: #ffffff;
+            background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.76);
             border-radius: 999px;
             box-shadow: 0 4px 10px rgba(2, 6, 23, 0.16);
             display: block;
             flex: 0 0 auto;
             height: 1.55rem;
-            object-fit: cover;
+            object-fit: contain;
             width: 1.55rem;
         }
         .match-fixture-meta {
