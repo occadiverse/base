@@ -54,6 +54,12 @@
             name: 'Frigg Oslo FK',
             aliases: ['Frigg', 'Frigg Oslo', 'Frigg Oslo FK', 'Frigg Fotballklubb'],
             logo: 'assets/img/clubs/frigg-20260627.png'
+        },
+        {
+            id: 'majorstuen',
+            name: 'Majorstuen FK',
+            aliases: ['Majorstuen', 'Majorstuen FK'],
+            logo: 'assets/img/clubs/majorstuen-20260627.png'
         }
     ];
 
