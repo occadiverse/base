@@ -66,6 +66,12 @@
             name: 'Wam-Kam FK',
             aliases: ['Wam-Kam', 'Wam Kam', 'Wam-Kam FK', 'Wam Kam FK'],
             logo: 'assets/img/clubs/wam-kam-20260627.png'
+        },
+        {
+            id: 'oslo-city',
+            name: 'Oslo City FC',
+            aliases: ['Oslo City', 'Oslo City FC'],
+            logo: 'assets/img/clubs/oslo-city-20260627.png'
         }
     ];
 
