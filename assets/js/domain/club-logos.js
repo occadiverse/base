@@ -5,6 +5,12 @@
             name: 'Fagerborg Ballklubb',
             aliases: ['Fagerborg', 'Fagerborg BK', 'Fagerborg Ballklubb'],
             logo: 'assets/img/clubs/fagerborg-20260627.png'
+        },
+        {
+            id: 'baekkelaget',
+            name: 'Bækkelaget',
+            aliases: ['Bækkelaget', 'Bækkelaget SK', 'Bækkelagets Sportsklub', 'BSK'],
+            logo: 'assets/img/clubs/baekkelaget-20260627.png'
         }
     ];
 

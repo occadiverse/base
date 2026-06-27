@@ -97,7 +97,7 @@ function buildMatchRatingTooltipHtml(selectedRating) {
 }
 
 function renderMatchTeamHtml(team) {
-    const logoHtml = !team.isBsk && typeof window.buildClubLogoImgHtml === 'function'
+    const logoHtml = typeof window.buildClubLogoImgHtml === 'function'
         ? window.buildClubLogoImgHtml(team.name, 'match-detail-crest-logo')
         : '';
     const crestClass = [

@@ -97,7 +97,7 @@ window.updateDashboard = function() {
                     right: { name: 'Bækkelaget', isBsk: true }
                 };
             const renderHeroTeamHtml = (team) => {
-                const logoHtml = !team.isBsk && typeof window.buildClubLogoImgHtml === 'function'
+                const logoHtml = typeof window.buildClubLogoImgHtml === 'function'
                     ? window.buildClubLogoImgHtml(team.name, 'match-detail-crest-logo')
                     : '';
                 const crestClass = [
