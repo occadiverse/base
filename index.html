@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-board-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-board-v2">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -203,7 +203,15 @@
                             <i class="fa-solid fa-users"></i>
                             <span>Spillertropp</span>
                         </div>
-                        <div class="match-detail-chip" id="rosterToplineSummary">0 spillere i utvalget</div>
+                        <div class="roster-board-top-right">
+                            <div class="roster-bottomline-legend roster-topline-legend" aria-label="Forklaring av spillerstatus">
+                                <span><i class="fa-solid fa-circle roster-legend-active"></i> Aktiv</span>
+                                <span><i class="fa-solid fa-circle roster-legend-recruit"></i> Rekrutt</span>
+                                <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
+                                <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
+                            </div>
+                            <div class="match-detail-chip" id="rosterToplineSummary">0 spillere i utvalget</div>
+                        </div>
                     </div>
 
                     <div class="roster-board-toolbar relative z-10">
@@ -279,12 +287,6 @@
 
                     <footer class="match-detail-footer roster-bottomline relative z-10">
                         <p id="rosterBottomlineSummary">Viser 0 spillere.</p>
-                        <div class="roster-bottomline-legend" aria-label="Forklaring av spillerstatus">
-                            <span><i class="fa-solid fa-circle roster-legend-active"></i> Aktiv</span>
-                            <span><i class="fa-solid fa-circle roster-legend-recruit"></i> Rekrutt</span>
-                            <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
-                            <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
-                        </div>
                     </footer>
                 </section>
             </div>

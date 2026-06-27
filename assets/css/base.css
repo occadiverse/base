@@ -2294,7 +2294,7 @@
         }
         .roster-page {
             margin: 0 auto;
-            max-width: 82rem;
+            max-width: 88rem;
             width: 100%;
         }
         .roster-topline {
@@ -3091,6 +3091,20 @@
         .roster-board-top {
             min-height: 3rem;
         }
+        .roster-board-top-right {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+        .roster-topline-legend {
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 0.62rem;
+            font-weight: 900;
+            gap: 0.7rem;
+        }
         .roster-board-toolbar {
             align-items: center;
             background: rgba(255, 255, 255, 0.04);
@@ -3174,7 +3188,11 @@
             border-top: 1px solid rgba(245, 197, 66, 0.18);
             box-shadow: none;
             color: rgba(255, 255, 255, 0.68);
+            justify-content: flex-start;
             margin-top: 0;
+        }
+        .roster-board-card .roster-bottomline p {
+            margin: 0;
         }
         @media (min-width: 1024px) {
             .roster-board-toolbar {
@@ -3200,6 +3218,19 @@
             }
             .roster-board-card .roster-content {
                 padding: 1rem;
+            }
+        }
+        @media (max-width: 767px) {
+            .roster-board-top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .roster-board-top-right {
+                justify-content: flex-start;
+                width: 100%;
+            }
+            .roster-topline-legend {
+                order: 2;
             }
         }
         .player-modal-card {
