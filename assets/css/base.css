@@ -3195,10 +3195,17 @@
             margin: 0;
         }
         .roster-bottomline-title {
+            align-items: center;
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 999px;
             color: #f5c542;
+            display: inline-flex;
             font-size: 0.68rem;
             font-weight: 950;
+            gap: 0.4rem;
             letter-spacing: 0.1em;
+            padding: 0.38rem 0.62rem;
             text-transform: uppercase;
             white-space: nowrap;
         }
