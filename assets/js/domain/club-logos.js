@@ -30,6 +30,12 @@
                 'HSIL'
             ],
             logo: 'assets/img/clubs/hoybraten-stovner-20260627.png'
+        },
+        {
+            id: 'jusstudentene',
+            name: 'Jusstudentene',
+            aliases: ['Jusstudentene', 'Jusstudentenes IK', 'JIK'],
+            logo: 'assets/img/clubs/jusstudentene-20260627.png'
         }
     ];
 
