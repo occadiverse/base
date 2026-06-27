@@ -2298,62 +2298,44 @@
             width: 100%;
         }
         .roster-topline {
-            align-items: stretch;
+            align-items: center;
             background:
-                radial-gradient(circle at 0% 0%, rgba(245, 197, 66, 0.3), transparent 30%),
-                radial-gradient(circle at 100% 14%, rgba(31, 93, 158, 0.46), transparent 34%),
-                linear-gradient(135deg, #123f73 0%, #0b2b4c 58%, #071f38 100%);
-            border: 1px solid rgba(245, 197, 66, 0.22);
-            border-radius: 1.25rem;
-            box-shadow: 0 20px 46px rgba(11, 43, 76, 0.18);
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 34%),
+                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 1.1rem;
+            box-shadow: 0 12px 28px rgba(11, 43, 76, 0.16);
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.85rem;
+            justify-content: space-between;
             margin-bottom: 1rem;
             overflow: hidden;
-            padding: 1.15rem 1.25rem;
+            padding: 0;
             position: relative;
         }
         .roster-topline::before {
-            background: linear-gradient(90deg, #f5c542 0%, rgba(245, 197, 66, 0.32) 46%, rgba(255, 255, 255, 0.08) 100%);
-            content: "";
-            height: 0.25rem;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
+            content: none;
         }
-        .roster-topline-copy,
-        .roster-topline-actions {
-            position: relative;
-            z-index: 1;
-        }
-        .roster-topline-kicker {
-            color: rgba(255, 255, 255, 0.58);
-            font-size: 0.58rem;
-            font-weight: 900;
-            letter-spacing: 0.14em;
-            margin-bottom: 0.28rem;
-            text-transform: uppercase;
-        }
-        .roster-topline-title {
-            color: #ffffff;
-            font-size: clamp(1.25rem, 3vw, 1.75rem);
-            font-weight: 950;
-            letter-spacing: -0.02em;
-            line-height: 1.05;
-        }
-        .roster-topline-summary {
-            color: rgba(255, 255, 255, 0.68);
-            font-size: 0.76rem;
-            font-weight: 800;
-            margin-top: 0.45rem;
+        .roster-topline-title-wrap {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.07);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            width: 100%;
         }
         .roster-topline-actions {
             align-items: center;
             display: flex;
             flex-wrap: wrap;
             gap: 0.7rem;
+            justify-content: flex-end;
+            padding: 0 1.25rem 1rem;
+            width: 100%;
         }
         .roster-topline .match-list-lag-filter {
             background: rgba(255, 255, 255, 0.08);
@@ -2840,10 +2822,18 @@
                 flex-direction: row;
                 justify-content: space-between;
                 margin-bottom: 1.25rem;
-                padding: 1.35rem 1.5rem;
+            }
+            .roster-topline-title-wrap {
+                border-bottom: 0;
+                flex: 1 1 auto;
+                justify-content: flex-start;
+                padding: 1rem 1.25rem;
+                width: auto;
             }
             .roster-topline-actions {
                 justify-content: flex-end;
+                padding: 1rem 1.25rem 1rem 0;
+                width: auto;
             }
             .roster-main {
                 align-items: start;

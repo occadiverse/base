@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-desktop-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-desktop-v3">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -194,10 +194,12 @@
 
             <div id="view-tropp" class="hidden portal-view roster-page">
                 <section class="roster-topline">
-                    <div class="roster-topline-copy">
-                        <p class="roster-topline-kicker">Spillertropp</p>
-                        <h2 class="roster-topline-title">Oversikt, filter og spillerstatus</h2>
-                        <p class="roster-topline-summary" id="rosterToplineSummary">0 spillere i utvalget</p>
+                    <div class="roster-topline-title-wrap">
+                        <div class="match-detail-meta roster-topline-title">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Spillertropp</span>
+                        </div>
+                        <div class="match-detail-chip roster-topline-summary" id="rosterToplineSummary">0 spillere i utvalget</div>
                     </div>
 
                     <div class="roster-topline-actions">
