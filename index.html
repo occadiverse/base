@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260628-roster-top-action-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260628-calendar-board-layout-v1">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -144,9 +144,13 @@
 
             </div>
 
-            <div id="view-oppmote" class="hidden portal-view space-y-6 calendar-page">
-                <div class="calendar-shell-panel">
-                    <div class="calendar-heading-panel p-4 md:p-5 grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-3">
+            <div id="view-oppmote" class="hidden portal-view calendar-page">
+                <section class="match-detail-card calendar-shell-panel">
+                    <div class="dashboard-next-match-watermark calendar-board-watermark">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+
+                    <div class="calendar-heading-panel match-detail-card-top calendar-board-top relative z-10">
                         <div class="calendar-year-block min-w-0">
                             <span id="calendar-year" class="calendar-heading-year">2026</span>
                             <button type="button" onclick="window.goToToday()" class="calendar-today-mini-btn">I dag</button>
@@ -175,21 +179,24 @@
                         </div>
                     </div>
 
-                    <div class="calendar-body p-4 md:p-5 space-y-4">
+                    <div class="calendar-body calendar-board-body relative z-10">
                         <div class="calendar-weekday-row grid grid-cols-7 gap-1.5 text-center text-[10px] font-black uppercase tracking-wider">
                             <div>Man</div><div>Tir</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
                         </div>
 
                         <div id="calendar-days-grid" class="calendar-scroll-grid grid grid-cols-7 gap-1.5">
                         </div>
-
-                        <div class="calendar-daily-panel pt-4">
-                            <h3 id="selected-calendar-date" class="sr-only">Velg en dato</h3>
-                            <div id="daily-events-list" class="space-y-2 mt-3">
-                            </div>
-                        </div>
                     </div>
-                </div>
+
+                    <footer class="match-detail-footer calendar-bottomline relative z-10">
+                        <div class="calendar-bottomline-heading">
+                            <span class="roster-bottomline-title">Dagsdetaljer</span>
+                            <h3 id="selected-calendar-date">Velg en dato</h3>
+                        </div>
+                        <div id="daily-events-list" class="calendar-daily-list">
+                        </div>
+                    </footer>
+                </section>
             </div>
 
             <div id="view-tropp" class="hidden portal-view roster-page">
