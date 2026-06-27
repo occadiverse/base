@@ -321,6 +321,8 @@ function buildRosterPlayerRow(p, currentYear) {
     const age = currentYear - parseInt(p.fodselsaar || 2000);
     const jersey = p.draktnummer ? String(p.draktnummer) : '–';
     const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
+    const teamName = p.spillerLag || 'Uten lag';
+    const foot = p.fot ? `${p.fot} fot` : 'Ukjent fot';
     const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
         ? window.getPlayerInjuryInfo(p)
         : { isInjured: false };
@@ -336,11 +338,14 @@ function buildRosterPlayerRow(p, currentYear) {
                 <div class="roster-player-meta">
                     <span>${posStr}</span>
                     <span class="roster-player-meta-sep">·</span>
-                    <span>${p.fot} fot</span>
+                    <span>${foot}</span>
                     <span class="roster-player-meta-sep">·</span>
-                    <span>${p.spillerLag || 'Uten lag'}</span>
+                    <span>${teamName}</span>
                 </div>
             </div>
+            <div class="roster-player-position">${posStr}</div>
+            <div class="roster-player-foot">${foot}</div>
+            <div class="roster-player-team">${teamName}</div>
             <div class="roster-player-side">
                 <span class="roster-player-age">${age} år</span>
                 <div class="roster-player-badges">
@@ -358,10 +363,12 @@ window.renderPlayerRoster = function() {
     if (!listContainer) return;
 
     const filteredPlayers = getRosterFilteredPlayers();
+    const allPlayers = Array.isArray(window.activePlayers) ? window.activePlayers : [];
     const currentYear = new Date().getFullYear();
     let totalAge = 0;
     let countRekrutt = 0;
     let countInjured = 0;
+    let countAvailable = 0;
 
     filteredPlayers.forEach(p => {
         totalAge += currentYear - parseInt(p.fodselsaar || 2000);
@@ -370,6 +377,7 @@ window.renderPlayerRoster = function() {
             ? window.getPlayerInjuryInfo(p)
             : { isInjured: false };
         if (injuryInfo.isInjured) countInjured++;
+        if (p.status !== 'Passiv' && !injuryInfo.isInjured) countAvailable++;
     });
 
     const avgAge = filteredPlayers.length > 0 ? (totalAge / filteredPlayers.length).toFixed(1) : 0;
@@ -377,11 +385,19 @@ window.renderPlayerRoster = function() {
     const statAvgAgeEl = document.getElementById('stat-avg-age');
     const statRekruttEl = document.getElementById('stat-total-rekrutt');
     const statInjuredEl = document.getElementById('stat-total-injured');
+    const toplineSummaryEl = document.getElementById('rosterToplineSummary');
+    const bottomlineSummaryEl = document.getElementById('rosterBottomlineSummary');
 
     if (statPlayersEl) statPlayersEl.innerText = String(filteredPlayers.length);
     if (statAvgAgeEl) statAvgAgeEl.innerText = `${avgAge} år`;
     if (statRekruttEl) statRekruttEl.innerText = String(countRekrutt);
     if (statInjuredEl) statInjuredEl.innerText = String(countInjured);
+    if (toplineSummaryEl) {
+        toplineSummaryEl.innerText = `${filteredPlayers.length} spillere · ${countAvailable} tilgjengelig · ${countInjured} skadet`;
+    }
+    if (bottomlineSummaryEl) {
+        bottomlineSummaryEl.innerText = `Viser ${filteredPlayers.length} av ${allPlayers.length} spillere i troppen.`;
+    }
 
     listContainer.innerHTML = '';
 

@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260627-calendar-layout-v3">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260627-roster-desktop-v1">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -192,66 +192,105 @@
                 </div>
             </div>
 
-            <div id="view-tropp" class="hidden portal-view space-y-5 roster-page">
-                <div class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
-                    <button type="button" onclick="setPlayerStatusFilter('alle')" id="roster-filter-alle" class="roster-status-btn is-active">Alle</button>
-                    <button type="button" onclick="setPlayerStatusFilter('tilgjengelig')" id="roster-filter-tilgjengelig" class="roster-status-btn">Tilgjengelig</button>
-                    <button type="button" onclick="setPlayerStatusFilter('Aktiv')" id="roster-filter-aktiv" class="roster-status-btn">Aktiv</button>
-                    <button type="button" onclick="setPlayerStatusFilter('Rekrutt')" id="roster-filter-rekrutt" class="roster-status-btn">Rekrutt</button>
-                    <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="roster-status-btn">Skadet</button>
-                </div>
-
-                <div class="roster-stat-grid">
-                    <div class="roster-stat-card">
-                        <span class="roster-stat-label">Spillere</span>
-                        <span class="roster-stat-value" id="stat-total-players">0</span>
-                    </div>
-                    <div class="roster-stat-card">
-                        <span class="roster-stat-label">Snittalder</span>
-                        <span class="roster-stat-value" id="stat-avg-age">0 år</span>
-                    </div>
-                    <div class="roster-stat-card">
-                        <span class="roster-stat-label">Rekrutter</span>
-                        <span class="roster-stat-value" id="stat-total-rekrutt">0</span>
-                    </div>
-                    <div class="roster-stat-card">
-                        <span class="roster-stat-label">Skadede</span>
-                        <span class="roster-stat-value" id="stat-total-injured">0</span>
-                    </div>
-                </div>
-
-                <div class="roster-toolbar">
-                    <div id="rosterLagFilterWrap" class="match-list-lag-filter hidden">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <select id="lagFilterSelect" onchange="handleTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer spillere etter lag">
-                        </select>
-                        <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
+            <div id="view-tropp" class="hidden portal-view roster-page">
+                <section class="roster-topline">
+                    <div class="roster-topline-copy">
+                        <p class="roster-topline-kicker">Spillertropp</p>
+                        <h2 class="roster-topline-title">Oversikt, filter og spillerstatus</h2>
+                        <p class="roster-topline-summary" id="rosterToplineSummary">0 spillere i utvalget</p>
                     </div>
 
-                    <div class="roster-search-wrap">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon…" class="roster-search-input" aria-label="Søk spillere">
+                    <div class="roster-topline-actions">
+                        <div id="rosterLagFilterWrap" class="match-list-lag-filter hidden">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <select id="lagFilterSelect" onchange="handleTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer spillere etter lag">
+                            </select>
+                            <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
+                        </div>
+
+                        <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn inline-flex">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Ny spiller</span>
+                        </button>
                     </div>
+                </section>
 
-                    <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn inline-flex">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Ny spiller</span>
-                    </button>
-                </div>
+                <section class="roster-main">
+                    <aside class="roster-sidebar">
+                        <div class="roster-sidebar-section">
+                            <p class="roster-sidebar-label">Status</p>
+                            <div class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
+                                <button type="button" onclick="setPlayerStatusFilter('alle')" id="roster-filter-alle" class="roster-status-btn is-active">Alle</button>
+                                <button type="button" onclick="setPlayerStatusFilter('tilgjengelig')" id="roster-filter-tilgjengelig" class="roster-status-btn">Tilgjengelig</button>
+                                <button type="button" onclick="setPlayerStatusFilter('Aktiv')" id="roster-filter-aktiv" class="roster-status-btn">Aktiv</button>
+                                <button type="button" onclick="setPlayerStatusFilter('Rekrutt')" id="roster-filter-rekrutt" class="roster-status-btn">Rekrutt</button>
+                                <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="roster-status-btn">Skadet</button>
+                            </div>
+                        </div>
 
-                <div id="playerRosterContainer" class="roster-list"></div>
+                        <div class="roster-sidebar-section">
+                            <label class="roster-sidebar-label" for="playerSearchInput">Søk</label>
+                            <div class="roster-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon..." class="roster-search-input" aria-label="Søk spillere">
+                            </div>
+                        </div>
 
-                <div id="playerRosterEmpty" class="hidden roster-empty">
-                    <div class="roster-empty-icon">
-                        <i class="fa-solid fa-users"></i>
+                        <div class="roster-stat-grid">
+                            <div class="roster-stat-card">
+                                <span class="roster-stat-label">Spillere</span>
+                                <span class="roster-stat-value" id="stat-total-players">0</span>
+                            </div>
+                            <div class="roster-stat-card">
+                                <span class="roster-stat-label">Snittalder</span>
+                                <span class="roster-stat-value" id="stat-avg-age">0 år</span>
+                            </div>
+                            <div class="roster-stat-card">
+                                <span class="roster-stat-label">Rekrutter</span>
+                                <span class="roster-stat-value" id="stat-total-rekrutt">0</span>
+                            </div>
+                            <div class="roster-stat-card">
+                                <span class="roster-stat-label">Skadede</span>
+                                <span class="roster-stat-value" id="stat-total-injured">0</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <div class="roster-content">
+                        <div class="roster-table-head" aria-hidden="true">
+                            <span>Nr</span>
+                            <span>Spiller</span>
+                            <span>Posisjon</span>
+                            <span>Fot</span>
+                            <span>Lag</span>
+                            <span>Alder / status</span>
+                        </div>
+
+                        <div id="playerRosterContainer" class="roster-list"></div>
+
+                        <div id="playerRosterEmpty" class="hidden roster-empty">
+                            <div class="roster-empty-icon">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <p class="roster-empty-title">Ingen spillere funnet</p>
+                            <p class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
+                            <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-empty-action-btn">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Registrer spiller</span>
+                            </button>
+                        </div>
                     </div>
-                    <p class="roster-empty-title">Ingen spillere funnet</p>
-                    <p class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
-                    <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-empty-action-btn">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Registrer spiller</span>
-                    </button>
-                </div>
+                </section>
+
+                <footer class="roster-bottomline">
+                    <p id="rosterBottomlineSummary">Viser 0 spillere.</p>
+                    <div class="roster-bottomline-legend" aria-label="Forklaring av spillerstatus">
+                        <span><i class="fa-solid fa-circle roster-legend-active"></i> Aktiv</span>
+                        <span><i class="fa-solid fa-circle roster-legend-recruit"></i> Rekrutt</span>
+                        <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
+                        <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
+                    </div>
+                </footer>
             </div>
 
             <div id="view-statistikk" class="hidden portal-view stats-page space-y-3 md:space-y-4">
@@ -1049,7 +1088,7 @@
     <script src="assets/js/domain/player-refs.js?v=20260626-bench-sub-plan"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
-    <script src="assets/js/pages/players.js?v=20260623-roster-stat-numbers"></script>
+    <script src="assets/js/pages/players.js?v=20260627-roster-desktop-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260627-club-logo-fallback"></script>
     <script src="assets/js/pages/attendance.js?v=20260627-calendar-layout-v3"></script>
     <script src="assets/js/pages/statistics.js?v=20260620-score-diagram-tooltips-v3"></script>
