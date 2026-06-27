@@ -72,6 +72,12 @@
             name: 'Oslo City FC',
             aliases: ['Oslo City', 'Oslo City FC'],
             logo: 'assets/img/clubs/oslo-city-20260627.png'
+        },
+        {
+            id: 'oldenborg',
+            name: 'Oldenborg IL',
+            aliases: ['Oldenborg', 'Oldenborg IL', 'Oldenborg Idrettsselskab'],
+            logo: 'assets/img/clubs/oldenborg-20260627.png'
         }
     ];
 
