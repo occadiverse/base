@@ -36,6 +36,12 @@
             name: 'Jusstudentene',
             aliases: ['Jusstudentene', 'Jusstudentenes IK', 'JIK'],
             logo: 'assets/img/clubs/jusstudentene-20260627.png'
+        },
+        {
+            id: 'klemetsrud',
+            name: 'Klemetsrud IL',
+            aliases: ['Klemetsrud', 'Klemetsrud IL', 'KIL'],
+            logo: 'assets/img/clubs/klemetsrud-20260627.png'
         }
     ];
 
