@@ -11,6 +11,12 @@
             name: 'Bækkelaget',
             aliases: ['Bækkelaget', 'Bækkelaget SK', 'Bækkelagets Sportsklub', 'BSK'],
             logo: 'assets/img/clubs/baekkelaget-20260627.png'
+        },
+        {
+            id: 'furuset',
+            name: 'Furuset IF',
+            aliases: ['Furuset', 'Furuset IF', 'Furuset Fotball'],
+            logo: 'assets/img/clubs/furuset-20260627.png'
         }
     ];
 
