@@ -266,6 +266,16 @@ function escapeCalendarJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+function escapeCalendarHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
 function updateCalendarHeading(date) {
     if (!date) return;
     const headingMonthDate = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -406,31 +416,60 @@ window.updateDailySchedule = function() {
     dayMatches.forEach(m => {
         const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
         const matchId = escapeCalendarJsString(m.id);
+        const opponent = m.opponent || 'Motstander ikke satt';
+        const venue = typeof window.getMatchVenue === 'function'
+            ? window.getMatchVenue(m)
+            : (m.venue || 'Hjemme');
+        const matchTitle = venue === 'Borte'
+            ? `${opponent} - BSK`
+            : `BSK - ${opponent}`;
+        const centerValue = m.result && typeof window.formatMatchResultForDisplay === 'function'
+            ? window.formatMatchResultForDisplay(m.result, venue)
+            : (m.result || m.time || '--:--');
+        const centerLabel = m.result ? (m.time ? `Kl. ${m.time}` : 'Resultat') : 'Avspark';
+        const matchMeta = [
+            m.matchType || 'Kamp',
+            m.matchGroup || 'Uten lag',
+            venue
+        ].filter(Boolean);
         listContainer.innerHTML += `
-            <div class="calendar-detail-card">
+            <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
                     <button type="button" onclick="window.openMatchModal('${matchId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button type="button" onclick="window.promptDeleteMatch('${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
-                <div class="relative z-10">
-                    <div class="flex items-start gap-3 min-w-0">
-                        <div class="calendar-detail-icon">
+                <div class="calendar-match-card-content relative z-10">
+                    <div class="calendar-match-kicker">
+                        <span><i class="fa-regular fa-calendar"></i>${escapeCalendarHtml(selectedDateLabel)}</span>
+                        <span class="calendar-match-type-chip">${escapeCalendarHtml(m.matchType || 'Kamp')}</span>
+                    </div>
+
+                    <div class="calendar-match-main">
+                        <div class="calendar-detail-icon calendar-match-icon">
                             <i class="fa-solid fa-futbol"></i>
                         </div>
-                        <div class="min-w-0 pr-24">
-                            <span class="calendar-detail-date">${selectedDateLabel}</span>
-                            <h4 class="calendar-detail-title truncate">${m.opponent || 'Kamp'}</h4>
-                            <div class="calendar-detail-meta-row text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${m.time || 'TBA'}</span>
-                                <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${m.pitch || 'Ikke oppgitt'}</span>
-                                <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
-                            </div>
-                            <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="calendar-attendance-btn">
-                                <i class="fa-solid fa-user-check"></i>
-                                <span>Oppmøte</span>
-                            </button>
+                        <div class="calendar-match-title-block">
+                            <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(matchTitle)}</h4>
+                            <p class="calendar-match-subtitle">${matchMeta.map(escapeCalendarHtml).join(' · ')}</p>
                         </div>
+                        <div class="calendar-match-score-box">
+                            <span class="calendar-match-score">${escapeCalendarHtml(centerValue)}</span>
+                            <span class="calendar-match-score-label">${escapeCalendarHtml(centerLabel)}</span>
+                        </div>
+                    </div>
+
+                    <div class="calendar-match-info-grid">
+                        <span><i class="fa-regular fa-clock"></i>${escapeCalendarHtml(m.time || 'Tid ikke satt')}</span>
+                        <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
+                        <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
+                    </div>
+
+                    <div class="calendar-match-footer-row">
+                        <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="calendar-attendance-btn calendar-match-attendance-btn">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span>Registrer oppmøte</span>
+                        </button>
                     </div>
                 </div>
             </div>`;
