@@ -48,6 +48,12 @@
             name: 'Korsvoll IL',
             aliases: ['Korsvoll', 'Korsvoll IL'],
             logo: 'assets/img/clubs/korsvoll-20260627.png'
+        },
+        {
+            id: 'frigg',
+            name: 'Frigg Oslo FK',
+            aliases: ['Frigg', 'Frigg Oslo', 'Frigg Oslo FK', 'Frigg Fotballklubb'],
+            logo: 'assets/img/clubs/frigg-20260627.png'
         }
     ];
 
