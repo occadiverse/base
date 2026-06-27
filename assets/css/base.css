@@ -3248,12 +3248,13 @@
         }
         @media (max-width: 767px) {
             .roster-board-top {
-                align-items: flex-start;
-                flex-direction: column;
+                align-items: center;
+                flex-direction: row;
             }
             .roster-board-top-right {
-                justify-content: flex-start;
-                width: 100%;
+                justify-content: flex-end;
+                margin-left: auto;
+                width: auto;
             }
             .roster-topline-legend {
                 display: none;
