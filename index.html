@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260628-roster-mobile-toolbar-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260628-roster-top-action-v1">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -210,6 +210,10 @@
                                 <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
                                 <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
                             </div>
+                            <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn inline-flex">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Ny spiller</span>
+                            </button>
                         </div>
                     </div>
 
@@ -234,10 +238,6 @@
                             <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon..." class="roster-search-input" aria-label="Søk spillere">
                         </div>
 
-                        <button type="button" onclick="window.openPlayerModal()" class="match-bench-action-btn roster-hero-action-btn inline-flex">
-                            <i class="fa-solid fa-user-plus"></i>
-                            <span>Ny spiller</span>
-                        </button>
                     </div>
 
                     <div class="roster-stat-grid roster-board-stats relative z-10">

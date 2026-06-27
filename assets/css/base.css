@@ -3105,6 +3105,17 @@
             font-weight: 900;
             gap: 0.7rem;
         }
+        .roster-board-top .match-bench-action-btn.roster-hero-action-btn {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.28);
+            box-shadow: none;
+            color: #ffffff;
+            min-height: 2.35rem;
+        }
+        .roster-board-top .match-bench-action-btn.roster-hero-action-btn:hover {
+            background: rgba(245, 197, 66, 0.22);
+            border-color: rgba(245, 197, 66, 0.42);
+        }
         .roster-board-toolbar {
             align-items: center;
             background: rgba(255, 255, 255, 0.04);
@@ -3249,7 +3260,7 @@
             }
             .roster-board-toolbar {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-columns: minmax(0, 1fr);
             }
             .roster-board-toolbar .roster-status-filter,
             .roster-board-toolbar .match-list-lag-filter {
@@ -3258,16 +3269,15 @@
             }
             .roster-board-toolbar .roster-search-wrap {
                 flex: 1 1 auto;
-                grid-column: 1;
+                grid-column: 1 / -1;
                 width: 100%;
             }
-            .roster-board-toolbar .match-bench-action-btn.roster-hero-action-btn {
-                grid-column: 2;
+            .roster-board-top .match-bench-action-btn.roster-hero-action-btn {
                 min-width: 2.85rem;
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
             }
-            .roster-board-toolbar .match-bench-action-btn.roster-hero-action-btn span {
+            .roster-board-top .match-bench-action-btn.roster-hero-action-btn span {
                 display: none;
             }
         }
