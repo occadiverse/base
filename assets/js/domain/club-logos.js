@@ -17,6 +17,19 @@
             name: 'Furuset IF',
             aliases: ['Furuset', 'Furuset IF', 'Furuset Fotball'],
             logo: 'assets/img/clubs/furuset-20260627.png'
+        },
+        {
+            id: 'hoybraten-stovner',
+            name: 'Høybråten og Stovner IL',
+            aliases: [
+                'Høybråten og Stovner',
+                'Høybråten og Stovner IL',
+                'Høybråten Stovner',
+                'Høybr/Stovn',
+                'Hoybraten og Stovner',
+                'HSIL'
+            ],
+            logo: 'assets/img/clubs/hoybraten-stovner-20260627.png'
         }
     ];
 
