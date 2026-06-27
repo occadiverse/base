@@ -60,6 +60,12 @@
             name: 'Majorstuen FK',
             aliases: ['Majorstuen', 'Majorstuen FK'],
             logo: 'assets/img/clubs/majorstuen-20260627.png'
+        },
+        {
+            id: 'wam-kam',
+            name: 'Wam-Kam FK',
+            aliases: ['Wam-Kam', 'Wam Kam', 'Wam-Kam FK', 'Wam Kam FK'],
+            logo: 'assets/img/clubs/wam-kam-20260627.png'
         }
     ];
 
