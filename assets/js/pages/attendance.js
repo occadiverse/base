@@ -343,12 +343,12 @@ window.renderCalendar = function() {
             `).join('');
 
             const moreHtml = items.length > 2
-                ? `<span class="text-[9px] font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-400'}">+${items.length - 2}</span>`
+                ? `<span class="calendar-day-more text-[9px] font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-400'}">+${items.length - 2}</span>`
                 : '';
 
             cell.innerHTML = `
                 <div class="flex items-start justify-between gap-1">
-                    <span class="text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
+                    <span class="calendar-day-number text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
                 </div>
                 <div class="mt-auto space-y-1 min-h-[22px]">
                     ${visibleItems || `<span class="block h-1"></span>`}

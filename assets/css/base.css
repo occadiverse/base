@@ -7564,10 +7564,10 @@
         }
         .calendar-day-cell {
             appearance: none;
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
-            border-color: rgba(18, 63, 115, 0.12) !important;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
-            color: inherit;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
+            color: #ffffff;
             font: inherit;
             overflow: hidden;
             position: relative;
@@ -7578,9 +7578,19 @@
             font-size: 1.02rem;
             line-height: 1;
         }
+        .calendar-day-number {
+            color: #ffffff !important;
+        }
         .calendar-day-event {
+            color: rgba(255, 255, 255, 0.68) !important;
             font-size: 0.68rem;
             line-height: 1.08;
+        }
+        .calendar-day-event-label {
+            color: rgba(255, 255, 255, 0.68) !important;
+        }
+        .calendar-day-more {
+            color: #f5c542 !important;
         }
         .calendar-day-event-dot {
             height: 0.48rem;
@@ -7590,15 +7600,15 @@
             opacity: 0.58;
         }
         .calendar-day-cell:hover {
-            background: linear-gradient(180deg, #ffffff 0%, #fff8dc 100%) !important;
+            background: rgba(255, 255, 255, 0.13) !important;
             border-color: rgba(245, 197, 66, 0.56) !important;
         }
         .calendar-day-cell.is-today {
-            border-color: rgba(18, 63, 115, 0.7) !important;
-            box-shadow: 0 0 0 2px rgba(18, 63, 115, 0.32), 0 10px 22px rgba(15, 23, 42, 0.08);
+            border-color: rgba(245, 197, 66, 0.5) !important;
+            box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.14), 0 10px 22px rgba(2, 6, 23, 0.16);
         }
         .calendar-day-cell.is-selected {
-            background: linear-gradient(145deg, #123f73 0%, #0b2b4c 100%) !important;
+            background: rgba(245, 197, 66, 0.16) !important;
             border-color: rgba(245, 197, 66, 0.7) !important;
             box-shadow: 0 12px 28px rgba(11, 43, 76, 0.26);
         }
