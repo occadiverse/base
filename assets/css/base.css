@@ -6868,6 +6868,7 @@
         }
         .calendar-legend {
             color: rgba(255, 255, 255, 0.72);
+            row-gap: 0.45rem;
         }
         .calendar-hero-action-btn {
             max-width: 100%;
@@ -6895,24 +6896,19 @@
             border: 1px dashed rgba(18, 63, 115, 0.12);
         }
         .calendar-scroll-grid {
-            max-height: calc((82px * 3) + (0.375rem * 2));
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            padding-right: 0.2rem;
-        }
-        .calendar-scroll-grid::-webkit-scrollbar {
-            width: 0.35rem;
-        }
-        .calendar-scroll-grid::-webkit-scrollbar-thumb {
-            background: rgba(18, 63, 115, 0.28);
-            border-radius: 999px;
+            overflow: visible;
         }
         .calendar-day-cell {
+            appearance: none;
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
             border-color: rgba(18, 63, 115, 0.12) !important;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+            color: inherit;
+            font: inherit;
             overflow: hidden;
             position: relative;
+            text-align: left;
+            width: 100%;
         }
         .calendar-day-cell > div:first-child > span {
             font-size: 1.02rem;
@@ -6959,18 +6955,19 @@
             border-top: 1px solid rgba(18, 63, 115, 0.12);
         }
         .calendar-empty-state {
-            background: linear-gradient(135deg, #123f73 0%, #0b2b4c 76%, #082039 100%) !important;
-            border-color: rgba(245, 197, 66, 0.28) !important;
-            border-bottom: 3px solid #f5c542 !important;
-            box-shadow: 0 14px 30px rgba(11, 43, 76, 0.2);
-            color: #ffffff;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
+            border: 1px solid rgba(18, 63, 115, 0.12) !important;
+            border-bottom: 3px solid rgba(245, 197, 66, 0.8) !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+            color: #0f172a;
             overflow: hidden;
+            padding: 1.35rem !important;
             position: relative;
         }
         .calendar-empty-state::before {
             background:
-                radial-gradient(circle at 10% 0%, rgba(245, 197, 66, 0.22), transparent 30%),
-                radial-gradient(circle at 92% 12%, rgba(255, 255, 255, 0.12), transparent 24%);
+                radial-gradient(circle at 10% 0%, rgba(245, 197, 66, 0.14), transparent 30%),
+                radial-gradient(circle at 92% 12%, rgba(18, 63, 115, 0.08), transparent 24%);
             content: "";
             inset: 0;
             pointer-events: none;
@@ -6996,19 +6993,26 @@
             font-size: 1.25rem;
         }
         .calendar-empty-title {
-            color: #ffffff;
+            color: #0b2b4c;
             font-size: 0.9rem;
             font-weight: 950;
         }
         .calendar-empty-text {
-            color: rgba(255, 255, 255, 0.68);
+            color: #64748b;
             font-size: 0.75rem;
             line-height: 1.45;
             margin-top: 0.25rem;
         }
         .calendar-empty-action {
+            background: #123f73;
+            border-color: rgba(18, 63, 115, 0.18);
+            color: #ffffff;
             margin-top: 1rem;
             min-width: 8rem;
+        }
+        .calendar-empty-action:hover {
+            background: #0b2b4c;
+            border-color: rgba(245, 197, 66, 0.38);
         }
         .calendar-empty-action span {
             display: inline;
@@ -7246,7 +7250,12 @@
         }
         @media (max-width: 640px) {
             .calendar-scroll-grid {
-                max-height: calc((64px * 3) + (0.375rem * 2));
+                gap: 0.32rem;
+            }
+            .calendar-day-cell {
+                border-radius: 0.82rem;
+                min-height: 3.2rem !important;
+                padding: 0.45rem !important;
             }
             .calendar-day-cell > div:first-child > span {
                 font-size: 0.82rem;
@@ -7257,6 +7266,19 @@
             .calendar-day-event-dot {
                 height: 0.46rem;
                 width: 0.46rem;
+            }
+            .calendar-empty-state {
+                padding: 1rem 0.85rem !important;
+            }
+            .calendar-empty-icon {
+                border-radius: 0.85rem;
+                height: 2.45rem;
+                margin-bottom: 0.55rem;
+                width: 2.45rem;
+            }
+            .calendar-empty-action {
+                margin-top: 0.7rem;
+                min-height: 2.45rem;
             }
             .match-detail-card-top,
             .match-detail-footer {

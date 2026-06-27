@@ -240,7 +240,7 @@ window.navigateCalendar = function(direction) {
     const targetMonth = new Date(current.getFullYear(), current.getMonth() + direction, 1);
     window.currentCalendarDate = targetMonth;
     window.visibleCalendarMonthDate = targetMonth;
-    window.calendarScrollTargetDateStr = formatCalendarDate(targetMonth);
+    window.selectedCalendarDateStr = formatCalendarDate(targetMonth);
     window.renderCalendar();
 };
 
@@ -282,44 +282,11 @@ function updateCalendarHeading(date) {
     }
 }
 
-function getCalendarCellTop(cell, grid) {
-    return cell.getBoundingClientRect().top - grid.getBoundingClientRect().top + grid.scrollTop;
-}
-
-function updateCalendarVisibleMonthClasses(grid, headingDate) {
-    const headingYear = headingDate.getFullYear();
-    const headingMonth = headingDate.getMonth();
-
-    grid.querySelectorAll('[data-calendar-date]').forEach(cell => {
-        const cellDate = parseCalendarDate(cell.dataset.calendarDate);
-        cell.classList.toggle('is-outside-month', cellDate.getFullYear() !== headingYear || cellDate.getMonth() !== headingMonth);
-    });
-}
-
-function updateCalendarHeadingFromScroll(grid) {
-    const weekCells = [...grid.querySelectorAll('[data-calendar-week-start]')];
-    if (weekCells.length === 0) return;
-
-    const scrollTop = grid.scrollTop + 4;
-    const activeWeekCell = weekCells.reduce((current, cell) => (
-        getCalendarCellTop(cell, grid) <= scrollTop ? cell : current
-    ), weekCells[0]);
-    const weekStart = parseCalendarDate(activeWeekCell.dataset.calendarWeekStart);
-    const weekDates = Array.from({ length: 7 }, (_, index) => addCalendarDays(weekStart, index));
-    const monthStartInWeek = weekDates.find(weekDate => weekDate.getDate() === 1);
-    const headingDate = monthStartInWeek || addCalendarDays(weekStart, 3);
-
-    window.currentCalendarDate = new Date(headingDate.getFullYear(), headingDate.getMonth(), 1);
-    updateCalendarHeading(window.currentCalendarDate);
-    updateCalendarVisibleMonthClasses(grid, window.currentCalendarDate);
-}
-
 window.goToToday = function() {
     const today = new Date();
     window.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
     window.visibleCalendarMonthDate = window.currentCalendarDate;
     window.selectedCalendarDateStr = formatCalendarDate(today);
-    window.calendarScrollTargetDateStr = window.selectedCalendarDateStr;
     window.renderCalendar();
 };
 
@@ -332,13 +299,11 @@ window.renderCalendar = function() {
     const month = date.getMonth();
     updateCalendarHeading(date);
 
-    const previousScrollTop = grid.scrollTop;
-    const shouldPreserveScroll = grid.dataset.calendarRendered === 'true' && !window.calendarScrollTargetDateStr;
-    const targetDateStr = window.calendarScrollTargetDateStr || window.selectedCalendarDateStr || formatCalendarDate(new Date());
-    const targetDate = parseCalendarDate(targetDateStr);
-    const targetWeekStart = startOfCalendarWeek(targetDate);
-    const rangeStart = addCalendarDays(targetWeekStart, -26 * 7);
-    const weeksToRender = 80;
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    const rangeStart = startOfCalendarWeek(monthStart);
+    const rangeEnd = addCalendarDays(startOfCalendarWeek(monthEnd), 6);
+    const weeksToRender = Math.floor((rangeEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
 
     grid.innerHTML = '';
 
@@ -365,10 +330,13 @@ window.renderCalendar = function() {
                 }))
             ];
 
-            const cell = document.createElement('div');
+            const cell = document.createElement('button');
+            cell.type = 'button';
             cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today' : ''} ${isOutsideActiveMonth ? 'is-outside-month' : ''}`;
             cell.dataset.calendarDate = dateStr;
             if (dayOffset === 0) cell.dataset.calendarWeekStart = formatCalendarDate(weekStart);
+            cell.setAttribute('aria-label', dayDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+            if (isSelected) cell.setAttribute('aria-current', 'date');
             cell.onclick = () => window.selectCalendarDate(dateStr);
 
             const visibleItems = items.slice(0, 2).map(item => `
@@ -393,31 +361,6 @@ window.renderCalendar = function() {
             `;
             grid.appendChild(cell);
         }
-    }
-
-    const targetDateCell = grid.querySelector(`[data-calendar-date="${targetDateStr}"]`);
-    const targetWeekCell = grid.querySelector(`[data-calendar-week-start="${formatCalendarDate(targetWeekStart)}"]`);
-    if (shouldPreserveScroll) {
-        grid.scrollTop = previousScrollTop;
-    } else if (targetDateCell) {
-        grid.scrollTop = getCalendarCellTop(targetDateCell, grid);
-    } else if (targetWeekCell) {
-        grid.scrollTop = getCalendarCellTop(targetWeekCell, grid);
-    }
-    grid.dataset.calendarRendered = 'true';
-    window.calendarScrollTargetDateStr = null;
-    updateCalendarHeadingFromScroll(grid);
-
-    if (!grid.dataset.calendarScrollBound) {
-        let scrollFrame = null;
-        grid.addEventListener('scroll', () => {
-            if (scrollFrame) return;
-            scrollFrame = requestAnimationFrame(() => {
-                scrollFrame = null;
-                updateCalendarHeadingFromScroll(grid);
-            });
-        }, { passive: true });
-        grid.dataset.calendarScrollBound = 'true';
     }
 
     window.updateDailySchedule();
