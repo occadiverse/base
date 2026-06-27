@@ -3245,7 +3245,30 @@
                 width: 100%;
             }
             .roster-topline-legend {
-                order: 2;
+                display: none;
+            }
+            .roster-board-toolbar {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+            .roster-board-toolbar .roster-status-filter,
+            .roster-board-toolbar .match-list-lag-filter {
+                grid-column: 1 / -1;
+                justify-self: center;
+            }
+            .roster-board-toolbar .roster-search-wrap {
+                flex: 1 1 auto;
+                grid-column: 1;
+                width: 100%;
+            }
+            .roster-board-toolbar .match-bench-action-btn.roster-hero-action-btn {
+                grid-column: 2;
+                min-width: 2.85rem;
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+            }
+            .roster-board-toolbar .match-bench-action-btn.roster-hero-action-btn span {
+                display: none;
             }
         }
         .player-modal-card {
