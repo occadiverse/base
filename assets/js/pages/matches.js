@@ -110,8 +110,7 @@ function renderMatchTeamHtml(team) {
     `;
 }
 
-function getMatchFixturePresentation(match, options = {}) {
-    const { showLag = false } = options;
+function getMatchFixturePresentation(match) {
     const dateValue = new Date(match.date);
     const hasDate = !Number.isNaN(dateValue.getTime());
     const day = hasDate ? dateValue.toLocaleDateString('no-NO', { day: '2-digit' }) : '--';
@@ -136,7 +135,6 @@ function getMatchFixturePresentation(match, options = {}) {
     }
 
     const metaParts = [];
-    if (showLag && match.matchGroup) metaParts.push(match.matchGroup);
     if (match.matchType) metaParts.push(match.matchType);
     if (match.pitch) metaParts.push(match.pitch);
 
@@ -180,21 +178,11 @@ function applyFilters() {
 
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
     const currentTimeFilter = window.activeTimeFilter || 'kommende';
-    const kamperLagFilter = 'Alle';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const datedMatches = matches.filter(m => {
-        if (!m.date) return false;
-
-        const matchDate = new Date(m.date);
-        matchDate.setHours(0, 0, 0, 0);
-
-        const matchesLag = kamperLagFilter === 'Alle' || m.matchGroup === kamperLagFilter;
-
-        return matchesLag;
-    });
+    const datedMatches = matches.filter(m => Boolean(m.date));
 
     const upcomingMatches = datedMatches
         .filter(m => {
@@ -251,7 +239,6 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
 
     const {
         isUpcoming = true,
-        showLag = false,
         showEmpty = true,
         emptyTitle = 'Ingen kamper funnet',
         emptyText = 'Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.'
@@ -270,7 +257,7 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
         <section class="match-fixture-group">
             <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
             <div class="match-fixture-group-rows">
-                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { showLag, isUpcoming })).join('')}
+                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { isUpcoming })).join('')}
             </div>
         </section>
     `).join('');
@@ -289,8 +276,8 @@ function buildMatchListEmptyHtml(title, text) {
 }
 
 function buildMatchFixtureRowHtml(match, options = {}) {
-    const { showLag = false, isUpcoming = true } = options;
-    const data = getMatchFixturePresentation(match, { showLag });
+    const { isUpcoming = true } = options;
+    const data = getMatchFixturePresentation(match);
     const clickAttrs = `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`;
     const sideValue = isUpcoming
         ? (match.time || '--:--')

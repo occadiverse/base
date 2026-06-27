@@ -1,6 +1,5 @@
 window.updateDynamicSelectors = function() {
     const filterSelect = document.getElementById('lagFilterSelect');
-    const kamperFilterSelect = document.getElementById('kamperLagFilterSelect');
     const formSelect = document.getElementById('matchGroup');
     const playerTeamSelect = document.getElementById('playerTeamInput');
     const eventTeamSelect = document.getElementById('eventTeam');
@@ -63,19 +62,11 @@ window.updateDynamicSelectors = function() {
     if (typeof window.syncStatsLagFilterPlacement === 'function') {
         window.syncStatsLagFilterPlacement();
     }
-    if (kamperFilterSelect) kamperFilterSelect.innerHTML = `<option value="Alle">ALLE LAG</option>`;
 
     const lagFilterWrap = document.getElementById('rosterLagFilterWrap');
     if (lagFilterWrap) lagFilterWrap.classList.toggle('hidden', teams.length <= 1);
 
     teams.forEach(t => {
-        if (kamperFilterSelect) {
-            const opt = document.createElement('option');
-            opt.value = t.name;
-            opt.innerText = t.name.toUpperCase();
-            kamperFilterSelect.appendChild(opt);
-        }
-
         if (formSelect) {
             const optForm = document.createElement('option');
             optForm.value = t.name;

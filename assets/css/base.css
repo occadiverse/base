@@ -2024,9 +2024,6 @@
             border-color: rgba(245, 197, 66, 0.2);
             box-shadow: none;
         }
-        .match-list-column-footer .match-detail-footer-item {
-            font-size: 0.8rem;
-        }
         .match-list-footer-spacer {
             min-height: 3.25rem;
         }
