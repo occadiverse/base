@@ -53,12 +53,8 @@ window.openAttendanceModal = function(eventId) {
         activityLabel = 'kamp';
     } else if (ev.type === 'Trening') {
         activityLabel = 'trening';
-    } else if (ev.type === 'Dugnad') {
-        activityLabel = 'dugnad';
-    } else if (ev.type === 'Sosialt') {
-        activityLabel = 'sosialt';
     } else if (ev.type) {
-        activityLabel = ev.type.toLowerCase();
+        activityLabel = 'annet';
     }
 
     const dateLabel = new Date(ev.date).toLocaleDateString('no-NO');
@@ -325,7 +321,7 @@ window.renderCalendar = function() {
                     label: m.opponent || 'Kamp'
                 })),
                 ...events.map(e => ({
-                    color: e.type === 'Trening' ? 'bg-blue-500' : e.type === 'Dugnad' ? 'bg-amber-500' : e.type === 'Sosialt' ? 'bg-purple-500' : 'bg-slate-400',
+                    color: e.type === 'Trening' ? 'bg-blue-500' : 'bg-slate-400',
                     label: e.title || e.type || 'Aktivitet'
                 }))
             ];
@@ -398,7 +394,7 @@ window.updateDailySchedule = function() {
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter denne dagen</p>
-                <p class="calendar-empty-text">Legg inn trening, sosialt eller dugnad når planen er klar.</p>
+                <p class="calendar-empty-text">Legg inn trening eller annen aktivitet når planen er klar.</p>
                 <button type="button" onclick="window.openActivityModal('Trening')" class="match-bench-action-btn calendar-empty-action">
                     <i class="fa-solid fa-calendar-plus"></i>
                     <span>Legg til</span>
@@ -443,11 +439,7 @@ window.updateDailySchedule = function() {
     dayEvents.forEach(e => {
         const theme = e.type === 'Trening'
             ? { icon: 'fa-person-running', label: 'Trening', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
-            : e.type === 'Dugnad'
-                ? { icon: 'fa-hammer', label: 'Dugnad', box: 'bg-amber-50 border-amber-100 text-amber-600', badge: 'bg-amber-50 text-amber-700 border-amber-100', text: 'text-amber-700' }
-                : e.type === 'Sosialt'
-                    ? { icon: 'fa-users', label: 'Sosialt', box: 'bg-purple-50 border-purple-100 text-purple-600', badge: 'bg-purple-50 text-purple-700 border-purple-100', text: 'text-purple-700' }
-                    : { icon: 'fa-calendar-check', label: e.type || 'Aktivitet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
+            : { icon: 'fa-calendar-check', label: 'Annet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
         const eventId = escapeCalendarJsString(e.id);
         listContainer.innerHTML += `
