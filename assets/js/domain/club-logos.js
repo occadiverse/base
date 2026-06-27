@@ -42,6 +42,12 @@
             name: 'Klemetsrud IL',
             aliases: ['Klemetsrud', 'Klemetsrud IL', 'KIL'],
             logo: 'assets/img/clubs/klemetsrud-20260627.png'
+        },
+        {
+            id: 'korsvoll',
+            name: 'Korsvoll IL',
+            aliases: ['Korsvoll', 'Korsvoll IL'],
+            logo: 'assets/img/clubs/korsvoll-20260627.png'
         }
     ];
 
