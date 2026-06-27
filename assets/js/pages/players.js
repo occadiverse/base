@@ -327,9 +327,16 @@ function buildRosterPlayerRow(p, currentYear) {
         ? window.getPlayerInjuryInfo(p)
         : { isInjured: false };
     const captainMark = p.isCaptain ? '<span class="roster-captain" title="Kaptein">⚓</span>' : '';
+    const rowStateClasses = [
+        p.status === 'Aktiv' ? 'is-active-player' : '',
+        p.status === 'Rekrutt' ? 'is-recruit-player' : '',
+        p.status === 'Passiv' ? 'is-passive-player' : '',
+        injuryInfo.isInjured ? 'is-injured-player' : '',
+        injuryInfo.type === 'langvarig' ? 'is-long-injury-player' : ''
+    ].filter(Boolean).join(' ');
 
     return `
-        <article class="roster-player-row" onclick="window.openPlayerModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openPlayerModal('${p.id}');}">
+        <article class="roster-player-row ${rowStateClasses}" onclick="window.openPlayerModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openPlayerModal('${p.id}');}">
             <div class="roster-player-jersey" aria-label="Draktnummer ${jersey}">
                 <span>${jersey}</span>
             </div>
