@@ -4,7 +4,7 @@
             id: 'fagerborg',
             name: 'Fagerborg Ballklubb',
             aliases: ['Fagerborg', 'Fagerborg BK', 'Fagerborg Ballklubb'],
-            logo: 'assets/img/clubs/fagerborg.png'
+            logo: 'assets/img/clubs/fagerborg-20260627.png'
         }
     ];
 
