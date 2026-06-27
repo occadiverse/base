@@ -420,17 +420,22 @@ window.updateDailySchedule = function() {
         const venue = typeof window.getMatchVenue === 'function'
             ? window.getMatchVenue(m)
             : (m.venue || 'Hjemme');
-        const matchTitle = venue === 'Borte'
-            ? `${opponent} - BSK`
-            : `BSK - ${opponent}`;
         const centerValue = m.result && typeof window.formatMatchResultForDisplay === 'function'
             ? window.formatMatchResultForDisplay(m.result, venue)
             : (m.result || m.time || '--:--');
         const centerLabel = m.result ? (m.time ? `Kl. ${m.time}` : 'Resultat') : 'Avspark';
+        const opponentLogoHtml = typeof window.buildClubLogoImgHtml === 'function'
+            ? window.buildClubLogoImgHtml(opponent, 'calendar-match-opponent-logo')
+            : '';
+        const opponentMarkHtml = opponentLogoHtml || `
+            <span class="calendar-match-opponent-logo calendar-match-opponent-fallback" aria-hidden="true">
+                <i class="fa-solid fa-shield"></i>
+            </span>
+        `;
         const matchMeta = [
             m.matchType || 'Kamp',
-            m.matchGroup || 'Uten lag',
-            venue
+            venue,
+            m.pitch || 'Sted ikke satt'
         ].filter(Boolean);
         listContainer.innerHTML += `
             <div class="calendar-detail-card calendar-match-detail-card">
@@ -440,17 +445,12 @@ window.updateDailySchedule = function() {
                     <button type="button" onclick="window.promptDeleteMatch('${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="calendar-match-card-content relative z-10">
-                    <div class="calendar-match-kicker">
-                        <span><i class="fa-regular fa-calendar"></i>${escapeCalendarHtml(selectedDateLabel)}</span>
-                        <span class="calendar-match-type-chip">${escapeCalendarHtml(m.matchType || 'Kamp')}</span>
-                    </div>
-
                     <div class="calendar-match-main">
-                        <div class="calendar-detail-icon calendar-match-icon">
-                            <i class="fa-solid fa-futbol"></i>
-                        </div>
                         <div class="calendar-match-title-block">
-                            <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(matchTitle)}</h4>
+                            <div class="calendar-match-opponent-line">
+                                ${opponentMarkHtml}
+                                <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(opponent)}</h4>
+                            </div>
                             <p class="calendar-match-subtitle">${matchMeta.map(escapeCalendarHtml).join(' · ')}</p>
                         </div>
                         <div class="calendar-match-score-box">
@@ -459,16 +459,11 @@ window.updateDailySchedule = function() {
                         </div>
                     </div>
 
-                    <div class="calendar-match-info-grid">
-                        <span><i class="fa-regular fa-clock"></i>${escapeCalendarHtml(m.time || 'Tid ikke satt')}</span>
-                        <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
-                        <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
-                    </div>
-
                     <div class="calendar-match-footer-row">
+                        <span class="calendar-match-attendance-summary"><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                         <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="calendar-attendance-btn calendar-match-attendance-btn">
                             <i class="fa-solid fa-user-check"></i>
-                            <span>Registrer oppmøte</span>
+                            <span>Oppmøte</span>
                         </button>
                     </div>
                 </div>
