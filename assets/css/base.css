@@ -7932,15 +7932,53 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .calendar-match-subtitle {
-            color: rgba(255, 255, 255, 0.58);
+        .calendar-match-inline-result {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            color: #ffffff;
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            font-weight: 950;
+            line-height: 1;
+            padding: 0.34rem 0.52rem;
+        }
+        .calendar-match-meta-row {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.62);
+            display: flex;
+            flex-wrap: wrap;
             font-size: 0.72rem;
-            font-weight: 800;
+            font-weight: 850;
+            gap: 0.45rem 0.75rem;
             line-height: 1.25;
-            margin-top: 0.24rem;
+            margin-top: 0.4rem;
+            min-width: 0;
+        }
+        .calendar-match-meta-row span {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.4rem;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .calendar-match-meta-row i {
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.76rem;
+        }
+        .calendar-match-type-chip {
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 999px;
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.66rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            padding: 0.32rem 0.58rem;
+            text-transform: uppercase;
         }
         .calendar-match-score-box {
             align-items: flex-end;
@@ -7953,7 +7991,7 @@
         }
         .calendar-match-score {
             color: #ffffff;
-            font-size: 1.16rem;
+            font-size: 1.2rem;
             font-weight: 950;
             line-height: 1;
         }

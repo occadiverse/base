@@ -420,10 +420,10 @@ window.updateDailySchedule = function() {
         const venue = typeof window.getMatchVenue === 'function'
             ? window.getMatchVenue(m)
             : (m.venue || 'Hjemme');
-        const centerValue = m.result && typeof window.formatMatchResultForDisplay === 'function'
+        const resultValue = m.result && typeof window.formatMatchResultForDisplay === 'function'
             ? window.formatMatchResultForDisplay(m.result, venue)
-            : (m.result || m.time || '--:--');
-        const centerLabel = m.result ? (m.time ? `Kl. ${m.time}` : 'Resultat') : 'Avspark';
+            : (m.result || '');
+        const timeValue = m.time || '--:--';
         const opponentLogoHtml = typeof window.buildClubLogoImgHtml === 'function'
             ? window.buildClubLogoImgHtml(opponent, 'calendar-match-opponent-logo')
             : '';
@@ -432,11 +432,6 @@ window.updateDailySchedule = function() {
                 <i class="fa-solid fa-shield"></i>
             </span>
         `;
-        const matchMeta = [
-            m.matchType || 'Kamp',
-            venue,
-            m.pitch || 'Sted ikke satt'
-        ].filter(Boolean);
         listContainer.innerHTML += `
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
@@ -450,17 +445,21 @@ window.updateDailySchedule = function() {
                             <div class="calendar-match-opponent-line">
                                 ${opponentMarkHtml}
                                 <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(opponent)}</h4>
+                                ${resultValue ? `<span class="calendar-match-inline-result">${escapeCalendarHtml(resultValue)}</span>` : ''}
                             </div>
-                            <p class="calendar-match-subtitle">${matchMeta.map(escapeCalendarHtml).join(' · ')}</p>
+                            <div class="calendar-match-meta-row">
+                                <span class="calendar-match-type-chip">${escapeCalendarHtml(m.matchType || 'Kamp')}</span>
+                                <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
+                                <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
+                            </div>
                         </div>
                         <div class="calendar-match-score-box">
-                            <span class="calendar-match-score">${escapeCalendarHtml(centerValue)}</span>
-                            <span class="calendar-match-score-label">${escapeCalendarHtml(centerLabel)}</span>
+                            <span class="calendar-match-score">${escapeCalendarHtml(timeValue)}</span>
+                            <span class="calendar-match-score-label">Klokkeslett</span>
                         </div>
                     </div>
 
                     <div class="calendar-match-footer-row">
-                        <span class="calendar-match-attendance-summary"><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                         <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="calendar-attendance-btn calendar-match-attendance-btn">
                             <i class="fa-solid fa-user-check"></i>
                             <span>Oppmøte</span>
