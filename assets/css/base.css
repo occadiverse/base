@@ -8258,6 +8258,17 @@
                 flex-direction: row;
                 gap: 0.75rem;
             }
+            .calendar-bottomline.match-detail-footer {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .calendar-bottomline .calendar-daily-list {
+                width: 100%;
+            }
+            .calendar-bottomline .calendar-empty-state {
+                justify-content: center;
+                width: 100%;
+            }
             .match-detail-footer-item {
                 font-size: 0.95rem;
             }
