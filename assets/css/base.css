@@ -7706,6 +7706,7 @@
             margin: 0;
             padding: 0 !important;
             text-align: center;
+            width: 100%;
         }
         .calendar-bottomline .calendar-empty-state::before {
             content: none;
@@ -7729,7 +7730,11 @@
             color: rgba(255, 255, 255, 0.62);
         }
         .calendar-bottomline .calendar-empty-action {
+            appearance: none;
+            border-radius: 0.8rem !important;
             margin-top: 0;
+            overflow: visible;
+            -webkit-appearance: none;
         }
         .calendar-empty-state {
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
