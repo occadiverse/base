@@ -7531,6 +7531,24 @@
         .calendar-hero-action-btn {
             max-width: 100%;
         }
+        .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn,
+        .calendar-bottomline .calendar-empty-action {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.28);
+            box-shadow: none;
+            color: #ffffff;
+            min-height: 2.35rem;
+        }
+        .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn:hover,
+        .calendar-bottomline .calendar-empty-action:hover {
+            background: rgba(245, 197, 66, 0.22);
+            border-color: rgba(245, 197, 66, 0.42);
+        }
+        .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn span,
+        .calendar-bottomline .calendar-empty-action span {
+            display: inline;
+            white-space: nowrap;
+        }
         .calendar-hero-action-btn i,
         .calendar-empty-action i,
         .calendar-action-btn i {
@@ -7703,10 +7721,6 @@
             color: rgba(255, 255, 255, 0.62);
         }
         .calendar-bottomline .calendar-empty-action {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.28);
-            box-shadow: none;
-            color: #ffffff;
             margin-top: 0;
         }
         .calendar-empty-state {
@@ -8029,6 +8043,16 @@
             }
             .calendar-match-opponent-line {
                 flex-wrap: wrap;
+            }
+        }
+        @media (max-width: 767px) {
+            .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn {
+                min-width: 2.85rem;
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+            }
+            .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn span {
+                display: none;
             }
         }
         .bsk-modal-card {
