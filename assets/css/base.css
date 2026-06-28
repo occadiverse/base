@@ -7539,10 +7539,18 @@
             color: #ffffff;
             min-height: 2.35rem;
         }
+        .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn {
+            justify-self: end;
+            min-width: 8.9rem;
+            width: max-content;
+        }
         .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn:hover,
         .calendar-bottomline .calendar-empty-action:hover {
             background: rgba(245, 197, 66, 0.22);
             border-color: rgba(245, 197, 66, 0.42);
+        }
+        .calendar-bottomline .calendar-empty-action:hover {
+            transform: none;
         }
         .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn span,
         .calendar-bottomline .calendar-empty-action span {
