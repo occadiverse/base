@@ -596,7 +596,7 @@ window.editActivity = function(id) {
     const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
 
     if (header) header.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Endre Aktivitet`;
-    if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Oppdater aktivitet</span>`;
+    if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Lagre</span>`;
 
     document.getElementById('editActivityId').value = ev.id;
     document.getElementById('activityTitle').value = ev.title;
