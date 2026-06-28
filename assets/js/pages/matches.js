@@ -1189,6 +1189,7 @@ function setMatchTimeFilter(filterType) {
 
 window.openMatchModal = function(editId = null) {
     const modal = document.getElementById('matchModal');
+    const headerAction = document.getElementById('matchModalHeaderAction');
     document.getElementById('matchForm').reset();
     document.getElementById('editMatchId').value = '';
     updateDynamicSelectors();
@@ -1197,7 +1198,14 @@ window.openMatchModal = function(editId = null) {
         const matchObj = (window.activeMatches || []).find(m => m.id === editId);
 
         if (matchObj) {
-            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-bsk-yellow"></i> Rediger Kamp`;
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-bsk-yellow"></i> Endre kamp`;
+            if (headerAction) {
+                headerAction.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                headerAction.title = 'Slett kamp';
+                headerAction.setAttribute('aria-label', 'Slett kamp');
+                headerAction.setAttribute('onclick', 'window.promptDeleteCurrentMatch()');
+                headerAction.classList.add('calendar-action-danger');
+            }
             document.getElementById('editMatchId').value = matchObj.id;
             document.getElementById('matchDate').value = matchObj.date;
             document.getElementById('matchTime').value = matchObj.time || '';
@@ -1210,6 +1218,13 @@ window.openMatchModal = function(editId = null) {
         }
     } else {
         document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Ny Kamp`;
+        if (headerAction) {
+            headerAction.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            headerAction.title = 'Lukk';
+            headerAction.setAttribute('aria-label', 'Lukk');
+            headerAction.setAttribute('onclick', 'window.closeMatchModal()');
+            headerAction.classList.remove('calendar-action-danger');
+        }
         document.getElementById('matchVenue').value = 'Hjemme';
     }
 
@@ -1220,6 +1235,17 @@ window.openMatchModal = function(editId = null) {
 window.closeMatchModal = function() {
     document.getElementById('matchModal').classList.add('hidden');
     document.getElementById('matchModal').classList.remove('flex');
+};
+
+window.promptDeleteCurrentMatch = function() {
+    const matchId = document.getElementById('editMatchId')?.value;
+    if (!matchId) return;
+
+    window.customConfirm("Slette kamp?", "Er du sikker på at du ønsker å slette denne kampen permanent fra terminlisten?", async () => {
+        await window.deleteMatchFromDatabase(matchId);
+        window.closeMatchModal();
+        window.closeMatchInfo();
+    });
 };
 
 window.saveMatch = async function(event) {

@@ -7862,7 +7862,13 @@
         .calendar-action-btn.calendar-action-danger i {
             color: #fecdd3;
         }
+        .bsk-modal-close.calendar-action-danger i {
+            color: #fecdd3;
+        }
         .calendar-action-btn.calendar-action-danger:hover i {
+            color: #ffffff;
+        }
+        .bsk-modal-close.calendar-action-danger:hover i {
             color: #ffffff;
         }
         .calendar-attendance-btn {
@@ -7953,7 +7959,6 @@
         .calendar-detail-meta-row {
             font-size: 0.78rem;
             line-height: 1.35;
-            margin-top: 0.55rem;
         }
         .calendar-detail-card .text-slate-500,
         .calendar-detail-card .text-slate-400 {
@@ -7973,6 +7978,7 @@
         .calendar-bottomline .calendar-match-detail-card {
             border-color: rgba(245, 197, 66, 0.16);
         }
+        .calendar-daily-card-content,
         .calendar-match-card-content,
         .calendar-event-card-content {
             align-items: center;
@@ -7981,11 +7987,17 @@
             grid-template-columns: 52px minmax(0, 1fr);
             padding-right: 9rem;
         }
+        .calendar-daily-icon-slot,
         .calendar-match-icon-slot,
         .calendar-event-icon-slot {
             align-items: center;
             display: flex;
             justify-content: center;
+        }
+        .calendar-daily-main {
+            align-items: center;
+            display: block;
+            min-width: 0;
         }
         .calendar-match-main {
             align-items: center;
@@ -8004,6 +8016,7 @@
         .calendar-event-title-block {
             min-width: 0;
         }
+        .calendar-daily-title-line,
         .calendar-match-opponent-line {
             align-items: center;
             display: flex;
@@ -8028,6 +8041,7 @@
             color: #123f73;
             font-size: 0.8rem;
         }
+        .calendar-daily-title,
         .calendar-match-title {
             font-size: 1.08rem;
             font-weight: 900;
@@ -8049,6 +8063,7 @@
             height: 0.28rem;
             width: 0.28rem;
         }
+        .calendar-daily-time,
         .calendar-match-time-result {
             color: #ffffff;
             flex: 0 0 auto;
@@ -8065,7 +8080,9 @@
             line-height: 1.2;
             white-space: nowrap;
         }
-        .calendar-match-meta-row {
+        .calendar-daily-meta-row,
+        .calendar-match-meta-row,
+        .calendar-detail-meta-row {
             align-items: center;
             color: rgba(255, 255, 255, 0.62);
             display: flex;
@@ -8077,7 +8094,9 @@
             margin-top: 0.4rem;
             min-width: 0;
         }
-        .calendar-match-meta-row span {
+        .calendar-daily-meta-row span,
+        .calendar-match-meta-row span,
+        .calendar-detail-meta-row span {
             align-items: center;
             display: inline-flex;
             gap: 0.4rem;
@@ -8085,7 +8104,9 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .calendar-match-meta-row i {
+        .calendar-daily-meta-row i,
+        .calendar-match-meta-row i,
+        .calendar-detail-meta-row i {
             color: rgba(255, 255, 255, 0.7);
             flex: 0 0 auto;
             font-size: 0.76rem;
@@ -8137,6 +8158,7 @@
                 min-height: 2.25rem;
                 width: 2.25rem;
             }
+            .calendar-daily-card-content,
             .calendar-match-card-content,
             .calendar-event-card-content {
                 align-items: center;

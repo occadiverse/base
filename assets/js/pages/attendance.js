@@ -438,20 +438,19 @@ window.updateDailySchedule = function() {
                 <div class="calendar-detail-card-actions">
                     <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
                     <button type="button" onclick="window.openMatchModal('${matchId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type="button" onclick="window.promptDeleteMatch('${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
-                <div class="calendar-match-card-content relative z-10">
-                    <div class="calendar-match-icon-slot">
+                <div class="calendar-daily-card-content calendar-match-card-content relative z-10">
+                    <div class="calendar-daily-icon-slot calendar-match-icon-slot">
                         ${opponentMarkHtml}
                     </div>
-                    <div class="calendar-match-main">
-                        <div class="calendar-match-title-block">
-                            <div class="calendar-match-opponent-line">
-                                <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(opponent)}</h4>
+                    <div class="calendar-daily-main calendar-match-main">
+                        <div class="calendar-daily-title-block calendar-match-title-block">
+                            <div class="calendar-daily-title-line calendar-match-opponent-line">
+                                <h4 class="calendar-detail-title calendar-daily-title calendar-match-title">${escapeCalendarHtml(opponent)}</h4>
                                 <span class="calendar-detail-time-dot" aria-hidden="true"></span>
-                                <span class="calendar-match-time-result">${escapeCalendarHtml(matchTimeOrResult)}</span>
+                                <span class="calendar-daily-time calendar-match-time-result">${escapeCalendarHtml(matchTimeOrResult)}</span>
                             </div>
-                            <div class="calendar-match-meta-row">
+                            <div class="calendar-daily-meta-row calendar-match-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
                                 <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                             </div>
@@ -474,24 +473,23 @@ window.updateDailySchedule = function() {
                 <div class="calendar-detail-card-actions">
                     <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
                     <button type="button" onclick="window.editActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type="button" onclick="window.deleteActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
-                <div class="calendar-event-card-content relative z-10">
-                    <div class="calendar-event-icon-slot">
+                <div class="calendar-daily-card-content calendar-event-card-content relative z-10">
+                    <div class="calendar-daily-icon-slot calendar-event-icon-slot">
                         <div class="calendar-detail-icon">
                             <i class="fa-solid ${theme.icon}"></i>
                         </div>
                     </div>
-                    <div class="calendar-event-main">
-                        <div class="calendar-event-title-block">
-                            <div class="calendar-event-title-line">
-                                <h4 class="calendar-detail-title truncate">${theme.label}</h4>
+                    <div class="calendar-daily-main calendar-event-main">
+                        <div class="calendar-daily-title-block calendar-event-title-block">
+                            <div class="calendar-daily-title-line calendar-event-title-line">
+                                <h4 class="calendar-detail-title calendar-daily-title truncate">${theme.label}</h4>
                                 <span class="calendar-detail-time-dot" aria-hidden="true"></span>
-                                <span class="calendar-event-time">${e.time || 'TBA'}</span>
+                                <span class="calendar-daily-time calendar-event-time">${e.time || 'TBA'}</span>
                             </div>
-                            <div class="calendar-detail-meta-row text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
-                                <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
+                            <div class="calendar-daily-meta-row calendar-detail-meta-row">
+                                <span><i class="fa-solid fa-location-dot"></i>${e.location || 'Ikke oppgitt'}</span>
+                                <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                             </div>
                         </div>
                     </div>
@@ -562,9 +560,17 @@ window.openActivityModal = function(defaultType = 'Trening') {
     const modal = document.getElementById('activityModal');
     const header = modal.querySelector('h3');
     const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
+    const headerAction = document.getElementById('activityModalHeaderAction');
 
     if (header) header.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet`;
     if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Opprett aktivitet</span>`;
+    if (headerAction) {
+        headerAction.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        headerAction.title = 'Lukk';
+        headerAction.setAttribute('aria-label', 'Lukk');
+        headerAction.setAttribute('onclick', 'window.closeActivityModal()');
+        headerAction.classList.remove('calendar-action-danger');
+    }
 
     document.getElementById('editActivityId').value = '';
     document.getElementById('activityDate').value = window.selectedCalendarDateStr || new Date().toISOString().split('T')[0];
@@ -594,9 +600,17 @@ window.editActivity = function(id) {
     const modal = document.getElementById('activityModal');
     const header = modal.querySelector('h3');
     const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
+    const headerAction = document.getElementById('activityModalHeaderAction');
 
     if (header) header.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Endre Aktivitet`;
     if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Lagre</span>`;
+    if (headerAction) {
+        headerAction.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        headerAction.title = 'Slett aktivitet';
+        headerAction.setAttribute('aria-label', 'Slett aktivitet');
+        headerAction.setAttribute('onclick', 'window.deleteCurrentActivity()');
+        headerAction.classList.add('calendar-action-danger');
+    }
 
     document.getElementById('editActivityId').value = ev.id;
     document.getElementById('activityTitle').value = ev.title;
@@ -614,6 +628,21 @@ window.deleteActivity = function(id) {
         if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
         if (typeof window.renderCalendar === 'function') window.renderCalendar();
         window.updateDailySchedule();
+        if (typeof window.renderEvents === 'function') window.renderEvents();
+    });
+};
+
+window.deleteCurrentActivity = function() {
+    const activityId = document.getElementById('editActivityId')?.value;
+    if (!activityId) return;
+
+    window.customConfirm("Slette aktivitet?", "Er du sikker?", async () => {
+        await window.deleteEventFromDatabase(activityId);
+        window.closeActivityModal();
+
+        if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
         if (typeof window.renderEvents === 'function') window.renderEvents();
     });
 };
