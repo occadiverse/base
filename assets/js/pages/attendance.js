@@ -562,14 +562,15 @@ window.openActivityModal = function(defaultType = 'Trening') {
     const submitBtn = modal.querySelector('button[onclick="saveNewActivity()"]');
     const headerAction = document.getElementById('activityModalHeaderAction');
 
-    if (header) header.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet`;
-    if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Opprett aktivitet</span>`;
+    if (header) header.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Ny aktivitet`;
+    if (submitBtn) submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Lagre</span>`;
     if (headerAction) {
         headerAction.innerHTML = '<i class="fa-solid fa-xmark"></i>';
         headerAction.title = 'Lukk';
         headerAction.setAttribute('aria-label', 'Lukk');
         headerAction.setAttribute('onclick', 'window.closeActivityModal()');
         headerAction.classList.remove('calendar-action-danger');
+        headerAction.classList.add('hidden');
     }
 
     document.getElementById('editActivityId').value = '';
@@ -610,6 +611,7 @@ window.editActivity = function(id) {
         headerAction.setAttribute('aria-label', 'Slett aktivitet');
         headerAction.setAttribute('onclick', 'window.deleteCurrentActivity()');
         headerAction.classList.add('calendar-action-danger');
+        headerAction.classList.remove('hidden');
     }
 
     document.getElementById('editActivityId').value = ev.id;
