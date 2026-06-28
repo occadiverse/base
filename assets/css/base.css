@@ -7667,14 +7667,19 @@
             grid-template-columns: minmax(0, 1fr);
         }
         .calendar-bottomline .calendar-empty-state {
+            align-items: center;
             background: transparent !important;
             border: 0 !important;
             border-bottom: 0 !important;
             box-shadow: none;
             color: #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
             margin: 0;
             padding: 0 !important;
-            text-align: left;
+            text-align: center;
         }
         .calendar-bottomline .calendar-empty-state::before {
             content: none;
@@ -7684,11 +7689,12 @@
             border-color: rgba(245, 197, 66, 0.28);
             color: #f5c542;
             height: 2.4rem;
-            margin: 0 0 0.65rem;
+            margin: 0;
             width: 2.4rem;
         }
         .calendar-bottomline .calendar-empty-title {
             color: #ffffff;
+            margin: 0;
         }
         .calendar-bottomline .calendar-empty-text {
             color: rgba(255, 255, 255, 0.62);
@@ -7698,6 +7704,7 @@
             border-color: rgba(245, 197, 66, 0.28);
             box-shadow: none;
             color: #ffffff;
+            margin-top: 0;
         }
         .calendar-empty-state {
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;

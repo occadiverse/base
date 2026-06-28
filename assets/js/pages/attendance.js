@@ -403,8 +403,7 @@ window.updateDailySchedule = function() {
                 <div class="calendar-empty-icon">
                     <i class="fa-regular fa-calendar"></i>
                 </div>
-                <p class="calendar-empty-title">Ingen aktiviteter denne dagen</p>
-                <p class="calendar-empty-text">Legg inn trening eller annen aktivitet når planen er klar.</p>
+                <p class="calendar-empty-title">Ingen aktiviteter</p>
                 <button type="button" onclick="window.openActivityModal('Trening')" class="match-bench-action-btn calendar-empty-action">
                     <i class="fa-solid fa-calendar-plus"></i>
                     <span>Legg til</span>
