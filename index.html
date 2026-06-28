@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260628-calendar-board-layout-v18">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260629-stats-board-layout-v1">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -296,21 +296,40 @@
                 </section>
             </div>
 
-            <div id="view-statistikk" class="hidden portal-view stats-page space-y-3 md:space-y-4">
-                <div id="stats-tab-hero"></div>
+            <div id="view-statistikk" class="hidden portal-view stats-page">
+                <section class="match-detail-card stats-board-card">
+                    <div class="dashboard-next-match-watermark stats-board-watermark">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
 
-                <div id="stat-view-lag" class="block space-y-4">
-                    <div id="stats-lag-summary"></div>
-                    <div id="stats-lag-development"></div>
-                    <div id="stats-lag-followups"></div>
-                </div>
+                    <div class="match-detail-card-top stats-board-top relative z-10">
+                        <div class="match-detail-meta match-list-column-title">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Statistikk</span>
+                        </div>
+                        <div id="stats-tab-hero" class="stats-board-tabs"></div>
+                    </div>
 
-                <div id="stat-view-spillere" class="hidden space-y-4">
-                    <div id="stats-spillere-summary"></div>
-                    <div id="stat-spillere-content"></div>
-                </div>
+                    <div class="stats-board-body relative z-10">
+                        <div id="stat-view-lag" class="block space-y-4">
+                            <div id="stats-lag-summary"></div>
+                            <div id="stats-lag-development"></div>
+                            <div id="stats-lag-followups"></div>
+                        </div>
 
-                <div id="stat-view-kampstat" class="hidden space-y-4"></div>
+                        <div id="stat-view-spillere" class="hidden space-y-4">
+                            <div id="stats-spillere-summary"></div>
+                            <div id="stat-spillere-content"></div>
+                        </div>
+
+                        <div id="stat-view-kampstat" class="hidden space-y-4"></div>
+                    </div>
+
+                    <footer class="match-detail-footer stats-board-bottomline relative z-10">
+                        <p>Form, oppmøte og kampdata samlet på ett sted.</p>
+                        <span class="roster-bottomline-title">Statistikk</span>
+                    </footer>
+                </section>
 
                 <div id="statsLagFilterWrap" class="match-list-lag-filter stats-hero-lag-filter hidden">
                     <i class="fa-solid fa-shield-halved"></i>
@@ -1095,7 +1114,7 @@
     <script src="assets/js/pages/players.js?v=20260628-roster-status-logic-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260627-club-logo-fallback"></script>
     <script src="assets/js/pages/attendance.js?v=20260628-calendar-match-detail-v6"></script>
-    <script src="assets/js/pages/statistics.js?v=20260620-score-diagram-tooltips-v3"></script>
+    <script src="assets/js/pages/statistics.js?v=20260629-stats-board-layout-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260624-picker-actions-inside"></script>
     <script src="assets/js/pages/dashboard.js?v=20260627-club-logos"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260626-soft-bench-sync-v2"></script>

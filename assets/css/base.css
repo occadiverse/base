@@ -3572,8 +3572,178 @@
         }
         .stats-page {
             margin: 0 auto;
-            max-width: 52rem;
+            max-width: 78rem;
             width: 100%;
+        }
+        .stats-board-card {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
+                radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.05), transparent 30%),
+                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            display: flex;
+            flex-direction: column;
+            min-height: min(52rem, calc(100vh - 7rem));
+            overflow: hidden;
+            position: relative;
+        }
+        .stats-board-watermark {
+            bottom: auto;
+            opacity: 0.045;
+            right: -2.25rem;
+            top: -3.5rem;
+        }
+        .stats-board-watermark i {
+            font-size: clamp(10rem, 22vw, 16rem);
+        }
+        .stats-board-top {
+            align-items: center;
+            gap: 1rem;
+            min-height: 3rem;
+        }
+        .stats-board-tabs {
+            align-items: center;
+            display: flex;
+            justify-content: flex-end;
+            margin-left: auto;
+            min-width: 0;
+        }
+        .stats-board-body {
+            flex: 1 1 auto;
+            padding: 1rem;
+        }
+        .stats-board-bottomline {
+            background: rgba(255, 255, 255, 0.06);
+            border: 0;
+            border-top: 1px solid rgba(245, 197, 66, 0.12);
+            color: rgba(255, 255, 255, 0.62);
+            margin-top: 0;
+        }
+        .stats-board-bottomline p {
+            margin: 0;
+        }
+        .stats-board-card .stats-panel,
+        .stats-board-card .stats-table-panel,
+        .stats-board-card .stats-metric-card,
+        .stats-board-card .team-report-panel {
+            box-shadow: none;
+        }
+        .stats-board-card .stats-chrome {
+            align-items: center;
+            display: flex;
+            gap: 0.65rem;
+            justify-content: flex-end;
+            width: auto;
+        }
+        .stats-board-card .stats-chrome-bar {
+            gap: 0.65rem;
+        }
+        .stats-board-card .stats-chrome-bar-centered,
+        .stats-board-card .stats-chrome-bar-centered .stats-chrome-actions {
+            justify-content: flex-end;
+            width: auto;
+        }
+        .stats-board-card .stats-chrome-bar-stacked {
+            align-items: flex-end;
+            text-align: right;
+        }
+        .stats-board-card .stats-chrome-title {
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+        .stats-board-card .stats-chrome-subtitle {
+            color: rgba(255, 255, 255, 0.62);
+        }
+        .stats-board-card .stats-chrome-badge {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.24);
+            color: #ffffff;
+        }
+        .stats-board-card .stats-hero-tabs {
+            flex-direction: row;
+        }
+        .stats-board-card .stats-chrome-actions .stats-hero-tabs .stats-hero-tablist,
+        .stats-board-card .stats-hero-tabs .stats-hero-tablist {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(245, 197, 66, 0.2);
+            box-shadow: none;
+        }
+        .stats-board-card .stats-hero-tabs .roster-status-btn {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .stats-board-card .stats-hero-tabs .roster-status-btn:first-child {
+            grid-column: auto;
+        }
+        .stats-board-card .stats-hero-tabs .roster-status-btn.is-active {
+            color: #0b2b4c;
+        }
+        .stats-board-card .stats-hero-tabs .stats-chrome-info-btn {
+            color: #f5c542;
+        }
+        .stats-board-card #statsLagFilterWrap {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+            margin: 0;
+        }
+        .stats-board-card #statsLagFilterWrap > i:first-child,
+        .stats-board-card #statsLagFilterWrap .match-list-lag-chevron {
+            color: #f5c542;
+        }
+        .stats-board-card #statsLagFilterWrap .match-list-lag-select {
+            color: #ffffff;
+        }
+        .stats-board-card #statsLagFilterWrap .match-list-lag-select option {
+            color: #0b2b4c;
+        }
+        @media (max-width: 767px) {
+            .stats-page {
+                max-width: none;
+            }
+            .stats-board-card {
+                min-height: calc(100vh - 7rem);
+            }
+            .stats-board-top {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .stats-board-tabs,
+            .stats-board-card .stats-chrome,
+            .stats-board-card .stats-chrome-bar,
+            .stats-board-card .stats-chrome-actions,
+            .stats-board-card .stats-hero-tabs,
+            .stats-board-card .stats-hero-tabs .stats-hero-tablist {
+                width: 100%;
+            }
+            .stats-board-card .stats-chrome,
+            .stats-board-card .stats-chrome-bar,
+            .stats-board-card .stats-chrome-actions {
+                justify-content: center;
+            }
+            .stats-board-card .stats-chrome-bar-stacked {
+                align-items: stretch;
+                text-align: left;
+            }
+            .stats-board-card #statsLagFilterWrap {
+                justify-content: center;
+                width: 100%;
+            }
+            .stats-board-body {
+                padding: 0.85rem;
+            }
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-card {
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-top,
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-bottomline {
+                flex-shrink: 0;
+            }
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-body {
+                display: flex;
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
+            }
         }
         .stats-hero-panel {
             background:
