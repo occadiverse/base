@@ -7909,9 +7909,9 @@
             color: #0b2b4c;
             display: flex;
             flex: 0 0 auto;
-            height: 2.65rem;
+            height: 52px;
             justify-content: center;
-            width: 2.65rem;
+            width: 52px;
         }
         .calendar-detail-date {
             color: rgba(245, 197, 66, 0.9);
@@ -7998,10 +7998,10 @@
             color: #123f73;
             display: inline-flex;
             flex: 0 0 auto;
-            height: 2rem;
+            height: 52px;
             justify-content: center;
             object-fit: contain;
-            width: 2rem;
+            width: 52px;
         }
         .calendar-match-opponent-fallback i {
             color: #123f73;
