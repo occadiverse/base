@@ -494,8 +494,6 @@ window.updateDailySchedule = function() {
                                 <span class="calendar-detail-time-dot" aria-hidden="true"></span>
                                 <span class="calendar-event-time">${e.time || 'TBA'}</span>
                             </div>
-                            <span class="calendar-detail-date">${selectedDateLabel}</span>
-                            ${e.title && e.title !== theme.label ? `<p class="calendar-detail-subtitle truncate">${e.title}</p>` : ''}
                             <div class="calendar-detail-meta-row text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>

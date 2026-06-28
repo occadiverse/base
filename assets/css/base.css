@@ -8069,21 +8069,21 @@
             white-space: nowrap;
         }
         .calendar-match-meta-row i {
-            color: #f5c542;
+            color: rgba(255, 255, 255, 0.7);
             flex: 0 0 auto;
             font-size: 0.76rem;
         }
         .calendar-match-type-chip {
-            background: rgba(245, 197, 66, 0.14);
-            border: 1px solid rgba(245, 197, 66, 0.28);
-            border-radius: 999px;
-            color: #f5c542;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            color: inherit;
             flex: 0 0 auto;
-            font-size: 0.66rem;
-            font-weight: 950;
-            letter-spacing: 0.08em;
-            padding: 0.32rem 0.58rem;
-            text-transform: uppercase;
+            font-size: inherit;
+            font-weight: inherit;
+            letter-spacing: inherit;
+            padding: 0;
+            text-transform: none;
         }
         .calendar-match-footer-row {
             align-items: center;
