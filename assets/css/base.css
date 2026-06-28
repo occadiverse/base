@@ -7667,13 +7667,13 @@
             grid-template-columns: minmax(0, 1fr);
         }
         .calendar-bottomline .calendar-empty-state {
-            background: rgba(255, 255, 255, 0.06) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-bottom: 1px solid rgba(245, 197, 66, 0.18) !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-bottom: 0 !important;
             box-shadow: none;
             color: #ffffff;
             margin: 0;
-            padding: 1rem !important;
+            padding: 0 !important;
             text-align: left;
         }
         .calendar-bottomline .calendar-empty-state::before {
@@ -7881,10 +7881,17 @@
         .calendar-detail-card .portal-btn-primary {
             color: #ffffff;
         }
+        .calendar-bottomline .calendar-detail-card {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: visible;
+            padding: 0;
+        }
         .calendar-bottomline .calendar-match-detail-card {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-left: 3px solid #f5c542;
+            background: transparent;
+            border: 0;
             box-shadow: none;
         }
         .calendar-match-card-content {
