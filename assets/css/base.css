@@ -8179,6 +8179,12 @@
             }
         }
         @media (max-width: 767px) {
+            .calendar-day-event {
+                overflow: hidden;
+            }
+            .calendar-day-event-label {
+                display: none !important;
+            }
             .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn {
                 min-width: 2.85rem;
                 padding-left: 0.85rem;
