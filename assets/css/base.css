@@ -7601,23 +7601,52 @@
             text-align: left;
             width: 100%;
         }
-        .calendar-day-cell > div:first-child > span {
+        .calendar-day-layout {
+            display: grid;
+            gap: 0.35rem;
+            grid-template-columns: 1.55rem minmax(0, 1fr);
+            min-height: 100%;
+            width: 100%;
+        }
+        .calendar-day-cell > div:first-child > span,
+        .calendar-day-number {
+            align-self: start;
             font-size: 1.02rem;
             line-height: 1;
         }
         .calendar-day-number {
             color: #ffffff !important;
         }
+        .calendar-day-events {
+            display: flex;
+            flex-direction: column;
+            gap: 0.22rem;
+            min-width: 0;
+            padding-top: 0.03rem;
+        }
         .calendar-day-event {
+            align-items: center;
             color: rgba(255, 255, 255, 0.68) !important;
+            display: flex;
             font-size: 0.68rem;
             line-height: 1.08;
+            min-width: 0;
         }
         .calendar-day-event-label {
             color: rgba(255, 255, 255, 0.68) !important;
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .calendar-day-more {
             color: #f5c542 !important;
+            line-height: 1;
+        }
+        .calendar-day-empty-space {
+            display: block;
+            min-height: 0.75rem;
         }
         .calendar-day-event-dot {
             height: 0.48rem;
@@ -8189,15 +8218,25 @@
                 min-height: 3.2rem !important;
                 padding: 0.45rem !important;
             }
-            .calendar-day-cell > div:first-child > span {
+            .calendar-day-layout {
+                gap: 0.26rem;
+                grid-template-columns: 1.05rem minmax(0, 1fr);
+            }
+            .calendar-day-cell > div:first-child > span,
+            .calendar-day-number {
                 font-size: 0.82rem;
             }
+            .calendar-day-events {
+                gap: 0.16rem;
+                padding-top: 0;
+            }
             .calendar-day-event {
-                font-size: 0.62rem;
+                font-size: 0.58rem;
+                line-height: 1.05;
             }
             .calendar-day-event-dot {
-                height: 0.46rem;
-                width: 0.46rem;
+                height: 0.4rem;
+                width: 0.4rem;
             }
             .calendar-empty-state {
                 padding: 1rem 0.85rem !important;

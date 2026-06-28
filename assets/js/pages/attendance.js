@@ -348,7 +348,7 @@ window.renderCalendar = function() {
             const visibleItems = items.slice(0, 2).map(item => `
                 <span class="calendar-day-event flex items-center gap-1 min-w-0 font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
                     <span class="calendar-day-event-dot rounded-full ${item.color} shrink-0"></span>
-                    <span class="calendar-day-event-label hidden sm:inline truncate">${item.label}</span>
+                    <span class="calendar-day-event-label truncate">${item.label}</span>
                 </span>
             `).join('');
 
@@ -357,12 +357,12 @@ window.renderCalendar = function() {
                 : '';
 
             cell.innerHTML = `
-                <div class="flex items-start justify-between gap-1">
+                <div class="calendar-day-layout">
                     <span class="calendar-day-number text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
-                </div>
-                <div class="mt-auto space-y-1 min-h-[22px]">
-                    ${visibleItems || `<span class="block h-1"></span>`}
-                    ${moreHtml}
+                    <div class="calendar-day-events">
+                        ${visibleItems || `<span class="calendar-day-empty-space"></span>`}
+                        ${moreHtml}
+                    </div>
                 </div>
             `;
             grid.appendChild(cell);
