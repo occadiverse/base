@@ -424,6 +424,7 @@ window.updateDailySchedule = function() {
             ? window.formatMatchResultForDisplay(m.result, venue)
             : (m.result || '');
         const timeValue = m.time || '--:--';
+        const matchTimeOrResult = resultValue || timeValue;
         const opponentLogoHtml = typeof window.buildClubLogoImgHtml === 'function'
             ? window.buildClubLogoImgHtml(opponent, 'calendar-match-opponent-logo')
             : '';
@@ -445,17 +446,13 @@ window.updateDailySchedule = function() {
                             <div class="calendar-match-opponent-line">
                                 ${opponentMarkHtml}
                                 <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(opponent)}</h4>
-                                ${resultValue ? `<span class="calendar-match-inline-result">${escapeCalendarHtml(resultValue)}</span>` : ''}
+                                <span class="calendar-match-time-result">${escapeCalendarHtml(matchTimeOrResult)}</span>
                             </div>
                             <div class="calendar-match-meta-row">
                                 <span class="calendar-match-type-chip">${escapeCalendarHtml(m.matchType || 'Kamp')}</span>
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
                                 <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                             </div>
-                        </div>
-                        <div class="calendar-match-score-box">
-                            <span class="calendar-match-score">${escapeCalendarHtml(timeValue)}</span>
-                            <span class="calendar-match-score-label">Klokkeslett</span>
                         </div>
                     </div>
 

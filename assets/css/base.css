@@ -7895,9 +7895,8 @@
         }
         .calendar-match-main {
             align-items: center;
-            display: grid;
+            display: block;
             gap: 0.8rem;
-            grid-template-columns: minmax(0, 1fr) auto;
         }
         .calendar-match-title-block {
             min-width: 0;
@@ -7932,16 +7931,18 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .calendar-match-inline-result {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 999px;
+        .calendar-match-time-result {
             color: #ffffff;
             flex: 0 0 auto;
-            font-size: 0.78rem;
+            font-size: clamp(1rem, 2.8vw, 1.22rem);
             font-weight: 950;
             line-height: 1;
-            padding: 0.34rem 0.52rem;
+            white-space: nowrap;
+        }
+        .calendar-match-time-result::before {
+            color: rgba(255, 255, 255, 0.34);
+            content: "·";
+            margin-right: 0.62rem;
         }
         .calendar-match-meta-row {
             align-items: center;
@@ -7980,28 +7981,6 @@
             padding: 0.32rem 0.58rem;
             text-transform: uppercase;
         }
-        .calendar-match-score-box {
-            align-items: flex-end;
-            display: flex;
-            flex-direction: column;
-            gap: 0.16rem;
-            justify-content: center;
-            min-width: 4.4rem;
-            text-align: right;
-        }
-        .calendar-match-score {
-            color: #ffffff;
-            font-size: 1.2rem;
-            font-weight: 950;
-            line-height: 1;
-        }
-        .calendar-match-score-label {
-            color: rgba(255, 255, 255, 0.48);
-            font-size: 0.56rem;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
         .calendar-match-footer-row {
             align-items: center;
             display: flex;
@@ -8031,13 +8010,8 @@
                 padding-right: 0;
                 padding-top: 3.2rem;
             }
-            .calendar-match-score-box {
-                align-items: flex-start;
-                grid-column: 1;
-                text-align: left;
-            }
-            .calendar-match-main {
-                grid-template-columns: minmax(0, 1fr);
+            .calendar-match-opponent-line {
+                flex-wrap: wrap;
             }
         }
         .bsk-modal-card {
