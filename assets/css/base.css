@@ -8043,9 +8043,11 @@
         }
         .calendar-daily-title,
         .calendar-match-title {
+            flex: 0 1 auto;
             font-size: 1.08rem;
             font-weight: 900;
             line-height: 1.2;
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -8055,6 +8057,9 @@
             display: flex;
             gap: 0.55rem;
             min-width: 0;
+        }
+        .calendar-daily-title-line {
+            flex-wrap: nowrap;
         }
         .calendar-detail-time-dot {
             background: rgba(203, 213, 225, 0.62);
@@ -8170,7 +8175,7 @@
                 padding-top: 0;
             }
             .calendar-match-opponent-line {
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
             }
         }
         @media (max-width: 767px) {
