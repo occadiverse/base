@@ -8014,7 +8014,9 @@
             font-size: 0.8rem;
         }
         .calendar-match-title {
-            font-size: clamp(1rem, 2.8vw, 1.22rem);
+            font-size: 1.08rem;
+            font-weight: 900;
+            line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -8035,17 +8037,17 @@
         .calendar-match-time-result {
             color: #ffffff;
             flex: 0 0 auto;
-            font-size: clamp(1rem, 2.8vw, 1.22rem);
-            font-weight: 950;
-            line-height: 1;
+            font-size: 1.08rem;
+            font-weight: 900;
+            line-height: 1.2;
             white-space: nowrap;
         }
         .calendar-event-time {
             color: #ffffff;
             flex: 0 0 auto;
-            font-size: clamp(1rem, 2.8vw, 1.22rem);
-            font-weight: 950;
-            line-height: 1;
+            font-size: 1.08rem;
+            font-weight: 900;
+            line-height: 1.2;
             white-space: nowrap;
         }
         .calendar-match-meta-row {
@@ -8053,10 +8055,10 @@
             color: rgba(255, 255, 255, 0.62);
             display: flex;
             flex-wrap: wrap;
-            font-size: 0.72rem;
-            font-weight: 850;
+            font-size: 0.78rem;
+            font-weight: 500;
             gap: 0.45rem 0.75rem;
-            line-height: 1.25;
+            line-height: 1.35;
             margin-top: 0.4rem;
             min-width: 0;
         }
