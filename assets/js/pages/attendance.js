@@ -436,6 +436,7 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
+                    <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
                     <button type="button" onclick="window.openMatchModal('${matchId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button type="button" onclick="window.promptDeleteMatch('${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -457,12 +458,6 @@ window.updateDailySchedule = function() {
                         </div>
                     </div>
 
-                    <div class="calendar-match-footer-row">
-                        <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="calendar-attendance-btn calendar-match-attendance-btn">
-                            <i class="fa-solid fa-user-check"></i>
-                            <span>Oppmøte</span>
-                        </button>
-                    </div>
                 </div>
             </div>`;
     };
@@ -477,6 +472,7 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
+                    <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
                     <button type="button" onclick="window.editActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button type="button" onclick="window.deleteActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -498,12 +494,6 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
                         </div>
-                    </div>
-                    <div class="calendar-event-footer-row">
-                        <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="calendar-attendance-btn">
-                            <i class="fa-solid fa-user-check"></i>
-                            <span>Oppmøte</span>
-                        </button>
                     </div>
                 </div>
             </div>`;

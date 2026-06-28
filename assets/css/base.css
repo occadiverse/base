@@ -7846,13 +7846,18 @@
             pointer-events: auto;
             position: absolute;
             right: 1rem;
-            top: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
             z-index: 30;
         }
         .calendar-action-btn {
             border-radius: 0.8rem;
+            height: 2.65rem;
             min-height: 2.65rem;
             width: 2.65rem;
+        }
+        .calendar-attendance-icon-btn i {
+            color: #f5c542;
         }
         .calendar-action-btn.calendar-action-danger i {
             color: #fecdd3;
@@ -7973,8 +7978,8 @@
             align-items: center;
             display: grid;
             gap: 0.8rem;
-            grid-template-columns: 52px minmax(0, 1fr) auto;
-            padding-right: 5.55rem;
+            grid-template-columns: 52px minmax(0, 1fr);
+            padding-right: 9rem;
         }
         .calendar-match-icon-slot,
         .calendar-event-icon-slot {
@@ -8097,22 +8102,6 @@
             padding: 0;
             text-transform: none;
         }
-        .calendar-match-footer-row {
-            align-items: center;
-            align-self: end;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.65rem;
-            justify-content: flex-end;
-            padding-top: 2.7rem;
-        }
-        .calendar-event-footer-row {
-            align-items: center;
-            align-self: end;
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 2.7rem;
-        }
         .calendar-match-attendance-summary {
             align-items: center;
             color: rgba(255, 255, 255, 0.58);
@@ -8142,9 +8131,9 @@
             .calendar-bottomline .calendar-detail-card-actions {
                 gap: 0.4rem;
                 right: 0.75rem;
-                top: 0.75rem;
             }
             .calendar-bottomline .calendar-action-btn {
+                height: 2.25rem;
                 min-height: 2.25rem;
                 width: 2.25rem;
             }
@@ -8152,29 +8141,14 @@
             .calendar-event-card-content {
                 align-items: center;
                 gap: 0.7rem;
-                grid-template-columns: 52px minmax(0, 1fr) auto;
-                padding-right: 4.9rem;
+                grid-template-columns: 52px minmax(0, 1fr);
+                padding-right: 7.7rem;
             }
             .calendar-match-card-content {
                 padding-top: 0;
             }
             .calendar-match-opponent-line {
                 flex-wrap: wrap;
-            }
-            .calendar-match-footer-row,
-            .calendar-event-footer-row {
-                grid-column: auto;
-                justify-content: flex-end;
-                padding-top: 0;
-            }
-            .calendar-bottomline .calendar-attendance-btn {
-                border-radius: 0.75rem;
-                min-height: 2.35rem;
-                padding: 0;
-                width: 2.35rem;
-            }
-            .calendar-bottomline .calendar-attendance-btn span {
-                display: none;
             }
         }
         @media (max-width: 767px) {
