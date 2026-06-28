@@ -3695,6 +3695,302 @@
         .stats-board-card #statsLagFilterWrap .match-list-lag-select option {
             color: #0b2b4c;
         }
+        .stats-board-card .stats-analysis-strip {
+            align-items: stretch;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(245, 197, 66, 0.14);
+            border-radius: 1rem;
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            padding: 0.5rem;
+        }
+        .stats-board-card .stats-analysis-chip {
+            align-items: center;
+            background: rgba(7, 31, 56, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.78rem;
+            color: rgba(255, 255, 255, 0.76);
+            display: grid;
+            gap: 0.12rem 0.45rem;
+            grid-template-columns: auto minmax(0, 1fr);
+            padding: 0.6rem 0.7rem;
+        }
+        .stats-board-card .stats-analysis-chip i {
+            color: #f5c542;
+            font-size: 0.78rem;
+            grid-row: span 2;
+        }
+        .stats-board-card .stats-analysis-chip-label {
+            color: rgba(255, 255, 255, 0.48);
+            font-size: 0.55rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .stats-board-card .stats-analysis-chip-value {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 950;
+            line-height: 1.05;
+        }
+        .stats-board-card .stats-analysis-chip.is-win i,
+        .stats-board-card .stats-analysis-chip.is-win .is-win,
+        .stats-board-card .stats-analysis-chip.is-win .stats-analysis-chip-value {
+            color: #86efac;
+        }
+        .stats-board-card .stats-analysis-chip.is-draw i,
+        .stats-board-card .stats-analysis-chip.is-draw .stats-analysis-chip-value {
+            color: #f5c542;
+        }
+        .stats-board-card .stats-analysis-chip.is-loss i,
+        .stats-board-card .stats-analysis-chip.is-loss .is-loss,
+        .stats-board-card .stats-analysis-chip.is-loss .stats-analysis-chip-value {
+            color: #fca5a5;
+        }
+        .stats-board-card .stats-analysis-chip.is-goals i,
+        .stats-board-card .stats-analysis-chip.is-goals .stats-analysis-chip-value {
+            color: #bfdbfe;
+        }
+        .stats-board-card .team-report-status-stack,
+        .stats-board-card #stat-view-lag,
+        .stats-board-card #stat-view-spillere,
+        .stats-board-card #stat-view-kampstat {
+            color: rgba(255, 255, 255, 0.74);
+        }
+        .stats-board-card .stats-panel,
+        .stats-board-card .stats-table-panel,
+        .stats-board-card .stats-metric-card,
+        .stats-board-card .team-report-panel,
+        .stats-board-card .stats-summary-panel,
+        .stats-board-card .team-score-diagram-card,
+        .stats-board-card .team-report-trend-card,
+        .stats-board-card .stats-mini-card {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.08), transparent 34%),
+                rgba(255, 255, 255, 0.055);
+            border-color: rgba(245, 197, 66, 0.14);
+            box-shadow: none;
+            color: rgba(255, 255, 255, 0.74);
+        }
+        .stats-board-card .stats-panel-header,
+        .stats-board-card .team-report-header,
+        .stats-board-card #stat-view-lag > #stats-lag-followups .stats-panel-header {
+            background: rgba(255, 255, 255, 0.045);
+            border-bottom-color: rgba(245, 197, 66, 0.12);
+        }
+        .stats-board-card .stats-panel-title,
+        .stats-board-card .team-report-header .stats-panel-title,
+        .stats-board-card #stat-view-lag > #stats-lag-followups .stats-panel-title,
+        .stats-board-card .stats-empty-state h3,
+        .stats-board-card .team-score-diagram-explanation h4 {
+            color: #ffffff;
+        }
+        .stats-board-card .stats-panel-subtitle,
+        .stats-board-card .team-report-header .stats-panel-subtitle,
+        .stats-board-card #stat-view-lag > #stats-lag-followups .stats-panel-subtitle,
+        .stats-board-card .stats-panel-note,
+        .stats-board-card .stats-empty-state p,
+        .stats-board-card .stats-metric-sub {
+            color: rgba(255, 255, 255, 0.58);
+        }
+        .stats-board-card .stats-inline-metric,
+        .stats-board-card .team-report-body .stats-form-row.is-light,
+        .stats-board-card .team-report-status-grid .stats-inline-metric,
+        .stats-board-card .stats-spillere-summary-card {
+            background: rgba(7, 31, 56, 0.34);
+            border-color: rgba(255, 255, 255, 0.09);
+            color: rgba(255, 255, 255, 0.74);
+        }
+        .stats-board-card button.stats-inline-metric:hover,
+        .stats-board-card button.stats-spillere-summary-card-clickable:hover,
+        .stats-board-card .stats-top-list-item:hover {
+            background: rgba(245, 197, 66, 0.1);
+            border-color: rgba(245, 197, 66, 0.3);
+        }
+        .stats-board-card .stats-inline-metric-label,
+        .stats-board-card .stats-metric-label,
+        .stats-board-card .team-report-metric-card .stats-inline-metric-label,
+        .stats-board-card .team-report-card-label,
+        .stats-board-card .stats-mini-label,
+        .stats-board-card .stats-form-row.is-light .stats-form-label {
+            color: rgba(255, 255, 255, 0.48);
+            text-shadow: none;
+        }
+        .stats-board-card .stats-inline-metric-value,
+        .stats-board-card .stats-metric-value,
+        .stats-board-card .team-report-metric-card .stats-inline-metric-value,
+        .stats-board-card .stats-mini-value,
+        .stats-board-card .team-report-trend-card strong,
+        .stats-board-card .stats-spillere-summary-card .stats-leader-name,
+        .stats-board-card .stats-spillere-summary-card .stats-spillere-summary-value,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-main,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-icon,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-glyph,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-rank {
+            color: #ffffff;
+        }
+        .stats-board-card .stats-inline-metric-value.is-win,
+        .stats-board-card .team-report-record .is-win,
+        .stats-board-card .team-report-goals .is-win,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-above {
+            color: #86efac;
+        }
+        .stats-board-card .stats-inline-metric-value.is-draw,
+        .stats-board-card .stats-inline-metric-value.is-accent,
+        .stats-board-card .team-report-record span,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-equal {
+            color: #f5c542;
+        }
+        .stats-board-card .stats-inline-metric-value.is-loss,
+        .stats-board-card .team-report-record .is-loss,
+        .stats-board-card .team-report-goals .is-loss,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-below {
+            color: #fca5a5;
+        }
+        .stats-board-card .stats-inline-metric-value.is-goals {
+            color: #bfdbfe;
+        }
+        .stats-board-card .team-report-goal-sep,
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-rank-sep {
+            color: rgba(255, 255, 255, 0.42);
+        }
+        .stats-board-card .team-report-trend-card.is-good,
+        .stats-board-card .team-report-trend-card.is-alert {
+            background: rgba(7, 31, 56, 0.34);
+        }
+        .stats-board-card .team-report-list,
+        .stats-board-card .stats-followup-list,
+        .stats-board-card .stats-table-body {
+            background: transparent;
+        }
+        .stats-board-card .team-report-match-row,
+        .stats-board-card .team-report-attendance-row,
+        .stats-board-card .stats-followup-item,
+        .stats-board-card .stats-top-list-item,
+        .stats-board-card .stats-table-body td {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .stats-board-card .team-report-match-row strong,
+        .stats-board-card .team-report-attendance-meta strong,
+        .stats-board-card .team-report-match-points {
+            color: #ffffff !important;
+        }
+        .stats-board-card .team-report-match-row span:not(.dashboard-series-form-pill),
+        .stats-board-card .team-report-attendance-meta span,
+        .stats-board-card .team-report-empty-row {
+            color: rgba(255, 255, 255, 0.58);
+        }
+        .stats-board-card .stats-table-head {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom-color: rgba(245, 197, 66, 0.12);
+            color: rgba(255, 255, 255, 0.58);
+        }
+        .stats-board-card .stats-table-head th:hover,
+        .stats-board-card .stats-table-body tr:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .stats-board-card .stats-table-body {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .stats-board-card .team-score-diagram-tab {
+            background: rgba(7, 31, 56, 0.46);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .stats-board-card .team-score-diagram-tab.is-active {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.55);
+            color: #f5c542;
+        }
+        .stats-board-card .team-score-diagram-help {
+            color: #f5c542;
+        }
+        .stats-board-card .team-score-diagram-explanation {
+            background: rgba(7, 31, 56, 0.36);
+            border-color: rgba(245, 197, 66, 0.16);
+            color: rgba(255, 255, 255, 0.68);
+        }
+        .stats-board-card .team-score-diagram-grid {
+            stroke: rgba(255, 255, 255, 0.12);
+        }
+        .stats-board-card .team-score-diagram-axis {
+            stroke: rgba(245, 197, 66, 0.72);
+        }
+        .stats-board-card .team-score-diagram-axis-label,
+        .stats-board-card .team-score-diagram-tick {
+            fill: rgba(255, 255, 255, 0.68);
+        }
+        .stats-board-card .team-score-diagram-initials {
+            fill: rgba(255, 255, 255, 0.82);
+        }
+        .stats-board-card .team-score-diagram-point circle {
+            stroke: rgba(245, 197, 66, 0.76);
+        }
+        .stats-board-card .stats-form-jersey {
+            background: rgba(7, 31, 56, 0.52);
+            border-color: rgba(245, 197, 66, 0.45);
+            color: #ffffff;
+        }
+        .stats-board-card .stats-form-jersey-label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .stats-board-card .stats-form-jersey.is-high {
+            border-color: rgba(134, 239, 172, 0.78);
+            color: #86efac;
+        }
+        .stats-board-card .stats-form-jersey.is-mid {
+            border-color: rgba(245, 197, 66, 0.78);
+            color: #f5c542;
+        }
+        .stats-board-card .stats-form-jersey.is-low {
+            border-color: rgba(252, 165, 165, 0.78);
+            color: #fca5a5;
+        }
+        .stats-board-card .stats-player-search-row .roster-search-wrap,
+        .stats-board-card .stats-player-search-row .roster-search-input {
+            background: rgba(7, 31, 56, 0.34);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            color: #ffffff;
+        }
+        .stats-board-card .stats-player-search-row .roster-search-wrap i {
+            color: #f5c542;
+        }
+        .stats-board-card .stats-player-search-row .roster-search-input::placeholder {
+            color: rgba(255, 255, 255, 0.42);
+        }
+        .stats-board-card .border-slate-100,
+        .stats-board-card .border-slate-200 {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .stats-board-card .match-coach-notes-fields .portal-label,
+        .stats-board-card .portal-label {
+            color: rgba(245, 197, 66, 0.82);
+        }
+        .stats-board-card .match-coach-notes-fields .portal-field,
+        .stats-board-card textarea.portal-field,
+        .stats-board-card input.portal-field,
+        .stats-board-card select.portal-field {
+            background: rgba(7, 31, 56, 0.46);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+        }
+        .stats-board-card .match-coach-notes-fields .portal-field::placeholder,
+        .stats-board-card textarea.portal-field::placeholder,
+        .stats-board-card input.portal-field::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .stats-board-card .match-coach-notes-fields .portal-field:focus,
+        .stats-board-card textarea.portal-field:focus,
+        .stats-board-card input.portal-field:focus,
+        .stats-board-card select.portal-field:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.14);
+        }
         @media (max-width: 767px) {
             .stats-page {
                 max-width: none;
