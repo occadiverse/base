@@ -7685,12 +7685,15 @@
             content: none;
         }
         .calendar-bottomline .calendar-empty-icon {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.28);
+            background: transparent;
+            border: 0;
             color: #f5c542;
-            height: 2.4rem;
+            height: auto;
             margin: 0;
-            width: 2.4rem;
+            width: auto;
+        }
+        .calendar-bottomline .calendar-empty-icon i {
+            font-size: 1.05rem;
         }
         .calendar-bottomline .calendar-empty-title {
             color: #ffffff;
