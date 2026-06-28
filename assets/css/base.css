@@ -7985,7 +7985,7 @@
             display: grid;
             gap: 0.8rem;
             grid-template-columns: 52px minmax(0, 1fr);
-            padding-right: 9rem;
+            padding-right: 6.25rem;
         }
         .calendar-daily-icon-slot,
         .calendar-match-icon-slot,
@@ -8164,7 +8164,7 @@
                 align-items: center;
                 gap: 0.7rem;
                 grid-template-columns: 52px minmax(0, 1fr);
-                padding-right: 7.7rem;
+                padding-right: 5.3rem;
             }
             .calendar-match-card-content {
                 padding-top: 0;
