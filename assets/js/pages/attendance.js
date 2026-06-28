@@ -412,7 +412,7 @@ window.updateDailySchedule = function() {
         return;
     }
 
-    dayMatches.forEach(m => {
+    const renderDailyMatch = (m) => {
         const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
         const matchId = escapeCalendarJsString(m.id);
         const opponent = m.opponent || 'Motstander ikke satt';
@@ -432,7 +432,7 @@ window.updateDailySchedule = function() {
                 <i class="fa-solid fa-shield"></i>
             </span>
         `;
-        listContainer.innerHTML += `
+        return `
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
@@ -463,27 +463,27 @@ window.updateDailySchedule = function() {
                     </div>
                 </div>
             </div>`;
-    });
+    };
 
-    dayEvents.forEach(e => {
+    const renderDailyEvent = (e) => {
         const theme = e.type === 'Trening'
             ? { icon: 'fa-person-running', label: 'Trening', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
             : { icon: 'fa-calendar-check', label: 'Annet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
         const eventId = escapeCalendarJsString(e.id);
-        listContainer.innerHTML += `
-            <div class="calendar-detail-card">
+        return `
+            <div class="calendar-detail-card calendar-event-detail-card">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
                     <button type="button" onclick="window.editActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button type="button" onclick="window.deleteActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
-                <div class="relative z-10">
-                    <div class="flex items-start gap-3 min-w-0">
+                <div class="calendar-event-card-content relative z-10">
+                    <div class="calendar-event-main">
                         <div class="calendar-detail-icon">
                             <i class="fa-solid ${theme.icon}"></i>
                         </div>
-                        <div class="min-w-0 pr-24">
+                        <div class="calendar-event-title-block">
                             <h4 class="calendar-detail-title truncate">${theme.label}</h4>
                             <span class="calendar-detail-date">${selectedDateLabel}</span>
                             ${e.title && e.title !== theme.label ? `<p class="calendar-detail-subtitle truncate">${e.title}</p>` : ''}
@@ -492,15 +492,31 @@ window.updateDailySchedule = function() {
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
-                            <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="calendar-attendance-btn">
-                                <i class="fa-solid fa-user-check"></i>
-                                <span>Oppmøte</span>
-                            </button>
                         </div>
+                    </div>
+                    <div class="calendar-event-footer-row">
+                        <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="calendar-attendance-btn">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span>Oppmøte</span>
+                        </button>
                     </div>
                 </div>
             </div>`;
-    });
+    };
+
+    const getSortTime = (item) => {
+        const time = item.data.time || '99:99';
+        const [hours = 99, minutes = 99] = String(time).split(':').map(Number);
+        return (Number.isFinite(hours) ? hours : 99) * 60 + (Number.isFinite(minutes) ? minutes : 99);
+    };
+
+    listContainer.innerHTML = [
+        ...dayMatches.map(match => ({ type: 'match', data: match })),
+        ...dayEvents.map(event => ({ type: 'event', data: event }))
+    ]
+        .sort((a, b) => getSortTime(a) - getSortTime(b))
+        .map(item => item.type === 'match' ? renderDailyMatch(item.data) : renderDailyEvent(item.data))
+        .join('');
 };
 
 window.quickAddEvent = function(type) {
