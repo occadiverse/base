@@ -470,12 +470,12 @@ window.updateDailySchedule = function() {
 
     const renderDailyEvent = (e) => {
         const theme = e.type === 'Trening'
-            ? { icon: 'fa-person-running', label: 'Trening', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
-            : { icon: 'fa-calendar-check', label: 'Annet', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
+            ? { icon: 'fa-person-running', label: 'Trening', tone: 'is-training', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
+            : { icon: 'fa-calendar-check', label: 'Annet', tone: 'is-other', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
         const eventId = escapeCalendarJsString(e.id);
         return `
-            <div class="calendar-detail-card calendar-event-detail-card">
+            <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
                     <button type="button" onclick="window.editActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
