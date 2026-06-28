@@ -440,11 +440,14 @@ window.updateDailySchedule = function() {
                     <button type="button" onclick="window.promptDeleteMatch('${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="calendar-match-card-content relative z-10">
+                    <div class="calendar-match-icon-slot">
+                        ${opponentMarkHtml}
+                    </div>
                     <div class="calendar-match-main">
                         <div class="calendar-match-title-block">
                             <div class="calendar-match-opponent-line">
-                                ${opponentMarkHtml}
                                 <h4 class="calendar-detail-title calendar-match-title">${escapeCalendarHtml(opponent)}</h4>
+                                <span class="calendar-detail-time-dot" aria-hidden="true"></span>
                                 <span class="calendar-match-time-result">${escapeCalendarHtml(matchTimeOrResult)}</span>
                             </div>
                             <div class="calendar-match-meta-row">
@@ -479,16 +482,21 @@ window.updateDailySchedule = function() {
                     <button type="button" onclick="window.deleteActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-action-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="calendar-event-card-content relative z-10">
-                    <div class="calendar-event-main">
+                    <div class="calendar-event-icon-slot">
                         <div class="calendar-detail-icon">
                             <i class="fa-solid ${theme.icon}"></i>
                         </div>
+                    </div>
+                    <div class="calendar-event-main">
                         <div class="calendar-event-title-block">
-                            <h4 class="calendar-detail-title truncate">${theme.label}</h4>
+                            <div class="calendar-event-title-line">
+                                <h4 class="calendar-detail-title truncate">${theme.label}</h4>
+                                <span class="calendar-detail-time-dot" aria-hidden="true"></span>
+                                <span class="calendar-event-time">${e.time || 'TBA'}</span>
+                            </div>
                             <span class="calendar-detail-date">${selectedDateLabel}</span>
                             ${e.title && e.title !== theme.label ? `<p class="calendar-detail-subtitle truncate">${e.title}</p>` : ''}
                             <div class="calendar-detail-meta-row text-slate-500 font-medium flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                <span><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${e.time || 'TBA'}</span>
                                 <span><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${e.location || 'Ikke oppgitt'}</span>
                                 <span><i class="fa-solid fa-user-check mr-1.5 text-slate-400"></i>${presentCount} påmeldt</span>
                             </div>
