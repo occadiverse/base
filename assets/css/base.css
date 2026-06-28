@@ -8325,6 +8325,9 @@
                 font-size: 0.58rem;
                 line-height: 1.05;
             }
+            .calendar-day-event-label {
+                display: none;
+            }
             .calendar-day-event-dot {
                 height: 0.4rem;
                 width: 0.4rem;
