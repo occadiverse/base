@@ -451,7 +451,6 @@ window.updateDailySchedule = function() {
                                 <span class="calendar-match-time-result">${escapeCalendarHtml(matchTimeOrResult)}</span>
                             </div>
                             <div class="calendar-match-meta-row">
-                                <span class="calendar-match-type-chip">${escapeCalendarHtml(m.matchType || 'Kamp')}</span>
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
                                 <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                             </div>
