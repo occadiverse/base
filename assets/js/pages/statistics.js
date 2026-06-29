@@ -425,7 +425,18 @@ window.checkIndividualChemistry = function() {
 
         window.renderStatsFollowUpsHtml = function(followUps) {
             if (!followUps.length) {
-                return '';
+                return `
+                    <div class="stats-panel">
+                        <div class="stats-panel-header">
+                            <h3 class="stats-panel-title">Oppfølging</h3>
+                            <p class="stats-panel-subtitle">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
+                        </div>
+                        <div class="stats-empty-state">
+                            <h3>Ingen tydelige oppfølgingspunkter</h3>
+                            <p>Det er ingen spillere som skiller seg ut på skade, disiplin eller oppmøte akkurat nå.</p>
+                        </div>
+                    </div>
+                `;
             }
 
             return `
@@ -540,6 +551,9 @@ window.checkIndividualChemistry = function() {
             const followUpsContainer = document.getElementById('stats-lag-followups');
             if (followUpsContainer) {
                 followUpsContainer.innerHTML = window.renderStatsFollowUpsHtml(analysis.followUps);
+            }
+            if (typeof window.updateStatsLagSectionVisibility === 'function') {
+                window.updateStatsLagSectionVisibility();
             }
         };
 
@@ -1595,15 +1609,81 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.statsLagSections = [
+            { id: 'kampdata', label: 'Kampdata', icon: 'fa-futbol' },
+            { id: 'treningsdata', label: 'Treningsdata', icon: 'fa-user-check' },
+            { id: 'utvikling', label: 'Utvikling', icon: 'fa-chart-line' },
+            { id: 'oppfolging', label: 'Oppfølging', icon: 'fa-triangle-exclamation' }
+        ];
+        window.statsLagSection = window.statsLagSection || 'kampdata';
+
+        window.getStatsLagSection = function() {
+            const validIds = new Set(window.statsLagSections.map(section => section.id));
+            return validIds.has(window.statsLagSection) ? window.statsLagSection : 'kampdata';
+        };
+
+        window.renderStatsLagSectionNav = function() {
+            const activeSection = window.getStatsLagSection();
+            return `
+                <div class="stats-lag-section-nav-inner" role="tablist" aria-label="Lagstatistikk">
+                    ${window.statsLagSections.map(section => `
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="${activeSection === section.id ? 'true' : 'false'}"
+                            class="stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
+                            onclick="window.setStatsLagSection('${section.id}')"
+                        >
+                            <i class="fa-solid ${section.icon}" aria-hidden="true"></i>
+                            <span>${section.label}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        window.updateStatsLagSectionVisibility = function() {
+            const activeSection = window.getStatsLagSection();
+            const nav = document.getElementById('stats-lag-section-nav');
+            const summary = document.getElementById('stats-lag-summary');
+            const development = document.getElementById('stats-lag-development');
+            const followUps = document.getElementById('stats-lag-followups');
+            const view = document.getElementById('stat-view-lag');
+
+            if (nav) nav.innerHTML = window.renderStatsLagSectionNav();
+            if (view) {
+                window.statsLagSections.forEach(section => view.classList.remove(`is-section-${section.id}`));
+                view.classList.add(`is-section-${activeSection}`);
+            }
+
+            if (summary) {
+                summary.classList.toggle('hidden', activeSection === 'utvikling' || activeSection === 'oppfolging');
+                const matchGroup = summary.querySelector('.stats-analysis-group-match');
+                const attendanceGroup = summary.querySelector('.stats-analysis-group-attendance');
+                if (matchGroup) matchGroup.classList.toggle('hidden', activeSection !== 'kampdata');
+                if (attendanceGroup) attendanceGroup.classList.toggle('hidden', activeSection !== 'treningsdata');
+            }
+
+            if (development) development.classList.toggle('hidden', activeSection !== 'utvikling');
+            if (followUps) followUps.classList.toggle('hidden', activeSection !== 'oppfolging');
+        };
+
+        window.setStatsLagSection = function(section) {
+            window.statsLagSection = window.statsLagSections.some(item => item.id === section) ? section : 'kampdata';
+            window.updateStatsLagSectionVisibility();
+        };
+
         window.renderStatsLagSummary = function() {
             const container = document.getElementById('stats-lag-summary');
             const developmentContainer = document.getElementById('stats-lag-development');
+            const navContainer = document.getElementById('stats-lag-section-nav');
             const data = window._statsLagData;
             const report = window._statsTeamReportData;
             if (!container) return;
             if (!data || !report) {
                 container.innerHTML = '';
                 if (developmentContainer) developmentContainer.innerHTML = '';
+                if (navContainer) navContainer.innerHTML = '';
                 return;
             }
 
@@ -1611,6 +1691,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (developmentContainer) {
                 developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
             }
+            window.updateStatsLagSectionVisibility();
         };
 
         window.renderStatsSpillereSummary = function() {
@@ -1704,6 +1785,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     if (development) development.innerHTML = '';
                     const followUps = document.getElementById('stats-lag-followups');
                     if (followUps) followUps.innerHTML = '';
+                    const sectionNav = document.getElementById('stats-lag-section-nav');
+                    if (sectionNav) sectionNav.innerHTML = '';
                     return;
                 }
 

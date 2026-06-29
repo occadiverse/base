@@ -3764,6 +3764,55 @@
         .stats-board-card .stats-analysis-strip-single {
             grid-template-columns: minmax(0, 1fr);
         }
+        .stats-board-card .stats-lag-section-nav {
+            min-width: 0;
+        }
+        .stats-board-card .stats-lag-section-nav-inner {
+            background: rgba(7, 31, 56, 0.42);
+            border: 1px solid rgba(245, 197, 66, 0.14);
+            border-radius: 1rem;
+            display: grid;
+            gap: 0.35rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            padding: 0.35rem;
+        }
+        .stats-board-card .stats-lag-section-btn {
+            align-items: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 0.78rem;
+            color: rgba(255, 255, 255, 0.62);
+            display: inline-flex;
+            font-size: 0.66rem;
+            font-weight: 950;
+            gap: 0.42rem;
+            justify-content: center;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            min-height: 2.35rem;
+            padding: 0.58rem 0.7rem;
+            text-transform: uppercase;
+            transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+        }
+        .stats-board-card .stats-lag-section-btn i {
+            color: rgba(245, 197, 66, 0.78);
+            font-size: 0.78rem;
+        }
+        .stats-board-card .stats-lag-section-btn:hover {
+            background: rgba(245, 197, 66, 0.09);
+            border-color: rgba(245, 197, 66, 0.22);
+            color: #ffffff;
+        }
+        .stats-board-card .stats-lag-section-btn.is-active {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.18), transparent 52%),
+                rgba(255, 255, 255, 0.07);
+            border-color: rgba(245, 197, 66, 0.42);
+            color: #f5c542;
+        }
+        .stats-board-card .stats-lag-section-btn.is-active i {
+            color: #f5c542;
+        }
         .stats-board-card #stat-view-lag {
             gap: 1rem;
             margin: 0;
@@ -3778,6 +3827,10 @@
         .stats-board-card #stats-lag-development,
         .stats-board-card #stats-lag-followups {
             min-width: 0;
+        }
+        .stats-board-card #stat-view-lag.is-section-kampdata .stats-analysis-overview,
+        .stats-board-card #stat-view-lag.is-section-treningsdata .stats-analysis-overview {
+            grid-template-columns: minmax(0, 1fr);
         }
         .stats-board-card .stats-analysis-chip {
             align-items: center;
@@ -3955,12 +4008,14 @@
         }
         .stats-board-card .team-report-match-row strong,
         .stats-board-card .team-report-attendance-meta strong,
-        .stats-board-card .team-report-match-points {
+        .stats-board-card .team-report-match-points,
+        .stats-board-card .stats-followup-item .font-black {
             color: #ffffff !important;
         }
         .stats-board-card .team-report-match-row span:not(.dashboard-series-form-pill),
         .stats-board-card .team-report-attendance-meta span,
-        .stats-board-card .team-report-empty-row {
+        .stats-board-card .team-report-empty-row,
+        .stats-board-card .stats-followup-item .text-slate-500 {
             color: rgba(255, 255, 255, 0.58);
         }
         .stats-board-card .stats-table-head {
@@ -4128,6 +4183,9 @@
             }
         }
         @media (min-width: 768px) {
+            .stats-board-card .stats-lag-section-nav-inner {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
             .stats-board-card .stats-analysis-strip {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
@@ -4137,20 +4195,19 @@
         }
         @media (min-width: 1024px) {
             .stats-board-card #stat-view-lag {
-                display: grid !important;
-                grid-template-columns: minmax(0, 1.65fr) minmax(18rem, 0.8fr);
-                grid-template-areas:
-                    "summary summary"
-                    "development followups";
+                display: flex !important;
+                flex-direction: column;
+                grid-template-areas: none;
+                grid-template-columns: none;
             }
             .stats-board-card #stats-lag-summary {
-                grid-area: summary;
+                grid-area: auto;
             }
             .stats-board-card #stats-lag-development {
-                grid-area: development;
+                grid-area: auto;
             }
             .stats-board-card #stats-lag-followups {
-                grid-area: followups;
+                grid-area: auto;
             }
             .stats-board-card #stats-lag-followups .stats-panel,
             .stats-board-card #stats-lag-development .team-report-panel {
@@ -4177,7 +4234,7 @@
                 padding: 1.15rem;
             }
             .stats-board-card #stat-view-lag {
-                grid-template-columns: minmax(0, 1.75fr) minmax(22rem, 0.85fr);
+                grid-template-columns: none;
             }
         }
         .stats-hero-panel {
