@@ -1633,6 +1633,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.updateStatsBoardActiveSection = function() {
+            const activeSection = window.getStatsLagSection();
+            const sectionMeta = window.statsLagSections.find(section => section.id === activeSection) || window.statsLagSections[0];
+            const icon = document.getElementById('stats-board-active-icon');
+            const label = document.getElementById('stats-board-active-label');
+
+            if (icon) {
+                icon.className = `fa-solid ${sectionMeta.icon}`;
+            }
+            if (label) {
+                label.textContent = sectionMeta.label;
+            }
+        };
+
         window.updateStatsLagSectionVisibility = function() {
             const activeSection = window.getStatsLagSection();
             const nav = document.getElementById('stats-lag-section-nav');
@@ -1643,6 +1657,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const view = document.getElementById('stat-view-lag');
 
             if (nav) nav.innerHTML = window.renderStatsLagSectionNav();
+            if (typeof window.updateStatsBoardActiveSection === 'function') window.updateStatsBoardActiveSection();
             if (view) {
                 window.statsLagSections.forEach(section => view.classList.remove(`is-section-${section.id}`));
                 view.classList.add(`is-section-${activeSection}`);
