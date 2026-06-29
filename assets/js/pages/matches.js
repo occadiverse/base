@@ -367,7 +367,8 @@ function buildMatchDetailCardHtml(match, options = {}) {
         extraClass = '',
         clickable = false,
         showWatermark = false,
-        showAttendance = false
+        showAttendance = false,
+        bottomContentHtml = ''
     } = options;
     const data = getMatchCardPresentation(match);
     const sides = getMatchCardSides(match);
@@ -436,6 +437,8 @@ function buildMatchDetailCardHtml(match, options = {}) {
 
                 ${renderMatchTeamHtml(sides.right)}
             </div>
+
+            ${bottomContentHtml}
 
             <div class="match-detail-footer relative z-10">
                 <div class="match-detail-footer-item" title="${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}">
@@ -1433,6 +1436,26 @@ window.showMatchDetails = function(id) {
     const isGamePlanOpen = openPanel === 'kampplan';
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
+    const matchSquadHtml = `
+        <div class="match-detail-squad-section relative z-10">
+            <div class="match-detail-section-header">
+                <div class="match-detail-section-heading">
+                    <span class="match-detail-section-title">Kamptropp</span>
+                    <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
+                </div>
+                <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-detail-chip match-topline-action-btn match-detail-section-action" title="Åpne oppmøte">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Oppmøte</span>
+                </button>
+            </div>
+            <div class="match-bench-list match-detail-squad-list">
+                ${benchPlayersHtml}
+            </div>
+            <div class="match-bench-position-line match-detail-squad-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
+                ${benchPositionHtml}
+            </div>
+        </div>
+    `;
     let gamePlanHtml = '';
     try {
         gamePlanHtml = buildMatchGamePlanHtml(match);
@@ -1447,35 +1470,7 @@ window.showMatchDetails = function(id) {
     }
 
     container.innerHTML = `
-        ${buildMatchDetailCardHtml(match)}
-
-        <section class="match-bench-panel match-collapsible-panel is-collapsed">
-            <div class="match-bench-action-row match-bench-topline">
-                <div class="match-bench-heading">
-                    <h3>Kamptropp</h3>
-                    <span class="match-bench-heading-count" style="background:#f5c542;color:#0b2b4c;height:2.1rem;width:2.1rem;min-width:2.1rem;padding:0;" aria-label="${selectedPlayers.length} spillere i kamptropp">${selectedPlayers.length}</span>
-                </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis kamptropp" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
-                <div class="match-bench-actions">
-                    <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-detail-chip match-topline-action-btn" title="Åpne oppmøte">
-                        <i class="fa-solid fa-user-check"></i>
-                        <span>Oppmøte</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="match-bench-collapsible">
-                <div class="match-bench-list">
-                    ${benchPlayersHtml}
-                </div>
-
-                <div class="match-bench-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
-                    ${benchPositionHtml}
-                </div>
-            </div>
-        </section>
+        ${buildMatchDetailCardHtml(match, { bottomContentHtml: matchSquadHtml })}
 
         <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}">
             <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
