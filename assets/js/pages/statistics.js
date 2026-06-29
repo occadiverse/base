@@ -2573,44 +2573,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
     container.innerHTML = `
         <div class="space-y-5">
-            <div class="stats-metric-grid is-four">
-                <div class="stats-metric-card">
-                    <div class="stats-metric-card-top">
-                        <span class="stats-metric-label">Banens beste</span>
-                        <div class="stats-metric-icon">👑</div>
-                    </div>
-                    <div class="stats-metric-value">${bbPlayer ? bbPlayer.name : '-'}</div>
-                    <div class="stats-metric-sub">${bbPlayer ? '+1 BB-bonus' : 'Ingen BB registrert'}</div>
-                </div>
-
-                <div class="stats-metric-card">
-                    <div class="stats-metric-card-top">
-                        <span class="stats-metric-label">Toppscorer</span>
-                        <div class="stats-metric-icon">⚽</div>
-                    </div>
-                    <div class="stats-metric-value">${topScorer && topScorer.goals > 0 ? topScorer.name : '-'}</div>
-                    <div class="stats-metric-sub">${topScorer && topScorer.goals > 0 ? topScorer.goals + ' mål' : 'Ingen mål registrert'}</div>
-                </div>
-
-                <div class="stats-metric-card">
-                    <div class="stats-metric-card-top">
-                        <span class="stats-metric-label">Mest poeng</span>
-                        <div class="stats-metric-icon"><i class="fa-solid fa-chart-line text-bsk-blue"></i></div>
-                    </div>
-                    <div class="stats-metric-value">${pointsLeader ? pointsLeader.name : '-'}</div>
-                    <div class="stats-metric-sub">${pointsLeader ? pointsLeader.points + ' matchpoeng' : 'Ingen poengdata'}</div>
-                </div>
-
-                <div class="stats-metric-card">
-                    <div class="stats-metric-card-top">
-                        <span class="stats-metric-label">Kampbildet</span>
-                        <div class="stats-metric-icon"><i class="fa-solid fa-clipboard-list text-bsk-yellow"></i></div>
-                    </div>
-                    <div class="stats-metric-value">${avgRating ? avgRating.toFixed(1) : '-'}</div>
-                    <div class="stats-metric-sub">Snittbørs · ${totalGoals} mål · ${totalAssists} assist · ${totalYellow}🟨 ${totalRed}🟥</div>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
                 <div class="xl:col-span-2 stats-table-panel">
                     <div class="stats-panel-header">
