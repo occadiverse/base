@@ -1438,15 +1438,10 @@ window.showMatchDetails = function(id) {
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadHtml = `
         <div class="match-detail-squad-section relative z-10">
-            <div class="match-detail-section-header">
-                <div class="match-detail-section-heading">
-                    <span class="match-detail-section-title">Kamptropp</span>
-                    <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
-                </div>
-                <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-detail-chip match-topline-action-btn match-detail-section-action" title="Åpne oppmøte">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>Oppmøte</span>
-                </button>
+            <div class="match-detail-section-divider" aria-label="Kamptropp">
+                <span class="match-detail-section-title">Kamptropp</span>
+                <span class="match-detail-section-line" aria-hidden="true"></span>
+                <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
             </div>
             <div class="match-bench-list match-detail-squad-list">
                 ${benchPlayersHtml}
