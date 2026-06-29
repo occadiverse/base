@@ -27,11 +27,17 @@
             background:
                 radial-gradient(circle at 8% 0%, rgba(245, 197, 66, 0.16), transparent 36%),
                 linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 252, 0.94) 62%, rgba(238, 244, 248, 0.96) 100%);
-            border-bottom: 1px solid rgba(18, 63, 115, 0.12);
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
             backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(18, 63, 115, 0.12);
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
             height: calc(3.5rem + env(safe-area-inset-top, 0px));
+            left: 0;
             padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+            position: fixed;
+            right: 0;
+            top: 0;
+            z-index: 50;
         }
         .portal-main-shell {
             padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
@@ -365,12 +371,17 @@
             --portal-mobile-nav-progress: 0;
             --portal-mobile-nav-item-count: 5;
             background: rgba(255, 255, 255, 0.95);
-            border-color: rgba(18, 63, 115, 0.12);
-            color: #64748b;
             backdrop-filter: blur(16px);
+            border-color: rgba(18, 63, 115, 0.12);
+            bottom: 0;
+            box-sizing: border-box;
+            color: #64748b;
             height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+            left: 0;
             padding: 0.45rem 0.4rem calc(0.25rem + env(safe-area-inset-bottom, 0px));
-            position: relative;
+            position: fixed;
+            right: 0;
+            z-index: 40;
         }
         .portal-mobile-nav-shell .mobile-nav-btn {
             color: #64748b;
