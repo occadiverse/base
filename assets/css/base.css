@@ -3716,15 +3716,53 @@
         .stats-board-card #statsLagFilterWrap .match-list-lag-select option {
             color: #0b2b4c;
         }
+        .stats-board-card .stats-analysis-overview {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .stats-board-card .stats-analysis-group,
+        .stats-board-card .stats-development-group {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(245, 197, 66, 0.12);
+            border-radius: 1rem;
+            min-width: 0;
+            padding: 0.65rem;
+        }
+        .stats-board-card .stats-analysis-group-head,
+        .stats-board-card .stats-development-group-head {
+            margin-bottom: 0.55rem;
+        }
+        .stats-board-card .stats-analysis-group-head span,
+        .stats-board-card .stats-development-group-head span {
+            color: #f5c542;
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 950;
+            letter-spacing: 0.12em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .stats-board-card .stats-analysis-group-head p,
+        .stats-board-card .stats-development-group-head p {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.7rem;
+            font-weight: 750;
+            line-height: 1.35;
+            margin-top: 0.32rem;
+        }
         .stats-board-card .stats-analysis-strip {
             align-items: stretch;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(245, 197, 66, 0.14);
-            border-radius: 1rem;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
             display: grid;
             gap: 0.45rem;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            padding: 0.5rem;
+            grid-template-columns: minmax(0, 1fr);
+            padding: 0;
+        }
+        .stats-board-card .stats-analysis-strip-single {
+            grid-template-columns: minmax(0, 1fr);
         }
         .stats-board-card #stat-view-lag {
             gap: 1rem;
@@ -3770,6 +3808,13 @@
             font-size: 1rem;
             font-weight: 950;
             line-height: 1.05;
+        }
+        .stats-board-card .stats-analysis-chip-hint {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.62rem;
+            font-weight: 750;
+            grid-column: 2;
+            line-height: 1.15;
         }
         .stats-board-card .stats-analysis-chip.is-win i,
         .stats-board-card .stats-analysis-chip.is-win .is-win,
@@ -4084,7 +4129,10 @@
         }
         @media (min-width: 768px) {
             .stats-board-card .stats-analysis-strip {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .stats-board-card .stats-analysis-overview {
+                grid-template-columns: minmax(0, 3fr) minmax(13rem, 1fr);
             }
         }
         @media (min-width: 1024px) {
@@ -4111,6 +4159,17 @@
             .stats-board-card #stats-lag-followups .stats-followup-list {
                 max-height: min(44rem, calc(100vh - 18rem));
                 overflow-y: auto;
+            }
+            .stats-board-card .stats-development-groups {
+                display: grid;
+                gap: 0.75rem;
+                grid-template-columns: minmax(0, 1.45fr) minmax(14rem, 0.7fr);
+            }
+            .stats-board-card .stats-development-match-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .stats-board-card .stats-development-attendance-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
         }
         @media (min-width: 1440px) {

@@ -1142,21 +1142,39 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const recordClass = data.wins >= data.losses ? 'is-win' : 'is-loss';
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
             const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
-            const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle') => `
+            const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
                     <i class="fa-solid ${icon}" aria-hidden="true"></i>
                     <span class="stats-analysis-chip-label">${label}</span>
                     <strong class="stats-analysis-chip-value">${valueHtml}</strong>
+                    ${hint ? `<span class="stats-analysis-chip-hint">${hint}</span>` : ''}
                 </div>
             `;
 
             return `
                 <div class="team-report-status-stack">
-                    <div class="stats-analysis-strip" aria-label="Nøkkeltall for laget">
-                        ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days')}
-                        ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy')}
-                        ${summaryItem('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol')}
-                        ${summaryItem('Oppmøte', `${data.avgAttendance}%`, attendanceTone, 'fa-user-check')}
+                    <div class="stats-analysis-overview" aria-label="Nøkkeltall for laget">
+                        <section class="stats-analysis-group stats-analysis-group-match">
+                            <div class="stats-analysis-group-head">
+                                <span>Kampdata</span>
+                                <p>Resultater og mål fra spilte kamper med registrert resultat.</p>
+                            </div>
+                            <div class="stats-analysis-strip">
+                                ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days', 'spilte kamper')}
+                                ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'seier - uavgjort - tap')}
+                                ${summaryItem('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'scoret - imot')}
+                            </div>
+                        </section>
+
+                        <section class="stats-analysis-group stats-analysis-group-attendance">
+                            <div class="stats-analysis-group-head">
+                                <span>Oppmøte</span>
+                                <p>Oppmøteregistrering på historiske aktiviteter for valgt lag.</p>
+                            </div>
+                            <div class="stats-analysis-strip stats-analysis-strip-single">
+                                ${summaryItem('Oppmøte', `${data.avgAttendance}%`, attendanceTone, 'fa-user-check', 'av mulige registreringer')}
+                            </div>
+                        </section>
                     </div>
                 </div>
             `;
@@ -1542,15 +1560,32 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-panel-header team-report-header">
                         <div>
                             <h3 class="stats-panel-title">Utvikling</h3>
-                            <p class="stats-panel-subtitle">Retning over tid: siste kamper, måltrend, oppmøte og scoreutvikling.</p>
+                            <p class="stats-panel-subtitle">Retning over tid, delt mellom kamptrend og oppmøte.</p>
                         </div>
                     </div>
                     <div class="team-report-body">
-                        <div class="team-report-trend-grid">
-                            ${trendCard('Mål scoret siste 5', report.trends.lastFiveFor, report.trends.allFor, false, '', 'fa-futbol')}
-                            ${trendCard('Mål imot siste 5', report.trends.lastFiveAgainst, report.trends.allAgainst, true, '', 'fa-futbol')}
-                            ${trendCard('Kampbidrag siste 5', report.trends.lastFiveKampbidrag, report.trends.allKampbidrag, false, '', 'fa-chart-line')}
-                            ${trendCard('Oppmøte siste 5', report.trends.lastFiveAttendance, report.trends.allAttendance, false, '%', 'fa-user-check')}
+                        <div class="stats-development-groups">
+                            <section class="stats-development-group stats-development-group-match">
+                                <div class="stats-development-group-head">
+                                    <span>Kamputvikling</span>
+                                    <p>Sammenligner siste 5 kamper med snittet for alle spilte kamper.</p>
+                                </div>
+                                <div class="team-report-trend-grid stats-development-match-grid">
+                                    ${trendCard('Mål scoret siste 5', report.trends.lastFiveFor, report.trends.allFor, false, '', 'fa-futbol')}
+                                    ${trendCard('Mål imot siste 5', report.trends.lastFiveAgainst, report.trends.allAgainst, true, '', 'fa-futbol')}
+                                    ${trendCard('Kampbidrag siste 5', report.trends.lastFiveKampbidrag, report.trends.allKampbidrag, false, '', 'fa-chart-line')}
+                                </div>
+                            </section>
+
+                            <section class="stats-development-group stats-development-group-attendance">
+                                <div class="stats-development-group-head">
+                                    <span>Oppmøteutvikling</span>
+                                    <p>Viser om oppmøtet i de siste 5 aktivitetene går opp eller ned.</p>
+                                </div>
+                                <div class="team-report-trend-grid stats-development-attendance-grid">
+                                    ${trendCard('Oppmøte siste 5', report.trends.lastFiveAttendance, report.trends.allAttendance, false, '%', 'fa-user-check')}
+                                </div>
+                            </section>
                         </div>
                     </div>
                     <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
