@@ -1250,6 +1250,11 @@
             min-width: 1.65rem;
             padding: 0 0.45rem;
         }
+        .match-detail-section-action {
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            padding: 0.34rem 0.58rem;
+        }
         .match-detail-squad-list {
             padding: 0.85rem 1.25rem 1rem;
         }
@@ -9279,6 +9284,19 @@
             }
             .match-detail-squad-section .match-detail-squad-list {
                 padding: 0.85rem 1rem 1rem;
+            }
+            .match-detail-section-action {
+                font-size: 0;
+                height: 2.1rem;
+                min-width: 2.1rem;
+                padding: 0;
+                width: 2.1rem;
+            }
+            .match-detail-section-action span {
+                display: none;
+            }
+            .match-detail-section-action i {
+                font-size: 0.82rem;
             }
             .match-bench-group {
                 gap: 0.38rem;
