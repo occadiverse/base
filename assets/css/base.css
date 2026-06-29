@@ -3,6 +3,7 @@
             --portal-bg-soft: #eef4f8;
             --portal-border: #dbe5ef;
             --portal-mobile-nav-height: 4.65rem;
+            --portal-topline-min-height: 3rem;
         }
         html {
             background: var(--portal-bg);
@@ -1123,6 +1124,7 @@
             display: flex;
             gap: 1rem;
             justify-content: space-between;
+            min-height: var(--portal-topline-min-height);
             padding: 1rem 1.25rem;
         }
         .match-detail-meta,
@@ -2066,12 +2068,12 @@
             top: -3rem;
         }
         .match-list-column-header {
-            min-height: 3rem;
+            min-height: var(--portal-topline-min-height);
         }
         .match-list-mobile-top {
             background: rgba(255, 255, 255, 0.07);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
-            min-height: 3rem;
+            min-height: var(--portal-topline-min-height);
         }
         .match-list-column-title {
             font-size: 0.94rem;
@@ -3151,7 +3153,7 @@
             font-size: clamp(10rem, 22vw, 16rem);
         }
         .roster-board-top {
-            min-height: 3rem;
+            min-height: var(--portal-topline-min-height);
         }
         .roster-board-top-right {
             align-items: center;
@@ -3679,7 +3681,7 @@
             background: rgba(255, 255, 255, 0.065);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
             gap: 1rem;
-            min-height: 3rem;
+            min-height: var(--portal-topline-min-height);
         }
         .stats-board-tabs {
             align-items: center;
@@ -6733,7 +6735,7 @@
             background: rgba(255, 255, 255, 0.07);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
             margin: -0.9rem -0.9rem 0.9rem;
-            min-height: 2.85rem;
+            min-height: var(--portal-topline-min-height);
             padding: 0.9rem;
             position: relative;
         }
@@ -8192,7 +8194,7 @@
             z-index: 1;
         }
         .calendar-board-top {
-            min-height: 3rem;
+            min-height: var(--portal-topline-min-height);
         }
         .calendar-heading-title {
             color: #ffffff;
