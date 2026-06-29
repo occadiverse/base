@@ -1440,8 +1440,8 @@ window.showMatchDetails = function(id) {
         <div class="match-detail-squad-section relative z-10">
             <div class="match-detail-section-divider" aria-label="Kamptropp">
                 <span class="match-detail-section-title">Kamptropp</span>
-                <span class="match-detail-section-line" aria-hidden="true"></span>
                 <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
+                <span class="match-detail-section-line" aria-hidden="true"></span>
             </div>
             <div class="match-bench-list match-detail-squad-list">
                 ${benchPlayersHtml}
