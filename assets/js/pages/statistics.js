@@ -1724,11 +1724,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsSpillereSummary = function() {
             const container = document.getElementById('stats-spillere-summary');
             if (!container) return;
-
-            const allStats = window.buildPlayerStatsData();
-            const statsData = allStats.filter(s => s.kamper > 0 || s.kjemi > 0);
-
-            container.innerHTML = window.renderStatsSpillereSummaryCardsHtml(statsData);
+            container.innerHTML = '';
         };
 
         window.renderStatsKampContext = function() {
