@@ -1600,11 +1600,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.statsLagSections = [
-            { id: 'kampdata', label: 'Kampdata', icon: 'fa-futbol' },
+            { id: 'kampdata', label: 'Kampdata', icon: 'fa-shield-halved' },
             { id: 'treningsdata', label: 'Treningsdata', icon: 'fa-user-check' },
             { id: 'spillerdata', label: 'Spillerdata', icon: 'fa-users' },
             { id: 'utvikling', label: 'Utvikling', icon: 'fa-chart-line' },
-            { id: 'oppfolging', label: 'Oppfølging', icon: 'fa-triangle-exclamation' }
+            { id: 'oppfolging', label: 'Oppfølging', icon: 'fa-heart-pulse' }
         ];
         window.statsLagSection = window.statsLagSection || 'kampdata';
 
