@@ -9273,6 +9273,13 @@
                 min-height: 5rem;
                 padding: 0;
             }
+            .match-detail-section-divider {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .match-detail-squad-section .match-detail-squad-list {
+                padding: 0.85rem 1rem 1rem;
+            }
             .match-bench-group {
                 gap: 0.38rem;
             }
