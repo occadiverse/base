@@ -1901,6 +1901,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             list.innerHTML = statsData.map(stat => {
                 const activeSortCol = currentStatSortCol;
+                const player = (window.activePlayers || []).find(p => p.navn === stat.navn);
+                const posStr = player && player.pos2 && player.pos2 !== '-'
+                    ? `${player.pos1 || 'Spiller'} / ${player.pos2}`
+                    : (stat.pos1 || player?.pos1 || 'Spiller');
                 const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
                 const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
                 const formSortActiveClass = activeSortCol === 'kjemi' ? ' is-sort-active' : '';
@@ -1919,7 +1923,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (stat.rodeSerie > 0) extras.push(window.renderStatsMetaPartHtml('rodeSerie', String(stat.rodeSerie)));
 
                 const metaParts = [
-                    `<span class="stats-meta-pos">${stat.pos1 || 'Spiller'}</span>`,
+                    `<span class="stats-meta-pos">${posStr}</span>`,
                     window.renderStatsMetaPartHtml('kamper', String(stat.kamper)),
                     window.renderStatsMetaPartHtml('totalScore', totalText),
                     window.renderStatsMetaPartHtml('kampbonus', bonusText),

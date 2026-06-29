@@ -6357,6 +6357,13 @@
         .stats-player-row.roster-player-row {
             grid-template-columns: auto minmax(0, 1fr) auto;
         }
+        .stats-player-row .roster-player-meta {
+            display: flex;
+        }
+        .stats-player-row .stats-meta-pos {
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 900;
+        }
         button.stats-player-row {
             appearance: none;
             font: inherit;
