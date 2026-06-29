@@ -456,7 +456,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
 }
 
 const matchGamePlanTabs = [
-    { id: 'starter11', label: '11er' },
     { id: 'offc', label: 'OffC' },
     { id: 'defc', label: 'DefC' },
     { id: 'roller', label: 'Roller' },
@@ -982,9 +981,10 @@ function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '', extraClass 
     `;
 }
 
-function buildMatchGamePlanStarter11Html(match) {
+function buildMatchGamePlanStarter11Html(match, extraClass = '') {
     return buildMatchGamePlanPitchHtml({
         ariaLabel: '11er bane',
+        extraClass,
         childrenHtml: Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
             ${buildMatchGamePlanNodeHtml(match, posId, coords)}
         `).join('')
@@ -1447,11 +1447,18 @@ window.showMatchDetails = function(id) {
                     <span>Oppmøte</span>
                 </button>
             </div>
-            <div class="match-bench-list match-detail-squad-list">
-                ${benchPlayersHtml}
-            </div>
-            <div class="match-bench-position-line match-detail-squad-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
-                ${benchPositionHtml}
+            <div class="match-detail-squad-body">
+                <div class="match-detail-squad-players">
+                    <div class="match-bench-list match-detail-squad-list">
+                        ${benchPlayersHtml}
+                    </div>
+                    <div class="match-bench-position-line match-detail-squad-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
+                        ${benchPositionHtml}
+                    </div>
+                </div>
+                <aside class="match-detail-squad-lineup" aria-label="11er">
+                    ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
+                </aside>
             </div>
         </div>
     `;
@@ -1555,20 +1562,20 @@ function getMatchGamePlanSelectablePlayers(match) {
 
 window.renderMatchGamePlanStarterNode = function(match, posId) {
     const coords = matchGamePlanStarterPositions[posId];
-    const existingNode = document.querySelector(`[data-game-plan-node="${posId}"]`);
-    if (!coords || !existingNode) return;
+    const existingNodes = document.querySelectorAll(`[data-game-plan-node="${posId}"]`);
+    if (!coords || !existingNodes.length) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = buildMatchGamePlanNodeHtml(match, posId, coords).trim();
-    existingNode.replaceWith(wrapper.firstElementChild);
+    existingNodes.forEach(existingNode => {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildMatchGamePlanNodeHtml(match, posId, coords).trim();
+        existingNode.replaceWith(wrapper.firstElementChild);
+    });
 };
 
 window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '') {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match) return;
 
-    window.pendingMatchDetailsOpenPanel = 'kampplan';
-    window.activeMatchDetailsOpenPanel = 'kampplan';
     const selectedPlayer = playerId
         ? (window.activePlayers || []).find(player => player.id === playerId)
         : null;
