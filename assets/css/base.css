@@ -4204,34 +4204,48 @@
                 min-height: calc(100vh - 7rem);
             }
             .stats-board-top {
-                align-items: stretch;
-                flex-direction: column;
+                align-items: center;
+                flex-direction: row;
+                gap: 0.75rem;
             }
             .stats-board-bottomline {
                 align-items: flex-start;
                 flex-direction: column;
                 gap: 0.45rem;
             }
-            .stats-board-tabs,
-            .stats-board-card .stats-chrome,
+            .stats-board-tabs {
+                flex: 0 1 auto;
+                margin-left: auto;
+                min-width: 0;
+                overflow-x: auto;
+                scrollbar-width: none;
+                width: auto;
+            }
+            .stats-board-tabs::-webkit-scrollbar {
+                display: none;
+            }
             .stats-board-card .stats-chrome-bar,
             .stats-board-card .stats-chrome-actions,
             .stats-board-card .stats-hero-tabs,
             .stats-board-card .stats-hero-tabs .stats-hero-tablist {
-                width: 100%;
+                width: max-content;
+            }
+            .stats-board-card .stats-chrome {
+                min-width: max-content;
+                width: auto;
             }
             .stats-board-card .stats-chrome,
             .stats-board-card .stats-chrome-bar,
             .stats-board-card .stats-chrome-actions {
-                justify-content: center;
+                justify-content: flex-end;
             }
             .stats-board-card .stats-chrome-bar-stacked {
-                align-items: stretch;
-                text-align: left;
+                align-items: flex-end;
+                text-align: right;
             }
             .stats-board-card #statsLagFilterWrap {
-                justify-content: center;
-                width: 100%;
+                justify-content: flex-start;
+                width: max-content;
             }
             .stats-board-body {
                 padding: 0.85rem;
