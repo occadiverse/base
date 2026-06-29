@@ -1452,9 +1452,6 @@ window.showMatchDetails = function(id) {
                     <div class="match-bench-list match-detail-squad-list">
                         ${benchPlayersHtml}
                     </div>
-                    <div class="match-bench-position-line match-detail-squad-position-line dashboard-session-radar-inline" aria-label="Posisjonsfordeling">
-                        ${benchPositionHtml}
-                    </div>
                 </div>
                 <aside class="match-detail-squad-lineup" aria-label="11er">
                     ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
