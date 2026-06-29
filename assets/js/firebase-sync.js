@@ -273,7 +273,7 @@
                 ? activeStatTab.id.replace('stat-tab-', '')
                 : (document.getElementById('stat-view-spillere')?.classList.contains('block')
                     ? 'spillere'
-                    : (document.getElementById('stat-view-kampstat')?.classList.contains('block') ? 'kampstat' : 'lag'));
+                    : 'lag');
 
             window.switchStatTab(activeTab);
         }

@@ -877,8 +877,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsHeroTabsHtml = function(activeTabId) {
             const tabs = [
                 { id: 'lag', label: 'Lag' },
-                { id: 'spillere', label: 'Spiller' },
-                { id: 'kampstat', label: 'Kamp' }
+                { id: 'spillere', label: 'Spiller' }
             ];
             const showTeamForm = activeTabId === 'lag' && window._statsLagData;
             const teamFormHtml = showTeamForm
@@ -1190,6 +1189,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             </div>
                         </section>
                     </div>
+                    <div id="stats-lag-kampdata-detail" class="stats-lag-kampdata-detail"></div>
                 </div>
             `;
         };
@@ -1660,8 +1660,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 summary.classList.toggle('hidden', activeSection === 'utvikling' || activeSection === 'oppfolging');
                 const matchGroup = summary.querySelector('.stats-analysis-group-match');
                 const attendanceGroup = summary.querySelector('.stats-analysis-group-attendance');
+                const matchDetail = summary.querySelector('#stats-lag-kampdata-detail');
                 if (matchGroup) matchGroup.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (attendanceGroup) attendanceGroup.classList.toggle('hidden', activeSection !== 'treningsdata');
+                if (matchDetail) matchDetail.classList.toggle('hidden', activeSection !== 'kampdata');
             }
 
             if (development) development.classList.toggle('hidden', activeSection !== 'utvikling');
@@ -1688,6 +1690,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             container.innerHTML = window.renderTeamReportStatusHtml(data, report);
+            if (typeof window.renderMatchStatsView === 'function') {
+                window.renderMatchStatsView();
+            }
             if (developmentContainer) {
                 developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
             }
@@ -1802,8 +1807,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             if (tabId === 'kampstat') {
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
-                window.renderStatsKampContext();
+                window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml('lag')));
+                window.statsLagSection = 'kampdata';
+                window.renderStatsLagSummary();
             }
         };
 
@@ -1927,13 +1933,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
         
         window.switchStatTab = function(tabId) {
+            if (tabId === 'kampstat') {
+                tabId = 'lag';
+                window.statsLagSection = 'kampdata';
+            }
             const statViewActiveClasses = {
                 lag: 'block space-y-4',
-                spillere: 'block space-y-4',
-                kampstat: 'block space-y-4'
+                spillere: 'block space-y-4'
             };
 
-            ['lag', 'spillere', 'kampstat'].forEach(id => {
+            ['lag', 'spillere'].forEach(id => {
                 const view = document.getElementById(`stat-view-${id}`);
                 if (view) view.className = id === tabId ? statViewActiveClasses[id] : 'hidden';
             });
@@ -1950,7 +1959,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (window._statsSelectedPlayer) window.renderSpillereDetail(window._statsSelectedPlayer);
                 else window.renderSpillereView();
             }
-            if (tabId === 'kampstat') window.renderMatchStatsView();
         };
 
 
@@ -2333,7 +2341,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderMatchStatsView = function() {
-    const container = document.getElementById('stat-view-kampstat');
+    const container = document.getElementById('stats-lag-kampdata-detail');
     if (!container) return;
 
     const playedMatches = window.getFilteredPlayedMatches();
@@ -2357,7 +2365,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.showMatchStatsTable();
     } else {
         window._statsKampHeroData = null;
-        window.renderStatsTabHero('kampstat');
+        window.renderStatsKampContext();
     }
 };
 
@@ -2403,7 +2411,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
     if (!matchId) {
         window._statsKampHeroData = null;
-        window.renderStatsTabHero('kampstat');
+        window.renderStatsKampContext();
         container.innerHTML = '<div class="text-center py-10 text-slate-400 italic text-sm">Velg en kamp for å se statistikk for spillerne som deltok.</div>';
         return;
     }
@@ -2484,7 +2492,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         pitch,
         matchResult
     };
-    window.renderStatsTabHero('kampstat');
+    window.renderStatsKampContext();
 
     const avgRating = stats.filter(s => s.rating > 0).length
         ? stats.filter(s => s.rating > 0).reduce((sum, s) => sum + s.rating, 0) / stats.filter(s => s.rating > 0).length
