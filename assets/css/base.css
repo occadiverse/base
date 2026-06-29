@@ -3572,7 +3572,7 @@
         }
         .stats-page {
             margin: 0 auto;
-            max-width: 78rem;
+            max-width: 96rem;
             width: 100%;
         }
         .stats-board-card {
@@ -3586,6 +3586,17 @@
             overflow: hidden;
             position: relative;
         }
+        .stats-board-card::before {
+            background:
+                linear-gradient(90deg, rgba(245, 197, 66, 0.34), rgba(245, 197, 66, 0.08) 48%, rgba(255, 255, 255, 0.06));
+            content: "";
+            height: 1px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: 2;
+        }
         .stats-board-watermark {
             bottom: auto;
             opacity: 0.045;
@@ -3597,6 +3608,8 @@
         }
         .stats-board-top {
             align-items: center;
+            background: rgba(255, 255, 255, 0.065);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
             gap: 1rem;
             min-height: 3rem;
         }
@@ -3608,6 +3621,9 @@
             min-width: 0;
         }
         .stats-board-body {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.045), transparent 34%),
+                rgba(7, 31, 56, 0.18);
             flex: 1 1 auto;
             padding: 1rem;
         }
@@ -3616,7 +3632,12 @@
             border: 0;
             border-top: 1px solid rgba(245, 197, 66, 0.12);
             color: rgba(255, 255, 255, 0.62);
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            justify-content: space-between;
             margin-top: 0;
+            min-height: 3.25rem;
         }
         .stats-board-bottomline p {
             margin: 0;
@@ -3704,6 +3725,21 @@
             gap: 0.45rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             padding: 0.5rem;
+        }
+        .stats-board-card #stat-view-lag {
+            gap: 1rem;
+            margin: 0;
+        }
+        .stats-board-card #stat-view-lag > * {
+            margin-top: 0 !important;
+            min-width: 0;
+        }
+        .stats-board-card #stats-lag-summary {
+            min-width: 0;
+        }
+        .stats-board-card #stats-lag-development,
+        .stats-board-card #stats-lag-followups {
+            min-width: 0;
         }
         .stats-board-card .stats-analysis-chip {
             align-items: center;
@@ -4002,6 +4038,11 @@
                 align-items: stretch;
                 flex-direction: column;
             }
+            .stats-board-bottomline {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 0.45rem;
+            }
             .stats-board-tabs,
             .stats-board-card .stats-chrome,
             .stats-board-card .stats-chrome-bar,
@@ -4039,6 +4080,45 @@
                 flex: 1 1 auto;
                 min-height: 0;
                 overflow: hidden;
+            }
+        }
+        @media (min-width: 768px) {
+            .stats-board-card .stats-analysis-strip {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1024px) {
+            .stats-board-card #stat-view-lag {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1.65fr) minmax(18rem, 0.8fr);
+                grid-template-areas:
+                    "summary summary"
+                    "development followups";
+            }
+            .stats-board-card #stats-lag-summary {
+                grid-area: summary;
+            }
+            .stats-board-card #stats-lag-development {
+                grid-area: development;
+            }
+            .stats-board-card #stats-lag-followups {
+                grid-area: followups;
+            }
+            .stats-board-card #stats-lag-followups .stats-panel,
+            .stats-board-card #stats-lag-development .team-report-panel {
+                height: 100%;
+            }
+            .stats-board-card #stats-lag-followups .stats-followup-list {
+                max-height: min(44rem, calc(100vh - 18rem));
+                overflow-y: auto;
+            }
+        }
+        @media (min-width: 1440px) {
+            .stats-board-body {
+                padding: 1.15rem;
+            }
+            .stats-board-card #stat-view-lag {
+                grid-template-columns: minmax(0, 1.75fr) minmax(22rem, 0.85fr);
             }
         }
         .stats-hero-panel {
