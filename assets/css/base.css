@@ -3889,7 +3889,7 @@
         }
         .stats-board-card .team-report-status-stack,
         .stats-board-card #stat-view-lag,
-        .stats-board-card #stat-view-spillere {
+        .stats-board-card #stats-lag-playerdata {
             color: rgba(255, 255, 255, 0.74);
         }
         .stats-board-card .stats-panel,
@@ -4166,15 +4166,15 @@
             .stats-board-body {
                 padding: 0.85rem;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-card {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) .stats-board-card {
                 flex: 1 1 auto;
                 min-height: 0;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-top,
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-bottomline {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) .stats-board-top,
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) .stats-board-bottomline {
                 flex-shrink: 0;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) .stats-board-body {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) .stats-board-body {
                 display: flex;
                 flex: 1 1 auto;
                 min-height: 0;
@@ -4183,7 +4183,7 @@
         }
         @media (min-width: 768px) {
             .stats-board-card .stats-lag-section-nav-inner {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-columns: repeat(5, minmax(0, 1fr));
             }
             .stats-board-card .stats-analysis-strip {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4284,6 +4284,10 @@
             box-shadow: none;
             display: inline-grid;
             grid-template-columns: repeat(2, minmax(4.25rem, 1fr)) auto;
+        }
+        .stats-hero-tabs .stats-hero-tablist-info-only {
+            display: inline-flex;
+            grid-template-columns: none;
         }
         .stats-hero-tabs .roster-status-btn {
             font-size: 0.62rem;
@@ -6013,28 +6017,28 @@
             max-width: 36rem;
         }
         @media (max-width: 767px) {
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) {
                 overflow: hidden;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #main-view {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #main-view {
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;
                 min-height: 0;
                 overflow: hidden;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #view-statistikk {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #view-statistikk {
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;
                 min-height: 0;
                 overflow: hidden;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #stats-tab-hero,
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #stats-spillere-summary {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #stats-tab-hero,
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #stats-spillere-summary {
                 flex-shrink: 0;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #stat-view-spillere {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #stats-lag-playerdata {
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;
@@ -6042,10 +6046,10 @@
                 min-height: 0;
                 overflow: hidden;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #stat-view-spillere > * + * {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #stats-lag-playerdata > * + * {
                 margin-top: 0;
             }
-            .portal-main-shell:has(#view-statistikk:not(.hidden) #stat-view-spillere:not(.hidden) .stats-spillere-layout) #stat-spillere-content {
+            .portal-main-shell:has(#view-statistikk:not(.hidden) #stats-lag-playerdata:not(.hidden) .stats-spillere-layout) #stat-spillere-content {
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;

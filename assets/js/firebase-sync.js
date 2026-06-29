@@ -268,12 +268,9 @@
                 window.updateDynamicSelectors();
             }
 
-            const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
-            const activeTab = activeStatTab && activeStatTab.id
-                ? activeStatTab.id.replace('stat-tab-', '')
-                : (document.getElementById('stat-view-spillere')?.classList.contains('block')
-                    ? 'spillere'
-                    : 'lag');
+            const activeTab = window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata'
+                ? 'spillere'
+                : 'lag';
 
             window.switchStatTab(activeTab);
         }

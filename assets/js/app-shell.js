@@ -135,10 +135,7 @@ function switchTab(tabId, options = {}) {
         if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
         window.renderStatistikkSide();
         if (typeof window.switchStatTab === 'function') {
-            const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
-            const tabName = activeStatTab && activeStatTab.id
-                ? activeStatTab.id.replace('stat-tab-', '')
-                : 'lag';
+            const tabName = window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata' ? 'spillere' : 'lag';
             window.switchStatTab(tabName);
         }
     } else if (tabId === 'admin' && isAdminUnlocked) {
@@ -157,10 +154,10 @@ function switchTab(tabId, options = {}) {
 
 window.goBackToPreviousPortalPage = function(options = {}) {
     if (currentTab === 'statistikk' && window.statsBackTarget === 'lag' && typeof window.switchStatTab === 'function') {
-        const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
-        const activeStatId = activeStatTab?.id ? activeStatTab.id.replace('stat-tab-', '') : 'lag';
-        if (activeStatId !== 'lag') {
+        const activeStatsSection = window.getStatsLagSection ? window.getStatsLagSection() : 'kampdata';
+        if (activeStatsSection === 'spillerdata') {
             window.statsBackTarget = null;
+            window.statsLagSection = 'kampdata';
             window.switchStatTab('lag');
             return true;
         }
@@ -524,9 +521,8 @@ function setupMobileSwipeNavigation() {
             return;
         }
 
-        const activeStatTab = document.querySelector('.stat-tab-btn.is-active');
-        const activeStatId = activeStatTab?.id ? activeStatTab.id.replace('stat-tab-', '') : 'lag';
-        const hasStatsBackTarget = currentTab === 'statistikk' && window.statsBackTarget === 'lag' && activeStatId !== 'lag';
+        const activeStatsSection = window.getStatsLagSection ? window.getStatsLagSection() : 'kampdata';
+        const hasStatsBackTarget = currentTab === 'statistikk' && window.statsBackTarget === 'lag' && activeStatsSection === 'spillerdata';
         const hasPortalBackTarget = swipeTabs.indexOf(currentTab) === -1 && (window.portalBackStack || []).length > 0;
         if (deltaX > 0 && (hasStatsBackTarget || hasPortalBackTarget)) {
             cleanupSwipeDrag(true);

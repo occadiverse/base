@@ -64,10 +64,12 @@ window.checkIndividualChemistry = function() {
             }
 
             window.renderStatistikkSide();
-            if (window._statsSelectedPlayer) {
-                window.renderSpillereDetail(window._statsSelectedPlayer);
-            } else {
-                window.renderSpillereView();
+            if (window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata') {
+                if (window._statsSelectedPlayer) {
+                    window.renderSpillereDetail(window._statsSelectedPlayer);
+                } else {
+                    window.renderSpillereView();
+                }
             }
             if (typeof window.renderMatchStatsView === 'function') window.renderMatchStatsView();
         };
@@ -875,26 +877,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderStatsHeroTabsHtml = function(activeTabId) {
-            const tabs = [
-                { id: 'lag', label: 'Lag' },
-                { id: 'spillere', label: 'Spiller' }
-            ];
             const showTeamForm = activeTabId === 'lag' && window._statsLagData;
             const teamFormHtml = showTeamForm
                 ? window.renderStatsTeamFormPillsHtml(window._statsLagData.filterLag)
                 : '';
 
             return `
-                <div class="stats-hero-tabs">
-                    <div class="roster-status-filter stats-hero-tablist" role="tablist" aria-label="Statistikkfaner">
-                        ${tabs.map(tab => `
-                            <button
-                                type="button"
-                                onclick="switchStatTab('${tab.id}')"
-                                id="stat-tab-${tab.id}"
-                                class="stat-tab-btn roster-status-btn ${activeTabId === tab.id ? 'is-active' : ''}"
-                            >${tab.label}</button>
-                        `).join('')}
+                <div class="stats-hero-tabs stats-hero-tabs-info-only">
+                    <div class="roster-status-filter stats-hero-tablist stats-hero-tablist-info-only" aria-label="Statistikkvalg">
                         <button
                             type="button"
                             onclick="window.openStatsFormInfoModal()"
@@ -1612,6 +1602,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsLagSections = [
             { id: 'kampdata', label: 'Kampdata', icon: 'fa-futbol' },
             { id: 'treningsdata', label: 'Treningsdata', icon: 'fa-user-check' },
+            { id: 'spillerdata', label: 'Spillerdata', icon: 'fa-users' },
             { id: 'utvikling', label: 'Utvikling', icon: 'fa-chart-line' },
             { id: 'oppfolging', label: 'Oppfølging', icon: 'fa-triangle-exclamation' }
         ];
@@ -1646,6 +1637,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const activeSection = window.getStatsLagSection();
             const nav = document.getElementById('stats-lag-section-nav');
             const summary = document.getElementById('stats-lag-summary');
+            const playerData = document.getElementById('stats-lag-playerdata');
             const development = document.getElementById('stats-lag-development');
             const followUps = document.getElementById('stats-lag-followups');
             const view = document.getElementById('stat-view-lag');
@@ -1657,7 +1649,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             if (summary) {
-                summary.classList.toggle('hidden', activeSection === 'utvikling' || activeSection === 'oppfolging');
+                summary.classList.toggle('hidden', activeSection === 'spillerdata' || activeSection === 'utvikling' || activeSection === 'oppfolging');
                 const matchGroup = summary.querySelector('.stats-analysis-group-match');
                 const attendanceGroup = summary.querySelector('.stats-analysis-group-attendance');
                 const matchDetail = summary.querySelector('#stats-lag-kampdata-detail');
@@ -1666,12 +1658,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (matchDetail) matchDetail.classList.toggle('hidden', activeSection !== 'kampdata');
             }
 
+            if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata');
             if (development) development.classList.toggle('hidden', activeSection !== 'utvikling');
             if (followUps) followUps.classList.toggle('hidden', activeSection !== 'oppfolging');
         };
 
         window.setStatsLagSection = function(section) {
             window.statsLagSection = window.statsLagSections.some(item => item.id === section) ? section : 'kampdata';
+            if (window.statsLagSection === 'spillerdata') {
+                if (window._statsSelectedPlayer && typeof window.renderSpillereDetail === 'function') {
+                    window.renderSpillereDetail(window._statsSelectedPlayer);
+                } else if (typeof window.renderSpillereView === 'function') {
+                    window.renderSpillereView();
+                }
+            }
             window.updateStatsLagSectionVisibility();
         };
 
@@ -1695,6 +1695,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
             if (developmentContainer) {
                 developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
+            }
+            if (window.getStatsLagSection() === 'spillerdata') {
+                if (window._statsSelectedPlayer && typeof window.renderSpillereDetail === 'function') {
+                    window.renderSpillereDetail(window._statsSelectedPlayer);
+                } else if (typeof window.renderSpillereView === 'function') {
+                    window.renderSpillereView();
+                }
             }
             window.updateStatsLagSectionVisibility();
         };
@@ -1839,8 +1846,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.handleStatsPlayerSearchChange = function() {
             if (window._statsSelectedPlayer) return;
-            const spillereView = document.getElementById('stat-view-spillere');
-            if (spillereView && !spillereView.classList.contains('hidden')) {
+            if (window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata') {
                 window.renderPlayerStatsList();
             }
         };
@@ -1937,28 +1943,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 tabId = 'lag';
                 window.statsLagSection = 'kampdata';
             }
-            const statViewActiveClasses = {
-                lag: 'block space-y-4',
-                spillere: 'block space-y-4'
-            };
-
-            ['lag', 'spillere'].forEach(id => {
-                const view = document.getElementById(`stat-view-${id}`);
-                if (view) view.className = id === tabId ? statViewActiveClasses[id] : 'hidden';
-            });
-
-            document.querySelectorAll('.stat-tab-btn').forEach(btn => {
-                btn.classList.remove('is-active');
-            });
-
-            const activeBtn = document.getElementById(`stat-tab-${tabId}`);
-            if (activeBtn) activeBtn.classList.add('is-active');
-
-            if (tabId === 'lag') window.renderStatistikkSide();
             if (tabId === 'spillere') {
+                window.statsLagSection = 'spillerdata';
+                window.renderStatistikkSide();
                 if (window._statsSelectedPlayer) window.renderSpillereDetail(window._statsSelectedPlayer);
                 else window.renderSpillereView();
+                window.updateStatsLagSectionVisibility();
+                return;
             }
+            window.renderStatistikkSide();
         };
 
 
@@ -2138,6 +2131,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const container = document.getElementById('stat-spillere-content');
             if (!container) return;
 
+            window.statsLagSection = 'spillerdata';
             window.renderStatsTabHero('spillere');
             const searchValue = window.getStatsPlayerSearchTerm();
 
@@ -2181,13 +2175,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.openSpillerDetail = function(playerName) {
             if (!playerName) return;
             window._statsSelectedPlayer = playerName;
-
-            const spillereView = document.getElementById('stat-view-spillere');
-            if (spillereView && spillereView.classList.contains('hidden') && typeof window.switchStatTab === 'function') {
-                window.switchStatTab('spillere');
-                return;
-            }
-
+            window.statsLagSection = 'spillerdata';
+            if (typeof window.updateStatsLagSectionVisibility === 'function') window.updateStatsLagSectionVisibility();
             window.renderSpillereDetail(playerName);
         };
 
@@ -2198,6 +2187,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderSpillereDetail = function(playerName) {
             const container = document.getElementById('stat-spillere-content');
             if (!container || !playerName) return;
+            window.statsLagSection = 'spillerdata';
+            if (typeof window.updateStatsLagSectionVisibility === 'function') window.updateStatsLagSectionVisibility();
 
             const player = (window.activePlayers || []).find(p => p.navn === playerName);
             const history = typeof window.getPlayerMatchPointsHistory === 'function'
@@ -2754,8 +2745,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.updateStatsSortButtons();
             window.renderPlayerStatsList();
 
-            const spillereView = document.getElementById('stat-view-spillere');
-            if (spillereView && !spillereView.classList.contains('hidden') && typeof window.renderStatsSpillereSummary === 'function') {
+            if (window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata' && typeof window.renderStatsSpillereSummary === 'function') {
                 window.renderStatsSpillereSummary();
             }
         };

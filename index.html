@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260629-stats-lag-kampdata-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260629-stats-playerdata-v1">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -314,13 +314,12 @@
                         <div id="stat-view-lag" class="block space-y-4">
                             <div id="stats-lag-section-nav" class="stats-lag-section-nav"></div>
                             <div id="stats-lag-summary"></div>
+                            <div id="stats-lag-playerdata" class="hidden space-y-4">
+                                <div id="stats-spillere-summary"></div>
+                                <div id="stat-spillere-content"></div>
+                            </div>
                             <div id="stats-lag-development"></div>
                             <div id="stats-lag-followups"></div>
-                        </div>
-
-                        <div id="stat-view-spillere" class="hidden space-y-4">
-                            <div id="stats-spillere-summary"></div>
-                            <div id="stat-spillere-content"></div>
                         </div>
                     </div>
 
@@ -1106,17 +1105,17 @@
     <script src="assets/js/components/navigation.js?v=20260613-mobile-nav7"></script>
     <script src="assets/js/state.js"></script>
     <script src="assets/js/components/modals.js?v=20260622-injury-popup-layout"></script>
-    <script src="assets/js/app-shell.js?v=20260619-metadata-scroll-ignore"></script>
+    <script src="assets/js/app-shell.js?v=20260629-stats-playerdata-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20260626-bench-sub-plan"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
     <script src="assets/js/pages/players.js?v=20260628-roster-status-logic-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260627-club-logo-fallback"></script>
     <script src="assets/js/pages/attendance.js?v=20260628-calendar-match-detail-v6"></script>
-    <script src="assets/js/pages/statistics.js?v=20260629-stats-kampdata-compact-v1"></script>
+    <script src="assets/js/pages/statistics.js?v=20260629-stats-playerdata-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260624-picker-actions-inside"></script>
     <script src="assets/js/pages/dashboard.js?v=20260627-club-logos"></script>
-    <script type="module" src="assets/js/firebase-sync.js?v=20260629-stats-lag-kampdata-v1"></script>
+    <script type="module" src="assets/js/firebase-sync.js?v=20260629-stats-playerdata-v1"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
 </body>
 </html>
