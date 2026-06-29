@@ -1139,21 +1139,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderTeamReportStatusHtml = function(data, report) {
-            const disciplineText = report.discipline.suspended > 0
-                ? `${report.discipline.suspended} ute`
-                : report.discipline.atRisk > 0
-                    ? `${report.discipline.atRisk} i faresone`
-                    : 'Ingen varsler';
-            const disciplineTone = report.discipline.suspended > 0
-                ? 'is-loss'
-                : report.discipline.atRisk > 0 ? 'is-draw' : 'is-win';
-            const detailChip = (label, value, tone = '', icon = 'fa-circle', target = '') => `
-                <button type="button" onclick="window.openTeamReportMetaTarget('${target}')" class="roster-status-btn stats-sort-btn team-report-detail-chip ${tone}" title="${label}">
-                    <i class="fa-solid ${icon}" aria-hidden="true"></i>
-                    <span class="team-report-detail-text">${label}</span>
-                    <strong class="team-report-detail-value">${value}</strong>
-                </button>
-            `;
             const recordClass = data.wins >= data.losses ? 'is-win' : 'is-loss';
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
             const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
@@ -1172,26 +1157,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy')}
                         ${summaryItem('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol')}
                         ${summaryItem('Oppmøte', `${data.avgAttendance}%`, attendanceTone, 'fa-user-check')}
-                    </div>
-                    <div class="team-report-detail-menu stats-player-toolbar" aria-label="Tropp og risiko" data-no-swipe>
-                        <div class="stats-sort-scroller-wrap team-report-detail-scroller-wrap">
-                            <button type="button" class="team-report-detail-scroll-btn team-report-detail-scroll-btn-left" onclick="window.scrollTeamReportDetailMenu(-1)" aria-label="Scroll meny til venstre" data-no-swipe>
-                                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                            </button>
-                            <div class="stats-sort-scroller team-report-detail-scroller" id="team-report-detail-scroller" data-no-swipe>
-                                <div class="roster-status-filter stats-sort-filter team-report-detail-grid" role="menu" aria-label="Tropp og risiko">
-                                    ${detailChip('Tilgjengelige', report.squad.available, 'is-win', 'fa-user-check', 'available')}
-                                    ${detailChip('Aktive', report.squad.active, '', 'fa-users', 'active')}
-                                    ${detailChip('Skadet', report.squad.injured, report.squad.injured > 0 ? 'is-draw' : '', 'fa-briefcase-medical', 'injured')}
-                                    ${detailChip('Passiv', report.squad.passive, '', 'fa-moon', 'passive')}
-                                    ${detailChip('Formmedian', data.teamFormMedian || '-', data.teamFormMedian >= 70 ? 'is-win' : data.teamFormMedian >= 55 ? 'is-draw' : 'is-loss', 'fa-bolt', 'form')}
-                                    ${detailChip('Disiplin', disciplineText, disciplineTone, report.discipline.suspended > 0 ? 'fa-square' : 'fa-rectangle-list', report.discipline.suspended > 0 ? 'redCards' : 'yellowCards')}
-                                </div>
-                            </div>
-                            <button type="button" class="team-report-detail-scroll-btn team-report-detail-scroll-btn-right" onclick="window.scrollTeamReportDetailMenu(1)" aria-label="Scroll meny til høyre" data-no-swipe>
-                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
             `;
@@ -1608,9 +1573,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             container.innerHTML = window.renderTeamReportStatusHtml(data, report);
-            if (typeof window.bindTeamReportDetailMenuScroll === 'function') {
-                window.bindTeamReportDetailMenuScroll();
-            }
             if (developmentContainer) {
                 developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
             }
