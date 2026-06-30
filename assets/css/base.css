@@ -1314,21 +1314,25 @@
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
             border-radius: 0.64rem;
             min-height: 4.35rem;
-            padding: 0.16rem 0.16rem 0.22rem;
+            padding: 0.07rem 0.07rem 0.14rem;
             width: min(3.85rem, 19%);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo {
-            border-width: 1px;
-            border-radius: 0.48rem 0.48rem 0.24rem 0.24rem;
-            height: 2.28rem;
-            margin-bottom: 0.12rem;
-            width: 2.42rem;
+            border-width: 0;
+            border-radius: 0.54rem 0.54rem 0.16rem 0.16rem;
+            flex: 1 1 auto;
+            height: auto;
+            margin-bottom: 0;
+            min-height: 0;
+            width: 100%;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo i {
             font-size: 0.78rem;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual strong {
             font-size: 0.54rem;
+            padding: 0.12rem 0.08rem 0;
+            width: 100%;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
             font-size: 0.46rem;
@@ -1360,13 +1364,13 @@
         @media (min-width: 1024px) {
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
                 min-height: 5rem;
-                padding: 0.2rem 0.18rem 0.28rem;
+                padding: 0.08rem 0.08rem 0.16rem;
                 width: min(4.45rem, 21%);
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo {
-                height: 2.72rem;
-                margin-bottom: 0.14rem;
-                width: 2.9rem;
+                height: auto;
+                margin-bottom: 0;
+                width: 100%;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual strong {
                 font-size: 0.6rem;
@@ -7085,15 +7089,18 @@
             justify-content: center;
             min-height: 4.7rem;
             min-width: 0;
-            padding: 0.18rem 0.18rem 0.24rem;
+            overflow: hidden;
+            padding: 0.07rem 0.07rem 0.14rem;
             width: 3.7rem;
         }
         .match-bench-player .match-bench-photo {
-            border-width: 1px;
-            border-radius: 0.5rem 0.5rem 0.24rem 0.24rem;
-            height: 2.42rem;
-            margin-bottom: 0.08rem;
-            width: 2.62rem;
+            border-width: 0;
+            border-radius: 0.56rem 0.56rem 0.16rem 0.16rem;
+            flex: 1 1 auto;
+            height: auto;
+            margin-bottom: 0;
+            min-height: 0;
+            width: 100%;
         }
         .match-bench-name {
             color: #123f73;
@@ -7103,6 +7110,7 @@
             line-height: 1.05;
             max-width: 100%;
             overflow: hidden;
+            padding-top: 0.12rem;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -7121,13 +7129,13 @@
             }
             .match-detail-squad-list .match-bench-player {
                 min-height: 5.15rem;
-                padding: 0.2rem 0.2rem 0.28rem;
+                padding: 0.08rem 0.08rem 0.16rem;
                 width: 4.15rem;
             }
             .match-detail-squad-list .match-bench-player .match-bench-photo {
-                height: 2.8rem;
-                margin-bottom: 0.1rem;
-                width: 3rem;
+                height: auto;
+                margin-bottom: 0;
+                width: 100%;
             }
             .match-detail-squad-list .match-bench-name {
                 font-size: 0.62rem;
@@ -7491,7 +7499,8 @@
             display: flex;
             justify-content: center;
             min-height: 5.65rem;
-            padding: 0.22rem 0.2rem 0.3rem;
+            overflow: hidden;
+            padding: 0.08rem 0.08rem 0.16rem;
             position: absolute;
             transform: translate(-50%, -50%);
             transition: border-color 140ms ease, box-shadow 140ms ease;
@@ -7504,28 +7513,33 @@
         }
         .match-game-plan-lineup-visual {
             align-items: center;
+            align-self: stretch;
             display: flex;
             flex-direction: column;
+            flex: 1 1 auto;
             justify-content: center;
             min-width: 0;
             pointer-events: none;
             text-align: center;
+            height: 100%;
             width: 100%;
         }
         .match-game-plan-lineup-photo {
             align-items: center;
             align-self: center;
             background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
-            border: 2px solid rgba(255, 255, 255, 0.95);
-            border-radius: 0.68rem 0.68rem 0.3rem 0.3rem;
+            border: 0;
+            border-radius: 0.68rem 0.68rem 0.18rem 0.18rem;
             box-shadow: 0 5px 12px rgba(15, 23, 42, 0.14);
             color: #123f73;
             display: inline-flex;
-            height: 3.05rem;
+            flex: 1 1 auto;
+            height: auto;
             justify-content: center;
-            margin-bottom: 0.16rem;
+            margin-bottom: 0;
+            min-height: 0;
             overflow: hidden;
-            width: 3.25rem;
+            width: 100%;
         }
         .match-game-plan-lineup-photo img {
             display: block;
@@ -7544,6 +7558,7 @@
             font-weight: 950;
             line-height: 1.05;
             overflow: hidden;
+            padding: 0.13rem 0.08rem 0;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -7642,7 +7657,7 @@
         @media (max-width: 520px) {
             .match-game-plan-lineup-card {
                 min-height: 5.2rem;
-                padding: 0.18rem 0.18rem 0.26rem;
+                padding: 0.07rem 0.07rem 0.14rem;
                 width: min(4.25rem, 20vw);
             }
             .match-game-plan-lineup-photo {
