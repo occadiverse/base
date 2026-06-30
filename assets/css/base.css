@@ -2914,19 +2914,29 @@
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35), 0 12px 26px rgba(11, 43, 76, 0.2);
             outline: none;
         }
-        .roster-player-jersey {
+        .roster-player-avatar {
             align-items: center;
-            background: linear-gradient(135deg, #ffffff 0%, #e6edf5 100%);
-            border: 2px solid rgba(245, 197, 66, 0.75);
-            border-radius: 999px;
+            background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+            border: 1px solid rgba(245, 197, 66, 0.55);
+            border-radius: 0.55rem;
+            box-shadow: 0 6px 14px rgba(2, 6, 23, 0.16);
             color: #123f73;
             display: inline-flex;
             flex: 0 0 auto;
-            font-size: 0.78rem;
-            font-weight: 950;
-            height: 2.5rem;
+            height: 3.15rem;
             justify-content: center;
-            width: 2.5rem;
+            overflow: hidden;
+            width: 2.36rem;
+        }
+        .roster-player-avatar img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .roster-player-avatar i {
+            font-size: 0.95rem;
+            opacity: 0.78;
         }
         .roster-player-main {
             display: flex;
@@ -3194,12 +3204,12 @@
             .roster-player-row.is-long-injury-player {
                 border-left-color: #f87171;
             }
-            .roster-player-jersey {
-                background: rgba(255, 255, 255, 0.95);
-                border-color: rgba(245, 197, 66, 0.85);
+            .roster-player-avatar {
+                background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+                border-color: rgba(245, 197, 66, 0.7);
                 box-shadow: 0 6px 14px rgba(2, 6, 23, 0.18);
                 color: #123f73;
-                height: 2.25rem;
+                height: 3rem;
                 width: 2.25rem;
             }
             .roster-player-name {
@@ -3755,10 +3765,12 @@
                 grid-template-columns: auto minmax(0, 1fr) auto;
                 padding: 0.7rem 0.75rem;
             }
-            .roster-player-jersey {
-                font-size: 0.72rem;
-                height: 2.25rem;
-                width: 2.25rem;
+            .roster-player-avatar {
+                height: 2.85rem;
+                width: 2.15rem;
+            }
+            .roster-player-avatar i {
+                font-size: 0.85rem;
             }
             .roster-player-name {
                 font-size: 0.92rem;

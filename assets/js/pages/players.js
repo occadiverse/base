@@ -326,9 +326,33 @@ function buildRosterInjuryBadge(injuryInfo) {
     return `<span class="roster-badge ${injuryClass}" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
 }
 
+function escapeRosterHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function getRosterPlayerPhotoUrl(player) {
+    return player?.photoUrl || player?.bildeUrl || player?.avatarUrl || player?.imageUrl || player?.photo || '';
+}
+
+function buildRosterPlayerAvatarHtml(player) {
+    const photoUrl = getRosterPlayerPhotoUrl(player);
+
+    return `
+        <div class="roster-player-avatar" aria-hidden="true">
+            ${photoUrl
+                ? `<img src="${escapeRosterHtml(photoUrl)}" alt="">`
+                : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+        </div>
+    `;
+}
+
 function buildRosterPlayerRow(p, currentYear) {
     const age = currentYear - parseInt(p.fodselsaar || 2000);
-    const jersey = p.draktnummer ? String(p.draktnummer) : '–';
     const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
     const teamName = p.spillerLag || 'Uten lag';
     const foot = p.fot ? `${p.fot} fot` : 'Ukjent fot';
@@ -346,9 +370,7 @@ function buildRosterPlayerRow(p, currentYear) {
 
     return `
         <article class="roster-player-row ${rowStateClasses}" onclick="window.openPlayerModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openPlayerModal('${p.id}');}">
-            <div class="roster-player-jersey" aria-label="Draktnummer ${jersey}">
-                <span>${jersey}</span>
-            </div>
+            ${buildRosterPlayerAvatarHtml(p)}
             <div class="roster-player-main">
                 <div class="roster-player-name">${p.navn}${captainMark}</div>
                 <div class="roster-player-meta">
