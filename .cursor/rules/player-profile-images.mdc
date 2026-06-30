@@ -1,0 +1,13 @@
+---
+description: Standard for player profile images
+globs: assets/img/players/**/*, assets/js/pages/matches.js, assets/css/base.css
+alwaysApply: false
+---
+
+# Player Profile Images
+
+- Use a 3:4 portrait format for player profile images.
+- Preferred export size is `600x800`.
+- Keep the face and upper body centered, with a little space above the head.
+- Store player images in `assets/img/players/`.
+- Use `object-fit: cover` in player cards so the image fills the card, with the player name shown in the bottom label area.
