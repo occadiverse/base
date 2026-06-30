@@ -9680,6 +9680,22 @@
                 max-width: none;
                 width: 100%;
             }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
+                box-shadow: 0 6px 14px rgba(2, 6, 23, 0.16);
+                min-height: 3.5rem;
+                transform: translate(-50%, -50%) scale(0.86);
+                width: min(3rem, 14%);
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled {
+                box-shadow: 0 8px 16px rgba(2, 6, 23, 0.18), 0 0 0 1.5px rgba(245, 197, 66, 0.24);
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual strong {
+                font-size: 0.48rem;
+                padding-top: 0.1rem;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
+                font-size: 0.42rem;
+            }
             .match-detail-section-action {
                 font-size: 0;
                 height: 2.1rem;
