@@ -1663,26 +1663,20 @@ window.showMatchDetails = function(id) {
     const benchPositionHtml = ['K', 'F', 'M', 'A'].map(letter => (
         `${positionCounts[letter]}${letter}`
     )).join('<span class="dashboard-session-radar-sep"> - </span>');
-    const getLastName = (name) => {
-        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-        return parts.length ? parts[parts.length - 1] : 'Spiller';
-    };
-    const getInitials = (name) => String(name || 'S')
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(part => part[0])
-        .join('')
-        .toUpperCase() || 'S';
     const renderBenchPlayerHtml = (player) => {
-        const jersey = player.drakt ? `${escapeHtml(player.drakt)}. ` : '';
-        const lastName = getLastName(player.navn);
+        const jersey = player.drakt ? `#${escapeHtml(player.drakt)}` : '';
+        const lastName = getMatchGamePlanPlayerLastName(player);
+        const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
 
         return `
             <div class="match-bench-player">
-                <span class="match-bench-avatar">${escapeHtml(getInitials(player.navn))}</span>
-                <span class="match-bench-name">${jersey}${escapeHtml(lastName)}</span>
+                <span class="match-game-plan-lineup-photo match-bench-photo" aria-hidden="true">
+                    ${photoUrl
+                        ? `<img src="${escapeHtml(photoUrl)}" alt="">`
+                        : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                </span>
+                <strong class="match-bench-name">${escapeHtml(lastName)}</strong>
+                ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
             </div>
         `;
     };
