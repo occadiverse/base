@@ -482,17 +482,17 @@ const matchGamePlanFormations = {
     '4-2-4': {
         label: '4-2-4',
         positions: {
-            GK: { top: '91%', left: '50%', label: 'Keeper' },
-            VB: { top: '74%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '76%', left: '39%', label: 'Stopper' },
-            HMS: { top: '76%', left: '61%', label: 'Stopper' },
-            HB: { top: '74%', left: '83%', label: 'Høyre back' },
-            DM: { top: '56%', left: '40%', label: 'Midtbane' },
-            PM: { top: '56%', left: '60%', label: 'Midtbane' },
-            VK: { top: '31%', left: '15%', label: 'Venstre kant' },
-            OM: { top: '27%', left: '39%', label: 'Spiss' },
-            SP: { top: '27%', left: '61%', label: 'Spiss' },
-            HK: { top: '31%', left: '85%', label: 'Høyre kant' }
+            GK: { top: '93%', left: '50%', label: 'Keeper' },
+            VB: { top: '75%', left: '19%', label: 'Venstre back' },
+            VMS: { top: '80%', left: '39%', label: 'Stopper' },
+            HMS: { top: '80%', left: '61%', label: 'Stopper' },
+            HB: { top: '75%', left: '81%', label: 'Høyre back' },
+            DM: { top: '62%', left: '40%', label: 'Midtbane' },
+            PM: { top: '35%', left: '61%', label: 'Midtbane' },
+            VK: { top: '31%', left: '10%', label: 'Venstre kant' },
+            OM: { top: '62%', left: '60%', label: 'Midtbane' },
+            SP: { top: '27%', left: '39%', label: 'Spiss' },
+            HK: { top: '31%', left: '90%', label: 'Høyre kant' }
         }
     },
     '4-3-3': {
@@ -658,7 +658,26 @@ function buildMatchGamePlanHeadingAvatarHtml(player, posId) {
 }
 
 function getMatchGamePlanLineup(match) {
+    if (match?.lineupRefs && typeof match.lineupRefs === 'object') {
+        const resolvedLineup = {};
+        Object.entries(match.lineupRefs).forEach(([posId, ref]) => {
+            resolvedLineup[posId] = ref && typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(ref)
+                : null;
+        });
+        return resolvedLineup;
+    }
+
     return match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
+}
+
+function getMatchGamePlanLineupRefs(lineup) {
+    return Object.fromEntries(
+        Object.entries(lineup || {}).map(([posId, player]) => [
+            posId,
+            player ? (window.getPlayerStorageKey?.(player) || player.id || player.navn || '') : ''
+        ])
+    );
 }
 
 function cloneMatchGamePlanLineup(lineup) {
@@ -1878,6 +1897,7 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     if (selectedCount !== 11) return;
 
     match.lineup = cloneMatchGamePlanLineup(draft.lineup);
+    match.lineupRefs = getMatchGamePlanLineupRefs(draft.lineup);
     match.formation = draftFormation;
 
     if (typeof window.saveMatchToDatabase === 'function') {

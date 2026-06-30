@@ -167,7 +167,16 @@
     window.tacticalLineup = {};
     const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
     const savedLineup = match.lineup || {};
-    positions.forEach(pos => { window.tacticalLineup[pos] = savedLineup[pos] || null; });
+    const savedLineupRefs = match.lineupRefs || {};
+    positions.forEach(pos => {
+        const refPlayer = savedLineupRefs[pos] && typeof window.findPlayerByRef === 'function'
+            ? window.findPlayerByRef(savedLineupRefs[pos])
+            : null;
+        const savedPlayer = typeof savedLineup[pos] === 'string' && typeof window.findPlayerByRef === 'function'
+            ? window.findPlayerByRef(savedLineup[pos])
+            : savedLineup[pos];
+        window.tacticalLineup[pos] = refPlayer || savedPlayer || null;
+    });
     
     const roles = ['captain', 'penalty', 'freekick', 'corners'];
     const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
@@ -205,6 +214,12 @@
             if (!match) return;
             
             match.lineup = window.tacticalLineup;
+            match.lineupRefs = Object.fromEntries(
+                Object.entries(window.tacticalLineup || {}).map(([pos, player]) => [
+                    pos,
+                    player ? (window.getPlayerStorageKey?.(player) || player.id || player.navn || '') : ''
+                ])
+            );
             match.roles = {
                 captain: document.getElementById('role-captain') ? document.getElementById('role-captain').value : '',
                 penalty: document.getElementById('role-penalty') ? document.getElementById('role-penalty').value : '',
