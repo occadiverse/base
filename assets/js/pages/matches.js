@@ -537,10 +537,10 @@ const matchGamePlanFormations = {
             HB: { top: '74%', left: '83%', label: 'Høyre back' },
             VK: { top: '52%', left: '14%', label: 'Venstre midtbane' },
             DM: { top: '57%', left: '50%', label: 'Midtbane' },
-            OM: { top: '56%', left: '32%', label: 'Midtbane' },
-            PM: { top: '56%', left: '68%', label: 'Midtbane' },
+            OM: { top: '54%', left: '32%', label: 'Midtbane' },
+            PM: { top: '54%', left: '68%', label: 'Midtbane' },
             HK: { top: '52%', left: '86%', label: 'Høyre midtbane' },
-            SP: { top: '33%', left: '50%', label: 'Spiss' }
+            SP: { top: '36%', left: '50%', label: 'Spiss' }
         }
     }
 };
@@ -892,11 +892,6 @@ function buildMatchGamePlanStarterFooterHtml(match) {
 
     return `
         <div class="match-game-plan-lineup-footer">
-            <button type="button" class="match-game-plan-lineup-back" onclick="window.goBackToPreviousPortalPage ? window.goBackToPreviousPortalPage() : window.switchTab('kamper')">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>Tilbake</span>
-            </button>
-            <span class="match-game-plan-lineup-count">${selectedCount}/11 valgt</span>
             <button
                 type="button"
                 class="match-game-plan-lineup-finish ${isComplete ? 'is-ready' : ''}"

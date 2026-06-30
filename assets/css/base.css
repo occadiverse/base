@@ -1313,7 +1313,7 @@
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
             border-radius: 0.64rem;
-            min-height: 4.05rem;
+            min-height: 4.35rem;
             padding: 0.16rem 0.16rem 0.22rem;
             width: min(3.85rem, 19%);
         }
@@ -1344,7 +1344,7 @@
         }
         .match-detail-lineup-builder .match-game-plan-lineup-footer {
             gap: 0.4rem;
-            grid-template-columns: auto auto minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1fr);
         }
         .match-detail-lineup-builder .match-game-plan-lineup-back,
         .match-detail-lineup-builder .match-game-plan-lineup-finish {
@@ -1359,7 +1359,7 @@
         }
         @media (min-width: 1024px) {
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
-                min-height: 4.7rem;
+                min-height: 5rem;
                 padding: 0.2rem 0.18rem 0.28rem;
                 width: min(4.45rem, 21%);
             }
@@ -7461,7 +7461,7 @@
             color: #0f172a;
             display: flex;
             justify-content: center;
-            min-height: 5.35rem;
+            min-height: 5.65rem;
             padding: 0.22rem 0.2rem 0.3rem;
             position: absolute;
             transform: translate(-50%, -50%);
@@ -7612,7 +7612,7 @@
         }
         @media (max-width: 520px) {
             .match-game-plan-lineup-card {
-                min-height: 4.9rem;
+                min-height: 5.2rem;
                 padding: 0.18rem 0.18rem 0.26rem;
                 width: min(4.25rem, 20vw);
             }
@@ -7624,12 +7624,7 @@
                 font-size: 0.6rem;
             }
             .match-game-plan-lineup-footer {
-                grid-template-columns: auto 1fr;
-            }
-            .match-game-plan-lineup-count {
-                grid-column: 1 / -1;
-                grid-row: 1;
-                justify-self: center;
+                grid-template-columns: minmax(0, 1fr);
             }
         }
         .match-game-plan-diagram-node {
