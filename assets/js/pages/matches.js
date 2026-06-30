@@ -476,6 +476,75 @@ const matchGamePlanStarterPositions = {
     SP: { top: '50%', left: '40%' }
 };
 
+const matchGamePlanStarterPositionIds = Object.keys(matchGamePlanStarterPositions);
+
+const matchGamePlanFormations = {
+    '4-3-3': {
+        label: '4-3-3',
+        positions: {
+            GK: { top: '91%', left: '50%', label: 'Keeper' },
+            VB: { top: '74%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '76%', left: '39%', label: 'Stopper' },
+            HMS: { top: '76%', left: '61%', label: 'Stopper' },
+            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            DM: { top: '55%', left: '30%', label: 'Midtbane' },
+            OM: { top: '57%', left: '50%', label: 'Midtbane' },
+            PM: { top: '55%', left: '70%', label: 'Midtbane' },
+            VK: { top: '31%', left: '22%', label: 'Venstre kant' },
+            SP: { top: '25%', left: '50%', label: 'Spiss' },
+            HK: { top: '31%', left: '78%', label: 'Høyre kant' }
+        }
+    },
+    '4-2-4': {
+        label: '4-2-4',
+        positions: {
+            GK: { top: '91%', left: '50%', label: 'Keeper' },
+            VB: { top: '74%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '76%', left: '39%', label: 'Stopper' },
+            HMS: { top: '76%', left: '61%', label: 'Stopper' },
+            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            DM: { top: '56%', left: '40%', label: 'Midtbane' },
+            PM: { top: '56%', left: '60%', label: 'Midtbane' },
+            VK: { top: '31%', left: '15%', label: 'Venstre kant' },
+            OM: { top: '27%', left: '39%', label: 'Spiss' },
+            SP: { top: '27%', left: '61%', label: 'Spiss' },
+            HK: { top: '31%', left: '85%', label: 'Høyre kant' }
+        }
+    },
+    '4-2-3-1': {
+        label: '4-2-3-1',
+        positions: {
+            GK: { top: '91%', left: '50%', label: 'Keeper' },
+            VB: { top: '74%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '76%', left: '39%', label: 'Stopper' },
+            HMS: { top: '76%', left: '61%', label: 'Stopper' },
+            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            DM: { top: '58%', left: '38%', label: 'Defensiv midtbane' },
+            PM: { top: '58%', left: '62%', label: 'Defensiv midtbane' },
+            VK: { top: '40%', left: '22%', label: 'Venstre kant' },
+            OM: { top: '39%', left: '50%', label: 'Offensiv midtbane' },
+            HK: { top: '40%', left: '78%', label: 'Høyre kant' },
+            SP: { top: '22%', left: '50%', label: 'Spiss' }
+        }
+    },
+    '4-5-1': {
+        label: '4-5-1',
+        positions: {
+            GK: { top: '91%', left: '50%', label: 'Keeper' },
+            VB: { top: '74%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '76%', left: '39%', label: 'Stopper' },
+            HMS: { top: '76%', left: '61%', label: 'Stopper' },
+            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            VK: { top: '52%', left: '14%', label: 'Venstre midtbane' },
+            DM: { top: '56%', left: '32%', label: 'Midtbane' },
+            OM: { top: '57%', left: '50%', label: 'Midtbane' },
+            PM: { top: '56%', left: '68%', label: 'Midtbane' },
+            HK: { top: '52%', left: '86%', label: 'Høyre midtbane' },
+            SP: { top: '25%', left: '50%', label: 'Spiss' }
+        }
+    }
+};
+
 // OffC corner diagram. top/left are percentages of the pitch: top moves down, left moves right.
 const matchGamePlanOffCPositions = {
     1: { top: '3%', left: '95%', tone: 'neutral' },
@@ -555,6 +624,15 @@ function getMatchGamePlanPlayerShortName(player) {
     return String(player?.navn || '').trim() || 'Spiller';
 }
 
+function getMatchGamePlanPlayerLastName(player) {
+    const parts = String(player?.navn || '').trim().split(/\s+/).filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : 'Spiller';
+}
+
+function getMatchGamePlanPlayerPhotoUrl(player) {
+    return player?.photoUrl || player?.bildeUrl || player?.avatarUrl || player?.imageUrl || player?.photo || '';
+}
+
 function getMatchGamePlanPlayerInitials(player) {
     return String(player?.navn || '')
         .trim()
@@ -581,6 +659,12 @@ function buildMatchGamePlanHeadingAvatarHtml(player, posId) {
 
 function getMatchGamePlanLineup(match) {
     return match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
+}
+
+function getMatchGamePlanFormation(match) {
+    const formation = match?.formation || match?.lineupFormation || '4-3-3';
+    if (formation === '4-4-2') return '4-2-4';
+    return matchGamePlanFormations[formation] ? formation : '4-3-3';
 }
 
 function getMatchGamePlanOffCAssignments(match) {
@@ -629,6 +713,13 @@ function getMatchGamePlanRoleLabel(slot) {
     return matchGamePlanRoleLabels[slot] || slot;
 }
 
+function getMatchGamePlanAddLabel(posId) {
+    if (posId === 'GK') return 'Legg til målvakt';
+    if (['VB', 'VMS', 'HMS', 'HB'].includes(posId)) return 'Legg til forsvarer';
+    if (['DM', 'OM', 'PM'].includes(posId)) return 'Legg til midtbane';
+    return 'Legg til angriper';
+}
+
 function buildMatchGamePlanNodeHtml(match, posId, coords) {
     const selectedPlayer = getMatchGamePlanLineup(match)[posId] || null;
     const playerNameHtml = selectedPlayer
@@ -647,6 +738,114 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
             <span class="player-node-pos">${escapeMatchHtml(posId)}</span>
             ${playerNameHtml}
         </button>
+    `;
+}
+
+function buildMatchGamePlanFormationPickerHtml(match) {
+    const activeFormation = getMatchGamePlanFormation(match);
+
+    return `
+        <div class="match-game-plan-formation-picker" role="group" aria-label="Velg formasjon">
+            ${Object.keys(matchGamePlanFormations).map(formationId => `
+                <button
+                    type="button"
+                    class="match-game-plan-formation-btn ${activeFormation === formationId ? 'is-active' : ''}"
+                    onclick="window.setMatchGamePlanFormation('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(formationId)}')"
+                >${escapeMatchHtml(formationId)}</button>
+            `).join('')}
+        </div>
+    `;
+}
+
+function buildMatchGamePlanStarterSelectOptionsHtml(match, posId, selectedPlayer) {
+    const lineup = getMatchGamePlanLineup(match);
+    const usedPlayerIds = new Set(
+        Object.entries(lineup)
+            .filter(([otherPosId]) => otherPosId !== posId)
+            .map(([, player]) => player?.id)
+            .filter(Boolean)
+    );
+
+    return [
+        '<option value="">Velg spiller</option>',
+        ...getMatchGamePlanSelectablePlayers(match)
+            .sort((a, b) => {
+                const scoreA = getMatchGamePlanPositionScore(a, posId);
+                const scoreB = getMatchGamePlanPositionScore(b, posId);
+                if (scoreA !== scoreB) return scoreA - scoreB;
+                const jerseyA = Number(a.drakt || a.draktnummer) || 999;
+                const jerseyB = Number(b.drakt || b.draktnummer) || 999;
+                return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
+            })
+            .map(player => {
+                const isSelected = selectedPlayer && player.id === selectedPlayer.id;
+                const isUsed = usedPlayerIds.has(player.id);
+                const meta = [player.pos1, player.drakt || player.draktnummer ? `#${player.drakt || player.draktnummer}` : '']
+                    .filter(Boolean)
+                    .join(' - ');
+
+                return `<option value="${escapeMatchHtml(player.id)}" ${isSelected ? 'selected' : ''} ${isUsed ? 'disabled' : ''}>${escapeMatchHtml(player.navn)}${meta ? ` (${escapeMatchHtml(meta)})` : ''}</option>`;
+            })
+    ].join('');
+}
+
+function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
+    const selectedPlayer = getMatchGamePlanLineup(match)[posId] || null;
+    const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
+    const photoUrl = selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : '';
+    const cardLabel = selectedPlayer
+        ? getMatchGamePlanPlayerLastName(selectedPlayer)
+        : getMatchGamePlanAddLabel(posId);
+
+    return `
+        <div
+            class="match-game-plan-lineup-card ${selectedPlayer ? 'is-filled' : 'is-empty'}"
+            style="top: ${coords.top}; left: ${coords.left};"
+            data-game-plan-node="${escapeMatchHtml(posId)}"
+        >
+            <span class="match-game-plan-lineup-visual" aria-hidden="true">
+                ${selectedPlayer ? `
+                    <span class="match-game-plan-lineup-photo">
+                        ${photoUrl
+                            ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
+                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                    </span>
+                ` : ''}
+                <strong>${escapeMatchHtml(cardLabel)}</strong>
+            </span>
+            <i class="fa-solid fa-chevron-down match-game-plan-lineup-chevron" aria-hidden="true"></i>
+            <select
+                class="match-game-plan-lineup-select"
+                aria-label="Velg spiller for ${escapeMatchHtml(positionLabel)}"
+                onchange="window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', this.value)"
+            >
+                ${buildMatchGamePlanStarterSelectOptionsHtml(match, posId, selectedPlayer)}
+            </select>
+        </div>
+    `;
+}
+
+function buildMatchGamePlanStarterFooterHtml(match) {
+    const selectedCount = matchGamePlanStarterPositionIds.filter(posId => getMatchGamePlanLineup(match)[posId]).length;
+    const isComplete = selectedCount === 11;
+
+    return `
+        <div class="match-game-plan-lineup-footer">
+            <button type="button" class="match-game-plan-lineup-back" onclick="window.goBackToPreviousPortalPage ? window.goBackToPreviousPortalPage() : window.switchTab('kamper')">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Tilbake</span>
+            </button>
+            <span class="match-game-plan-lineup-count">${selectedCount}/11 valgt</span>
+            <button
+                type="button"
+                class="match-game-plan-lineup-finish ${isComplete ? 'is-ready' : ''}"
+                onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
+                ${isComplete ? '' : 'disabled'}
+            >
+                <span>Fullfør laget</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
     `;
 }
 
@@ -982,6 +1181,26 @@ function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '', extraClass 
 }
 
 function buildMatchGamePlanStarter11Html(match, extraClass = '') {
+    const isCompact = extraClass.includes('match-detail-lineup-pitch-wrap');
+    if (isCompact) {
+        const formation = matchGamePlanFormations[getMatchGamePlanFormation(match)] || matchGamePlanFormations['4-3-3'];
+        const pitchHtml = buildMatchGamePlanPitchHtml({
+            ariaLabel: '11er bane',
+            extraClass: `${extraClass} match-game-plan-starter11-wrap`,
+            childrenHtml: Object.entries(formation.positions).map(([posId, coords]) => `
+                ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
+            `).join('')
+        });
+
+        return `
+            <div class="match-detail-lineup-builder">
+                ${buildMatchGamePlanFormationPickerHtml(match)}
+                ${pitchHtml}
+                ${buildMatchGamePlanStarterFooterHtml(match)}
+            </div>
+        `;
+    }
+
     return buildMatchGamePlanPitchHtml({
         ariaLabel: '11er bane',
         extraClass,
@@ -1062,11 +1281,15 @@ function renderMatchGamePlanBenchPage(match) {
     page.innerHTML = buildMatchGamePlanBenchHtml(match);
 }
 
-function buildMatchGamePlanTabContentHtml(match, tab) {
-    if (tab.id === 'starter11') {
-        return buildMatchGamePlanStarter11Html(match);
-    }
+function renderMatchGamePlanStarter11Page(match) {
+    document.querySelectorAll('.match-detail-squad-lineup > .match-detail-lineup-builder, .match-detail-squad-lineup > .match-detail-lineup-pitch-wrap').forEach(wrap => {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap').trim();
+        wrap.replaceWith(wrapper.firstElementChild);
+    });
+}
 
+function buildMatchGamePlanTabContentHtml(match, tab) {
     if (tab.id === 'offc') {
         return buildMatchGamePlanOffCHtml(match);
     }
@@ -1582,7 +1805,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
         [posId]: selectedPlayer ? { ...selectedPlayer } : null
     };
 
-    window.renderMatchGamePlanStarterNode(match, posId);
+    renderMatchGamePlanStarter11Page(match);
     renderMatchGamePlanOffCPage(match);
     renderMatchGamePlanDefCPage(match);
     renderMatchGamePlanRolesPage(match);
@@ -1598,6 +1821,32 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+};
+
+window.setMatchGamePlanFormation = async function(matchId, formationId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match || !matchGamePlanFormations[formationId]) return;
+
+    match.formation = formationId;
+    renderMatchGamePlanStarter11Page(match);
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+};
+
+window.completeMatchGamePlanLineup = async function(matchId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
+
+    const selectedCount = matchGamePlanStarterPositionIds.filter(posId => getMatchGamePlanLineup(match)[posId]).length;
+    if (selectedCount !== 11) return;
+
+    if (typeof window.saveMatchToDatabase === 'function') {
+        await window.saveMatchToDatabase(match);
+    }
+
+    alert(`Laget er klart i ${getMatchGamePlanFormation(match)}.`);
 };
 
 window.updateMatchGamePlanOffCPlayer = async function(matchId, slot, playerRef = '') {
@@ -1728,8 +1977,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     lineup[fromPosId] = targetPlayer || null;
     match.lineup = lineup;
 
-    window.renderMatchGamePlanStarterNode(match, fromPosId);
-    window.renderMatchGamePlanStarterNode(match, toPosId);
+    renderMatchGamePlanStarter11Page(match);
     renderMatchGamePlanOffCPage(match);
     renderMatchGamePlanDefCPage(match);
     renderMatchGamePlanRolesPage(match);
@@ -1906,11 +2154,6 @@ window.syncMatchGamePlanScroller = function() {
     const tabsScroller = document.getElementById('match-game-plan-tabs');
     const wrap = tabsScroller?.closest('.match-game-plan-tabs-wrap');
     if (!contentScroller || !tabsScroller || !wrap) return;
-
-    const starterTabButton = tabsScroller.querySelector('[data-game-plan-tab="starter11"]');
-    if (starterTabButton && starterTabButton.textContent.trim() !== '11er') {
-        starterTabButton.textContent = '11er';
-    }
 
     const isDesktop = window.innerWidth >= 768;
     const storedActiveTabId = contentScroller.dataset.activeGamePlanTab || matchGamePlanTabs[0].id;

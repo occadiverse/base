@@ -1271,11 +1271,72 @@
             align-self: start;
             min-width: 0;
         }
+        .match-detail-lineup-builder {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+        .match-detail-lineup-builder .match-game-plan-formation-picker {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(245, 197, 66, 0.18);
+        }
+        .match-detail-lineup-builder .match-game-plan-formation-btn {
+            font-size: 0.6rem;
+            min-height: 1.9rem;
+            padding: 0.42rem 0.22rem;
+        }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch {
             border-color: rgba(245, 197, 66, 0.2);
             box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16);
             max-width: none;
             width: 100%;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
+            border-radius: 0.64rem;
+            min-height: 4.05rem;
+            padding: 0.16rem 0.16rem 0.22rem;
+            width: min(3.85rem, 19%);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo {
+            border-width: 1px;
+            border-radius: 0.48rem 0.48rem 0.24rem 0.24rem;
+            height: 2.28rem;
+            margin-bottom: 0.12rem;
+            width: 2.42rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo i {
+            font-size: 0.78rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual strong {
+            font-size: 0.54rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
+            font-size: 0.46rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual span:not(.match-game-plan-lineup-photo) {
+            font-size: 0.38rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-select {
+            border-radius: 0.64rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-chevron {
+            display: none;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-footer {
+            gap: 0.4rem;
+            grid-template-columns: auto auto minmax(0, 1fr);
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-back,
+        .match-detail-lineup-builder .match-game-plan-lineup-finish {
+            border-radius: 0.75rem;
+            font-size: 0.62rem;
+            min-height: 2.25rem;
+            padding: 0.55rem 0.62rem;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-count {
+            font-size: 0.56rem;
+            padding: 0.36rem 0.5rem;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-node {
             height: 1.9rem;
@@ -7309,6 +7370,229 @@
             box-shadow:
                 0 10px 18px rgba(2, 6, 23, 0.28),
                 0 0 0 3px rgba(245, 197, 66, 0.28);
+        }
+        .match-game-plan-starter11-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .match-game-plan-formation-picker {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(245, 197, 66, 0.16);
+            border-radius: 999px;
+            display: flex;
+            gap: 0.28rem;
+            padding: 0.28rem;
+            width: 100%;
+        }
+        .match-game-plan-formation-btn {
+            appearance: none;
+            background: transparent;
+            border: 0;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.68);
+            cursor: pointer;
+            flex: 1;
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.06em;
+            min-height: 2.2rem;
+            padding: 0.52rem 0.34rem;
+            transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+        }
+        .match-game-plan-formation-btn.is-active {
+            background: #f5c542;
+            color: #0b2b4c;
+        }
+        .match-game-plan-formation-btn:hover {
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .match-game-plan-formation-btn.is-active:hover {
+            color: #0b2b4c;
+        }
+        .match-game-plan-starter11-wrap .match-game-plan-pitch {
+            overflow: hidden;
+        }
+        .match-game-plan-lineup-card {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(18, 63, 115, 0.16);
+            border-radius: 0.78rem;
+            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.2);
+            color: #0f172a;
+            display: flex;
+            justify-content: center;
+            min-height: 5.35rem;
+            padding: 0.22rem 0.2rem 0.3rem;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: border-color 140ms ease, box-shadow 140ms ease;
+            width: min(4.65rem, 17vw);
+            z-index: 4;
+        }
+        .match-game-plan-lineup-card.is-filled {
+            border-color: rgba(245, 197, 66, 0.7);
+            box-shadow: 0 12px 24px rgba(2, 6, 23, 0.24), 0 0 0 2px rgba(245, 197, 66, 0.26);
+        }
+        .match-game-plan-lineup-visual {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+        }
+        .match-game-plan-lineup-photo {
+            align-items: center;
+            align-self: center;
+            background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            border-radius: 0.68rem 0.68rem 0.3rem 0.3rem;
+            box-shadow: 0 5px 12px rgba(15, 23, 42, 0.14);
+            color: #123f73;
+            display: inline-flex;
+            height: 3.05rem;
+            justify-content: center;
+            margin-bottom: 0.16rem;
+            overflow: hidden;
+            width: 3.25rem;
+        }
+        .match-game-plan-lineup-photo img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-game-plan-lineup-photo i {
+            font-size: 1rem;
+            opacity: 0.78;
+        }
+        .match-game-plan-lineup-visual strong {
+            color: #123f73;
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 950;
+            line-height: 1.05;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
+            color: #475569;
+            font-size: 0.58rem;
+            line-height: 1.1;
+            white-space: normal;
+        }
+        .match-game-plan-lineup-visual span:not(.match-game-plan-lineup-photo) {
+            color: #64748b;
+            display: block;
+            font-size: 0.48rem;
+            font-weight: 950;
+            letter-spacing: 0.06em;
+            margin-top: 0.1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .match-game-plan-lineup-chevron {
+            display: none;
+        }
+        .match-game-plan-lineup-select {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            border: 0;
+            border-radius: 0.78rem;
+            color: transparent;
+            cursor: pointer;
+            inset: 0;
+            opacity: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .match-game-plan-lineup-select:focus {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.22);
+            outline: none;
+        }
+        .match-game-plan-lineup-footer {
+            align-items: center;
+            display: grid;
+            gap: 0.6rem;
+            grid-template-columns: auto auto minmax(0, 1fr);
+        }
+        .match-game-plan-lineup-back,
+        .match-game-plan-lineup-finish {
+            align-items: center;
+            appearance: none;
+            border: 0;
+            border-radius: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            font-size: 0.72rem;
+            font-weight: 950;
+            gap: 0.42rem;
+            justify-content: center;
+            min-height: 2.7rem;
+            padding: 0.72rem 0.86rem;
+            transition: opacity 140ms ease, transform 140ms ease, background 140ms ease;
+        }
+        .match-game-plan-lineup-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .match-game-plan-lineup-count {
+            background: rgba(245, 197, 66, 0.16);
+            border: 1px solid rgba(245, 197, 66, 0.26);
+            border-radius: 999px;
+            color: #f5c542;
+            font-size: 0.64rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            padding: 0.45rem 0.62rem;
+            text-align: center;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .match-game-plan-lineup-finish {
+            background: rgba(180, 83, 92, 0.62);
+            color: #ffffff;
+            opacity: 0.56;
+        }
+        .match-game-plan-lineup-finish.is-ready {
+            background: #f5c542;
+            color: #0b2b4c;
+            opacity: 1;
+        }
+        .match-game-plan-lineup-back:hover,
+        .match-game-plan-lineup-finish:not(:disabled):hover {
+            transform: translateY(-1px);
+        }
+        @media (max-width: 520px) {
+            .match-game-plan-lineup-card {
+                min-height: 4.9rem;
+                padding: 0.18rem 0.18rem 0.26rem;
+                width: min(4.25rem, 20vw);
+            }
+            .match-game-plan-lineup-photo {
+                height: 2.65rem;
+                width: 2.85rem;
+            }
+            .match-game-plan-lineup-visual strong {
+                font-size: 0.6rem;
+            }
+            .match-game-plan-lineup-footer {
+                grid-template-columns: auto 1fr;
+            }
+            .match-game-plan-lineup-count {
+                grid-column: 1 / -1;
+                grid-row: 1;
+                justify-self: center;
+            }
         }
         .match-game-plan-diagram-node {
             align-items: center;
