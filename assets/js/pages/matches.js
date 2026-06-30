@@ -503,8 +503,8 @@ const matchGamePlanFormations = {
             VMS: { top: '76%', left: '39%', label: 'Stopper' },
             HMS: { top: '76%', left: '61%', label: 'Stopper' },
             HB: { top: '74%', left: '83%', label: 'Høyre back' },
-            DM: { top: '55%', left: '30%', label: 'Midtbane' },
-            OM: { top: '57%', left: '50%', label: 'Midtbane' },
+            DM: { top: '57%', left: '50%', label: 'Midtbane' },
+            OM: { top: '55%', left: '30%', label: 'Midtbane' },
             PM: { top: '55%', left: '70%', label: 'Midtbane' },
             VK: { top: '31%', left: '22%', label: 'Venstre kant' },
             SP: { top: '25%', left: '50%', label: 'Spiss' },
@@ -519,10 +519,10 @@ const matchGamePlanFormations = {
             VMS: { top: '76%', left: '39%', label: 'Stopper' },
             HMS: { top: '76%', left: '61%', label: 'Stopper' },
             HB: { top: '74%', left: '83%', label: 'Høyre back' },
-            DM: { top: '58%', left: '38%', label: 'Defensiv midtbane' },
-            PM: { top: '58%', left: '62%', label: 'Defensiv midtbane' },
+            DM: { top: '58%', left: '62%', label: 'Defensiv midtbane' },
+            PM: { top: '39%', left: '50%', label: 'Playmaker' },
             VK: { top: '40%', left: '22%', label: 'Venstre kant' },
-            OM: { top: '39%', left: '50%', label: 'Offensiv midtbane' },
+            OM: { top: '58%', left: '38%', label: 'Offensiv midtbane' },
             HK: { top: '40%', left: '78%', label: 'Høyre kant' },
             SP: { top: '22%', left: '50%', label: 'Spiss' }
         }
@@ -536,11 +536,11 @@ const matchGamePlanFormations = {
             HMS: { top: '76%', left: '61%', label: 'Stopper' },
             HB: { top: '74%', left: '83%', label: 'Høyre back' },
             VK: { top: '52%', left: '14%', label: 'Venstre midtbane' },
-            DM: { top: '56%', left: '32%', label: 'Midtbane' },
-            OM: { top: '57%', left: '50%', label: 'Midtbane' },
+            DM: { top: '57%', left: '50%', label: 'Midtbane' },
+            OM: { top: '56%', left: '32%', label: 'Midtbane' },
             PM: { top: '56%', left: '68%', label: 'Midtbane' },
             HK: { top: '52%', left: '86%', label: 'Høyre midtbane' },
-            SP: { top: '25%', left: '50%', label: 'Spiss' }
+            SP: { top: '33%', left: '50%', label: 'Spiss' }
         }
     }
 };
