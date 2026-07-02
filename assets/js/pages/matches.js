@@ -482,15 +482,15 @@ const matchGamePlanFormations = {
     '4-2-4': {
         label: '4-2-4',
         positions: {
-            GK: { top: '93%', left: '50%', label: 'Keeper' },
-            VB: { top: '75%', left: '19%', label: 'Venstre back' },
-            VMS: { top: '80%', left: '39%', label: 'Stopper' },
-            HMS: { top: '80%', left: '61%', label: 'Stopper' },
-            HB: { top: '75%', left: '81%', label: 'Høyre back' },
-            DM: { top: '62%', left: '40%', label: 'Midtbane' },
+            GK: { top: '96%', left: '50%', label: 'Keeper' },
+            VB: { top: '72%', left: '19%', label: 'Venstre back' },
+            VMS: { top: '73%', left: '39%', label: 'Stopper' },
+            HMS: { top: '73%', left: '61%', label: 'Stopper' },
+            HB: { top: '72%', left: '81%', label: 'Høyre back' },
+            DM: { top: '54%', left: '36%', label: 'Midtbane' },
             PM: { top: '35%', left: '61%', label: 'Midtbane' },
             VK: { top: '31%', left: '10%', label: 'Venstre kant' },
-            OM: { top: '62%', left: '60%', label: 'Midtbane' },
+            OM: { top: '54%', left: '64%', label: 'Midtbane' },
             SP: { top: '27%', left: '39%', label: 'Spiss' },
             HK: { top: '31%', left: '90%', label: 'Høyre kant' }
         }
@@ -498,11 +498,11 @@ const matchGamePlanFormations = {
     '4-3-3': {
         label: '4-3-3',
         positions: {
-            GK: { top: '91%', left: '50%', label: 'Keeper' },
-            VB: { top: '74%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '76%', left: '39%', label: 'Stopper' },
-            HMS: { top: '76%', left: '61%', label: 'Stopper' },
-            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            GK: { top: '95%', left: '50%', label: 'Keeper' },
+            VB: { top: '72%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '73%', left: '39%', label: 'Stopper' },
+            HMS: { top: '73%', left: '61%', label: 'Stopper' },
+            HB: { top: '72%', left: '83%', label: 'Høyre back' },
             DM: { top: '57%', left: '50%', label: 'Midtbane' },
             OM: { top: '55%', left: '30%', label: 'Midtbane' },
             PM: { top: '55%', left: '70%', label: 'Midtbane' },
@@ -514,11 +514,11 @@ const matchGamePlanFormations = {
     '4-2-3-1': {
         label: '4-2-3-1',
         positions: {
-            GK: { top: '91%', left: '50%', label: 'Keeper' },
-            VB: { top: '74%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '76%', left: '39%', label: 'Stopper' },
-            HMS: { top: '76%', left: '61%', label: 'Stopper' },
-            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            GK: { top: '95%', left: '50%', label: 'Keeper' },
+            VB: { top: '72%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '73%', left: '39%', label: 'Stopper' },
+            HMS: { top: '73%', left: '61%', label: 'Stopper' },
+            HB: { top: '72%', left: '83%', label: 'Høyre back' },
             DM: { top: '58%', left: '62%', label: 'Defensiv midtbane' },
             PM: { top: '39%', left: '50%', label: 'Playmaker' },
             VK: { top: '40%', left: '22%', label: 'Venstre kant' },
@@ -530,11 +530,11 @@ const matchGamePlanFormations = {
     '4-5-1': {
         label: '4-5-1',
         positions: {
-            GK: { top: '91%', left: '50%', label: 'Keeper' },
-            VB: { top: '74%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '76%', left: '39%', label: 'Stopper' },
-            HMS: { top: '76%', left: '61%', label: 'Stopper' },
-            HB: { top: '74%', left: '83%', label: 'Høyre back' },
+            GK: { top: '95%', left: '50%', label: 'Keeper' },
+            VB: { top: '72%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '73%', left: '39%', label: 'Stopper' },
+            HMS: { top: '73%', left: '61%', label: 'Stopper' },
+            HB: { top: '72%', left: '83%', label: 'Høyre back' },
             VK: { top: '52%', left: '14%', label: 'Venstre midtbane' },
             DM: { top: '57%', left: '50%', label: 'Midtbane' },
             OM: { top: '54%', left: '32%', label: 'Midtbane' },
@@ -959,9 +959,7 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
     const positionBadge = getMatchGamePlanPositionBadgeLabel(posId);
     const photoUrl = selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : '';
-    const cardLabel = selectedPlayer
-        ? getMatchGamePlanPlayerLastName(selectedPlayer)
-        : getMatchGamePlanAddLabel(posId);
+    const cardLabel = selectedPlayer ? getMatchGamePlanPlayerLastName(selectedPlayer) : '';
     const badgeHtml = `<span class="match-game-plan-lineup-pos-badge" aria-hidden="true"><span class="match-game-plan-lineup-pos-badge-label">${escapeMatchHtml(positionBadge)}</span></span>`;
 
     return `
@@ -980,11 +978,11 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
                     </span>
                 ` : `
                     <span class="match-game-plan-lineup-empty-slot">
-                        <i class="fa-solid fa-user" aria-hidden="true"></i>
+                        <span class="match-game-plan-lineup-empty-add" aria-hidden="true"></span>
                         ${badgeHtml}
                     </span>
                 `}
-                <strong>${escapeMatchHtml(cardLabel)}</strong>
+                <strong>${selectedPlayer ? escapeMatchHtml(cardLabel) : ''}</strong>
             </span>
             <i class="fa-solid fa-chevron-down match-game-plan-lineup-chevron" aria-hidden="true"></i>
             <select
