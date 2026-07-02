@@ -7134,7 +7134,39 @@
             height: auto;
             margin-bottom: 0;
             min-height: 0;
+            position: relative;
             width: 100%;
+        }
+        .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo img,
+        .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo i {
+            filter: saturate(0.55) brightness(0.72);
+            opacity: 0.42;
+            transition: filter 140ms ease, opacity 140ms ease;
+        }
+        .match-bench-pitch-overlay {
+            align-items: center;
+            display: none;
+            inset: 0;
+            justify-content: center;
+            pointer-events: none;
+            position: absolute;
+            z-index: 1;
+        }
+        .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-pitch-overlay {
+            display: flex;
+        }
+        .match-bench-pitch-code {
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            text-shadow: 0 2px 10px rgba(2, 6, 23, 0.55);
+        }
+        @media (min-width: 1024px) {
+            .match-bench-pitch-code {
+                font-size: 1.05rem;
+            }
         }
         .match-bench-name {
             color: #123f73;

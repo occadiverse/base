@@ -776,6 +776,104 @@ function getMatchGamePlanPositionBadgeLabel(posId) {
     return posId;
 }
 
+function getMatchDetailPositionCategory(pos1) {
+    if (!pos1) return null;
+    const normalized = String(pos1).trim();
+    if (normalized === 'Keeper' || normalized.toLowerCase().includes('keeper')) return 'K';
+    if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(normalized)) return 'F';
+    if (['Spiss', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
+    return 'M';
+}
+
+function getMatchDetailAttendingPlayers(match) {
+    const teamPlayers = (window.activePlayers || [])
+        .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
+        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
+    const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
+        ? window.getMatchParticipantRefs(match)
+        : window.getAttendingPlayerRefs(match.attendance);
+    const benchPlayers = teamPlayers
+        .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
+        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
+    const fallbackBenchPlayers = attendingRefs
+        .filter(ref => !benchPlayers.some(p => window.playerRefMatches(ref, p)))
+        .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
+        .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
+
+    return [...benchPlayers, ...fallbackBenchPlayers];
+}
+
+function getMatchGamePlanPlayerPitchPosId(match, player) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const entry = Object.entries(lineup).find(([, lineupPlayer]) => matchGamePlanSamePlayer(lineupPlayer, player));
+    return entry ? entry[0] : '';
+}
+
+function buildMatchBenchPlayerHtml(match, player) {
+    const jersey = player.drakt ? `#${escapeMatchHtml(player.drakt)}` : '';
+    const lastName = getMatchGamePlanPlayerLastName(player);
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
+    const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+    const isOnPitch = Boolean(pitchPosId);
+    const pitchCode = isOnPitch ? getMatchGamePlanPositionBadgeLabel(pitchPosId) : '';
+    const ariaLabel = isOnPitch
+        ? `${lastName}, på banen som ${pitchCode}`
+        : lastName;
+
+    return `
+        <div class="match-bench-player${isOnPitch ? ' is-on-pitch' : ''}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''} aria-label="${escapeMatchHtml(ariaLabel)}">
+            <span class="match-game-plan-lineup-photo match-bench-photo" aria-hidden="true">
+                ${photoUrl
+                    ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
+                    : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                ${isOnPitch ? `<span class="match-bench-pitch-overlay"><span class="match-bench-pitch-code">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
+            </span>
+            <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
+            ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
+        </div>
+    `;
+}
+
+function buildMatchDetailSquadListHtml(match) {
+    const selectedPlayers = getMatchDetailAttendingPlayers(match);
+    const benchPositionRows = [
+        { key: 'keeper', label: 'Keeper', categories: ['K'], players: [] },
+        { key: 'defence', label: 'Forsvar', categories: ['F'], players: [] },
+        { key: 'midfield', label: 'Midtbane', categories: ['M'], players: [] },
+        { key: 'attack', label: 'Angrep', categories: ['A'], players: [] }
+    ];
+
+    selectedPlayers.forEach(player => {
+        const category = getMatchDetailPositionCategory(player.pos1) || 'M';
+        const row = benchPositionRows.find(positionRow => positionRow.categories.includes(category)) || benchPositionRows[2];
+        row.players.push(player);
+    });
+
+    if (!selectedPlayers.length) {
+        return `
+            <div class="match-bench-empty">
+                <i class="fa-solid fa-clipboard-user"></i>
+                <span>Ingen spillere er meldt på ennå.</span>
+            </div>
+        `;
+    }
+
+    return benchPositionRows.map(row => `
+        <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeMatchHtml(row.label)}">
+            <div class="match-bench-group-title">${escapeMatchHtml(row.label)}</div>
+            <div class="match-bench-row">
+                ${row.players.map(player => buildMatchBenchPlayerHtml(match, player)).join('')}
+            </div>
+        </section>
+    `).join('');
+}
+
+function renderMatchDetailSquadList(match) {
+    const list = document.querySelector('.match-detail-squad-list');
+    if (!list || !match) return;
+    list.innerHTML = buildMatchDetailSquadListHtml(match);
+}
+
 function getMatchGamePlanRoleLabel(slot) {
     return matchGamePlanRoleLabels[slot] || slot;
 }
@@ -1357,6 +1455,7 @@ function renderMatchGamePlanStarter11Page(match) {
         wrapper.innerHTML = buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap').trim();
         wrap.replaceWith(wrapper.firstElementChild);
     });
+    renderMatchDetailSquadList(match);
 }
 
 function buildMatchGamePlanTabContentHtml(match, tab) {
@@ -1646,80 +1745,19 @@ window.showMatchDetails = function(id) {
     const container = document.getElementById('kampdetaljer-info');
     const escapeHtml = escapeMatchHtml;
     const escapeJsString = escapeMatchJsString;
-    const teamPlayers = (window.activePlayers || [])
-        .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
-        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
-    const benchPlayers = teamPlayers
-        .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
-        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
-    const fallbackBenchPlayers = attendingRefs
-        .filter(ref => !benchPlayers.some(p => window.playerRefMatches(ref, p)))
-        .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
-        .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
-    const getPositionCategory = (pos1) => {
-        if (!pos1) return null;
-        const normalized = String(pos1).trim();
-        if (normalized === 'Keeper' || normalized.toLowerCase().includes('keeper')) return 'K';
-        if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper'].includes(normalized)) return 'F';
-        if (['Spiss', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
-        return 'M';
-    };
-    const selectedPlayers = [...benchPlayers, ...fallbackBenchPlayers];
     const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
     attendingRefs.forEach(ref => {
         const player = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null;
-        const category = getPositionCategory(player?.pos1);
+        const category = getMatchDetailPositionCategory(player?.pos1);
         if (category) positionCounts[category] += 1;
     });
     const benchPositionHtml = ['K', 'F', 'M', 'A'].map(letter => (
         `${positionCounts[letter]}${letter}`
     )).join('<span class="dashboard-session-radar-sep"> - </span>');
-    const renderBenchPlayerHtml = (player) => {
-        const jersey = player.drakt ? `#${escapeHtml(player.drakt)}` : '';
-        const lastName = getMatchGamePlanPlayerLastName(player);
-        const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
-
-        return `
-            <div class="match-bench-player">
-                <span class="match-game-plan-lineup-photo match-bench-photo" aria-hidden="true">
-                    ${photoUrl
-                        ? `<img src="${escapeHtml(photoUrl)}" alt="">`
-                        : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                </span>
-                <strong class="match-bench-name">${escapeHtml(lastName)}</strong>
-                ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
-            </div>
-        `;
-    };
-    const benchPositionRows = [
-        { key: 'keeper', label: 'Keeper', categories: ['K'], players: [] },
-        { key: 'defence', label: 'Forsvar', categories: ['F'], players: [] },
-        { key: 'midfield', label: 'Midtbane', categories: ['M'], players: [] },
-        { key: 'attack', label: 'Angrep', categories: ['A'], players: [] }
-    ];
-    selectedPlayers.forEach(player => {
-        const category = getPositionCategory(player.pos1) || 'M';
-        const row = benchPositionRows.find(positionRow => positionRow.categories.includes(category)) || benchPositionRows[2];
-        row.players.push(player);
-    });
-    const benchPlayersHtml = selectedPlayers.length
-        ? benchPositionRows.map(row => `
-            <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeHtml(row.label)}">
-                <div class="match-bench-group-title">${escapeHtml(row.label)}</div>
-                <div class="match-bench-row">
-                    ${row.players.map(renderBenchPlayerHtml).join('')}
-                </div>
-            </section>
-        `).join('')
-        : `
-            <div class="match-bench-empty">
-                <i class="fa-solid fa-clipboard-user"></i>
-                <span>Ingen spillere er meldt på ennå.</span>
-            </div>
-        `;
+    const benchPlayersHtml = buildMatchDetailSquadListHtml(match);
     const openPanel = window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '';
     const isGamePlanOpen = openPanel === 'kampplan';
     window.pendingMatchDetailsOpenPanel = null;
