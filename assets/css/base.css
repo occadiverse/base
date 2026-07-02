@@ -1375,7 +1375,15 @@
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
                 min-height: 5rem;
                 padding: 0.08rem 0.08rem 0.16rem;
-                width: min(4.45rem, 21%);
+                width: 88px;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card[data-game-plan-node="VMS"],
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card[data-game-plan-node="HMS"] {
+                margin-top: -12px;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card[data-game-plan-node="OM"],
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card[data-game-plan-node="DM"] {
+                margin-top: -6px;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo {
                 width: 100%;
