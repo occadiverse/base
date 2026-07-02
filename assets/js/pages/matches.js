@@ -882,6 +882,7 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
                     </span>
                 ` : `
                     <span class="match-game-plan-lineup-empty-slot">
+                        <i class="fa-solid fa-user" aria-hidden="true"></i>
                         ${badgeHtml}
                     </span>
                 `}
