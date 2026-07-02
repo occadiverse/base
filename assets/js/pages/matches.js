@@ -482,65 +482,65 @@ const matchGamePlanFormations = {
     '4-2-4': {
         label: '4-2-4',
         positions: {
-            GK: { top: '96%', left: '50%', label: 'Keeper' },
-            VB: { top: '69%', left: '19%', label: 'Venstre back' },
-            VMS: { top: '70%', left: '39%', label: 'Stopper' },
-            HMS: { top: '70%', left: '61%', label: 'Stopper' },
-            HB: { top: '69%', left: '81%', label: 'Høyre back' },
-            DM: { top: '54%', left: '36%', label: 'Midtbane' },
-            PM: { top: '35%', left: '61%', label: 'Midtbane' },
-            VK: { top: '31%', left: '10%', label: 'Venstre kant' },
-            OM: { top: '54%', left: '64%', label: 'Midtbane' },
-            SP: { top: '27%', left: '39%', label: 'Spiss' },
-            HK: { top: '31%', left: '90%', label: 'Høyre kant' }
+            GK: { top: '95%', left: '50%', label: 'Keeper' },
+            VB: { top: '71%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '71%', left: '39%', label: 'Stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre back' },
+            DM: { top: '50%', left: '61%', label: 'Midtbane' },
+            PM: { top: '29%', left: '61%', label: 'Midtbane' },
+            VK: { top: '29%', left: '17%', label: 'Venstre kant' },
+            OM: { top: '50%', left: '39%', label: 'Midtbane' },
+            SP: { top: '29%', left: '39%', label: 'Spiss' },
+            HK: { top: '29%', left: '83%', label: 'Høyre kant' }
         }
     },
     '4-3-3': {
         label: '4-3-3',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '69%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '70%', left: '39%', label: 'Stopper' },
-            HMS: { top: '70%', left: '61%', label: 'Stopper' },
-            HB: { top: '69%', left: '83%', label: 'Høyre back' },
-            DM: { top: '57%', left: '50%', label: 'Midtbane' },
-            OM: { top: '55%', left: '30%', label: 'Midtbane' },
-            PM: { top: '55%', left: '70%', label: 'Midtbane' },
-            VK: { top: '31%', left: '22%', label: 'Venstre kant' },
-            SP: { top: '25%', left: '50%', label: 'Spiss' },
-            HK: { top: '31%', left: '78%', label: 'Høyre kant' }
+            VB: { top: '71%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '71%', left: '39%', label: 'Stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre back' },
+            DM: { top: '50%', left: '50%', label: 'Midtbane' },
+            OM: { top: '50%', left: '28%', label: 'Midtbane' },
+            PM: { top: '50%', left: '72%', label: 'Midtbane' },
+            VK: { top: '29%', left: '28%', label: 'Venstre kant' },
+            SP: { top: '29%', left: '50%', label: 'Spiss' },
+            HK: { top: '29%', left: '72%', label: 'Høyre kant' }
         }
     },
     '4-2-3-1': {
         label: '4-2-3-1',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '69%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '70%', left: '39%', label: 'Stopper' },
-            HMS: { top: '70%', left: '61%', label: 'Stopper' },
-            HB: { top: '69%', left: '83%', label: 'Høyre back' },
-            DM: { top: '58%', left: '62%', label: 'Defensiv midtbane' },
-            PM: { top: '39%', left: '50%', label: 'Playmaker' },
-            VK: { top: '40%', left: '22%', label: 'Venstre kant' },
-            OM: { top: '58%', left: '38%', label: 'Offensiv midtbane' },
-            HK: { top: '40%', left: '78%', label: 'Høyre kant' },
-            SP: { top: '22%', left: '50%', label: 'Spiss' }
+            VB: { top: '71%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '71%', left: '39%', label: 'Stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre back' },
+            DM: { top: '50%', left: '61%', label: 'Defensiv midtbane' },
+            PM: { top: '29%', left: '50%', label: 'Playmaker' },
+            VK: { top: '29%', left: '28%', label: 'Venstre kant' },
+            OM: { top: '50%', left: '39%', label: 'Offensiv midtbane' },
+            HK: { top: '29%', left: '72%', label: 'Høyre kant' },
+            SP: { top: '8%', left: '50%', label: 'Spiss' }
         }
     },
     '4-5-1': {
         label: '4-5-1',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '69%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '70%', left: '39%', label: 'Stopper' },
-            HMS: { top: '70%', left: '61%', label: 'Stopper' },
-            HB: { top: '69%', left: '83%', label: 'Høyre back' },
-            VK: { top: '52%', left: '14%', label: 'Venstre midtbane' },
-            DM: { top: '57%', left: '50%', label: 'Midtbane' },
-            OM: { top: '54%', left: '32%', label: 'Midtbane' },
-            PM: { top: '54%', left: '68%', label: 'Midtbane' },
-            HK: { top: '52%', left: '86%', label: 'Høyre midtbane' },
-            SP: { top: '36%', left: '50%', label: 'Spiss' }
+            VB: { top: '71%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '71%', left: '39%', label: 'Stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre back' },
+            VK: { top: '50%', left: '10%', label: 'Venstre midtbane' },
+            DM: { top: '50%', left: '50%', label: 'Midtbane' },
+            OM: { top: '50%', left: '28%', label: 'Midtbane' },
+            PM: { top: '50%', left: '72%', label: 'Midtbane' },
+            HK: { top: '50%', left: '90%', label: 'Høyre midtbane' },
+            SP: { top: '29%', left: '50%', label: 'Spiss' }
         }
     }
 };
@@ -946,7 +946,12 @@ function getMatchGamePlanLineupOverlayState(match) {
         };
     }
 
-    return window.matchGamePlanLineupOverlays[match.id];
+    const state = window.matchGamePlanLineupOverlays[match.id];
+    if (state.bidrag && state.startBenk) {
+        state.startBenk = false;
+    }
+
+    return state;
 }
 
 function getMatchGamePlanLineupBuilderClass(match) {
@@ -1122,12 +1127,14 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
         >
             <span class="match-game-plan-lineup-visual" aria-hidden="true">
                 ${selectedPlayer ? `
-                    <span class="match-game-plan-lineup-photo">
+                    <span class="match-game-plan-lineup-photo-area">
+                        <span class="match-game-plan-lineup-photo">
+                            ${photoUrl
+                                ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
+                                : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                            ${badgeHtml}
+                        </span>
                         ${overlayHtml}
-                        ${photoUrl
-                            ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
-                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                        ${badgeHtml}
                     </span>
                 ` : `
                     <span class="match-game-plan-lineup-empty-slot">
@@ -1640,6 +1647,12 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     overlayState[overlayKey] = !overlayState[overlayKey];
+
+    if (overlayState[overlayKey]) {
+        if (overlayKey === 'bidrag') overlayState.startBenk = false;
+        if (overlayKey === 'startBenk') overlayState.bidrag = false;
+    }
+
     syncMatchGamePlanLineupOverlayUi(match);
 
     if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
@@ -1686,7 +1699,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
             ? window.getDuoChemistry(playerA.navn, playerB.navn, chemOptions)
             : 0;
 
-        let strokeWidth = 0.55;
+        let strokeWidth = 2.6;
         let strokeColor = 'rgba(244, 63, 94, 0.82)';
         if (chemScore >= 75) {
             strokeColor = 'rgba(16, 185, 129, 0.92)';
@@ -1694,7 +1707,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
             strokeColor = 'rgba(245, 197, 66, 0.92)';
         } else if (chemScore === 0) {
             strokeColor = 'rgba(18, 63, 115, 0.34)';
-            strokeWidth = 0.35;
+            strokeWidth = 1.85;
         }
 
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
