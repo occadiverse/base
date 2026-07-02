@@ -7156,9 +7156,10 @@
             .match-detail-squad-list .match-bench-player {
                 min-height: 5.15rem;
                 padding: 0.08rem 0.08rem 0.16rem;
-                width: 4.15rem;
+                width: 88px;
             }
             .match-detail-squad-list .match-bench-player .match-bench-photo {
+                aspect-ratio: 3 / 4;
                 height: auto;
                 margin-bottom: 0;
                 width: 100%;
