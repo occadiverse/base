@@ -770,6 +770,12 @@ function getMatchGamePlanPositionLabel(posId) {
     return matchGamePlanPositionLabels[posId] || posId;
 }
 
+function getMatchGamePlanPositionBadgeLabel(posId) {
+    if (posId === 'VMS') return 'VS';
+    if (posId === 'HMS') return 'HS';
+    return posId;
+}
+
 function getMatchGamePlanRoleLabel(slot) {
     return matchGamePlanRoleLabels[slot] || slot;
 }
@@ -853,10 +859,12 @@ function buildMatchGamePlanStarterSelectOptionsHtml(match, posId, selectedPlayer
 function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const selectedPlayer = getMatchGamePlanDraftLineup(match)[posId] || null;
     const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
+    const positionBadge = getMatchGamePlanPositionBadgeLabel(posId);
     const photoUrl = selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : '';
     const cardLabel = selectedPlayer
         ? getMatchGamePlanPlayerLastName(selectedPlayer)
         : getMatchGamePlanAddLabel(posId);
+    const badgeHtml = `<span class="match-game-plan-lineup-pos-badge" aria-hidden="true"><span class="match-game-plan-lineup-pos-badge-label">${escapeMatchHtml(positionBadge)}</span></span>`;
 
     return `
         <div
@@ -870,8 +878,13 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
                         ${photoUrl
                             ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
                             : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                        ${badgeHtml}
                     </span>
-                ` : ''}
+                ` : `
+                    <span class="match-game-plan-lineup-empty-slot">
+                        ${badgeHtml}
+                    </span>
+                `}
                 <strong>${escapeMatchHtml(cardLabel)}</strong>
             </span>
             <i class="fa-solid fa-chevron-down match-game-plan-lineup-chevron" aria-hidden="true"></i>

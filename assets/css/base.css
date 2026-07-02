@@ -1334,8 +1334,17 @@
             padding: 0.12rem 0.08rem 0;
             width: 100%;
         }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-empty-slot {
+            border-radius: 0.54rem 0.54rem 0.16rem 0.16rem;
+        }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
             font-size: 0.46rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
+            --badge-size: 0.92rem;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
+            font-size: 0.38rem;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual span:not(.match-game-plan-lineup-photo) {
             font-size: 0.38rem;
@@ -1377,6 +1386,12 @@
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
                 font-size: 0.52rem;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
+                --badge-size: 1rem;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
+                font-size: 0.42rem;
             }
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-node {
@@ -7502,8 +7517,9 @@
             overflow: hidden;
         }
         .match-game-plan-lineup-card {
+            --lineup-card-surface: #ffffff;
             align-items: center;
-            background: rgba(255, 255, 255, 0.96);
+            background: var(--lineup-card-surface);
             border: 1px solid rgba(18, 63, 115, 0.16);
             border-radius: 0.78rem;
             box-shadow: 0 10px 22px rgba(2, 6, 23, 0.2);
@@ -7522,6 +7538,49 @@
         .match-game-plan-lineup-card.is-filled {
             border-color: rgba(245, 197, 66, 0.7);
             box-shadow: 0 12px 24px rgba(2, 6, 23, 0.24), 0 0 0 2px rgba(245, 197, 66, 0.26);
+        }
+        .match-game-plan-lineup-photo,
+        .match-game-plan-lineup-empty-slot {
+            position: relative;
+        }
+        .match-game-plan-lineup-pos-badge {
+            --badge-size: 1.05rem;
+            background: var(--lineup-card-surface, #ffffff);
+            border: 0;
+            border-top-left-radius: 100%;
+            bottom: 0;
+            box-shadow: none;
+            color: #123f73;
+            height: var(--badge-size);
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+            width: var(--badge-size);
+            z-index: 2;
+        }
+        .match-game-plan-lineup-pos-badge-label {
+            color: inherit;
+            font-size: 0.44rem;
+            font-weight: 950;
+            left: 57%;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            position: absolute;
+            top: 57%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+        .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-pos-badge {
+            color: #475569;
+        }
+        .match-game-plan-lineup-empty-slot {
+            align-self: stretch;
+            background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+            border-radius: 0.68rem 0.68rem 0.18rem 0.18rem;
+            display: block;
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
         }
         .match-game-plan-lineup-visual {
             align-items: center;
@@ -7564,6 +7623,7 @@
             opacity: 0.78;
         }
         .match-game-plan-lineup-visual strong {
+            background: var(--lineup-card-surface, #ffffff);
             color: #123f73;
             display: block;
             font-size: 0.68rem;
@@ -9707,6 +9767,12 @@
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
                 font-size: 0.42rem;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
+                --badge-size: 0.82rem;
+            }
+            .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
+                font-size: 0.34rem;
             }
             .match-detail-section-action {
                 font-size: 0;
