@@ -1034,15 +1034,25 @@ function buildMatchGamePlanOverlayPickerHtml(match) {
     const overlayState = getMatchGamePlanLineupOverlayState(match);
 
     return `
-        <div class="match-game-plan-lineup-overlay-picker" role="group" aria-label="Vis lagdata på banen">
+        <div class="match-game-plan-lineup-overlay-picker" role="group" aria-label="Baneverktøy">
             ${matchGamePlanLineupOverlayOptions.map(option => `
                 <button
                     type="button"
                     class="match-game-plan-lineup-overlay-btn ${overlayState[option.id] ? 'is-active' : ''}"
+                    data-lineup-overlay="${escapeMatchHtml(option.id)}"
                     aria-pressed="${overlayState[option.id] ? 'true' : 'false'}"
                     onclick="window.toggleMatchGamePlanLineupOverlay('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(option.id)}')"
                 >${escapeMatchHtml(option.label)}</button>
             `).join('')}
+            <button
+                type="button"
+                class="match-game-plan-lineup-overlay-btn match-game-plan-lineup-save-btn"
+                aria-label="Lagre"
+                onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
+            >
+                <span class="match-game-plan-lineup-save-label">Lagre</span>
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+            </button>
         </div>
     `;
 }
@@ -1140,22 +1150,9 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
 }
 
 function buildMatchGamePlanStarterFooterHtml(match) {
-    const selectedCount = matchGamePlanStarterPositionIds.filter(posId => getMatchGamePlanDraftLineup(match)[posId]).length;
-
     return `
         <div class="match-game-plan-lineup-footer">
             ${buildMatchGamePlanOverlayPickerHtml(match)}
-            <div class="match-game-plan-lineup-footer-actions">
-                <span class="match-game-plan-lineup-count" aria-live="polite">${selectedCount}/11 valgt</span>
-                <button
-                    type="button"
-                    class="match-game-plan-lineup-finish is-ready"
-                    onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
-                >
-                    <span>Lagre laget</span>
-                    <i class="fa-solid fa-floppy-disk"></i>
-                </button>
-            </div>
         </div>
     `;
 }
@@ -1595,6 +1592,23 @@ function renderMatchGamePlanBenchPage(match) {
     page.innerHTML = buildMatchGamePlanBenchHtml(match);
 }
 
+function syncMatchGamePlanLineupOverlayUi(match) {
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    if (!builder) return;
+
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    builder.classList.toggle('is-show-kjemi', !!overlayState.kjemi);
+    builder.classList.toggle('is-show-bidrag', !!overlayState.bidrag);
+    builder.classList.toggle('is-show-start-benk', !!overlayState.startBenk);
+
+    builder.querySelectorAll('[data-lineup-overlay]').forEach(button => {
+        const overlayKey = button.dataset.lineupOverlay;
+        const isActive = !!overlayState[overlayKey];
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+}
+
 function renderMatchGamePlanStarter11Page(match) {
     document.querySelectorAll('.match-detail-squad-lineup > .match-detail-lineup-builder, .match-detail-squad-lineup > .match-detail-lineup-pitch-wrap').forEach(wrap => {
         const wrapper = document.createElement('div');
@@ -1602,6 +1616,7 @@ function renderMatchGamePlanStarter11Page(match) {
         wrap.replaceWith(wrapper.firstElementChild);
     });
     renderMatchDetailSquadList(match);
+    syncMatchGamePlanLineupOverlayUi(match);
     requestAnimationFrame(() => {
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
@@ -1625,7 +1640,11 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     overlayState[overlayKey] = !overlayState[overlayKey];
-    renderMatchGamePlanStarter11Page(match);
+    syncMatchGamePlanLineupOverlayUi(match);
+
+    if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+        window.drawMatchGamePlanChemistryLines(match);
+    }
 };
 
 window.drawMatchGamePlanChemistryLines = function(match) {
