@@ -545,6 +545,32 @@ const matchGamePlanFormations = {
     }
 };
 
+const matchGamePlanFormationConnections = {
+    '4-2-4': [
+        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
+        ['VMS', 'DM'], ['HMS', 'OM'], ['VB', 'VK'], ['DM', 'OM'], ['OM', 'SP'],
+        ['SP', 'PM'], ['HK', 'OM']
+    ],
+    '4-3-3': [
+        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
+        ['DM', 'OM'], ['DM', 'PM'], ['OM', 'VK'], ['PM', 'HK'], ['VK', 'SP'], ['HK', 'SP'], ['SP', 'DM']
+    ],
+    '4-2-3-1': [
+        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
+        ['DM', 'OM'], ['OM', 'PM'], ['VK', 'PM'], ['HK', 'PM'], ['PM', 'SP'], ['DM', 'HMS']
+    ],
+    '4-5-1': [
+        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
+        ['DM', 'OM'], ['OM', 'PM'], ['VK', 'OM'], ['HK', 'OM'], ['PM', 'SP'], ['DM', 'VMS']
+    ]
+};
+
+const matchGamePlanLineupOverlayOptions = [
+    { id: 'kjemi', label: 'Kjemi' },
+    { id: 'bidrag', label: 'Bidrag' },
+    { id: 'startBenk', label: 'Start/benk' }
+];
+
 // OffC corner diagram. top/left are percentages of the pitch: top moves down, left moves right.
 const matchGamePlanOffCPositions = {
     1: { top: '3%', left: '95%', tone: 'neutral' },
@@ -906,6 +932,121 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
     `;
 }
 
+function getMatchGamePlanLineupOverlayState(match) {
+    window.matchGamePlanLineupOverlays = window.matchGamePlanLineupOverlays || {};
+    if (!match?.id) {
+        return { kjemi: false, bidrag: false, startBenk: false };
+    }
+
+    if (!window.matchGamePlanLineupOverlays[match.id]) {
+        window.matchGamePlanLineupOverlays[match.id] = {
+            kjemi: false,
+            bidrag: false,
+            startBenk: false
+        };
+    }
+
+    return window.matchGamePlanLineupOverlays[match.id];
+}
+
+function getMatchGamePlanLineupBuilderClass(match) {
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    return [
+        'match-detail-lineup-builder',
+        overlayState.kjemi ? 'is-show-kjemi' : '',
+        overlayState.bidrag ? 'is-show-bidrag' : '',
+        overlayState.startBenk ? 'is-show-start-benk' : ''
+    ].filter(Boolean).join(' ');
+}
+
+function isMatchPlayedForStartBenchStats(match) {
+    if (!match?.result || match.result === 'Ikke spilt') return false;
+    return String(match.result).includes('-');
+}
+
+function matchHasSavedLineup(match) {
+    if (match?.lineup && Object.values(match.lineup).some(Boolean)) return true;
+    if (match?.lineupRefs && Object.values(match.lineupRefs).some(Boolean)) return true;
+    return false;
+}
+
+function getPlayerStartBenchCounts(player, teamName) {
+    if (!player) return { starts: 0, bench: 0 };
+
+    const playerRef = player.id || player.navn;
+    let starts = 0;
+    let bench = 0;
+
+    (window.activeMatches || []).forEach(match => {
+        if (teamName && match.matchGroup !== teamName) return;
+        if (!isMatchPlayedForStartBenchStats(match)) return;
+        if (!matchHasSavedLineup(match)) return;
+        if (typeof window.isPlayerAttending !== 'function' || !window.isPlayerAttending(match.attendance, player)) return;
+
+        if (typeof window.isPlayerOnPitch === 'function' && window.isPlayerOnPitch(match, playerRef)) {
+            starts += 1;
+            return;
+        }
+
+        bench += 1;
+    });
+
+    return { starts, bench };
+}
+
+function getMatchGamePlanBidragToneClass(value) {
+    const kampbidrag = Number(value) || 0;
+    if (kampbidrag <= 0) return 'is-muted';
+    if (kampbidrag > 15) return 'is-high';
+    if (kampbidrag >= 10) return 'is-mid';
+    return 'is-low';
+}
+
+function getMatchGamePlanChemistryFilter(match) {
+    if (match?.matchGroup) {
+        return { teamName: match.matchGroup, historicalOnly: true };
+    }
+    return { teamName: null, historicalOnly: true };
+}
+
+function buildMatchGamePlanLineupCardOverlayHtml(match, player) {
+    if (!player) return '';
+
+    const teamName = match?.matchGroup || player.spillerLag || '';
+    const kampbidrag = typeof window.getPlayerKampbidragSnitt === 'function'
+        ? window.getPlayerKampbidragSnitt(player, teamName)
+        : 0;
+    const bidragText = kampbidrag > 0 ? String(kampbidrag) : '-';
+    const bidragTone = getMatchGamePlanBidragToneClass(kampbidrag);
+    const { starts, bench } = getPlayerStartBenchCounts(player, teamName);
+
+    return `
+        <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
+            <span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}">${escapeMatchHtml(bidragText)}</span>
+            <span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-start-benk">
+                <span class="match-game-plan-lineup-card-overlay-start">${starts}</span><span class="match-game-plan-lineup-card-overlay-sep">/</span><span class="match-game-plan-lineup-card-overlay-bench">${bench}</span>
+            </span>
+        </span>
+    `;
+}
+
+function buildMatchGamePlanOverlayPickerHtml(match) {
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+
+    return `
+        <div class="match-game-plan-lineup-overlay-picker" role="group" aria-label="Vis lagdata på banen">
+            ${matchGamePlanLineupOverlayOptions.map(option => `
+                <button
+                    type="button"
+                    class="match-game-plan-lineup-overlay-btn ${overlayState[option.id] ? 'is-active' : ''}"
+                    aria-pressed="${overlayState[option.id] ? 'true' : 'false'}"
+                    onclick="window.toggleMatchGamePlanLineupOverlay('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(option.id)}')"
+                >${escapeMatchHtml(option.label)}</button>
+            `).join('')}
+        </div>
+    `;
+}
+
 function buildMatchGamePlanFormationPickerHtml(match) {
     const activeFormation = getMatchGamePlanDraftFormation(match);
 
@@ -961,6 +1102,7 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const photoUrl = selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : '';
     const cardLabel = selectedPlayer ? getMatchGamePlanPlayerLastName(selectedPlayer) : '';
     const badgeHtml = `<span class="match-game-plan-lineup-pos-badge" aria-hidden="true"><span class="match-game-plan-lineup-pos-badge-label">${escapeMatchHtml(positionBadge)}</span></span>`;
+    const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, selectedPlayer);
 
     return `
         <div
@@ -971,6 +1113,7 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
             <span class="match-game-plan-lineup-visual" aria-hidden="true">
                 ${selectedPlayer ? `
                     <span class="match-game-plan-lineup-photo">
+                        ${overlayHtml}
                         ${photoUrl
                             ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
                             : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
@@ -1001,15 +1144,18 @@ function buildMatchGamePlanStarterFooterHtml(match) {
 
     return `
         <div class="match-game-plan-lineup-footer">
-            <span class="match-game-plan-lineup-count">${selectedCount}/11 valgt</span>
-            <button
-                type="button"
-                class="match-game-plan-lineup-finish is-ready"
-                onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
-            >
-                <span>Lagre laget</span>
-                <i class="fa-solid fa-floppy-disk"></i>
-            </button>
+            ${buildMatchGamePlanOverlayPickerHtml(match)}
+            <div class="match-game-plan-lineup-footer-actions">
+                <span class="match-game-plan-lineup-count" aria-live="polite">${selectedCount}/11 valgt</span>
+                <button
+                    type="button"
+                    class="match-game-plan-lineup-finish is-ready"
+                    onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
+                >
+                    <span>Lagre laget</span>
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </div>
         </div>
     `;
 }
@@ -1352,13 +1498,16 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
         const pitchHtml = buildMatchGamePlanPitchHtml({
             ariaLabel: '11er bane',
             extraClass: `${extraClass} match-game-plan-starter11-wrap`,
-            childrenHtml: Object.entries(formation.positions).map(([posId, coords]) => `
-                ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
-            `).join('')
+            childrenHtml: `
+                <svg class="match-game-plan-chemistry-lines" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                ${Object.entries(formation.positions).map(([posId, coords]) => `
+                    ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
+                `).join('')}
+            `
         });
 
         return `
-            <div class="match-detail-lineup-builder">
+            <div class="${getMatchGamePlanLineupBuilderClass(match)}">
                 ${buildMatchGamePlanFormationPickerHtml(match)}
                 ${pitchHtml}
                 ${buildMatchGamePlanStarterFooterHtml(match)}
@@ -1453,7 +1602,95 @@ function renderMatchGamePlanStarter11Page(match) {
         wrap.replaceWith(wrapper.firstElementChild);
     });
     renderMatchDetailSquadList(match);
+    requestAnimationFrame(() => {
+        if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+            window.drawMatchGamePlanChemistryLines(match);
+        }
+    });
+
+    if (!window.matchGamePlanChemistryResizeBound) {
+        window.matchGamePlanChemistryResizeBound = true;
+        window.addEventListener('resize', () => {
+            const activeMatch = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+            if (activeMatch && typeof window.drawMatchGamePlanChemistryLines === 'function') {
+                window.drawMatchGamePlanChemistryLines(activeMatch);
+            }
+        });
+    }
 }
+
+window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match || !matchGamePlanLineupOverlayOptions.some(option => option.id === overlayKey)) return;
+
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    overlayState[overlayKey] = !overlayState[overlayKey];
+    renderMatchGamePlanStarter11Page(match);
+};
+
+window.drawMatchGamePlanChemistryLines = function(match) {
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    const svg = builder?.querySelector('.match-game-plan-chemistry-lines');
+    if (!svg) return;
+
+    svg.innerHTML = '';
+    if (!builder.classList.contains('is-show-kjemi')) return;
+
+    const pitch = builder.querySelector('.match-game-plan-pitch');
+    if (!pitch) return;
+
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const connections = matchGamePlanFormationConnections[formationId] || matchGamePlanFormationConnections['4-2-4'];
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const chemOptions = getMatchGamePlanChemistryFilter(match);
+    const pitchRect = pitch.getBoundingClientRect();
+
+    if (!pitchRect.width || !pitchRect.height) return;
+
+    connections.forEach(([posA, posB]) => {
+        const playerA = lineup[posA];
+        const playerB = lineup[posB];
+        if (!playerA || !playerB) return;
+
+        const cardA = builder.querySelector(`[data-game-plan-node="${posA}"]`);
+        const cardB = builder.querySelector(`[data-game-plan-node="${posB}"]`);
+        if (!cardA || !cardB) return;
+
+        const rectA = cardA.getBoundingClientRect();
+        const rectB = cardB.getBoundingClientRect();
+        const x1 = ((rectA.left + rectA.width / 2 - pitchRect.left) / pitchRect.width) * 100;
+        const y1 = ((rectA.top + rectA.height / 2 - pitchRect.top) / pitchRect.height) * 100;
+        const x2 = ((rectB.left + rectB.width / 2 - pitchRect.left) / pitchRect.width) * 100;
+        const y2 = ((rectB.top + rectB.height / 2 - pitchRect.top) / pitchRect.height) * 100;
+
+        const chemScore = typeof window.getDuoChemistry === 'function'
+            ? window.getDuoChemistry(playerA.navn, playerB.navn, chemOptions)
+            : 0;
+
+        let strokeWidth = 0.55;
+        let strokeColor = 'rgba(244, 63, 94, 0.82)';
+        if (chemScore >= 75) {
+            strokeColor = 'rgba(16, 185, 129, 0.92)';
+        } else if (chemScore >= 50) {
+            strokeColor = 'rgba(245, 197, 66, 0.92)';
+        } else if (chemScore === 0) {
+            strokeColor = 'rgba(18, 63, 115, 0.34)';
+            strokeWidth = 0.35;
+        }
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', String(x1));
+        line.setAttribute('y1', String(y1));
+        line.setAttribute('x2', String(x2));
+        line.setAttribute('y2', String(y2));
+        line.setAttribute('stroke', strokeColor);
+        line.setAttribute('stroke-width', String(strokeWidth));
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('vector-effect', 'non-scaling-stroke');
+        if (chemScore === 0) line.setAttribute('stroke-dasharray', '1.4,1.4');
+        svg.appendChild(line);
+    });
+};
 
 function buildMatchGamePlanTabContentHtml(match, tab) {
     if (tab.id === 'offc') {
