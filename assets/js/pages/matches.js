@@ -483,10 +483,10 @@ const matchGamePlanFormations = {
         label: '4-2-4',
         positions: {
             GK: { top: '96%', left: '50%', label: 'Keeper' },
-            VB: { top: '72%', left: '19%', label: 'Venstre back' },
-            VMS: { top: '73%', left: '39%', label: 'Stopper' },
-            HMS: { top: '73%', left: '61%', label: 'Stopper' },
-            HB: { top: '72%', left: '81%', label: 'Høyre back' },
+            VB: { top: '69%', left: '19%', label: 'Venstre back' },
+            VMS: { top: '70%', left: '39%', label: 'Stopper' },
+            HMS: { top: '70%', left: '61%', label: 'Stopper' },
+            HB: { top: '69%', left: '81%', label: 'Høyre back' },
             DM: { top: '54%', left: '36%', label: 'Midtbane' },
             PM: { top: '35%', left: '61%', label: 'Midtbane' },
             VK: { top: '31%', left: '10%', label: 'Venstre kant' },
@@ -499,10 +499,10 @@ const matchGamePlanFormations = {
         label: '4-3-3',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '72%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '73%', left: '39%', label: 'Stopper' },
-            HMS: { top: '73%', left: '61%', label: 'Stopper' },
-            HB: { top: '72%', left: '83%', label: 'Høyre back' },
+            VB: { top: '69%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '70%', left: '39%', label: 'Stopper' },
+            HMS: { top: '70%', left: '61%', label: 'Stopper' },
+            HB: { top: '69%', left: '83%', label: 'Høyre back' },
             DM: { top: '57%', left: '50%', label: 'Midtbane' },
             OM: { top: '55%', left: '30%', label: 'Midtbane' },
             PM: { top: '55%', left: '70%', label: 'Midtbane' },
@@ -515,10 +515,10 @@ const matchGamePlanFormations = {
         label: '4-2-3-1',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '72%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '73%', left: '39%', label: 'Stopper' },
-            HMS: { top: '73%', left: '61%', label: 'Stopper' },
-            HB: { top: '72%', left: '83%', label: 'Høyre back' },
+            VB: { top: '69%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '70%', left: '39%', label: 'Stopper' },
+            HMS: { top: '70%', left: '61%', label: 'Stopper' },
+            HB: { top: '69%', left: '83%', label: 'Høyre back' },
             DM: { top: '58%', left: '62%', label: 'Defensiv midtbane' },
             PM: { top: '39%', left: '50%', label: 'Playmaker' },
             VK: { top: '40%', left: '22%', label: 'Venstre kant' },
@@ -531,10 +531,10 @@ const matchGamePlanFormations = {
         label: '4-5-1',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '72%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '73%', left: '39%', label: 'Stopper' },
-            HMS: { top: '73%', left: '61%', label: 'Stopper' },
-            HB: { top: '72%', left: '83%', label: 'Høyre back' },
+            VB: { top: '69%', left: '17%', label: 'Venstre back' },
+            VMS: { top: '70%', left: '39%', label: 'Stopper' },
+            HMS: { top: '70%', left: '61%', label: 'Stopper' },
+            HB: { top: '69%', left: '83%', label: 'Høyre back' },
             VK: { top: '52%', left: '14%', label: 'Venstre midtbane' },
             DM: { top: '57%', left: '50%', label: 'Midtbane' },
             OM: { top: '54%', left: '32%', label: 'Midtbane' },
@@ -964,7 +964,7 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
 
     return `
         <div
-            class="match-game-plan-lineup-card ${selectedPlayer ? 'is-filled' : 'is-empty'}"
+            class="match-game-plan-lineup-card ${selectedPlayer ? 'is-filled' : 'is-empty'}${posId === 'GK' ? ' is-pitch-bottom' : ''}"
             style="top: ${coords.top}; left: ${coords.left};"
             data-game-plan-node="${escapeMatchHtml(posId)}"
         >
@@ -998,18 +998,17 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
 
 function buildMatchGamePlanStarterFooterHtml(match) {
     const selectedCount = matchGamePlanStarterPositionIds.filter(posId => getMatchGamePlanDraftLineup(match)[posId]).length;
-    const isComplete = selectedCount === 11;
 
     return `
         <div class="match-game-plan-lineup-footer">
+            <span class="match-game-plan-lineup-count">${selectedCount}/11 valgt</span>
             <button
                 type="button"
-                class="match-game-plan-lineup-finish ${isComplete ? 'is-ready' : ''}"
+                class="match-game-plan-lineup-finish is-ready"
                 onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
-                ${isComplete ? '' : 'disabled'}
             >
-                <span>Fullfør laget</span>
-                <i class="fa-solid fa-arrow-right"></i>
+                <span>Lagre laget</span>
+                <i class="fa-solid fa-floppy-disk"></i>
             </button>
         </div>
     `;
@@ -1933,7 +1932,6 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     const draftLineup = getMatchGamePlanDraftLineup(match);
     const draftFormation = getMatchGamePlanDraftFormation(match);
     const selectedCount = matchGamePlanStarterPositionIds.filter(posId => draftLineup[posId]).length;
-    if (selectedCount !== 11) return;
 
     match.lineup = cloneMatchGamePlanLineup(draft.lineup);
     match.lineupRefs = getMatchGamePlanLineupRefs(draft.lineup);
@@ -1950,7 +1948,11 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     renderMatchGamePlanRolesPage(match);
     renderMatchGamePlanBenchPage(match);
 
-    alert(`Laget er klart i ${getMatchGamePlanFormation(match)}.`);
+    alert(selectedCount === 11
+        ? `Laget er lagret i ${getMatchGamePlanFormation(match)}.`
+        : selectedCount > 0
+            ? `Lagret ${selectedCount} av 11 spillere i ${getMatchGamePlanFormation(match)}.`
+            : `Tomt lag lagret i ${getMatchGamePlanFormation(match)}.`);
 };
 
 window.updateMatchGamePlanOffCPlayer = async function(matchId, slot, playerRef = '') {

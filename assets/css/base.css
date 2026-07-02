@@ -1316,10 +1316,19 @@
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
             --lineup-pitch-card-width: clamp(2rem, min(16.5cqi, 11.5cqh), 5.5rem);
             border-radius: clamp(0.48rem, 2.8cqi, 0.64rem);
-            max-height: calc(var(--lineup-pitch-card-width) * 1.42);
+            max-height: calc(var(--lineup-pitch-card-width) * 1.48);
             min-height: 0;
+            overflow: visible;
             padding: clamp(0.05rem, 0.55cqi, 0.08rem) clamp(0.05rem, 0.55cqi, 0.08rem) clamp(0.1rem, 0.75cqi, 0.16rem);
             width: var(--lineup-pitch-card-width);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-pitch-bottom {
+            bottom: clamp(0.08rem, 0.75cqi, 0.2rem);
+            top: auto !important;
+            transform: translateX(-50%);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual {
+            overflow: visible;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-empty-slot {
@@ -1358,21 +1367,24 @@
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual strong {
             font-size: clamp(0.46rem, 2.35cqi, 0.6rem);
-            padding: clamp(0.08rem, 0.55cqi, 0.12rem) clamp(0.06rem, 0.45cqi, 0.08rem) 0;
+            line-height: 1.25;
+            overflow: visible;
+            padding: clamp(0.08rem, 0.55cqi, 0.12rem) clamp(0.06rem, 0.45cqi, 0.08rem) clamp(0.06rem, 0.4cqi, 0.1rem);
             width: 100%;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
             color: transparent;
             font-size: 0;
             line-height: 0;
-            min-height: clamp(0.68rem, 3.4cqi, 0.9rem);
-            padding: clamp(0.08rem, 0.55cqi, 0.12rem) clamp(0.06rem, 0.45cqi, 0.08rem) 0;
+            min-height: clamp(0.72rem, 3.6cqi, 0.95rem);
+            overflow: hidden;
+            padding: clamp(0.08rem, 0.55cqi, 0.12rem) clamp(0.06rem, 0.45cqi, 0.08rem) clamp(0.06rem, 0.4cqi, 0.1rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
-            --badge-size: clamp(0.72rem, 4.1cqi, 1rem);
+            --badge-size: clamp(0.84rem, 4.9cqi, 1.22rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
-            font-size: clamp(0.3rem, 1.55cqi, 0.42rem);
+            font-size: clamp(0.34rem, 1.75cqi, 0.48rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual span:not(.match-game-plan-lineup-photo) {
             font-size: 0.38rem;
@@ -1385,7 +1397,7 @@
         }
         .match-detail-lineup-builder .match-game-plan-lineup-footer {
             gap: 0.4rem;
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: auto minmax(0, 1fr);
         }
         .match-detail-lineup-builder .match-game-plan-lineup-back,
         .match-detail-lineup-builder .match-game-plan-lineup-finish {
@@ -7594,7 +7606,7 @@
             width: 100%;
         }
         .match-game-plan-lineup-pos-badge {
-            --badge-size: 1.05rem;
+            --badge-size: 1.22rem;
             background: var(--lineup-card-surface, #ffffff);
             border: 0;
             border-top-left-radius: 100%;
@@ -7609,7 +7621,7 @@
         }
         .match-game-plan-lineup-pos-badge-label {
             color: #000000;
-            font-size: 0.44rem;
+            font-size: 0.48rem;
             font-weight: 950;
             left: 57%;
             letter-spacing: 0.01em;
@@ -7716,9 +7728,9 @@
             flex: 0 0 auto;
             font-size: 0.68rem;
             font-weight: 950;
-            line-height: 1.05;
-            overflow: hidden;
-            padding: 0.13rem 0.08rem 0;
+            line-height: 1.25;
+            overflow: visible;
+            padding: 0.13rem 0.08rem 0.1rem;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -9851,19 +9863,22 @@
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual strong {
                 font-size: 0.48rem;
-                padding-top: 0.1rem;
+                line-height: 1.25;
+                overflow: visible;
+                padding: 0.1rem 0.08rem 0.08rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-visual strong {
                 font-size: 0;
                 line-height: 0;
-                min-height: 0.76rem;
-                padding-top: 0.1rem;
+                min-height: 0.82rem;
+                overflow: hidden;
+                padding: 0.1rem 0.08rem 0.08rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
-                --badge-size: 0.82rem;
+                --badge-size: 0.96rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
-                font-size: 0.34rem;
+                font-size: 0.38rem;
             }
             .match-detail-section-action {
                 font-size: 0;
