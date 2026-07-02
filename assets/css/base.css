@@ -7550,7 +7550,6 @@
             border-top-left-radius: 100%;
             bottom: 0;
             box-shadow: none;
-            color: #123f73;
             height: var(--badge-size);
             pointer-events: none;
             position: absolute;
@@ -7559,7 +7558,7 @@
             z-index: 2;
         }
         .match-game-plan-lineup-pos-badge-label {
-            color: inherit;
+            color: #000000;
             font-size: 0.44rem;
             font-weight: 950;
             left: 57%;
@@ -7569,9 +7568,6 @@
             top: 57%;
             transform: translate(-50%, -50%);
             white-space: nowrap;
-        }
-        .match-game-plan-lineup-card.is-empty .match-game-plan-lineup-pos-badge {
-            color: #475569;
         }
         .match-game-plan-lineup-empty-slot {
             align-self: stretch;
