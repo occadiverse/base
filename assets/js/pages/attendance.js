@@ -1,3 +1,83 @@
+function escapeAttendanceHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function escapeCalendarHtml(value) {
+    return escapeAttendanceHtml(value);
+}
+
+function bindAttendanceModalEvents() {
+    const container = document.getElementById('attendance-players-list');
+    if (!container || container.dataset.attendanceEventsBound === 'true') return;
+
+    container.dataset.attendanceEventsBound = 'true';
+    container.addEventListener('click', (event) => {
+        const alertBtn = event.target.closest('[data-attendance-action="match-alert"]');
+        if (!alertBtn) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        const matchId = alertBtn.dataset.eventId;
+        if (matchId) window.showMatchAlertModal(matchId);
+    });
+    container.addEventListener('change', (event) => {
+        if (event.target.matches('.attendance-modal-checkbox')) {
+            window.updateAttendanceModalSummary();
+        }
+    });
+}
+
+function bindDailyEventsListEvents() {
+    const container = document.getElementById('daily-events-list');
+    if (!container || container.dataset.attendanceEventsBound === 'true') return;
+
+    container.dataset.attendanceEventsBound = 'true';
+    container.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-attendance-action]');
+        if (!actionEl) return;
+
+        const action = actionEl.dataset.attendanceAction;
+        const eventId = actionEl.dataset.eventId;
+        const activityType = actionEl.dataset.activityType;
+
+        if (action === 'attendance' && eventId) {
+            window.openAttendanceModal(eventId);
+        } else if (action === 'edit-match' && eventId) {
+            window.openMatchModal(eventId);
+        } else if (action === 'edit-activity' && eventId) {
+            window.editActivity(eventId);
+        } else if (action === 'add-activity') {
+            window.openActivityModal(activityType || 'Trening');
+        }
+    });
+}
+
+function bindEventTableEvents() {
+    const container = document.getElementById('eventTableBody');
+    if (!container || container.dataset.attendanceEventsBound === 'true') return;
+
+    container.dataset.attendanceEventsBound = 'true';
+    container.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-attendance-action="register"]');
+        if (!actionEl) return;
+
+        const eventId = actionEl.dataset.eventId;
+        if (eventId) window.openAttendanceModal(eventId);
+    });
+}
+
+function bindAttendanceListEvents() {
+    bindAttendanceModalEvents();
+    bindDailyEventsListEvents();
+    bindEventTableEvents();
+}
+
 window.openEventModal = function() {
     document.getElementById('eventForm').reset();
     document.getElementById('editEventId').value = '';
@@ -76,14 +156,7 @@ window.openAttendanceModal = function(eventId) {
     const dateLabel = new Date(ev.date).toLocaleDateString('no-NO');
     document.getElementById('attendanceModalTitle').innerText = `Oppmøte ${activityLabel} • ${dateLabel}`;
 
-    const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    }[char]));
-    const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    bindAttendanceModalEvents();
 
     const container = document.getElementById('attendance-players-list');
     const alertsContainer = document.getElementById('attendanceModalAlerts');
@@ -116,11 +189,12 @@ window.openAttendanceModal = function(eventId) {
         const warningChipHtml = hasDisciplineWarning
             ? `
                 <button type="button"
-                        onclick="event.preventDefault(); event.stopPropagation(); window.showMatchAlertModal('${escapeJsString(ev.id)}')"
+                        data-attendance-action="match-alert"
+                        data-event-id="${escapeAttendanceHtml(ev.id)}"
                         class="attendance-modal-player-alert-chip ${playerDiscipline.isSuspended ? 'is-critical' : 'is-warning'}"
-                        title="${escapeAttr(warningTitle)}">
+                        title="${escapeAttendanceHtml(warningTitle)}">
                     <i class="fa-solid ${playerDiscipline.cardType === 'red' ? 'fa-square' : 'fa-triangle-exclamation'}"></i>
-                    <span>${escapeAttr(warningLabel)}</span>
+                    <span>${escapeAttendanceHtml(warningLabel)}</span>
                 </button>
             `
             : '';
@@ -132,16 +206,15 @@ window.openAttendanceModal = function(eventId) {
                 <input
                     type="checkbox"
                     class="attendance-modal-checkbox"
-                    data-player-id="${escapeAttr(playerId)}"
+                    data-player-id="${escapeAttendanceHtml(playerId)}"
                     ${isRegistered ? 'checked' : ''}
-                    onchange="window.updateAttendanceModalSummary()"
                 >
                 <div class="attendance-modal-player-info">
                     <span class="attendance-modal-player-name-row">
-                        <span class="attendance-modal-player-name">${escapeAttr(player.navn)}</span>
+                        <span class="attendance-modal-player-name">${escapeAttendanceHtml(player.navn)}</span>
                         ${warningChipHtml}
                     </span>
-                    <span class="attendance-modal-player-pos">${escapeAttr(player.pos1 || '-')}</span>
+                    <span class="attendance-modal-player-pos">${escapeAttendanceHtml(player.pos1 || '-')}</span>
                 </div>
             </label>
         `;
@@ -284,20 +357,6 @@ function addCalendarDays(date, days) {
     return d;
 }
 
-function escapeCalendarJsString(value) {
-    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-}
-
-function escapeCalendarHtml(value) {
-    return String(value || '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    }[char]));
-}
-
 function updateCalendarHeading(date) {
     if (!date) return;
     const headingMonthDate = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -405,6 +464,8 @@ window.updateDailySchedule = function() {
     const listContainer = document.getElementById('daily-events-list');
     if (!listContainer) return;
 
+    bindDailyEventsListEvents();
+
     if (!window.selectedCalendarDateStr) window.selectedCalendarDateStr = formatCalendarDate(new Date());
 
     const dateStr = window.selectedCalendarDateStr;
@@ -426,7 +487,7 @@ window.updateDailySchedule = function() {
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
-                <button type="button" onclick="window.openActivityModal('Trening')" class="match-bench-action-btn calendar-empty-action">
+                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="match-bench-action-btn calendar-empty-action">
                     <i class="fa-solid fa-calendar-plus"></i>
                     <span>Legg til</span>
                 </button>
@@ -436,7 +497,7 @@ window.updateDailySchedule = function() {
 
     const renderDailyMatch = (m) => {
         const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
-        const matchId = escapeCalendarJsString(m.id);
+        const matchId = escapeAttendanceHtml(m.id);
         const opponent = m.opponent || 'Motstander ikke satt';
         const venue = typeof window.getMatchVenue === 'function'
             ? window.getMatchVenue(m)
@@ -458,8 +519,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" onclick="window.openAttendanceModal('match_${matchId}')" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
-                    <button type="button" onclick="window.openMatchModal('${matchId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-attendance-action="attendance" data-event-id="match_${matchId}" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
+                    <button type="button" data-attendance-action="edit-match" data-event-id="${matchId}" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
                 <div class="calendar-daily-card-content calendar-match-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-match-icon-slot">
@@ -488,13 +549,13 @@ window.updateDailySchedule = function() {
             ? { icon: 'fa-person-running', label: 'Trening', tone: 'is-training', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
             : { icon: 'fa-calendar-check', label: 'Annet', tone: 'is-other', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
-        const eventId = escapeCalendarJsString(e.id);
+        const eventId = escapeAttendanceHtml(e.id);
         return `
             <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" onclick="window.openAttendanceModal('${eventId}')" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
-                    <button type="button" onclick="window.editActivity('${eventId}')" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-attendance-action="attendance" data-event-id="${eventId}" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
+                    <button type="button" data-attendance-action="edit-activity" data-event-id="${eventId}" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
                 <div class="calendar-daily-card-content calendar-event-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-event-icon-slot">
@@ -507,7 +568,7 @@ window.updateDailySchedule = function() {
                             <div class="calendar-daily-title-line calendar-event-title-line">
                                 <h4 class="calendar-detail-title calendar-daily-title truncate">${theme.label}</h4>
                                 <span class="calendar-detail-time-dot" aria-hidden="true"></span>
-                                <span class="calendar-daily-time calendar-event-time">${e.time || 'TBA'}</span>
+                                <span class="calendar-daily-time calendar-event-time">${escapeCalendarHtml(e.time || 'TBA')}</span>
                             </div>
                             <div class="calendar-daily-meta-row calendar-detail-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(e.location || 'Ikke oppgitt')}</span>
@@ -550,6 +611,8 @@ window.renderEvents = function() {
     const noEventsView = document.getElementById('no-events-view');
     if (!tableBody) return;
 
+    bindEventTableEvents();
+
     tableBody.innerHTML = '';
 
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
@@ -571,7 +634,7 @@ window.renderEvents = function() {
 
     combinedList.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
         const attendanceCount = ev.attendance ? Object.values(ev.attendance).filter(v => v === true).length : 0;
-        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${escapeCalendarHtml(ev.title || 'Uten navn')}</td><td class="py-3 px-4 text-slate-500">${escapeCalendarHtml(ev.type || '-')}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button onclick="openAttendanceModal('${escapeCalendarJsString(ev.id)}')" class="portal-btn portal-btn-success portal-btn-xs">REGISTRER</button></td></tr>`;
+        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${escapeCalendarHtml(ev.title || 'Uten navn')}</td><td class="py-3 px-4 text-slate-500">${escapeCalendarHtml(ev.type || '-')}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button type="button" data-attendance-action="register" data-event-id="${escapeAttendanceHtml(ev.id)}" class="portal-btn portal-btn-success portal-btn-xs">REGISTRER</button></td></tr>`;
     });
 };
 
