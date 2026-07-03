@@ -4,10 +4,100 @@ function escapeStatsHtml(value) {
         : String(value || '');
 }
 
+function escapeStatisticsHtml(value) {
+    return escapeStatsHtml(value);
+}
+
 function escapeStatsJsString(value) {
     return typeof window.escapeModalJsString === 'function'
         ? window.escapeModalJsString(value)
         : String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function getStatsPlayerIdForName(name) {
+    const player = (window.activePlayers || []).find(p => p.navn === name);
+    return player && player.id != null ? String(player.id) : '';
+}
+
+function openStatsPlayerFromActionEl(actionEl) {
+    const playerId = actionEl.dataset.playerId;
+    if (playerId) {
+        const player = (window.activePlayers || []).find(p => String(p.id) === String(playerId));
+        if (player && typeof window.openSpillerDetail === 'function') {
+            window.openSpillerDetail(player.navn);
+            return;
+        }
+    }
+    const playerName = actionEl.dataset.playerName;
+    if (playerName && typeof window.openSpillerDetail === 'function') {
+        window.openSpillerDetail(playerName);
+    }
+}
+
+function bindStatisticsEvents() {
+    const container = document.getElementById('view-statistikk');
+    if (!container || container.dataset.statEventsBound === 'true') return;
+    container.dataset.statEventsBound = 'true';
+
+    container.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-stat-action]');
+        if (!actionEl || actionEl.disabled) return;
+
+        const action = actionEl.dataset.statAction;
+        if (action === 'open-player') {
+            openStatsPlayerFromActionEl(actionEl);
+            return;
+        }
+        if (action === 'back-overview') {
+            if (typeof window.showSpillereOverview === 'function') window.showSpillereOverview();
+            return;
+        }
+        if (action === 'sort') {
+            const column = actionEl.dataset.sortCol;
+            if (column && typeof window.sortStatsTable === 'function') window.sortStatsTable(column);
+            return;
+        }
+        if (action === 'scroll-sort') {
+            const direction = Number(actionEl.dataset.direction);
+            if (!Number.isNaN(direction) && typeof window.scrollStatsSortMenu === 'function') {
+                window.scrollStatsSortMenu(direction);
+            }
+            return;
+        }
+        if (action === 'open-form-info') {
+            if (typeof window.openStatsFormInfoModal === 'function') window.openStatsFormInfoModal();
+            return;
+        }
+        if (action === 'set-lag-section') {
+            const section = actionEl.dataset.sectionId;
+            if (section && typeof window.setStatsLagSection === 'function') window.setStatsLagSection(section);
+            return;
+        }
+        if (action === 'navigate-match') {
+            const direction = Number(actionEl.dataset.direction);
+            if (!Number.isNaN(direction) && typeof window.navigateKampstatMatch === 'function') {
+                window.navigateKampstatMatch(direction);
+            }
+            return;
+        }
+        if (action === 'edit-match') {
+            const matchId = actionEl.dataset.matchId;
+            if (matchId && typeof window.openMatchStatsEditor === 'function') window.openMatchStatsEditor(matchId);
+            return;
+        }
+        if (action === 'open-tactical') {
+            const matchId = actionEl.dataset.matchId;
+            if (matchId && typeof window.openTacticalPlanForMatch === 'function') window.openTacticalPlanForMatch(matchId);
+        }
+    });
+
+    container.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('[data-stat-action][role="button"]');
+        if (!card || event.target.closest('button[data-stat-action]')) return;
+        event.preventDefault();
+        card.click();
+    });
 }
 
 window.checkIndividualChemistry = function() {
@@ -438,7 +528,7 @@ window.checkIndividualChemistry = function() {
                     </div>
                     <div class="stats-followup-list">
                         ${followUps.map(p => `
-                            <button type="button" onclick="window.openSpillerDetail('${escapeStatsJsString(p.name)}')" class="stats-followup-item w-full text-left">
+                            <button type="button" data-stat-action="open-player" data-player-id="${escapeStatisticsHtml(getStatsPlayerIdForName(p.name))}" data-player-name="${escapeStatisticsHtml(p.name)}" class="stats-followup-item w-full text-left">
                                 <div class="flex items-center gap-3">
                                     <div class="stats-metric-icon text-bsk-yellow">
                                         <i class="fa-solid fa-triangle-exclamation text-sm"></i>
@@ -546,6 +636,7 @@ window.checkIndividualChemistry = function() {
             if (typeof window.updateStatsLagSectionVisibility === 'function') {
                 window.updateStatsLagSectionVisibility();
             }
+            bindStatisticsEvents();
         };
 
 
@@ -855,9 +946,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="stats-chrome-form-row" aria-label="Lagform siste kamper">
                     <div class="stats-chrome-form-track">
                         ${formGuide.map((item, index) => `
-                            <span class="stats-chrome-form-item ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${item.tooltip}">
+                            <span class="stats-chrome-form-item ${getPillClass(item.form)} ${index === formGuide.length - 1 ? 'is-latest' : ''}" title="${escapeStatisticsHtml(item.tooltip)}">
                                 <span class="stats-chrome-form-dot" aria-hidden="true"></span>
-                                <span>${item.text}</span>
+                                <span>${escapeStatisticsHtml(item.text)}</span>
                             </span>
                         `).join('')}
                     </div>
@@ -876,7 +967,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="roster-status-filter stats-hero-tablist stats-hero-tablist-info-only" aria-label="Statistikkvalg">
                         <button
                             type="button"
-                            onclick="window.openStatsFormInfoModal()"
+                            data-stat-action="open-form-info"
                             class="roster-status-btn stats-chrome-info-btn"
                             title="Slik regnes form"
                             aria-label="Slik regnes form"
@@ -1076,10 +1167,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `;
             }
 
-            const safeName = String(leader.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             return `
-                <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card stats-spillere-summary-card-clickable">
-                    <span class="dashboard-series-goal-count-value stats-leader-name">${leader.navn}</span>
+                <button type="button" data-stat-action="open-player" data-player-id="${escapeStatisticsHtml(getStatsPlayerIdForName(leader.navn))}" data-player-name="${escapeStatisticsHtml(leader.navn)}" class="match-bench-count dashboard-series-goal-count stats-spillere-summary-card stats-spillere-summary-card-clickable">
+                    <span class="dashboard-series-goal-count-value stats-leader-name">${escapeStatisticsHtml(leader.navn)}</span>
                 </button>
             `;
         };
@@ -1595,7 +1685,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             role="tab"
                             aria-selected="${activeSection === section.id ? 'true' : 'false'}"
                             class="stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
-                            onclick="window.setStatsLagSection('${section.id}')"
+                            data-stat-action="set-lag-section"
+                            data-section-id="${section.id}"
                         >
                             <i class="fa-solid ${section.icon}" aria-hidden="true"></i>
                             <span>${section.label}</span>
@@ -1734,9 +1825,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-kamp-bar-meta">
                         <span>${[matchType, matchGroup, dateStr, pitch].filter(Boolean).map(escapeStatsHtml).join(' · ')}</span>
                         <div class="stats-kamp-nav">
-                            <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button type="button" data-stat-action="navigate-match" data-direction="-1" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
                             <span>${currentIdx + 1} / ${playedMatches.length}</span>
-                            <button type="button" onclick="window.navigateKampstatMatch(1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button type="button" data-stat-action="navigate-match" data-direction="1" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
@@ -1789,7 +1880,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (summary) summary.innerHTML = '';
 
             window.paintStatsChrome(window.renderStatsChromeBar(
-                playerName,
+                escapeStatisticsHtml(playerName),
                 `
                     ${heroTabsHtml}
                     <div class="stats-chrome-badge">
@@ -1798,7 +1889,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         <span>Form ${chemistry}/100</span>
                     </div>
                 `,
-                `<p class="stats-chrome-subtitle">${player.pos1 || 'Spiller'} · ${player.spillerLag || ''} · ${formComparison}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>`
+                `<p class="stats-chrome-subtitle">${escapeStatisticsHtml(player.pos1 || 'Spiller')} · ${escapeStatisticsHtml(player.spillerLag || '')} · ${escapeStatisticsHtml(formComparison)}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>`
             ));
         };
 
@@ -1865,9 +1956,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
                 const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
                 const totalText = stat.totalScore > 0 ? stat.totalScore.toFixed(1) : '-';
-                const safeName = escapeStatsJsString(stat.navn);
-                const safeNameHtml = escapeStatsHtml(stat.navn);
-                const safePosHtml = escapeStatsHtml(posStr);
+                const safeNameHtml = escapeStatisticsHtml(stat.navn);
+                const safePosHtml = escapeStatisticsHtml(posStr);
+                const playerIdAttr = escapeStatisticsHtml(getStatsPlayerIdForName(stat.navn));
 
                 const extras = [];
                 if (stat.mal > 0) extras.push(window.renderStatsMetaPartHtml('mal', String(stat.mal)));
@@ -1890,7 +1981,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const kampbidragIcon = window.renderStatsSortIconHtml(window.getStatsSortOption('kampbonus'), 'stats-kb-icon');
 
                 return `
-                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${safeNameHtml}, total score ${totalText}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
+                    <button type="button" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" class="roster-player-row stats-player-row" aria-label="${safeNameHtml}, total score ${totalText}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
                         <div class="stats-form-jersey ${formClass}${formSortActiveClass}" aria-hidden="true">
                             <span class="stats-form-jersey-value">${stat.kjemi}</span>
                             <span class="stats-form-jersey-label">Form</span>
@@ -1937,23 +2028,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.statsMetricCardHtml = function(label, value, sub, icon, iconClass = 'text-bsk-blue', playerName = '') {
-            const safeName = playerName
-                ? String(playerName).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
-                : '';
-            const clickAttrs = safeName
-                ? ` role="button" tabindex="0" onclick="window.openSpillerDetail('${safeName}')" class="stats-metric-card stats-metric-card-clickable"`
+            const playerId = playerName ? escapeStatisticsHtml(getStatsPlayerIdForName(playerName)) : '';
+            const clickAttrs = playerName
+                ? ` role="button" tabindex="0" data-stat-action="open-player" data-player-id="${playerId}" data-player-name="${escapeStatisticsHtml(playerName)}" class="stats-metric-card stats-metric-card-clickable"`
                 : ` class="stats-metric-card"`;
 
             return `
                 <div${clickAttrs}>
                     <div class="stats-metric-card-top">
-                        <span class="stats-metric-label">${label}</span>
+                        <span class="stats-metric-label">${escapeStatisticsHtml(label)}</span>
                         <div class="stats-metric-icon">
                             <i class="fa-solid ${icon} ${iconClass}"></i>
                         </div>
                     </div>
-                    <div class="stats-metric-value">${value || '-'}</div>
-                    <div class="stats-metric-sub">${sub || ''}</div>
+                    <div class="stats-metric-value">${escapeStatisticsHtml(value || '-')}</div>
+                    <div class="stats-metric-sub">${escapeStatisticsHtml(sub || '')}</div>
                 </div>
             `;
         };
@@ -2014,14 +2103,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const option = window.getStatsSortOption(id);
             const iconHtml = window.renderStatsSortIconHtml(option, 'stats-meta-icon');
             const activeClass = id === currentStatSortCol ? ' is-sort-active' : '';
-            return `<span class="stats-meta-part${activeClass}" data-stat-meta="${id}">${iconHtml}<span class="stats-meta-text">${text}</span></span>`;
+            return `<span class="stats-meta-part${activeClass}" data-stat-meta="${id}">${iconHtml}<span class="stats-meta-text">${escapeStatisticsHtml(text)}</span></span>`;
         };
 
         window.renderStatsSortButtonsHtml = function(activeCol) {
             return window.STATS_PLAYER_SORT_OPTIONS.map(opt => `
                 <button
                     type="button"
-                    onclick="sortStatsTable('${opt.id}')"
+                    data-stat-action="sort"
                     class="roster-status-btn stats-sort-btn ${activeCol === opt.id ? 'is-active' : ''}"
                     data-sort-col="${opt.id}"
                     aria-label="${opt.label}"
@@ -2116,7 +2205,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
                         <div class="stats-player-toolbar">
                             <div class="stats-sort-scroller-wrap">
-                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-left" onclick="window.scrollStatsSortMenu(-1)" aria-label="Scroll sorteringsmeny til venstre" data-no-swipe>
+                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-left" data-stat-action="scroll-sort" data-direction="-1" aria-label="Scroll sorteringsmeny til venstre" data-no-swipe>
                                     <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                                 </button>
                                 <div class="stats-sort-scroller" id="stats-player-sort-scroller" data-no-swipe>
@@ -2124,7 +2213,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                         ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
                                     </div>
                                 </div>
-                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-right" onclick="window.scrollStatsSortMenu(1)" aria-label="Scroll sorteringsmeny til høyre" data-no-swipe>
+                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-right" data-stat-action="scroll-sort" data-direction="1" aria-label="Scroll sorteringsmeny til høyre" data-no-swipe>
                                     <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -2170,7 +2259,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 }
                 container.innerHTML = `
                     <div class="stats-player-detail">
-                        <button type="button" onclick="window.showSpillereOverview()" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
+                        <button type="button" data-stat-action="back-overview" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
                             <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
                         </button>
                         ${window.statsEmptyStateHtml(
@@ -2222,7 +2311,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             container.innerHTML = `
                 <div class="stats-player-detail">
-                    <button type="button" onclick="window.showSpillereOverview()" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
+                    <button type="button" data-stat-action="back-overview" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
                     </button>
 
@@ -2240,7 +2329,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     <h3 class="stats-panel-title">Utvikling</h3>
                                     <p class="stats-panel-subtitle">Spiller vs lagets snitt per kamp. Nyeste kamp til høyre.</p>
                                 </div>
-                                <button type="button" onclick="window.openStatsFormInfoModal()" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
+                                <button type="button" data-stat-action="open-form-info" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
                                     <i class="fa-solid fa-circle-info"></i>
                                     <span class="hidden sm:inline">Slik regnes form</span>
                                 </button>
@@ -2545,8 +2634,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             </div>
                         
                             <div class="flex items-center gap-2 shrink-0">
-                                <button 
-                                    onclick="document.getElementById('kjemi-info-modal').classList.remove('hidden'); document.getElementById('kjemi-info-modal').classList.add('flex');"
+                                <button
+                                    type="button"
+                                    data-stat-action="open-form-info"
                                     class="portal-btn portal-btn-success portal-btn-sm"
                                 >
                                     <i class="fa-solid fa-circle-info"></i>
@@ -2555,7 +2645,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 </button>
                             
                                 <button
-                                    onclick="openMatchStatsEditor('${match.id}')"
+                                    type="button"
+                                    data-stat-action="edit-match"
+                                    data-match-id="${escapeStatisticsHtml(match.id)}"
                                     title="Rediger mål, assist, kort og spillerbørs"
                                     class="portal-btn portal-btn-icon-sm portal-btn-warning"
                                 >
@@ -2645,7 +2737,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="flex items-center justify-between gap-3">
                                 <span class="text-xs font-bold text-slate-500">📈 Mest poeng</span>
                                 <span class="text-xs font-black text-slate-800 text-right">
-                                    ${pointsLeader ? pointsLeader.name + ' · ' + pointsLeader.points + ' p' : '-'}
+                                    ${pointsLeader ? `${escapeStatisticsHtml(pointsLeader.name)} · ${pointsLeader.points} p` : '-'}
                                 </span>
                             </div>
 
@@ -2655,8 +2747,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             </div>
                             
                             <div class="pt-3">
-                                <button 
-                                    onclick="openTacticalPlanForMatch('${match.id}')"
+                                <button
+                                    type="button"
+                                    data-stat-action="open-tactical"
+                                    data-match-id="${escapeStatisticsHtml(match.id)}"
                                     class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full"
                                 >
                                     <i class="fa-solid fa-chess-board text-bsk-yellow"></i>
@@ -2905,19 +2999,19 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         const breakdown = entry.hasForm
             ? `${entry.formKamp}+${entry.formOppm}+${entry.formDis}`
             : '–';
-        const safeMatchId = String(entry.matchId).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const safeMatchId = escapeStatisticsHtml(entry.matchId);
 
         return `
             <tr class="stats-form-history-row">
                 <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
-                <td class="stats-form-history-opponent">${window.formatStatsOpponentLabel(entry)}</td>
-                <td class="stats-form-history-result">${window.formatStatsMatchResult(entry.result)}</td>
+                <td class="stats-form-history-opponent">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</td>
+                <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
                 <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
                 <td class="stats-form-history-rating">${ratingText}</td>
                 <td class="stats-form-history-form ${formClass}">${entry.hasForm ? entry.form : '–'}${formNote}</td>
                 <td class="stats-form-history-breakdown">${breakdown}</td>
                 <td class="stats-form-history-action">
-                    <button type="button" onclick="openMatchStatsEditor('${safeMatchId}')" title="Rediger kamp" class="portal-btn portal-btn-icon-sm portal-btn-warning">
+                    <button type="button" data-stat-action="edit-match" data-match-id="${safeMatchId}" title="Rediger kamp" class="portal-btn portal-btn-icon-sm portal-btn-warning">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                 </td>
