@@ -414,6 +414,162 @@ window.renderPlayerRoster = function() {
     });
 };
 
+function buildPlayerPositionLabel(player) {
+    if (!player?.pos1 || player.pos1 === '-') return 'Ukjent posisjon';
+    return player.pos2 && player.pos2 !== '-'
+        ? `${player.pos1} / ${player.pos2}`
+        : player.pos1;
+}
+
+function getPlayerProfileStats(player) {
+    if (!player || typeof window.buildPlayerStatsData !== 'function') return null;
+    return window.buildPlayerStatsData().find(stat => stat.navn === player.navn) || null;
+}
+
+function buildPlayerProfileMetricHtml(label, value) {
+    return `
+        <div class="player-profile-metric">
+            <span class="player-profile-metric-label">${escapeRosterHtml(label)}</span>
+            <span class="player-profile-metric-value">${escapeRosterHtml(value)}</span>
+        </div>
+    `;
+}
+
+function buildPlayerProfileAvatarHtml(player) {
+    const photoUrl = getRosterPlayerPhotoUrl(player);
+
+    return `
+        <div class="player-profile-avatar" aria-hidden="true">
+            ${photoUrl
+                ? `<img src="${escapeRosterHtml(photoUrl)}" alt="">`
+                : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+        </div>
+    `;
+}
+
+function renderPlayerModalProfile(player) {
+    const profileEl = document.getElementById('playerModalProfile');
+    if (!profileEl || !player) return;
+
+    const currentYear = new Date().getFullYear();
+    const birthYear = player.fodselsaar ? String(player.fodselsaar) : '';
+    const age = birthYear ? currentYear - parseInt(birthYear, 10) : null;
+    const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+        ? window.getPlayerInjuryInfo(player)
+        : { isInjured: false, label: '' };
+    const stats = getPlayerProfileStats(player);
+    const jersey = player.draktnummer ? `#${player.draktnummer}` : '-';
+    const posLabel = buildPlayerPositionLabel(player);
+    const foot = player.fot ? `${player.fot} fot` : 'Ukjent fot';
+    const ageLabel = age != null && birthYear ? `${age} år (${birthYear})` : (birthYear || '-');
+    const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
+    const oppmote = stats ? `${stats.oppmotePct}%` : '-';
+    const form = stats && stats.kjemi > 0 ? `${stats.kjemi}/100` : '-';
+    const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus)) : '-';
+    const kamper = stats ? String(stats.kamper) : '0';
+    const mal = stats ? String(stats.mal) : '0';
+    const assist = stats ? String(stats.assist) : '0';
+    const gule = stats ? String((stats.guleSerie || 0) + (stats.guleCup || 0)) : '0';
+    const rode = stats ? String((stats.rodeSerie || 0) + (stats.rodeCup || 0)) : '0';
+    const bb = stats ? String(stats.bb || 0) : '0';
+    const hasMatchData = stats && (stats.kamper > 0 || stats.attendedMatches > 0);
+
+    profileEl.innerHTML = `
+        <div class="player-profile-hero">
+            ${buildPlayerProfileAvatarHtml(player)}
+            <div class="player-profile-hero-main">
+                <h3 class="player-profile-name">${escapeRosterHtml(player.navn)}${captainMark}</h3>
+                <div class="player-profile-badges">
+                    ${buildRosterStatusBadge(player.status)}
+                    ${buildRosterInjuryBadge(injuryInfo)}
+                </div>
+                <p class="player-profile-subtitle">${escapeRosterHtml(posLabel)} · ${escapeRosterHtml(player.spillerLag || window.getPrimaryTeamName())}</p>
+            </div>
+            <div class="player-profile-jersey">${escapeRosterHtml(jersey)}</div>
+        </div>
+
+        <div class="player-profile-section">
+            <p class="player-profile-section-title">Spillerinfo</p>
+            <div class="player-profile-grid">
+                ${buildPlayerProfileMetricHtml('Lag', player.spillerLag || window.getPrimaryTeamName())}
+                ${buildPlayerProfileMetricHtml('Posisjon', posLabel)}
+                ${buildPlayerProfileMetricHtml('Fot', foot)}
+                ${buildPlayerProfileMetricHtml('Status', player.status || '-')}
+                ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
+            </div>
+        </div>
+
+        ${injuryInfo.isInjured ? `
+            <div class="player-profile-section player-profile-section-injury">
+                <p class="player-profile-section-title">Skade</p>
+                <p class="player-profile-injury-text">${escapeRosterHtml(injuryInfo.label)}</p>
+            </div>
+        ` : ''}
+
+        <div class="player-profile-section">
+            <p class="player-profile-section-title">Statistikk</p>
+            ${hasMatchData ? `
+                <div class="player-profile-grid player-profile-grid-stats">
+                    ${buildPlayerProfileMetricHtml('Kamper', kamper)}
+                    ${buildPlayerProfileMetricHtml('Mål', mal)}
+                    ${buildPlayerProfileMetricHtml('Assist', assist)}
+                    ${buildPlayerProfileMetricHtml('Oppmøte', oppmote)}
+                    ${buildPlayerProfileMetricHtml('Form', form)}
+                    ${buildPlayerProfileMetricHtml('Kampbidrag', kampbidrag)}
+                    ${buildPlayerProfileMetricHtml('Gule kort', gule)}
+                    ${buildPlayerProfileMetricHtml('Røde kort', rode)}
+                    ${buildPlayerProfileMetricHtml('Banens beste', bb)}
+                </div>
+            ` : `
+                <p class="player-profile-empty">Ingen kampdata registrert ennå.</p>
+            `}
+        </div>
+    `;
+}
+
+window.setPlayerModalView = function(mode = 'profile') {
+    const profileEl = document.getElementById('playerModalProfile');
+    const formEl = document.getElementById('playerForm');
+    const tabsEl = document.getElementById('playerModalTabs');
+    const footer = document.querySelector('.player-modal-footer');
+    const saveBtn = footer ? footer.querySelector('[form="playerForm"]') : null;
+    const deleteBtn = document.getElementById('playerModalDeleteBtn');
+    const editPlayerId = document.getElementById('editPlayerId')?.value || '';
+    const isExistingPlayer = Boolean(editPlayerId);
+    const isProfile = mode === 'profile' && isExistingPlayer;
+
+    if (tabsEl) tabsEl.classList.toggle('hidden', !isExistingPlayer);
+    if (profileEl) profileEl.classList.toggle('hidden', !isProfile);
+    if (formEl) formEl.classList.toggle('hidden', isProfile);
+
+    const profileTab = document.getElementById('playerModalTabProfile');
+    const editTab = document.getElementById('playerModalTabEdit');
+    if (profileTab) {
+        profileTab.classList.toggle('is-active', isProfile);
+        profileTab.setAttribute('aria-selected', isProfile ? 'true' : 'false');
+    }
+    if (editTab) {
+        editTab.classList.toggle('is-active', !isProfile);
+        editTab.setAttribute('aria-selected', !isProfile ? 'true' : 'false');
+    }
+
+    const titleEl = document.getElementById('playerFormTitle');
+    if (titleEl) {
+        if (!isExistingPlayer) titleEl.innerText = 'Ny spiller';
+        else if (isProfile) titleEl.innerText = 'Spillerprofil';
+        else titleEl.innerText = 'Rediger spiller';
+    }
+
+    if (footer) {
+        footer.classList.toggle('is-profile-mode', isProfile);
+        footer.classList.toggle('is-edit-mode', !isProfile && isExistingPlayer);
+    }
+    if (saveBtn) saveBtn.classList.toggle('hidden', isProfile);
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', isProfile || !isExistingPlayer);
+    const cancelBtn = footer ? footer.querySelector('.player-modal-cancel-btn') : null;
+    if (cancelBtn) cancelBtn.classList.toggle('hidden', isProfile);
+};
+
 window.openPlayerModal = function(editPlayerId = null) {
     const modal = document.getElementById('playerModal');
     document.getElementById('playerForm').reset();
@@ -455,6 +611,16 @@ window.openPlayerModal = function(editPlayerId = null) {
     if (deleteBtn) deleteBtn.classList.toggle('hidden', !editPlayerId);
     if (footer) footer.classList.toggle('is-edit-mode', Boolean(editPlayerId));
 
+    if (editPlayerId) {
+        const profilePlayer = (window.activePlayers || []).find(p => p.id === editPlayerId);
+        if (profilePlayer) renderPlayerModalProfile(profilePlayer);
+        window.setPlayerModalView('profile');
+    } else {
+        const profileEl = document.getElementById('playerModalProfile');
+        if (profileEl) profileEl.innerHTML = '';
+        window.setPlayerModalView('edit');
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 };
@@ -471,6 +637,8 @@ window.togglePlayerSkadeFields = function() {
 };
 
 window.closePlayerModal = function() {
+    const profileEl = document.getElementById('playerModalProfile');
+    if (profileEl) profileEl.innerHTML = '';
     document.getElementById('playerModal').classList.add('hidden');
     document.getElementById('playerModal').classList.remove('flex');
 };

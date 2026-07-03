@@ -21,16 +21,21 @@ function getStatsPlayerIdForName(name) {
 
 function openStatsPlayerFromActionEl(actionEl) {
     const playerId = actionEl.dataset.playerId;
-    if (playerId) {
-        const player = (window.activePlayers || []).find(p => String(p.id) === String(playerId));
-        if (player && typeof window.openSpillerDetail === 'function') {
-            window.openSpillerDetail(player.navn);
+    if (playerId && typeof window.openPlayerModal === 'function') {
+        window.openPlayerModal(playerId);
+        return;
+    }
+
+    const playerName = actionEl.dataset.playerName;
+    if (playerName) {
+        const player = (window.activePlayers || []).find(p => p.navn === playerName);
+        if (player?.id && typeof window.openPlayerModal === 'function') {
+            window.openPlayerModal(player.id);
             return;
         }
-    }
-    const playerName = actionEl.dataset.playerName;
-    if (playerName && typeof window.openSpillerDetail === 'function') {
-        window.openSpillerDetail(playerName);
+        if (typeof window.openSpillerDetail === 'function') {
+            window.openSpillerDetail(playerName);
+        }
     }
 }
 

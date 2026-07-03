@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260702-lineup-overlays-v48">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260703-player-profile-v1">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -748,6 +748,19 @@
                 </button>
             </div>
 
+            <div id="playerModalTabs" class="player-modal-tabs hidden relative z-10" role="tablist" aria-label="Spillervalg">
+                <button type="button" id="playerModalTabProfile" class="player-modal-tab is-active" onclick="window.setPlayerModalView('profile')" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>Profil</span>
+                </button>
+                <button type="button" id="playerModalTabEdit" class="player-modal-tab" onclick="window.setPlayerModalView('edit')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Rediger</span>
+                </button>
+            </div>
+
+            <div id="playerModalProfile" class="player-modal-profile hidden relative z-10" role="tabpanel" aria-label="Spillerprofil"></div>
+
             <form id="playerForm" onsubmit="savePlayer(event)" class="player-modal-body relative z-10">
                 <input type="hidden" id="editPlayerId">
 
@@ -861,7 +874,7 @@
                     <i class="fa-solid fa-trash"></i>
                     <span>Slett</span>
                 </button>
-                <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn dashboard-session-action-btn">
+                <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn dashboard-session-action-btn player-modal-cancel-btn">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Avbryt</span>
                 </button>
@@ -1098,10 +1111,10 @@
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
-    <script src="assets/js/pages/players.js?v=20260703-single-team-v1"></script>
+    <script src="assets/js/pages/players.js?v=20260703-player-profile-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260703-xss-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260703-xss-v1"></script>
-    <script src="assets/js/pages/statistics.js?v=20260703-xss-v1"></script>
+    <script src="assets/js/pages/statistics.js?v=20260703-player-profile-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260703-xss-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260703-xss-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>
