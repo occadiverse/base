@@ -1,3 +1,15 @@
+function escapeDashboardHtml(value) {
+    return typeof window.escapeModalHtml === 'function'
+        ? window.escapeModalHtml(value)
+        : String(value || '');
+}
+
+function escapeDashboardJsString(value) {
+    return typeof window.escapeModalJsString === 'function'
+        ? window.escapeModalJsString(value)
+        : String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 window.goToMatchDetails = function(matchId) {
     if (!matchId) return;
     window.pendingMatchDetailsBackTab = window.currentTab || 'hjem';
@@ -111,7 +123,7 @@ window.updateDashboard = function() {
                         <div class="${crestClass}">
                             ${logoHtml || `<i class="fa-solid ${iconClass}"></i>`}
                         </div>
-                        <span class="match-detail-team-name">${team.name}</span>
+                        <span class="match-detail-team-name">${escapeDashboardHtml(team.name)}</span>
                     </div>
                 `;
             };
@@ -149,15 +161,15 @@ window.updateDashboard = function() {
                         const badgeColor = s.cardType === 'red' ? 'bg-red-600 text-white' : 'bg-yellow-400 text-slate-900';
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-rose-50 border border-rose-100 p-2 rounded-xl text-xs font-bold text-rose-900 shadow-sm">
-                                <span class="truncate">🚨 ${window.getPlayerNameFromRef(playerRef)}</span>
-                                <span class="${badgeColor} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.reason || 'KARANTENE'}</span>
+                                <span class="truncate">🚨 ${escapeDashboardHtml(window.getPlayerNameFromRef(playerRef))}</span>
+                                <span class="${badgeColor} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${escapeDashboardHtml(s.reason || 'KARANTENE')}</span>
                             </div>`;
                     });
                     atRiskPlayers.forEach(playerRef => {
                         const s = teamSuspensions[playerRef];
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-amber-50 border border-amber-100 p-2 rounded-xl text-xs font-bold text-amber-900 shadow-sm">
-                                <span class="truncate">⚠️ ${window.getPlayerNameFromRef(playerRef)}</span>
+                                <span class="truncate">⚠️ ${escapeDashboardHtml(window.getPlayerNameFromRef(playerRef))}</span>
                                 <span class="bg-amber-400 text-slate-900 px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.yellows} gule · karantene ved ${s.nextKaranteneAt || 4}</span>
                             </div>`;
                     });
@@ -167,14 +179,14 @@ window.updateDashboard = function() {
                             : 'bg-orange-500 text-white';
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-orange-50 border border-orange-100 p-2 rounded-xl text-xs font-bold text-orange-900 shadow-sm">
-                                <span class="truncate">🩹 ${p.navn}</span>
-                                <span class="${badgeClass} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${p.info.shortLabel}</span>
+                                <span class="truncate">🩹 ${escapeDashboardHtml(p.navn)}</span>
+                                <span class="${badgeClass} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${escapeDashboardHtml(p.info.shortLabel)}</span>
                             </div>`;
                     });
                     forfallPlayers.forEach(p => {
                         dangerZoneContainer.innerHTML += `
                             <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-500">
-                                <span class="truncate">❌ ${p}</span>
+                                <span class="truncate">❌ ${escapeDashboardHtml(p)}</span>
                                 <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-[9px] font-black shrink-0">MELDT FORFALL</span>
                             </div>`;
                     });
@@ -198,7 +210,7 @@ window.updateDashboard = function() {
 
             // HTML for forsiden bruker samme kortspråk som kampdetaljer.
             heroContainer.innerHTML = `
-                <article onclick="window.goToMatchDetails('${nm.id}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-match-card dashboard-click-card">
+                <article onclick="window.goToMatchDetails('${escapeDashboardJsString(nm.id)}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-match-card dashboard-click-card">
                     <div class="dashboard-next-match-watermark">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
@@ -227,9 +239,9 @@ window.updateDashboard = function() {
                     </div>
 
                     <div class="match-detail-footer relative z-10">
-                        <div class="match-detail-footer-item" title="${nm.pitch || 'Ikke fastsatt'}">
+                        <div class="match-detail-footer-item" title="${escapeDashboardHtml(nm.pitch || 'Ikke fastsatt')}">
                             <i class="fa-solid fa-location-dot"></i>
-                            <span>${nm.pitch || 'Ikke fastsatt'}</span>
+                            <span>${escapeDashboardHtml(nm.pitch || 'Ikke fastsatt')}</span>
                         </div>
                         <div class="match-detail-footer-item">
                             <i class="fa-regular fa-clock"></i>

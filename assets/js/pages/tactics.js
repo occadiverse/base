@@ -1,6 +1,18 @@
         // ==========================================
         // ===== TAKTIKK OG KJEMI (NY DEL) =====
         // ==========================================
+        function escapeTacticalHtml(value) {
+            return typeof window.escapeModalHtml === 'function'
+                ? window.escapeModalHtml(value)
+                : String(value || '');
+        }
+
+        function escapeTacticalJsString(value) {
+            return typeof window.escapeModalJsString === 'function'
+                ? window.escapeModalJsString(value)
+                : String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        }
+
         const tacticalPhases = {
             fase1: { 'GK': { top: '94%', left: '50%' }, 'VMS': { top: '95%', left: '34%' }, 'HMS': { top: '95%', left: '66%' }, 'VB': { top: '85%', left: '16%' }, 'HB': { top: '85%', left: '84%' }, 'DM': { top: '80%', left: '63%' }, 'OM': { top: '80%', left: '37%' }, 'PM': { top: '55%', left: '60%' }, 'VK': { top: '50%', left: '5%' }, 'HK': { top: '50%', left: '95%' }, 'SP': { top: '50%', left: '40%' } },
             fase2: { 'GK': { top: '88%', left: '50%' }, 'VMS': { top: '70%', left: '35%' }, 'HMS': { top: '70%', left: '65%' }, 'VB': { top: '58%', left: '20%' }, 'HB': { top: '58%', left: '80%' }, 'DM': { top: '58%', left: '50%' }, 'OM': { top: '45%', left: '35%' }, 'PM': { top: '45%', left: '65%' }, 'VK': { top: '35%', left: '5%' }, 'HK': { top: '35%', left: '95%' }, 'SP': { top: '30%', left: '50%' } },
@@ -287,22 +299,22 @@
         let benchSuspBadge = '';
         let borderClass = 'border-slate-200/60';
         if (pSusp.isSuspended) {
-            benchSuspBadge = `<span class="text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded-full font-black ml-2 animate-pulse" title="${pSusp.reason}">KARANTENE</span>`;
+            benchSuspBadge = `<span class="text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded-full font-black ml-2 animate-pulse" title="${escapeTacticalHtml(pSusp.reason)}">KARANTENE</span>`;
             borderClass = 'border-rose-300 bg-rose-50';
         } else if (pSusp.isAtRisk) {
-            benchSuspBadge = `<span class="text-[8px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full font-black ml-2" title="Faresone: ${pSusp.yellows} gule i serie. Karantene ved ${pSusp.nextKaranteneAt || 4}.">FARESONE</span>`;
+            benchSuspBadge = `<span class="text-[8px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full font-black ml-2" title="Faresone: ${escapeTacticalHtml(pSusp.yellows)} gule i serie. Karantene ved ${escapeTacticalHtml(pSusp.nextKaranteneAt || 4)}.">FARESONE</span>`;
         }
 
         const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
         if (injuryInfo.isInjured) {
-            benchSuspBadge += `<span class="text-[8px] ${injuryInfo.type === 'langvarig' ? 'bg-rose-600' : 'bg-orange-500'} text-white px-1.5 py-0.5 rounded-full font-black ml-2" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
+            benchSuspBadge += `<span class="text-[8px] ${injuryInfo.type === 'langvarig' ? 'bg-rose-600' : 'bg-orange-500'} text-white px-1.5 py-0.5 rounded-full font-black ml-2" title="${escapeTacticalHtml(injuryInfo.label)}">${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
         }
 
         const div = document.createElement('div');
         div.className = `flex justify-between items-center bg-slate-50 border ${borderClass} p-2.5 rounded-xl shadow-sm`;
         div.innerHTML = `
             <div class="flex items-center min-w-0">
-                <span class="font-bold ${pSusp.isSuspended ? 'text-rose-900' : 'text-slate-800'} truncate text-xs">${p.navn}</span>
+                <span class="font-bold ${pSusp.isSuspended ? 'text-rose-900' : 'text-slate-800'} truncate text-xs">${escapeTacticalHtml(p.navn)}</span>
                 ${benchSuspBadge}
             </div>
             <div class="flex items-center gap-3 shrink-0 ml-2">
@@ -323,15 +335,12 @@
     node.classList.remove('bg-bsk-yellow', 'text-bsk-blue', 'border-white', 'bg-bsk-blue', 'text-white', 'border-2', 'border-[3px]', 'border-bsk-yellow/60', 'border-emerald-500', 'border-yellow-500', 'border-amber-500', 'border-orange-500', 'border-rose-500', 'border-slate-300');
 
     if (playerObj === null || playerObj === undefined) {
-        node.innerHTML = `<span class="player-node-pos">${posId}</span>`;
+        node.innerHTML = `<span class="player-node-pos">${escapeTacticalHtml(posId)}</span>`;
         node.classList.add('bg-bsk-blue', 'text-white', 'border-2', 'border-bsk-yellow/60');
     } else {
         // Henter fornavn og legger til initialen fra etternavnet (uten punktum) hvis det finnes
-        const nameParts = playerObj.navn.split(' ');
-        let displayBottomName = nameParts[0];
-        if (nameParts.length > 1) {
-            displayBottomName += ' ' + nameParts[nameParts.length - 1].charAt(0);
-        }
+        const nameParts = (playerObj.navn || '').split(' ');
+        const displayBottomName = escapeTacticalHtml(nameParts[0] + (nameParts.length > 1 ? ' ' + nameParts[nameParts.length - 1].charAt(0) : ''));
 
         const playerChem = window.calculatePlayerPerformanceChemistry(playerObj.navn);
         
@@ -442,10 +451,10 @@
         const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
 
         if (pSusp.isSuspended) {
-            attStatusHtml += `<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black ml-2 animate-pulse shadow-sm" title="${pSusp.reason}">🚫 KARANTENE</span>`;
+            attStatusHtml += `<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black ml-2 animate-pulse shadow-sm" title="${escapeTacticalHtml(pSusp.reason)}">🚫 KARANTENE</span>`;
             opacityClass = 'opacity-60 bg-rose-50 border border-rose-200';
         } else if (pSusp.isAtRisk) {
-            attStatusHtml += `<span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="Faresone: ${pSusp.yellows} gule i serie. Karantene ved ${pSusp.nextKaranteneAt || 4}.">⚠️ FARESONE</span>`;
+            attStatusHtml += `<span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="Faresone: ${escapeTacticalHtml(pSusp.yellows)} gule i serie. Karantene ved ${escapeTacticalHtml(pSusp.nextKaranteneAt || 4)}.">⚠️ FARESONE</span>`;
         }
 
         const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
@@ -453,7 +462,7 @@
             const injuryClass = injuryInfo.type === 'langvarig'
                 ? 'bg-rose-600 text-white'
                 : 'bg-orange-500 text-white';
-            attStatusHtml += `<span class="text-[9px] ${injuryClass} px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="${injuryInfo.label}">🩹 ${injuryInfo.shortLabel}</span>`;
+            attStatusHtml += `<span class="text-[9px] ${injuryClass} px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="${escapeTacticalHtml(injuryInfo.label)}">🩹 ${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
         }
 
         if (currentMatch) {
@@ -493,10 +502,10 @@
         div.innerHTML = `
             <div class="flex-1 min-w-0 pr-2">
                 <div class="flex items-center flex-wrap gap-y-1">
-                    <p class="font-bold text-slate-800 text-sm truncate mr-1">${p.navn}</p>
+                    <p class="font-bold text-slate-800 text-sm truncate mr-1">${escapeTacticalHtml(p.navn)}</p>
                     ${attStatusHtml}
                 </div>
-                <p class="text-[10px] text-slate-500 font-medium">${p.pos1 || 'Ukjent pos'} ${p.draktnummer ? ' | #' + p.draktnummer : ''}</p>
+                <p class="text-[10px] text-slate-500 font-medium">${escapeTacticalHtml(p.pos1 || 'Ukjent pos')}${p.draktnummer ? ` | #${escapeTacticalHtml(p.draktnummer)}` : ''}</p>
             </div>
             <div class="flex items-center gap-3 shrink-0 mr-3">
                 <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
@@ -514,7 +523,7 @@
         const clearDiv = document.createElement('div');
         clearDiv.className = "p-3 mt-2 bg-rose-50 border border-rose-100 text-rose-600 font-bold text-xs text-center cursor-pointer hover:bg-rose-100 transition rounded-xl flex justify-center items-center gap-2";
         clearDiv.onclick = () => window.choosePlayer(null, posId); 
-        clearDiv.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${posId}`;
+        clearDiv.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${escapeTacticalHtml(posId)}`;
         list.appendChild(clearDiv);
     }
     modal.classList.remove('hidden'); modal.classList.add('flex');

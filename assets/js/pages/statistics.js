@@ -1,3 +1,15 @@
+function escapeStatsHtml(value) {
+    return typeof window.escapeModalHtml === 'function'
+        ? window.escapeModalHtml(value)
+        : String(value || '');
+}
+
+function escapeStatsJsString(value) {
+    return typeof window.escapeModalJsString === 'function'
+        ? window.escapeModalJsString(value)
+        : String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 window.checkIndividualChemistry = function() {
             const selectedPlayer = document.getElementById('chemistryPlayerSelect').value;
             const resContainer = document.getElementById('individual-chemistry-result');
@@ -426,14 +438,14 @@ window.checkIndividualChemistry = function() {
                     </div>
                     <div class="stats-followup-list">
                         ${followUps.map(p => `
-                            <button type="button" onclick="window.openSpillerDetail('${String(p.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" class="stats-followup-item w-full text-left">
+                            <button type="button" onclick="window.openSpillerDetail('${escapeStatsJsString(p.name)}')" class="stats-followup-item w-full text-left">
                                 <div class="flex items-center gap-3">
                                     <div class="stats-metric-icon text-bsk-yellow">
                                         <i class="fa-solid fa-triangle-exclamation text-sm"></i>
                                     </div>
                                     <div class="min-w-0">
-                                        <div class="font-black text-slate-800">${p.name}</div>
-                                        <div class="text-xs text-slate-500 leading-snug">${p.reason}</div>
+                                        <div class="font-black text-slate-800">${escapeStatsHtml(p.name)}</div>
+                                        <div class="text-xs text-slate-500 leading-snug">${escapeStatsHtml(p.reason)}</div>
                                     </div>
                                 </div>
                             </button>
@@ -1711,16 +1723,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                         const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
                                         const shortText = m.opponent || 'Motstander';
                                         const fullText = `${m.opponent || 'Motstander'}${optionDate ? ' · ' + optionDate : ''}${m.result ? ' · ' + m.result : ''}`;
-                                        return `<option value="${m.id}" data-short="${shortText}" data-full="${fullText}" ${m.id === matchId ? 'selected' : ''}>${shortText}</option>`;
+                                        return `<option value="${escapeStatsHtml(m.id)}" data-short="${escapeStatsHtml(shortText)}" data-full="${escapeStatsHtml(fullText)}" ${m.id === matchId ? 'selected' : ''}>${escapeStatsHtml(shortText)}</option>`;
                                     }).join('')}
                                 </select>
                                 <i class="fa-solid fa-chevron-down"></i>
                             </span>
                         </div>
-                        <span class="stats-kamp-bar-result">${matchResult}</span>
+                        <span class="stats-kamp-bar-result">${escapeStatsHtml(matchResult)}</span>
                     </div>
                     <div class="stats-kamp-bar-meta">
-                        <span>${[matchType, matchGroup, dateStr, pitch].filter(Boolean).join(' · ')}</span>
+                        <span>${[matchType, matchGroup, dateStr, pitch].filter(Boolean).map(escapeStatsHtml).join(' · ')}</span>
                         <div class="stats-kamp-nav">
                             <button type="button" onclick="window.navigateKampstatMatch(-1)" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
                             <span>${currentIdx + 1} / ${playedMatches.length}</span>
@@ -1835,7 +1847,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
 
             if (!statsData.length) {
-                list.innerHTML = `<div class="stats-player-empty">${window.getStatsSortEmptyMessage(currentStatSortCol, searchTerm)}</div>`;
+                list.innerHTML = `<div class="stats-player-empty">${escapeStatsHtml(window.getStatsSortEmptyMessage(currentStatSortCol, searchTerm))}</div>`;
                 return;
             }
 
@@ -1853,7 +1865,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
                 const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
                 const totalText = stat.totalScore > 0 ? stat.totalScore.toFixed(1) : '-';
-                const safeName = String(stat.navn).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                const safeName = escapeStatsJsString(stat.navn);
+                const safeNameHtml = escapeStatsHtml(stat.navn);
+                const safePosHtml = escapeStatsHtml(posStr);
 
                 const extras = [];
                 if (stat.mal > 0) extras.push(window.renderStatsMetaPartHtml('mal', String(stat.mal)));
@@ -1863,7 +1877,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (stat.rodeSerie > 0) extras.push(window.renderStatsMetaPartHtml('rodeSerie', String(stat.rodeSerie)));
 
                 const metaParts = [
-                    `<span class="stats-meta-pos">${posStr}</span>`,
+                    `<span class="stats-meta-pos">${safePosHtml}</span>`,
                     window.renderStatsMetaPartHtml('kamper', String(stat.kamper)),
                     window.renderStatsMetaPartHtml('totalScore', totalText),
                     window.renderStatsMetaPartHtml('kampbonus', bonusText),
@@ -1876,13 +1890,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const kampbidragIcon = window.renderStatsSortIconHtml(window.getStatsSortOption('kampbonus'), 'stats-kb-icon');
 
                 return `
-                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${stat.navn}, total score ${totalText}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
+                    <button type="button" onclick="window.openSpillerDetail('${safeName}')" class="roster-player-row stats-player-row" aria-label="${safeNameHtml}, total score ${totalText}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
                         <div class="stats-form-jersey ${formClass}${formSortActiveClass}" aria-hidden="true">
                             <span class="stats-form-jersey-value">${stat.kjemi}</span>
                             <span class="stats-form-jersey-label">Form</span>
                         </div>
                         <div class="roster-player-main">
-                            <div class="roster-player-name">${stat.navn}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</div>
+                            <div class="roster-player-name">${safeNameHtml}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</div>
                             <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
                         </div>
                         <div class="roster-player-side">
@@ -2502,8 +2516,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             : '<span class="text-slate-300 font-bold">-</span>';
 
         return `
-            <tr class="hover:bg-slate-50 transition-colors" title="${s.breakdown}">
-                <td class="p-4 font-black text-slate-800">${s.name}</td>
+            <tr class="hover:bg-slate-50 transition-colors" title="${escapeStatsHtml(s.breakdown)}">
+                <td class="p-4 font-black text-slate-800">${escapeStatsHtml(s.name)}</td>
                 <td class="p-4 text-center font-black text-lg ${pointColor(s.points)}">${s.points}</td>
 	                <td class="p-4 text-center">${ratingVis}</td>
 	                <td class="p-4 text-center">${goalVis}</td>

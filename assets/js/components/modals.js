@@ -12,6 +12,10 @@ window.escapeModalHtml = function(value) {
     }[char]));
 };
 
+window.escapeModalJsString = function(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+};
+
 window.buildMatchAlertData = function(match) {
     if (!match || typeof window.getDisciplineStatusForTeam !== 'function') return [];
 

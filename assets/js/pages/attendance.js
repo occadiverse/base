@@ -348,7 +348,7 @@ window.renderCalendar = function() {
             const visibleItems = items.slice(0, 2).map(item => `
                 <span class="calendar-day-event flex items-center gap-1 min-w-0 font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
                     <span class="calendar-day-event-dot rounded-full ${item.color} shrink-0"></span>
-                    <span class="calendar-day-event-label truncate">${item.label}</span>
+                    <span class="calendar-day-event-label truncate">${escapeCalendarHtml(item.label)}</span>
                 </span>
             `).join('');
 
@@ -488,7 +488,7 @@ window.updateDailySchedule = function() {
                                 <span class="calendar-daily-time calendar-event-time">${e.time || 'TBA'}</span>
                             </div>
                             <div class="calendar-daily-meta-row calendar-detail-meta-row">
-                                <span><i class="fa-solid fa-location-dot"></i>${e.location || 'Ikke oppgitt'}</span>
+                                <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(e.location || 'Ikke oppgitt')}</span>
                                 <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
                             </div>
                         </div>
@@ -549,7 +549,7 @@ window.renderEvents = function() {
 
     combinedList.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
         const attendanceCount = ev.attendance ? Object.values(ev.attendance).filter(v => v === true).length : 0;
-        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${ev.title || 'Uten navn'}</td><td class="py-3 px-4 text-slate-500">${ev.type || '-'}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button onclick="openAttendanceModal('${ev.id}')" class="portal-btn portal-btn-success portal-btn-xs">REGISTRER</button></td></tr>`;
+        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${escapeCalendarHtml(ev.title || 'Uten navn')}</td><td class="py-3 px-4 text-slate-500">${escapeCalendarHtml(ev.type || '-')}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button onclick="openAttendanceModal('${escapeCalendarJsString(ev.id)}')" class="portal-btn portal-btn-success portal-btn-xs">REGISTRER</button></td></tr>`;
     });
 };
 
