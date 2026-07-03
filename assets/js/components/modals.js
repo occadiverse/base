@@ -16,6 +16,21 @@ window.escapeModalJsString = function(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 };
 
+function bindSessionInjuryModalEvents() {
+    const modal = document.getElementById('sessionInjuryModal');
+    if (!modal || modal.dataset.modalEventsBound === 'true') return;
+    modal.dataset.modalEventsBound = 'true';
+
+    modal.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-modal-action="mark-player-healthy"]');
+        if (!actionEl) return;
+
+        event.stopPropagation();
+        const playerId = actionEl.dataset.playerId;
+        if (playerId) window.markSessionInjuryPlayerHealthy(playerId);
+    });
+}
+
 window.buildMatchAlertData = function(match) {
     if (!match || typeof window.getDisciplineStatusForTeam !== 'function') return [];
 
@@ -109,7 +124,8 @@ window.showSessionInjuryModal = function() {
                 ? `
                     <button type="button"
                             class="session-injury-healthy-btn"
-                            onclick="event.stopPropagation(); window.markSessionInjuryPlayerHealthy('${playerId}')"
+                            data-modal-action="mark-player-healthy"
+                            data-player-id="${playerId}"
                             title="Marker ${window.escapeModalHtml(player.navn)} som frisk">
                         <i class="fa-solid fa-check"></i>
                         <span>Frisk</span>
@@ -132,6 +148,7 @@ window.showSessionInjuryModal = function() {
     }
 
     const modal = document.getElementById('sessionInjuryModal');
+    bindSessionInjuryModalEvents();
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 };
