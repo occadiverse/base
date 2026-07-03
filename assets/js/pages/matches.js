@@ -12,6 +12,45 @@ function escapeMatchJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+function bindMatchListEvents() {
+    ['matchListContainer', 'matchListUpcomingContainer', 'matchListPastContainer', 'kampdetaljer-info'].forEach((containerId) => {
+        const container = document.getElementById(containerId);
+        if (!container || container.dataset.matchEventsBound === 'true') return;
+
+        container.dataset.matchEventsBound = 'true';
+        container.addEventListener('click', (event) => {
+            const actionEl = event.target.closest('[data-match-action]');
+            if (!actionEl) return;
+
+            const action = actionEl.dataset.matchAction;
+            const matchId = actionEl.dataset.matchId;
+            if (!matchId) return;
+
+            if (action === 'edit' || action === 'alert') {
+                event.stopPropagation();
+            }
+
+            if (action === 'open-details') {
+                window.showMatchDetails(matchId);
+            } else if (action === 'edit') {
+                window.openMatchModal(matchId);
+            } else if (action === 'alert') {
+                window.showMatchAlertModal(matchId);
+            }
+        });
+        container.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+
+            const actionEl = event.target.closest('[data-match-action="open-details"]');
+            if (!actionEl) return;
+
+            event.preventDefault();
+            const matchId = actionEl.dataset.matchId;
+            if (matchId) window.showMatchDetails(matchId);
+        });
+    });
+}
+
 const matchRatingGuide = {
     1: {
         label: 'Katastrofalt',
@@ -173,6 +212,8 @@ function groupMatchesByMonth(matches) {
 }
 
 function applyFilters() {
+    bindMatchListEvents();
+
     const listContainer = document.getElementById('matchListContainer');
     const upcomingContainer = document.getElementById('matchListUpcomingContainer');
     const pastContainer = document.getElementById('matchListPastContainer');
@@ -293,7 +334,7 @@ function buildMatchFixtureRowHtml(match, options = {}) {
             <i class="fa-solid fa-shield"></i>
         </span>
     `;
-    const clickAttrs = `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`;
+    const clickAttrs = `data-match-action="open-details" data-match-id="${escapeMatchHtml(match.id)}" role="button" tabindex="0"`;
     const sideValue = isUpcoming
         ? (match.time || '--:--')
         : data.displayedResult;
@@ -385,7 +426,8 @@ function buildMatchDetailCardHtml(match, options = {}) {
     const alertChipHtml = matchAlerts.length > 0
         ? `
             <button type="button"
-                    onclick="event.stopPropagation(); window.showMatchAlertModal('${escapeMatchJsString(match.id)}')"
+                    data-match-action="alert"
+                    data-match-id="${escapeMatchHtml(match.id)}"
                     class="dashboard-alert-chip"
                     title="Vis varsel for denne kampen">
                 <i class="fa-solid fa-triangle-exclamation"></i>
@@ -394,7 +436,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
         `
         : '';
     const topChipsHtml = `
-        <button type="button" class="match-detail-chip match-topline-action-btn" onclick="window.openMatchModal('${escapeMatchJsString(match.id)}')" title="Rediger kamp">
+        <button type="button" class="match-detail-chip match-topline-action-btn" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp">
             <i class="fa-solid fa-pen-to-square"></i>
             <span>Rediger</span>
         </button>
@@ -410,7 +452,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
            </div>`
         : '';
     const clickAttrs = clickable
-        ? `onclick="showMatchDetails('${escapeMatchJsString(match.id)}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMatchDetails('${escapeMatchJsString(match.id)}')}"`
+        ? `data-match-action="open-details" data-match-id="${escapeMatchHtml(match.id)}" role="button" tabindex="0"`
         : '';
 
     return `
@@ -2035,6 +2077,7 @@ window.showMatchDetails = function(id) {
     resetMatchGamePlanDraft(match);
 
     const container = document.getElementById('kampdetaljer-info');
+    bindMatchListEvents();
     const escapeHtml = escapeMatchHtml;
     const escapeJsString = escapeMatchJsString;
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
