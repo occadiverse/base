@@ -248,9 +248,17 @@ window.closeConfirmModal = function() {
     customConfirmCallback = null;
 };
 
-document.getElementById('confirmYesBtn').onclick = function() {
-    if (customConfirmCallback) customConfirmCallback();
+document.getElementById('confirmYesBtn').onclick = async function() {
+    const callback = customConfirmCallback;
     window.closeConfirmModal();
+    if (!callback) return;
+
+    try {
+        await callback();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
 };
 
 document.getElementById('confirmNoBtn').onclick = function() {

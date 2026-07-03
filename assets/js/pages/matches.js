@@ -1928,7 +1928,14 @@ window.saveMatch = async function(event) {
         result: document.getElementById('result').value
     };
 
-    await window.saveMatchToDatabase(matchData);
+    try {
+        await window.saveMatchToDatabase(matchData);
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
+    }
+
     window.closeMatchModal();
     window.closeMatchInfo();
 };
@@ -1953,8 +1960,13 @@ window.saveMatchSummaryNotes = async function(matchId, sourceElement) {
         challenge: challengeInput ? challengeInput.value.trim() : (match.notes?.challenge || '')
     };
 
-    if (typeof window.saveMatchToDatabase === 'function') {
-        await window.saveMatchToDatabase(match);
+    try {
+        if (typeof window.saveMatchToDatabase === 'function') {
+            await window.saveMatchToDatabase(match);
+        }
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
     }
 };
 
@@ -2207,8 +2219,14 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     match.lineupRefs = getMatchGamePlanLineupRefs(draft.lineup);
     match.formation = draftFormation;
 
-    if (typeof window.saveMatchToDatabase === 'function') {
-        await window.saveMatchToDatabase(match);
+    try {
+        if (typeof window.saveMatchToDatabase === 'function') {
+            await window.saveMatchToDatabase(match);
+        }
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
     }
 
     resetMatchGamePlanDraft(match);
@@ -2241,8 +2259,13 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
         [slot]: playerRef || ''
     };
 
-    if (typeof window.saveMatchToDatabase === 'function') {
-        await window.saveMatchToDatabase(match);
+    try {
+        if (typeof window.saveMatchToDatabase === 'function') {
+            await window.saveMatchToDatabase(match);
+        }
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
     }
 };
 
@@ -2330,6 +2353,7 @@ window.saveMatchGamePlanBenchPlan = async function(matchId) {
         setMatchGamePlanBenchDirty(matchId, false);
     } catch (error) {
         console.error('Kunne ikke lagre bytteplan', error);
+        alert(error.message);
         if (saveButton) saveButton.disabled = false;
         if (label) label.textContent = 'Prøv igjen';
         if (saveState) saveState.textContent = 'Lagring feilet';
@@ -2960,7 +2984,13 @@ window.savePlayerMatchStats = async function() {
     const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
     if (!match.result && totalBskGoals > 0) match.result = `${totalBskGoals}-0`;
 
-    await window.saveMatchToDatabase(match);
+    try {
+        await window.saveMatchToDatabase(match);
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
+    }
 
     alert('Mål, assists, spillerbørs, kort og Banens Beste er oppdatert! 🏆');
     applyFilters();

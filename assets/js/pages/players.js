@@ -500,7 +500,14 @@ window.saveTeam = async function(event) {
         description: document.getElementById('teamDesc').value
     };
 
-    await window.saveTeamToDatabase(teamData);
+    try {
+        await window.saveTeamToDatabase(teamData);
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
+    }
+
     window.closeTeamModal();
     window.updateDynamicSelectors();
     window.renderAdminTeamsList();
@@ -510,7 +517,12 @@ window.saveTeam = async function(event) {
             window.resetSingleTeamMigrationState();
         }
         if (typeof window.migrateAllDataToPrimaryTeam === 'function') {
-            await window.migrateAllDataToPrimaryTeam({ force: true, silent: true });
+            try {
+                await window.migrateAllDataToPrimaryTeam({ force: true, silent: true });
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
         }
     }
 };

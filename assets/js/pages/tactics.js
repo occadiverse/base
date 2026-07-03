@@ -219,7 +219,7 @@
     if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
 };
 
-        window.saveMatchTactics = function() {
+        window.saveMatchTactics = async function() {
             const matchId = document.getElementById('tacticalMatchSelect').value;
             if (!matchId) return;
             const match = (window.activeMatches || []).find(m => m.id === matchId);
@@ -238,7 +238,16 @@
                 freekick: document.getElementById('role-freekick') ? document.getElementById('role-freekick').value : '',
                 corners: document.getElementById('role-corners') ? document.getElementById('role-corners').value : ''
             };
-            if (typeof window.saveMatchToDatabase === 'function') window.saveMatchToDatabase(match);
+
+            try {
+                if (typeof window.saveMatchToDatabase === 'function') {
+                    await window.saveMatchToDatabase(match);
+                }
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+                return;
+            }
             
             ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'].forEach(pos => window.renderNodeVisually(window.tacticalLineup[pos], pos));
             

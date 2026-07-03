@@ -26,7 +26,14 @@ window.saveEvent = async function(event) {
         date: document.getElementById('eventDate').value
     };
 
-    await window.saveEventToDatabase(eventData);
+    try {
+        await window.saveEventToDatabase(eventData);
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
+    }
+
     window.closeEventModal();
     window.recalculateOppmoteAndKjemi();
 
@@ -183,20 +190,26 @@ window.saveAttendanceRegistry = async function() {
         ? window.buildAttendanceMapFromModal(container, ev.attendance, teamPlayers)
         : ev.attendance;
 
-    if (isMatch) {
-        const pruneResult = typeof window.pruneMatchPlanUnavailablePlayers === 'function'
-            ? window.pruneMatchPlanUnavailablePlayers(ev)
-            : { match: ev, changed: false };
-        const matchToSave = pruneResult.match;
-        Object.assign(ev, matchToSave);
-        await window.saveMatchToDatabase(matchToSave);
+    try {
+        if (isMatch) {
+            const pruneResult = typeof window.pruneMatchPlanUnavailablePlayers === 'function'
+                ? window.pruneMatchPlanUnavailablePlayers(ev)
+                : { match: ev, changed: false };
+            const matchToSave = pruneResult.match;
+            Object.assign(ev, matchToSave);
+            await window.saveMatchToDatabase(matchToSave);
 
-        const tacticalSelect = document.getElementById('tacticalMatchSelect');
-        if (pruneResult.changed && tacticalSelect?.value === ev.id && typeof window.loadMatchTactics === 'function') {
-            window.loadMatchTactics();
+            const tacticalSelect = document.getElementById('tacticalMatchSelect');
+            if (pruneResult.changed && tacticalSelect?.value === ev.id && typeof window.loadMatchTactics === 'function') {
+                window.loadMatchTactics();
+            }
+        } else {
+            await window.saveEventToDatabase(ev);
         }
-    } else {
-        await window.saveEventToDatabase(ev);
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
     }
 
     window.closeAttendanceModal();
@@ -677,35 +690,41 @@ window.saveNewActivity = async function() {
         return;
     }
 
-    if (type === 'Kamp') {
-        const existingMatch = editId ? (window.activeMatches || []).find(m => m.id === editId) : null;
-        const matchData = {
-            ...(existingMatch || {}),
-            id: editId || Date.now().toString(),
-            date,
-            time,
-            opponent: title,
-            pitch: location || 'Ikke satt',
-            matchType: existingMatch ? existingMatch.matchType : 'Treningskamp',
-            matchGroup: selectedTeam,
-            result: existingMatch ? existingMatch.result : ''
-        };
+    try {
+        if (type === 'Kamp') {
+            const existingMatch = editId ? (window.activeMatches || []).find(m => m.id === editId) : null;
+            const matchData = {
+                ...(existingMatch || {}),
+                id: editId || Date.now().toString(),
+                date,
+                time,
+                opponent: title,
+                pitch: location || 'Ikke satt',
+                matchType: existingMatch ? existingMatch.matchType : 'Treningskamp',
+                matchGroup: selectedTeam,
+                result: existingMatch ? existingMatch.result : ''
+            };
 
-        if (typeof window.saveMatchToDatabase === 'function') await window.saveMatchToDatabase(matchData);
-    } else {
-        const existingEvent = editId ? (window.activeEvents || []).find(e => e.id === editId) : null;
-        const activityData = {
-            ...(existingEvent || {}),
-            id: editId || Date.now().toString(),
-            type,
-            title,
-            date,
-            time,
-            location: location || 'Ikke satt',
-            team: selectedTeam
-        };
+            if (typeof window.saveMatchToDatabase === 'function') await window.saveMatchToDatabase(matchData);
+        } else {
+            const existingEvent = editId ? (window.activeEvents || []).find(e => e.id === editId) : null;
+            const activityData = {
+                ...(existingEvent || {}),
+                id: editId || Date.now().toString(),
+                type,
+                title,
+                date,
+                time,
+                location: location || 'Ikke satt',
+                team: selectedTeam
+            };
 
-        if (typeof window.saveEventToDatabase === 'function') await window.saveEventToDatabase(activityData);
+            if (typeof window.saveEventToDatabase === 'function') await window.saveEventToDatabase(activityData);
+        }
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        return;
     }
 
     window.closeActivityModal();
