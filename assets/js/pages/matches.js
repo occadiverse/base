@@ -51,6 +51,47 @@ function bindMatchListEvents() {
     });
 }
 
+function bindMatchStatsEvents() {
+    const container = document.getElementById('kampdetaljer-spillerbors');
+    if (!container || container.dataset.matchStatEventsBound === 'true') return;
+    container.dataset.matchStatEventsBound = 'true';
+
+    container.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-match-stat-action]');
+        if (!actionEl) return;
+
+        const action = actionEl.dataset.matchStatAction;
+        if (action === 'bench-toggle') {
+            window.toggleBenchOnly(actionEl);
+        } else if (action === 'yellow-card') {
+            window.toggleCard(actionEl, 'yellow');
+        } else if (action === 'red-card') {
+            window.toggleCard(actionEl, 'red');
+        } else if (action === 'motm-toggle') {
+            window.toggleMotm(actionEl);
+        } else if (action === 'rating-guide-select') {
+            const rating = Number(actionEl.dataset.rating);
+            if (!Number.isNaN(rating)) window.selectMatchRatingFromGuide(actionEl, rating);
+        }
+    });
+
+    container.addEventListener('change', (event) => {
+        const select = event.target.closest('[data-match-stat-action="rating-select"]');
+        if (select) window.updateMatchRatingHint(select);
+    });
+
+    container.addEventListener('focusin', (event) => {
+        const select = event.target.closest('[data-match-stat-action="rating-select"]');
+        if (select) window.updateMatchRatingHint(select);
+    });
+
+    container.addEventListener('mouseover', (event) => {
+        if (event.target.matches('[data-match-stat-action="rating-select"]')) {
+            window.updateMatchRatingHint(event.target);
+        }
+    });
+}
+
 const matchRatingGuide = {
     1: {
         label: 'Katastrofalt',
@@ -119,7 +160,8 @@ function buildMatchRatingTooltipHtml(selectedRating) {
                         <button
                             type="button"
                             class="match-rating-tooltip-row ${Number(selectedRating) === value ? 'is-selected' : ''}"
-                            onclick="window.selectMatchRatingFromGuide(this, ${value})"
+                            data-match-stat-action="rating-guide-select"
+                            data-rating="${value}"
                             title="${escapeMatchHtml(tooltipText)}"
                         >
                             <span class="match-rating-tooltip-score">${value}</span>
@@ -2886,7 +2928,7 @@ window.renderPlayerRowForm = function(match) {
                 <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
-                <button type="button" onclick="toggleBenchOnly(this)" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
+                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
                 <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
@@ -2906,12 +2948,10 @@ window.renderPlayerRowForm = function(match) {
                     <span class="match-stat-label">Børs</span>
                     <select
                         class="player-rating-select portal-field portal-field-sm match-stat-select match-stat-select-rating"
+                        data-match-stat-action="rating-select"
                         data-player-id="${playerIdAttr}"
                         data-player="${playerAttr}"
                         aria-label="Børs for ${playerAttr}"
-                        onchange="window.updateMatchRatingHint(this)"
-                        onfocus="window.updateMatchRatingHint(this)"
-                        onmouseenter="window.updateMatchRatingHint(this)"
                         title="${escapeMatchHtml(ratingHint)}"
                     >
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
@@ -2925,15 +2965,17 @@ window.renderPlayerRowForm = function(match) {
                 </div>
 
                 <div class="match-stats-card-group">
-                    <button type="button" onclick="toggleCard(this, 'yellow')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
-                    <button type="button" onclick="toggleCard(this, 'red')" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                    <button type="button" onclick="toggleMotm(this)" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-purple-700 border-purple-800 text-white shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
+                    <button type="button" data-match-stat-action="yellow-card" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
+                    <button type="button" data-match-stat-action="red-card" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
+                    <button type="button" data-match-stat-action="motm-toggle" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-purple-700 border-purple-800 text-white shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
                 </div>
                 </div>
             </div>
         `;
         formList.appendChild(div);
     });
+
+    bindMatchStatsEvents();
 };
 
 window.toggleBenchOnly = function(btn) {
