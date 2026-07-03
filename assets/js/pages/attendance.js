@@ -17,13 +17,22 @@ window.saveEvent = async function(event) {
 
     const editId = document.getElementById('editEventId').value;
     const existingEvent = editId ? (window.activeEvents || []).find(e => e.id === editId) : null;
+    const title = document.getElementById('eventTitle').value.trim();
+    const type = document.getElementById('eventType').value || '';
+    const date = document.getElementById('eventDate').value.trim();
+
+    if (!date) {
+        alert('Du må velge dato for aktiviteten.');
+        return;
+    }
+
     const eventData = {
         ...(existingEvent || {}),
         id: editId || crypto.randomUUID(),
-        title: document.getElementById('eventTitle').value,
-        type: document.getElementById('eventType').value,
+        title,
+        type,
         team: window.getPrimaryTeamName(),
-        date: document.getElementById('eventDate').value
+        date
     };
 
     try {
@@ -678,15 +687,23 @@ window.updateActivityTitlePlaceholder = function() {
 
 window.saveNewActivity = async function() {
     const editId = document.getElementById('editActivityId').value;
-    const type = document.getElementById('activityType').value;
-    const title = document.getElementById('activityTitle').value;
-    const date = document.getElementById('activityDate').value;
-    const time = document.getElementById('activityTime').value;
-    const selectedTeam = window.getPrimaryTeamName();
-    const location = document.getElementById('activityLocation').value;
+    const type = document.getElementById('activityType')?.value || '';
+    const title = document.getElementById('activityTitle').value.trim();
+    const date = document.getElementById('activityDate').value.trim();
+    const time = document.getElementById('activityTime').value.trim();
+    const selectedTeam = window.getPrimaryTeamName() || '';
+    const location = document.getElementById('activityLocation').value.trim();
 
-    if (!date || !selectedTeam) {
-        alert('Du må i hvert fall velge dato!');
+    if (!date) {
+        alert('Du må velge dato!');
+        return;
+    }
+    if (!selectedTeam) {
+        alert('Fant ikke lag. Opprett eller velg et lag først.');
+        return;
+    }
+    if (type === 'Kamp' && !title) {
+        alert('Du må fylle inn motstander for kampen.');
         return;
     }
 

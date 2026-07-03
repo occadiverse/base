@@ -1915,17 +1915,30 @@ window.saveMatch = async function(event) {
 
     const matchId = document.getElementById('editMatchId').value || null;
     const existingMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
+    const date = document.getElementById('matchDate').value.trim();
+    const opponent = document.getElementById('opponent').value.trim();
+    const pitch = document.getElementById('pitch').value.trim();
+
+    if (!date) {
+        alert('Du må velge dato for kampen.');
+        return;
+    }
+    if (!opponent) {
+        alert('Du må fylle inn motstander.');
+        return;
+    }
+
     const matchData = {
         ...(existingMatch || {}),
         id: matchId || crypto.randomUUID(),
-        date: document.getElementById('matchDate').value,
-        time: document.getElementById('matchTime').value,
-        opponent: document.getElementById('opponent').value,
-        pitch: document.getElementById('pitch').value,
+        date,
+        time: document.getElementById('matchTime').value.trim(),
+        opponent,
+        pitch,
         matchType: document.getElementById('matchType').value,
         matchGroup: window.getPrimaryTeamName(),
-        venue: document.getElementById('matchVenue').value,
-        result: document.getElementById('result').value
+        venue: document.getElementById('matchVenue').value.trim(),
+        result: document.getElementById('result').value.trim()
     };
 
     try {

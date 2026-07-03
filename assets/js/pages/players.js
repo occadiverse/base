@@ -494,11 +494,16 @@ window.saveTeam = async function(event) {
     const previousTeamName = existingTeam?.name || '';
     const teamData = {
         id: document.getElementById('editTeamId').value || existingTeam?.id || null,
-        name: document.getElementById('teamName').value,
-        coachName: document.getElementById('teamCoach').value,
-        coachContact: document.getElementById('teamCoachContact').value,
-        description: document.getElementById('teamDesc').value
+        name: document.getElementById('teamName').value.trim(),
+        coachName: document.getElementById('teamCoach').value.trim(),
+        coachContact: document.getElementById('teamCoachContact').value.trim(),
+        description: document.getElementById('teamDesc').value.trim()
     };
+
+    if (!teamData.name) {
+        alert('Du må fylle inn lagnavn.');
+        return;
+    }
 
     try {
         await window.saveTeamToDatabase(teamData);
@@ -541,18 +546,50 @@ window.savePlayer = async function(event) {
     const todayStr = getTodayDateString();
     const playerTeam = window.getPrimaryTeamName();
 
+    const navn = document.getElementById('playerNameInput').value.trim();
+    const jerseyRaw = document.getElementById('playerJerseyInput').value.trim();
+    const birthYearInput = document.getElementById('playerBirthYearInput');
+    const birthYearRaw = birthYearInput ? birthYearInput.value.trim() : '';
+    const status = document.getElementById('playerStatusInput').value;
+    const pos1 = document.getElementById('playerPos1Input').value.trim();
+    const pos2 = document.getElementById('playerPos2Input').value.trim();
+    const fot = document.getElementById('playerFootInput').value.trim();
+    const skadeNotat = isSavingInjury ? document.getElementById('playerSkadeNotatInput').value.trim() : '';
+
+    if (!navn) {
+        alert('Du må fylle inn spillerens navn.');
+        return;
+    }
+
+    let fodselsaar = existingPlayer?.fodselsaar ?? '';
+    if (birthYearInput) {
+        if (!birthYearRaw) {
+            alert('Du må fylle inn fødselsår.');
+            return;
+        }
+        const parsedBirthYear = parseInt(birthYearRaw, 10);
+        if (Number.isNaN(parsedBirthYear) || parsedBirthYear < 1950 || parsedBirthYear > new Date().getFullYear()) {
+            alert('Fødselsår må være et gyldig årstall.');
+            return;
+        }
+        fodselsaar = parsedBirthYear;
+    }
+
+    const parsedJersey = jerseyRaw ? parseInt(jerseyRaw, 10) : '';
+    const draktnummer = parsedJersey === '' || Number.isNaN(parsedJersey) ? '' : parsedJersey;
+
     let playerData = {
         id: document.getElementById('editPlayerId').value || null,
-        navn: document.getElementById('playerNameInput').value,
-        draktnummer: document.getElementById('playerJerseyInput').value ? parseInt(document.getElementById('playerJerseyInput').value) : '',
-        fodselsaar: parseInt(document.getElementById('playerBirthYearInput').value),
-        status: document.getElementById('playerStatusInput').value,
+        navn,
+        draktnummer,
+        fodselsaar,
+        status,
         spillerLag: playerTeam,
-        pos1: document.getElementById('playerPos1Input').value,
-        pos2: document.getElementById('playerPos2Input').value,
-        fot: document.getElementById('playerFootInput').value,
+        pos1,
+        pos2,
+        fot,
         skadeStatus: selectedSkadeStatus,
-        skadeNotat: isSavingInjury ? document.getElementById('playerSkadeNotatInput').value.trim() : '',
+        skadeNotat,
         skadeFraDato: isSavingInjury
             ? (document.getElementById('playerSkadeFraDatoInput').value || existingPlayer?.skadeFraDato || todayStr)
             : '',
@@ -570,14 +607,14 @@ window.savePlayer = async function(event) {
         playerData = {
             ...playerData,
             id: existingPlayer.id,
-            navn: document.getElementById('playerNameInput').value,
-            draktnummer: document.getElementById('playerJerseyInput').value ? parseInt(document.getElementById('playerJerseyInput').value) : '',
-            fodselsaar: parseInt(document.getElementById('playerBirthYearInput').value),
-            status: document.getElementById('playerStatusInput').value,
+            navn,
+            draktnummer,
+            fodselsaar,
+            status,
             spillerLag: playerTeam,
-            pos1: document.getElementById('playerPos1Input').value,
-            pos2: document.getElementById('playerPos2Input').value,
-            fot: document.getElementById('playerFootInput').value
+            pos1,
+            pos2,
+            fot
         };
     }
 
