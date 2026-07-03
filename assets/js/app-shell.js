@@ -63,7 +63,7 @@ function switchTab(tabId, options = {}) {
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
 
-    ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer'].forEach(id => {
+    ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'oktside'].forEach(id => {
         const el = document.getElementById(`view-${id}`);
         if (el) el.classList.add('hidden');
     });
@@ -98,7 +98,8 @@ function switchTab(tabId, options = {}) {
         statistikk: "Statistikk",
         taktikk: "Taktikk",
         admin: "Admin",
-        kampdetaljer: "Kampdetaljer"
+        kampdetaljer: "Kampdetaljer",
+        oktside: "Øktside"
     };
 
     const tabTitle = titles[tabId] || "BSK Fotball";
@@ -145,6 +146,8 @@ function switchTab(tabId, options = {}) {
     } else if (tabId === 'taktikk') {
         if (typeof window.setTacticalPhase === 'function') window.setTacticalPhase('fase1');
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
+    } else if (tabId === 'oktside' && window._activeTrainingSessionId && typeof window.renderTrainingSession === 'function') {
+        window.renderTrainingSession(window._activeTrainingSessionId);
     }
 
     if (options.animate === 'swipe' && previousTab !== tabId) {

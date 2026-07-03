@@ -28,7 +28,7 @@ function bindDashboardEvents() {
             if (!actionEl) return;
 
             const action = actionEl.dataset.dashboardAction;
-            if (action === 'match-alert' || action === 'session-injury' || action === 'session-attendance') {
+            if (action === 'match-alert' || action === 'session-injury' || action === 'session-attendance' || action === 'open-training-session') {
                 event.stopPropagation();
             }
 
@@ -45,6 +45,11 @@ function bindDashboardEvents() {
             } else if (action === 'session-attendance') {
                 const eventId = actionEl.dataset.eventId;
                 if (eventId) window.openAttendanceModal(eventId);
+            } else if (action === 'open-training-session') {
+                const eventId = actionEl.dataset.eventId;
+                if (eventId && typeof window.openTrainingSession === 'function') {
+                    window.openTrainingSession(eventId);
+                }
             } else if (action === 'session-injury') {
                 window.showSessionInjuryModal();
             } else if (action === 'open-injured-roster') {
@@ -469,6 +474,8 @@ window.updateHjemWidget = function() {
     let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
         const ne = upcomingEvents[0];
+        const isTraining = ne.type === 'Trening';
+        const eventTypeLabel = isTraining ? 'Trening' : (ne.type || 'Aktivitet');
         const sessionStats = window.buildNextSessionAttendanceStats(ne);
         const dateValue = new Date(ne.date);
         const dateFormatted = Number.isNaN(dateValue.getTime())
@@ -512,8 +519,8 @@ window.updateHjemWidget = function() {
                         <span>${escapeDashboardHtml(dateLabel)}</span>
                     </div>
                     <div class="match-detail-chip">
-                        <i class="fa-solid fa-stopwatch"></i>
-                        <span>Trening</span>
+                        <i class="fa-solid ${isTraining ? 'fa-stopwatch' : 'fa-calendar-check'}"></i>
+                        <span>${escapeDashboardHtml(eventTypeLabel)}</span>
                     </div>
                 </div>
 
@@ -530,6 +537,12 @@ window.updateHjemWidget = function() {
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
+                            ${isTraining ? `
+                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="match-bench-action-btn dashboard-session-action-btn">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <span>Åpne øktside</span>
+                            </button>
+                            ` : ''}
                             ${injuryButtonHtml}
                         </div>
                     </div>
