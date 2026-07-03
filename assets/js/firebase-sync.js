@@ -107,6 +107,20 @@
             }
         }
 
+        function loadCachedCollectionOrMock(key, mockData) {
+            const cached = getCachedCollection(key);
+            return cached.length > 0 ? cached : mockData;
+        }
+
+        function isFirebaseWriteActive() {
+            return firebaseEnabled && auth && auth.currentUser;
+        }
+
+        function createFirebaseWriteError(action, error) {
+            const detail = error?.message ? ` ${error.message}` : '';
+            return new Error(`Kunne ikke ${action} i databasen.${detail} Prøv igjen, eller sjekk Firebase-tilgangen.`);
+        }
+
         function getPlayerIdentityKeys(player) {
             const keys = [];
             if (window.isValidPlayerRefKey(player?.id)) keys.push(`id:${player.id}`);
@@ -278,8 +292,7 @@
         if (firebaseEnabled && auth && auth.currentUser) {
             function handleSyncError(key, syncFn, mockData, error) {
                 console.warn(`Database-tilgang avvist for ${key} (Faller tilbake til lokal lagring):`, error.message);
-                const cached = window.localStorage.getItem('bsk_local_' + key);
-                syncFn(cached ? JSON.parse(cached) : mockData);
+                syncFn(loadCachedCollectionOrMock(key, mockData));
             }
 
             onSnapshot(activeMatchesCollectionRef, (snapshot) => {
@@ -340,18 +353,14 @@
         }
 
         function loadAllFromLocalStorage() {
-            const cachedMatches = window.localStorage.getItem('bsk_local_matches');
-            syncMatches(cachedMatches ? JSON.parse(cachedMatches) : initialMockMatches);
-            const cachedTeams = window.localStorage.getItem('bsk_local_teams');
-            syncTeams(cachedTeams ? JSON.parse(cachedTeams) : initialMockTeams);
-            const cachedPlayers = window.localStorage.getItem('bsk_local_players');
-            syncPlayers(cachedPlayers ? JSON.parse(cachedPlayers) : initialMockPlayers);
-            const cachedEvents = window.localStorage.getItem('bsk_local_events');
-            syncEvents(cachedEvents ? JSON.parse(cachedEvents) : initialMockEvents);
+            syncMatches(loadCachedCollectionOrMock('matches', initialMockMatches));
+            syncTeams(loadCachedCollectionOrMock('teams', initialMockTeams));
+            syncPlayers(loadCachedCollectionOrMock('players', initialMockPlayers));
+            syncEvents(loadCachedCollectionOrMock('events', initialMockEvents));
         }
 
         window.saveMatchToDatabase = async function(matchObject) {
-            if (firebaseEnabled && auth && auth.currentUser) {
+            if (isFirebaseWriteActive()) {
                 try {
                     const id = matchObject.id || crypto.randomUUID();
                     matchObject.id = id;
@@ -366,7 +375,10 @@
                     if (typeof window.renderCalendar === 'function') window.renderCalendar();
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', id), matchObject);
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (error) {
+                    console.error('Kunne ikke lagre kamp i databasen:', error);
+                    throw createFirebaseWriteError('lagre kamp', error);
+                }
             }
             const current = [...window.activeMatches];
             const idx = current.findIndex(m => m.id === matchObject.id);
@@ -382,11 +394,14 @@
         };
 
         window.deleteMatchFromDatabase = async function(matchId) {
-            if (firebaseEnabled && auth && auth.currentUser) {
+            if (isFirebaseWriteActive()) {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'matches', matchId));
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (error) {
+                    console.error('Kunne ikke slette kamp i databasen:', error);
+                    throw createFirebaseWriteError('slette kamp', error);
+                }
             }
             const current = window.activeMatches.filter(m => m.id !== matchId);
             syncMatches(current);
@@ -398,12 +413,15 @@
             const primaryTeam = window.getPrimaryTeam();
             teamObject.id = teamObject.id || primaryTeam?.id || crypto.randomUUID();
 
-            if (firebaseEnabled && auth && auth.currentUser) {
+            if (isFirebaseWriteActive()) {
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', teamObject.id), teamObject);
                     syncTeams([teamObject]);
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (error) {
+                    console.error('Kunne ikke lagre lag i databasen:', error);
+                    throw createFirebaseWriteError('lagre lag', error);
+                }
             }
             syncTeams([teamObject]);
             return true;
@@ -447,13 +465,16 @@
         };
 
         window.saveEventToDatabase = async function(eventObject) {
-            if (firebaseEnabled && auth && auth.currentUser) {
+            if (isFirebaseWriteActive()) {
                 try {
                     const id = eventObject.id || crypto.randomUUID();
                     eventObject.id = id;
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject);
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (error) {
+                    console.error('Kunne ikke lagre aktivitet i databasen:', error);
+                    throw createFirebaseWriteError('lagre aktivitet', error);
+                }
             }
             const current = [...window.activeEvents];
             const idx = current.findIndex(ev => ev.id === eventObject.id);
@@ -468,11 +489,14 @@
         };
 
         window.deleteEventFromDatabase = async function(eventId) {
-            if (firebaseEnabled && auth && auth.currentUser) {
+            if (isFirebaseWriteActive()) {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId));
                     return true;
-                } catch (e) { console.error(e); }
+                } catch (error) {
+                    console.error('Kunne ikke slette aktivitet i databasen:', error);
+                    throw createFirebaseWriteError('slette aktivitet', error);
+                }
             }
             const current = window.activeEvents.filter(ev => ev.id !== eventId);
             syncEvents(current);
