@@ -119,17 +119,17 @@ window.renderAdminTeamsList = function() {
         card.innerHTML = `
             <div class="space-y-3">
                 <div class="flex justify-between items-start">
-                    <h4 class="font-extrabold text-bsk-blue text-base">${t.name}</h4>
+                    <h4 class="font-extrabold text-bsk-blue text-base">${escapeRosterHtml(t.name)}</h4>
                     <div class="flex gap-1">
-                        <button onclick="openTeamModal('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="promptDeleteTeam('${t.id}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="openTeamModal('${escapeRosterJsString(t.id)}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="promptDeleteTeam('${escapeRosterJsString(t.id)}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
-                    <p><strong class="text-slate-800">Trener:</strong> ${t.coachName || 'Uoppgitt'}</p>
-                    <p><strong class="text-slate-800">Kontaktinfo:</strong> ${t.coachContact || 'Uoppgitt'}</p>
+                    <p><strong class="text-slate-800">Trener:</strong> ${escapeRosterHtml(t.coachName || 'Uoppgitt')}</p>
+                    <p><strong class="text-slate-800">Kontaktinfo:</strong> ${escapeRosterHtml(t.coachContact || 'Uoppgitt')}</p>
                 </div>
-                <p class="text-xs text-slate-500 italic line-clamp-2">${t.description || 'Ingen lagbeskrivelse.'}</p>
+                <p class="text-xs text-slate-500 italic line-clamp-2">${escapeRosterHtml(t.description || 'Ingen lagbeskrivelse.')}</p>
             </div>
         `;
         listContainer.appendChild(card);
@@ -307,13 +307,14 @@ function assignPlayersToRosterGroups(players) {
 }
 
 function buildRosterStatusBadge(status) {
+    const safeStatus = escapeRosterHtml(status);
     if (status === 'Aktiv') {
-        return `<span class="roster-badge roster-badge-active">${status}</span>`;
+        return `<span class="roster-badge roster-badge-active">${safeStatus}</span>`;
     }
     if (status === 'Rekrutt') {
-        return `<span class="roster-badge roster-badge-recruit">${status}</span>`;
+        return `<span class="roster-badge roster-badge-recruit">${safeStatus}</span>`;
     }
-    return `<span class="roster-badge roster-badge-muted">${status}</span>`;
+    return `<span class="roster-badge roster-badge-muted">${safeStatus}</span>`;
 }
 
 function buildRosterInjuryBadge(injuryInfo) {
@@ -323,16 +324,24 @@ function buildRosterInjuryBadge(injuryInfo) {
         ? 'roster-badge-injury-long'
         : 'roster-badge-injury-short';
 
-    return `<span class="roster-badge ${injuryClass}" title="${injuryInfo.label}">${injuryInfo.shortLabel}</span>`;
+    return `<span class="roster-badge ${injuryClass}" title="${escapeRosterHtml(injuryInfo.label)}">${escapeRosterHtml(injuryInfo.shortLabel)}</span>`;
 }
 
 function escapeRosterHtml(value) {
-    return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    if (typeof window.escapeModalHtml === 'function') {
+        return window.escapeModalHtml(value);
+    }
+    return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function escapeRosterJsString(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 function getRosterPlayerPhotoUrl(player) {
@@ -368,22 +377,25 @@ function buildRosterPlayerRow(p, currentYear) {
         injuryInfo.type === 'langvarig' ? 'is-long-injury-player' : ''
     ].filter(Boolean).join(' ');
 
+    const safeId = escapeRosterJsString(p.id);
+    const clickHandler = `window.openPlayerModal('${safeId}')`;
+
     return `
-        <article class="roster-player-row ${rowStateClasses}" onclick="window.openPlayerModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openPlayerModal('${p.id}');}">
+        <article class="roster-player-row ${rowStateClasses}" onclick="${clickHandler}" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${clickHandler};}">
             ${buildRosterPlayerAvatarHtml(p)}
             <div class="roster-player-main">
-                <div class="roster-player-name">${p.navn}${captainMark}</div>
+                <div class="roster-player-name">${escapeRosterHtml(p.navn)}${captainMark}</div>
                 <div class="roster-player-meta">
-                    <span>${posStr}</span>
+                    <span>${escapeRosterHtml(posStr)}</span>
                     <span class="roster-player-meta-sep">·</span>
-                    <span>${foot}</span>
+                    <span>${escapeRosterHtml(foot)}</span>
                     <span class="roster-player-meta-sep">·</span>
-                    <span>${teamName}</span>
+                    <span>${escapeRosterHtml(teamName)}</span>
                 </div>
             </div>
-            <div class="roster-player-position">${posStr}</div>
-            <div class="roster-player-foot">${foot}</div>
-            <div class="roster-player-team">${teamName}</div>
+            <div class="roster-player-position">${escapeRosterHtml(posStr)}</div>
+            <div class="roster-player-foot">${escapeRosterHtml(foot)}</div>
+            <div class="roster-player-team">${escapeRosterHtml(teamName)}</div>
             <div class="roster-player-side">
                 <span class="roster-player-age">${age} år</span>
                 <div class="roster-player-badges">
