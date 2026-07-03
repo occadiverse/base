@@ -11254,3 +11254,18 @@
         #confirmModal {
         z-index: 100 !important;
         }
+
+        html.single-team-mode #rosterLagFilterWrap,
+        html.single-team-mode #statsLagFilterWrap,
+        html.single-team-mode #adminCreateTeamBtn,
+        html.single-team-mode #matchGroupFieldWrap,
+        html.single-team-mode #eventTeamFieldWrap,
+        html.single-team-mode #activityTeamFieldWrap,
+        html.single-team-mode #playerTeamFieldWrap,
+        html.single-team-mode .roster-player-team {
+            display: none !important;
+        }
+
+        html.single-team-mode #matchModal .grid.grid-cols-3 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }

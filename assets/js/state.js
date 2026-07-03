@@ -1,3 +1,18 @@
+window.SINGLE_TEAM_MODE = true;
+
+window.isSingleTeamMode = function() {
+    return window.SINGLE_TEAM_MODE === true;
+};
+
+window.getPrimaryTeam = function() {
+    const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
+    return teams[0] || null;
+};
+
+window.getPrimaryTeamName = function() {
+    return window.getPrimaryTeam()?.name || 'Lag A';
+};
+
 window.activeMatches = [];
         window.activeTeams = [];
         window.activePlayers = [];

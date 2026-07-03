@@ -298,7 +298,12 @@
                 snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
                 if (fb.length === 0) {
                     initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
-                } else { syncTeams(fb); }
+                } else {
+                    const teams = (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode() && fb.length > 0)
+                        ? [fb[0]]
+                        : fb;
+                    syncTeams(teams);
+                }
             }, (error) => handleSyncError('teams', syncTeams, initialMockTeams, error));
 
             onSnapshot(activePlayersCollectionRef, (snapshot) => {
@@ -393,13 +398,26 @@
         };
 
         window.saveTeamToDatabase = async function(teamObject) {
+            const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
+            if (singleTeamMode) {
+                const primaryTeam = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
+                teamObject.id = teamObject.id || primaryTeam?.id || crypto.randomUUID();
+            }
+
             if (firebaseEnabled && auth && auth.currentUser) {
                 try {
                     const id = teamObject.id || crypto.randomUUID();
                     teamObject.id = id;
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', id), teamObject);
+                    if (singleTeamMode) {
+                        syncTeams([teamObject]);
+                    }
                     return true;
                 } catch (e) { console.error(e); }
+            }
+            if (singleTeamMode) {
+                syncTeams([teamObject]);
+                return true;
             }
             const current = [...window.activeTeams];
             const idx = current.findIndex(t => t.id === teamObject.id);
@@ -409,6 +427,9 @@
         };
 
         window.deleteTeamFromDatabase = async function(teamId) {
+            if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
+                throw new Error('Appen er låst til ett lag og kan ikke slettes.');
+            }
             if (firebaseEnabled && auth && auth.currentUser) {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', teamId));
@@ -484,4 +505,194 @@
             const current = window.activeEvents.filter(ev => ev.id !== eventId);
             syncEvents(current);
             return true;
+        };
+
+        const SINGLE_TEAM_MIGRATION_KEY = 'bsk_single_team_data_migrated_v1';
+
+        function readSingleTeamMigrationState() {
+            try {
+                const raw = window.localStorage.getItem(SINGLE_TEAM_MIGRATION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function writeSingleTeamMigrationState(team) {
+            if (!team?.id || !team?.name) return;
+            window.localStorage.setItem(SINGLE_TEAM_MIGRATION_KEY, JSON.stringify({
+                teamId: team.id,
+                teamName: team.name,
+                migratedAt: new Date().toISOString()
+            }));
+        }
+
+        function countPrimaryTeamMismatches(teamName) {
+            const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+            const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+            const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
+
+            const playerMismatches = players.filter(player => player.spillerLag !== teamName).length;
+            const matchMismatches = matches.filter(match => match.matchGroup !== teamName).length;
+            const eventMismatches = events.filter(event => {
+                const eventTeam = event.team || event.matchGroup;
+                return eventTeam !== teamName;
+            }).length;
+
+            return {
+                playerMismatches,
+                matchMismatches,
+                eventMismatches,
+                total: playerMismatches + matchMismatches + eventMismatches
+            };
+        }
+
+        window.resetSingleTeamMigrationState = function() {
+            window.localStorage.removeItem(SINGLE_TEAM_MIGRATION_KEY);
+        };
+
+        window.migrateAllDataToPrimaryTeam = async function(options = {}) {
+            const force = options.force === true;
+            const silent = options.silent === true;
+
+            if (typeof window.isSingleTeamMode !== 'function' || !window.isSingleTeamMode()) {
+                return { skipped: true, reason: 'not_single_team_mode' };
+            }
+
+            const primaryTeam = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
+            const teamName = typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : '';
+            if (!primaryTeam || !teamName) {
+                return { skipped: true, reason: 'no_primary_team' };
+            }
+
+            const migrationState = readSingleTeamMigrationState();
+            const mismatches = countPrimaryTeamMismatches(teamName);
+            const alreadyMigrated = migrationState
+                && migrationState.teamId === primaryTeam.id
+                && migrationState.teamName === teamName;
+
+            if (!force && alreadyMigrated && mismatches.total === 0) {
+                return {
+                    skipped: true,
+                    reason: 'already_migrated',
+                    teamName,
+                    ...mismatches
+                };
+            }
+
+            const players = Array.isArray(window.activePlayers) ? [...window.activePlayers] : [];
+            const matches = Array.isArray(window.activeMatches) ? [...window.activeMatches] : [];
+            const events = Array.isArray(window.activeEvents) ? [...window.activeEvents] : [];
+
+            const changedPlayers = [];
+            const updatedPlayers = players.map(player => {
+                if (player.spillerLag === teamName) return player;
+                const next = { ...player, spillerLag: teamName };
+                changedPlayers.push(next);
+                return next;
+            });
+
+            const changedMatches = [];
+            const updatedMatches = matches.map(match => {
+                if (match.matchGroup === teamName) return match;
+                const next = { ...match, matchGroup: teamName };
+                changedMatches.push(next);
+                return next;
+            });
+
+            const changedEvents = [];
+            const updatedEvents = events.map(event => {
+                const currentTeam = event.team || event.matchGroup;
+                if (currentTeam === teamName && (!event.matchGroup || event.matchGroup === teamName)) {
+                    return event;
+                }
+                const next = { ...event, team: teamName };
+                if (event.matchGroup) next.matchGroup = teamName;
+                changedEvents.push(next);
+                return next;
+            });
+
+            const playersUpdated = changedPlayers.length;
+            const matchesUpdated = changedMatches.length;
+            const eventsUpdated = changedEvents.length;
+            const totalUpdated = playersUpdated + matchesUpdated + eventsUpdated;
+
+            if (totalUpdated === 0) {
+                writeSingleTeamMigrationState(primaryTeam);
+                return {
+                    skipped: false,
+                    teamName,
+                    playersUpdated: 0,
+                    matchesUpdated: 0,
+                    eventsUpdated: 0
+                };
+            }
+
+            syncPlayers(updatedPlayers);
+            syncMatches(updatedMatches);
+            syncEvents(updatedEvents);
+
+            if (firebaseEnabled && auth && auth.currentUser) {
+                try {
+                    await Promise.all([
+                        ...changedPlayers.map(player => setDoc(
+                            doc(db, 'artifacts', appId, 'public', 'data', 'players', player.id),
+                            player
+                        )),
+                        ...changedMatches.map(match => setDoc(
+                            doc(db, 'artifacts', appId, 'public', 'data', 'matches', match.id),
+                            match
+                        )),
+                        ...changedEvents.map(event => setDoc(
+                            doc(db, 'artifacts', appId, 'public', 'data', 'events', event.id),
+                            event
+                        ))
+                    ]);
+                } catch (error) {
+                    console.error('Kunne ikke lagre migrert lagdata i databasen:', error);
+                    if (!silent) {
+                        throw new Error('Data ble oppdatert lokalt, men ikke alt ble lagret i databasen. Prøv igjen.');
+                    }
+                    return {
+                        skipped: false,
+                        teamName,
+                        playersUpdated,
+                        matchesUpdated,
+                        eventsUpdated,
+                        error: error.message || 'database_save_failed'
+                    };
+                }
+            }
+
+            writeSingleTeamMigrationState(primaryTeam);
+
+            if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            if (typeof window.updateDashboard === 'function') window.updateDashboard();
+            if (typeof window.applyFilters === 'function') window.applyFilters();
+            if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
+
+            if (!silent && totalUpdated > 0) {
+                alert(`Oppdaterte ${playersUpdated} spillere, ${matchesUpdated} kamper og ${eventsUpdated} aktiviteter til «${teamName}».`);
+            }
+
+            return {
+                skipped: false,
+                teamName,
+                playersUpdated,
+                matchesUpdated,
+                eventsUpdated
+            };
+        };
+
+        window.maybeRunSingleTeamDataMigration = async function() {
+            if (typeof window.isSingleTeamMode !== 'function' || !window.isSingleTeamMode()) {
+                return null;
+            }
+            try {
+                return await window.migrateAllDataToPrimaryTeam({ silent: true });
+            } catch (error) {
+                console.error('Automatisk lag-migrering feilet:', error);
+                return { error: error.message || 'migration_failed' };
+            }
         };

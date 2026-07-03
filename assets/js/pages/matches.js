@@ -1887,6 +1887,11 @@ window.openMatchModal = function(editId = null) {
             headerAction.classList.remove('calendar-action-danger');
         }
         document.getElementById('matchVenue').value = 'Hjemme';
+        if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
+            document.getElementById('matchGroup').value = typeof window.getPrimaryTeamName === 'function'
+                ? window.getPrimaryTeamName()
+                : 'Lag A';
+        }
     }
 
     modal.classList.remove('hidden');
@@ -1922,7 +1927,9 @@ window.saveMatch = async function(event) {
         opponent: document.getElementById('opponent').value,
         pitch: document.getElementById('pitch').value,
         matchType: document.getElementById('matchType').value,
-        matchGroup: document.getElementById('matchGroup').value,
+        matchGroup: (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode())
+            ? (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : document.getElementById('matchGroup').value)
+            : document.getElementById('matchGroup').value,
         venue: document.getElementById('matchVenue').value,
         result: document.getElementById('result').value
     };

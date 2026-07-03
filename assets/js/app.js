@@ -9,3 +9,9 @@ setTimeout(() => {
     window.switchTab('hjem');
     if (typeof window.setupMobileSwipeNavigation === 'function') window.setupMobileSwipeNavigation();
 }, 300);
+
+setTimeout(() => {
+    if (typeof window.maybeRunSingleTeamDataMigration === 'function') {
+        window.maybeRunSingleTeamDataMigration();
+    }
+}, 1200);

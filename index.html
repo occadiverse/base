@@ -492,16 +492,27 @@
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <div>
-                                <h3 class="font-extrabold text-lg text-slate-950">Administrasjon av lag</h3>
-                                <p class="text-xs text-slate-500">Opprett flere lag, legg til lagleder, trenerinfo og beskrivelser.</p>
+                                <h3 class="font-extrabold text-lg text-slate-950">Laginformasjon</h3>
+                                <p class="text-xs text-slate-500">Rediger lagnavn, trenerinfo og beskrivelse for laget denne appen gjelder.</p>
                             </div>
-                            <button onclick="openTeamModal()" class="portal-btn portal-btn-primary">
+                            <button id="adminEditTeamBtn" type="button" onclick="window.openAdminTeamEditor()" class="portal-btn portal-btn-primary">
+                                <i class="fa-solid fa-pen-to-square text-bsk-yellow"></i>
+                                Rediger lag
+                            </button>
+                            <button id="adminCreateTeamBtn" type="button" onclick="openTeamModal()" class="portal-btn portal-btn-primary hidden">
                                 <i class="fa-solid fa-plus text-bsk-yellow"></i>
                                 Opprett nytt lag
                             </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="admin-teams-list">
                             </div>
+                        <div class="pt-4 border-t border-slate-100">
+                            <button type="button" onclick="window.runPrimaryTeamDataMigration(true)" class="portal-btn portal-btn-secondary portal-btn-sm">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                Oppdater all data til laget
+                            </button>
+                            <p class="text-[11px] text-slate-400 mt-2">Knytter alle spillere, kamper og aktiviteter til lagnavnet over. Kjøres automatisk ved oppstart.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -631,7 +642,7 @@
                             <option value="Treningskamp">Trening</option>
                         </select>
                     </div>
-                    <div class="col-span-1">
+                    <div class="col-span-1" id="matchGroupFieldWrap">
                         <label class="portal-label">Velg Lag</label>
                         <select id="matchGroup" class="portal-field">
                             </select>
@@ -685,7 +696,7 @@
                             <option value="Annet">Annet</option>
                         </select>
                     </div>
-                    <div>
+                    <div id="eventTeamFieldWrap">
                         <label class="portal-label">For hvilket lag</label>
                         <select id="eventTeam" class="portal-field">
                             </select>
@@ -787,7 +798,7 @@
                 </div>
 
                 <div class="player-modal-grid">
-                    <div class="player-modal-field-block">
+                    <div class="player-modal-field-block" id="playerTeamFieldWrap">
                         <label class="player-modal-label" for="playerTeamInput">Tilhører lag</label>
                         <select id="playerTeamInput" class="player-modal-field"></select>
                     </div>
@@ -952,7 +963,7 @@
                     </select>
                 </div>
 
-                <div>
+                <div id="activityTeamFieldWrap">
                     <label class="portal-label">Hvilket lag gjelder dette?</label>
                     <select id="activityTeam" class="portal-field">
                     </select>

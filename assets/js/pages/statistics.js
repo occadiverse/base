@@ -48,6 +48,9 @@ window.checkIndividualChemistry = function() {
         }
 
         window.getStatsTeamFilter = function() {
+            if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
+                return 'Alle';
+            }
             const statsSelect = document.getElementById('statsLagFilterSelect');
             if (statsSelect && statsSelect.value) return statsSelect.value;
             const rosterSelect = document.getElementById('lagFilterSelect');
@@ -1778,8 +1781,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const view = document.getElementById('view-statistikk');
             if (!wrap || !view) return;
 
+            const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
             const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
-            const showFilter = teams.length > 1;
+            const showFilter = !singleTeamMode && teams.length > 1;
             const heroReady = hero && (hero.classList.contains('stats-hero-panel') || hero.classList.contains('stats-chrome'));
 
             if (!showFilter || !heroReady) {

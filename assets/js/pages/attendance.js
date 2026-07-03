@@ -22,7 +22,9 @@ window.saveEvent = async function(event) {
         id: editId || crypto.randomUUID(),
         title: document.getElementById('eventTitle').value,
         type: document.getElementById('eventType').value,
-        team: document.getElementById('eventTeam').value,
+        team: (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode())
+            ? (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : document.getElementById('eventTeam').value)
+            : document.getElementById('eventTeam').value,
         date: document.getElementById('eventDate').value
     };
 
@@ -669,11 +671,13 @@ window.saveNewActivity = async function() {
     const title = document.getElementById('activityTitle').value;
     const date = document.getElementById('activityDate').value;
     const time = document.getElementById('activityTime').value;
-    const selectedTeam = document.getElementById('activityTeam').value;
+    const selectedTeam = (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode())
+        ? (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : document.getElementById('activityTeam').value)
+        : document.getElementById('activityTeam').value;
     const location = document.getElementById('activityLocation').value;
 
     if (!date || !selectedTeam) {
-        alert("Du må i hvert fall velge dato og lag!");
+        alert("Du må i hvert fall velge dato" + (window.isSingleTeamMode?.() ? "!" : " og lag!"));
         return;
     }
 
