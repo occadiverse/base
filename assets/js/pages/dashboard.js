@@ -1,13 +1,71 @@
 function escapeDashboardHtml(value) {
-    return typeof window.escapeModalHtml === 'function'
-        ? window.escapeModalHtml(value)
-        : String(value || '');
+    if (typeof window.escapeModalHtml === 'function') {
+        return window.escapeModalHtml(value);
+    }
+    return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
 }
 
 function escapeDashboardJsString(value) {
     return typeof window.escapeModalJsString === 'function'
         ? window.escapeModalJsString(value)
         : String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function bindDashboardEvents() {
+    ['hjem-hero-match-container', 'hjem-bottom-widgets'].forEach((containerId) => {
+        const container = document.getElementById(containerId);
+        if (!container || container.dataset.dashboardEventsBound === 'true') return;
+
+        container.dataset.dashboardEventsBound = 'true';
+        container.addEventListener('click', (event) => {
+            const actionEl = event.target.closest('[data-dashboard-action]');
+            if (!actionEl) return;
+
+            const action = actionEl.dataset.dashboardAction;
+            if (action === 'match-alert' || action === 'session-injury' || action === 'session-attendance') {
+                event.stopPropagation();
+            }
+
+            if (action === 'open-match') {
+                const matchId = actionEl.dataset.matchId;
+                if (matchId) window.goToMatchDetails(matchId);
+            } else if (action === 'match-alert') {
+                window.showDashboardAlertModal();
+            } else if (action === 'open-kamper-tab') {
+                switchTab('kamper');
+            } else if (action === 'open-calendar-date') {
+                const date = actionEl.dataset.eventDate;
+                if (date) window.goToCalendarDate(date);
+            } else if (action === 'session-attendance') {
+                const eventId = actionEl.dataset.eventId;
+                if (eventId) window.openAttendanceModal(eventId);
+            } else if (action === 'session-injury') {
+                window.showSessionInjuryModal();
+            } else if (action === 'open-injured-roster') {
+                window.goToInjuredRoster();
+            } else if (action === 'open-match-notes') {
+                const matchId = actionEl.dataset.matchId;
+                if (matchId) window.goToMatchSummaryNotes(matchId);
+            } else if (action === 'open-statistikk-tab') {
+                switchTab('statistikk');
+            }
+        });
+        container.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+
+            const card = event.target.closest('[data-dashboard-action][role="button"]');
+            if (!card || event.target.closest('button[data-dashboard-action]')) return;
+
+            event.preventDefault();
+            card.click();
+        });
+    });
 }
 
 window.goToMatchDetails = function(matchId) {
@@ -90,6 +148,8 @@ window.updateDashboard = function() {
 
     const heroContainer = document.getElementById('hjem-hero-match-container');
     const dangerZoneContainer = document.getElementById('hjem-suspensions-danger-zone');
+
+    bindDashboardEvents();
     
     if (heroContainer) {
         if (upcoming.length > 0) {
@@ -199,7 +259,7 @@ window.updateDashboard = function() {
             if (totalWarnings > 0) {
                 herosuspensionBadgeHtml = `
                     <button type="button"
-                            onclick="event.stopPropagation(); window.showDashboardAlertModal()"
+                            data-dashboard-action="match-alert"
                             class="dashboard-alert-chip"
                             title="Vis varsel for neste seriekamp">
                         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -210,7 +270,7 @@ window.updateDashboard = function() {
 
             // HTML for forsiden bruker samme kortspråk som kampdetaljer.
             heroContainer.innerHTML = `
-                <article onclick="window.goToMatchDetails('${escapeDashboardJsString(nm.id)}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-match-card dashboard-click-card">
+                <article data-dashboard-action="open-match" data-match-id="${escapeDashboardHtml(nm.id)}" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card">
                     <div class="dashboard-next-match-watermark">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
@@ -218,12 +278,12 @@ window.updateDashboard = function() {
                     <div class="match-detail-card-top relative z-10">
                         <div class="match-detail-meta relative">
                             <i class="fa-regular fa-calendar-days"></i>
-                            <span>${dateLabel}</span>
+                            <span>${escapeDashboardHtml(dateLabel)}</span>
                             ${herosuspensionBadgeHtml}
                         </div>
                         <div class="match-detail-chip">
                             <i class="fa-solid fa-futbol"></i>
-                            <span>${matchTypeLabel}</span>
+                            <span>${escapeDashboardHtml(matchTypeLabel)}</span>
                         </div>
                     </div>
 
@@ -231,7 +291,7 @@ window.updateDashboard = function() {
                         ${renderHeroTeamHtml(sides.left)}
 
                         <div class="match-detail-center">
-                            <span class="match-detail-time">${nm.time || '--:--'}</span>
+                            <span class="match-detail-time">${escapeDashboardHtml(nm.time || '--:--')}</span>
                             <span class="match-detail-sub">Kampstart</span>
                         </div>
 
@@ -253,7 +313,7 @@ window.updateDashboard = function() {
 
         } else {
             heroContainer.innerHTML = `
-                <div onclick="switchTab('kamper')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="dashboard-widget-card dashboard-click-card rounded-2xl p-8 md:p-10 text-center relative overflow-hidden border min-h-[210px] flex flex-col items-center justify-center">
+                <div data-dashboard-action="open-kamper-tab" role="button" tabindex="0" class="dashboard-widget-card dashboard-click-card rounded-2xl p-8 md:p-10 text-center relative overflow-hidden border min-h-[210px] flex flex-col items-center justify-center">
                     <div class="absolute -right-8 -bottom-10 opacity-5 pointer-events-none">
                         <i class="fa-solid fa-futbol text-[13rem] text-bsk-blue"></i>
                     </div>
@@ -399,18 +459,12 @@ window.updateHjemWidget = function() {
     const bottomContainer = document.getElementById('hjem-bottom-widgets');
     if (!bottomContainer) return;
 
+    bindDashboardEvents();
+
     // 1. FORBERED TRENINGSDATA (Venstre blokk - BSK-stil)
     const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
     const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const upcomingEvents = events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
-    const escapeJsString = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    }[char]));
     
     let leftWidgetHtml = '';
     if (upcomingEvents.length > 0) {
@@ -437,9 +491,9 @@ window.updateHjemWidget = function() {
                 ? '1 skadet'
                 : `${injuredCount} skadet`;
             injuryButtonHtml = `
-                <button type="button" onclick="event.stopPropagation(); window.showSessionInjuryModal()" class="match-bench-action-btn dashboard-session-action-btn">
+                <button type="button" data-dashboard-action="session-injury" class="match-bench-action-btn dashboard-session-action-btn">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>${escapeHtml(injuryLabel)}</span>
+                    <span>${escapeDashboardHtml(injuryLabel)}</span>
                 </button>
             `;
         } else {
@@ -447,7 +501,7 @@ window.updateHjemWidget = function() {
         }
 
         leftWidgetHtml = `
-            <article onclick="window.goToCalendarDate('${escapeJsString(ne.date)}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full">
+            <article data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(ne.date)}" role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>
@@ -455,7 +509,7 @@ window.updateHjemWidget = function() {
                 <div class="match-detail-card-top relative z-10">
                     <div class="match-detail-meta">
                         <i class="fa-regular fa-calendar-days"></i>
-                        <span>${escapeHtml(dateLabel)}</span>
+                        <span>${escapeDashboardHtml(dateLabel)}</span>
                     </div>
                     <div class="match-detail-chip">
                         <i class="fa-solid fa-stopwatch"></i>
@@ -472,7 +526,7 @@ window.updateHjemWidget = function() {
                             </div>
                         </div>
                         <div class="dashboard-session-actions">
-                            <button type="button" onclick="event.stopPropagation(); window.openAttendanceModal('${escapeJsString(ne.id)}')" class="match-bench-action-btn dashboard-session-action-btn">
+                            <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="match-bench-action-btn dashboard-session-action-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
@@ -482,20 +536,20 @@ window.updateHjemWidget = function() {
                 </div>
 
                 <div class="match-detail-footer relative z-10">
-                    <div class="match-detail-footer-item" title="${escapeHtml(locationLabel)}">
+                    <div class="match-detail-footer-item" title="${escapeDashboardHtml(locationLabel)}">
                         <i class="fa-solid fa-location-dot"></i>
-                        <span>${escapeHtml(locationLabel)}</span>
+                        <span>${escapeDashboardHtml(locationLabel)}</span>
                     </div>
                     <div class="match-detail-footer-item">
                         <i class="fa-regular fa-clock"></i>
-                        <span>${escapeHtml(timeLabel)}</span>
+                        <span>${escapeDashboardHtml(timeLabel)}</span>
                     </div>
                 </div>
             </article>
         `;
     } else {
         leftWidgetHtml = `
-            <article onclick="window.goToCalendarDate('${todayStr}')" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
+            <article data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(todayStr)}" role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>
@@ -554,10 +608,10 @@ window.updateHjemWidget = function() {
             return `
                 <div class="dashboard-injury-row">
                     <div class="dashboard-injury-row-main min-w-0">
-                        <span class="dashboard-injury-name">${escapeHtml(firstName)}</span>
-                        <span class="dashboard-injury-detail">${escapeHtml(buildInjuryDetailLine(player))}</span>
+                        <span class="dashboard-injury-name">${escapeDashboardHtml(firstName)}</span>
+                        <span class="dashboard-injury-detail">${escapeDashboardHtml(buildInjuryDetailLine(player))}</span>
                     </div>
-                    <span class="dashboard-injury-badge ${badgeClass}">${escapeHtml(player.info.shortLabel)}</span>
+                    <span class="dashboard-injury-badge ${badgeClass}">${escapeDashboardHtml(player.info.shortLabel)}</span>
                 </div>
             `;
         }).join('');
@@ -573,7 +627,7 @@ window.updateHjemWidget = function() {
             : '';
 
         rightWidgetHtml = `
-            <article onclick="window.goToInjuredRoster()" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-injury-card dashboard-click-card h-full">
+            <article data-dashboard-action="open-injured-roster" role="button" tabindex="0" class="match-detail-card dashboard-injury-card dashboard-click-card h-full">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-user-injured"></i>
                 </div>
@@ -585,7 +639,7 @@ window.updateHjemWidget = function() {
                     </div>
                     <div class="match-detail-chip${injuryStats.langvarigCount > 0 ? ' dashboard-injury-chip-alert' : ''}">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>${escapeHtml(injuryChipLabel)}</span>
+                        <span>${escapeDashboardHtml(injuryChipLabel)}</span>
                     </div>
                 </div>
 
@@ -613,7 +667,7 @@ window.updateHjemWidget = function() {
                     ${injuryPositionLine ? `
                         <div class="match-detail-footer-item dashboard-series-footer-line">
                             <i class="fa-solid fa-layer-group"></i>
-                            <span>${escapeHtml(injuryPositionLine)}</span>
+                            <span>${escapeDashboardHtml(injuryPositionLine)}</span>
                         </div>
                     ` : ''}
                 </div>
@@ -621,7 +675,7 @@ window.updateHjemWidget = function() {
         `;
     } else {
         rightWidgetHtml = `
-            <article onclick="window.goToInjuredRoster()" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-injury-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
+            <article data-dashboard-action="open-injured-roster" role="button" tabindex="0" class="match-detail-card dashboard-injury-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-user-injured"></i>
                 </div>
@@ -656,13 +710,6 @@ window.updateHjemWidget = function() {
     });
 
     const formGuide = typeof window.getFormGuide === 'function' ? window.getFormGuide() : [];
-    const escapeAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    }[char]));
 
     const sortedPlayedMatches = [...playedMatches].sort((a, b) => new Date(b.match.date) - new Date(a.match.date));
     const lastMatchItem = sortedPlayedMatches[0] || null;
@@ -683,7 +730,10 @@ window.updateHjemWidget = function() {
     const positiveNote = String(lastMatchNotes.positive || '').trim();
     const challengeNote = String(lastMatchNotes.challenge || '').trim();
     const hasCoachNotes = Boolean(positiveNote || challengeNote);
-    const lastMatchIdForJs = lastMatchItem?.match?.id ? escapeJsString(lastMatchItem.match.id) : '';
+    const seriesAction = lastMatchItem ? 'open-match-notes' : 'open-statistikk-tab';
+    const seriesMatchIdAttr = lastMatchItem
+        ? ` data-match-id="${escapeDashboardHtml(lastMatchItem.match.id)}"`
+        : '';
 
     const getSeriesFormPillClass = (form) => {
         if (form === 'S') return 'is-win';
@@ -695,7 +745,7 @@ window.updateHjemWidget = function() {
     const goalsScoredAvg = hasSeriesData ? (goalsFor / playedMatches.length).toFixed(1) : '–';
     const goalsConcededAvg = hasSeriesData ? (goalsAgainst / playedMatches.length).toFixed(1) : '–';
     const formPillsHtml = formGuide.length
-        ? formGuide.map(item => `<span class="dashboard-series-form-pill ${getSeriesFormPillClass(item.form)}" title="${escapeAttr(item.tooltip)}">${item.text}</span>`).join('')
+        ? formGuide.map(item => `<span class="dashboard-series-form-pill ${getSeriesFormPillClass(item.form)}" title="${escapeDashboardHtml(item.tooltip)}">${escapeDashboardHtml(item.text)}</span>`).join('')
         : '<span class="dashboard-series-form-empty">Ingen form</span>';
     const seriesFooterLine = hasSeriesData
         ? `${playedMatches.length} kamper · ${tableWins}S · ${tableDraws}U · ${tableLosses}T`
@@ -706,23 +756,19 @@ window.updateHjemWidget = function() {
         seriesFocusHtml = '<p class="dashboard-series-result is-empty">Ingen registrerte kamper ennå</p>';
     } else if (hasCoachNotes) {
         seriesFocusHtml = `
-            <p class="dashboard-series-result">${escapeAttr(lastMatchResultLine)}</p>
-            ${positiveNote ? `<p class="dashboard-series-note-positive">${escapeAttr(positiveNote)}</p>` : ''}
-            ${challengeNote ? `<p class="dashboard-series-note-challenge">${escapeAttr(challengeNote)}</p>` : ''}
+            <p class="dashboard-series-result">${escapeDashboardHtml(lastMatchResultLine)}</p>
+            ${positiveNote ? `<p class="dashboard-series-note-positive">${escapeDashboardHtml(positiveNote)}</p>` : ''}
+            ${challengeNote ? `<p class="dashboard-series-note-challenge">${escapeDashboardHtml(challengeNote)}</p>` : ''}
         `;
     } else {
         seriesFocusHtml = `
-            <p class="dashboard-series-result">${escapeAttr(lastMatchResultLine)}</p>
+            <p class="dashboard-series-result">${escapeDashboardHtml(lastMatchResultLine)}</p>
             <p class="dashboard-series-fallback">Ingen trenernotater lagt inn for denne kampen ennå. Klikk her for å sette fokus for treningsuka!</p>
         `;
     }
 
-    const seriesCardClickHandler = lastMatchIdForJs
-        ? `window.goToMatchSummaryNotes('${lastMatchIdForJs}')`
-        : "switchTab('statistikk')";
-
     const seriesWidgetHtml = `
-        <article onclick="${seriesCardClickHandler}" role="button" tabindex="0" onkeydown="window.activateDashboardCardFromKeyboard(event)" class="match-detail-card dashboard-series-card dashboard-click-card h-full">
+        <article data-dashboard-action="${seriesAction}"${seriesMatchIdAttr} role="button" tabindex="0" class="match-detail-card dashboard-series-card dashboard-click-card h-full">
             <div class="dashboard-next-match-watermark">
                 <i class="fa-solid fa-ranking-star"></i>
             </div>
@@ -758,7 +804,7 @@ window.updateHjemWidget = function() {
 
             <div class="match-detail-footer relative z-10">
                 <div class="match-detail-footer-item dashboard-series-footer-line">
-                    <span>${escapeAttr(seriesFooterLine)}</span>
+                    <span>${escapeDashboardHtml(seriesFooterLine)}</span>
                 </div>
             </div>
         </article>
