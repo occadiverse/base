@@ -411,6 +411,7 @@
 
         window.deleteTeamFromDatabase = async function() {
             throw new Error('Appen er låst til ett lag og kan ikke slettes.');
+        };
 
         window.savePlayerToDatabase = async function(playerObject) {
             if (typeof window.ensurePlayerId === 'function') {
