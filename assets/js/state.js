@@ -14,7 +14,7 @@ window.getPrimaryTeamName = function() {
 };
 
 window.activeMatches = [];
-        window.activeTeams = [];
+window.activeTeams = [];
         window.activePlayers = [];
         window.activeEvents = [];
         window.tacticalLineup = {}; 

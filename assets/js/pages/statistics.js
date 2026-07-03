@@ -48,33 +48,7 @@ window.checkIndividualChemistry = function() {
         }
 
         window.getStatsTeamFilter = function() {
-            if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
-                return 'Alle';
-            }
-            const statsSelect = document.getElementById('statsLagFilterSelect');
-            if (statsSelect && statsSelect.value) return statsSelect.value;
-            const rosterSelect = document.getElementById('lagFilterSelect');
-            if (rosterSelect && rosterSelect.value) return rosterSelect.value;
-            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
-            return teams[0] ? teams[0].name : 'Alle';
-        };
-
-        window.handleStatsTeamFilterChange = function() {
-            const rosterSelect = document.getElementById('lagFilterSelect');
-            const statsSelect = document.getElementById('statsLagFilterSelect');
-            if (rosterSelect && statsSelect && rosterSelect.value !== statsSelect.value) {
-                rosterSelect.value = statsSelect.value;
-            }
-
-            window.renderStatistikkSide();
-            if (window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata') {
-                if (window._statsSelectedPlayer) {
-                    window.renderSpillereDetail(window._statsSelectedPlayer);
-                } else {
-                    window.renderSpillereView();
-                }
-            }
-            if (typeof window.renderMatchStatsView === 'function') window.renderMatchStatsView();
+            return 'Alle';
         };
 
         window.getTeamFormGuide = function(teamName) {
@@ -955,9 +929,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (!hero) return;
             hero.className = 'stats-chrome';
             hero.innerHTML = markup;
-            if (typeof window.syncStatsLagFilterPlacement === 'function') {
-                window.syncStatsLagFilterPlacement();
-            }
         };
 
         window.paintStatsTabHero = function(markup) {
@@ -965,9 +936,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (!hero) return;
             hero.className = 'stats-hero-panel';
             hero.innerHTML = markup;
-            if (typeof window.syncStatsLagFilterPlacement === 'function') {
-                window.syncStatsLagFilterPlacement();
-            }
         };
 
         window.renderStatsChromeTabsOnly = function(tabsHtml) {
@@ -1222,18 +1190,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.openTeamReportMetaTarget = function(target) {
-            const data = window._statsLagData || {};
-            const teamName = data.filterLag || '';
-            const setTeamFilter = (selectId) => {
-                const select = document.getElementById(selectId);
-                if (!select || !teamName || teamName === 'Alle') return;
-                if ([...select.options].some(option => option.value === teamName)) {
-                    select.value = teamName;
-                }
-            };
             const openRoster = (status) => {
                 if (typeof window.switchTab === 'function') window.switchTab('tropp');
-                setTeamFilter('lagFilterSelect');
                 const searchInput = document.getElementById('playerSearchInput');
                 if (searchInput) searchInput.value = '';
                 if (typeof window.setPlayerStatusFilter === 'function') {
@@ -1244,7 +1202,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             };
             const openPlayerStats = (sortColumn) => {
                 if (typeof window.switchTab === 'function') window.switchTab('statistikk');
-                setTeamFilter('statsLagFilterSelect');
                 window.statsBackTarget = 'lag';
                 if (typeof window.switchStatTab === 'function') window.switchStatTab('spillere');
 
@@ -1773,27 +1730,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             `;
             if (typeof window.collapseKampSelectLabel === 'function') window.collapseKampSelectLabel();
-        };
-
-        window.syncStatsLagFilterPlacement = function() {
-            const hero = document.getElementById('stats-tab-hero');
-            const wrap = document.getElementById('statsLagFilterWrap');
-            const view = document.getElementById('view-statistikk');
-            if (!wrap || !view) return;
-
-            const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-            const teams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
-            const showFilter = !singleTeamMode && teams.length > 1;
-            const heroReady = hero && (hero.classList.contains('stats-hero-panel') || hero.classList.contains('stats-chrome'));
-
-            if (!showFilter || !heroReady) {
-                wrap.classList.add('hidden');
-                if (wrap.parentElement !== view) view.appendChild(wrap);
-                return;
-            }
-
-            wrap.classList.remove('hidden');
-            if (wrap.parentElement !== hero) hero.insertBefore(wrap, hero.firstChild);
         };
 
         window.renderStatsTabHero = function(tabId) {

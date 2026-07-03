@@ -299,10 +299,7 @@
                 if (fb.length === 0) {
                     initialMockTeams.forEach(async (t) => { try { await setDoc(doc(activeTeamsCollectionRef, t.id), t); } catch(e){} });
                 } else {
-                    const teams = (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode() && fb.length > 0)
-                        ? [fb[0]]
-                        : fb;
-                    syncTeams(teams);
+                    syncTeams(fb.length > 0 ? [fb[0]] : fb);
                 }
             }, (error) => handleSyncError('teams', syncTeams, initialMockTeams, error));
 
@@ -398,48 +395,22 @@
         };
 
         window.saveTeamToDatabase = async function(teamObject) {
-            const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-            if (singleTeamMode) {
-                const primaryTeam = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
-                teamObject.id = teamObject.id || primaryTeam?.id || crypto.randomUUID();
-            }
+            const primaryTeam = window.getPrimaryTeam();
+            teamObject.id = teamObject.id || primaryTeam?.id || crypto.randomUUID();
 
             if (firebaseEnabled && auth && auth.currentUser) {
                 try {
-                    const id = teamObject.id || crypto.randomUUID();
-                    teamObject.id = id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', id), teamObject);
-                    if (singleTeamMode) {
-                        syncTeams([teamObject]);
-                    }
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', teamObject.id), teamObject);
+                    syncTeams([teamObject]);
                     return true;
                 } catch (e) { console.error(e); }
             }
-            if (singleTeamMode) {
-                syncTeams([teamObject]);
-                return true;
-            }
-            const current = [...window.activeTeams];
-            const idx = current.findIndex(t => t.id === teamObject.id);
-            if (idx > -1) { current[idx] = teamObject; } else { teamObject.id = teamObject.id || crypto.randomUUID(); current.push(teamObject); }
-            syncTeams(current);
+            syncTeams([teamObject]);
             return true;
         };
 
-        window.deleteTeamFromDatabase = async function(teamId) {
-            if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
-                throw new Error('Appen er låst til ett lag og kan ikke slettes.');
-            }
-            if (firebaseEnabled && auth && auth.currentUser) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'teams', teamId));
-                    return true;
-                } catch (e) { console.error(e); }
-            }
-            const current = window.activeTeams.filter(t => t.id !== teamId);
-            syncTeams(current);
-            return true;
-        };
+        window.deleteTeamFromDatabase = async function() {
+            throw new Error('Appen er låst til ett lag og kan ikke slettes.');
 
         window.savePlayerToDatabase = async function(playerObject) {
             if (typeof window.ensurePlayerId === 'function') {
@@ -555,12 +526,12 @@
             const force = options.force === true;
             const silent = options.silent === true;
 
-            if (typeof window.isSingleTeamMode !== 'function' || !window.isSingleTeamMode()) {
+            if (!window.isSingleTeamMode()) {
                 return { skipped: true, reason: 'not_single_team_mode' };
             }
 
-            const primaryTeam = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
-            const teamName = typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : '';
+            const primaryTeam = window.getPrimaryTeam();
+            const teamName = window.getPrimaryTeamName();
             if (!primaryTeam || !teamName) {
                 return { skipped: true, reason: 'no_primary_team' };
             }
@@ -686,7 +657,7 @@
         };
 
         window.maybeRunSingleTeamDataMigration = async function() {
-            if (typeof window.isSingleTeamMode !== 'function' || !window.isSingleTeamMode()) {
+            if (!window.isSingleTeamMode()) {
                 return null;
             }
             try {

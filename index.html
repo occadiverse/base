@@ -231,13 +231,6 @@
                             <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="roster-status-btn">Skadet</button>
                         </div>
 
-                        <div id="rosterLagFilterWrap" class="match-list-lag-filter hidden">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <select id="lagFilterSelect" onchange="handleTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer spillere etter lag">
-                            </select>
-                            <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
-                        </div>
-
                         <div class="roster-search-wrap">
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon..." class="roster-search-input" aria-label="Søk spillere">
@@ -270,7 +263,6 @@
                             <span>Spiller</span>
                             <span>Posisjon</span>
                             <span>Fot</span>
-                            <span>Lag</span>
                             <span>Alder / status</span>
                         </div>
 
@@ -328,13 +320,6 @@
                         <span class="roster-bottomline-title">Statistikk</span>
                     </footer>
                 </section>
-
-                <div id="statsLagFilterWrap" class="match-list-lag-filter stats-hero-lag-filter hidden">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <select id="statsLagFilterSelect" onchange="handleStatsTeamFilterChange()" class="match-list-lag-select" aria-label="Filtrer statistikk etter lag">
-                    </select>
-                    <i class="fa-solid fa-chevron-down match-list-lag-chevron"></i>
-                </div>
             </div>
 
             <div id="view-taktikk" class="hidden portal-view portal-page space-y-4 md:space-y-6">
@@ -499,10 +484,6 @@
                                 <i class="fa-solid fa-pen-to-square text-bsk-yellow"></i>
                                 Rediger lag
                             </button>
-                            <button id="adminCreateTeamBtn" type="button" onclick="openTeamModal()" class="portal-btn portal-btn-primary hidden">
-                                <i class="fa-solid fa-plus text-bsk-yellow"></i>
-                                Opprett nytt lag
-                            </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="admin-teams-list">
                             </div>
@@ -633,7 +614,7 @@
                     <input type="text" id="pitch" placeholder="F.eks. Ekeberg Kunstgress, Sportsplassen..." class="portal-field">
                 </div>
 
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-1">
                         <label class="portal-label">Kamp-type</label>
                         <select id="matchType" class="portal-field">
@@ -641,11 +622,6 @@
                             <option value="Cup">Cup</option>
                             <option value="Treningskamp">Trening</option>
                         </select>
-                    </div>
-                    <div class="col-span-1" id="matchGroupFieldWrap">
-                        <label class="portal-label">Velg Lag</label>
-                        <select id="matchGroup" class="portal-field">
-                            </select>
                     </div>
                     <div class="col-span-1">
                         <label class="portal-label">Resultat (valgfritt)</label>
@@ -687,20 +663,13 @@
                     <input type="text" id="eventTitle" placeholder="F.eks. Tirsdagstrening, lagmøte eller sesongavslutning..." required class="portal-field">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="portal-label">Type event</label>
-                        <select id="eventType" class="portal-field">
-                            <option value="Trening">Trening 🏃</option>
-                            <option value="Kamp">Kamp ⚽</option>
-                            <option value="Annet">Annet</option>
-                        </select>
-                    </div>
-                    <div id="eventTeamFieldWrap">
-                        <label class="portal-label">For hvilket lag</label>
-                        <select id="eventTeam" class="portal-field">
-                            </select>
-                    </div>
+                <div>
+                    <label class="portal-label">Type event</label>
+                    <select id="eventType" class="portal-field">
+                        <option value="Trening">Trening 🏃</option>
+                        <option value="Kamp">Kamp ⚽</option>
+                        <option value="Annet">Annet</option>
+                    </select>
                 </div>
 
                 <div>
@@ -798,10 +767,6 @@
                 </div>
 
                 <div class="player-modal-grid">
-                    <div class="player-modal-field-block" id="playerTeamFieldWrap">
-                        <label class="player-modal-label" for="playerTeamInput">Tilhører lag</label>
-                        <select id="playerTeamInput" class="player-modal-field"></select>
-                    </div>
                     <div class="player-modal-field-block">
                         <label class="player-modal-label" for="playerFootInput">Foretrukket fot</label>
                         <select id="playerFootInput" class="player-modal-field">
@@ -963,12 +928,6 @@
                     </select>
                 </div>
 
-                <div id="activityTeamFieldWrap">
-                    <label class="portal-label">Hvilket lag gjelder dette?</label>
-                    <select id="activityTeam" class="portal-field">
-                    </select>
-                </div>
-
                 <div>
                     <label class="portal-label">Tittel / Motstander</label>
                     <input type="text" id="activityTitle" placeholder="F.eks. BSK - KFUM (Valgfritt)"
@@ -1114,7 +1073,14 @@
     </div>
 
     <script src="assets/js/components/navigation.js?v=20260613-mobile-nav7"></script>
-    <script src="assets/js/state.js"></script>
+    <div id="team-field-store" class="hidden" aria-hidden="true">
+        <input type="hidden" id="matchGroup">
+        <input type="hidden" id="playerTeamInput">
+        <input type="hidden" id="eventTeam">
+        <input type="hidden" id="activityTeam">
+    </div>
+
+    <script src="assets/js/state.js?v=20260703-single-team-v1"></script>
     <script src="assets/js/components/modals.js?v=20260622-injury-popup-layout"></script>
     <script src="assets/js/app-shell.js?v=20260629-stats-playerdata-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20260626-bench-sub-plan"></script>

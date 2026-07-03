@@ -1873,7 +1873,7 @@ window.openMatchModal = function(editId = null) {
             document.getElementById('opponent').value = matchObj.opponent;
             document.getElementById('pitch').value = matchObj.pitch || '';
             document.getElementById('matchType').value = matchObj.matchType;
-            document.getElementById('matchGroup').value = matchObj.matchGroup || 'Lag A';
+            document.getElementById('matchGroup').value = matchObj.matchGroup || window.getPrimaryTeamName();
             document.getElementById('matchVenue').value = getMatchVenue(matchObj);
             document.getElementById('result').value = matchObj.result || '';
         }
@@ -1887,11 +1887,7 @@ window.openMatchModal = function(editId = null) {
             headerAction.classList.remove('calendar-action-danger');
         }
         document.getElementById('matchVenue').value = 'Hjemme';
-        if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
-            document.getElementById('matchGroup').value = typeof window.getPrimaryTeamName === 'function'
-                ? window.getPrimaryTeamName()
-                : 'Lag A';
-        }
+        document.getElementById('matchGroup').value = window.getPrimaryTeamName();
     }
 
     modal.classList.remove('hidden');
@@ -1927,9 +1923,7 @@ window.saveMatch = async function(event) {
         opponent: document.getElementById('opponent').value,
         pitch: document.getElementById('pitch').value,
         matchType: document.getElementById('matchType').value,
-        matchGroup: (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode())
-            ? (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : document.getElementById('matchGroup').value)
-            : document.getElementById('matchGroup').value,
+        matchGroup: window.getPrimaryTeamName(),
         venue: document.getElementById('matchVenue').value,
         result: document.getElementById('result').value
     };

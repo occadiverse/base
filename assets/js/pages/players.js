@@ -1,106 +1,14 @@
-window.applySingleTeamModeUi = function() {
-    const enabled = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    document.documentElement.classList.toggle('single-team-mode', enabled);
-};
-
-function getTeamsForSelectors() {
-    const allTeams = Array.isArray(window.activeTeams) ? window.activeTeams : [];
-    if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
-        const primary = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : allTeams[0];
-        return primary ? [primary] : allTeams.slice(0, 1);
-    }
-    return allTeams;
-}
-
-function appendTeamSelectOption(select, team, label) {
-    const opt = document.createElement('option');
-    opt.value = team.name;
-    opt.innerText = label;
-    select.appendChild(opt);
+function setHiddenTeamFieldValue(id, teamName) {
+    const el = document.getElementById(id);
+    if (el) el.value = teamName;
 }
 
 window.updateDynamicSelectors = function() {
-    const filterSelect = document.getElementById('lagFilterSelect');
-    const formSelect = document.getElementById('matchGroup');
-    const playerTeamSelect = document.getElementById('playerTeamInput');
-    const eventTeamSelect = document.getElementById('eventTeam');
-    const activityTeamSelect = document.getElementById('activityTeam');
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    const teams = getTeamsForSelectors();
-    const primaryTeamName = typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : (teams[0]?.name || '');
-
-    if (formSelect) formSelect.innerHTML = '';
-    if (playerTeamSelect) playerTeamSelect.innerHTML = '';
-    if (eventTeamSelect) eventTeamSelect.innerHTML = '';
-    if (activityTeamSelect) activityTeamSelect.innerHTML = '';
-
-    if (filterSelect) {
-        const previousFilter = filterSelect.value;
-        filterSelect.innerHTML = '';
-        if (!singleTeamMode && teams.length > 1) {
-            const allOpt = document.createElement('option');
-            allOpt.value = 'Alle';
-            allOpt.innerText = 'ALLE LAG';
-            filterSelect.appendChild(allOpt);
-        }
-        teams.forEach(t => appendTeamSelectOption(filterSelect, t, t.name.toUpperCase()));
-        if (singleTeamMode && primaryTeamName) {
-            filterSelect.value = primaryTeamName;
-        } else if (previousFilter && (previousFilter === 'Alle' || teams.some(t => t.name === previousFilter))) {
-            filterSelect.value = previousFilter;
-        } else if (teams.length > 1) {
-            filterSelect.value = 'Alle';
-        } else if (teams[0]) {
-            filterSelect.value = teams[0].name;
-        }
-    }
-
-    const statsFilterSelect = document.getElementById('statsLagFilterSelect');
-    if (statsFilterSelect) {
-        const previousStatsFilter = statsFilterSelect.value;
-        statsFilterSelect.innerHTML = '';
-        if (!singleTeamMode && teams.length > 1) {
-            const allOpt = document.createElement('option');
-            allOpt.value = 'Alle';
-            allOpt.innerText = 'ALLE LAG';
-            statsFilterSelect.appendChild(allOpt);
-        }
-        teams.forEach(t => appendTeamSelectOption(statsFilterSelect, t, t.name.toUpperCase()));
-        if (singleTeamMode && primaryTeamName) {
-            statsFilterSelect.value = primaryTeamName;
-        } else if (previousStatsFilter && (previousStatsFilter === 'Alle' || teams.some(t => t.name === previousStatsFilter))) {
-            statsFilterSelect.value = previousStatsFilter;
-        } else if (teams[0]) {
-            statsFilterSelect.value = teams[0].name;
-        }
-    }
-
-    if (typeof window.syncStatsLagFilterPlacement === 'function') {
-        window.syncStatsLagFilterPlacement();
-    }
-
-    const lagFilterWrap = document.getElementById('rosterLagFilterWrap');
-    if (lagFilterWrap) {
-        lagFilterWrap.classList.toggle('hidden', singleTeamMode || teams.length <= 1);
-    }
-
-    teams.forEach(t => {
-        if (formSelect) appendTeamSelectOption(formSelect, t, t.name);
-        if (playerTeamSelect) appendTeamSelectOption(playerTeamSelect, t, t.name);
-        if (eventTeamSelect) appendTeamSelectOption(eventTeamSelect, t, t.name);
-        if (activityTeamSelect) appendTeamSelectOption(activityTeamSelect, t, t.name);
-    });
-
-    if (singleTeamMode && primaryTeamName) {
-        if (formSelect) formSelect.value = primaryTeamName;
-        if (playerTeamSelect) playerTeamSelect.value = primaryTeamName;
-        if (eventTeamSelect) eventTeamSelect.value = primaryTeamName;
-        if (activityTeamSelect) activityTeamSelect.value = primaryTeamName;
-    }
-
-    if (typeof window.applySingleTeamModeUi === 'function') {
-        window.applySingleTeamModeUi();
-    }
+    const teamName = window.getPrimaryTeamName();
+    setHiddenTeamFieldValue('matchGroup', teamName);
+    setHiddenTeamFieldValue('playerTeamInput', teamName);
+    setHiddenTeamFieldValue('eventTeam', teamName);
+    setHiddenTeamFieldValue('activityTeam', teamName);
 };
 
 window.renderAdminTeamsList = function() {
@@ -108,17 +16,13 @@ window.renderAdminTeamsList = function() {
     if (!listContainer) return;
 
     listContainer.innerHTML = '';
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    const teams = singleTeamMode
-        ? (typeof window.getPrimaryTeam === 'function' && window.getPrimaryTeam() ? [window.getPrimaryTeam()] : [])
-        : (Array.isArray(window.activeTeams) ? window.activeTeams : []);
+    const team = window.getPrimaryTeam();
+    const teams = team ? [team] : [];
 
     if (teams.length === 0) {
         listContainer.innerHTML = `
             <div class="col-span-2 py-8 text-center text-slate-400 text-xs italic bg-slate-50 border border-dashed rounded-xl">
-                ${singleTeamMode
-                    ? 'Ingen lag satt opp ennå. Klikk på «Rediger lag» for å legge inn trenerinfo og beskrivelse.'
-                    : 'Ingen lag opprettet ennå. Klikk på "Opprett nytt lag" for å begynne.'}
+                Ingen lag satt opp ennå. Klikk på «Rediger lag» for å legge inn trenerinfo og beskrivelse.
             </div>
         `;
         return;
@@ -133,7 +37,6 @@ window.renderAdminTeamsList = function() {
                     <h4 class="font-extrabold text-bsk-blue text-base">${escapeRosterHtml(t.name)}</h4>
                     <div class="flex gap-1">
                         <button onclick="openTeamModal('${escapeRosterJsString(t.id)}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
-                        ${singleTeamMode ? '' : `<button onclick="promptDeleteTeam('${escapeRosterJsString(t.id)}')" class="portal-btn portal-btn-icon-sm portal-btn-danger" title="Slett"><i class="fa-solid fa-trash"></i></button>`}
                     </div>
                 </div>
                 <div class="space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
@@ -145,17 +48,6 @@ window.renderAdminTeamsList = function() {
         `;
         listContainer.appendChild(card);
     });
-};
-
-window.handleTeamFilterChange = function() {
-    window.renderPlayerRoster();
-    recalculateOppmoteAndKjemi();
-    const statsSelect = document.getElementById('statsLagFilterSelect');
-    const rosterSelect = document.getElementById('lagFilterSelect');
-    if (statsSelect && rosterSelect && statsSelect.value !== rosterSelect.value) {
-        statsSelect.value = rosterSelect.value;
-    }
-    if (typeof window.handleStatsTeamFilterChange === 'function') window.handleStatsTeamFilterChange();
 };
 
 window.rosterStatusFilter = 'alle';
@@ -264,18 +156,11 @@ function finishPlayerInjury(player, tilDato = getTodayDateString()) {
 }
 
 function getRosterFilteredPlayers() {
-    const filterLagEl = document.getElementById('lagFilterSelect');
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    const filterLag = singleTeamMode
-        ? (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : '')
-        : (filterLagEl ? filterLagEl.value : '');
     const searchEl = document.getElementById('playerSearchInput');
     const searchTerm = (searchEl ? searchEl.value : '').trim().toLowerCase();
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
     return players.filter(p => {
-        if (!singleTeamMode && filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
-
         const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
             ? window.getPlayerInjuryInfo(p)
             : { isInjured: false };
@@ -377,18 +262,11 @@ function buildRosterPlayerAvatarHtml(player) {
 function buildRosterPlayerRow(p, currentYear) {
     const age = currentYear - parseInt(p.fodselsaar || 2000);
     const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
-    const teamName = p.spillerLag || 'Uten lag';
     const foot = p.fot ? `${p.fot} fot` : 'Ukjent fot';
     const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
         ? window.getPlayerInjuryInfo(p)
         : { isInjured: false };
     const captainMark = p.isCaptain ? '<span class="roster-captain" title="Kaptein">⚓</span>' : '';
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    const teamMetaHtml = singleTeamMode
-        ? ''
-        : `
-                    <span class="roster-player-meta-sep">·</span>
-                    <span>${escapeRosterHtml(teamName)}</span>`;
     const rowStateClasses = [
         p.status === 'Aktiv' ? 'is-active-player' : '',
         p.status === 'Rekrutt' ? 'is-recruit-player' : '',
@@ -408,12 +286,11 @@ function buildRosterPlayerRow(p, currentYear) {
                 <div class="roster-player-meta">
                     <span>${escapeRosterHtml(posStr)}</span>
                     <span class="roster-player-meta-sep">·</span>
-                    <span>${escapeRosterHtml(foot)}</span>${teamMetaHtml}
+                    <span>${escapeRosterHtml(foot)}</span>
                 </div>
             </div>
             <div class="roster-player-position">${escapeRosterHtml(posStr)}</div>
             <div class="roster-player-foot">${escapeRosterHtml(foot)}</div>
-            <div class="roster-player-team">${escapeRosterHtml(teamName)}</div>
             <div class="roster-player-side">
                 <span class="roster-player-age">${age} år</span>
                 <div class="roster-player-badges">
@@ -512,7 +389,7 @@ window.openPlayerModal = function(editPlayerId = null) {
             document.getElementById('playerJerseyInput').value = pObj.draktnummer || '';
             document.getElementById('playerBirthYearInput').value = pObj.fodselsaar;
             document.getElementById('playerStatusInput').value = pObj.status;
-            document.getElementById('playerTeamInput').value = pObj.spillerLag || (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : 'Lag A');
+            document.getElementById('playerTeamInput').value = pObj.spillerLag || window.getPrimaryTeamName();
             document.getElementById('playerPos1Input').value = pObj.pos1;
             document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
             document.getElementById('playerFootInput').value = pObj.fot || 'Høyre';
@@ -578,9 +455,8 @@ window.runPrimaryTeamDataMigration = async function(force = true) {
 };
 
 window.openTeamModal = function(editTeamId = null) {
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    if (singleTeamMode && !editTeamId) {
-        const existingTeam = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
+    if (!editTeamId) {
+        const existingTeam = window.getPrimaryTeam();
         if (existingTeam) editTeamId = existingTeam.id;
     }
 
@@ -599,9 +475,7 @@ window.openTeamModal = function(editTeamId = null) {
             document.getElementById('teamDesc').value = team.description || '';
         }
     } else {
-        document.getElementById('teamModalTitle').innerHTML = singleTeamMode
-            ? `<i class="fa-solid fa-users text-bsk-yellow"></i> Sett opp lag`
-            : `<i class="fa-solid fa-users text-bsk-yellow"></i> Opprett Lag`;
+        document.getElementById('teamModalTitle').innerHTML = `<i class="fa-solid fa-users text-bsk-yellow"></i> Sett opp lag`;
     }
 
     modal.classList.remove('hidden');
@@ -616,11 +490,10 @@ window.closeTeamModal = function() {
 window.saveTeam = async function(event) {
     event.preventDefault();
 
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    const existingTeam = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
+    const existingTeam = window.getPrimaryTeam();
     const previousTeamName = existingTeam?.name || '';
     const teamData = {
-        id: document.getElementById('editTeamId').value || (singleTeamMode && existingTeam ? existingTeam.id : null),
+        id: document.getElementById('editTeamId').value || existingTeam?.id || null,
         name: document.getElementById('teamName').value,
         coachName: document.getElementById('teamCoach').value,
         coachContact: document.getElementById('teamCoachContact').value,
@@ -632,7 +505,7 @@ window.saveTeam = async function(event) {
     window.updateDynamicSelectors();
     window.renderAdminTeamsList();
 
-    if (singleTeamMode && previousTeamName && previousTeamName !== teamData.name) {
+    if (previousTeamName && previousTeamName !== teamData.name) {
         if (typeof window.resetSingleTeamMigrationState === 'function') {
             window.resetSingleTeamMigrationState();
         }
@@ -642,17 +515,8 @@ window.saveTeam = async function(event) {
     }
 };
 
-window.promptDeleteTeam = function(id) {
-    if (typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode()) {
-        alert('Appen er låst til ett lag. Du kan redigere laget, men ikke slette det.');
-        return;
-    }
-
-    window.customConfirm("Slette lag?", "Er du sikker på at du ønsker å slette dette laget permanent?", async () => {
-        await window.deleteTeamFromDatabase(id);
-        window.updateDynamicSelectors();
-        window.renderAdminTeamsList();
-    });
+window.promptDeleteTeam = function() {
+    alert('Appen er låst til ett lag. Du kan redigere laget, men ikke slette det.');
 };
 
 window.savePlayer = async function(event) {
@@ -663,10 +527,7 @@ window.savePlayer = async function(event) {
     const selectedSkadeStatus = document.getElementById('playerSkadeStatusInput').value || 'frisk';
     const isSavingInjury = selectedSkadeStatus !== 'frisk';
     const todayStr = getTodayDateString();
-    const singleTeamMode = typeof window.isSingleTeamMode === 'function' && window.isSingleTeamMode();
-    const playerTeam = singleTeamMode
-        ? (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : document.getElementById('playerTeamInput').value)
-        : document.getElementById('playerTeamInput').value;
+    const playerTeam = window.getPrimaryTeamName();
 
     let playerData = {
         id: document.getElementById('editPlayerId').value || null,

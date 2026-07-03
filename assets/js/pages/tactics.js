@@ -15,8 +15,8 @@
                 return { teamName: currentMatch.matchGroup, historicalOnly: true };
             }
 
-            const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
-            if (filterLag && filterLag !== 'Alle') {
+            const filterLag = window.getPrimaryTeamName();
+            if (filterLag) {
                 return { teamName: filterLag, historicalOnly: true };
             }
 
@@ -538,13 +538,12 @@
 
         window.autoFillTeam = function() {
     window.clearTacticalBoard(); 
-    const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
     const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
 
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-        if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
+        if (p.status === 'Passiv') return false;
         if (currentMatch && isAttendanceStarted && !window.isPlayerAttending(currentMatch.attendance, p)) return false;
         return true;
     });
@@ -623,14 +622,13 @@ window.updateTacticalBoardStats = function() {
     const realChemSnitt = currentOnBoardCount > 0 ? Math.round(realTotalChem / currentOnBoardCount) : 0;
 
     // --- 2. BEREGN REELL MAKS FOR TROPPEN (GULLREKKA BASERT PÅ TILGJENGELIGHET) ---
-    const filterLag = document.getElementById('lagFilterSelect') ? document.getElementById('lagFilterSelect').value : 'Alle';
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
     const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
 
     // Hent alle tilgjengelige spillere til akkurat denne kampen/økten
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-        if (p.status === 'Passiv' || (filterLag !== 'Alle' && p.spillerLag !== filterLag)) return false;
+        if (p.status === 'Passiv') return false;
         if (currentMatch && isAttendanceStarted && !window.isPlayerAttending(currentMatch.attendance, p)) return false;
         return true;
     });
