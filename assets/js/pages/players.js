@@ -15,6 +15,7 @@ window.renderAdminTeamsList = function() {
     const listContainer = document.getElementById('admin-teams-list');
     if (!listContainer) return;
 
+    bindAdminTeamsListEvents();
     listContainer.innerHTML = '';
     const team = window.getPrimaryTeam();
     const teams = team ? [team] : [];
@@ -36,7 +37,7 @@ window.renderAdminTeamsList = function() {
                 <div class="flex justify-between items-start">
                     <h4 class="font-extrabold text-bsk-blue text-base">${escapeRosterHtml(t.name)}</h4>
                     <div class="flex gap-1">
-                        <button onclick="openTeamModal('${escapeRosterJsString(t.id)}')" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button type="button" data-team-action="edit" data-team-id="${escapeRosterHtml(t.id)}" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                     </div>
                 </div>
                 <div class="space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-2.5">
@@ -239,8 +240,48 @@ function escapeRosterHtml(value) {
     }[char]));
 }
 
-function escapeRosterJsString(value) {
-    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+function bindAdminTeamsListEvents() {
+    const listContainer = document.getElementById('admin-teams-list');
+    if (!listContainer || listContainer.dataset.eventsBound === 'true') return;
+
+    listContainer.dataset.eventsBound = 'true';
+    listContainer.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-team-action]');
+        if (!button) return;
+
+        const action = button.dataset.teamAction;
+        const teamId = button.dataset.teamId || null;
+
+        if (action === 'edit' && teamId) {
+            window.openTeamModal(teamId);
+        } else if (action === 'delete') {
+            window.promptDeleteTeam(teamId);
+        }
+    });
+}
+
+function bindPlayerRosterEvents() {
+    const listContainer = document.getElementById('playerRosterContainer');
+    if (!listContainer || listContainer.dataset.eventsBound === 'true') return;
+
+    listContainer.dataset.eventsBound = 'true';
+    listContainer.addEventListener('click', (event) => {
+        const row = event.target.closest('[data-player-id]');
+        if (!row) return;
+
+        const playerId = row.dataset.playerId;
+        if (playerId) window.openPlayerModal(playerId);
+    });
+    listContainer.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        const row = event.target.closest('[data-player-id]');
+        if (!row) return;
+
+        event.preventDefault();
+        const playerId = row.dataset.playerId;
+        if (playerId) window.openPlayerModal(playerId);
+    });
 }
 
 function getRosterPlayerPhotoUrl(player) {
@@ -275,11 +316,8 @@ function buildRosterPlayerRow(p, currentYear) {
         injuryInfo.type === 'langvarig' ? 'is-long-injury-player' : ''
     ].filter(Boolean).join(' ');
 
-    const safeId = escapeRosterJsString(p.id);
-    const clickHandler = `window.openPlayerModal('${safeId}')`;
-
     return `
-        <article class="roster-player-row ${rowStateClasses}" onclick="${clickHandler}" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${clickHandler};}">
+        <article class="roster-player-row ${rowStateClasses}" data-player-id="${escapeRosterHtml(p.id)}" role="button" tabindex="0">
             ${buildRosterPlayerAvatarHtml(p)}
             <div class="roster-player-main">
                 <div class="roster-player-name">${escapeRosterHtml(p.navn)}${captainMark}</div>
@@ -306,6 +344,8 @@ window.renderPlayerRoster = function() {
     const listContainer = document.getElementById('playerRosterContainer');
     const emptyState = document.getElementById('playerRosterEmpty');
     if (!listContainer) return;
+
+    bindPlayerRosterEvents();
 
     const filteredPlayers = getRosterFilteredPlayers();
     const allPlayers = Array.isArray(window.activePlayers) ? window.activePlayers : [];
