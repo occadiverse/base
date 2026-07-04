@@ -3247,31 +3247,12 @@
             font-weight: 950;
             line-height: 1.1;
         }
-        .match-bench-action-btn.roster-hero-action-btn {
-            background: #0b2b4c;
-            border-color: rgba(245, 197, 66, 0.24);
-            border-radius: 0.8rem;
-            box-shadow: 0 8px 18px rgba(11, 43, 76, 0.18);
-            color: #ffffff;
+        .bsk-btn.roster-hero-action-btn {
             flex: 0 0 auto;
-            font-size: 0.72rem;
-            gap: 0.45rem;
-            height: auto;
-            justify-content: center;
-            max-width: 100%;
-            min-height: 2.85rem;
             min-width: 7.75rem;
-            padding: 0.65rem 0.85rem;
         }
-        .match-bench-action-btn.roster-hero-action-btn:hover {
-            background: #123f73;
-            border-color: rgba(245, 197, 66, 0.44);
-        }
-        .match-bench-action-btn.roster-hero-action-btn i {
-            color: #f5c542;
-        }
-        .match-bench-action-btn.roster-hero-action-btn span {
-            display: inline;
+        .roster-board-top .bsk-btn.roster-hero-action-btn {
+            flex: 0 0 auto;
         }
         .roster-empty-action-btn {
             background: linear-gradient(90deg, #123f73 0%, #0b2b4c 100%);
@@ -3865,23 +3846,6 @@
         .roster-topline-legend span {
             white-space: nowrap;
         }
-        .roster-board-top .match-bench-action-btn.roster-hero-action-btn {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.28);
-            border-radius: 999px;
-            box-shadow: none;
-            color: #ffffff;
-            flex: 0 0 auto;
-            font-size: 0.64rem;
-            letter-spacing: 0.08em;
-            min-height: 2.1rem;
-            padding: 0.38rem 0.62rem;
-            text-transform: uppercase;
-        }
-        .roster-board-top .match-bench-action-btn.roster-hero-action-btn:hover {
-            background: rgba(245, 197, 66, 0.22);
-            border-color: rgba(245, 197, 66, 0.42);
-        }
         .roster-board-toolbar {
             align-items: center;
             background: rgba(255, 255, 255, 0.04);
@@ -3919,16 +3883,6 @@
         }
         .roster-board-toolbar .roster-search-input::placeholder {
             color: rgba(255, 255, 255, 0.42);
-        }
-        .roster-board-toolbar .match-bench-action-btn.roster-hero-action-btn {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.28);
-            box-shadow: none;
-            color: #ffffff;
-        }
-        .roster-board-toolbar .match-bench-action-btn.roster-hero-action-btn:hover {
-            background: rgba(245, 197, 66, 0.22);
-            border-color: rgba(245, 197, 66, 0.42);
         }
         .roster-board-stats {
             background: rgba(255, 255, 255, 0.03);
@@ -4039,12 +3993,12 @@
                 grid-column: 1 / -1;
                 width: 100%;
             }
-            .roster-board-top .match-bench-action-btn.roster-hero-action-btn {
+            .roster-board-top .bsk-btn.roster-hero-action-btn {
                 min-width: 2.85rem;
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
             }
-            .roster-board-top .match-bench-action-btn.roster-hero-action-btn span {
+            .roster-board-top .bsk-btn.roster-hero-action-btn span {
                 display: none;
             }
         }
