@@ -207,13 +207,13 @@
             if (!svgLayer) return;
             svgLayer.innerHTML = '';
             
-            const phaseConnections = {
-                fase1: [ ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'], ['VMS', 'OM'], ['HMS', 'DM'], ['VB', 'OM'], ['VB', 'VK'], ['DM', 'OM'], ['HB', 'DM'], ['HB', 'HK'], ['OM', 'VK'], ['OM', 'SP'], ['VK', 'SP'], ['SP', 'PM'], ['PM', 'DM'], ['HK', 'DM'], ['HK', 'PM'] ],
-                fase2: [ ['VMS', 'HMS'], ['VMS', 'VB'], ['VMS', 'GK'], ['VMS', 'DM'], ['HMS', 'HB'], ['HMS', 'GK'], ['HMS', 'DM'], ['VB', 'VK'], ['VB', 'OM'], ['VB', 'DM'], ['HB', 'HK'], ['HB', 'PM'], ['HB', 'DM'], ['VK', 'SP'], ['VK', 'OM'], ['HK', 'PM'], ['HK', 'SP'], ['PM', 'SP'], ['PM', 'DM'], ['PM', 'OM'], ['SP', 'OM'], ['OM', 'DM'] ],
-                fase3: [ ['VB', 'VK'], ['HB', 'HK'], ['VB', 'VMS'], ['HB', 'HMS'], ['GK', 'VMS'], ['GK', 'HMS'], ['VK', 'SP'], ['HK', 'SP'], ['HK', 'PM'], ['VK', 'OM'], ['OM', 'SP'], ['PM', 'SP'], ['OM', 'PM'], ['OM', 'VB'], ['PM', 'HB'], ['DM', 'OM'], ['DM', 'PM'], ['DM', 'VB'], ['DM', 'HB'], ['DM', 'VMS'], ['DM', 'HMS'], ['VMS', 'HMS'] ]
-            };
-
-            const connections = phaseConnections[currentTacticalPhase] || phaseConnections.fase2;
+            const connections = typeof window.getTacticalSamspillConnections === 'function'
+                ? window.getTacticalSamspillConnections(
+                    typeof window.getActiveTacticalSamspillPhase === 'function'
+                        ? window.getActiveTacticalSamspillPhase()
+                        : undefined
+                )
+                : [];
             const focusPos = typeof currentSelectPos !== 'undefined' ? currentSelectPos : null;
             const chemOptions = typeof window.getTacticalChemistryFilter === 'function'
                 ? window.getTacticalChemistryFilter()

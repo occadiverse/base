@@ -27,6 +27,41 @@
 
     const DEFAULT_POSITION_RELEVANCE = 0.65;
     const MIN_RELEVANCE_TO_DRAW = 0.45;
+    const TACTICAL_SAMSPILL_CONNECTIONS = {
+        fase1: [
+            ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'], ['VMS', 'OM'], ['HMS', 'DM'],
+            ['VB', 'OM'], ['VB', 'VK'], ['DM', 'OM'], ['HB', 'DM'], ['HB', 'HK'],
+            ['OM', 'VK'], ['OM', 'SP'], ['VK', 'SP'], ['SP', 'PM'], ['PM', 'DM'],
+            ['HK', 'DM'], ['HK', 'PM']
+        ],
+        fase2: [
+            ['VMS', 'HMS'], ['VMS', 'VB'], ['VMS', 'GK'], ['VMS', 'DM'], ['HMS', 'HB'],
+            ['HMS', 'GK'], ['HMS', 'DM'], ['VB', 'VK'], ['VB', 'OM'], ['VB', 'DM'],
+            ['HB', 'HK'], ['HB', 'PM'], ['HB', 'DM'], ['VK', 'SP'], ['VK', 'OM'],
+            ['HK', 'PM'], ['HK', 'SP'], ['PM', 'SP'], ['PM', 'DM'], ['PM', 'OM'],
+            ['SP', 'OM'], ['OM', 'DM']
+        ],
+        fase3: [
+            ['VB', 'VK'], ['HB', 'HK'], ['VB', 'VMS'], ['HB', 'HMS'], ['GK', 'VMS'],
+            ['GK', 'HMS'], ['VK', 'SP'], ['HK', 'SP'], ['HK', 'PM'], ['VK', 'OM'],
+            ['OM', 'SP'], ['PM', 'SP'], ['OM', 'PM'], ['OM', 'VB'], ['PM', 'HB'],
+            ['DM', 'OM'], ['DM', 'PM'], ['DM', 'VB'], ['DM', 'HB'], ['DM', 'VMS'],
+            ['DM', 'HMS'], ['VMS', 'HMS']
+        ]
+    };
+    const TACTICAL_SAMSPILL_DEFAULT_PHASE = 'fase2';
+
+    window.getTacticalSamspillConnections = function(phaseId) {
+        const phase = phaseId || TACTICAL_SAMSPILL_DEFAULT_PHASE;
+        return TACTICAL_SAMSPILL_CONNECTIONS[phase] || TACTICAL_SAMSPILL_CONNECTIONS[TACTICAL_SAMSPILL_DEFAULT_PHASE];
+    };
+
+    window.getActiveTacticalSamspillPhase = function() {
+        if (typeof currentTacticalPhase !== 'undefined' && currentTacticalPhase) {
+            return currentTacticalPhase;
+        }
+        return TACTICAL_SAMSPILL_DEFAULT_PHASE;
+    };
 
     function pairKey(a, b) {
         return [a, b].sort().join('|');

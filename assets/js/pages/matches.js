@@ -641,26 +641,6 @@ const matchGamePlanFormations = {
     }
 };
 
-const matchGamePlanFormationConnections = {
-    '4-2-4': [
-        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
-        ['VMS', 'DM'], ['HMS', 'OM'], ['VB', 'VK'], ['DM', 'OM'], ['OM', 'SP'],
-        ['SP', 'PM'], ['HK', 'OM']
-    ],
-    '4-3-3': [
-        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
-        ['DM', 'OM'], ['DM', 'PM'], ['OM', 'VK'], ['PM', 'HK'], ['VK', 'SP'], ['HK', 'SP'], ['SP', 'DM']
-    ],
-    '4-2-3-1': [
-        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
-        ['DM', 'OM'], ['OM', 'PM'], ['VK', 'PM'], ['HK', 'PM'], ['PM', 'SP'], ['DM', 'HMS']
-    ],
-    '4-5-1': [
-        ['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'],
-        ['DM', 'OM'], ['OM', 'PM'], ['VK', 'OM'], ['HK', 'OM'], ['PM', 'SP'], ['DM', 'VMS']
-    ]
-};
-
 const matchGamePlanLineupOverlayOptions = [
     { id: 'samspill', label: 'Samspill' },
     { id: 'bidrag', label: 'Bidrag' },
@@ -1820,8 +1800,13 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     const pitch = builder.querySelector('.match-game-plan-pitch');
     if (!pitch) return;
 
-    const formationId = getMatchGamePlanDraftFormation(match);
-    const connections = matchGamePlanFormationConnections[formationId] || matchGamePlanFormationConnections['4-2-4'];
+    const connections = typeof window.getTacticalSamspillConnections === 'function'
+        ? window.getTacticalSamspillConnections(
+            typeof window.getActiveTacticalSamspillPhase === 'function'
+                ? window.getActiveTacticalSamspillPhase()
+                : undefined
+        )
+        : [];
     const lineup = getMatchGamePlanDraftLineup(match);
     const chemOptions = getMatchGamePlanChemistryFilter(match);
     const pitchRect = pitch.getBoundingClientRect();
