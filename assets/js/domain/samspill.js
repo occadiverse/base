@@ -73,7 +73,11 @@
             ['HB', 'HMS'], ['HB', 'HK'], ['HB', 'DM'],
             // Midtstoppere → keeper, nærmeste bekk, stopperpartner og begge midtbanespillere
             ['VMS', 'HMS'], ['VMS', 'DM'], ['VMS', 'OM'],
-            ['HMS', 'DM'], ['HMS', 'OM']
+            ['HMS', 'DM'], ['HMS', 'OM'],
+            // PM → kant, midtbane og spiss
+            ['PM', 'HK'], ['PM', 'DM'], ['PM', 'OM'], ['PM', 'SP'],
+            // SP → kant, midtbanespillere og PM
+            ['SP', 'VK'], ['SP', 'DM'], ['SP', 'OM'], ['SP', 'PM']
         ]
     };
 
