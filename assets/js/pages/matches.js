@@ -472,9 +472,9 @@ function buildMatchDetailCardHtml(match, options = {}) {
             <button type="button"
                     data-match-action="alert"
                     data-match-id="${escapeMatchHtml(match.id)}"
-                    class="dashboard-alert-chip"
+                    class="bsk-btn bsk-btn-chip bsk-btn-danger dashboard-alert-chip"
                     title="Vis varsel for denne kampen">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                 <span>Varsel</span>
             </button>
         `
