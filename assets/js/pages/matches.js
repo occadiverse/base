@@ -1800,12 +1800,11 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     const pitch = builder.querySelector('.match-game-plan-pitch');
     if (!pitch) return;
 
-    const connections = typeof window.getTacticalSamspillConnections === 'function'
-        ? window.getTacticalSamspillConnections(
-            typeof window.getActiveTacticalSamspillPhase === 'function'
-                ? window.getActiveTacticalSamspillPhase()
-                : undefined
-        )
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const useFormationConnections = typeof window.hasMatchGamePlanSamspillConnections === 'function'
+        && window.hasMatchGamePlanSamspillConnections(formationId);
+    const connections = typeof window.getMatchGamePlanSamspillConnections === 'function'
+        ? window.getMatchGamePlanSamspillConnections(formationId)
         : [];
     const lineup = getMatchGamePlanDraftLineup(match);
     const chemOptions = getMatchGamePlanChemistryFilter(match);
@@ -1829,7 +1828,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
                 posB
             })
             : null;
-        if (!samspill || !samspill.shouldDraw) return null;
+        if (!samspill || (!samspill.shouldDraw && !useFormationConnections)) return null;
 
         const rectA = cardA.getBoundingClientRect();
         const rectB = cardB.getBoundingClientRect();
@@ -1848,7 +1847,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
 
     pairResults
         .sort((a, b) => b.relevance - a.relevance)
-        .slice(0, 14)
+        .slice(0, useFormationConnections ? pairResults.length : 14)
         .forEach(entry => {
             if (typeof window.appendSamspillLine !== 'function') return;
 

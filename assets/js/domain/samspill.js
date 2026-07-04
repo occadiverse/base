@@ -63,6 +63,37 @@
         return TACTICAL_SAMSPILL_DEFAULT_PHASE;
     };
 
+    const MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS = {
+        '4-2-4': [
+            // Keeper → hele forsvarsfiresome
+            ['GK', 'VB'], ['GK', 'VMS'], ['GK', 'HMS'], ['GK', 'HB'],
+            // Venstre bekk → keeper, nærmeste stopper, kant og midtbane
+            ['VB', 'VMS'], ['VB', 'VK'], ['VB', 'OM'],
+            // Høyre bekk → keeper, nærmeste stopper, kant og midtbane
+            ['HB', 'HMS'], ['HB', 'HK'], ['HB', 'DM'],
+            // Midtstoppere → keeper, nærmeste bekk, stopperpartner og begge midtbanespillere
+            ['VMS', 'HMS'], ['VMS', 'DM'], ['VMS', 'OM'],
+            ['HMS', 'DM'], ['HMS', 'OM']
+        ]
+    };
+
+    window.getMatchGamePlanSamspillConnections = function(formationId) {
+        const id = formationId || '4-2-4';
+        if (MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id]) {
+            return MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id];
+        }
+        return window.getTacticalSamspillConnections(
+            typeof window.getActiveTacticalSamspillPhase === 'function'
+                ? window.getActiveTacticalSamspillPhase()
+                : undefined
+        );
+    };
+
+    window.hasMatchGamePlanSamspillConnections = function(formationId) {
+        const id = formationId || '4-2-4';
+        return Object.prototype.hasOwnProperty.call(MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS, id);
+    };
+
     function pairKey(a, b) {
         return [a, b].sort().join('|');
     }
