@@ -16,7 +16,7 @@ function buildMatchListAddButtonHtml() {
     return `
         <button type="button"
                 data-match-list-action="add-kamp"
-                class="bsk-btn bsk-btn-secondary match-list-add-btn"
+                class="bsk-btn bsk-btn-primary match-list-add-btn"
                 title="Legg til kamp"
                 aria-label="Legg til kamp">
             <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
@@ -27,7 +27,12 @@ function buildMatchListAddButtonHtml() {
 
 function ensureMatchListAddButtons() {
     document.querySelectorAll('[data-match-list-actions]').forEach((slot) => {
-        if (slot.querySelector('[data-match-list-action="add-kamp"]')) return;
+        const existingBtn = slot.querySelector('[data-match-list-action="add-kamp"]');
+        if (existingBtn) {
+            existingBtn.classList.remove('bsk-btn-secondary');
+            existingBtn.classList.add('bsk-btn-primary');
+            return;
+        }
 
         const chip = slot.querySelector('.match-detail-chip');
         if (chip) {
