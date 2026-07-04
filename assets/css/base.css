@@ -2750,6 +2750,36 @@
         .match-list-column-header {
             min-height: var(--portal-topline-min-height);
         }
+        .match-list-column-header .match-list-column-title {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .match-list-column-header .match-detail-top-chips {
+            flex: 0 0 auto;
+            flex-shrink: 0;
+        }
+        .match-list-mobile-top .match-list-column-title {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .match-list-mobile-top .match-detail-top-chips {
+            flex: 0 0 auto;
+            flex-shrink: 0;
+        }
+        .match-list-add-btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .match-list-mobile-toolbar {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.14);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            padding: 0.85rem 1rem;
+        }
         .match-list-mobile-top {
             background: rgba(255, 255, 255, 0.07);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
@@ -2770,12 +2800,6 @@
         }
         .match-list-mobile-main {
             padding-top: 0.85rem;
-        }
-        .match-list-mobile-toolbar {
-            background: rgba(255, 255, 255, 0.04);
-            border-bottom: 1px solid rgba(245, 197, 66, 0.14);
-            justify-content: center;
-            padding: 0.85rem 1rem;
         }
         .match-list-mobile-card .match-filter-segmented {
             background: rgba(255, 255, 255, 0.08);
