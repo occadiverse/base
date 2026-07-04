@@ -329,55 +329,68 @@
     window.getSamspillLineStyle = function(samspillResult, options) {
         const opts = options || {};
         const focused = !!opts.focused;
+        const isMatchPlan = opts.context === 'match-plan';
         const result = samspillResult || { tone: 'unknown', score: 0 };
 
         let strokeColor = 'rgba(244, 63, 94, 0.78)';
-        let strokeWidth = focused ? 3.6 : 2.8;
+        let outlineColor = 'rgba(69, 10, 10, 0.72)';
+        let strokeWidth = isMatchPlan ? 3.4 : (focused ? 3.6 : 2.8);
+        let outlineWidth = 0;
         let strokeDasharray = null;
-        let opacity = focused ? 1 : 0.88;
+        let opacity = focused ? 1 : 0.96;
 
         switch (result.tone) {
             case 'strong':
-                strokeColor = 'rgba(16, 185, 129, 0.92)';
-                strokeWidth = focused ? 4 : 3.2;
+                strokeColor = '#bbf7d0';
+                outlineColor = 'rgba(6, 78, 59, 0.92)';
+                strokeWidth = isMatchPlan ? 4.8 : (focused ? 5.2 : 4.4);
+                outlineWidth = isMatchPlan ? 3.2 : 2.8;
+                opacity = 1;
                 break;
             case 'ok':
             case 'potential':
-                strokeColor = 'rgba(245, 197, 66, 0.92)';
-                strokeWidth = focused ? 3.4 : 2.8;
+                strokeColor = '#fef08a';
+                outlineColor = 'rgba(120, 53, 15, 0.82)';
+                strokeWidth = isMatchPlan ? 4.2 : (focused ? 4.6 : 3.6);
+                outlineWidth = isMatchPlan ? 2.8 : 2.4;
+                opacity = 1;
                 break;
             case 'weak':
-                strokeColor = 'rgba(244, 63, 94, 0.82)';
+                strokeColor = '#fecdd3';
+                outlineColor = 'rgba(127, 29, 29, 0.82)';
+                strokeWidth = isMatchPlan ? 3.8 : (focused ? 4.2 : 3.2);
+                outlineWidth = isMatchPlan ? 2.6 : 2.2;
+                opacity = 0.98;
                 break;
             case 'unknown':
             default:
-                strokeColor = 'rgba(18, 63, 115, 0.32)';
-                strokeWidth = focused ? 2.4 : 1.8;
+                strokeColor = '#dbeafe';
+                outlineColor = 'rgba(18, 63, 115, 0.55)';
+                strokeWidth = isMatchPlan ? 2.8 : (focused ? 3 : 2.2);
+                outlineWidth = 0;
                 strokeDasharray = '4,4';
-                opacity = focused ? 0.85 : 0.65;
+                opacity = focused ? 0.9 : 0.78;
                 break;
         }
 
         if (!focused && opts.dimUnfocused) {
-            opacity *= 0.45;
-            strokeWidth *= 0.85;
+            opacity *= 0.55;
+            strokeWidth *= 0.88;
         }
 
         return {
             strokeColor,
+            outlineColor,
+            outlineWidth,
             strokeWidth,
             strokeDasharray,
             opacity,
+            tone: result.tone || 'unknown',
             tooltip: result.tooltip || result.label || ''
         };
     };
 
-    window.appendSamspillLine = function(svg, coords, samspillResult, options) {
-        if (!svg || !coords) return null;
-
-        const opts = options || {};
-        const unit = opts.coordUnit || '';
-        const style = window.getSamspillLineStyle(samspillResult, opts);
+    function createSamspillLineElement(coords, style, unit, className) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', String(coords.x1) + unit);
         line.setAttribute('y1', String(coords.y1) + unit);
@@ -386,14 +399,47 @@
         line.setAttribute('stroke', style.strokeColor);
         line.setAttribute('stroke-width', String(style.strokeWidth));
         line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('stroke-linejoin', 'round');
         line.setAttribute('opacity', String(style.opacity));
         if (style.strokeDasharray) line.setAttribute('stroke-dasharray', style.strokeDasharray);
+        line.setAttribute('class', className);
+        return line;
+    }
+
+    window.appendSamspillLine = function(svg, coords, samspillResult, options) {
+        if (!svg || !coords) return null;
+
+        const opts = options || {};
+        const unit = opts.coordUnit || '';
+        const style = window.getSamspillLineStyle(samspillResult, opts);
+        const toneClass = `is-tone-${style.tone}`;
+
+        if (style.outlineWidth > 0) {
+            const outline = createSamspillLineElement(
+                coords,
+                {
+                    ...style,
+                    strokeColor: style.outlineColor,
+                    strokeWidth: style.strokeWidth + style.outlineWidth,
+                    strokeDasharray: null
+                },
+                unit,
+                `samspill-line samspill-line-outline ${toneClass}`
+            );
+            svg.appendChild(outline);
+        }
+
+        const line = createSamspillLineElement(
+            coords,
+            style,
+            unit,
+            `samspill-line samspill-line-core ${toneClass} transition-all duration-500`
+        );
         if (style.tooltip) {
             const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
             title.textContent = style.tooltip;
             line.appendChild(title);
         }
-        line.setAttribute('class', 'samspill-line transition-all duration-500');
         svg.appendChild(line);
         return line;
     };

@@ -1497,7 +1497,20 @@
             position: absolute;
             top: 0;
             width: 100%;
-            z-index: 1;
+            z-index: 2;
+        }
+        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-strong {
+            filter: drop-shadow(0 0 2px rgba(6, 78, 59, 0.55));
+        }
+        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-ok,
+        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-potential {
+            filter: drop-shadow(0 0 2px rgba(120, 53, 15, 0.45));
+        }
+        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-weak {
+            filter: drop-shadow(0 0 2px rgba(127, 29, 29, 0.45));
+        }
+        #chemistry-lines-layer .samspill-line-core.is-tone-strong {
+            filter: drop-shadow(0 0 1.5px rgba(6, 78, 59, 0.65));
         }
         .match-detail-lineup-builder.is-show-bidrag .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo img,
         .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo img {

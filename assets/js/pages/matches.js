@@ -1851,7 +1851,9 @@ window.drawMatchGamePlanChemistryLines = function(match) {
         .forEach(entry => {
             if (typeof window.appendSamspillLine !== 'function') return;
 
-            const line = window.appendSamspillLine(svg, entry.coords, entry.samspill, {});
+            const line = window.appendSamspillLine(svg, entry.coords, entry.samspill, {
+                context: 'match-plan'
+            });
             if (line) line.setAttribute('vector-effect', 'non-scaling-stroke');
         });
 };
