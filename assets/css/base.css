@@ -1807,17 +1807,24 @@
             margin: 0 0.15rem;
         }
         .dashboard-session-actions {
-            display: flex;
+            display: grid;
             flex: 0 0 8.75rem;
-            flex-direction: column;
             gap: 0.5rem;
+            grid-template-columns: 1fr;
             margin: 0;
             min-width: 0;
+        }
+        .dashboard-session-actions-duo {
+            flex-basis: min(100%, 17.5rem);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .dashboard-session-action-btn {
             container-type: inline-size;
             justify-content: center;
             line-height: 1.15;
+            min-height: 2.45rem;
+            padding-left: 0.7rem;
+            padding-right: 0.7rem;
             text-align: center;
             width: 100%;
         }
@@ -2087,7 +2094,12 @@
                 grid-template-columns: 1fr;
             }
             .dashboard-session-actions {
-                flex-wrap: wrap;
+                flex-basis: 100%;
+                grid-template-columns: 1fr;
+                width: 100%;
+            }
+            .dashboard-session-actions-duo {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
         .session-injury-modal-card {

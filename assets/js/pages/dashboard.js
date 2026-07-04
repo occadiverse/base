@@ -532,7 +532,7 @@ window.updateHjemWidget = function() {
                                 <span class="dashboard-session-radar-inline">${radarParts}</span>
                             </div>
                         </div>
-                        <div class="dashboard-session-actions">
+                        <div class="dashboard-session-actions${isTraining ? ' dashboard-session-actions-duo' : ''}">
                             <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
