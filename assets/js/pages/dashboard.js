@@ -533,7 +533,7 @@ window.updateHjemWidget = function() {
                             </div>
                         </div>
                         <div class="dashboard-session-actions">
-                            <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="match-bench-action-btn dashboard-session-action-btn">
+                            <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
