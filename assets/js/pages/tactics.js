@@ -19,6 +19,165 @@
             fase3: { 'GK': { top: '80%', left: '50%' }, 'VMS': { top: '50%', left: '33%' }, 'HMS': { top: '50%', left: '67%' }, 'VB': { top: '35%', left: '20%' }, 'HB': { top: '35%', left: '80%' }, 'DM': { top: '35%', left: '50%' }, 'OM': { top: '22%', left: '30%' }, 'PM': { top: '22%', left: '70%' }, 'VK': { top: '15%', left: '10%' }, 'HK': { top: '15%', left: '90%' }, 'SP': { top: '15%', left: '50%' } }
         };
 
+        const TACTICAL_POSITIONS = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
+        window.tacticalLineupIsEditing = false;
+
+        function matchHasSavedTacticalLineup(match) {
+            if (!match) return false;
+            if (match.lineupRefs && typeof match.lineupRefs === 'object' && Object.values(match.lineupRefs).some(Boolean)) return true;
+            if (match.lineup && typeof match.lineup === 'object') {
+                return Object.values(match.lineup).some(entry => {
+                    if (!entry) return false;
+                    if (typeof entry === 'string') return Boolean(entry.trim());
+                    return Boolean(entry.id || entry.navn);
+                });
+            }
+            return false;
+        }
+
+        function loadTacticalLineupFromMatch(match) {
+            window.tacticalLineup = {};
+            const savedLineup = match.lineup || {};
+            const savedLineupRefs = match.lineupRefs || {};
+            TACTICAL_POSITIONS.forEach(pos => {
+                const refPlayer = savedLineupRefs[pos] && typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(savedLineupRefs[pos])
+                    : null;
+                const savedPlayer = typeof savedLineup[pos] === 'string' && typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(savedLineup[pos])
+                    : savedLineup[pos];
+                window.tacticalLineup[pos] = refPlayer || savedPlayer || null;
+            });
+        }
+
+        function loadTacticalRolesFromMatch(match) {
+            const roles = ['captain', 'penalty', 'freekick', 'corners'];
+            const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
+            const sortedPlayers = players.sort((a, b) => a.navn.localeCompare(b.navn));
+
+            roles.forEach(roleId => {
+                const roleSelect = document.getElementById(`role-${roleId}`);
+                if (!roleSelect) return;
+                roleSelect.innerHTML = '<option value="">-- Velg spiller --</option>';
+                sortedPlayers.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.innerText = p.navn;
+                    roleSelect.appendChild(opt);
+                });
+                const roleRef = match.roles ? match.roles[roleId] : '';
+                roleSelect.value = window.findPlayerByRef(roleRef)?.id || roleRef || '';
+            });
+        }
+
+        window.isTacticalLineupEditable = function() {
+            const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : '';
+            if (!matchId) return true;
+            return window.tacticalLineupIsEditing === true;
+        };
+
+        window.updateTacticalLineupControls = function() {
+            const container = document.getElementById('tactical-lineup-controls');
+            if (!container) return;
+
+            const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : '';
+            if (!matchId) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            const match = (window.activeMatches || []).find(m => m.id === matchId);
+            if (!match) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            const hasSaved = matchHasSavedTacticalLineup(match);
+            const isEditing = window.tacticalLineupIsEditing === true;
+            const statusEl = document.getElementById('tactical-lineup-status');
+            const actionsEl = document.getElementById('tactical-lineup-actions');
+            if (!statusEl || !actionsEl) return;
+
+            if (hasSaved && !isEditing) {
+                statusEl.innerHTML = '<span class="tactical-lineup-status-badge is-locked"><i class="fa-solid fa-lock"></i> Lagret startellever</span>';
+                actionsEl.innerHTML = '<button type="button" class="bsk-btn bsk-btn-warning" onclick="window.requestEditTacticalLineup()">Rediger startellever</button>';
+            } else if (isEditing) {
+                statusEl.innerHTML = hasSaved
+                    ? '<span class="tactical-lineup-status-badge is-editing"><i class="fa-solid fa-pen"></i> Redigerer startellever</span>'
+                    : '<span class="tactical-lineup-status-badge is-editing"><i class="fa-solid fa-pen"></i> Ny startellever</span>';
+                actionsEl.innerHTML = `
+                    <button type="button" class="bsk-btn bsk-btn-primary" onclick="window.saveTacticalLineup()">${hasSaved ? 'Lagre endringer' : 'Lagre startellever'}</button>
+                    ${hasSaved ? '<button type="button" class="bsk-btn bsk-btn-secondary" onclick="window.cancelTacticalLineupEdit()">Avbryt</button>' : ''}
+                `;
+            } else {
+                statusEl.innerHTML = '';
+                actionsEl.innerHTML = '';
+            }
+        };
+
+        window.applyTacticalLineupReadOnlyState = function() {
+            const pitch = document.getElementById('full-pitch-container');
+            const editable = window.isTacticalLineupEditable();
+            if (pitch) pitch.classList.toggle('is-lineup-readonly', !editable);
+
+            ['tactical-autofill-btn', 'tactical-clear-btn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                btn.disabled = !editable;
+                btn.classList.toggle('is-disabled', !editable);
+            });
+
+            document.querySelectorAll('.player-node').forEach(node => {
+                node.classList.toggle('is-lineup-readonly', !editable);
+            });
+
+            ['captain', 'penalty', 'freekick', 'corners'].forEach(roleId => {
+                const roleSelect = document.getElementById(`role-${roleId}`);
+                if (roleSelect) roleSelect.disabled = !editable;
+            });
+        };
+
+        window.requestEditTacticalLineup = function() {
+            const enterEditMode = () => {
+                window.tacticalLineupIsEditing = true;
+                window.updateTacticalLineupControls();
+                window.applyTacticalLineupReadOnlyState();
+            };
+
+            if (typeof window.customConfirm === 'function') {
+                window.customConfirm('Rediger startellever', 'Startelleveren er allerede lagret. Vil du redigere den?', enterEditMode);
+            } else if (confirm('Startelleveren er allerede lagret. Vil du redigere den?')) {
+                enterEditMode();
+            }
+        };
+
+        window.cancelTacticalLineupEdit = function() {
+            const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : '';
+            if (!matchId) return;
+            const match = (window.activeMatches || []).find(m => m.id === matchId);
+            if (!match) return;
+
+            loadTacticalLineupFromMatch(match);
+            loadTacticalRolesFromMatch(match);
+            TACTICAL_POSITIONS.forEach(pos => window.renderNodeVisually(window.tacticalLineup[pos], pos));
+            window.drawChemistryLines();
+            if (typeof window.renderBench === 'function') window.renderBench();
+            if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
+
+            window.tacticalLineupIsEditing = false;
+            window.updateTacticalLineupControls();
+            window.applyTacticalLineupReadOnlyState();
+        };
+
+        window.saveTacticalLineup = async function() {
+            if (typeof window.saveMatchTactics !== 'function') return;
+            await window.saveMatchTactics();
+            window.tacticalLineupIsEditing = false;
+            window.updateTacticalLineupControls();
+            window.applyTacticalLineupReadOnlyState();
+        };
+
         window.getTacticalChemistryFilter = function() {
             const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : '';
             const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
@@ -163,7 +322,10 @@
     if (!matchId) {
         if (rolesCard) rolesCard.classList.add('hidden');
         if (benchCard) benchCard.classList.add('hidden');
+        window.tacticalLineupIsEditing = true;
         window.clearTacticalBoard();
+        window.updateTacticalLineupControls();
+        window.applyTacticalLineupReadOnlyState();
         return;
     }
     
@@ -171,52 +333,21 @@
     if (benchCard) benchCard.classList.remove('hidden');
     
     const match = (window.activeMatches || []).find(m => m.id === matchId);
-    const playedMatches = (window.activeMatches || [])
-        .filter(m => m.result && m.result.includes('-'))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
     if (!match) return;
+
+    const hasSaved = matchHasSavedTacticalLineup(match);
+    window.tacticalLineupIsEditing = !hasSaved;
+
+    loadTacticalLineupFromMatch(match);
+    loadTacticalRolesFromMatch(match);
     
-    window.tacticalLineup = {};
-    const positions = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
-    const savedLineup = match.lineup || {};
-    const savedLineupRefs = match.lineupRefs || {};
-    positions.forEach(pos => {
-        const refPlayer = savedLineupRefs[pos] && typeof window.findPlayerByRef === 'function'
-            ? window.findPlayerByRef(savedLineupRefs[pos])
-            : null;
-        const savedPlayer = typeof savedLineup[pos] === 'string' && typeof window.findPlayerByRef === 'function'
-            ? window.findPlayerByRef(savedLineup[pos])
-            : savedLineup[pos];
-        window.tacticalLineup[pos] = refPlayer || savedPlayer || null;
-    });
-    
-    const roles = ['captain', 'penalty', 'freekick', 'corners'];
-    const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
-    const sortedPlayers = players.sort((a,b) => a.navn.localeCompare(b.navn));
-    
-    roles.forEach(roleId => {
-        const roleSelect = document.getElementById(`role-${roleId}`);
-        if (roleSelect) {
-            roleSelect.innerHTML = '<option value="">-- Velg spiller --</option>';
-            sortedPlayers.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.innerText = p.navn;
-                roleSelect.appendChild(opt);
-            });
-            const roleRef = match.roles ? match.roles[roleId] : '';
-            roleSelect.value = window.findPlayerByRef(roleRef)?.id || roleRef || '';
-        }
-    });
-    
-    positions.forEach(pos => { window.renderNodeVisually(window.tacticalLineup[pos], pos); });
+    TACTICAL_POSITIONS.forEach(pos => { window.renderNodeVisually(window.tacticalLineup[pos], pos); });
     window.drawChemistryLines();
     
     if (typeof window.renderBench === 'function') window.renderBench();
-    
-    // NYTT: Dette er linjen som fikser problemet ditt! Den tvinger koden 
-    // til å oppdatere tallene øverst på banen i det kampen lastes inn.
     if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
+    window.updateTacticalLineupControls();
+    window.applyTacticalLineupReadOnlyState();
 };
 
         window.saveMatchTactics = async function() {
@@ -417,13 +548,10 @@
             window.drawChemistryLines();
             window.updateTacticalBoardStats();
             window.closePlayerSelect();
-
-            if (document.getElementById('tacticalMatchSelect') && document.getElementById('tacticalMatchSelect').value) {
-                if (typeof window.saveMatchTactics === 'function') window.saveMatchTactics();
-            }
         };
 
         window.openPlayerSelect = function(posId) {
+    if (!window.isTacticalLineupEditable()) return;
     currentSelectPos = posId;
     const modal = document.getElementById('tacticalPlayerModal');
     modal.classList.remove('match-game-plan-select-modal');
@@ -549,12 +677,14 @@
         }
 
         window.clearTacticalBoard = function() {
+            if (!window.isTacticalLineupEditable()) return;
             window.tacticalLineup = {};
             ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'].forEach(pos => window.choosePlayer(null, pos));
             window.updateTacticalBoardStats();
         }
 
         window.autoFillTeam = function() {
+    if (!window.isTacticalLineupEditable()) return;
     window.clearTacticalBoard(); 
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
@@ -605,8 +735,6 @@
             availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
         }
     });
-
-    if (matchId && typeof window.saveMatchTactics === 'function') window.saveMatchTactics();
 };
 
 window.updateTacticalBoardStats = function() {

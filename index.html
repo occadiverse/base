@@ -337,6 +337,11 @@
                         </select>
                     </div>
 
+                    <div id="tactical-lineup-controls" class="tactical-lineup-controls hidden w-full flex flex-col items-center gap-2">
+                        <div id="tactical-lineup-status" class="tactical-lineup-status"></div>
+                        <div id="tactical-lineup-actions" class="tactical-lineup-actions flex flex-wrap items-center justify-center gap-2"></div>
+                    </div>
+
                     <!-- Faseknapper og verktøy sentrert rett over banen -->
                     <div class="flex flex-wrap items-center justify-center gap-2">
                         <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-primary">
@@ -351,10 +356,10 @@
 
                         <div class="w-px h-6 bg-slate-300 mx-1 rounded"></div>
 
-                        <button onclick="autoFillTeam()" title="Autofullfør ellever" class="bsk-btn bsk-btn-icon bsk-btn-warning">
+                        <button type="button" id="tactical-autofill-btn" onclick="autoFillTeam()" title="Autofullfør ellever" class="bsk-btn bsk-btn-icon bsk-btn-warning">
                             <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
                         </button>
-                        <button onclick="clearTacticalBoard()" title="Tøm banen" class="bsk-btn bsk-btn-icon bsk-btn-danger">
+                        <button type="button" id="tactical-clear-btn" onclick="clearTacticalBoard()" title="Tøm banen" class="bsk-btn bsk-btn-icon bsk-btn-danger">
                             <i class="fa-solid fa-eraser text-base"></i>
                         </button>
                     </div>
