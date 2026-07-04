@@ -116,6 +116,198 @@
         return Math.max(0, Math.min(100, ((v - 5) / 35) * 100));
     }
 
+    function confidenceToTrustScore(level) {
+        switch (level) {
+            case 'high': return 95;
+            case 'medium': return 70;
+            case 'low': return 40;
+            default: return 15;
+        }
+    }
+
+    function buildSharedHistoryLabel(history) {
+        if (history.matchCount > 0) {
+            return `${history.matchCount} felles kamper${history.trainingCount > 0 ? ` og ${history.trainingCount} økter` : ''}`;
+        }
+        if (history.sharedCount > 0) {
+            return `${history.sharedCount} felles økter`;
+        }
+        return 'lite historikk sammen';
+    }
+
+    window.getDuoHistoricalChemistry = function(playerA, playerB, options) {
+        const opts = options || {};
+        const filterLag = opts.teamName || null;
+        const historicalOnly = opts.historicalOnly !== false;
+        const playerObjA = resolvePlayer(playerA);
+        const playerObjB = resolvePlayer(playerB);
+        if (!playerObjA || !playerObjB) return 0;
+
+        const allEvents = [
+            ...(window.activeEvents || []),
+            ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))
+        ];
+
+        let shared = 0;
+        let either = 0;
+        allEvents.forEach(e => {
+            if (filterLag && e.team !== filterLag) return;
+            if (historicalOnly && typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
+            if (!e.attendance) return;
+
+            const aPresent = window.isPlayerAttending(e.attendance, playerObjA);
+            const bPresent = window.isPlayerAttending(e.attendance, playerObjB);
+            if (aPresent || bPresent) either += 1;
+            if (aPresent && bPresent) shared += 1;
+        });
+
+        return either > 0 ? Math.round((shared / either) * 100) : 0;
+    };
+
+    function getDuoHistoricalSamspillScore(history, chemistryPct) {
+        if (!history || history.sharedCount === 0) return 0;
+        const weightedPct = Math.min(100, (history.weightedScore / 7) * 100);
+        return Math.round(chemistryPct * 0.4 + weightedPct * 0.6);
+    }
+
+    function resolveSamspillStatus(score, history, formA, formB, normBidragA, normBidragB) {
+        const confidence = history.dataConfidence || 'none';
+        const lowHistory = confidence === 'none' || confidence === 'low';
+        const sharedLabel = buildSharedHistoryLabel(history);
+        const formAvg = (formA + formB) / 2;
+        const bidragAvg = (normBidragA + normBidragB) / 2;
+        const highForm = formAvg >= 50;
+        const highBidrag = bidragAvg >= 52;
+        const strongIndividuals = highBidrag || (highForm && bidragAvg >= 40);
+
+        if (lowHistory) {
+            if (strongIndividuals) {
+                return {
+                    status: 'potential',
+                    reason: `Potensial (${score}/100): god form/kampbidrag, men ${sharedLabel}`
+                };
+            }
+            return {
+                status: 'unknown',
+                reason: `Usikkert (${score}/100): lite datagrunnlag (${sharedLabel})`
+            };
+        }
+
+        if (score >= 68) {
+            return {
+                status: 'strong',
+                reason: `Sterkt samspill (${score}/100): høy score nå + ${sharedLabel}`
+            };
+        }
+        if (score >= 48) {
+            return {
+                status: 'ok',
+                reason: `Ok samspill (${score}/100): ${sharedLabel}`
+            };
+        }
+        return {
+            status: 'weak',
+            reason: `Svakt samspill (${score}/100): lav form/kampbidrag nå${history.sharedCount > 0 ? ` (${sharedLabel})` : ''}`
+        };
+    }
+
+    window.computeDuoSamspillScore = function(playerA, playerB, options) {
+        const opts = options || {};
+        const playerObjA = resolvePlayer(playerA);
+        const playerObjB = resolvePlayer(playerB);
+        const posA = opts.posA || null;
+        const posB = opts.posB || null;
+        const teamName = opts.teamName || playerObjA?.spillerLag || playerObjB?.spillerLag || null;
+
+        if (!playerObjA || !playerObjB) {
+            return {
+                score: 0,
+                status: 'unknown',
+                confidence: 'none',
+                reason: 'Usikkert: mangler spillerdata',
+                shouldDraw: false,
+                positionalRelevance: 0,
+                components: {}
+            };
+        }
+
+        const positionalRelevance = (posA && posB)
+            ? window.getPositionPairRelevance(posA, posB)
+            : DEFAULT_POSITION_RELEVANCE;
+        const history = window.getDuoSharedHistory(playerObjA, playerObjB, opts);
+        const confidence = history.dataConfidence || 'none';
+
+        const formA = typeof window.calculatePlayerPerformanceChemistry === 'function'
+            ? window.calculatePlayerPerformanceChemistry(playerObjA.navn, opts.asOfDate)
+            : 0;
+        const formB = typeof window.calculatePlayerPerformanceChemistry === 'function'
+            ? window.calculatePlayerPerformanceChemistry(playerObjB.navn, opts.asOfDate)
+            : 0;
+        const bidragA = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(playerObjA, teamName)
+            : 0;
+        const bidragB = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? window.getPlayerKampbidragSnitt(playerObjB, teamName)
+            : 0;
+
+        const normBidragA = normalizeKampbidrag(bidragA);
+        const normBidragB = normalizeKampbidrag(bidragB);
+        const kampbidragScore = (normBidragA + normBidragB) / 2;
+        const formScore = (formA + formB) / 2;
+        const chemistryPct = window.getDuoHistoricalChemistry(playerObjA, playerObjB, opts);
+        const historiskScore = getDuoHistoricalSamspillScore(history, chemistryPct);
+        const dataTrustScore = confidenceToTrustScore(confidence);
+
+        const score = Math.round(Math.max(0, Math.min(100, (
+            kampbidragScore * 0.45 +
+            formScore * 0.30 +
+            historiskScore * 0.20 +
+            dataTrustScore * 0.05
+        ))));
+
+        const statusResult = resolveSamspillStatus(score, history, formA, formB, normBidragA, normBidragB);
+
+        return {
+            score,
+            status: statusResult.status,
+            confidence,
+            reason: statusResult.reason,
+            shouldDraw: positionalRelevance >= MIN_RELEVANCE_TO_DRAW,
+            positionalRelevance,
+            sharedCount: history.sharedCount,
+            matchCount: history.matchCount,
+            components: {
+                formA,
+                formB,
+                bidragA,
+                bidragB,
+                kampbidragScore: Math.round(kampbidragScore),
+                formScore: Math.round(formScore),
+                historiskScore,
+                chemistryPct,
+                dataTrustScore
+            }
+        };
+    };
+
+    window.getDuoSamspill = function(playerA, playerB, options) {
+        const result = window.computeDuoSamspillScore(playerA, playerB, options);
+        const statusLabels = {
+            strong: 'Sterkt samspill',
+            ok: 'Ok samspill',
+            weak: 'Svakt samspill',
+            potential: 'Potensial',
+            unknown: 'Usikkert'
+        };
+
+        return {
+            ...result,
+            tone: result.status,
+            label: statusLabels[result.status] || 'Usikkert',
+            tooltip: result.reason,
+            dataConfidence: result.confidence
+        };
+    };
     window.getPositionPairRelevance = function(posA, posB) {
         if (!posA || !posB || posA === posB) return 0;
         const key = pairKey(posA, posB);
@@ -192,152 +384,19 @@
         };
     };
 
-    window.getDuoSamspill = function(playerA, playerB, options) {
-        const opts = options || {};
-        const playerObjA = resolvePlayer(playerA);
-        const playerObjB = resolvePlayer(playerB);
-        const posA = opts.posA || null;
-        const posB = opts.posB || null;
-        const teamName = opts.teamName || playerObjA?.spillerLag || playerObjB?.spillerLag || null;
-
-        if (!playerObjA || !playerObjB) {
-            return {
-                score: 0,
-                tone: 'unknown',
-                label: 'Usikkert',
-                tooltip: 'Usikkert: lite datagrunnlag',
-                shouldDraw: false,
-                dataConfidence: 'none',
-                positionalRelevance: 0,
-                components: {}
-            };
-        }
-
-        const positionalRelevance = (posA && posB)
-            ? window.getPositionPairRelevance(posA, posB)
-            : DEFAULT_POSITION_RELEVANCE;
-
-        const history = window.getDuoSharedHistory(playerObjA, playerObjB, opts);
-        const formA = typeof window.calculatePlayerPerformanceChemistry === 'function'
-            ? window.calculatePlayerPerformanceChemistry(playerObjA.navn, opts.asOfDate)
-            : 0;
-        const formB = typeof window.calculatePlayerPerformanceChemistry === 'function'
-            ? window.calculatePlayerPerformanceChemistry(playerObjB.navn, opts.asOfDate)
-            : 0;
-        const bidragA = typeof window.getPlayerKampbidragSnitt === 'function'
-            ? window.getPlayerKampbidragSnitt(playerObjA, teamName)
-            : 0;
-        const bidragB = typeof window.getPlayerKampbidragSnitt === 'function'
-            ? window.getPlayerKampbidragSnitt(playerObjB, teamName)
-            : 0;
-
-        const normBidragA = normalizeKampbidrag(bidragA);
-        const normBidragB = normalizeKampbidrag(bidragB);
-        const formSynergy = (formA + formB) / 2;
-        const bidragSynergy = (normBidragA + normBidragB) / 2;
-
-        let currentScore = (
-            formSynergy * 0.30 +
-            bidragSynergy * 0.40 +
-            Math.min(formA, formB) * 0.15 +
-            Math.min(normBidragA, normBidragB) * 0.15
-        );
-
-        if (normBidragA >= 65 && normBidragB >= 65) {
-            currentScore = Math.min(100, currentScore * 1.1);
-        }
-
-        const posModifier = 0.82 + positionalRelevance * 0.18;
-        currentScore = Math.min(100, currentScore * posModifier);
-
-        const historicalScore = Math.min(100, (history.weightedScore / 7) * 100);
-
-        let score = currentScore;
-        if (history.dataConfidence === 'medium' || history.dataConfidence === 'high') {
-            score = currentScore * 0.70 + historicalScore * 0.30;
-        }
-
-        score = Math.round(Math.max(0, Math.min(100, score)));
-
-        const lowData = history.dataConfidence === 'none' || history.dataConfidence === 'low';
-        const highBidrag = normBidragA >= 58 && normBidragB >= 58;
-        const highForm = formA >= 50 && formB >= 50;
-
-        let tone = 'ok';
-        let label = 'Ok kombinasjon';
-        let tooltip = '';
-
-        const sharedLabel = history.matchCount > 0
-            ? `${history.matchCount} felles kamper${history.trainingCount > 0 ? ` og ${history.trainingCount} økter` : ''}`
-            : history.sharedCount > 0
-                ? `${history.sharedCount} felles økter`
-                : 'lite historikk sammen';
-
-        if (lowData) {
-            if (highBidrag || (highForm && (normBidragA >= 45 || normBidragB >= 45))) {
-                tone = 'potential';
-                label = 'Potensial';
-                tooltip = `Potensial: høyt kampbidrag${highForm ? ' + god form' : ''}, men ${sharedLabel}`;
-            } else {
-                tone = 'unknown';
-                label = 'Usikkert';
-                tooltip = `Usikkert: lite datagrunnlag (${sharedLabel})`;
-            }
-        } else if (score >= 68 && (highBidrag || highForm)) {
-            tone = 'strong';
-            label = 'Sterkt samspill';
-            tooltip = `Sterkt samspill: ${highForm ? 'høy form' : 'god form'} + ${highBidrag ? 'høyt kampbidrag' : 'godt kampbidrag'} + ${sharedLabel}`;
-        } else if (score >= 68) {
-            tone = 'strong';
-            label = 'Sterkt samspill';
-            tooltip = `Sterkt samspill: god kombinasjon nå + ${sharedLabel}`;
-        } else if (score >= 48) {
-            tone = 'ok';
-            label = 'Ok kombinasjon';
-            tooltip = `Ok kombinasjon: ${sharedLabel}`;
-        } else {
-            tone = 'weak';
-            label = 'Svak relasjon';
-            tooltip = `Svak relasjon: lav form/kampbidrag akkurat nå${history.sharedCount > 0 ? ` (${sharedLabel})` : ''}`;
-        }
-
-        const shouldDraw = positionalRelevance >= MIN_RELEVANCE_TO_DRAW;
-
-        return {
-            score,
-            tone,
-            label,
-            tooltip,
-            shouldDraw,
-            dataConfidence: history.dataConfidence,
-            positionalRelevance,
-            sharedCount: history.sharedCount,
-            matchCount: history.matchCount,
-            components: {
-                formA,
-                formB,
-                bidragA,
-                bidragB,
-                normBidragA,
-                normBidragB,
-                currentScore: Math.round(currentScore),
-                historicalScore: Math.round(historicalScore)
-            }
-        };
-    };
-
     window.getSamspillLineStyle = function(samspillResult, options) {
         const opts = options || {};
         const focused = !!opts.focused;
         const isMatchPlan = opts.context === 'match-plan';
-        const result = samspillResult || { tone: 'unknown', score: 0 };
+        const result = samspillResult || { status: 'unknown', tone: 'unknown', score: 0 };
+        const status = result.status || result.tone || 'unknown';
 
         let strokeColor = 'rgba(255, 255, 255, 0.42)';
         let strokeWidth = isMatchPlan ? 1.6 : (focused ? 2.4 : 2);
         let strokeDasharray = null;
         let opacity = 1;
 
-        switch (result.tone) {
+        switch (status) {
             case 'strong':
                 strokeColor = '#047857';
                 strokeWidth = isMatchPlan ? 2.4 : (focused ? 3 : 2.6);
@@ -373,8 +432,8 @@
             strokeWidth,
             strokeDasharray,
             opacity,
-            tone: result.tone || 'unknown',
-            tooltip: result.tooltip || result.label || ''
+            tone: status,
+            tooltip: result.reason || result.tooltip || result.label || ''
         };
     };
 
@@ -384,6 +443,7 @@
         const opts = options || {};
         const unit = opts.coordUnit || '';
         const style = window.getSamspillLineStyle(samspillResult, opts);
+        const status = samspillResult?.status || samspillResult?.tone || style.tone || 'unknown';
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', String(coords.x1) + unit);
         line.setAttribute('y1', String(coords.y1) + unit);
@@ -399,7 +459,7 @@
             title.textContent = style.tooltip;
             line.appendChild(title);
         }
-        line.setAttribute('class', `samspill-line is-tone-${style.tone} transition-all duration-500`);
+        line.setAttribute('class', `samspill-line is-tone-${status} transition-all duration-500`);
         svg.appendChild(line);
         return line;
     };
