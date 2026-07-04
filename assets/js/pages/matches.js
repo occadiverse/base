@@ -323,6 +323,12 @@ function updateMatchListCount(elementId, count) {
     const element = document.getElementById(elementId);
     if (!element) return;
 
+    if (element.classList.contains('match-list-count-badge')) {
+        element.textContent = String(count);
+        element.setAttribute('aria-label', count === 1 ? '1 kamp' : `${count} kamper`);
+        return;
+    }
+
     element.textContent = count === 1 ? '1 kamp' : `${count} kamper`;
 }
 

@@ -2807,10 +2807,23 @@
             font-size: 0.94rem;
             min-width: 0;
         }
-        .match-list-column-title span {
+        .match-list-column-title-label {
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .match-list-count-badge {
+            background: var(--bsk-yellow);
+            border-radius: 999px;
+            color: var(--bsk-blue-dark);
+            flex: 0 0 auto;
+            font-size: 0.68rem;
+            font-weight: 950;
+            line-height: 1;
+            min-width: 1.35rem;
+            padding: 0.2rem 0.42rem;
+            text-align: center;
         }
         .match-list-column-main {
             flex: 1 1 auto;
