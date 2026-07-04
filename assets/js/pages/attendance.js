@@ -487,7 +487,7 @@ window.updateDailySchedule = function() {
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
-                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="bsk-btn bsk-btn-primary calendar-empty-action">
+                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="bsk-btn bsk-btn-primary">
                     <i class="fa-solid fa-calendar-plus"></i>
                     <span>Legg til</span>
                 </button>
@@ -519,8 +519,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" data-attendance-action="attendance" data-event-id="match_${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-primary calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
-                    <button type="button" data-attendance-action="edit-match" data-event-id="${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-attendance-action="attendance" data-event-id="match_${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-primary" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
+                    <button type="button" data-attendance-action="edit-match" data-event-id="${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
                 <div class="calendar-daily-card-content calendar-match-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-match-icon-slot">
@@ -554,8 +554,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" data-attendance-action="attendance" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-primary calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
-                    <button type="button" data-attendance-action="edit-activity" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-attendance-action="attendance" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-primary" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
+                    <button type="button" data-attendance-action="edit-activity" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
                 <div class="calendar-daily-card-content calendar-event-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-event-icon-slot">
