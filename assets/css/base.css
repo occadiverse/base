@@ -9594,10 +9594,23 @@
             text-transform: uppercase;
             transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
         }
+        .calendar-today-mini-btn.bsk-btn-chip {
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            min-height: auto;
+            padding: 0.35rem 0.55rem;
+            text-transform: uppercase;
+        }
         .calendar-today-mini-btn:hover {
             background: rgba(245, 197, 66, 0.14);
             border-color: rgba(245, 197, 66, 0.36);
             color: #ffe08a;
+        }
+        .calendar-month-chevron.bsk-btn-icon {
+            height: 2rem;
+            min-width: 2rem;
+            width: 2rem;
         }
         .calendar-month-nav {
             align-items: center;
@@ -9626,28 +9639,21 @@
         .calendar-hero-action-btn {
             max-width: 100%;
         }
+        .calendar-heading-panel .bsk-btn.calendar-hero-action-btn,
         .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn,
+        .calendar-bottomline .bsk-btn.calendar-empty-action,
         .calendar-bottomline .calendar-empty-action {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.28);
-            box-shadow: none;
-            color: #ffffff;
             min-height: 2.35rem;
         }
+        .calendar-heading-panel .bsk-btn.calendar-hero-action-btn,
         .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn {
             justify-self: end;
             min-width: 8.9rem;
             width: max-content;
         }
-        .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn:hover,
-        .calendar-bottomline .calendar-empty-action:hover {
-            background: rgba(245, 197, 66, 0.22);
-            border-color: rgba(245, 197, 66, 0.42);
-        }
-        .calendar-bottomline .calendar-empty-action:hover {
-            transform: none;
-        }
+        .calendar-heading-panel .bsk-btn.calendar-hero-action-btn span,
         .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn span,
+        .calendar-bottomline .bsk-btn.calendar-empty-action span,
         .calendar-bottomline .calendar-empty-action span {
             display: inline;
             white-space: nowrap;
@@ -9944,6 +9950,11 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 30;
+        }
+        .calendar-action-btn.bsk-btn-icon {
+            height: 2.65rem;
+            min-width: 2.65rem;
+            width: 2.65rem;
         }
         .calendar-action-btn {
             border-radius: 0.8rem;
@@ -10280,13 +10291,25 @@
             .calendar-day-event-label {
                 display: none !important;
             }
+            .calendar-heading-panel .bsk-btn.calendar-hero-action-btn,
             .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn {
                 min-width: 2.85rem;
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
             }
+            .calendar-heading-panel .bsk-btn.calendar-hero-action-btn span,
             .calendar-heading-panel .match-bench-action-btn.calendar-hero-action-btn span {
                 display: none;
+            }
+            .calendar-month-chevron.bsk-btn-icon {
+                height: 2.75rem;
+                min-width: 2.75rem;
+                width: 2.75rem;
+            }
+            .calendar-action-btn.bsk-btn-icon {
+                height: 2.75rem;
+                min-width: 2.75rem;
+                width: 2.75rem;
             }
         }
         .bsk-modal-card {

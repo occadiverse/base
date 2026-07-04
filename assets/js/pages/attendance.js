@@ -487,7 +487,7 @@ window.updateDailySchedule = function() {
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
-                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="match-bench-action-btn calendar-empty-action">
+                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="bsk-btn bsk-btn-primary calendar-empty-action">
                     <i class="fa-solid fa-calendar-plus"></i>
                     <span>Legg til</span>
                 </button>
@@ -519,8 +519,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" data-attendance-action="attendance" data-event-id="match_${matchId}" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
-                    <button type="button" data-attendance-action="edit-match" data-event-id="${matchId}" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-attendance-action="attendance" data-event-id="match_${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-primary calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
+                    <button type="button" data-attendance-action="edit-match" data-event-id="${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
                 <div class="calendar-daily-card-content calendar-match-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-match-icon-slot">
@@ -554,8 +554,8 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
-                    <button type="button" data-attendance-action="attendance" data-event-id="${eventId}" class="match-bench-icon-btn calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
-                    <button type="button" data-attendance-action="edit-activity" data-event-id="${eventId}" class="match-bench-icon-btn calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-attendance-action="attendance" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-primary calendar-action-btn calendar-attendance-icon-btn" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
+                    <button type="button" data-attendance-action="edit-activity" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary calendar-action-btn" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
                 <div class="calendar-daily-card-content calendar-event-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-event-icon-slot">
@@ -634,7 +634,7 @@ window.renderEvents = function() {
 
     combinedList.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
         const attendanceCount = ev.attendance ? Object.values(ev.attendance).filter(v => v === true).length : 0;
-        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${escapeCalendarHtml(ev.title || 'Uten navn')}</td><td class="py-3 px-4 text-slate-500">${escapeCalendarHtml(ev.type || '-')}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button type="button" data-attendance-action="register" data-event-id="${escapeAttendanceHtml(ev.id)}" class="portal-btn portal-btn-success portal-btn-xs">REGISTRER</button></td></tr>`;
+        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${escapeCalendarHtml(ev.title || 'Uten navn')}</td><td class="py-3 px-4 text-slate-500">${escapeCalendarHtml(ev.type || '-')}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button type="button" data-attendance-action="register" data-event-id="${escapeAttendanceHtml(ev.id)}" class="bsk-btn bsk-btn-chip bsk-btn-primary">REGISTRER</button></td></tr>`;
     });
 };
 
