@@ -1497,20 +1497,56 @@
             position: absolute;
             top: 0;
             width: 100%;
-            z-index: 2;
+            z-index: 1;
         }
-        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-strong {
-            filter: drop-shadow(0 0 2px rgba(6, 78, 59, 0.55));
+        .match-game-plan-chemistry-lines .samspill-line,
+        #chemistry-lines-layer .samspill-line {
+            shape-rendering: geometricPrecision;
         }
-        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-ok,
-        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-potential {
-            filter: drop-shadow(0 0 2px rgba(120, 53, 15, 0.45));
+        .samspill-legend {
+            align-items: center;
+            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            display: inline-flex;
+            gap: 0.55rem;
+            padding: 0.28rem 0.65rem;
         }
-        .match-game-plan-chemistry-lines .samspill-line-core.is-tone-weak {
-            filter: drop-shadow(0 0 2px rgba(127, 29, 29, 0.45));
+        .samspill-legend-item {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.82);
+            display: inline-flex;
+            font-size: 0.58rem;
+            font-weight: 700;
+            gap: 0.28rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
-        #chemistry-lines-layer .samspill-line-core.is-tone-strong {
-            filter: drop-shadow(0 0 1.5px rgba(6, 78, 59, 0.65));
+        .samspill-legend-item::before {
+            border-radius: 999px;
+            content: '';
+            display: block;
+            height: 0.12rem;
+            width: 0.85rem;
+        }
+        .samspill-legend-item.is-strong::before {
+            background: rgba(255, 255, 255, 0.86);
+        }
+        .samspill-legend-item.is-ok::before {
+            background: rgba(245, 197, 66, 0.72);
+        }
+        .samspill-legend-item.is-weak::before {
+            background: rgba(252, 165, 165, 0.62);
+        }
+        .samspill-legend-item.is-unknown::before {
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.34) 0,
+                rgba(255, 255, 255, 0.34) 3px,
+                transparent 3px,
+                transparent 5px
+            );
         }
         .match-detail-lineup-builder.is-show-bidrag .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo img,
         .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo img {
