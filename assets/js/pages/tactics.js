@@ -202,27 +202,6 @@
             return { teamName: null, historicalOnly: true };
         };
 
-        window.getDuoChemistry = function(playerA, playerB, options) {
-            if (!playerA || !playerB) return 0;
-            const opts = options || {};
-            const filterLag = opts.teamName || null;
-            const historicalOnly = opts.historicalOnly !== false;
-
-            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-            let shared = 0, either = 0;
-            allEvents.forEach(e => {
-                if (filterLag && e.team !== filterLag) return;
-                if (historicalOnly && typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
-                if (e.attendance) {
-                    const aPresent = window.isPlayerAttending(e.attendance, playerA);
-                    const bPresent = window.isPlayerAttending(e.attendance, playerB);
-                    if (aPresent || bPresent) either++;
-                    if (aPresent && bPresent) shared++;
-                }
-            });
-            return either > 0 ? Math.round((shared / either) * 100) : 0;
-        }
-
         window.drawChemistryLines = function() {
             const svgLayer = document.getElementById('chemistry-lines-layer');
             if (!svgLayer) return;
@@ -235,41 +214,57 @@
             };
 
             const connections = phaseConnections[currentTacticalPhase] || phaseConnections.fase2;
-
+            const focusPos = typeof currentSelectPos !== 'undefined' ? currentSelectPos : null;
             const chemOptions = typeof window.getTacticalChemistryFilter === 'function'
                 ? window.getTacticalChemistryFilter()
                 : { historicalOnly: true };
 
-            connections.forEach(pair => {
+            const pairResults = connections.map(pair => {
                 const player1 = window.tacticalLineup[pair[0]];
                 const player2 = window.tacticalLineup[pair[1]];
-                if (player1 && player2) {
-                    const chemScore = window.getDuoChemistry(player1.navn, player2.navn, chemOptions);
-                    const node1 = document.getElementById('node-' + pair[0]);
-                    const node2 = document.getElementById('node-' + pair[1]);
-                    
-                    if (node1 && node2 && node1.style.top && node2.style.top) {
-                        let strokeWidth = 3; 
-                        let strokeColor = 'rgba(244, 63, 94, 0.8)'; // RØD (< 50%)               
-                        if (chemScore >= 75) {
-                            strokeColor = 'rgba(16, 185, 129, 0.9)'; // GRØNN (75 - 100%)
-                        } else if (chemScore >= 50) {
-                            strokeColor = 'rgba(255, 215, 0, 0.9)'; // GUL (50 - 74%)
-                        } else if (chemScore === 0) { 
-                            strokeColor = 'rgba(18, 63, 115, 0.28)'; // Svak BSK-blå stiplet
-                            strokeWidth = 1.5; 
-                        }
+                if (!player1 || !player2) return null;
 
-                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        line.setAttribute('x1', parseFloat(node1.style.left) + '%'); line.setAttribute('y1', parseFloat(node1.style.top) + '%');
-                        line.setAttribute('x2', parseFloat(node2.style.left) + '%'); line.setAttribute('y2', parseFloat(node2.style.top) + '%');
-                        line.setAttribute('stroke', strokeColor); line.setAttribute('stroke-width', strokeWidth); line.setAttribute('stroke-linecap', 'round');
-                        if (chemScore === 0) line.setAttribute('stroke-dasharray', '5,5');
-                        line.setAttribute('class', 'transition-all duration-500'); 
-                        svgLayer.appendChild(line);
+                const samspill = typeof window.getDuoSamspill === 'function'
+                    ? window.getDuoSamspill(player1, player2, {
+                        ...chemOptions,
+                        posA: pair[0],
+                        posB: pair[1]
+                    })
+                    : null;
+                if (!samspill || !samspill.shouldDraw) return null;
+
+                const node1 = document.getElementById('node-' + pair[0]);
+                const node2 = document.getElementById('node-' + pair[1]);
+                if (!node1 || !node2 || !node1.style.top || !node2.style.top) return null;
+
+                return {
+                    pair,
+                    samspill,
+                    coords: {
+                        x1: parseFloat(node1.style.left),
+                        y1: parseFloat(node1.style.top),
+                        x2: parseFloat(node2.style.left),
+                        y2: parseFloat(node2.style.top)
+                    },
+                    relevance: samspill.positionalRelevance,
+                    focused: focusPos && (pair[0] === focusPos || pair[1] === focusPos)
+                };
+            }).filter(Boolean);
+
+            pairResults
+                .sort((a, b) => {
+                    if (a.focused !== b.focused) return a.focused ? 1 : -1;
+                    return b.relevance - a.relevance;
+                })
+                .slice(0, focusPos ? pairResults.length : 14)
+                .forEach(entry => {
+                    if (typeof window.appendSamspillLine === 'function') {
+                        window.appendSamspillLine(svgLayer, entry.coords, entry.samspill, {
+                            focused: entry.focused,
+                            dimUnfocused: !!focusPos && !entry.focused
+                        });
                     }
-                }
-            });
+                });
         };
 
         window.setTacticalPhase = function(phaseId) {
@@ -553,6 +548,7 @@
         window.openPlayerSelect = function(posId) {
     if (!window.isTacticalLineupEditable()) return;
     currentSelectPos = posId;
+    window.drawChemistryLines();
     const modal = document.getElementById('tacticalPlayerModal');
     modal.classList.remove('match-game-plan-select-modal');
     modal.querySelector('[data-match-game-plan-clear-player]')?.remove();
@@ -674,6 +670,7 @@
             document.getElementById('tacticalPlayerModal').classList.add('hidden');
             document.getElementById('tacticalPlayerModal').classList.remove('flex');
             currentSelectPos = null;
+            window.drawChemistryLines();
         }
 
         window.clearTacticalBoard = function() {

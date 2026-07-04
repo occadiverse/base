@@ -16,7 +16,8 @@ Dette er første ryddige versjon av portalen. Målet i denne runden er å behold
 - `assets/js/pages/matches.js` inneholder terminliste, kampmodal, kampdetaljer og kampstatistikk.
 - `assets/js/pages/attendance.js` inneholder kalender, aktiviteter og oppmøteregistrering.
 - `assets/js/pages/statistics.js` inneholder Statistikk-fanen, spillerform, poenghistorikk, kampstatistikk og analysevisninger.
-- `assets/js/pages/tactics.js` inneholder Taktikk-fanen, kampplan, kjemilinjer, benk og automatisk laguttak.
+- `assets/js/domain/samspill.js` inneholder samspill-/duoImpactScore, posisjonell relevans og linjetolkning for spillerpar.
+- `assets/js/pages/tactics.js` inneholder Taktikk-fanen, kampplan, samspillslinjer, benk og automatisk laguttak.
 - `assets/js/pages/dashboard.js` inneholder forsiden, neste kamp og hjem-widgetene.
 - `assets/js/firebase-sync.js` håndterer Firestore og lokal fallback.
 - `assets/js/app.js` inneholder oppstarten av portalen.

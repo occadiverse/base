@@ -120,36 +120,44 @@ window.checkIndividualChemistry = function() {
             if (emptyContainer) emptyContainer.classList.add('hidden');
 
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
-            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, team: m.matchGroup }))];
             const teamPlayers = (window.activePlayers || []).filter(p => filterLag === 'Alle' || p.spillerLag === filterLag);
+            const chemOptions = {
+                teamName: filterLag === 'Alle' ? null : filterLag,
+                historicalOnly: true
+            };
 
-            let bestPartner = null, bestScore = -1, bestSharedCount = 0;
+            let bestPartner = null;
+            let bestSamspill = null;
 
             teamPlayers.forEach(p => {
                 if (p.navn === selectedPlayer) return;
-                let sharedPresent = 0, eitherPresent = 0;
-                allEvents.forEach(e => {
-                    if (filterLag !== 'Alle' && e.team !== filterLag) return;
-                    if (e.attendance) {
-                        const p1Present = window.isPlayerAttending(e.attendance, selectedPlayer);
-                        const p2Present = window.isPlayerAttending(e.attendance, p);
-                        if (p1Present || p2Present) eitherPresent++;
-                        if (p1Present && p2Present) sharedPresent++;
-                    }
-                });
-                const score = eitherPresent > 0 ? Math.round((sharedPresent / eitherPresent) * 100) : 0;
-                if (score > bestScore && sharedPresent > 0) { bestScore = score; bestPartner = p.navn; bestSharedCount = sharedPresent; }
+                const samspill = typeof window.getDuoSamspill === 'function'
+                    ? window.getDuoSamspill(selectedPlayer, p, chemOptions)
+                    : null;
+                if (!samspill) return;
+                if (!bestSamspill || samspill.score > bestSamspill.score) {
+                    bestSamspill = samspill;
+                    bestPartner = p.navn;
+                }
             });
 
-            if (bestPartner) {
-                if (document.getElementById('individual-chem-pct')) document.getElementById('individual-chem-pct').innerText = `${bestScore}%`;
-                if (document.getElementById('individual-partner-name')) document.getElementById('individual-partner-name').innerText = bestPartner;
-                if (document.getElementById('individual-partner-desc')) document.getElementById('individual-partner-desc').innerText = `Har stilt opp sammen på ${bestSharedCount} økter.`;
-                if (document.getElementById('chem-circle-progress')) document.getElementById('chem-circle-progress').style.strokeDashoffset = 251.2 - (251.2 * bestScore) / 100;
+            if (bestPartner && bestSamspill) {
+                if (document.getElementById('individual-chem-pct')) {
+                    document.getElementById('individual-chem-pct').innerText = `${bestSamspill.score}`;
+                }
+                if (document.getElementById('individual-partner-name')) {
+                    document.getElementById('individual-partner-name').innerText = bestPartner;
+                }
+                if (document.getElementById('individual-partner-desc')) {
+                    document.getElementById('individual-partner-desc').innerText = bestSamspill.tooltip || bestSamspill.label;
+                }
+                if (document.getElementById('chem-circle-progress')) {
+                    document.getElementById('chem-circle-progress').style.strokeDashoffset = 251.2 - (251.2 * bestSamspill.score) / 100;
+                }
             } else {
-                if (document.getElementById('individual-chem-pct')) document.getElementById('individual-chem-pct').innerText = `0%`;
-                if (document.getElementById('individual-partner-name')) document.getElementById('individual-partner-name').innerText = "Ingen match";
-                if (document.getElementById('individual-partner-desc')) document.getElementById('individual-partner-desc').innerText = "Ikke nok data registrert.";
+                if (document.getElementById('individual-chem-pct')) document.getElementById('individual-chem-pct').innerText = '–';
+                if (document.getElementById('individual-partner-name')) document.getElementById('individual-partner-name').innerText = 'Ingen match';
+                if (document.getElementById('individual-partner-desc')) document.getElementById('individual-partner-desc').innerText = 'Ikke nok data registrert.';
                 if (document.getElementById('chem-circle-progress')) document.getElementById('chem-circle-progress').style.strokeDashoffset = 251.2;
             }
         }

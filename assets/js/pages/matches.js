@@ -662,7 +662,7 @@ const matchGamePlanFormationConnections = {
 };
 
 const matchGamePlanLineupOverlayOptions = [
-    { id: 'kjemi', label: 'Kjemi' },
+    { id: 'samspill', label: 'Samspill' },
     { id: 'bidrag', label: 'Bidrag' },
     { id: 'startBenk', label: 'Start/benk' }
 ];
@@ -1031,12 +1031,12 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
 function getMatchGamePlanLineupOverlayState(match) {
     window.matchGamePlanLineupOverlays = window.matchGamePlanLineupOverlays || {};
     if (!match?.id) {
-        return { kjemi: false, bidrag: false, startBenk: false };
+        return { samspill: false, bidrag: false, startBenk: false };
     }
 
     if (!window.matchGamePlanLineupOverlays[match.id]) {
         window.matchGamePlanLineupOverlays[match.id] = {
-            kjemi: false,
+            samspill: false,
             bidrag: false,
             startBenk: false
         };
@@ -1054,7 +1054,7 @@ function getMatchGamePlanLineupBuilderClass(match) {
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     return [
         'match-detail-lineup-builder',
-        overlayState.kjemi ? 'is-show-kjemi' : '',
+        overlayState.samspill ? 'is-show-samspill' : '',
         overlayState.bidrag ? 'is-show-bidrag' : '',
         overlayState.startBenk ? 'is-show-start-benk' : ''
     ].filter(Boolean).join(' ');
@@ -1737,7 +1737,7 @@ function syncMatchGamePlanLineupOverlayUi(match) {
     if (!builder) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    builder.classList.toggle('is-show-kjemi', !!overlayState.kjemi);
+    builder.classList.toggle('is-show-samspill', !!overlayState.samspill);
     builder.classList.toggle('is-show-bidrag', !!overlayState.bidrag);
     builder.classList.toggle('is-show-start-benk', !!overlayState.startBenk);
 
@@ -1799,7 +1799,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     if (!svg) return;
 
     svg.innerHTML = '';
-    if (!builder.classList.contains('is-show-kjemi')) return;
+    if (!builder.classList.contains('is-show-samspill')) return;
 
     const pitch = builder.querySelector('.match-game-plan-pitch');
     if (!pitch) return;
@@ -1812,49 +1812,48 @@ window.drawMatchGamePlanChemistryLines = function(match) {
 
     if (!pitchRect.width || !pitchRect.height) return;
 
-    connections.forEach(([posA, posB]) => {
+    const pairResults = connections.map(([posA, posB]) => {
         const playerA = lineup[posA];
         const playerB = lineup[posB];
-        if (!playerA || !playerB) return;
+        if (!playerA || !playerB) return null;
 
         const cardA = builder.querySelector(`[data-game-plan-node="${posA}"]`);
         const cardB = builder.querySelector(`[data-game-plan-node="${posB}"]`);
-        if (!cardA || !cardB) return;
+        if (!cardA || !cardB) return null;
+
+        const samspill = typeof window.getDuoSamspill === 'function'
+            ? window.getDuoSamspill(playerA, playerB, {
+                ...chemOptions,
+                posA,
+                posB
+            })
+            : null;
+        if (!samspill || !samspill.shouldDraw) return null;
 
         const rectA = cardA.getBoundingClientRect();
         const rectB = cardB.getBoundingClientRect();
-        const x1 = ((rectA.left + rectA.width / 2 - pitchRect.left) / pitchRect.width) * 100;
-        const y1 = ((rectA.top + rectA.height / 2 - pitchRect.top) / pitchRect.height) * 100;
-        const x2 = ((rectB.left + rectB.width / 2 - pitchRect.left) / pitchRect.width) * 100;
-        const y2 = ((rectB.top + rectB.height / 2 - pitchRect.top) / pitchRect.height) * 100;
 
-        const chemScore = typeof window.getDuoChemistry === 'function'
-            ? window.getDuoChemistry(playerA.navn, playerB.navn, chemOptions)
-            : 0;
+        return {
+            samspill,
+            relevance: samspill.positionalRelevance,
+            coords: {
+                x1: ((rectA.left + rectA.width / 2 - pitchRect.left) / pitchRect.width) * 100,
+                y1: ((rectA.top + rectA.height / 2 - pitchRect.top) / pitchRect.height) * 100,
+                x2: ((rectB.left + rectB.width / 2 - pitchRect.left) / pitchRect.width) * 100,
+                y2: ((rectB.top + rectB.height / 2 - pitchRect.top) / pitchRect.height) * 100
+            }
+        };
+    }).filter(Boolean);
 
-        let strokeWidth = 2.6;
-        let strokeColor = 'rgba(244, 63, 94, 0.82)';
-        if (chemScore >= 75) {
-            strokeColor = 'rgba(16, 185, 129, 0.92)';
-        } else if (chemScore >= 50) {
-            strokeColor = 'rgba(245, 197, 66, 0.92)';
-        } else if (chemScore === 0) {
-            strokeColor = 'rgba(18, 63, 115, 0.34)';
-            strokeWidth = 1.85;
-        }
+    pairResults
+        .sort((a, b) => b.relevance - a.relevance)
+        .slice(0, 14)
+        .forEach(entry => {
+            if (typeof window.appendSamspillLine !== 'function') return;
 
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', String(x1));
-        line.setAttribute('y1', String(y1));
-        line.setAttribute('x2', String(x2));
-        line.setAttribute('y2', String(y2));
-        line.setAttribute('stroke', strokeColor);
-        line.setAttribute('stroke-width', String(strokeWidth));
-        line.setAttribute('stroke-linecap', 'round');
-        line.setAttribute('vector-effect', 'non-scaling-stroke');
-        if (chemScore === 0) line.setAttribute('stroke-dasharray', '1.4,1.4');
-        svg.appendChild(line);
-    });
+            const line = window.appendSamspillLine(svg, entry.coords, entry.samspill, {});
+            if (line) line.setAttribute('vector-effect', 'non-scaling-stroke');
+        });
 };
 
 function buildMatchGamePlanTabContentHtml(match, tab) {
