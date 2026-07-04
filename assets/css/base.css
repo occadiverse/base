@@ -4,6 +4,11 @@
             --portal-border: #dbe5ef;
             --portal-mobile-nav-height: 4.65rem;
             --portal-topline-min-height: 3rem;
+            --bsk-blue: #123f73;
+            --bsk-blue-light: #1f5d9e;
+            --bsk-blue-dark: #0b2b4c;
+            --bsk-yellow: #f5c542;
+            --bsk-yellow-dark: #d6a820;
         }
         html {
             background: var(--portal-bg);
@@ -10990,7 +10995,7 @@
             min-height: 38px;
             padding: 0 0.85rem;
             text-decoration: none;
-            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
             white-space: nowrap;
             -webkit-tap-highlight-color: transparent;
         }
@@ -11002,19 +11007,39 @@
             transform: translateY(1px);
         }
         .bsk-btn-primary {
-            background: #123f73;
-            border-color: rgba(31, 93, 158, 0.45);
-            box-shadow: 0 1px 2px rgba(11, 43, 76, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            background: var(--bsk-blue);
+            border-color: rgba(31, 93, 158, 0.42);
+            box-shadow: 0 1px 2px rgba(11, 43, 76, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
             color: #ffffff;
         }
         .bsk-btn-primary:hover:not(:disabled) {
-            background: #1f5d9e;
-            border-color: rgba(31, 93, 158, 0.62);
-            box-shadow: 0 2px 6px rgba(11, 43, 76, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: var(--bsk-blue-light);
+            border-color: rgba(31, 93, 158, 0.58);
+            box-shadow: 0 2px 6px rgba(11, 43, 76, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             color: #ffffff;
         }
+        .bsk-btn-primary:focus-visible {
+            background: var(--bsk-blue-light);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.28), 0 2px 6px rgba(11, 43, 76, 0.22);
+            outline: none;
+        }
         .bsk-btn-primary i {
-            color: #f5c542;
+            color: var(--bsk-yellow);
+        }
+        .match-detail-card .bsk-btn-primary,
+        .bsk-modal-card .bsk-btn-primary {
+            background: var(--bsk-blue-light);
+            border-color: rgba(245, 197, 66, 0.24);
+            box-shadow: 0 2px 8px rgba(2, 6, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .match-detail-card .bsk-btn-primary:hover:not(:disabled),
+        .bsk-modal-card .bsk-btn-primary:hover:not(:disabled),
+        .match-detail-card .bsk-btn-primary:focus-visible,
+        .bsk-modal-card .bsk-btn-primary:focus-visible {
+            background: #256eb0;
+            border-color: rgba(245, 197, 66, 0.38);
+            box-shadow: 0 3px 10px rgba(2, 6, 23, 0.36), 0 0 0 1px rgba(245, 197, 66, 0.2);
         }
         .bsk-btn-secondary {
             background: #ffffff;
@@ -11053,19 +11078,25 @@
             color: #b4535c;
         }
         .bsk-btn-warning {
-            background: rgba(245, 197, 66, 0.88);
-            border-color: rgba(214, 168, 32, 0.45);
-            box-shadow: 0 1px 2px rgba(146, 101, 10, 0.12);
-            color: #0b2b4c;
+            background: var(--bsk-yellow);
+            border-color: rgba(214, 168, 32, 0.5);
+            box-shadow: 0 1px 2px rgba(146, 101, 10, 0.14);
+            color: var(--bsk-blue-dark);
         }
         .bsk-btn-warning:hover:not(:disabled) {
-            background: #f5c542;
-            border-color: rgba(214, 168, 32, 0.58);
-            box-shadow: 0 2px 5px rgba(146, 101, 10, 0.16);
-            color: #0b2b4c;
+            background: var(--bsk-yellow-dark);
+            border-color: rgba(146, 101, 10, 0.42);
+            box-shadow: 0 2px 5px rgba(146, 101, 10, 0.18);
+            color: var(--bsk-blue-dark);
+        }
+        .bsk-btn-warning:focus-visible {
+            background: var(--bsk-yellow-dark);
+            border-color: rgba(11, 43, 76, 0.28);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35), 0 2px 5px rgba(146, 101, 10, 0.16);
+            outline: none;
         }
         .bsk-btn-warning i {
-            color: #123f73;
+            color: var(--bsk-blue);
         }
         .bsk-btn-icon {
             flex: 0 0 auto;
