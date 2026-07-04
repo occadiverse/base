@@ -339,28 +339,28 @@
 
         switch (result.tone) {
             case 'strong':
-                strokeColor = 'rgba(255, 255, 255, 0.86)';
-                strokeWidth = isMatchPlan ? 1.85 : (focused ? 2.5 : 2.15);
+                strokeColor = '#047857';
+                strokeWidth = isMatchPlan ? 2.4 : (focused ? 3 : 2.6);
                 break;
             case 'ok':
-                strokeColor = 'rgba(245, 197, 66, 0.72)';
-                strokeWidth = isMatchPlan ? 1.65 : (focused ? 2.2 : 1.9);
+                strokeColor = '#d97706';
+                strokeWidth = isMatchPlan ? 2.2 : (focused ? 2.8 : 2.4);
                 break;
             case 'potential':
-                strokeColor = 'rgba(245, 197, 66, 0.58)';
-                strokeWidth = isMatchPlan ? 1.55 : (focused ? 2 : 1.75);
+                strokeColor = '#eab308';
+                strokeWidth = isMatchPlan ? 2.1 : (focused ? 2.6 : 2.3);
                 strokeDasharray = '5 4';
                 break;
             case 'weak':
-                strokeColor = 'rgba(252, 165, 165, 0.62)';
-                strokeWidth = isMatchPlan ? 1.55 : (focused ? 2 : 1.75);
+                strokeColor = '#dc2626';
+                strokeWidth = isMatchPlan ? 2.2 : (focused ? 2.8 : 2.4);
                 break;
             case 'unknown':
             default:
-                strokeColor = 'rgba(255, 255, 255, 0.34)';
-                strokeWidth = isMatchPlan ? 1.25 : (focused ? 1.6 : 1.35);
-                strokeDasharray = '3 5';
-                opacity = 0.9;
+                strokeColor = 'rgba(18, 63, 115, 0.55)';
+                strokeWidth = isMatchPlan ? 1.8 : (focused ? 2.2 : 2);
+                strokeDasharray = '4 4';
+                opacity = 0.85;
                 break;
         }
 

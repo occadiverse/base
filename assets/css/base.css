@@ -1531,19 +1531,19 @@
             width: 0.85rem;
         }
         .samspill-legend-item.is-strong::before {
-            background: rgba(255, 255, 255, 0.86);
+            background: #047857;
         }
         .samspill-legend-item.is-ok::before {
-            background: rgba(245, 197, 66, 0.72);
+            background: #d97706;
         }
         .samspill-legend-item.is-weak::before {
-            background: rgba(252, 165, 165, 0.62);
+            background: #dc2626;
         }
         .samspill-legend-item.is-unknown::before {
             background: repeating-linear-gradient(
                 90deg,
-                rgba(255, 255, 255, 0.34) 0,
-                rgba(255, 255, 255, 0.34) 3px,
+                rgba(18, 63, 115, 0.55) 0,
+                rgba(18, 63, 115, 0.55) 3px,
                 transparent 3px,
                 transparent 5px
             );
