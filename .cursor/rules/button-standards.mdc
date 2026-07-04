@@ -40,11 +40,12 @@ Knapp med handling skal ha **ikon + tekst** når det er plass:
 
 ## 3. Kollaps til ikon-only
 
-`.is-collapsible` skjuler label visuelt (ikke fra DOM) når:
-- knappens inline-bredde ≤ 9.5rem (`@container`), eller
-- skjerm ≤ 767px (`@media`)
+`.is-collapsible` skjuler label **kun på mobil** (skjerm ≤ 767px). På desktop vises alltid ikon + tekst.
+
+Teksten skjules visuelt med `clip-path` — den fjernes ikke fra DOM. Bruk `title` + `aria-label` på knappen.
 
 **Ikke** bruk `is-collapsible` på:
+
 - modal-footer-knapper (full bredde)
 - `bsk-btn-icon` / `portal-btn-icon-sm` (allerede ikon-only)
 - `bsk-btn-chip` (filter)

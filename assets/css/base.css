@@ -11178,9 +11178,8 @@
 
         /*
          * collapsible-btn-labels
-         * Standard: icon + text in .bsk-btn-label / .portal-btn-label.
-         * Add .is-collapsible on buttons that may shrink to icon-only.
-         * Label stays in DOM; use title / aria-label on the button.
+         * Default: icon + text. On mobile/small screens only: hide label visually.
+         * Markup: .bsk-btn-label / .portal-btn-label + .is-collapsible + title/aria-label.
          */
         .portal-btn-label,
         .bsk-btn-label {
@@ -11188,35 +11187,8 @@
         }
         .bsk-btn.is-collapsible,
         .portal-btn.is-collapsible {
-            container-type: inline-size;
             max-width: 100%;
             position: relative;
-        }
-        @container (max-width: 9.5rem) {
-            .bsk-btn.is-collapsible .bsk-btn-label,
-            .portal-btn.is-collapsible .portal-btn-label {
-                border: 0;
-                clip-path: inset(50%);
-                height: 1px;
-                margin: -1px;
-                overflow: hidden;
-                padding: 0;
-                position: absolute;
-                white-space: nowrap;
-                width: 1px;
-            }
-            .bsk-btn.is-collapsible:not(.bsk-btn-icon) {
-                gap: 0;
-                justify-content: center;
-                min-width: 2.85rem;
-                padding-inline: 0.85rem;
-            }
-            .portal-btn.is-collapsible:not(.portal-btn-icon):not(.portal-btn-icon-sm):not(.portal-btn-icon-xs) {
-                gap: 0;
-                justify-content: center;
-                min-width: 2.35rem;
-                padding-inline: 0.65rem;
-            }
         }
         @media (max-width: 767px) {
             .bsk-btn.is-collapsible .bsk-btn-label,
