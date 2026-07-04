@@ -1807,16 +1807,12 @@
             margin: 0 0.15rem;
         }
         .dashboard-session-actions {
-            display: grid;
+            display: flex;
             flex: 0 0 8.75rem;
+            flex-direction: column;
             gap: 0.5rem;
-            grid-template-columns: 1fr;
             margin: 0;
             min-width: 0;
-        }
-        .dashboard-session-actions-duo {
-            flex-basis: min(100%, 17.5rem);
-            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .dashboard-session-action-btn {
             container-type: inline-size;
@@ -2094,12 +2090,7 @@
                 grid-template-columns: 1fr;
             }
             .dashboard-session-actions {
-                flex-basis: 100%;
-                grid-template-columns: 1fr;
-                width: 100%;
-            }
-            .dashboard-session-actions-duo {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                flex-wrap: wrap;
             }
         }
         .session-injury-modal-card {

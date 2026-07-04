@@ -532,13 +532,13 @@ window.updateHjemWidget = function() {
                                 <span class="dashboard-session-radar-inline">${radarParts}</span>
                             </div>
                         </div>
-                        <div class="dashboard-session-actions${isTraining ? ' dashboard-session-actions-duo' : ''}">
+                        <div class="dashboard-session-actions">
                             <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
                                 <i class="fa-solid fa-user-check"></i>
                                 <span>Oppmøte</span>
                             </button>
                             ${isTraining ? `
-                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-secondary dashboard-session-action-btn">
+                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
                                 <i class="fa-solid fa-clipboard-list"></i>
                                 <span>Åpne øktside</span>
                             </button>
