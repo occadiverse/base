@@ -10971,6 +10971,43 @@
             color: #0b2b4c;
             text-decoration-color: #f5c542;
         }
+        .phase-btn.bsk-btn-chip {
+            flex: 0 0 auto;
+            font-weight: 800;
+            height: auto;
+            min-width: 2.25rem;
+            padding: 0 0.65rem;
+            text-decoration: none;
+            width: auto;
+        }
+        .phase-btn.bsk-btn-chip.portal-btn-primary {
+            background: var(--bsk-blue);
+            border-color: rgba(31, 93, 158, 0.42);
+            box-shadow: 0 1px 2px rgba(11, 43, 76, 0.16);
+            color: #ffffff;
+            text-decoration-color: transparent;
+        }
+        .phase-btn.bsk-btn-chip.portal-btn-primary:hover:not(:disabled) {
+            background: var(--bsk-blue-light);
+            color: #ffffff;
+        }
+        .phase-btn.bsk-btn-chip.portal-btn-secondary {
+            background: #ffffff;
+            border-color: var(--portal-border);
+            color: #64748b;
+            text-decoration-color: transparent;
+        }
+        .phase-btn.bsk-btn-chip.portal-btn-secondary:hover:not(:disabled) {
+            background: var(--portal-bg-soft);
+            border-color: rgba(18, 63, 115, 0.22);
+            color: #123f73;
+        }
+        @media (max-width: 767px) {
+            .phase-btn.bsk-btn-chip {
+                min-height: 2.75rem;
+                min-width: 2.75rem;
+            }
+        }
         .portal-btn-sm {
             font-size: 0.6875rem;
             min-height: auto;
