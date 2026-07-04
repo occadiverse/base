@@ -2626,6 +2626,41 @@
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35);
             outline: none;
         }
+        .match-filter-btn.bsk-btn-chip,
+        .roster-status-btn.bsk-btn-chip {
+            font-weight: 900;
+            min-height: auto;
+        }
+        .match-filter-btn.bsk-btn-chip {
+            font-size: 0.72rem;
+            gap: 0.45rem;
+            padding: 0.62rem 1rem;
+        }
+        .roster-status-btn.bsk-btn-chip {
+            font-size: 0.68rem;
+            padding: 0.58rem 0.85rem;
+        }
+        .match-filter-btn.bsk-btn-chip.is-active,
+        .roster-status-btn.bsk-btn-chip.is-active {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.28);
+            color: #f5c542;
+        }
+        .stats-sort-btn.bsk-btn-chip {
+            gap: 0.4rem;
+            min-height: 2.55rem;
+            min-width: 2.55rem;
+            padding: 0.62rem 0.72rem;
+        }
+        .stats-lag-section-btn.bsk-btn-chip {
+            border-radius: 0.78rem;
+            font-size: 0.66rem;
+            gap: 0.42rem;
+            letter-spacing: 0.08em;
+            min-height: 2.35rem;
+            padding: 0.58rem 0.7rem;
+            text-transform: uppercase;
+        }
         .match-list-lag-filter {
             align-items: center;
             background: linear-gradient(180deg, rgba(18, 63, 115, 0.08) 0%, rgba(11, 43, 76, 0.06) 100%);
@@ -11162,6 +11197,14 @@
             }
             .bsk-btn-chip {
                 min-height: 32px;
+            }
+            .match-filter-btn.bsk-btn-chip,
+            .roster-status-btn.bsk-btn-chip,
+            .stats-sort-btn.bsk-btn-chip {
+                min-height: auto;
+            }
+            .match-filter-btn.bsk-btn-chip {
+                min-height: 2.75rem;
             }
             .bsk-btn-full-mobile {
                 width: 100%;

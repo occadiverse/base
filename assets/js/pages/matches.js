@@ -1912,8 +1912,8 @@ function setMatchTimeFilter(filterType) {
 
     const btnKommende = document.getElementById('btn-filter-kommende');
     const btnTidligere = document.getElementById('btn-filter-tidligere');
-    const activeClass = 'match-filter-btn is-active';
-    const inactiveClass = 'match-filter-btn';
+    const activeClass = 'bsk-btn bsk-btn-chip match-filter-btn is-active';
+    const inactiveClass = 'bsk-btn bsk-btn-chip match-filter-btn';
 
     if (btnKommende && btnTidligere) {
         if (filterType === 'kommende') {

@@ -1689,7 +1689,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             type="button"
                             role="tab"
                             aria-selected="${activeSection === section.id ? 'true' : 'false'}"
-                            class="stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
+                            class="bsk-btn bsk-btn-chip stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
                             data-stat-action="set-lag-section"
                             data-section-id="${section.id}"
                         >
@@ -2116,7 +2116,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <button
                     type="button"
                     data-stat-action="sort"
-                    class="roster-status-btn stats-sort-btn ${activeCol === opt.id ? 'is-active' : ''}"
+                    class="bsk-btn bsk-btn-chip roster-status-btn stats-sort-btn ${activeCol === opt.id ? 'is-active' : ''}"
                     data-sort-col="${opt.id}"
                     aria-label="${opt.label}"
                     title="${opt.label}"
