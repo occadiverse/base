@@ -40,7 +40,9 @@ Knapp med handling skal ha **ikon + tekst** når det er plass:
 
 ## 3. Kollaps til ikon-only
 
-`.is-collapsible` skjuler label **kun på mobil** (skjerm ≤ 767px). På desktop vises alltid ikon + tekst.
+På **desktop** vises alltid ikon + tekst.
+
+På **mobil** (≤ 767px) skjules label bare når **selve knappen** er smal (≤ 7.25rem). Har knappen plass — f.eks. «Neste økt»-kolonnen (~8.75rem) — vises teksten fortsatt.
 
 Teksten skjules visuelt med `clip-path` — den fjernes ikke fra DOM. Bruk `title` + `aria-label` på knappen.
 

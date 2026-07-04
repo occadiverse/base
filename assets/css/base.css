@@ -1028,7 +1028,7 @@
                 white-space: normal !important;
             }
             .dashboard-session-actions {
-                flex-basis: 8rem !important;
+                flex-basis: 8.75rem !important;
             }
             .dashboard-hero-card {
                 padding: 1rem !important;
@@ -11178,8 +11178,8 @@
 
         /*
          * collapsible-btn-labels
-         * Default: icon + text. On mobile/small screens only: hide label visually.
-         * Markup: .bsk-btn-label / .portal-btn-label + .is-collapsible + title/aria-label.
+         * Desktop: always icon + text.
+         * Mobile: icon + text when the button is wide enough; icon-only when tight.
          */
         .portal-btn-label,
         .bsk-btn-label {
@@ -11191,29 +11191,35 @@
             position: relative;
         }
         @media (max-width: 767px) {
-            .bsk-btn.is-collapsible .bsk-btn-label,
-            .portal-btn.is-collapsible .portal-btn-label {
-                border: 0;
-                clip-path: inset(50%);
-                height: 1px;
-                margin: -1px;
-                overflow: hidden;
-                padding: 0;
-                position: absolute;
-                white-space: nowrap;
-                width: 1px;
+            .bsk-btn.is-collapsible,
+            .portal-btn.is-collapsible {
+                container-type: inline-size;
             }
-            .bsk-btn.is-collapsible:not(.bsk-btn-icon) {
-                gap: 0;
-                justify-content: center;
-                min-width: 2.85rem;
-                padding-inline: 0.85rem;
-            }
-            .portal-btn.is-collapsible:not(.portal-btn-icon):not(.portal-btn-icon-sm):not(.portal-btn-icon-xs) {
-                gap: 0;
-                justify-content: center;
-                min-width: 2.35rem;
-                padding-inline: 0.65rem;
+            @container (max-width: 7.25rem) {
+                .bsk-btn.is-collapsible .bsk-btn-label,
+                .portal-btn.is-collapsible .portal-btn-label {
+                    border: 0;
+                    clip-path: inset(50%);
+                    height: 1px;
+                    margin: -1px;
+                    overflow: hidden;
+                    padding: 0;
+                    position: absolute;
+                    white-space: nowrap;
+                    width: 1px;
+                }
+                .bsk-btn.is-collapsible:not(.bsk-btn-icon) {
+                    gap: 0;
+                    justify-content: center;
+                    min-width: 2.85rem;
+                    padding-inline: 0.85rem;
+                }
+                .portal-btn.is-collapsible:not(.portal-btn-icon):not(.portal-btn-icon-sm):not(.portal-btn-icon-xs) {
+                    gap: 0;
+                    justify-content: center;
+                    min-width: 2.35rem;
+                    padding-inline: 0.65rem;
+                }
             }
         }
 
