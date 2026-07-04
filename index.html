@@ -54,9 +54,19 @@
                                 <i class="fa-regular fa-calendar-days"></i>
                                 <span>Kommende kamper</span>
                             </div>
-                            <div class="match-detail-chip">
-                                <i class="fa-solid fa-futbol"></i>
-                                <span id="matchListUpcomingCount">0 kamper</span>
+                            <div class="match-detail-top-chips">
+                                <button type="button"
+                                        onclick="window.openActivityModal('Kamp')"
+                                        class="bsk-btn bsk-btn-primary is-collapsible"
+                                        title="Legg til kamp"
+                                        aria-label="Legg til kamp">
+                                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                    <span class="bsk-btn-label">Legg til</span>
+                                </button>
+                                <div class="match-detail-chip">
+                                    <i class="fa-solid fa-futbol"></i>
+                                    <span id="matchListUpcomingCount">0 kamper</span>
+                                </div>
                             </div>
                         </div>
 
@@ -101,9 +111,20 @@
                             <i class="fa-regular fa-calendar-days"></i>
                             <span>Kamper</span>
                         </div>
-                        <div class="match-detail-chip">
-                            <i class="fa-solid fa-futbol"></i>
-                            <span id="matchListMobileCount">0 kamper</span>
+                        <div class="match-detail-top-chips">
+                            <button type="button"
+                                    id="btn-match-add-activity"
+                                    onclick="window.openActivityModal('Kamp')"
+                                    class="bsk-btn bsk-btn-primary is-collapsible"
+                                    title="Legg til kamp"
+                                    aria-label="Legg til kamp">
+                                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Legg til</span>
+                            </button>
+                            <div class="match-detail-chip">
+                                <i class="fa-solid fa-futbol"></i>
+                                <span id="matchListMobileCount">0 kamper</span>
+                            </div>
                         </div>
                     </div>
 

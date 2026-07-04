@@ -1972,6 +1972,11 @@ function setMatchTimeFilter(filterType) {
         }
     }
 
+    const addActivityBtn = document.getElementById('btn-match-add-activity');
+    if (addActivityBtn) {
+        addActivityBtn.classList.toggle('hidden', filterType !== 'kommende');
+    }
+
     applyFilters();
 }
 
