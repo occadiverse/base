@@ -12,6 +12,51 @@ function escapeMatchJsString(value) {
     return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+function buildMatchListAddButtonHtml() {
+    return `
+        <button type="button"
+                data-match-list-action="add-kamp"
+                class="bsk-btn bsk-btn-secondary match-list-add-btn"
+                title="Legg til kamp"
+                aria-label="Legg til kamp">
+            <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+            <span>Legg til</span>
+        </button>
+    `;
+}
+
+function ensureMatchListAddButtons() {
+    document.querySelectorAll('[data-match-list-actions]').forEach((slot) => {
+        if (slot.querySelector('[data-match-list-action="add-kamp"]')) return;
+
+        const chip = slot.querySelector('.match-detail-chip');
+        if (chip) {
+            chip.insertAdjacentHTML('beforebegin', buildMatchListAddButtonHtml());
+            return;
+        }
+
+        slot.insertAdjacentHTML('afterbegin', buildMatchListAddButtonHtml());
+    });
+}
+
+window.ensureMatchListAddButtons = ensureMatchListAddButtons;
+
+function bindMatchListPageEvents() {
+    const view = document.getElementById('view-kamper');
+    if (!view || view.dataset.matchListPageBound === 'true') return;
+
+    view.dataset.matchListPageBound = 'true';
+    view.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-match-list-action="add-kamp"]');
+        if (!actionEl) return;
+
+        event.preventDefault();
+        if (typeof window.openActivityModal === 'function') {
+            window.openActivityModal('Kamp');
+        }
+    });
+}
+
 function bindMatchListEvents() {
     ['matchListContainer', 'matchListUpcomingContainer', 'matchListPastContainer', 'kampdetaljer-info'].forEach((containerId) => {
         const container = document.getElementById(containerId);
@@ -256,6 +301,8 @@ function groupMatchesByMonth(matches) {
 }
 
 function applyFilters() {
+    bindMatchListPageEvents();
+    ensureMatchListAddButtons();
     bindMatchListEvents();
 
     const listContainer = document.getElementById('matchListContainer');

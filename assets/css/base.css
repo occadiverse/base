@@ -2582,6 +2582,17 @@
             max-width: 88rem;
             width: 100%;
         }
+        .match-list-page .match-detail-card-top {
+            flex-wrap: wrap;
+            overflow: visible;
+            row-gap: 0.55rem;
+        }
+        .match-list-page .match-detail-top-chips {
+            margin-left: auto;
+            max-width: 100%;
+            position: relative;
+            z-index: 2;
+        }
         .match-list-toolbar {
             align-items: center;
             display: flex;
@@ -2768,7 +2779,11 @@
         }
         .match-list-add-btn {
             flex-shrink: 0;
+            min-width: 6.5rem;
             white-space: nowrap;
+        }
+        .match-list-page .match-list-add-btn {
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.24);
         }
         .match-list-mobile-toolbar {
             align-items: center;
