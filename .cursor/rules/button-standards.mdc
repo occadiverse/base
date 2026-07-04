@@ -1,0 +1,97 @@
+---
+description: When to use bsk-btn, portal-btn, and chips — avoid new button class names
+globs: index.html, assets/**/*
+alwaysApply: false
+---
+
+# Knappestandarder
+
+Bruk **tre roller**. Ikke lag nye `*-action-btn`-klasser uten god grunn.
+
+## 1. Velg rolle først
+
+```
+Er det en filter/fane/tab (velg én av flere)?
+  → JA:  bsk-btn bsk-btn-chip + domene-klasse + is-active
+
+Er det Lagre / Opprett / Slett / Avbryt i modal eller skjema?
+  → JA:  bsk-btn (+ primary / secondary / danger / warning / ghost)
+
+Er det verktøy, navigasjon, tilbake, admin eller liten rediger-ikon?
+  → JA:  portal-btn (+ variant + ev. -sm / -icon-sm)
+
+Er det en tydelig CTA på siden (Ny aktivitet, Ny spiller, Registrer)?
+  → JA:  bsk-btn bsk-btn-primary
+```
+
+## 2. Systemer
+
+### `bsk-btn` — handlinger
+
+| Variant | Bruk |
+|---|---|
+| `bsk-btn-primary` | Hovedhandling |
+| `bsk-btn-secondary` | Avbryt, sekundær |
+| `bsk-btn-danger` | Slett |
+| `bsk-btn-warning` | Varsel, skade |
+| `bsk-btn-ghost` | Diskret lukk (X) |
+| `bsk-btn-icon` | Ikon uten tekst |
+| `bsk-btn-chip` | **Kun** filter/faner |
+
+Alltid: `bsk-btn` + variant. Aktiv filter: legg til `is-active`.
+
+### `portal-btn` — verktøy
+
+For admin, statistikk, sidebar, tilbake-knapper og små ikonhandlinger.
+
+| Variant | Bruk |
+|---|---|
+| `portal-btn-primary` | Tydelig, men ikke modal-handling |
+| `portal-btn-secondary` | Standard verktøy |
+| `portal-btn-icon-sm` | Ikon i sidebar / lister |
+| `portal-btn-lg portal-btn-primary` | Sjeldne store CTA (f.eks. Lås opp) |
+
+**Ikke** bruk `portal-btn` for modal lagre/avbryt eller hoved-CTA på kort.
+
+### Chips / faner
+
+- Filter på kort: `bsk-btn bsk-btn-chip` + f.eks. `match-filter-btn` / `roster-status-btn`
+- Segmentfaner: `portal-segment-btn` + `is-active`
+- `match-detail-chip` er **info/etikett**, ikke knapp — ikke kopier stilen for handlinger
+
+## 3. Oppskrifter (copy-paste)
+
+```html
+<!-- Modal lagre / avbryt -->
+<button class="bsk-btn bsk-btn-primary bsk-modal-action-btn">Lagre</button>
+<button class="bsk-btn bsk-btn-secondary bsk-modal-action-btn">Avbryt</button>
+
+<!-- Side-CTA -->
+<button class="bsk-btn bsk-btn-primary calendar-hero-action-btn">Ny aktivitet</button>
+
+<!-- Filter -->
+<button class="bsk-btn bsk-btn-chip match-filter-btn is-active">Kommende</button>
+
+<!-- Admin / verktøy -->
+<button class="portal-btn portal-btn-secondary portal-btn-sm">Tilbake</button>
+<button class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Rediger">…</button>
+```
+
+Layout-klasser som `bsk-modal-action-btn` og `calendar-hero-action-btn` er **plassering**, ikke eget knappesystem.
+
+## 4. Mørke kort
+
+På `match-detail-card` / `roster-board-card`: bruk **`bsk-btn`** — farger tilpasses automatisk.
+
+Ikke introduser nye mørke-kort-klasser. Eksisterende som `match-bench-action-btn` er legacy i enkelte kamp-/benk-seksjoner.
+
+## 5. Ikke gjør dette
+
+- Ny klasse som `foo-hero-action-btn` når `bsk-btn bsk-btn-primary` holder
+- `portal-btn` i modaler for lagre/slett
+- Chip-stil på handlinger (chips = filter/info)
+- Blande system uten grunn: `portal-btn` + `bsk-btn-primary` på samme knapp
+
+## 6. Fargepalett
+
+`--bsk-blue`, `--bsk-yellow`, `--portal-border` — ikke hardkod nye knappefarger utenfor systemet.
