@@ -530,7 +530,7 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span id="sessionInjuryModalTitle">Spillere med skade</span>
                 </div>
-                <button type="button" onclick="window.closeSessionInjuryModal()" class="match-bench-icon-btn session-injury-modal-close" title="Lukk">
+                <button type="button" onclick="window.closeSessionInjuryModal()" class="bsk-btn bsk-btn-icon bsk-btn-secondary session-injury-modal-close" title="Lukk">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -553,7 +553,7 @@
                     <i class="fa-solid fa-bell"></i>
                     <span id="dashboardAlertModalTitle">Varsel før neste kamp</span>
                 </div>
-                <button type="button" onclick="window.closeDashboardAlertModal()" class="match-bench-icon-btn dashboard-alert-modal-close" title="Lukk">
+                <button type="button" onclick="window.closeDashboardAlertModal()" class="bsk-btn bsk-btn-icon bsk-btn-secondary dashboard-alert-modal-close" title="Lukk">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -573,11 +573,11 @@
             <h3 class="bsk-modal-title justify-center" id="confirmTitle">Bekreft handling</h3>
             <p class="bsk-modal-message" id="confirmMessage">Er du sikker på at du ønsker å utføre denne handlingen?</p>
             <div class="bsk-modal-footer">
-                <button id="confirmYesBtn" class="match-bench-action-btn bsk-modal-action-btn">
+                <button id="confirmYesBtn" class="bsk-btn bsk-btn-primary bsk-modal-action-btn">
                     <i class="fa-solid fa-check"></i>
                     <span>Ja, utfør</span>
                 </button>
-                <button id="confirmNoBtn" class="match-bench-action-btn bsk-modal-action-btn">
+                <button id="confirmNoBtn" class="bsk-btn bsk-btn-secondary bsk-modal-action-btn">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Avbryt</span>
                 </button>
@@ -724,11 +724,11 @@
             </div>
 
             <div class="attendance-modal-footer relative z-10">
-                <button type="button" onclick="saveAttendanceRegistry()" class="match-bench-action-btn attendance-modal-action-btn">
+                <button type="button" onclick="saveAttendanceRegistry()" class="bsk-btn bsk-btn-primary attendance-modal-action-btn">
                     <i class="fa-solid fa-floppy-disk"></i>
                     <span>Lagre</span>
                 </button>
-                <button type="button" onclick="closeAttendanceModal()" class="match-bench-action-btn attendance-modal-action-btn">
+                <button type="button" onclick="closeAttendanceModal()" class="bsk-btn bsk-btn-secondary attendance-modal-action-btn">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Avbryt</span>
                 </button>
@@ -747,7 +747,7 @@
                     <i class="fa-solid fa-user-pen"></i>
                     <span id="playerFormTitle">Spiller</span>
                 </div>
-                <button type="button" onclick="window.closePlayerModal()" class="match-bench-icon-btn player-modal-close" title="Lukk">
+                <button type="button" onclick="window.closePlayerModal()" class="bsk-btn bsk-btn-icon bsk-btn-secondary player-modal-close" title="Lukk">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -870,15 +870,15 @@
             </form>
 
             <div class="player-modal-footer relative z-10">
-                <button type="submit" form="playerForm" class="match-bench-action-btn dashboard-session-action-btn">
+                <button type="submit" form="playerForm" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
                     <i class="fa-solid fa-floppy-disk"></i>
                     <span>Lagre</span>
                 </button>
-                <button type="button" id="playerModalDeleteBtn" onclick="window.deletePlayerFromModal()" class="match-bench-action-btn dashboard-session-action-btn hidden">
+                <button type="button" id="playerModalDeleteBtn" onclick="window.deletePlayerFromModal()" class="bsk-btn bsk-btn-danger dashboard-session-action-btn hidden">
                     <i class="fa-solid fa-trash"></i>
                     <span>Slett</span>
                 </button>
-                <button type="button" onclick="window.closePlayerModal()" class="match-bench-action-btn dashboard-session-action-btn player-modal-cancel-btn">
+                <button type="button" onclick="window.closePlayerModal()" class="bsk-btn bsk-btn-secondary dashboard-session-action-btn player-modal-cancel-btn">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Avbryt</span>
                 </button>
@@ -892,7 +892,7 @@
                 <h3 id="teamModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
                     <i class="fa-solid fa-users text-bsk-yellow"></i> Opprett Lag
                 </h3>
-                <button onclick="window.closeTeamModal()" class="portal-btn portal-btn-icon-sm portal-btn-ghost">
+                <button onclick="window.closeTeamModal()" class="bsk-btn bsk-btn-icon bsk-btn-ghost">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -921,10 +921,10 @@
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-flex">
+                    <button type="submit" class="bsk-btn bsk-btn-primary">
                         LAGRE LAG
                     </button>
-                    <button type="button" onclick="window.closeTeamModal()" class="portal-btn portal-btn-muted portal-btn-lg">
+                    <button type="button" onclick="window.closeTeamModal()" class="bsk-btn bsk-btn-secondary">
                         AVBRYT
                     </button>
                 </div>
@@ -940,7 +940,7 @@
                         <i class="fa-solid fa-calendar-plus"></i> Opprett Aktivitet
                     </h3>
                 </div>
-                <button type="button" id="activityModalHeaderAction" onclick="closeActivityModal()" class="match-bench-icon-btn bsk-modal-close" title="Lukk">
+                <button type="button" id="activityModalHeaderAction" onclick="closeActivityModal()" class="bsk-btn bsk-btn-icon bsk-btn-secondary bsk-modal-close" title="Lukk">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -982,11 +982,11 @@
                 </div>
 
                 <div class="bsk-modal-footer mt-6">
-                    <button type="button" onclick="saveNewActivity()" class="match-bench-action-btn bsk-modal-action-btn">
+                    <button type="button" onclick="saveNewActivity()" class="bsk-btn bsk-btn-primary bsk-modal-action-btn">
                         <i class="fa-solid fa-floppy-disk"></i>
                         <span>Opprett aktivitet</span>
                     </button>
-                    <button type="button" onclick="closeActivityModal()" class="match-bench-action-btn bsk-modal-action-btn">
+                    <button type="button" onclick="closeActivityModal()" class="bsk-btn bsk-btn-secondary bsk-modal-action-btn">
                         <i class="fa-solid fa-xmark"></i>
                         <span>Avbryt</span>
                     </button>
