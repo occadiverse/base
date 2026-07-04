@@ -1059,20 +1059,57 @@ function matchHasSavedLineup(match) {
     return false;
 }
 
-function getPlayerStartBenchCounts(player, teamName) {
+function isPlayerInSavedStartingLineup(match, player) {
+    if (!player || !match) return false;
+
+    const hasLineupRefs = match.lineupRefs
+        && typeof match.lineupRefs === 'object'
+        && Object.values(match.lineupRefs).some(Boolean);
+    if (hasLineupRefs) {
+        return Object.values(match.lineupRefs).some(ref => (
+            ref && typeof window.playerRefMatches === 'function' && window.playerRefMatches(ref, player)
+        ));
+    }
+
+    if (match.lineup && typeof match.lineup === 'object') {
+        return Object.values(match.lineup).some(entry => {
+            if (!entry) return false;
+            if (typeof entry === 'string') {
+                return typeof window.playerRefMatches === 'function' && window.playerRefMatches(entry, player);
+            }
+            return typeof window.playerRefMatches === 'function'
+                && window.playerRefMatches(entry.id || entry.navn, player);
+        });
+    }
+
+    return false;
+}
+
+function getPlayerStartBenchCounts(player, teamName, currentMatch) {
     if (!player) return { starts: 0, bench: 0 };
 
-    const playerRef = player.id || player.navn;
+    const currentMatchId = currentMatch?.id || null;
+    const currentMatchDate = currentMatch?.date ? new Date(currentMatch.date) : null;
+    if (currentMatchDate) currentMatchDate.setHours(0, 0, 0, 0);
+
     let starts = 0;
     let bench = 0;
 
     (window.activeMatches || []).forEach(match => {
+        if (currentMatchId && match.id === currentMatchId) return;
         if (teamName && match.matchGroup !== teamName) return;
         if (!isMatchPlayedForStartBenchStats(match)) return;
         if (!matchHasSavedLineup(match)) return;
+
+        if (currentMatchDate && match.date) {
+            const matchDate = new Date(match.date);
+            matchDate.setHours(0, 0, 0, 0);
+            if (matchDate >= currentMatchDate) return;
+        }
+
         if (typeof window.isPlayerAttending !== 'function' || !window.isPlayerAttending(match.attendance, player)) return;
 
-        if (typeof window.isPlayerOnPitch === 'function' && window.isPlayerOnPitch(match, playerRef)) {
+        if (isPlayerInSavedStartingLineup(match, player)) {
             starts += 1;
             return;
         }
@@ -1107,7 +1144,7 @@ function buildMatchGamePlanLineupCardOverlayHtml(match, player) {
         : 0;
     const bidragText = kampbidrag > 0 ? String(kampbidrag) : '-';
     const bidragTone = getMatchGamePlanBidragToneClass(kampbidrag);
-    const { starts, bench } = getPlayerStartBenchCounts(player, teamName);
+    const { starts, bench } = getPlayerStartBenchCounts(player, teamName, match);
 
     return `
         <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
