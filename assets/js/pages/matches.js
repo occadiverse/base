@@ -26,7 +26,7 @@ function bindMatchListEvents() {
             const matchId = actionEl.dataset.matchId;
             if (!matchId) return;
 
-            if (action === 'edit' || action === 'alert') {
+            if (action === 'edit' || action === 'alert' || action === 'attendance') {
                 event.stopPropagation();
             }
 
@@ -36,6 +36,8 @@ function bindMatchListEvents() {
                 window.openMatchModal(matchId);
             } else if (action === 'alert') {
                 window.showMatchAlertModal(matchId);
+            } else if (action === 'attendance') {
+                window.openAttendanceModal(`match_${matchId}`);
             }
         });
         container.addEventListener('keydown', (event) => {
@@ -478,9 +480,13 @@ function buildMatchDetailCardHtml(match, options = {}) {
         `
         : '';
     const topChipsHtml = `
-        <button type="button" class="match-detail-chip match-topline-action-btn" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>Rediger</span>
+        <button type="button" class="bsk-btn bsk-btn-primary is-collapsible" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppmøte" aria-label="Oppmøte">
+            <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+            <span class="bsk-btn-label">Oppmøte</span>
+        </button>
+        <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp" aria-label="Rediger kamp">
+            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+            <span class="bsk-btn-label">Rediger</span>
         </button>
         <div class="match-detail-chip">
             <i class="fa-solid fa-futbol"></i>
@@ -2182,10 +2188,6 @@ window.showMatchDetails = function(id) {
                 <span class="match-detail-section-title">Kamptropp</span>
                 <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
                 <span class="match-detail-section-line" aria-hidden="true"></span>
-                <button type="button" onclick="window.openAttendanceModal('match_${escapeJsString(match.id)}')" class="match-detail-chip match-topline-action-btn match-detail-section-action" title="Åpne oppmøte">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>Oppmøte</span>
-                </button>
             </div>
             <div class="match-detail-squad-body">
                 <div class="match-detail-squad-players">

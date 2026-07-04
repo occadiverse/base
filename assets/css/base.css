@@ -2543,6 +2543,11 @@
             gap: 0.45rem;
             justify-content: flex-end;
         }
+        .match-detail-top-chips .bsk-btn {
+            font-size: 0.6875rem;
+            min-height: 2.35rem;
+            padding-inline: 0.7rem;
+        }
         .match-detail-chip-muted {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.18);
@@ -10471,8 +10476,7 @@
                 height: 2.1rem !important;
                 width: 2.1rem !important;
             }
-            .match-bench-topline .match-topline-action-btn,
-            .match-detail-card-top .match-topline-action-btn {
+            .match-bench-topline .match-topline-action-btn {
                 border-radius: 999px;
                 font-size: 0;
                 height: 2.1rem;
@@ -10480,12 +10484,10 @@
                 padding: 0;
                 width: 2.1rem;
             }
-            .match-bench-topline .match-topline-action-btn span,
-            .match-detail-card-top .match-topline-action-btn span {
+            .match-bench-topline .match-topline-action-btn span {
                 display: none;
             }
-            .match-bench-topline .match-topline-action-btn i,
-            .match-detail-card-top .match-topline-action-btn i {
+            .match-bench-topline .match-topline-action-btn i {
                 font-size: 0.82rem;
             }
             .dashboard-alert-chip.bsk-btn {
@@ -10549,19 +10551,6 @@
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
                 font-size: 0.38rem;
-            }
-            .match-detail-section-action {
-                font-size: 0;
-                height: 2.1rem;
-                min-width: 2.1rem;
-                padding: 0;
-                width: 2.1rem;
-            }
-            .match-detail-section-action span {
-                display: none;
-            }
-            .match-detail-section-action i {
-                font-size: 0.82rem;
             }
             .match-bench-group {
                 gap: 0.38rem;
