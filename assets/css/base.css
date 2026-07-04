@@ -1182,32 +1182,41 @@
         .dashboard-alert-chip {
             align-items: center;
             appearance: none;
-            background: rgba(220, 38, 38, 0.92);
-            border: 1px solid rgba(254, 202, 202, 0.42);
             border-radius: 999px;
-            box-shadow: 0 8px 18px rgba(127, 29, 29, 0.28);
-            color: #ffffff;
             cursor: pointer;
             display: inline-flex;
             flex: 0 0 auto;
-            font-size: 0.62rem;
-            font-weight: 950;
             gap: 0.32rem;
-            letter-spacing: 0.08em;
             margin-left: 0.1rem;
-            padding: 0.34rem 0.58rem;
-            text-transform: uppercase;
             transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
             white-space: nowrap;
         }
-        .dashboard-alert-chip:hover {
+        .dashboard-alert-chip.bsk-btn {
+            font-size: 0.62rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            min-height: auto;
+            padding: 0.34rem 0.58rem;
+            text-transform: uppercase;
+        }
+        .dashboard-alert-chip.bsk-btn i {
+            font-size: 0.68rem;
+        }
+        .match-detail-card .dashboard-alert-chip.bsk-btn-danger {
+            background: rgba(220, 38, 38, 0.92);
+            border-color: rgba(254, 202, 202, 0.42);
+            box-shadow: 0 8px 18px rgba(127, 29, 29, 0.28);
+            color: #ffffff;
+        }
+        .match-detail-card .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled) {
             background: #b91c1c;
+            border-color: rgba(254, 202, 202, 0.52);
             box-shadow: 0 10px 22px rgba(127, 29, 29, 0.36);
+            color: #ffffff;
             transform: translateY(-1px);
         }
-        .dashboard-alert-chip i {
-            color: #ffffff;
-            font-size: 0.68rem;
+        .match-detail-card .dashboard-alert-chip.bsk-btn-danger i {
+            color: inherit;
         }
         .match-detail-main {
             align-items: center;
@@ -10538,11 +10547,11 @@
             .match-detail-card-top .match-topline-action-btn i {
                 font-size: 0.82rem;
             }
-            .dashboard-alert-chip {
-                border-radius: 999px;
+            .dashboard-alert-chip.bsk-btn {
                 height: 2.1rem;
                 justify-content: center;
                 margin-left: 0;
+                min-height: auto;
                 min-width: 2.1rem;
                 padding: 0;
                 width: 2.1rem;
@@ -10550,7 +10559,7 @@
             .dashboard-alert-chip span {
                 display: none;
             }
-            .dashboard-alert-chip i {
+            .dashboard-alert-chip.bsk-btn i {
                 font-size: 0.82rem;
             }
             .match-bench-list {

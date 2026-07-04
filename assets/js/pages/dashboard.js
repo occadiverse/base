@@ -265,7 +265,7 @@ window.updateDashboard = function() {
                 herosuspensionBadgeHtml = `
                     <button type="button"
                             data-dashboard-action="match-alert"
-                            class="dashboard-alert-chip"
+                            class="bsk-btn bsk-btn-chip bsk-btn-danger dashboard-alert-chip"
                             title="Vis varsel for neste seriekamp">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Varsel</span>
@@ -498,7 +498,7 @@ window.updateHjemWidget = function() {
                 ? '1 skadet'
                 : `${injuredCount} skadet`;
             injuryButtonHtml = `
-                <button type="button" data-dashboard-action="session-injury" class="match-bench-action-btn dashboard-session-action-btn">
+                <button type="button" data-dashboard-action="session-injury" class="bsk-btn bsk-btn-warning dashboard-session-action-btn">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>${escapeDashboardHtml(injuryLabel)}</span>
                 </button>
@@ -538,7 +538,7 @@ window.updateHjemWidget = function() {
                                 <span>Oppmøte</span>
                             </button>
                             ${isTraining ? `
-                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="match-bench-action-btn dashboard-session-action-btn">
+                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-secondary dashboard-session-action-btn">
                                 <i class="fa-solid fa-clipboard-list"></i>
                                 <span>Åpne øktside</span>
                             </button>
