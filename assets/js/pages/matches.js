@@ -1043,6 +1043,10 @@ function getMatchGamePlanLineupOverlayState(match) {
     }
 
     const state = window.matchGamePlanLineupOverlays[match.id];
+    if (state.kjemi && !state.samspill) {
+        state.samspill = state.kjemi;
+        delete state.kjemi;
+    }
     if (state.bidrag && state.startBenk) {
         state.startBenk = false;
     }
@@ -1050,11 +1054,21 @@ function getMatchGamePlanLineupOverlayState(match) {
     return state;
 }
 
+function isMatchGamePlanSamspillVisible(builder, overlayState) {
+    return !!(
+        overlayState?.samspill ||
+        overlayState?.kjemi ||
+        builder?.classList.contains('is-show-samspill') ||
+        builder?.classList.contains('is-show-kjemi')
+    );
+}
+
 function getMatchGamePlanLineupBuilderClass(match) {
     const overlayState = getMatchGamePlanLineupOverlayState(match);
+    const showSamspill = !!(overlayState.samspill || overlayState.kjemi);
     return [
         'match-detail-lineup-builder',
-        overlayState.samspill ? 'is-show-samspill' : '',
+        showSamspill ? 'is-show-samspill' : '',
         overlayState.bidrag ? 'is-show-bidrag' : '',
         overlayState.startBenk ? 'is-show-start-benk' : ''
     ].filter(Boolean).join(' ');
@@ -1737,7 +1751,8 @@ function syncMatchGamePlanLineupOverlayUi(match) {
     if (!builder) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    builder.classList.toggle('is-show-samspill', !!overlayState.samspill);
+    builder.classList.toggle('is-show-samspill', !!(overlayState.samspill || overlayState.kjemi));
+    builder.classList.remove('is-show-kjemi');
     builder.classList.toggle('is-show-bidrag', !!overlayState.bidrag);
     builder.classList.toggle('is-show-start-benk', !!overlayState.startBenk);
 
@@ -1799,7 +1814,8 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     if (!svg) return;
 
     svg.innerHTML = '';
-    if (!builder.classList.contains('is-show-samspill')) return;
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    if (!isMatchGamePlanSamspillVisible(builder, overlayState)) return;
 
     const pitch = builder.querySelector('.match-game-plan-pitch');
     if (!pitch) return;

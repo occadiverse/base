@@ -261,7 +261,8 @@
                     if (typeof window.appendSamspillLine === 'function') {
                         window.appendSamspillLine(svgLayer, entry.coords, entry.samspill, {
                             focused: entry.focused,
-                            dimUnfocused: !!focusPos && !entry.focused
+                            dimUnfocused: !!focusPos && !entry.focused,
+                            coordUnit: '%'
                         });
                     }
                 });

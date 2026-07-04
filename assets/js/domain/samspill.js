@@ -305,12 +305,14 @@
     window.appendSamspillLine = function(svg, coords, samspillResult, options) {
         if (!svg || !coords) return null;
 
-        const style = window.getSamspillLineStyle(samspillResult, options);
+        const opts = options || {};
+        const unit = opts.coordUnit || '';
+        const style = window.getSamspillLineStyle(samspillResult, opts);
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', String(coords.x1));
-        line.setAttribute('y1', String(coords.y1));
-        line.setAttribute('x2', String(coords.x2));
-        line.setAttribute('y2', String(coords.y2));
+        line.setAttribute('x1', String(coords.x1) + unit);
+        line.setAttribute('y1', String(coords.y1) + unit);
+        line.setAttribute('x2', String(coords.x2) + unit);
+        line.setAttribute('y2', String(coords.y2) + unit);
         line.setAttribute('stroke', style.strokeColor);
         line.setAttribute('stroke-width', String(style.strokeWidth));
         line.setAttribute('stroke-linecap', 'round');
