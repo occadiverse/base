@@ -2264,8 +2264,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 }
                 container.innerHTML = `
                     <div class="stats-player-detail">
-                        <button type="button" data-stat-action="back-overview" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
-                            <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
+                        <button type="button" data-stat-action="back-overview" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm is-collapsible" title="Tilbake til oversikt" aria-label="Tilbake til oversikt">
+                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                            <span class="portal-btn-label">Tilbake til oversikt</span>
                         </button>
                         ${window.statsEmptyStateHtml(
                             'fa-circle-info',
@@ -2316,8 +2317,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             container.innerHTML = `
                 <div class="stats-player-detail">
-                    <button type="button" data-stat-action="back-overview" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm">
-                        <i class="fa-solid fa-arrow-left"></i> Tilbake til oversikt
+                    <button type="button" data-stat-action="back-overview" class="stats-player-back-btn portal-btn portal-btn-secondary portal-btn-sm is-collapsible" title="Tilbake til oversikt" aria-label="Tilbake til oversikt">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                        <span class="portal-btn-label">Tilbake til oversikt</span>
                     </button>
 
                     <div class="stats-metric-grid is-four">

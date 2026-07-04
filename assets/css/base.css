@@ -1819,7 +1819,6 @@
             min-width: 0;
         }
         .dashboard-session-action-btn {
-            container-type: inline-size;
             justify-content: center;
             line-height: 1.15;
             min-height: 2.45rem;
@@ -1846,9 +1845,6 @@
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
                 width: 100%;
-            }
-            .dashboard-session-action-btn span {
-                display: inline;
             }
         }
         .training-session-view {
@@ -3989,14 +3985,6 @@
                 flex: 1 1 auto;
                 grid-column: 1 / -1;
                 width: 100%;
-            }
-            .roster-board-top-right > .bsk-btn-primary {
-                min-width: 2.85rem;
-                padding-left: 0.85rem;
-                padding-right: 0.85rem;
-            }
-            .roster-board-top-right > .bsk-btn-primary span {
-                display: none;
             }
         }
         .player-modal-card {
@@ -10200,14 +10188,6 @@
             .calendar-day-event-label {
                 display: none !important;
             }
-            .calendar-heading-panel .flex.justify-end > .bsk-btn-primary {
-                min-width: 2.85rem;
-                padding-left: 0.85rem;
-                padding-right: 0.85rem;
-            }
-            .calendar-heading-panel .flex.justify-end > .bsk-btn-primary span {
-                display: none;
-            }
             .calendar-month-chevron.bsk-btn-icon {
                 height: 2.75rem;
                 min-width: 2.75rem;
@@ -11193,6 +11173,75 @@
             }
             .bsk-btn-full-mobile {
                 width: 100%;
+            }
+        }
+
+        /*
+         * collapsible-btn-labels
+         * Standard: icon + text in .bsk-btn-label / .portal-btn-label.
+         * Add .is-collapsible on buttons that may shrink to icon-only.
+         * Label stays in DOM; use title / aria-label on the button.
+         */
+        .portal-btn-label,
+        .bsk-btn-label {
+            line-height: 1.15;
+        }
+        .bsk-btn.is-collapsible,
+        .portal-btn.is-collapsible {
+            container-type: inline-size;
+            max-width: 100%;
+            position: relative;
+        }
+        @container (max-width: 9.5rem) {
+            .bsk-btn.is-collapsible .bsk-btn-label,
+            .portal-btn.is-collapsible .portal-btn-label {
+                border: 0;
+                clip-path: inset(50%);
+                height: 1px;
+                margin: -1px;
+                overflow: hidden;
+                padding: 0;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+            .bsk-btn.is-collapsible:not(.bsk-btn-icon) {
+                gap: 0;
+                justify-content: center;
+                min-width: 2.85rem;
+                padding-inline: 0.85rem;
+            }
+            .portal-btn.is-collapsible:not(.portal-btn-icon):not(.portal-btn-icon-sm):not(.portal-btn-icon-xs) {
+                gap: 0;
+                justify-content: center;
+                min-width: 2.35rem;
+                padding-inline: 0.65rem;
+            }
+        }
+        @media (max-width: 767px) {
+            .bsk-btn.is-collapsible .bsk-btn-label,
+            .portal-btn.is-collapsible .portal-btn-label {
+                border: 0;
+                clip-path: inset(50%);
+                height: 1px;
+                margin: -1px;
+                overflow: hidden;
+                padding: 0;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+            .bsk-btn.is-collapsible:not(.bsk-btn-icon) {
+                gap: 0;
+                justify-content: center;
+                min-width: 2.85rem;
+                padding-inline: 0.85rem;
+            }
+            .portal-btn.is-collapsible:not(.portal-btn-icon):not(.portal-btn-icon-sm):not(.portal-btn-icon-xs) {
+                gap: 0;
+                justify-content: center;
+                min-width: 2.35rem;
+                padding-inline: 0.65rem;
             }
         }
 

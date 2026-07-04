@@ -1,5 +1,5 @@
 ---
-description: When to use bsk-btn, portal-btn, and chips — avoid new button class names
+description: When to use bsk-btn, portal-btn, chips, and collapsible icon+text buttons
 globs: index.html, assets/**/*
 alwaysApply: false
 ---
@@ -11,76 +11,63 @@ Bruk **tre roller**. Ikke lag nye knappklasser for utseende — bruk variant + f
 ## 1. Velg rolle først
 
 ```
-Er det en filter/fane/tab (velg én av flere)?
-  → JA:  bsk-btn bsk-btn-chip + domene-klasse + is-active
-
-Er det Lagre / Opprett / Slett / Avbryt i modal eller skjema?
-  → JA:  bsk-btn (+ primary / secondary / danger / warning / ghost)
-
-Er det verktøy, navigasjon, tilbake, admin eller liten rediger-ikon?
-  → JA:  portal-btn (+ variant + ev. -sm / -icon-sm)
-
-Er det en tydelig CTA (Ny aktivitet, Ny spiller, Legg til, Registrer)?
-  → JA:  bsk-btn bsk-btn-primary — ingen ekstra visuell klasse
+Filter/fane?     → bsk-btn-chip + is-active
+Modal/handling?  → bsk-btn (+ variant)
+Verktøy/nav?     → portal-btn (+ variant)
+Side-CTA?        → bsk-btn-primary
 ```
 
-## 2. Systemer
+## 2. Ikon + tekst (standard)
+
+Knapp med handling skal ha **ikon + tekst** når det er plass:
+
+```html
+<button class="bsk-btn bsk-btn-primary is-collapsible" title="Ny aktivitet" aria-label="Ny aktivitet">
+  <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+  <span class="bsk-btn-label">Ny aktivitet</span>
+</button>
+
+<button class="portal-btn portal-btn-secondary is-collapsible" title="Rediger" aria-label="Rediger">
+  <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+  <span class="portal-btn-label">Rediger</span>
+</button>
+```
+
+- Tekst i `.bsk-btn-label` / `.portal-btn-label`
+- Ikon med `aria-hidden="true"`
+- `title` + `aria-label` på knappen
+- Legg til `.is-collapsible` når knappen trygt kan vises som kun ikon
+
+## 3. Kollaps til ikon-only
+
+`.is-collapsible` skjuler label visuelt (ikke fra DOM) når:
+- knappens inline-bredde ≤ 9.5rem (`@container`), eller
+- skjerm ≤ 767px (`@media`)
+
+**Ikke** bruk `is-collapsible` på:
+- modal-footer-knapper (full bredde)
+- `bsk-btn-icon` / `portal-btn-icon-sm` (allerede ikon-only)
+- `bsk-btn-chip` (filter)
+
+## 4. Systemer
 
 ### `bsk-btn` — handlinger
 
-| Variant | Bruk |
-|---|---|
-| `bsk-btn-primary` | Hovedhandling / side-CTA |
-| `bsk-btn-secondary` | Avbryt, sekundær |
-| `bsk-btn-danger` | Slett |
-| `bsk-btn-warning` | Varsel, skade |
-| `bsk-btn-ghost` | Diskret lukk (X) |
-| `bsk-btn-icon` | Ikon uten tekst |
-| `bsk-btn-chip` | **Kun** filter/faner |
-
-Alltid: `bsk-btn` + variant. Aktiv filter: legg til `is-active`.
+`bsk-btn-primary` | `secondary` | `danger` | `warning` | `ghost` | `icon` | `chip`
 
 ### `portal-btn` — verktøy
 
-For admin, statistikk, sidebar, tilbake-knapper og små ikonhandlinger.
+For admin, statistikk, sidebar, tilbake. Ikke modal lagre/avbryt.
 
-**Ikke** bruk `portal-btn` for modal lagre/avbryt eller hoved-CTA.
+## 5. Layout vs. utseende
 
-### Chips / faner
-
-- Filter: `bsk-btn bsk-btn-chip` + f.eks. `match-filter-btn` / `roster-status-btn`
-- Segmentfaner: `portal-segment-btn` + `is-active`
-
-## 3. Oppskrifter
-
-```html
-<!-- Modal -->
-<button class="bsk-btn bsk-btn-primary bsk-modal-action-btn">Lagre</button>
-
-<!-- Side-CTA (samme overalt) -->
-<button class="bsk-btn bsk-btn-primary">Ny aktivitet</button>
-<button class="bsk-btn bsk-btn-primary">Legg til</button>
-
-<!-- Filter -->
-<button class="bsk-btn bsk-btn-chip match-filter-btn is-active">Kommende</button>
-
-<!-- Verktøy -->
-<button class="portal-btn portal-btn-secondary portal-btn-sm">Tilbake</button>
-```
-
-## 4. Layout vs. utseende
-
-- **Utseende** kommer kun fra `bsk-btn-*` / `portal-btn-*`
-- **Layout** (margin, min-width, mobil ikon-only) styres via **forelder** i CSS, f.eks. `.calendar-heading-panel .flex.justify-end > .bsk-btn-primary`
-- Ikke lag `calendar-empty-action`, `foo-hero-action-btn` osv. for knapper med samme funksjon
-
-## 5. Mørke kort
-
-På `match-detail-card`: bruk `bsk-btn` — farger tilpasses automatisk. Legacy: `match-bench-action-btn` i enkelte kamp-/benk-seksjoner.
+- **Utseende** = kun variant
+- **Layout** = forelder i CSS
+- Ikke lag `foo-hero-action-btn` for lik funksjon
 
 ## 6. Ikke gjør dette
 
-- Ny visuell knappklasse når variant allerede finnes
-- Egne farger/radius/hover per side for lik funksjon
+- `display: none` på knappetekst — bruk `.is-collapsible` + label-klasse
+- Ny visuell knappklasse per side
+- Knapp uten ikon der ikon finnes i designsystemet
 - Chip-stil på handlinger
-- `portal-btn` + `bsk-btn-primary` på samme knapp

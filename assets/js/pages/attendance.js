@@ -487,9 +487,9 @@ window.updateDailySchedule = function() {
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
-                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="bsk-btn bsk-btn-primary">
-                    <i class="fa-solid fa-calendar-plus"></i>
-                    <span>Legg til</span>
+                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="bsk-btn bsk-btn-primary is-collapsible" title="Legg til" aria-label="Legg til">
+                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                    <span class="bsk-btn-label">Legg til</span>
                 </button>
             </div>`;
         return;

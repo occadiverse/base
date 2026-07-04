@@ -171,9 +171,9 @@
                         </div>
 
                         <div class="flex justify-end">
-                            <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-primary inline-flex" title="Ny aktivitet" aria-label="Ny aktivitet">
-                                <i class="fa-solid fa-calendar-plus"></i>
-                                <span>Ny aktivitet</span>
+                            <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-primary is-collapsible inline-flex" title="Ny aktivitet" aria-label="Ny aktivitet">
+                                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Ny aktivitet</span>
                             </button>
                         </div>
 
@@ -219,9 +219,9 @@
                                 <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
                                 <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
                             </div>
-                            <button type="button" onclick="window.openPlayerModal()" class="bsk-btn bsk-btn-primary inline-flex">
-                                <i class="fa-solid fa-user-plus"></i>
-                                <span>Ny spiller</span>
+                            <button type="button" onclick="window.openPlayerModal()" class="bsk-btn bsk-btn-primary is-collapsible inline-flex" title="Ny spiller" aria-label="Ny spiller">
+                                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Ny spiller</span>
                             </button>
                         </div>
                     </div>
@@ -278,9 +278,9 @@
                             </div>
                             <p class="roster-empty-title">Ingen spillere funnet</p>
                             <p class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
-                            <button type="button" onclick="window.openPlayerModal()" class="bsk-btn bsk-btn-primary">
-                                <i class="fa-solid fa-user-plus"></i>
-                                <span>Registrer spiller</span>
+                            <button type="button" onclick="window.openPlayerModal()" class="bsk-btn bsk-btn-primary is-collapsible" title="Registrer spiller" aria-label="Registrer spiller">
+                                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Registrer spiller</span>
                             </button>
                         </div>
                     </div>
@@ -489,17 +489,17 @@
                                 <h3 class="font-extrabold text-lg text-slate-950">Laginformasjon</h3>
                                 <p class="text-xs text-slate-500">Rediger lagnavn, trenerinfo og beskrivelse for laget denne appen gjelder.</p>
                             </div>
-                            <button id="adminEditTeamBtn" type="button" onclick="window.openAdminTeamEditor()" class="portal-btn portal-btn-primary">
-                                <i class="fa-solid fa-pen-to-square text-bsk-yellow"></i>
-                                Rediger lag
+                            <button id="adminEditTeamBtn" type="button" onclick="window.openAdminTeamEditor()" class="portal-btn portal-btn-primary is-collapsible" title="Rediger lag" aria-label="Rediger lag">
+                                <i class="fa-solid fa-pen-to-square text-bsk-yellow" aria-hidden="true"></i>
+                                <span class="portal-btn-label">Rediger lag</span>
                             </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="admin-teams-list">
                             </div>
                         <div class="pt-4 border-t border-slate-100">
-                            <button type="button" onclick="window.runPrimaryTeamDataMigration(true)" class="portal-btn portal-btn-secondary portal-btn-sm">
-                                <i class="fa-solid fa-arrows-rotate"></i>
-                                Oppdater all data til laget
+                            <button type="button" onclick="window.runPrimaryTeamDataMigration(true)" class="portal-btn portal-btn-secondary portal-btn-sm is-collapsible" title="Oppdater all data til laget" aria-label="Oppdater all data til laget">
+                                <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                                <span class="portal-btn-label">Oppdater all data til laget</span>
                             </button>
                             <p class="text-[11px] text-slate-400 mt-2">Knytter alle spillere, kamper og aktiviteter til lagnavnet over. Kjøres automatisk ved oppstart.</p>
                         </div>
@@ -510,9 +510,9 @@
                             <h3 class="font-extrabold text-lg text-slate-950">Backup</h3>
                             <p class="text-xs text-slate-500">Last ned en JSON-kopi av alle lagrede data i appen.</p>
                         </div>
-                        <button type="button" onclick="window.exportAppBackup()" class="portal-btn portal-btn-secondary">
-                            <i class="fa-solid fa-download"></i>
-                            Last ned backup
+                        <button type="button" onclick="window.exportAppBackup()" class="portal-btn portal-btn-secondary is-collapsible" title="Last ned backup" aria-label="Last ned backup">
+                            <i class="fa-solid fa-download" aria-hidden="true"></i>
+                            <span class="portal-btn-label">Last ned backup</span>
                         </button>
                     </div>
                 </div>

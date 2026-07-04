@@ -498,9 +498,9 @@ window.updateHjemWidget = function() {
                 ? '1 skadet'
                 : `${injuredCount} skadet`;
             injuryButtonHtml = `
-                <button type="button" data-dashboard-action="session-injury" class="bsk-btn bsk-btn-warning dashboard-session-action-btn">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>${escapeDashboardHtml(injuryLabel)}</span>
+                <button type="button" data-dashboard-action="session-injury" class="bsk-btn bsk-btn-warning is-collapsible dashboard-session-action-btn" title="${escapeDashboardHtml(injuryLabel)}" aria-label="${escapeDashboardHtml(injuryLabel)}">
+                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <span class="bsk-btn-label">${escapeDashboardHtml(injuryLabel)}</span>
                 </button>
             `;
         } else {
@@ -533,14 +533,14 @@ window.updateHjemWidget = function() {
                             </div>
                         </div>
                         <div class="dashboard-session-actions">
-                            <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
-                                <i class="fa-solid fa-user-check"></i>
-                                <span>Oppmøte</span>
+                            <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Oppmøte" aria-label="Oppmøte">
+                                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Oppmøte</span>
                             </button>
                             ${isTraining ? `
-                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary dashboard-session-action-btn">
-                                <i class="fa-solid fa-clipboard-list"></i>
-                                <span>Åpne øktside</span>
+                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Åpne øktside" aria-label="Åpne øktside">
+                                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Åpne øktside</span>
                             </button>
                             ` : ''}
                             ${injuryButtonHtml}
