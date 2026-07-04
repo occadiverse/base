@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260704-match-list-add-btn">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260704-match-list-topline-btn">
 </head>
 <body class="flex flex-col md:flex-row min-h-screen text-slate-800">
     <div id="portal-sidebar"></div>
@@ -54,7 +54,15 @@
                                 <i class="fa-regular fa-calendar-days"></i>
                                 <span>Kommende kamper</span>
                             </div>
-                            <div class="match-detail-top-chips" data-match-list-actions>
+                            <div class="match-detail-top-chips">
+                                <button type="button"
+                                        onclick="window.openActivityModal('Kamp')"
+                                        class="bsk-btn bsk-btn-primary match-list-add-btn"
+                                        title="Legg til kamp"
+                                        aria-label="Legg til kamp">
+                                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                    <span>Legg til</span>
+                                </button>
                                 <div class="match-detail-chip">
                                     <i class="fa-solid fa-futbol"></i>
                                     <span id="matchListUpcomingCount">0 kamper</span>
@@ -103,7 +111,15 @@
                             <i class="fa-regular fa-calendar-days"></i>
                             <span>Kamper</span>
                         </div>
-                        <div class="match-detail-top-chips" data-match-list-actions>
+                        <div class="match-detail-top-chips">
+                            <button type="button"
+                                    onclick="window.openActivityModal('Kamp')"
+                                    class="bsk-btn bsk-btn-primary match-list-add-btn"
+                                    title="Legg til kamp"
+                                    aria-label="Legg til kamp">
+                                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                <span>Legg til</span>
+                            </button>
                             <div class="match-detail-chip">
                                 <i class="fa-solid fa-futbol"></i>
                                 <span id="matchListMobileCount">0 kamper</span>

@@ -2588,10 +2588,21 @@
             row-gap: 0.55rem;
         }
         .match-list-page .match-detail-top-chips {
+            align-items: center;
+            display: inline-flex;
+            flex: 0 0 auto;
+            flex-shrink: 0;
+            gap: 0.45rem;
             margin-left: auto;
             max-width: 100%;
             position: relative;
             z-index: 2;
+        }
+        .match-list-page .match-list-add-btn {
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.24);
+            flex-shrink: 0;
+            min-width: 6.5rem;
+            white-space: nowrap;
         }
         .match-list-toolbar {
             align-items: center;
@@ -2776,14 +2787,6 @@
         .match-list-mobile-top .match-detail-top-chips {
             flex: 0 0 auto;
             flex-shrink: 0;
-        }
-        .match-list-add-btn {
-            flex-shrink: 0;
-            min-width: 6.5rem;
-            white-space: nowrap;
-        }
-        .match-list-page .match-list-add-btn {
-            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.24);
         }
         .match-list-mobile-toolbar {
             align-items: center;

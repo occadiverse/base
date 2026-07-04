@@ -143,8 +143,6 @@ function switchTab(tabId, options = {}) {
         renderAdminTeamsList();
     } else if (tabId === 'hjem') {
         window.updateDashboard();
-    } else if (tabId === 'kamper') {
-        if (typeof window.ensureMatchListAddButtons === 'function') window.ensureMatchListAddButtons();
     } else if (tabId === 'taktikk') {
         if (typeof window.setTacticalPhase === 'function') window.setTacticalPhase('fase1');
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
