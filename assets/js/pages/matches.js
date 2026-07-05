@@ -945,9 +945,7 @@ function buildMatchBenchPlayerHtml(match, player) {
                     ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
                     : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
                 ${isOnPitch ? `<span class="match-bench-pitch-overlay"><span class="match-bench-pitch-code">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
-                <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
-                    ${buildMatchGamePlanBidragValueHtml(player, match)}
-                </span>
+                ${buildMatchGamePlanLineupCardOverlayHtml(match, player)}
             </span>
             <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
             ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
