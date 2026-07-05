@@ -1514,8 +1514,8 @@
         #chemistry-lines-layer .samspill-line-core {
             pointer-events: none;
         }
-        .match-detail-lineup-builder:not(.is-show-samspill) .match-game-plan-samspill-summary {
-            display: none;
+        .match-detail-squad-players .match-game-plan-samspill-summary {
+            margin-top: 0.75rem;
         }
         .match-game-plan-samspill-summary {
             background: rgba(255, 255, 255, 0.92);

@@ -1351,9 +1351,17 @@ function buildMatchGamePlanSamspillSummaryHtml(match) {
     `;
 }
 
+function buildMatchGamePlanSamspillSummaryShellHtml() {
+    return `
+        <section class="match-game-plan-samspill-summary" data-samspill-summary hidden aria-label="Samspill-oppsummering">
+            <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
+        </section>
+    `;
+}
+
 function renderMatchGamePlanSamspillSummary(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
-    const summaryEl = builder?.querySelector('[data-samspill-summary]');
+    const summaryEl = document.querySelector('[data-samspill-summary]');
     if (!summaryEl) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
@@ -1722,9 +1730,6 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
             <div class="${getMatchGamePlanLineupBuilderClass(match)}">
                 ${buildMatchGamePlanFormationPickerHtml(match)}
                 ${pitchHtml}
-                <section class="match-game-plan-samspill-summary" data-samspill-summary hidden aria-label="Samspill-oppsummering">
-                    <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
-                </section>
                 ${buildMatchGamePlanStarterFooterHtml(match)}
             </div>
         `;
@@ -2278,6 +2283,7 @@ window.showMatchDetails = function(id) {
                     <div class="match-bench-list match-detail-squad-list">
                         ${benchPlayersHtml}
                     </div>
+                    ${buildMatchGamePlanSamspillSummaryShellHtml()}
                 </div>
                 <aside class="match-detail-squad-lineup" aria-label="11er">
                     ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
@@ -2366,6 +2372,9 @@ window.showMatchDetails = function(id) {
     requestAnimationFrame(() => {
         window.initMatchGamePlanScroller();
         window.syncMatchGamePlanScroller();
+        if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+            window.drawMatchGamePlanChemistryLines(match);
+        }
     });
 };
 
