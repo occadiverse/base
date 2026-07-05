@@ -74,6 +74,8 @@
             // Midtstoppere → keeper, nærmeste bekk, stopperpartner og begge midtbanespillere
             ['VMS', 'HMS'], ['VMS', 'DM'], ['VMS', 'OM'],
             ['HMS', 'DM'], ['HMS', 'OM'],
+            // Midtbane ↔ kant
+            ['OM', 'VK'], ['DM', 'HK'],
             // PM → kant, midtbane og spiss
             ['PM', 'HK'], ['PM', 'DM'], ['PM', 'OM'], ['PM', 'SP'],
             // SP → kant, midtbanespillere og PM
