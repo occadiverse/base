@@ -644,8 +644,11 @@ const matchGamePlanFormations = {
 const matchGamePlanLineupOverlayOptions = [
     { id: 'samspill', label: 'Samspill' },
     { id: 'bidrag', label: 'Bidrag' },
-    { id: 'startBenk', label: 'Start/benk' }
+    { id: 'startBenk', label: 'Start/benk' },
+    { id: 'form', label: 'Form' }
 ];
+
+const matchGamePlanIndividualOverlays = ['bidrag', 'startBenk', 'form'];
 
 // OffC corner diagram. top/left are percentages of the pitch: top moves down, left moves right.
 const matchGamePlanOffCPositions = {
@@ -927,6 +930,37 @@ function buildMatchGamePlanBidragValueHtml(player, match) {
     return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
 }
 
+function getMatchGamePlanFormAsOfDate(match) {
+    if (!match?.date) return undefined;
+    const dateValue = new Date(match.date);
+    return Number.isNaN(dateValue.getTime()) ? undefined : dateValue;
+}
+
+function getMatchGamePlanPlayerForm(player, match) {
+    if (!player?.navn || typeof window.calculatePlayerPerformanceChemistry !== 'function') return 0;
+    return window.calculatePlayerPerformanceChemistry(player.navn, getMatchGamePlanFormAsOfDate(match));
+}
+
+function getMatchGamePlanFormToneClass(score, teamName) {
+    const tone = typeof window.getFormScoreTone === 'function'
+        ? window.getFormScoreTone(score, teamName)
+        : 'none';
+    if (tone === 'green') return 'is-green';
+    if (tone === 'amber') return 'is-amber';
+    if (tone === 'red') return 'is-red';
+    return 'is-muted';
+}
+
+function buildMatchGamePlanFormValueHtml(player, match) {
+    const teamName = match?.matchGroup || player?.spillerLag || '';
+    const formScore = getMatchGamePlanPlayerForm(player, match);
+    const formText = formScore > 0 ? String(formScore) : '-';
+    const formTone = getMatchGamePlanFormToneClass(formScore, teamName);
+    const title = formScore > 0 ? `Form: ${formScore}/100` : 'Form: ingen data';
+
+    return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-form ${formTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(formText)}</span>`;
+}
+
 function buildMatchBenchPlayerHtml(match, player) {
     const jersey = player.drakt ? `#${escapeMatchHtml(player.drakt)}` : '';
     const lastName = getMatchGamePlanPlayerLastName(player);
@@ -1028,14 +1062,15 @@ function buildMatchGamePlanNodeHtml(match, posId, coords) {
 function getMatchGamePlanLineupOverlayState(match) {
     window.matchGamePlanLineupOverlays = window.matchGamePlanLineupOverlays || {};
     if (!match?.id) {
-        return { samspill: false, bidrag: false, startBenk: false };
+        return { samspill: false, bidrag: false, startBenk: false, form: false };
     }
 
     if (!window.matchGamePlanLineupOverlays[match.id]) {
         window.matchGamePlanLineupOverlays[match.id] = {
             samspill: false,
             bidrag: false,
-            startBenk: false
+            startBenk: false,
+            form: false
         };
     }
 
@@ -1044,11 +1079,22 @@ function getMatchGamePlanLineupOverlayState(match) {
         state.samspill = state.kjemi;
         delete state.kjemi;
     }
-    if (state.bidrag && state.startBenk) {
-        state.startBenk = false;
+
+    const activeIndividualOverlays = matchGamePlanIndividualOverlays.filter(key => state[key]);
+    if (activeIndividualOverlays.length > 1) {
+        const keep = activeIndividualOverlays[0];
+        matchGamePlanIndividualOverlays.forEach(key => {
+            state[key] = key === keep;
+        });
     }
 
     return state;
+}
+
+function setActiveMatchGamePlanIndividualOverlay(overlayState, activeKey) {
+    matchGamePlanIndividualOverlays.forEach(key => {
+        overlayState[key] = key === activeKey;
+    });
 }
 
 function isMatchGamePlanSamspillVisible(_builder, overlayState) {
@@ -1061,6 +1107,7 @@ function getMatchGamePlanOverlayStateClasses(match) {
     if (overlayState.samspill) classes.push('is-show-samspill');
     if (overlayState.bidrag) classes.push('is-show-bidrag');
     if (overlayState.startBenk) classes.push('is-show-start-benk');
+    if (overlayState.form) classes.push('is-show-form');
     return classes;
 }
 
@@ -1076,7 +1123,7 @@ function applyMatchGamePlanLineupOverlayClasses(match) {
     ].filter(Boolean);
 
     targets.forEach(element => {
-        element.classList.remove('is-show-samspill', 'is-show-kjemi', 'is-show-bidrag', 'is-show-start-benk');
+        element.classList.remove('is-show-samspill', 'is-show-kjemi', 'is-show-bidrag', 'is-show-start-benk', 'is-show-form');
         overlayClasses.forEach(className => element.classList.add(className));
     });
 }
@@ -1177,6 +1224,7 @@ function buildMatchGamePlanLineupCardOverlayHtml(match, player) {
     return `
         <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
             ${buildMatchGamePlanBidragValueHtml(player, match)}
+            ${buildMatchGamePlanFormValueHtml(player, match)}
             <span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-start-benk">
                 <span class="match-game-plan-lineup-card-overlay-start">${starts}</span><span class="match-game-plan-lineup-card-overlay-sep">/</span><span class="match-game-plan-lineup-card-overlay-bench">${bench}</span>
             </span>
@@ -1891,8 +1939,9 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
     overlayState[overlayKey] = !overlayState[overlayKey];
 
     if (overlayState[overlayKey]) {
-        if (overlayKey === 'bidrag') overlayState.startBenk = false;
-        if (overlayKey === 'startBenk') overlayState.bidrag = false;
+        if (matchGamePlanIndividualOverlays.includes(overlayKey)) {
+            setActiveMatchGamePlanIndividualOverlay(overlayState, overlayKey);
+        }
     }
 
     syncMatchGamePlanLineupOverlayUi(match);
