@@ -559,4 +559,234 @@
             isEmpty: false
         };
     };
+
+    const SAMSPILL_ZONE_DEFINITIONS = {
+        rows: [
+            {
+                id: 'forsvar',
+                label: 'Forsvar',
+                pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB']]
+            },
+            {
+                id: 'midtbane',
+                label: 'Midtbane',
+                pairs: [['DM', 'OM'], ['DM', 'PM'], ['OM', 'PM']]
+            },
+            {
+                id: 'angrep',
+                label: 'Angrep',
+                pairs: [['VK', 'SP'], ['HK', 'SP'], ['SP', 'OM'], ['SP', 'PM']]
+            }
+        ],
+        corridors: [
+            {
+                id: 'venstre',
+                label: 'Venstre',
+                pairs: [['VMS', 'VB'], ['VB', 'VK'], ['OM', 'VK']]
+            },
+            {
+                id: 'sentral',
+                label: 'Sentral',
+                pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['DM', 'OM'], ['DM', 'PM'], ['OM', 'SP'], ['PM', 'SP']]
+            },
+            {
+                id: 'hoyre',
+                label: 'Høyre',
+                pairs: [['HMS', 'HB'], ['HB', 'HK'], ['PM', 'HK']]
+            }
+        ]
+    };
+
+    const ZONE_STATUS_LABELS = {
+        strong: 'Sterk',
+        ok: 'Ok',
+        potential: 'Potensial',
+        review: 'Bør vurderes',
+        unknown: 'Usikker',
+        weak: 'Svak'
+    };
+
+    function resolveZonePair(lineup, posA, posB, options) {
+        const playerA = lineup?.[posA];
+        const playerB = lineup?.[posB];
+        if (!playerA || !playerB) return null;
+
+        const samspill = typeof window.getDuoSamspill === 'function'
+            ? window.getDuoSamspill(playerA, playerB, { ...options, posA, posB })
+            : null;
+        if (!samspill) return null;
+
+        return {
+            posA,
+            posB,
+            status: samspill.status || samspill.tone || 'unknown',
+            score: samspill.score || 0,
+            reason: samspill.reason || samspill.tooltip || ''
+        };
+    }
+
+    function countZoneStatuses(relations) {
+        const counts = { strong: 0, ok: 0, weak: 0, potential: 0, unknown: 0 };
+        relations.forEach(relation => {
+            const status = relation.status || 'unknown';
+            if (Object.prototype.hasOwnProperty.call(counts, status)) counts[status] += 1;
+            else counts.unknown += 1;
+        });
+        return counts;
+    }
+
+    function resolveZoneStatus(relations, expectedCount) {
+        if (!expectedCount) {
+            return 'unknown';
+        }
+
+        if (!relations.length) {
+            return 'unknown';
+        }
+
+        const counts = countZoneStatuses(relations);
+        const resolved = relations.length - counts.unknown;
+
+        if (resolved === 0) {
+            return 'unknown';
+        }
+
+        if (counts.weak >= 2) {
+            return 'weak';
+        }
+
+        if (counts.weak >= 1) {
+            return 'review';
+        }
+
+        if (counts.potential >= Math.max(1, Math.ceil(relations.length / 2)) && counts.strong === 0 && counts.ok === 0) {
+            return 'potential';
+        }
+
+        if (counts.strong >= 2 && counts.weak === 0) {
+            return 'strong';
+        }
+
+        if (counts.strong >= 1 && counts.weak === 0 && counts.potential <= counts.strong) {
+            if (counts.strong + counts.ok >= Math.ceil(resolved * 0.5)) {
+                return counts.strong >= counts.ok ? 'strong' : 'ok';
+            }
+        }
+
+        if (counts.strong + counts.ok >= Math.ceil(resolved * 0.6) && counts.weak === 0) {
+            return counts.strong >= counts.ok ? 'strong' : 'ok';
+        }
+
+        if (counts.potential >= 1 && counts.weak === 0 && counts.strong === 0) {
+            return 'potential';
+        }
+
+        if (counts.unknown >= Math.ceil(relations.length / 2)) {
+            return 'unknown';
+        }
+
+        if (counts.ok >= counts.potential) {
+            return 'ok';
+        }
+
+        return counts.potential > 0 ? 'potential' : 'ok';
+    }
+
+    function formatZonePairLabel(relation) {
+        return `${relation.posA} + ${relation.posB}`;
+    }
+
+    function buildZoneExplanation(zone, status, relations) {
+        const zoneLabel = zone.label.toLowerCase();
+        const weakPairs = relations.filter(relation => relation.status === 'weak');
+        const strongPairs = relations.filter(relation => relation.status === 'strong')
+            .sort((a, b) => b.score - a.score);
+        const potentialPairs = relations.filter(relation => relation.status === 'potential');
+
+        if (!relations.length) {
+            return `Sett spillere i ${zoneLabel} for å vurdere samspillet.`;
+        }
+
+        if (status === 'weak') {
+            const labels = weakPairs.map(formatZonePairLabel);
+            if (labels.length >= 2) {
+                return `${zone.label} har flere svake relasjoner, blant annet ${labels.slice(0, 2).join(' og ')}.`;
+            }
+            return `${zone.label} trekkes ned av ${labels[0] || 'svake relasjoner'}.`;
+        }
+
+        if (status === 'review') {
+            return `Viktig relasjon å følge med på: ${formatZonePairLabel(weakPairs[0])}.`;
+        }
+
+        if (status === 'potential') {
+            if (zone.id === 'midtbane') {
+                return 'Midtbanen har høy kampverdi, men lite historikk sammen.';
+            }
+            if (potentialPairs.length) {
+                return `${zone.label} har potensial i ${formatZonePairLabel(potentialPairs[0])}, men begrenset historikk.`;
+            }
+            return `${zone.label} ser lovende ut individuelt, men med lite felles historikk.`;
+        }
+
+        if (status === 'unknown') {
+            return `For lite data til å vurdere ${zoneLabel} trygt ennå.`;
+        }
+
+        if (status === 'strong') {
+            if (zone.id === 'forsvar') {
+                return 'Forsvarsrekken ser trygg ut med sterkt stopperpar.';
+            }
+            if (zone.id === 'venstre' && strongPairs.some(pair => (
+                (pair.posA === 'VB' && pair.posB === 'VK') || (pair.posA === 'VK' && pair.posB === 'VB')
+            ))) {
+                return 'Venstresiden har sterk relasjon mellom VB + VK.';
+            }
+            if (zone.id === 'hoyre' && strongPairs.length) {
+                return `Høyresiden styrkes av ${formatZonePairLabel(strongPairs[0])}.`;
+            }
+            if (strongPairs.length) {
+                return `${zone.label} styrkes av ${formatZonePairLabel(strongPairs[0])}.`;
+            }
+        }
+
+        if (status === 'ok') {
+            if (zone.id === 'angrep') {
+                return 'Angrepsleddet har jevne relasjoner uten tydelige svake ledd.';
+            }
+            return `${zone.label} ser samlet sett stabil ut.`;
+        }
+
+        return `${zone.label} er ${ZONE_STATUS_LABELS[status] || 'uavklart'} basert på relevante relasjoner.`;
+    }
+
+    function analyzeSamspillZone(zone, lineup, options) {
+        const expectedPairs = zone.pairs || [];
+        const relations = expectedPairs
+            .map(([posA, posB]) => resolveZonePair(lineup, posA, posB, options))
+            .filter(Boolean);
+        const status = resolveZoneStatus(relations, expectedPairs.length);
+
+        return {
+            id: zone.id,
+            label: zone.label,
+            status,
+            statusLabel: ZONE_STATUS_LABELS[status] || 'Usikker',
+            explanation: buildZoneExplanation(zone, status, relations),
+            relations,
+            isEmpty: relations.length === 0
+        };
+    }
+
+    window.buildSamspillZoneAnalysis = function(lineup, options) {
+        if (!lineup || typeof lineup !== 'object') {
+            return { rows: [], corridors: [], isEmpty: true };
+        }
+
+        const rows = SAMSPILL_ZONE_DEFINITIONS.rows.map(zone => analyzeSamspillZone(zone, lineup, options || {}));
+        const corridors = SAMSPILL_ZONE_DEFINITIONS.corridors.map(zone => analyzeSamspillZone(zone, lineup, options || {}));
+        const isEmpty = rows.every(zone => zone.isEmpty) && corridors.every(zone => zone.isEmpty);
+
+        return { rows, corridors, isEmpty };
+    };
 })();

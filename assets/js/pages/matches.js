@@ -1421,6 +1421,63 @@ function buildMatchGamePlanSamspillSummaryHtml(match) {
     `;
 }
 
+function buildMatchGamePlanSamspillAnalysisItemHtml(zone) {
+    return `
+        <li class="match-game-plan-samspill-analysis-item is-${escapeMatchHtml(zone.status)}">
+            <div class="match-game-plan-samspill-analysis-row">
+                <span class="match-game-plan-samspill-analysis-name">${escapeMatchHtml(zone.label)}</span>
+                <span class="match-game-plan-samspill-analysis-status">${escapeMatchHtml(zone.statusLabel)}</span>
+            </div>
+            <p class="match-game-plan-samspill-analysis-text">${escapeMatchHtml(zone.explanation)}</p>
+        </li>
+    `;
+}
+
+function buildMatchGamePlanSamspillAnalysisGroupHtml(title, zones) {
+    if (!zones.length) return '';
+
+    return `
+        <div class="match-game-plan-samspill-analysis-group">
+            <div class="match-game-plan-samspill-analysis-group-title">${escapeMatchHtml(title)}</div>
+            <ul class="match-game-plan-samspill-analysis-list">
+                ${zones.map(zone => buildMatchGamePlanSamspillAnalysisItemHtml(zone)).join('')}
+            </ul>
+        </div>
+    `;
+}
+
+function buildMatchGamePlanSamspillAnalysisHtml(match) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const chemOptions = getMatchGamePlanSamspillFilter(match);
+    const analysis = typeof window.buildSamspillZoneAnalysis === 'function'
+        ? window.buildSamspillZoneAnalysis(lineup, chemOptions)
+        : { rows: [], corridors: [], isEmpty: true };
+
+    if (analysis.isEmpty) {
+        return `
+            <p class="match-game-plan-samspill-analysis-empty">
+                Plasser spillere i 11eren for å se samspillanalyse.
+            </p>
+        `;
+    }
+
+    return `
+        <div class="match-game-plan-samspill-analysis-body">
+            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Rekker', analysis.rows)}
+            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Korridorer', analysis.corridors)}
+        </div>
+    `;
+}
+
+function buildMatchGamePlanSamspillPanelsShellHtml() {
+    return `
+        ${buildMatchGamePlanSamspillSummaryShellHtml()}
+        <section class="match-game-plan-samspill-analysis" data-samspill-analysis hidden aria-label="Samspillanalyse">
+            <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+        </section>
+    `;
+}
+
 function buildMatchGamePlanSamspillSummaryShellHtml() {
     return `
         <section class="match-game-plan-samspill-summary" data-samspill-summary hidden aria-label="Samspill-oppsummering">
@@ -1432,14 +1489,26 @@ function buildMatchGamePlanSamspillSummaryShellHtml() {
 function renderMatchGamePlanSamspillSummary(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
     const summaryEl = document.querySelector('[data-samspill-summary]');
-    if (!summaryEl) return;
-
+    const analysisEl = document.querySelector('[data-samspill-analysis]');
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     const isVisible = isMatchGamePlanSamspillVisible(builder, overlayState);
-    summaryEl.hidden = !isVisible;
-    if (!isVisible) return;
 
-    summaryEl.innerHTML = buildMatchGamePlanSamspillSummaryHtml(match);
+    if (summaryEl) {
+        summaryEl.hidden = !isVisible;
+        if (isVisible) {
+            summaryEl.innerHTML = buildMatchGamePlanSamspillSummaryHtml(match);
+        }
+    }
+
+    if (analysisEl) {
+        analysisEl.hidden = !isVisible;
+        if (isVisible) {
+            analysisEl.innerHTML = `
+                <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+                ${buildMatchGamePlanSamspillAnalysisHtml(match)}
+            `;
+        }
+    }
 }
 
 function buildMatchGamePlanStarterFooterHtml(match) {
@@ -2355,7 +2424,7 @@ window.showMatchDetails = function(id) {
                     <div class="match-bench-list match-detail-squad-list">
                         ${benchPlayersHtml}
                     </div>
-                    ${buildMatchGamePlanSamspillSummaryShellHtml()}
+                    ${buildMatchGamePlanSamspillPanelsShellHtml()}
                 </div>
                 <aside class="match-detail-squad-lineup" aria-label="11er">
                     ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}

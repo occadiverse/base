@@ -1582,6 +1582,124 @@
             line-height: 1.4;
             margin: 0;
         }
+        .match-detail-squad-players .match-game-plan-samspill-analysis {
+            margin-top: 0.75rem;
+        }
+        .match-game-plan-samspill-analysis {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 0.85rem;
+            padding: 0.7rem 0.75rem 0.75rem;
+        }
+        .match-game-plan-samspill-analysis-title {
+            color: #123f73;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            margin: 0 0 0.55rem;
+            text-transform: uppercase;
+        }
+        .match-game-plan-samspill-analysis-body {
+            display: grid;
+            gap: 0.7rem;
+        }
+        .match-game-plan-samspill-analysis-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.38rem;
+        }
+        .match-game-plan-samspill-analysis-group-title {
+            color: rgba(18, 63, 115, 0.62);
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .match-game-plan-samspill-analysis-list {
+            display: grid;
+            gap: 0.42rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .match-game-plan-samspill-analysis-item {
+            background: rgba(248, 250, 252, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 0.68rem;
+            padding: 0.42rem 0.52rem 0.45rem;
+        }
+        .match-game-plan-samspill-analysis-row {
+            align-items: center;
+            display: flex;
+            gap: 0.45rem;
+            justify-content: space-between;
+        }
+        .match-game-plan-samspill-analysis-name {
+            color: #0f172a;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        .match-game-plan-samspill-analysis-status {
+            border-radius: 999px;
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            padding: 0.22rem 0.46rem;
+            white-space: nowrap;
+        }
+        .match-game-plan-samspill-analysis-text {
+            color: #64748b;
+            font-size: 0.66rem;
+            font-weight: 600;
+            line-height: 1.35;
+            margin: 0.28rem 0 0;
+        }
+        .match-game-plan-samspill-analysis-item.is-strong .match-game-plan-samspill-analysis-status {
+            background: rgba(4, 120, 87, 0.12);
+            color: #047857;
+        }
+        .match-game-plan-samspill-analysis-item.is-ok .match-game-plan-samspill-analysis-status {
+            background: rgba(18, 63, 115, 0.1);
+            color: #123f73;
+        }
+        .match-game-plan-samspill-analysis-item.is-potential .match-game-plan-samspill-analysis-status {
+            background: rgba(217, 119, 6, 0.14);
+            color: #b45309;
+        }
+        .match-game-plan-samspill-analysis-item.is-review .match-game-plan-samspill-analysis-status {
+            background: rgba(234, 88, 12, 0.14);
+            color: #c2410c;
+        }
+        .match-game-plan-samspill-analysis-item.is-unknown .match-game-plan-samspill-analysis-status {
+            background: rgba(100, 116, 139, 0.14);
+            color: #64748b;
+        }
+        .match-game-plan-samspill-analysis-item.is-weak .match-game-plan-samspill-analysis-status {
+            background: rgba(220, 38, 38, 0.12);
+            color: #dc2626;
+        }
+        .match-game-plan-samspill-analysis-empty {
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0;
+        }
+        @media (min-width: 1024px) {
+            .match-game-plan-samspill-analysis-body {
+                gap: 0.8rem;
+            }
+            .match-game-plan-samspill-analysis-list {
+                gap: 0.48rem;
+            }
+        }
+        @media (max-width: 1023px) {
+            .match-game-plan-samspill-analysis-text {
+                font-size: 0.64rem;
+            }
+        }
         .samspill-legend {
             align-items: center;
             backdrop-filter: blur(8px);
