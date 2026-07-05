@@ -918,15 +918,11 @@ function getMatchGamePlanPlayerKampbidrag(player, match) {
         : 0;
 }
 
-function buildMatchGamePlanBidragValueHtml(player, match, { compact = false } = {}) {
+function buildMatchGamePlanBidragValueHtml(player, match) {
     const kampbidrag = getMatchGamePlanPlayerKampbidrag(player, match);
     const bidragText = kampbidrag > 0 ? String(kampbidrag) : '-';
     const bidragTone = getMatchGamePlanBidragToneClass(kampbidrag);
     const title = kampbidrag > 0 ? `Kampbidrag: ${kampbidrag}` : 'Kampbidrag: ingen data';
-
-    if (compact) {
-        return `<span class="match-bench-bidrag-chip ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
-    }
 
     return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
 }
@@ -949,9 +945,11 @@ function buildMatchBenchPlayerHtml(match, player) {
                     ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
                     : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
                 ${isOnPitch ? `<span class="match-bench-pitch-overlay"><span class="match-bench-pitch-code">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
+                <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
+                    ${buildMatchGamePlanBidragValueHtml(player, match)}
+                </span>
             </span>
             <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
-            ${buildMatchGamePlanBidragValueHtml(player, match, { compact: true })}
             ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
         </div>
     `;

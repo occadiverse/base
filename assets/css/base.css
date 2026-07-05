@@ -7935,6 +7935,7 @@
         .match-bench-player .match-bench-photo {
             border-width: 0;
             border-radius: 0.56rem 0.56rem 0.16rem 0.16rem;
+            container-type: inline-size;
             flex: 1 1 auto;
             height: auto;
             margin-bottom: 0;
@@ -7959,6 +7960,36 @@
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-pitch-overlay {
             display: flex;
+        }
+        .match-detail-squad-section.is-show-bidrag .match-bench-player.is-on-pitch .match-bench-pitch-overlay {
+            display: none;
+        }
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlays {
+            display: none;
+            inset: 0;
+            pointer-events: none;
+            position: absolute;
+            z-index: 2;
+        }
+        .match-detail-squad-section.is-show-bidrag .match-bench-photo .match-game-plan-lineup-card-overlays {
+            display: block;
+        }
+        .match-detail-squad-section.is-show-bidrag .match-bench-photo .match-game-plan-lineup-card-overlay-bidrag {
+            display: inline-flex !important;
+            top: 50%;
+            visibility: visible;
+        }
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-bidrag {
+            color: #ffffff;
+            font-size: clamp(0.68rem, 36cqw, 0.95rem);
+            letter-spacing: -0.04em;
+            text-shadow:
+                0 1px 2px rgba(2, 10, 22, 1),
+                0 2px 6px rgba(2, 10, 22, 0.95);
+        }
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-bidrag.is-muted {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: clamp(0.62rem, 32cqw, 0.88rem);
         }
         .match-bench-pitch-code {
             color: #ffffff;
@@ -7992,39 +8023,6 @@
             font-weight: 950;
             letter-spacing: 0.06em;
             line-height: 1;
-        }
-        .match-bench-bidrag-chip {
-            align-items: center;
-            background: rgba(18, 63, 115, 0.08);
-            border-radius: 999px;
-            color: #123f73;
-            display: none;
-            font-size: 0.52rem;
-            font-weight: 950;
-            justify-content: center;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            min-width: 1.35rem;
-            padding: 0.08rem 0.28rem;
-        }
-        .match-detail-squad-section.is-show-bidrag .match-bench-bidrag-chip {
-            display: inline-flex;
-        }
-        .match-bench-bidrag-chip.is-high {
-            background: rgba(4, 120, 87, 0.16);
-            color: #047857;
-        }
-        .match-bench-bidrag-chip.is-mid {
-            background: rgba(217, 119, 6, 0.16);
-            color: #b45309;
-        }
-        .match-bench-bidrag-chip.is-low {
-            background: rgba(220, 38, 38, 0.14);
-            color: #dc2626;
-        }
-        .match-bench-bidrag-chip.is-muted {
-            background: rgba(100, 116, 139, 0.12);
-            color: #64748b;
         }
         @media (min-width: 1024px) {
             .match-detail-squad-list .match-bench-row {
