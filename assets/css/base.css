@@ -1680,7 +1680,6 @@
             line-height: 1;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card-overlay-form {
-            color: #ffffff;
             font-size: clamp(0.72rem, 40cqw, 1.15rem);
             letter-spacing: -0.04em;
         }
@@ -1752,13 +1751,22 @@
             color: rgba(255, 255, 255, 0.9);
             font-size: clamp(1rem, 7cqi, 1.55rem);
         }
-        .match-game-plan-lineup-card-overlay-form.is-green {
+        .match-game-plan-lineup-card-overlay-form.is-green,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card-overlay-form.is-green,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form.is-green,
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-green {
             color: #6ee7b7;
         }
-        .match-game-plan-lineup-card-overlay-form.is-amber {
+        .match-game-plan-lineup-card-overlay-form.is-amber,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card-overlay-form.is-amber,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form.is-amber,
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-amber {
             color: #fcd34d;
         }
-        .match-game-plan-lineup-card-overlay-form.is-red {
+        .match-game-plan-lineup-card-overlay-form.is-red,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card-overlay-form.is-red,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form.is-red,
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-red {
             color: #fca5a5;
         }
         .match-game-plan-lineup-card-overlay-start-benk {
@@ -8069,15 +8077,6 @@
             color: rgba(255, 255, 255, 0.92);
             font-size: clamp(0.62rem, 32cqw, 0.88rem);
         }
-        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-green {
-            color: #6ee7b7;
-        }
-        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-amber {
-            color: #fcd34d;
-        }
-        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-red {
-            color: #fca5a5;
-        }
         .match-bench-pitch-code {
             color: #ffffff;
             font-size: 0.92rem;
@@ -8686,7 +8685,6 @@
             display: block;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay,
-        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-sep,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bench {
