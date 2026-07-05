@@ -500,4 +500,62 @@
     window.getDuoChemistry = function(playerA, playerB, options) {
         return window.getDuoSamspill(playerA, playerB, options).score;
     };
+
+    window.buildSamspillSummary = function(pairs) {
+        if (!Array.isArray(pairs) || pairs.length === 0) {
+            return { items: [], totals: {}, totalsText: '', isEmpty: true };
+        }
+
+        const counts = { strong: 0, ok: 0, weak: 0, potential: 0, unknown: 0 };
+        pairs.forEach(pair => {
+            const status = pair.status || 'unknown';
+            if (Object.prototype.hasOwnProperty.call(counts, status)) counts[status] += 1;
+            else counts.unknown += 1;
+        });
+
+        const pairLabel = (pair) => `${pair.posA} + ${pair.posB}`;
+        const byScoreAsc = (a, b) => (a.score - b.score) || ((b.relevance || 0) - (a.relevance || 0));
+        const byScoreDesc = (a, b) => (b.score - a.score) || ((b.relevance || 0) - (a.relevance || 0));
+        const items = [];
+
+        pairs
+            .filter(pair => pair.status === 'weak')
+            .sort(byScoreAsc)
+            .slice(0, 2)
+            .forEach(pair => items.push({ status: 'weak', prefix: 'Bør vurderes', pair: pairLabel(pair) }));
+
+        pairs
+            .filter(pair => pair.status === 'potential')
+            .sort(byScoreDesc)
+            .slice(0, 2)
+            .forEach(pair => items.push({ status: 'potential', prefix: 'Potensial', pair: pairLabel(pair) }));
+
+        pairs
+            .filter(pair => pair.status === 'strong')
+            .sort(byScoreDesc)
+            .slice(0, 2)
+            .forEach(pair => items.push({ status: 'strong', prefix: 'Sterk relasjon', pair: pairLabel(pair) }));
+
+        if (items.length < 4) {
+            pairs
+                .filter(pair => pair.status === 'unknown')
+                .sort(byScoreDesc)
+                .slice(0, 4 - items.length)
+                .forEach(pair => items.push({ status: 'unknown', prefix: 'Usikkert', pair: pairLabel(pair) }));
+        }
+
+        const totalParts = [];
+        if (counts.strong) totalParts.push(`${counts.strong} sterk${counts.strong === 1 ? '' : 'e'}`);
+        if (counts.ok) totalParts.push(`${counts.ok} ok`);
+        if (counts.weak) totalParts.push(`${counts.weak} svak${counts.weak === 1 ? '' : 'e'}`);
+        const unresolved = counts.potential + counts.unknown;
+        if (unresolved) totalParts.push(`${unresolved} uavklart${unresolved === 1 ? '' : 'e'}`);
+
+        return {
+            items: items.slice(0, 4),
+            totals: counts,
+            totalsText: totalParts.length ? `Totalt: ${totalParts.join(', ')}` : '',
+            isEmpty: false
+        };
+    };
 })();

@@ -1283,6 +1283,87 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     `;
 }
 
+function collectMatchGamePlanSamspillPairs(match) {
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const useFormationConnections = typeof window.hasMatchGamePlanSamspillConnections === 'function'
+        && window.hasMatchGamePlanSamspillConnections(formationId);
+    const connections = typeof window.getMatchGamePlanSamspillConnections === 'function'
+        ? window.getMatchGamePlanSamspillConnections(formationId)
+        : [];
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const chemOptions = getMatchGamePlanChemistryFilter(match);
+
+    return connections.map(([posA, posB]) => {
+        const playerA = lineup[posA];
+        const playerB = lineup[posB];
+        if (!playerA || !playerB) return null;
+
+        const samspill = typeof window.getDuoSamspill === 'function'
+            ? window.getDuoSamspill(playerA, playerB, {
+                ...chemOptions,
+                posA,
+                posB
+            })
+            : null;
+        if (!samspill || (!samspill.shouldDraw && !useFormationConnections)) return null;
+
+        return {
+            posA,
+            posB,
+            status: samspill.status || samspill.tone,
+            score: samspill.score,
+            relevance: samspill.positionalRelevance,
+            reason: samspill.reason || samspill.tooltip
+        };
+    }).filter(Boolean);
+}
+
+function buildMatchGamePlanSamspillSummaryHtml(match) {
+    const pairs = collectMatchGamePlanSamspillPairs(match);
+    const summary = typeof window.buildSamspillSummary === 'function'
+        ? window.buildSamspillSummary(pairs)
+        : { items: [], totalsText: '', isEmpty: true };
+
+    if (summary.isEmpty) {
+        return `
+            <p class="match-game-plan-samspill-summary-empty">
+                Plasser spillere i 11eren for å se samspill-oppsummering.
+            </p>
+        `;
+    }
+
+    const listItems = summary.items.map(item => `
+        <li class="match-game-plan-samspill-summary-item is-${escapeMatchHtml(item.status)}">
+            <span class="match-game-plan-samspill-summary-label">${escapeMatchHtml(item.prefix)}:</span>
+            <span class="match-game-plan-samspill-summary-pair">${escapeMatchHtml(item.pair)}</span>
+        </li>
+    `).join('');
+
+    const totalsHtml = summary.totalsText
+        ? `<li class="match-game-plan-samspill-summary-item is-total">${escapeMatchHtml(summary.totalsText)}</li>`
+        : '';
+
+    return `
+        <ul class="match-game-plan-samspill-summary-list">
+            ${listItems}
+            ${totalsHtml}
+        </ul>
+    `;
+}
+
+function renderMatchGamePlanSamspillSummary(match) {
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    const summaryEl = builder?.querySelector('[data-samspill-summary]');
+    if (!summaryEl) return;
+
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    const isVisible = isMatchGamePlanSamspillVisible(builder, overlayState);
+    summaryEl.hidden = !isVisible;
+    if (!isVisible) return;
+
+    summaryEl.innerHTML = buildMatchGamePlanSamspillSummaryHtml(match);
+}
+
 function buildMatchGamePlanStarterFooterHtml(match) {
     return `
         <div class="match-game-plan-lineup-footer">
@@ -1641,6 +1722,9 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
             <div class="${getMatchGamePlanLineupBuilderClass(match)}">
                 ${buildMatchGamePlanFormationPickerHtml(match)}
                 ${pitchHtml}
+                <section class="match-game-plan-samspill-summary" data-samspill-summary hidden aria-label="Samspill-oppsummering">
+                    <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
+                </section>
                 ${buildMatchGamePlanStarterFooterHtml(match)}
             </div>
         `;
@@ -1742,6 +1826,8 @@ function syncMatchGamePlanLineupOverlayUi(match) {
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
+
+    renderMatchGamePlanSamspillSummary(match);
 }
 
 function renderMatchGamePlanStarter11Page(match) {
@@ -1791,51 +1877,39 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
 window.drawMatchGamePlanChemistryLines = function(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
     const svg = builder?.querySelector('.match-game-plan-chemistry-lines');
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    const samspillVisible = isMatchGamePlanSamspillVisible(builder, overlayState);
+
+    renderMatchGamePlanSamspillSummary(match);
     if (!svg) return;
 
     svg.innerHTML = '';
-    const overlayState = getMatchGamePlanLineupOverlayState(match);
-    if (!isMatchGamePlanSamspillVisible(builder, overlayState)) return;
+    if (!samspillVisible) return;
 
     const pitch = builder.querySelector('.match-game-plan-pitch');
     if (!pitch) return;
 
-    const formationId = getMatchGamePlanDraftFormation(match);
-    const useFormationConnections = typeof window.hasMatchGamePlanSamspillConnections === 'function'
-        && window.hasMatchGamePlanSamspillConnections(formationId);
-    const connections = typeof window.getMatchGamePlanSamspillConnections === 'function'
-        ? window.getMatchGamePlanSamspillConnections(formationId)
-        : [];
-    const lineup = getMatchGamePlanDraftLineup(match);
-    const chemOptions = getMatchGamePlanChemistryFilter(match);
-    const pitchRect = pitch.getBoundingClientRect();
-
-    if (!pitchRect.width || !pitchRect.height) return;
-
-    const pairResults = connections.map(([posA, posB]) => {
-        const playerA = lineup[posA];
-        const playerB = lineup[posB];
-        if (!playerA || !playerB) return null;
-
-        const cardA = builder.querySelector(`[data-game-plan-node="${posA}"]`);
-        const cardB = builder.querySelector(`[data-game-plan-node="${posB}"]`);
+    const pairResults = collectMatchGamePlanSamspillPairs(match).map(pair => {
+        const cardA = builder.querySelector(`[data-game-plan-node="${pair.posA}"]`);
+        const cardB = builder.querySelector(`[data-game-plan-node="${pair.posB}"]`);
         if (!cardA || !cardB) return null;
 
-        const samspill = typeof window.getDuoSamspill === 'function'
-            ? window.getDuoSamspill(playerA, playerB, {
-                ...chemOptions,
-                posA,
-                posB
-            })
-            : null;
-        if (!samspill || (!samspill.shouldDraw && !useFormationConnections)) return null;
+        const pitchRect = pitch.getBoundingClientRect();
+        if (!pitchRect.width || !pitchRect.height) return null;
 
         const rectA = cardA.getBoundingClientRect();
         const rectB = cardB.getBoundingClientRect();
 
         return {
-            samspill,
-            relevance: samspill.positionalRelevance,
+            samspill: {
+                status: pair.status,
+                tone: pair.status,
+                score: pair.score,
+                reason: pair.reason,
+                tooltip: pair.reason,
+                positionalRelevance: pair.relevance
+            },
+            relevance: pair.relevance,
             coords: {
                 x1: ((rectA.left + rectA.width / 2 - pitchRect.left) / pitchRect.width) * 100,
                 y1: ((rectA.top + rectA.height / 2 - pitchRect.top) / pitchRect.height) * 100,
@@ -1845,13 +1919,17 @@ window.drawMatchGamePlanChemistryLines = function(match) {
         };
     }).filter(Boolean);
 
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const useFormationConnections = typeof window.hasMatchGamePlanSamspillConnections === 'function'
+        && window.hasMatchGamePlanSamspillConnections(formationId);
+
     pairResults
         .sort((a, b) => b.relevance - a.relevance)
         .slice(0, useFormationConnections ? pairResults.length : 14)
         .forEach(entry => {
             if (typeof window.appendSamspillLine !== 'function') return;
 
-            const line = window.appendSamspillLine(svg, entry.coords, entry.samspill, {
+            window.appendSamspillLine(svg, entry.coords, entry.samspill, {
                 context: 'match-plan'
             });
         });
