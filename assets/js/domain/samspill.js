@@ -446,22 +446,53 @@
         const unit = opts.coordUnit || '';
         const style = window.getSamspillLineStyle(samspillResult, opts);
         const status = samspillResult?.status || samspillResult?.tone || style.tone || 'unknown';
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', String(coords.x1) + unit);
-        line.setAttribute('y1', String(coords.y1) + unit);
-        line.setAttribute('x2', String(coords.x2) + unit);
-        line.setAttribute('y2', String(coords.y2) + unit);
-        line.setAttribute('stroke', style.strokeColor);
-        line.setAttribute('stroke-width', String(style.strokeWidth));
-        line.setAttribute('stroke-linecap', 'round');
-        line.setAttribute('opacity', String(style.opacity));
-        if (style.strokeDasharray) line.setAttribute('stroke-dasharray', style.strokeDasharray);
-        if (style.tooltip) {
+        const tooltipText = style.tooltip || '';
+        const isMatchPlan = opts.context === 'match-plan';
+
+        function createLineElement(lineStyle, className, interactive) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', String(coords.x1) + unit);
+            line.setAttribute('y1', String(coords.y1) + unit);
+            line.setAttribute('x2', String(coords.x2) + unit);
+            line.setAttribute('y2', String(coords.y2) + unit);
+            line.setAttribute('stroke', lineStyle.strokeColor);
+            line.setAttribute('stroke-width', String(lineStyle.strokeWidth));
+            line.setAttribute('stroke-linecap', 'round');
+            line.setAttribute('opacity', String(lineStyle.opacity));
+            if (lineStyle.strokeDasharray) line.setAttribute('stroke-dasharray', lineStyle.strokeDasharray);
+            line.setAttribute('class', className);
+            line.setAttribute('pointer-events', interactive ? 'stroke' : 'none');
+            if (isMatchPlan) line.setAttribute('vector-effect', 'non-scaling-stroke');
+            return line;
+        }
+
+        if (tooltipText) {
+            const hitLine = createLineElement(
+                {
+                    strokeColor: 'transparent',
+                    strokeWidth: Math.max(style.strokeWidth + 10, 12),
+                    opacity: 1,
+                    strokeDasharray: null
+                },
+                'samspill-line samspill-line-hit',
+                true
+            );
             const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-            title.textContent = style.tooltip;
+            title.textContent = tooltipText;
+            hitLine.appendChild(title);
+            svg.appendChild(hitLine);
+        }
+
+        const line = createLineElement(
+            style,
+            `samspill-line samspill-line-core is-tone-${status} transition-all duration-500`,
+            !tooltipText
+        );
+        if (tooltipText && !line.querySelector('title')) {
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            title.textContent = tooltipText;
             line.appendChild(title);
         }
-        line.setAttribute('class', `samspill-line is-tone-${status} transition-all duration-500`);
         svg.appendChild(line);
         return line;
     };

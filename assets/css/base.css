@@ -1499,9 +1499,20 @@
             width: 100%;
             z-index: 1;
         }
-        .match-game-plan-chemistry-lines .samspill-line,
-        #chemistry-lines-layer .samspill-line {
+        .match-game-plan-chemistry-lines .samspill-line-hit,
+        .match-game-plan-chemistry-lines .samspill-line-core,
+        #chemistry-lines-layer .samspill-line-hit,
+        #chemistry-lines-layer .samspill-line-core {
             shape-rendering: geometricPrecision;
+        }
+        .match-game-plan-chemistry-lines .samspill-line-hit,
+        #chemistry-lines-layer .samspill-line-hit {
+            cursor: help;
+            pointer-events: stroke;
+        }
+        .match-game-plan-chemistry-lines .samspill-line-core,
+        #chemistry-lines-layer .samspill-line-core {
+            pointer-events: none;
         }
         .samspill-legend {
             align-items: center;
