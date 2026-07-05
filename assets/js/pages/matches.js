@@ -911,6 +911,26 @@ function getMatchGamePlanPlayerPitchPosId(match, player) {
     return entry ? entry[0] : '';
 }
 
+function getMatchGamePlanPlayerKampbidrag(player, match) {
+    const teamName = match?.matchGroup || player?.spillerLag || '';
+    return typeof window.getPlayerKampbidragSnitt === 'function'
+        ? window.getPlayerKampbidragSnitt(player, teamName)
+        : 0;
+}
+
+function buildMatchGamePlanBidragValueHtml(player, match, { compact = false } = {}) {
+    const kampbidrag = getMatchGamePlanPlayerKampbidrag(player, match);
+    const bidragText = kampbidrag > 0 ? String(kampbidrag) : '-';
+    const bidragTone = getMatchGamePlanBidragToneClass(kampbidrag);
+    const title = kampbidrag > 0 ? `Kampbidrag: ${kampbidrag}` : 'Kampbidrag: ingen data';
+
+    if (compact) {
+        return `<span class="match-bench-bidrag-chip ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
+    }
+
+    return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
+}
+
 function buildMatchBenchPlayerHtml(match, player) {
     const jersey = player.drakt ? `#${escapeMatchHtml(player.drakt)}` : '';
     const lastName = getMatchGamePlanPlayerLastName(player);
@@ -931,6 +951,7 @@ function buildMatchBenchPlayerHtml(match, player) {
                 ${isOnPitch ? `<span class="match-bench-pitch-overlay"><span class="match-bench-pitch-code">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
             </span>
             <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
+            ${buildMatchGamePlanBidragValueHtml(player, match, { compact: true })}
             ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
         </div>
     `;
@@ -1034,24 +1055,34 @@ function getMatchGamePlanLineupOverlayState(match) {
     return state;
 }
 
-function isMatchGamePlanSamspillVisible(builder, overlayState) {
-    return !!(
-        overlayState?.samspill ||
-        overlayState?.kjemi ||
-        builder?.classList.contains('is-show-samspill') ||
-        builder?.classList.contains('is-show-kjemi')
-    );
+function isMatchGamePlanSamspillVisible(_builder, overlayState) {
+    return !!(overlayState?.samspill);
+}
+
+function getMatchGamePlanOverlayStateClasses(match) {
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    const classes = [];
+    if (overlayState.samspill) classes.push('is-show-samspill');
+    if (overlayState.bidrag) classes.push('is-show-bidrag');
+    if (overlayState.startBenk) classes.push('is-show-start-benk');
+    return classes;
 }
 
 function getMatchGamePlanLineupBuilderClass(match) {
-    const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const showSamspill = !!(overlayState.samspill || overlayState.kjemi);
-    return [
-        'match-detail-lineup-builder',
-        showSamspill ? 'is-show-samspill' : '',
-        overlayState.bidrag ? 'is-show-bidrag' : '',
-        overlayState.startBenk ? 'is-show-start-benk' : ''
-    ].filter(Boolean).join(' ');
+    return ['match-detail-lineup-builder', ...getMatchGamePlanOverlayStateClasses(match)].join(' ');
+}
+
+function applyMatchGamePlanLineupOverlayClasses(match) {
+    const overlayClasses = getMatchGamePlanOverlayStateClasses(match);
+    const targets = [
+        document.querySelector('.match-detail-lineup-builder'),
+        document.querySelector('.match-detail-squad-section')
+    ].filter(Boolean);
+
+    targets.forEach(element => {
+        element.classList.remove('is-show-samspill', 'is-show-kjemi', 'is-show-bidrag', 'is-show-start-benk');
+        overlayClasses.forEach(className => element.classList.add(className));
+    });
 }
 
 function isMatchPlayedForStartBenchStats(match) {
@@ -1134,7 +1165,7 @@ function getMatchGamePlanBidragToneClass(value) {
     return 'is-low';
 }
 
-function getMatchGamePlanChemistryFilter(match) {
+function getMatchGamePlanSamspillFilter(match) {
     if (match?.matchGroup) {
         return { teamName: match.matchGroup, historicalOnly: true };
     }
@@ -1145,16 +1176,11 @@ function buildMatchGamePlanLineupCardOverlayHtml(match, player) {
     if (!player) return '';
 
     const teamName = match?.matchGroup || player.spillerLag || '';
-    const kampbidrag = typeof window.getPlayerKampbidragSnitt === 'function'
-        ? window.getPlayerKampbidragSnitt(player, teamName)
-        : 0;
-    const bidragText = kampbidrag > 0 ? String(kampbidrag) : '-';
-    const bidragTone = getMatchGamePlanBidragToneClass(kampbidrag);
     const { starts, bench } = getPlayerStartBenchCounts(player, teamName, match);
 
     return `
         <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
-            <span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}">${escapeMatchHtml(bidragText)}</span>
+            ${buildMatchGamePlanBidragValueHtml(player, match)}
             <span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-start-benk">
                 <span class="match-game-plan-lineup-card-overlay-start">${starts}</span><span class="match-game-plan-lineup-card-overlay-sep">/</span><span class="match-game-plan-lineup-card-overlay-bench">${bench}</span>
             </span>
@@ -1291,7 +1317,7 @@ function collectMatchGamePlanSamspillPairs(match) {
         ? window.getMatchGamePlanSamspillConnections(formationId)
         : [];
     const lineup = getMatchGamePlanDraftLineup(match);
-    const chemOptions = getMatchGamePlanChemistryFilter(match);
+    const chemOptions = getMatchGamePlanSamspillFilter(match);
 
     return connections.map(([posA, posB]) => {
         const playerA = lineup[posA];
@@ -1816,14 +1842,15 @@ function renderMatchGamePlanBenchPage(match) {
 }
 
 function syncMatchGamePlanLineupOverlayUi(match) {
+    applyMatchGamePlanLineupOverlayClasses(match);
+
     const builder = document.querySelector('.match-detail-lineup-builder');
-    if (!builder) return;
+    if (!builder) {
+        renderMatchGamePlanSamspillSummary(match);
+        return;
+    }
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    builder.classList.toggle('is-show-samspill', !!(overlayState.samspill || overlayState.kjemi));
-    builder.classList.remove('is-show-kjemi');
-    builder.classList.toggle('is-show-bidrag', !!overlayState.bidrag);
-    builder.classList.toggle('is-show-start-benk', !!overlayState.startBenk);
 
     builder.querySelectorAll('[data-lineup-overlay]').forEach(button => {
         const overlayKey = button.dataset.lineupOverlay;
@@ -2272,7 +2299,7 @@ window.showMatchDetails = function(id) {
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadHtml = `
-        <div class="match-detail-squad-section relative z-10">
+        <div class="match-detail-squad-section relative z-10 ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
             <div class="match-detail-section-divider" aria-label="Kamptropp">
                 <span class="match-detail-section-title">Kamptropp</span>
                 <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
@@ -2372,6 +2399,7 @@ window.showMatchDetails = function(id) {
     requestAnimationFrame(() => {
         window.initMatchGamePlanScroller();
         window.syncMatchGamePlanScroller();
+        syncMatchGamePlanLineupOverlayUi(match);
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
