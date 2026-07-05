@@ -8681,10 +8681,12 @@
             z-index: 10;
         }
         .match-detail-lineup-builder.is-show-bidrag .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
-        .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays {
+        .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
+        .match-detail-lineup-builder.is-show-form .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays {
             display: block;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-sep,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bench {
@@ -8708,6 +8710,14 @@
             letter-spacing: -0.04em;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag.is-muted {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: clamp(0.66rem, 36cqw, 1rem);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form {
+            font-size: clamp(0.72rem, 40cqw, 1.15rem);
+            letter-spacing: -0.04em;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form.is-muted {
             color: rgba(255, 255, 255, 0.92);
             font-size: clamp(0.66rem, 36cqw, 1rem);
         }
