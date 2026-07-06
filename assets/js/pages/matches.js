@@ -1490,32 +1490,91 @@ function findBenchPlayerElementMatch(match, benchEl) {
     return null;
 }
 
+const MATCH_GAME_PLAN_ZONE_DIM_FILTER = 'brightness(0.48) saturate(0.9)';
+
+function resetMatchGamePlanSamspillZoneFocusVisualTarget(element) {
+    element.querySelectorAll('.match-game-plan-lineup-photo, .match-bench-photo').forEach(photo => {
+        photo.style.removeProperty('filter');
+        photo.querySelectorAll('img, i').forEach(node => {
+            node.style.removeProperty('filter');
+            node.style.removeProperty('opacity');
+        });
+    });
+    element.querySelectorAll('.match-game-plan-lineup-card-overlays').forEach(overlays => {
+        overlays.style.removeProperty('display');
+    });
+}
+
+function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, showStats) {
+    const photo = element.querySelector('.match-game-plan-lineup-photo, .match-bench-photo');
+    const overlays = element.querySelector('.match-game-plan-lineup-card-overlays');
+
+    if (!zoneState) {
+        resetMatchGamePlanSamspillZoneFocusVisualTarget(element);
+        return;
+    }
+
+    if (zoneState === 'in') {
+        if (photo) {
+            photo.style.removeProperty('filter');
+            photo.querySelectorAll('img, i').forEach(node => {
+                node.style.removeProperty('filter');
+                node.style.removeProperty('opacity');
+            });
+        }
+        if (overlays) overlays.style.display = 'none';
+        return;
+    }
+
+    if (photo) {
+        photo.style.filter = MATCH_GAME_PLAN_ZONE_DIM_FILTER;
+        photo.querySelectorAll('img').forEach(img => {
+            img.style.filter = MATCH_GAME_PLAN_ZONE_DIM_FILTER;
+        });
+    }
+    if (overlays) overlays.style.display = showStats ? 'block' : 'none';
+}
+
 function applyMatchGamePlanSamspillZoneFocus(match) {
     const zoneId = match ? getMatchGamePlanSamspillZoneFocus(match) : null;
-    const targets = [
-        document.querySelector('.match-detail-lineup-builder'),
-        document.querySelector('.match-detail-squad-section')
-    ].filter(Boolean);
+    const squadSection = document.querySelector('.match-detail-squad-section');
+    if (!squadSection) return;
 
-    targets.forEach(element => {
-        element.classList.toggle('is-samspill-zone-focus', Boolean(zoneId));
-        if (zoneId) element.dataset.samspillZoneFocus = zoneId;
-        else delete element.dataset.samspillZoneFocus;
-    });
+    const overlayState = match ? getMatchGamePlanLineupOverlayState(match) : {};
+    const showStats = Boolean(overlayState.bidrag || overlayState.startBenk || overlayState.form);
 
-    document.querySelectorAll('.match-detail-lineup-pitch-wrap [data-game-plan-node]').forEach(card => {
+    squadSection.classList.toggle('is-samspill-zone-focus', Boolean(zoneId));
+    if (zoneId) squadSection.dataset.samspillZoneFocus = zoneId;
+    else delete squadSection.dataset.samspillZoneFocus;
+
+    const lineupBuilder = squadSection.querySelector('.match-detail-lineup-builder');
+    if (lineupBuilder) {
+        lineupBuilder.classList.toggle('is-samspill-zone-focus', Boolean(zoneId));
+        if (zoneId) lineupBuilder.dataset.samspillZoneFocus = zoneId;
+        else delete lineupBuilder.dataset.samspillZoneFocus;
+    }
+
+    squadSection.querySelectorAll('.match-detail-lineup-pitch-wrap [data-game-plan-node]').forEach(card => {
         const posId = card.dataset.gamePlanNode;
         const isFilled = card.classList.contains('is-filled');
         const inZone = Boolean(zoneId && isFilled && isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId));
+        const zoneState = zoneId && isFilled ? (inZone ? 'in' : 'out') : '';
         card.classList.toggle('is-samspill-zone-clear', inZone);
-        card.classList.remove('is-samspill-zone-dimmed');
+        card.classList.toggle('is-samspill-zone-out', zoneState === 'out');
+        if (zoneState) card.dataset.samspillZoneState = zoneState;
+        else delete card.dataset.samspillZoneState;
+        applyMatchGamePlanSamspillZoneFocusVisualTarget(card, zoneState, showStats);
     });
 
-    document.querySelectorAll('.match-bench-player').forEach(benchPlayer => {
+    squadSection.querySelectorAll('.match-bench-player').forEach(benchPlayer => {
         const player = match ? findBenchPlayerElementMatch(match, benchPlayer) : null;
         const inZone = Boolean(zoneId && player && isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId));
+        const zoneState = zoneId && player ? (inZone ? 'in' : 'out') : '';
         benchPlayer.classList.toggle('is-samspill-zone-clear', inZone);
-        benchPlayer.classList.remove('is-samspill-zone-dimmed');
+        benchPlayer.classList.toggle('is-samspill-zone-out', zoneState === 'out');
+        if (zoneState) benchPlayer.dataset.samspillZoneState = zoneState;
+        else delete benchPlayer.dataset.samspillZoneState;
+        applyMatchGamePlanSamspillZoneFocusVisualTarget(benchPlayer, zoneState, showStats);
     });
 }
 
@@ -1532,6 +1591,7 @@ function ensureMatchGamePlanSamspillAnalysisEventsBound() {
 
         setMatchGamePlanSamspillZoneFocus(match, item.dataset.samspillZoneId);
         renderMatchGamePlanSamspillSummary(match);
+        requestAnimationFrame(() => applyMatchGamePlanSamspillZoneFocus(match));
     });
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -1545,6 +1605,7 @@ function ensureMatchGamePlanSamspillAnalysisEventsBound() {
 
         setMatchGamePlanSamspillZoneFocus(match, item.dataset.samspillZoneId);
         renderMatchGamePlanSamspillSummary(match);
+        requestAnimationFrame(() => applyMatchGamePlanSamspillZoneFocus(match));
     });
 }
 
