@@ -1419,9 +1419,9 @@ const matchGamePlanSamspillZonePositions = {
     forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
     midtbane: ['DM', 'OM', 'PM'],
     angrep: ['VK', 'SP', 'HK'],
-    venstre: ['VMS', 'VB', 'VK', 'OM'],
-    sentral: ['GK', 'VMS', 'HMS', 'DM', 'OM', 'PM', 'SP'],
-    hoyre: ['HMS', 'HB', 'HK', 'PM']
+    venstre: ['VB', 'VMS', 'OM', 'SP', 'VK'],
+    sentral: ['VMS', 'HMS', 'OM', 'DM', 'SP', 'PM'],
+    hoyre: ['HB', 'HMS', 'HK', 'PM', 'DM']
 };
 
 const matchGamePlanSamspillZoneBenchCategories = {
