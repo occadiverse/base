@@ -439,13 +439,14 @@
         };
     };
 
-    function getMatchPlanSamspillLabelMetrics(label, pitchWidthPx) {
+    function getMatchPlanSamspillLabelMetrics(label, pitchWidthPx, cardWidthPx) {
         const safePitchWidth = pitchWidthPx > 0 ? pitchWidthPx : 400;
-        const fontPx = Math.min(18.4, Math.max(11.5, safePitchWidth * 0.066));
+        const safeCardWidth = cardWidthPx > 0 ? cardWidthPx : safePitchWidth * 0.165;
+        const fontPx = Math.min(18.4, Math.max(11.5, safeCardWidth * 0.4));
         const fontVb = (fontPx / safePitchWidth) * 100;
-        const padVb = fontVb * 0.34;
-        const widthVb = Math.max(fontVb * 1.75, label.length * fontVb * 0.62 + padVb * 2);
-        const heightVb = fontVb * 1.32;
+        const padVb = fontVb * 0.26;
+        const widthVb = Math.max(fontVb * 1.55, label.length * fontVb * 0.58 + padVb * 2);
+        const heightVb = fontVb * 1.12;
 
         return {
             fontVb,
@@ -455,7 +456,7 @@
         };
     }
 
-    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, pitchWidthPx) {
+    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, pitchWidthPx, cardWidthPx) {
         const midX = (coords.x1 + coords.x2) / 2;
         const midY = (coords.y1 + coords.y2) / 2;
         const label = score > 0 ? String(score) : '–';
@@ -466,7 +467,7 @@
         labelGroup.setAttribute('transform', `translate(${midX}${unit}, ${midY}${unit})`);
 
         const metrics = isMatchPlan
-            ? getMatchPlanSamspillLabelMetrics(label, pitchWidthPx)
+            ? getMatchPlanSamspillLabelMetrics(label, pitchWidthPx, cardWidthPx)
             : {
                 fontVb: null,
                 widthVb: Math.max(20, label.length * 4.8 + 8),
@@ -528,7 +529,16 @@
         group.appendChild(line);
 
         if (opts.showScoreLabel !== false) {
-            appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, opts.pitchWidthPx);
+            appendSamspillLineScoreLabel(
+                group,
+                coords,
+                score,
+                unit,
+                status,
+                isMatchPlan,
+                opts.pitchWidthPx,
+                opts.cardWidthPx
+            );
         }
 
         svg.appendChild(group);

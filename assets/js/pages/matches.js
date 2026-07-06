@@ -2158,6 +2158,10 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     const pitchRect = pitch.getBoundingClientRect();
     if (!pitchRect.width || !pitchRect.height) return;
 
+    const sampleCard = builder.querySelector('.match-detail-lineup-pitch-wrap [data-game-plan-node].is-filled')
+        || builder.querySelector('[data-game-plan-node]');
+    const cardWidthPx = sampleCard?.getBoundingClientRect().width || 0;
+
     const pairResults = collectMatchGamePlanSamspillPairs(match).map(pair => {
         const cardA = builder.querySelector(`[data-game-plan-node="${pair.posA}"]`);
         const cardB = builder.querySelector(`[data-game-plan-node="${pair.posB}"]`);
@@ -2197,7 +2201,8 @@ window.drawMatchGamePlanChemistryLines = function(match) {
 
             window.appendSamspillLine(svg, entry.coords, entry.samspill, {
                 context: 'match-plan',
-                pitchWidthPx: pitchRect.width
+                pitchWidthPx: pitchRect.width,
+                cardWidthPx
             });
         });
 };
