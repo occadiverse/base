@@ -1930,11 +1930,6 @@
             display: inline-flex !important;
             visibility: visible;
         }
-        .match-detail-squad-section.is-show-start-benk .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk {
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
         .match-game-plan-lineup-card-overlay-bidrag {
             color: #ffffff;
             font-size: clamp(1.1rem, 8cqi, 1.85rem);
@@ -8279,16 +8274,22 @@
             font-size: clamp(0.66rem, 36cqw, 1rem);
         }
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk {
+            bottom: clamp(0.12rem, 8cqw, 0.26rem);
             color: #ffffff;
             font-size: clamp(0.68rem, 38cqw, 1.05rem);
             font-weight: 950;
             gap: 0.08rem;
+            left: clamp(0.1rem, 7cqw, 0.22rem);
             letter-spacing: 0.01em;
             line-height: 1;
+            right: auto;
             text-shadow:
                 0 1px 2px rgba(2, 10, 22, 1),
                 0 2px 6px rgba(2, 10, 22, 0.95);
+            top: auto;
+            transform: none;
             -webkit-text-stroke: 0.04em rgba(2, 10, 22, 0.35);
+            z-index: 4;
         }
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-start,
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-sep,
@@ -8995,10 +8996,12 @@
             transform: none;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start-benk {
-            left: 50%;
+            bottom: clamp(0.12rem, 8cqw, 0.26rem);
+            left: clamp(0.1rem, 7cqw, 0.22rem);
             position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            right: auto;
+            top: auto;
+            transform: none;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start,
