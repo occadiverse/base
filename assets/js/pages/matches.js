@@ -1473,6 +1473,23 @@ function clearMatchGamePlanSamspillZoneFocus(match) {
     applyMatchGamePlanSamspillZoneFocus(match);
 }
 
+function findBenchPlayerElementMatch(match, benchEl) {
+    const attendingPlayers = getMatchDetailAttendingPlayers(match);
+    const playerId = benchEl.dataset.playerId;
+    if (playerId) {
+        const byId = attendingPlayers.find(player => player.id === playerId);
+        if (byId) return byId;
+    }
+
+    const pitchPos = benchEl.dataset.pitchPos;
+    if (pitchPos) {
+        const lineupPlayer = getMatchGamePlanDraftLineup(match)[pitchPos];
+        if (lineupPlayer) return lineupPlayer;
+    }
+
+    return null;
+}
+
 function applyMatchGamePlanSamspillZoneFocus(match) {
     const zoneId = match ? getMatchGamePlanSamspillZoneFocus(match) : null;
     const targets = [
@@ -1486,31 +1503,29 @@ function applyMatchGamePlanSamspillZoneFocus(match) {
         else delete element.dataset.samspillZoneFocus;
     });
 
-    document.querySelectorAll('[data-game-plan-node]').forEach(card => {
+    document.querySelectorAll('.match-detail-lineup-pitch-wrap [data-game-plan-node]').forEach(card => {
         const posId = card.dataset.gamePlanNode;
         const isFilled = card.classList.contains('is-filled');
-        const inZone = isFilled && isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId);
-        card.classList.toggle('is-samspill-zone-clear', Boolean(inZone));
-        card.classList.toggle('is-samspill-zone-dimmed', Boolean(zoneId && isFilled && !inZone));
+        const inZone = Boolean(zoneId && isFilled && isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId));
+        card.classList.toggle('is-samspill-zone-clear', inZone);
+        card.classList.remove('is-samspill-zone-dimmed');
     });
 
-    const attendingPlayers = match ? getMatchDetailAttendingPlayers(match) : [];
     document.querySelectorAll('.match-bench-player').forEach(benchPlayer => {
-        const player = attendingPlayers.find(item => item.id === benchPlayer.dataset.playerId) || null;
-        const inZone = player ? isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId) : false;
-        benchPlayer.classList.toggle('is-samspill-zone-clear', Boolean(inZone));
-        benchPlayer.classList.toggle('is-samspill-zone-dimmed', Boolean(zoneId && player && !inZone));
+        const player = match ? findBenchPlayerElementMatch(match, benchPlayer) : null;
+        const inZone = Boolean(zoneId && player && isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId));
+        benchPlayer.classList.toggle('is-samspill-zone-clear', inZone);
+        benchPlayer.classList.remove('is-samspill-zone-dimmed');
     });
 }
 
 function ensureMatchGamePlanSamspillAnalysisEventsBound() {
-    const host = document.querySelector('[data-samspill-panels]');
-    if (!host || host.dataset.zoneFocusBound === 'true') return;
+    if (window.matchGamePlanSamspillZoneFocusBound) return;
 
-    host.dataset.zoneFocusBound = 'true';
-    host.addEventListener('click', (event) => {
+    window.matchGamePlanSamspillZoneFocusBound = true;
+    document.addEventListener('click', (event) => {
         const item = event.target.closest('[data-samspill-zone-id]');
-        if (!item) return;
+        if (!item || !item.closest('[data-samspill-analysis]')) return;
 
         const match = (window.activeMatches || []).find(entry => entry.id === window.activeDetailsId);
         if (!match) return;
@@ -1518,11 +1533,11 @@ function ensureMatchGamePlanSamspillAnalysisEventsBound() {
         setMatchGamePlanSamspillZoneFocus(match, item.dataset.samspillZoneId);
         renderMatchGamePlanSamspillSummary(match);
     });
-    host.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
 
         const item = event.target.closest('[data-samspill-zone-id]');
-        if (!item) return;
+        if (!item || !item.closest('[data-samspill-analysis]')) return;
 
         event.preventDefault();
         const match = (window.activeMatches || []).find(entry => entry.id === window.activeDetailsId);
