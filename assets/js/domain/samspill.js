@@ -439,7 +439,23 @@
         };
     };
 
-    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan) {
+    function getMatchPlanSamspillLabelMetrics(label, pitchWidthPx) {
+        const safePitchWidth = pitchWidthPx > 0 ? pitchWidthPx : 400;
+        const fontPx = Math.min(18.4, Math.max(11.5, safePitchWidth * 0.066));
+        const fontVb = (fontPx / safePitchWidth) * 100;
+        const padVb = fontVb * 0.34;
+        const widthVb = Math.max(fontVb * 1.75, label.length * fontVb * 0.62 + padVb * 2);
+        const heightVb = fontVb * 1.32;
+
+        return {
+            fontPx,
+            widthVb,
+            heightVb,
+            radiusVb: heightVb / 2
+        };
+    }
+
+    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, pitchWidthPx) {
         const midX = (coords.x1 + coords.x2) / 2;
         const midY = (coords.y1 + coords.y2) / 2;
         const label = score > 0 ? String(score) : '–';
@@ -449,18 +465,21 @@
         labelGroup.setAttribute('pointer-events', 'none');
         labelGroup.setAttribute('transform', `translate(${midX}${unit}, ${midY}${unit})`);
 
-        const charWidth = isMatchPlan ? 1.55 : 4.8;
-        const padX = isMatchPlan ? 1.8 : 4;
-        const width = Math.max(isMatchPlan ? 7 : 20, label.length * charWidth + padX * 2);
-        const height = isMatchPlan ? 4.4 : 11;
-        const radius = isMatchPlan ? 2.2 : 5.5;
+        const metrics = isMatchPlan
+            ? getMatchPlanSamspillLabelMetrics(label, pitchWidthPx)
+            : {
+                fontPx: null,
+                widthVb: Math.max(20, label.length * 4.8 + 8),
+                heightVb: 11,
+                radiusVb: 5.5
+            };
 
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', String(-width / 2));
-        rect.setAttribute('y', String(-height / 2));
-        rect.setAttribute('width', String(width));
-        rect.setAttribute('height', String(height));
-        rect.setAttribute('rx', String(radius));
+        rect.setAttribute('x', String(-metrics.widthVb / 2));
+        rect.setAttribute('y', String(-metrics.heightVb / 2));
+        rect.setAttribute('width', String(metrics.widthVb));
+        rect.setAttribute('height', String(metrics.heightVb));
+        rect.setAttribute('rx', String(metrics.radiusVb));
         rect.setAttribute('class', 'samspill-line-label-bg');
         if (isMatchPlan) rect.setAttribute('vector-effect', 'non-scaling-stroke');
 
@@ -470,7 +489,9 @@
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'central');
         text.setAttribute('class', 'samspill-line-label-text');
-        if (isMatchPlan) text.setAttribute('font-size', '3.2');
+        if (isMatchPlan && metrics.fontPx) {
+            text.setAttribute('font-size', `${metrics.fontPx}px`);
+        }
         text.textContent = label;
 
         labelGroup.appendChild(rect);
@@ -507,7 +528,7 @@
         group.appendChild(line);
 
         if (opts.showScoreLabel !== false) {
-            appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan);
+            appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, opts.pitchWidthPx);
         }
 
         svg.appendChild(group);
