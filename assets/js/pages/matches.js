@@ -973,7 +973,7 @@ function buildMatchBenchPlayerHtml(match, player) {
         : lastName;
 
     return `
-        <div class="match-bench-player${isOnPitch ? ' is-on-pitch' : ''}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''} aria-label="${escapeMatchHtml(ariaLabel)}">
+        <div class="match-bench-player${isOnPitch ? ' is-on-pitch' : ''}" data-player-id="${escapeMatchHtml(player.id || '')}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''} aria-label="${escapeMatchHtml(ariaLabel)}">
             <span class="match-game-plan-lineup-photo match-bench-photo" aria-hidden="true">
                 ${photoUrl
                     ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
@@ -1025,6 +1025,7 @@ function renderMatchDetailSquadList(match) {
     const list = document.querySelector('.match-detail-squad-list');
     if (!list || !match) return;
     list.innerHTML = buildMatchDetailSquadListHtml(match);
+    applyMatchGamePlanSamspillZoneFocus(match);
 }
 
 function getMatchGamePlanRoleLabel(slot) {
@@ -1153,6 +1154,7 @@ function applyMatchGamePlanLineupOverlayClasses(match) {
         element.classList.remove('is-show-samspill', 'is-show-kjemi', 'is-show-bidrag', 'is-show-start-benk', 'is-show-form');
         overlayClasses.forEach(className => element.classList.add(className));
     });
+    applyMatchGamePlanSamspillZoneFocus(match);
 }
 
 function isMatchPlayedForStartBenchStats(match) {
@@ -1433,6 +1435,104 @@ const matchGamePlanSamspillZoneBenchCategories = {
     hoyre: ['F', 'M', 'A']
 };
 
+function isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId) {
+    return Boolean(zoneId && matchGamePlanSamspillZonePositions[zoneId]?.includes(posId));
+}
+
+function isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId) {
+    if (!zoneId || !player) return false;
+
+    const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+    if (pitchPosId) {
+        return isMatchGamePlanPitchPositionInSamspillZone(pitchPosId, zoneId);
+    }
+
+    const categories = matchGamePlanSamspillZoneBenchCategories[zoneId] || [];
+    const category = getMatchDetailPositionCategory(player.pos1);
+    return Boolean(category && categories.includes(category));
+}
+
+function getMatchGamePlanSamspillZoneFocus(match) {
+    if (!match?.id) return null;
+    window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
+    return window.matchGamePlanSamspillZoneFocus[match.id] || null;
+}
+
+function setMatchGamePlanSamspillZoneFocus(match, zoneId) {
+    if (!match?.id) return;
+    window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
+    const current = window.matchGamePlanSamspillZoneFocus[match.id];
+    window.matchGamePlanSamspillZoneFocus[match.id] = current === zoneId ? null : zoneId;
+    applyMatchGamePlanSamspillZoneFocus(match);
+}
+
+function clearMatchGamePlanSamspillZoneFocus(match) {
+    if (!match?.id) return;
+    window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
+    delete window.matchGamePlanSamspillZoneFocus[match.id];
+    applyMatchGamePlanSamspillZoneFocus(match);
+}
+
+function applyMatchGamePlanSamspillZoneFocus(match) {
+    const zoneId = match ? getMatchGamePlanSamspillZoneFocus(match) : null;
+    const targets = [
+        document.querySelector('.match-detail-lineup-builder'),
+        document.querySelector('.match-detail-squad-section')
+    ].filter(Boolean);
+
+    targets.forEach(element => {
+        element.classList.toggle('is-samspill-zone-focus', Boolean(zoneId));
+        if (zoneId) element.dataset.samspillZoneFocus = zoneId;
+        else delete element.dataset.samspillZoneFocus;
+    });
+
+    document.querySelectorAll('[data-game-plan-node]').forEach(card => {
+        const posId = card.dataset.gamePlanNode;
+        const isFilled = card.classList.contains('is-filled');
+        const inZone = isFilled && isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId);
+        card.classList.toggle('is-samspill-zone-clear', Boolean(inZone));
+        card.classList.toggle('is-samspill-zone-dimmed', Boolean(zoneId && isFilled && !inZone));
+    });
+
+    const attendingPlayers = match ? getMatchDetailAttendingPlayers(match) : [];
+    document.querySelectorAll('.match-bench-player').forEach(benchPlayer => {
+        const player = attendingPlayers.find(item => item.id === benchPlayer.dataset.playerId) || null;
+        const inZone = player ? isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId) : false;
+        benchPlayer.classList.toggle('is-samspill-zone-clear', Boolean(inZone));
+        benchPlayer.classList.toggle('is-samspill-zone-dimmed', Boolean(zoneId && player && !inZone));
+    });
+}
+
+function ensureMatchGamePlanSamspillAnalysisEventsBound() {
+    const host = document.querySelector('[data-samspill-panels]');
+    if (!host || host.dataset.zoneFocusBound === 'true') return;
+
+    host.dataset.zoneFocusBound = 'true';
+    host.addEventListener('click', (event) => {
+        const item = event.target.closest('[data-samspill-zone-id]');
+        if (!item) return;
+
+        const match = (window.activeMatches || []).find(entry => entry.id === window.activeDetailsId);
+        if (!match) return;
+
+        setMatchGamePlanSamspillZoneFocus(match, item.dataset.samspillZoneId);
+        renderMatchGamePlanSamspillSummary(match);
+    });
+    host.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        const item = event.target.closest('[data-samspill-zone-id]');
+        if (!item) return;
+
+        event.preventDefault();
+        const match = (window.activeMatches || []).find(entry => entry.id === window.activeDetailsId);
+        if (!match) return;
+
+        setMatchGamePlanSamspillZoneFocus(match, item.dataset.samspillZoneId);
+        renderMatchGamePlanSamspillSummary(match);
+    });
+}
+
 function getMatchGamePlanZonePitchPlayers(match, zoneId) {
     const positions = matchGamePlanSamspillZonePositions[zoneId] || [];
     const lineup = getMatchGamePlanDraftLineup(match);
@@ -1551,6 +1651,8 @@ function getMatchGamePlanSamspillZoneMetrics(match, zoneId) {
 
 function buildMatchGamePlanSamspillAnalysisItemHtml(zone, match) {
     const metrics = getMatchGamePlanSamspillZoneMetrics(match, zone.id);
+    const selectedZoneId = getMatchGamePlanSamspillZoneFocus(match);
+    const isSelected = selectedZoneId === zone.id;
     const metricsHtml = metrics.hasData
         ? `
             <p class="match-game-plan-samspill-analysis-metrics">
@@ -1562,7 +1664,13 @@ function buildMatchGamePlanSamspillAnalysisItemHtml(zone, match) {
         : '';
 
     return `
-        <li class="match-game-plan-samspill-analysis-item is-${escapeMatchHtml(zone.status)}">
+        <li
+            class="match-game-plan-samspill-analysis-item is-${escapeMatchHtml(zone.status)}${isSelected ? ' is-zone-selected' : ''}"
+            data-samspill-zone-id="${escapeMatchHtml(zone.id)}"
+            role="button"
+            tabindex="0"
+            aria-pressed="${isSelected ? 'true' : 'false'}"
+        >
             <div class="match-game-plan-samspill-analysis-row">
                 <span class="match-game-plan-samspill-analysis-name">${escapeMatchHtml(zone.label)}</span>
                 <span class="match-game-plan-samspill-analysis-status">${escapeMatchHtml(zone.statusLabel)}</span>
@@ -1621,6 +1729,7 @@ function buildMatchGamePlanSamspillPanelsShellHtml() {
 
 function renderMatchGamePlanSamspillSummary(match) {
     ensureMatchGamePlanSamspillPanelsDom();
+    ensureMatchGamePlanSamspillAnalysisEventsBound();
 
     const analysisEl = document.querySelector('[data-samspill-analysis]');
     if (!analysisEl) return;
@@ -1629,6 +1738,7 @@ function renderMatchGamePlanSamspillSummary(match) {
         <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
         ${buildMatchGamePlanSamspillAnalysisHtml(match)}
     `;
+    applyMatchGamePlanSamspillZoneFocus(match);
 }
 
 function buildMatchGamePlanStarterFooterHtml(match) {
@@ -2126,6 +2236,10 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     overlayState[overlayKey] = !overlayState[overlayKey];
+
+    if (overlayKey === 'samspill' && !overlayState.samspill) {
+        clearMatchGamePlanSamspillZoneFocus(match);
+    }
 
     if (overlayState[overlayKey]) {
         if (matchGamePlanIndividualOverlays.includes(overlayKey)) {
