@@ -449,11 +449,11 @@
         labelGroup.setAttribute('pointer-events', 'none');
         labelGroup.setAttribute('transform', `translate(${midX}${unit}, ${midY}${unit})`);
 
-        const charWidth = isMatchPlan ? 1.9 : 5.8;
-        const padX = isMatchPlan ? 2.2 : 5;
-        const width = Math.max(isMatchPlan ? 8.5 : 24, label.length * charWidth + padX * 2);
-        const height = isMatchPlan ? 5.4 : 14;
-        const radius = isMatchPlan ? 2.7 : 7;
+        const charWidth = isMatchPlan ? 1.55 : 4.8;
+        const padX = isMatchPlan ? 1.8 : 4;
+        const width = Math.max(isMatchPlan ? 7 : 20, label.length * charWidth + padX * 2);
+        const height = isMatchPlan ? 4.4 : 11;
+        const radius = isMatchPlan ? 2.2 : 5.5;
 
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('x', String(-width / 2));
@@ -470,7 +470,7 @@
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'central');
         text.setAttribute('class', 'samspill-line-label-text');
-        if (isMatchPlan) text.setAttribute('font-size', '3.8');
+        if (isMatchPlan) text.setAttribute('font-size', '3.2');
         text.textContent = label;
 
         labelGroup.appendChild(rect);

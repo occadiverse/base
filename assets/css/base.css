@@ -1519,17 +1519,17 @@
             stroke-width: 1;
         }
         .match-game-plan-chemistry-lines .samspill-line-label-bg {
-            stroke-width: 0.35;
+            stroke-width: 0.28;
         }
         .samspill-line-label-text {
             fill: #0f172a;
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 900;
             pointer-events: none;
         }
         .match-game-plan-chemistry-lines .samspill-line-label-text {
-            font-size: 3.8px;
+            font-size: 3.2px;
         }
         .samspill-line-label.is-tone-strong .samspill-line-label-text {
             fill: #047857;
@@ -1779,25 +1779,25 @@
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 999px;
             display: inline-flex;
-            gap: 0.55rem;
-            padding: 0.28rem 0.65rem;
+            gap: 0.38rem;
+            padding: 0.18rem 0.48rem;
         }
         .samspill-legend-item {
             align-items: center;
             color: rgba(255, 255, 255, 0.82);
             display: inline-flex;
-            font-size: 0.58rem;
+            font-size: 0.5rem;
             font-weight: 700;
-            gap: 0.28rem;
-            letter-spacing: 0.04em;
+            gap: 0.2rem;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
         }
         .samspill-legend-item::before {
             border-radius: 999px;
             content: '';
             display: block;
-            height: 0.12rem;
-            width: 0.85rem;
+            height: 0.09rem;
+            width: 0.62rem;
         }
         .samspill-legend-item.is-strong::before {
             background: #047857;
