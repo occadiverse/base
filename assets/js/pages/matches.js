@@ -2140,27 +2140,99 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
     }
 };
 
+function ensureMatchGamePlanSamspillLabelLayer(pitch) {
+    let layer = pitch.querySelector('[data-samspill-line-labels]');
+    if (!layer) {
+        layer = document.createElement('div');
+        layer.className = 'match-game-plan-samspill-line-labels';
+        layer.dataset.samspillLineLabels = '';
+        layer.setAttribute('aria-hidden', 'true');
+        pitch.appendChild(layer);
+    }
+    return layer;
+}
+
+function clearMatchGamePlanSamspillLineLabels(pitch) {
+    const layer = pitch?.querySelector('[data-samspill-line-labels]');
+    if (layer) layer.innerHTML = '';
+}
+
+function getMatchGamePlanPitchValueTextStyle(builder) {
+    const photo = builder?.querySelector(
+        '.match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo-area'
+    );
+    if (!photo) return null;
+
+    const probe = document.createElement('span');
+    probe.className = 'match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag';
+    probe.textContent = '0';
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.setProperty('display', 'inline-flex', 'important');
+    probe.style.visibility = 'hidden';
+    probe.style.position = 'absolute';
+    probe.style.left = '50%';
+    probe.style.top = '50%';
+    probe.style.pointerEvents = 'none';
+    photo.appendChild(probe);
+
+    const computed = window.getComputedStyle(probe);
+    const textStyle = {
+        fontSize: computed.fontSize,
+        fontWeight: computed.fontWeight,
+        letterSpacing: computed.letterSpacing,
+        lineHeight: computed.lineHeight,
+        color: computed.color,
+        textShadow: computed.textShadow,
+        fontFamily: computed.fontFamily
+    };
+
+    probe.remove();
+    return textStyle;
+}
+
+function applyMatchGamePlanPitchValueTextStyle(element, textStyle) {
+    if (!textStyle) return;
+    element.style.fontSize = textStyle.fontSize;
+    element.style.fontWeight = textStyle.fontWeight;
+    element.style.letterSpacing = textStyle.letterSpacing;
+    element.style.lineHeight = textStyle.lineHeight;
+    element.style.color = textStyle.color;
+    element.style.textShadow = textStyle.textShadow;
+    element.style.fontFamily = textStyle.fontFamily;
+}
+
+function renderMatchGamePlanSamspillLineLabels(pitch, pairResults, textStyle) {
+    const layer = ensureMatchGamePlanSamspillLabelLayer(pitch);
+    layer.innerHTML = '';
+
+    pairResults.forEach(entry => {
+        const midX = (entry.coords.x1 + entry.coords.x2) / 2;
+        const midY = (entry.coords.y1 + entry.coords.y2) / 2;
+        const score = Number(entry.samspill?.score) || 0;
+        const label = document.createElement('span');
+        label.className = 'match-game-plan-samspill-line-score';
+        label.style.left = `${midX}%`;
+        label.style.top = `${midY}%`;
+        label.textContent = score > 0 ? String(score) : '–';
+        applyMatchGamePlanPitchValueTextStyle(label, textStyle);
+        layer.appendChild(label);
+    });
+}
+
 window.drawMatchGamePlanChemistryLines = function(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
     const svg = builder?.querySelector('.match-game-plan-chemistry-lines');
+    const pitch = builder?.querySelector('.match-game-plan-pitch');
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     const samspillVisible = isMatchGamePlanSamspillSummaryVisible(builder, overlayState);
 
     renderMatchGamePlanSamspillSummary(match);
-    if (!svg) return;
-
-    svg.innerHTML = '';
-    if (!samspillVisible) return;
-
-    const pitch = builder.querySelector('.match-game-plan-pitch');
-    if (!pitch) return;
+    if (svg) svg.innerHTML = '';
+    clearMatchGamePlanSamspillLineLabels(pitch);
+    if (!svg || !pitch || !samspillVisible) return;
 
     const pitchRect = pitch.getBoundingClientRect();
     if (!pitchRect.width || !pitchRect.height) return;
-
-    const sampleCard = builder.querySelector('.match-detail-lineup-pitch-wrap [data-game-plan-node].is-filled')
-        || builder.querySelector('[data-game-plan-node]');
-    const cardWidthPx = sampleCard?.getBoundingClientRect().width || 0;
 
     const pairResults = collectMatchGamePlanSamspillPairs(match).map(pair => {
         const cardA = builder.querySelector(`[data-game-plan-node="${pair.posA}"]`);
@@ -2193,18 +2265,24 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     const useFormationConnections = typeof window.hasMatchGamePlanSamspillConnections === 'function'
         && window.hasMatchGamePlanSamspillConnections(formationId);
 
-    pairResults
+    const drawnPairs = pairResults
         .sort((a, b) => b.relevance - a.relevance)
-        .slice(0, useFormationConnections ? pairResults.length : 14)
-        .forEach(entry => {
-            if (typeof window.appendSamspillLine !== 'function') return;
+        .slice(0, useFormationConnections ? pairResults.length : 14);
 
-            window.appendSamspillLine(svg, entry.coords, entry.samspill, {
-                context: 'match-plan',
-                pitchWidthPx: pitchRect.width,
-                cardWidthPx
-            });
+    drawnPairs.forEach(entry => {
+        if (typeof window.appendSamspillLine !== 'function') return;
+
+        window.appendSamspillLine(svg, entry.coords, entry.samspill, {
+            context: 'match-plan',
+            showScoreLabel: false
         });
+    });
+
+    renderMatchGamePlanSamspillLineLabels(
+        pitch,
+        drawnPairs,
+        getMatchGamePlanPitchValueTextStyle(builder)
+    );
 };
 
 function buildMatchGamePlanTabContentHtml(match, tab) {
