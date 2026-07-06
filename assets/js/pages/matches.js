@@ -1458,12 +1458,21 @@ function getMatchGamePlanSamspillZoneFocus(match) {
     return window.matchGamePlanSamspillZoneFocus[match.id] || null;
 }
 
+function isMatchGamePlanSamspillPairInZone(posA, posB, zoneId) {
+    if (!zoneId) return true;
+    return isMatchGamePlanPitchPositionInSamspillZone(posA, zoneId)
+        && isMatchGamePlanPitchPositionInSamspillZone(posB, zoneId);
+}
+
 function setMatchGamePlanSamspillZoneFocus(match, zoneId) {
     if (!match?.id) return;
     window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
     const current = window.matchGamePlanSamspillZoneFocus[match.id];
     window.matchGamePlanSamspillZoneFocus[match.id] = current === zoneId ? null : zoneId;
     applyMatchGamePlanSamspillZoneFocus(match);
+    if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+        requestAnimationFrame(() => window.drawMatchGamePlanChemistryLines(match));
+    }
 }
 
 function clearMatchGamePlanSamspillZoneFocus(match) {
@@ -1522,7 +1531,7 @@ function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, sho
                 node.style.removeProperty('opacity');
             });
         }
-        if (overlays) overlays.style.display = 'none';
+        if (overlays) overlays.style.display = showStats ? 'block' : 'none';
         return;
     }
 
@@ -1532,7 +1541,7 @@ function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, sho
             img.style.filter = MATCH_GAME_PLAN_ZONE_DIM_FILTER;
         });
     }
-    if (overlays) overlays.style.display = showStats ? 'block' : 'none';
+    if (overlays) overlays.style.display = 'none';
 }
 
 function applyMatchGamePlanSamspillZoneFocus(match) {
@@ -2424,7 +2433,10 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     const pitchRect = pitch.getBoundingClientRect();
     if (!pitchRect.width || !pitchRect.height) return;
 
-    const pairResults = collectMatchGamePlanSamspillPairs(match).map(pair => {
+    const zoneId = getMatchGamePlanSamspillZoneFocus(match);
+    const pairResults = collectMatchGamePlanSamspillPairs(match)
+        .filter(pair => isMatchGamePlanSamspillPairInZone(pair.posA, pair.posB, zoneId))
+        .map(pair => {
         const cardA = builder.querySelector(`[data-game-plan-node="${pair.posA}"]`);
         const cardB = builder.querySelector(`[data-game-plan-node="${pair.posB}"]`);
         if (!cardA || !cardB) return null;
