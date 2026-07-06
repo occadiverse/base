@@ -978,7 +978,7 @@ function buildMatchBenchPlayerHtml(match, player) {
                 ${photoUrl
                     ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
                     : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                ${isOnPitch ? `<span class="match-bench-pos-badge" aria-hidden="true"><span class="match-bench-pos-badge-label">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
+                ${isOnPitch ? `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-pitch-pos" aria-hidden="true">${escapeMatchHtml(pitchCode)}</span>` : ''}
                 ${buildMatchGamePlanLineupCardOverlayHtml(match, player)}
             </span>
             <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>

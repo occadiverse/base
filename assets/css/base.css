@@ -8222,47 +8222,33 @@
             width: 100%;
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch {
-            border: 2px solid #22c55e;
+            border: 3.5px solid #22c55e;
             box-shadow:
                 0 10px 20px rgba(2, 6, 23, 0.18),
-                0 0 0 1px rgba(34, 197, 94, 0.28);
+                0 0 0 1px rgba(34, 197, 94, 0.32);
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo img,
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo i {
             filter: none;
             opacity: 1;
         }
-        .match-bench-pos-badge {
-            --badge-size: clamp(0.84rem, 40cqw, 1.05rem);
-            background: #ffffff;
-            border-top-left-radius: 100%;
-            bottom: 0;
-            height: var(--badge-size);
-            pointer-events: none;
-            position: absolute;
-            right: 0;
-            width: var(--badge-size);
-            z-index: 3;
-        }
-        .match-bench-pos-badge-label {
-            color: #000000;
-            font-size: clamp(0.28rem, 14cqw, 0.42rem);
+        .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-pitch-pos {
+            bottom: clamp(0.12rem, 8cqw, 0.26rem);
+            color: #ffffff;
+            display: inline-flex !important;
+            font-size: clamp(0.72rem, 40cqw, 1.15rem);
             font-weight: 950;
-            left: 57%;
-            letter-spacing: 0.01em;
+            left: auto;
+            letter-spacing: -0.04em;
             line-height: 1;
-            position: absolute;
-            top: 57%;
-            transform: translate(-50%, -50%);
-            white-space: nowrap;
-        }
-        @media (min-width: 1024px) {
-            .match-bench-pos-badge {
-                --badge-size: 1.05rem;
-            }
-            .match-bench-pos-badge-label {
-                font-size: 0.42rem;
-            }
+            right: clamp(0.1rem, 7cqw, 0.22rem);
+            text-shadow:
+                0 1px 2px rgba(2, 10, 22, 1),
+                0 2px 6px rgba(2, 10, 22, 0.95);
+            top: auto;
+            transform: none;
+            visibility: visible;
+            z-index: 4;
         }
         .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo img,
         .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo img,
