@@ -1507,12 +1507,44 @@
         }
         .match-game-plan-chemistry-lines .samspill-line-hit,
         #chemistry-lines-layer .samspill-line-hit {
-            cursor: help;
-            pointer-events: stroke;
+            display: none;
         }
         .match-game-plan-chemistry-lines .samspill-line-core,
         #chemistry-lines-layer .samspill-line-core {
             pointer-events: none;
+        }
+        .samspill-line-label-bg {
+            fill: rgba(255, 255, 255, 0.95);
+            stroke: rgba(15, 23, 42, 0.12);
+            stroke-width: 1;
+        }
+        .match-game-plan-chemistry-lines .samspill-line-label-bg {
+            stroke-width: 0.35;
+        }
+        .samspill-line-label-text {
+            fill: #0f172a;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 11px;
+            font-weight: 900;
+            pointer-events: none;
+        }
+        .match-game-plan-chemistry-lines .samspill-line-label-text {
+            font-size: 3.8px;
+        }
+        .samspill-line-label.is-tone-strong .samspill-line-label-text {
+            fill: #047857;
+        }
+        .samspill-line-label.is-tone-ok .samspill-line-label-text {
+            fill: #a16207;
+        }
+        .samspill-line-label.is-tone-potential .samspill-line-label-text {
+            fill: #4338ca;
+        }
+        .samspill-line-label.is-tone-weak .samspill-line-label-text {
+            fill: #991b1b;
+        }
+        .samspill-line-label.is-tone-unknown .samspill-line-label-text {
+            fill: #475569;
         }
         .match-detail-squad-players .match-game-plan-samspill-summary {
             margin-top: 0;
@@ -1771,10 +1803,10 @@
             background: #047857;
         }
         .samspill-legend-item.is-ok::before {
-            background: #d97706;
+            background: #facc15;
         }
         .samspill-legend-item.is-weak::before {
-            background: #dc2626;
+            background: #991b1b;
         }
         .samspill-legend-item.is-unknown::before {
             background: repeating-linear-gradient(

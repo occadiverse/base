@@ -405,21 +405,21 @@
                 strokeWidth = isMatchPlan ? 2.4 : (focused ? 3 : 2.6);
                 break;
             case 'ok':
-                strokeColor = '#d97706';
+                strokeColor = '#facc15';
                 strokeWidth = isMatchPlan ? 2.2 : (focused ? 2.8 : 2.4);
                 break;
             case 'potential':
-                strokeColor = '#eab308';
+                strokeColor = '#4f46e5';
                 strokeWidth = isMatchPlan ? 2.1 : (focused ? 2.6 : 2.3);
                 strokeDasharray = '5 4';
                 break;
             case 'weak':
-                strokeColor = '#dc2626';
+                strokeColor = '#991b1b';
                 strokeWidth = isMatchPlan ? 2.2 : (focused ? 2.8 : 2.4);
                 break;
             case 'unknown':
             default:
-                strokeColor = 'rgba(18, 63, 115, 0.55)';
+                strokeColor = 'rgba(71, 85, 105, 0.72)';
                 strokeWidth = isMatchPlan ? 1.8 : (focused ? 2.2 : 2);
                 strokeDasharray = '4 4';
                 opacity = 0.85;
@@ -435,10 +435,48 @@
             strokeWidth,
             strokeDasharray,
             opacity,
-            tone: status,
-            tooltip: result.reason || result.tooltip || result.label || ''
+            tone: status
         };
     };
+
+    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan) {
+        const midX = (coords.x1 + coords.x2) / 2;
+        const midY = (coords.y1 + coords.y2) / 2;
+        const label = score > 0 ? String(score) : '–';
+        const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        labelGroup.setAttribute('class', `samspill-line-label is-tone-${status}`);
+        labelGroup.setAttribute('pointer-events', 'none');
+        labelGroup.setAttribute('transform', `translate(${midX}${unit}, ${midY}${unit})`);
+
+        const charWidth = isMatchPlan ? 1.9 : 5.8;
+        const padX = isMatchPlan ? 2.2 : 5;
+        const width = Math.max(isMatchPlan ? 8.5 : 24, label.length * charWidth + padX * 2);
+        const height = isMatchPlan ? 5.4 : 14;
+        const radius = isMatchPlan ? 2.7 : 7;
+
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', String(-width / 2));
+        rect.setAttribute('y', String(-height / 2));
+        rect.setAttribute('width', String(width));
+        rect.setAttribute('height', String(height));
+        rect.setAttribute('rx', String(radius));
+        rect.setAttribute('class', 'samspill-line-label-bg');
+        if (isMatchPlan) rect.setAttribute('vector-effect', 'non-scaling-stroke');
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', '0');
+        text.setAttribute('y', '0');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('class', 'samspill-line-label-text');
+        if (isMatchPlan) text.setAttribute('font-size', '3.8');
+        text.textContent = label;
+
+        labelGroup.appendChild(rect);
+        labelGroup.appendChild(text);
+        group.appendChild(labelGroup);
+    }
 
     window.appendSamspillLine = function(svg, coords, samspillResult, options) {
         if (!svg || !coords) return null;
@@ -447,55 +485,33 @@
         const unit = opts.coordUnit || '';
         const style = window.getSamspillLineStyle(samspillResult, opts);
         const status = samspillResult?.status || samspillResult?.tone || style.tone || 'unknown';
-        const tooltipText = style.tooltip || '';
         const isMatchPlan = opts.context === 'match-plan';
+        const score = Number(samspillResult?.score) || 0;
 
-        function createLineElement(lineStyle, className, interactive) {
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', String(coords.x1) + unit);
-            line.setAttribute('y1', String(coords.y1) + unit);
-            line.setAttribute('x2', String(coords.x2) + unit);
-            line.setAttribute('y2', String(coords.y2) + unit);
-            line.setAttribute('stroke', lineStyle.strokeColor);
-            line.setAttribute('stroke-width', String(lineStyle.strokeWidth));
-            line.setAttribute('stroke-linecap', 'round');
-            line.setAttribute('opacity', String(lineStyle.opacity));
-            if (lineStyle.strokeDasharray) line.setAttribute('stroke-dasharray', lineStyle.strokeDasharray);
-            line.setAttribute('class', className);
-            line.setAttribute('pointer-events', interactive ? 'stroke' : 'none');
-            if (isMatchPlan) line.setAttribute('vector-effect', 'non-scaling-stroke');
-            return line;
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        group.setAttribute('class', `samspill-line-group is-tone-${status}`);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', String(coords.x1) + unit);
+        line.setAttribute('y1', String(coords.y1) + unit);
+        line.setAttribute('x2', String(coords.x2) + unit);
+        line.setAttribute('y2', String(coords.y2) + unit);
+        line.setAttribute('stroke', style.strokeColor);
+        line.setAttribute('stroke-width', String(style.strokeWidth));
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('opacity', String(style.opacity));
+        if (style.strokeDasharray) line.setAttribute('stroke-dasharray', style.strokeDasharray);
+        line.setAttribute('class', `samspill-line samspill-line-core is-tone-${status} transition-all duration-500`);
+        line.setAttribute('pointer-events', 'none');
+        if (isMatchPlan) line.setAttribute('vector-effect', 'non-scaling-stroke');
+        group.appendChild(line);
+
+        if (opts.showScoreLabel !== false) {
+            appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan);
         }
 
-        if (tooltipText) {
-            const hitLine = createLineElement(
-                {
-                    strokeColor: 'transparent',
-                    strokeWidth: Math.max(style.strokeWidth + 10, 12),
-                    opacity: 1,
-                    strokeDasharray: null
-                },
-                'samspill-line samspill-line-hit',
-                true
-            );
-            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-            title.textContent = tooltipText;
-            hitLine.appendChild(title);
-            svg.appendChild(hitLine);
-        }
-
-        const line = createLineElement(
-            style,
-            `samspill-line samspill-line-core is-tone-${status} transition-all duration-500`,
-            !tooltipText
-        );
-        if (tooltipText && !line.querySelector('title')) {
-            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-            title.textContent = tooltipText;
-            line.appendChild(title);
-        }
-        svg.appendChild(line);
-        return line;
+        svg.appendChild(group);
+        return group;
     };
 
     window.getDuoChemistry = function(playerA, playerB, options) {
