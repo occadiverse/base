@@ -8221,28 +8221,60 @@
             position: relative;
             width: 100%;
         }
+        .match-detail-squad-list .match-bench-player.is-on-pitch {
+            border: 2px solid #22c55e;
+            box-shadow:
+                0 10px 20px rgba(2, 6, 23, 0.18),
+                0 0 0 1px rgba(34, 197, 94, 0.28);
+        }
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo img,
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo i {
-            filter: saturate(0.55) brightness(0.72);
-            opacity: 0.42;
-            transition: filter 140ms ease, opacity 140ms ease;
+            filter: none;
+            opacity: 1;
         }
-        .match-bench-pitch-overlay {
-            align-items: center;
-            display: none;
-            inset: 0;
-            justify-content: center;
+        .match-bench-pos-badge {
+            --badge-size: clamp(0.84rem, 40cqw, 1.05rem);
+            background: #ffffff;
+            border-top-left-radius: 100%;
+            bottom: 0;
+            height: var(--badge-size);
             pointer-events: none;
             position: absolute;
-            z-index: 1;
+            right: 0;
+            width: var(--badge-size);
+            z-index: 3;
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-pitch-overlay {
-            display: flex;
+        .match-bench-pos-badge-label {
+            color: #000000;
+            font-size: clamp(0.28rem, 14cqw, 0.42rem);
+            font-weight: 950;
+            left: 57%;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            position: absolute;
+            top: 57%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
         }
-        .match-detail-squad-section.is-show-bidrag .match-bench-player.is-on-pitch .match-bench-pitch-overlay,
-        .match-detail-squad-section.is-show-start-benk .match-bench-player.is-on-pitch .match-bench-pitch-overlay,
-        .match-detail-squad-section.is-show-form .match-bench-player.is-on-pitch .match-bench-pitch-overlay {
-            display: none;
+        @media (min-width: 1024px) {
+            .match-bench-pos-badge {
+                --badge-size: 1.05rem;
+            }
+            .match-bench-pos-badge-label {
+                font-size: 0.42rem;
+            }
+        }
+        .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo img,
+        .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo img,
+        .match-detail-squad-section.is-show-form:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo img,
+        .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo:not(:has(img)),
+        .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo:not(:has(img)),
+        .match-detail-squad-section.is-show-form:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo:not(:has(img)),
+        .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo > i,
+        .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo > i,
+        .match-detail-squad-section.is-show-form:not(.is-samspill-zone-focus) .match-bench-player.is-on-pitch .match-bench-photo > i {
+            filter: none;
+            opacity: 1;
         }
         .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-photo img,
         .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-photo img,
@@ -8386,19 +8418,6 @@
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-muted {
             color: rgba(255, 255, 255, 0.92);
             font-size: clamp(0.66rem, 36cqw, 1rem);
-        }
-        .match-bench-pitch-code {
-            color: #ffffff;
-            font-size: 0.92rem;
-            font-weight: 950;
-            letter-spacing: 0.04em;
-            line-height: 1;
-            text-shadow: 0 2px 10px rgba(2, 6, 23, 0.55);
-        }
-        @media (min-width: 1024px) {
-            .match-bench-pitch-code {
-                font-size: 1.05rem;
-            }
         }
         .match-bench-name {
             color: #123f73;
@@ -9050,12 +9069,15 @@
         .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch[data-samspill-zone-state="in"] .match-bench-photo img,
         .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch[data-samspill-zone-state="in"] .match-bench-photo i {
             filter: none;
-            opacity: 0.78;
+            opacity: 1;
         }
         .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch[data-samspill-zone-state="out"] .match-bench-photo img,
         .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch[data-samspill-zone-state="out"] .match-bench-photo i {
             filter: brightness(0.48) saturate(0.9);
             opacity: 1;
+        }
+        .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch {
+            border-color: #22c55e;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag,
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form,

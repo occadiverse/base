@@ -978,7 +978,7 @@ function buildMatchBenchPlayerHtml(match, player) {
                 ${photoUrl
                     ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
                     : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                ${isOnPitch ? `<span class="match-bench-pitch-overlay"><span class="match-bench-pitch-code">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
+                ${isOnPitch ? `<span class="match-bench-pos-badge" aria-hidden="true"><span class="match-bench-pos-badge-label">${escapeMatchHtml(pitchCode)}</span></span>` : ''}
                 ${buildMatchGamePlanLineupCardOverlayHtml(match, player)}
             </span>
             <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
@@ -1517,6 +1517,7 @@ function resetMatchGamePlanSamspillZoneFocusVisualTarget(element) {
 function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, showStats) {
     const photo = element.querySelector('.match-game-plan-lineup-photo, .match-bench-photo');
     const overlays = element.querySelector('.match-game-plan-lineup-card-overlays');
+    const isOnPitchBench = element.classList.contains('match-bench-player') && element.classList.contains('is-on-pitch');
 
     if (!zoneState) {
         resetMatchGamePlanSamspillZoneFocusVisualTarget(element);
@@ -1532,6 +1533,21 @@ function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, sho
             });
         }
         if (overlays) overlays.style.display = showStats ? 'block' : 'none';
+        return;
+    }
+
+    if (isOnPitchBench) {
+        if (photo) {
+            photo.style.filter = MATCH_GAME_PLAN_ZONE_DIM_FILTER;
+            photo.querySelectorAll('img').forEach(img => {
+                img.style.filter = MATCH_GAME_PLAN_ZONE_DIM_FILTER;
+            });
+            photo.querySelectorAll('i').forEach(icon => {
+                icon.style.removeProperty('filter');
+                icon.style.removeProperty('opacity');
+            });
+        }
+        if (overlays) overlays.style.display = 'none';
         return;
     }
 
