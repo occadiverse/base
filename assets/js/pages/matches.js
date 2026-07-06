@@ -648,8 +648,6 @@ const matchGamePlanLineupOverlayOptions = [
     { id: 'form', label: 'Form' }
 ];
 
-const matchGamePlanIndividualOverlays = ['bidrag', 'startBenk', 'form'];
-
 // OffC corner diagram. top/left are percentages of the pitch: top moves down, left moves right.
 const matchGamePlanOffCPositions = {
     1: { top: '3%', left: '95%', tone: 'neutral' },
@@ -1081,21 +1079,7 @@ function getMatchGamePlanLineupOverlayState(match) {
         delete state.kjemi;
     }
 
-    const activeIndividualOverlays = matchGamePlanIndividualOverlays.filter(key => state[key]);
-    if (activeIndividualOverlays.length > 1) {
-        const keep = activeIndividualOverlays[0];
-        matchGamePlanIndividualOverlays.forEach(key => {
-            state[key] = key === keep;
-        });
-    }
-
     return state;
-}
-
-function setActiveMatchGamePlanIndividualOverlay(overlayState, activeKey) {
-    matchGamePlanIndividualOverlays.forEach(key => {
-        overlayState[key] = key === activeKey;
-    });
 }
 
 function ensureMatchGamePlanSamspillPanelsDom() {
@@ -2340,12 +2324,6 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
 
     if (overlayKey === 'samspill' && !overlayState.samspill) {
         clearMatchGamePlanSamspillZoneFocus(match);
-    }
-
-    if (overlayState[overlayKey]) {
-        if (matchGamePlanIndividualOverlays.includes(overlayKey)) {
-            setActiveMatchGamePlanIndividualOverlay(overlayState, overlayKey);
-        }
     }
 
     syncMatchGamePlanLineupOverlayUi(match);

@@ -1950,18 +1950,10 @@
             display: inline-flex !important;
             visibility: visible;
         }
-        .match-detail-lineup-builder.is-show-bidrag:not(.is-show-start-benk) .match-game-plan-lineup-card-overlay-bidrag,
-        .match-detail-lineup-builder.is-show-start-benk:not(.is-show-bidrag) .match-game-plan-lineup-card-overlay-start-benk,
-        .match-detail-lineup-builder.is-show-form .match-game-plan-lineup-card-overlay-form,
-        .match-detail-squad-section.is-show-start-benk:not(.is-show-bidrag) .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk {
+        .match-detail-squad-section.is-show-start-benk .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk {
+            left: 50%;
             top: 50%;
-        }
-        .match-detail-lineup-builder.is-show-bidrag.is-show-start-benk .match-game-plan-lineup-card-overlay-bidrag {
-            top: 40%;
-        }
-        .match-detail-lineup-builder.is-show-bidrag.is-show-start-benk .match-game-plan-lineup-card-overlay-start-benk,
-        .match-detail-squad-section.is-show-bidrag.is-show-start-benk .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk {
-            top: 62%;
+            transform: translate(-50%, -50%);
         }
         .match-game-plan-lineup-card-overlay-bidrag {
             color: #ffffff;
@@ -9074,8 +9066,26 @@
         .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch {
             border-color: #22c55e;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag,
-        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag {
+            bottom: auto;
+            font-size: clamp(0.72rem, 40cqw, 1.15rem);
+            left: clamp(0.1rem, 7cqw, 0.22rem);
+            letter-spacing: -0.04em;
+            position: absolute;
+            right: auto;
+            top: clamp(0.12rem, 8cqw, 0.26rem);
+            transform: none;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form {
+            bottom: auto;
+            font-size: clamp(0.72rem, 40cqw, 1.15rem);
+            left: auto;
+            letter-spacing: -0.04em;
+            position: absolute;
+            right: clamp(0.1rem, 7cqw, 0.22rem);
+            top: clamp(0.12rem, 8cqw, 0.26rem);
+            transform: none;
+        }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start-benk {
             left: 50%;
             position: absolute;
@@ -9101,17 +9111,9 @@
             text-transform: none;
             white-space: nowrap;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag {
-            font-size: clamp(0.72rem, 40cqw, 1.15rem);
-            letter-spacing: -0.04em;
-        }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag.is-muted {
             color: rgba(255, 255, 255, 0.92);
             font-size: clamp(0.66rem, 36cqw, 1rem);
-        }
-        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form {
-            font-size: clamp(0.72rem, 40cqw, 1.15rem);
-            letter-spacing: -0.04em;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form.is-muted {
             color: rgba(255, 255, 255, 0.92);
