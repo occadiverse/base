@@ -1844,10 +1844,20 @@
         .match-detail-lineup-builder.is-show-form .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo img {
             filter: brightness(0.48) saturate(0.9);
         }
+        .match-detail-lineup-builder.is-show-bidrag .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo:not(:has(img)),
+        .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo:not(:has(img)),
+        .match-detail-lineup-builder.is-show-form .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo:not(:has(img)) {
+            filter: brightness(0.48) saturate(0.9);
+        }
         .match-detail-lineup-builder.is-show-bidrag .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo > i,
         .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo > i,
         .match-detail-lineup-builder.is-show-form .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo > i {
             opacity: 0.42;
+        }
+        .match-detail-lineup-builder.is-show-bidrag .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo:not(:has(img)) > i,
+        .match-detail-lineup-builder.is-show-start-benk .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo:not(:has(img)) > i,
+        .match-detail-lineup-builder.is-show-form .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-filled .match-game-plan-lineup-photo:not(:has(img)) > i {
+            opacity: 0.78;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card-overlays {
             inset: 0;
@@ -8223,10 +8233,20 @@
         .match-detail-squad-section.is-show-form .match-bench-photo img {
             filter: brightness(0.48) saturate(0.9);
         }
+        .match-detail-squad-section.is-show-bidrag .match-bench-photo:not(:has(img)),
+        .match-detail-squad-section.is-show-start-benk .match-bench-photo:not(:has(img)),
+        .match-detail-squad-section.is-show-form .match-bench-photo:not(:has(img)) {
+            filter: brightness(0.48) saturate(0.9);
+        }
         .match-detail-squad-section.is-show-bidrag .match-bench-photo > i,
         .match-detail-squad-section.is-show-start-benk .match-bench-photo > i,
         .match-detail-squad-section.is-show-form .match-bench-photo > i {
             opacity: 0.42;
+        }
+        .match-detail-squad-section.is-show-bidrag .match-bench-photo:not(:has(img)) > i,
+        .match-detail-squad-section.is-show-start-benk .match-bench-photo:not(:has(img)) > i,
+        .match-detail-squad-section.is-show-form .match-bench-photo:not(:has(img)) > i {
+            opacity: 0.78;
         }
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlays {
             display: none;
