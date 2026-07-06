@@ -448,7 +448,7 @@
         const heightVb = fontVb * 1.32;
 
         return {
-            fontPx,
+            fontVb,
             widthVb,
             heightVb,
             radiusVb: heightVb / 2
@@ -461,14 +461,14 @@
         const label = score > 0 ? String(score) : '–';
         const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-        labelGroup.setAttribute('class', `samspill-line-label is-tone-${status}`);
+        labelGroup.setAttribute('class', `samspill-line-label is-tone-${status}${isMatchPlan ? ' is-match-plan' : ''}`);
         labelGroup.setAttribute('pointer-events', 'none');
         labelGroup.setAttribute('transform', `translate(${midX}${unit}, ${midY}${unit})`);
 
         const metrics = isMatchPlan
             ? getMatchPlanSamspillLabelMetrics(label, pitchWidthPx)
             : {
-                fontPx: null,
+                fontVb: null,
                 widthVb: Math.max(20, label.length * 4.8 + 8),
                 heightVb: 11,
                 radiusVb: 5.5
@@ -489,8 +489,8 @@
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'central');
         text.setAttribute('class', 'samspill-line-label-text');
-        if (isMatchPlan && metrics.fontPx) {
-            text.setAttribute('font-size', `${metrics.fontPx}px`);
+        if (isMatchPlan && metrics.fontVb) {
+            text.setAttribute('font-size', String(metrics.fontVb));
         }
         text.textContent = label;
 
