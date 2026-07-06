@@ -1953,8 +1953,7 @@
         .match-detail-lineup-builder.is-show-bidrag:not(.is-show-start-benk) .match-game-plan-lineup-card-overlay-bidrag,
         .match-detail-lineup-builder.is-show-start-benk:not(.is-show-bidrag) .match-game-plan-lineup-card-overlay-start-benk,
         .match-detail-lineup-builder.is-show-form .match-game-plan-lineup-card-overlay-form,
-        .match-detail-squad-section.is-show-start-benk:not(.is-show-bidrag) .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk,
-        .match-detail-squad-section.is-show-form .match-bench-photo .match-game-plan-lineup-card-overlay-form {
+        .match-detail-squad-section.is-show-start-benk:not(.is-show-bidrag) .match-bench-photo .match-game-plan-lineup-card-overlay-start-benk {
             top: 50%;
         }
         .match-detail-lineup-builder.is-show-bidrag.is-show-start-benk .match-game-plan-lineup-card-overlay-bidrag {
@@ -8398,12 +8397,18 @@
             font-weight: 950;
         }
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form {
+            bottom: auto;
             font-size: clamp(0.72rem, 40cqw, 1.15rem);
             font-weight: 950;
+            left: auto;
             letter-spacing: -0.04em;
+            right: clamp(0.1rem, 7cqw, 0.22rem);
             text-shadow:
                 0 1px 2px rgba(2, 10, 22, 1),
                 0 2px 6px rgba(2, 10, 22, 0.95);
+            top: clamp(0.12rem, 8cqw, 0.26rem);
+            transform: none;
+            z-index: 4;
         }
         .match-detail-squad-list .match-bench-photo .match-game-plan-lineup-card-overlay-form.is-muted {
             color: rgba(255, 255, 255, 0.92);
