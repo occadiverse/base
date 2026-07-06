@@ -1658,6 +1658,16 @@
             color: #94a3b8;
             font-weight: 700;
         }
+        .match-game-plan-samspill-analysis-bench-hint {
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .match-game-plan-samspill-analysis-bench-hint.is-plus {
+            color: #047857;
+        }
+        .match-game-plan-samspill-analysis-bench-hint.is-minus {
+            color: #94a3b8;
+        }
         .match-game-plan-samspill-analysis-name {
             color: #0f172a;
             font-size: 0.72rem;

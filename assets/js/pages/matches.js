@@ -1469,50 +1469,69 @@ function averagePositiveMetricValues(values) {
     return Math.round(valid.reduce((total, value) => total + value, 0) / valid.length);
 }
 
-function getMatchGamePlanBenchSwapDelta(onPitchValues, benchValues) {
-    const pitchValues = onPitchValues.filter(value => value > 0);
-    const benchCandidates = benchValues.filter(value => value > 0);
-    if (!pitchValues.length || !benchCandidates.length) return null;
-
-    const currentAverage = pitchValues.reduce((total, value) => total + value, 0) / pitchValues.length;
-    const worstOnPitch = Math.min(...pitchValues);
-    const bestOnBench = Math.max(...benchCandidates);
-    if (bestOnBench <= worstOnPitch) return null;
-
-    const improvedAverage = (
-        pitchValues.reduce((total, value) => total + value, 0) - worstOnPitch + bestOnBench
-    ) / pitchValues.length;
-
-    const delta = Math.round(improvedAverage - currentAverage);
-    return delta > 0 ? delta : null;
+function buildMatchGamePlanPlayerMetricEntries(players, match, getMetric) {
+    return players.map(player => ({
+        player,
+        value: getMetric(player, match)
+    }));
 }
 
-function formatMatchGamePlanBenchDeltaSuffix(onPitchValues, benchValues) {
-    const benchCandidates = benchValues.filter(value => value > 0);
-    if (!benchCandidates.length) return '';
+function getMatchGamePlanBenchSwapInsight(pitchEntries, benchEntries) {
+    const pitchValues = pitchEntries.filter(entry => entry.value > 0);
+    const benchCandidates = benchEntries.filter(entry => entry.value > 0);
+    if (!benchCandidates.length) return null;
+    if (!pitchValues.length) return { type: 'minus' };
 
-    const delta = getMatchGamePlanBenchSwapDelta(onPitchValues, benchValues);
-    return delta > 0 ? ` (+${delta})` : ' (−)';
+    const currentSum = pitchValues.reduce((total, entry) => total + entry.value, 0);
+    const currentAverage = currentSum / pitchValues.length;
+    const worstOnPitch = Math.min(...pitchValues.map(entry => entry.value));
+    const improvingBench = benchCandidates
+        .filter(entry => entry.value > worstOnPitch)
+        .sort((left, right) => (
+            right.value - left.value
+            || String(left.player?.navn || '').localeCompare(String(right.player?.navn || ''), 'nb')
+        ));
+
+    if (!improvingBench.length) return { type: 'minus' };
+
+    const bestBench = improvingBench[0];
+    const improvedAverage = (currentSum - worstOnPitch + bestBench.value) / pitchValues.length;
+    const delta = Math.round(improvedAverage - currentAverage);
+    if (delta <= 0) return { type: 'minus' };
+
+    return {
+        type: 'plus',
+        delta,
+        playerName: bestBench.player?.navn || 'Ukjent'
+    };
+}
+
+function buildMatchGamePlanBenchInsightHtml(insight) {
+    if (!insight) return '';
+    if (insight.type === 'minus') {
+        return ' <span class="match-game-plan-samspill-analysis-bench-hint is-minus" title="Benkspillere i kategorien, men ingen som hever snittet">(−)</span>';
+    }
+
+    const title = `${insight.playerName} kan heve snittet med ca. ${insight.delta}`;
+    return ` <span class="match-game-plan-samspill-analysis-bench-hint is-plus" title="${escapeMatchHtml(title)}">(+${insight.delta}, ${escapeMatchHtml(insight.playerName)})</span>`;
 }
 
 function getMatchGamePlanSamspillZoneMetrics(match, zoneId) {
     const pitchPlayers = getMatchGamePlanZonePitchPlayers(match, zoneId);
     const benchPlayers = getMatchGamePlanZoneBenchPlayers(match, zoneId);
-    const bidragValues = pitchPlayers.map(player => getMatchGamePlanPlayerKampbidrag(player, match));
-    const formValues = pitchPlayers.map(player => getMatchGamePlanPlayerForm(player, match));
-    const benchBidragValues = benchPlayers.map(player => getMatchGamePlanPlayerKampbidrag(player, match));
-    const benchFormValues = benchPlayers.map(player => getMatchGamePlanPlayerForm(player, match));
-    const bidragAverage = averagePositiveMetricValues(bidragValues);
-    const formAverage = averagePositiveMetricValues(formValues);
+    const pitchBidragEntries = buildMatchGamePlanPlayerMetricEntries(pitchPlayers, match, getMatchGamePlanPlayerKampbidrag);
+    const pitchFormEntries = buildMatchGamePlanPlayerMetricEntries(pitchPlayers, match, getMatchGamePlanPlayerForm);
+    const benchBidragEntries = buildMatchGamePlanPlayerMetricEntries(benchPlayers, match, getMatchGamePlanPlayerKampbidrag);
+    const benchFormEntries = buildMatchGamePlanPlayerMetricEntries(benchPlayers, match, getMatchGamePlanPlayerForm);
+    const bidragAverage = averagePositiveMetricValues(pitchBidragEntries.map(entry => entry.value));
+    const formAverage = averagePositiveMetricValues(pitchFormEntries.map(entry => entry.value));
 
     return {
         hasData: pitchPlayers.length > 0,
-        bidragText: bidragAverage > 0
-            ? `${bidragAverage}${formatMatchGamePlanBenchDeltaSuffix(bidragValues, benchBidragValues)}`
-            : '-',
-        formText: formAverage > 0
-            ? `${formAverage}${formatMatchGamePlanBenchDeltaSuffix(formValues, benchFormValues)}`
-            : '-'
+        bidragAverage,
+        bidragInsight: getMatchGamePlanBenchSwapInsight(pitchBidragEntries, benchBidragEntries),
+        formAverage,
+        formInsight: getMatchGamePlanBenchSwapInsight(pitchFormEntries, benchFormEntries)
     };
 }
 
@@ -1521,9 +1540,9 @@ function buildMatchGamePlanSamspillAnalysisItemHtml(zone, match) {
     const metricsHtml = metrics.hasData
         ? `
             <p class="match-game-plan-samspill-analysis-metrics">
-                <span>Bidrag: ${escapeMatchHtml(metrics.bidragText)}</span>
+                <span>Bidrag: ${metrics.bidragAverage > 0 ? metrics.bidragAverage : '-'}${buildMatchGamePlanBenchInsightHtml(metrics.bidragInsight)}</span>
                 <span class="match-game-plan-samspill-analysis-metrics-sep">·</span>
-                <span>Form: ${escapeMatchHtml(metrics.formText)}</span>
+                <span>Form: ${metrics.formAverage > 0 ? metrics.formAverage : '-'}${buildMatchGamePlanBenchInsightHtml(metrics.formInsight)}</span>
             </p>
         `
         : '';
