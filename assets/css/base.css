@@ -1515,13 +1515,22 @@
             pointer-events: none;
         }
         .match-detail-squad-players .match-game-plan-samspill-summary {
+            margin-top: 0;
+        }
+        .match-game-plan-samspill-panels {
+            display: none;
+            flex-direction: column;
+            gap: 0.65rem;
             margin-top: 0.75rem;
+        }
+        .match-detail-squad-section.is-show-samspill .match-game-plan-samspill-panels {
+            display: flex;
         }
         .match-game-plan-samspill-summary {
             background: rgba(255, 255, 255, 0.92);
             border: 1px solid rgba(18, 63, 115, 0.12);
             border-radius: 0.85rem;
-            margin-top: 0.65rem;
+            margin-top: 0;
             padding: 0.65rem 0.75rem;
         }
         .match-game-plan-samspill-summary-title {
@@ -1583,12 +1592,13 @@
             margin: 0;
         }
         .match-detail-squad-players .match-game-plan-samspill-analysis {
-            margin-top: 0.75rem;
+            margin-top: 0;
         }
         .match-game-plan-samspill-analysis {
             background: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(18, 63, 115, 0.12);
             border-radius: 0.85rem;
+            display: block;
             padding: 0.7rem 0.75rem 0.75rem;
         }
         .match-game-plan-samspill-analysis-title {

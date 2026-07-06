@@ -1097,7 +1097,37 @@ function setActiveMatchGamePlanIndividualOverlay(overlayState, activeKey) {
     });
 }
 
-function isMatchGamePlanSamspillVisible(_builder, overlayState) {
+function ensureMatchGamePlanSamspillPanelsDom() {
+    const host = document.querySelector('.match-detail-squad-players');
+    if (!host) return;
+
+    if (!host.querySelector('[data-samspill-panels]')) {
+        host.querySelectorAll('[data-samspill-summary], [data-samspill-analysis]').forEach(element => element.remove());
+        host.insertAdjacentHTML('beforeend', `
+            <div class="match-game-plan-samspill-panels" data-samspill-panels>
+                ${buildMatchGamePlanSamspillSummaryShellHtml()}
+                <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
+                    <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+                </section>
+            </div>
+        `);
+        return;
+    }
+
+    if (!host.querySelector('[data-samspill-summary]')) {
+        host.querySelector('[data-samspill-panels]')?.insertAdjacentHTML('afterbegin', buildMatchGamePlanSamspillSummaryShellHtml());
+    }
+
+    if (!host.querySelector('[data-samspill-analysis]')) {
+        host.querySelector('[data-samspill-panels]')?.insertAdjacentHTML('beforeend', `
+            <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
+                <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+            </section>
+        `);
+    }
+}
+
+function isMatchGamePlanSamspillSummaryVisible(_builder, overlayState) {
     return !!(overlayState?.samspill);
 }
 
@@ -1471,43 +1501,41 @@ function buildMatchGamePlanSamspillAnalysisHtml(match) {
 
 function buildMatchGamePlanSamspillPanelsShellHtml() {
     return `
-        ${buildMatchGamePlanSamspillSummaryShellHtml()}
-        <section class="match-game-plan-samspill-analysis" data-samspill-analysis hidden aria-label="Samspillanalyse">
-            <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
-        </section>
+        <div class="match-game-plan-samspill-panels" data-samspill-panels>
+            ${buildMatchGamePlanSamspillSummaryShellHtml()}
+            <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
+                <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+            </section>
+        </div>
     `;
 }
 
 function buildMatchGamePlanSamspillSummaryShellHtml() {
     return `
-        <section class="match-game-plan-samspill-summary" data-samspill-summary hidden aria-label="Samspill-oppsummering">
+        <section class="match-game-plan-samspill-summary" data-samspill-summary aria-label="Samspill-oppsummering">
             <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
         </section>
     `;
 }
 
 function renderMatchGamePlanSamspillSummary(match) {
-    const builder = document.querySelector('.match-detail-lineup-builder');
+    ensureMatchGamePlanSamspillPanelsDom();
+
     const summaryEl = document.querySelector('[data-samspill-summary]');
     const analysisEl = document.querySelector('[data-samspill-analysis]');
-    const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const isVisible = isMatchGamePlanSamspillVisible(builder, overlayState);
 
     if (summaryEl) {
-        summaryEl.hidden = !isVisible;
-        if (isVisible) {
-            summaryEl.innerHTML = buildMatchGamePlanSamspillSummaryHtml(match);
-        }
+        summaryEl.innerHTML = `
+            <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
+            ${buildMatchGamePlanSamspillSummaryHtml(match)}
+        `;
     }
 
     if (analysisEl) {
-        analysisEl.hidden = !isVisible;
-        if (isVisible) {
-            analysisEl.innerHTML = `
-                <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
-                ${buildMatchGamePlanSamspillAnalysisHtml(match)}
-            `;
-        }
+        analysisEl.innerHTML = `
+            <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+            ${buildMatchGamePlanSamspillAnalysisHtml(match)}
+        `;
     }
 }
 
@@ -2024,7 +2052,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
     const svg = builder?.querySelector('.match-game-plan-chemistry-lines');
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const samspillVisible = isMatchGamePlanSamspillVisible(builder, overlayState);
+    const samspillVisible = isMatchGamePlanSamspillSummaryVisible(builder, overlayState);
 
     renderMatchGamePlanSamspillSummary(match);
     if (!svg) return;
@@ -2513,7 +2541,9 @@ window.showMatchDetails = function(id) {
     requestAnimationFrame(() => {
         window.initMatchGamePlanScroller();
         window.syncMatchGamePlanScroller();
+        ensureMatchGamePlanSamspillPanelsDom();
         syncMatchGamePlanLineupOverlayUi(match);
+        renderMatchGamePlanSamspillSummary(match);
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
