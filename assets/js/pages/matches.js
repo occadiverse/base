@@ -1415,26 +1415,139 @@ function collectMatchGamePlanSamspillPairs(match) {
     }).filter(Boolean);
 }
 
-function buildMatchGamePlanSamspillAnalysisItemHtml(zone) {
+const matchGamePlanSamspillZonePositions = {
+    forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
+    midtbane: ['DM', 'OM', 'PM'],
+    angrep: ['VK', 'SP', 'HK'],
+    venstre: ['VMS', 'VB', 'VK', 'OM'],
+    sentral: ['GK', 'VMS', 'HMS', 'DM', 'OM', 'PM', 'SP'],
+    hoyre: ['HMS', 'HB', 'HK', 'PM']
+};
+
+const matchGamePlanSamspillZoneBenchCategories = {
+    forsvar: ['K', 'F'],
+    midtbane: ['M'],
+    angrep: ['A'],
+    venstre: ['F', 'M'],
+    sentral: ['K', 'F', 'M', 'A'],
+    hoyre: ['F', 'M', 'A']
+};
+
+function getMatchGamePlanZonePitchPlayers(match, zoneId) {
+    const positions = matchGamePlanSamspillZonePositions[zoneId] || [];
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const players = [];
+    const seenIds = new Set();
+
+    positions.forEach(posId => {
+        const player = lineup[posId];
+        if (!player?.id || seenIds.has(player.id)) return;
+        seenIds.add(player.id);
+        players.push(player);
+    });
+
+    return players;
+}
+
+function getMatchGamePlanZoneBenchPlayers(match, zoneId) {
+    const categories = matchGamePlanSamspillZoneBenchCategories[zoneId] || [];
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const onPitchIds = new Set(
+        Object.values(lineup).filter(Boolean).map(player => player.id).filter(Boolean)
+    );
+
+    return getMatchDetailAttendingPlayers(match).filter(player => {
+        if (player.id && onPitchIds.has(player.id)) return false;
+        const category = getMatchDetailPositionCategory(player.pos1);
+        return category && categories.includes(category);
+    });
+}
+
+function averagePositiveMetricValues(values) {
+    const valid = values.filter(value => value > 0);
+    if (!valid.length) return 0;
+    return Math.round(valid.reduce((total, value) => total + value, 0) / valid.length);
+}
+
+function getMatchGamePlanBenchSwapDelta(onPitchValues, benchValues) {
+    const pitchValues = onPitchValues.filter(value => value > 0);
+    const benchCandidates = benchValues.filter(value => value > 0);
+    if (!pitchValues.length || !benchCandidates.length) return null;
+
+    const currentAverage = pitchValues.reduce((total, value) => total + value, 0) / pitchValues.length;
+    const worstOnPitch = Math.min(...pitchValues);
+    const bestOnBench = Math.max(...benchCandidates);
+    if (bestOnBench <= worstOnPitch) return null;
+
+    const improvedAverage = (
+        pitchValues.reduce((total, value) => total + value, 0) - worstOnPitch + bestOnBench
+    ) / pitchValues.length;
+
+    const delta = Math.round(improvedAverage - currentAverage);
+    return delta > 0 ? delta : null;
+}
+
+function formatMatchGamePlanBenchDeltaSuffix(onPitchValues, benchValues) {
+    const benchCandidates = benchValues.filter(value => value > 0);
+    if (!benchCandidates.length) return '';
+
+    const delta = getMatchGamePlanBenchSwapDelta(onPitchValues, benchValues);
+    return delta > 0 ? ` (+${delta})` : ' (−)';
+}
+
+function getMatchGamePlanSamspillZoneMetrics(match, zoneId) {
+    const pitchPlayers = getMatchGamePlanZonePitchPlayers(match, zoneId);
+    const benchPlayers = getMatchGamePlanZoneBenchPlayers(match, zoneId);
+    const bidragValues = pitchPlayers.map(player => getMatchGamePlanPlayerKampbidrag(player, match));
+    const formValues = pitchPlayers.map(player => getMatchGamePlanPlayerForm(player, match));
+    const benchBidragValues = benchPlayers.map(player => getMatchGamePlanPlayerKampbidrag(player, match));
+    const benchFormValues = benchPlayers.map(player => getMatchGamePlanPlayerForm(player, match));
+    const bidragAverage = averagePositiveMetricValues(bidragValues);
+    const formAverage = averagePositiveMetricValues(formValues);
+
+    return {
+        hasData: pitchPlayers.length > 0,
+        bidragText: bidragAverage > 0
+            ? `${bidragAverage}${formatMatchGamePlanBenchDeltaSuffix(bidragValues, benchBidragValues)}`
+            : '-',
+        formText: formAverage > 0
+            ? `${formAverage}${formatMatchGamePlanBenchDeltaSuffix(formValues, benchFormValues)}`
+            : '-'
+    };
+}
+
+function buildMatchGamePlanSamspillAnalysisItemHtml(zone, match) {
+    const metrics = getMatchGamePlanSamspillZoneMetrics(match, zone.id);
+    const metricsHtml = metrics.hasData
+        ? `
+            <p class="match-game-plan-samspill-analysis-metrics">
+                <span>Bidrag: ${escapeMatchHtml(metrics.bidragText)}</span>
+                <span class="match-game-plan-samspill-analysis-metrics-sep">·</span>
+                <span>Form: ${escapeMatchHtml(metrics.formText)}</span>
+            </p>
+        `
+        : '';
+
     return `
         <li class="match-game-plan-samspill-analysis-item is-${escapeMatchHtml(zone.status)}">
             <div class="match-game-plan-samspill-analysis-row">
                 <span class="match-game-plan-samspill-analysis-name">${escapeMatchHtml(zone.label)}</span>
                 <span class="match-game-plan-samspill-analysis-status">${escapeMatchHtml(zone.statusLabel)}</span>
             </div>
+            ${metricsHtml}
             <p class="match-game-plan-samspill-analysis-text">${escapeMatchHtml(zone.explanation)}</p>
         </li>
     `;
 }
 
-function buildMatchGamePlanSamspillAnalysisGroupHtml(title, zones) {
+function buildMatchGamePlanSamspillAnalysisGroupHtml(title, zones, match) {
     if (!zones.length) return '';
 
     return `
         <div class="match-game-plan-samspill-analysis-group">
             <div class="match-game-plan-samspill-analysis-group-title">${escapeMatchHtml(title)}</div>
             <ul class="match-game-plan-samspill-analysis-list">
-                ${zones.map(zone => buildMatchGamePlanSamspillAnalysisItemHtml(zone)).join('')}
+                ${zones.map(zone => buildMatchGamePlanSamspillAnalysisItemHtml(zone, match)).join('')}
             </ul>
         </div>
     `;
@@ -1457,8 +1570,8 @@ function buildMatchGamePlanSamspillAnalysisHtml(match) {
 
     return `
         <div class="match-game-plan-samspill-analysis-body">
-            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Rekker', analysis.rows)}
-            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Korridorer', analysis.corridors)}
+            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Rekker', analysis.rows, match)}
+            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Korridorer', analysis.corridors, match)}
         </div>
     `;
 }

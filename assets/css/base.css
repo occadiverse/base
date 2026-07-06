@@ -1644,6 +1644,20 @@
             gap: 0.45rem;
             justify-content: space-between;
         }
+        .match-game-plan-samspill-analysis-metrics {
+            color: #334155;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.62rem;
+            font-weight: 800;
+            gap: 0.28rem;
+            line-height: 1.3;
+            margin: 0.2rem 0 0;
+        }
+        .match-game-plan-samspill-analysis-metrics-sep {
+            color: #94a3b8;
+            font-weight: 700;
+        }
         .match-game-plan-samspill-analysis-name {
             color: #0f172a;
             font-size: 0.72rem;
