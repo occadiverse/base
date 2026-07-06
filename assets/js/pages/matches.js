@@ -1469,6 +1469,19 @@ function averagePositiveMetricValues(values) {
     return Math.round(valid.reduce((total, value) => total + value, 0) / valid.length);
 }
 
+function getMatchGamePlanPlayerDisplayName(player) {
+    if (!player) return 'Ukjent';
+    if (player.navn) return player.navn;
+    if (typeof window.getPlayerNameFromRef === 'function') {
+        const ref = player.id || player.ref || '';
+        if (ref) {
+            const name = window.getPlayerNameFromRef(ref);
+            if (name) return name;
+        }
+    }
+    return 'Ukjent';
+}
+
 function buildMatchGamePlanPlayerMetricEntries(players, match, getMetric) {
     return players.map(player => ({
         player,
@@ -1502,7 +1515,7 @@ function getMatchGamePlanBenchSwapInsight(pitchEntries, benchEntries) {
     return {
         type: 'plus',
         delta,
-        playerName: bestBench.player?.navn || 'Ukjent'
+        playerName: getMatchGamePlanPlayerDisplayName(bestBench.player)
     };
 }
 
@@ -1512,8 +1525,9 @@ function buildMatchGamePlanBenchInsightHtml(insight) {
         return ' <span class="match-game-plan-samspill-analysis-bench-hint is-minus" title="Benkspillere i kategorien, men ingen som hever snittet">(−)</span>';
     }
 
+    const playerName = escapeMatchHtml(insight.playerName);
     const title = `${insight.playerName} kan heve snittet med ca. ${insight.delta}`;
-    return ` <span class="match-game-plan-samspill-analysis-bench-hint is-plus" title="${escapeMatchHtml(title)}">(+${insight.delta}, ${escapeMatchHtml(insight.playerName)})</span>`;
+    return ` <span class="match-game-plan-samspill-analysis-bench-hint is-plus" title="${escapeMatchHtml(title)}">(+${insight.delta})</span> <span class="match-game-plan-samspill-analysis-bench-player">${playerName}</span>`;
 }
 
 function getMatchGamePlanSamspillZoneMetrics(match, zoneId) {
