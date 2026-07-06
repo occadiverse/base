@@ -1105,7 +1105,6 @@ function ensureMatchGamePlanSamspillPanelsDom() {
         host.querySelectorAll('[data-samspill-summary], [data-samspill-analysis]').forEach(element => element.remove());
         host.insertAdjacentHTML('beforeend', `
             <div class="match-game-plan-samspill-panels" data-samspill-panels>
-                ${buildMatchGamePlanSamspillSummaryShellHtml()}
                 <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
                     <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
                 </section>
@@ -1114,9 +1113,7 @@ function ensureMatchGamePlanSamspillPanelsDom() {
         return;
     }
 
-    if (!host.querySelector('[data-samspill-summary]')) {
-        host.querySelector('[data-samspill-panels]')?.insertAdjacentHTML('afterbegin', buildMatchGamePlanSamspillSummaryShellHtml());
-    }
+    host.querySelector('[data-samspill-summary]')?.remove();
 
     if (!host.querySelector('[data-samspill-analysis]')) {
         host.querySelector('[data-samspill-panels]')?.insertAdjacentHTML('beforeend', `
@@ -1418,39 +1415,6 @@ function collectMatchGamePlanSamspillPairs(match) {
     }).filter(Boolean);
 }
 
-function buildMatchGamePlanSamspillSummaryHtml(match) {
-    const pairs = collectMatchGamePlanSamspillPairs(match);
-    const summary = typeof window.buildSamspillSummary === 'function'
-        ? window.buildSamspillSummary(pairs)
-        : { items: [], totalsText: '', isEmpty: true };
-
-    if (summary.isEmpty) {
-        return `
-            <p class="match-game-plan-samspill-summary-empty">
-                Plasser spillere i 11eren for å se samspill-oppsummering.
-            </p>
-        `;
-    }
-
-    const listItems = summary.items.map(item => `
-        <li class="match-game-plan-samspill-summary-item is-${escapeMatchHtml(item.status)}">
-            <span class="match-game-plan-samspill-summary-label">${escapeMatchHtml(item.prefix)}:</span>
-            <span class="match-game-plan-samspill-summary-pair">${escapeMatchHtml(item.pair)}</span>
-        </li>
-    `).join('');
-
-    const totalsHtml = summary.totalsText
-        ? `<li class="match-game-plan-samspill-summary-item is-total">${escapeMatchHtml(summary.totalsText)}</li>`
-        : '';
-
-    return `
-        <ul class="match-game-plan-samspill-summary-list">
-            ${listItems}
-            ${totalsHtml}
-        </ul>
-    `;
-}
-
 function buildMatchGamePlanSamspillAnalysisItemHtml(zone) {
     return `
         <li class="match-game-plan-samspill-analysis-item is-${escapeMatchHtml(zone.status)}">
@@ -1502,7 +1466,6 @@ function buildMatchGamePlanSamspillAnalysisHtml(match) {
 function buildMatchGamePlanSamspillPanelsShellHtml() {
     return `
         <div class="match-game-plan-samspill-panels" data-samspill-panels>
-            ${buildMatchGamePlanSamspillSummaryShellHtml()}
             <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
                 <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
             </section>
@@ -1510,33 +1473,16 @@ function buildMatchGamePlanSamspillPanelsShellHtml() {
     `;
 }
 
-function buildMatchGamePlanSamspillSummaryShellHtml() {
-    return `
-        <section class="match-game-plan-samspill-summary" data-samspill-summary aria-label="Samspill-oppsummering">
-            <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
-        </section>
-    `;
-}
-
 function renderMatchGamePlanSamspillSummary(match) {
     ensureMatchGamePlanSamspillPanelsDom();
 
-    const summaryEl = document.querySelector('[data-samspill-summary]');
     const analysisEl = document.querySelector('[data-samspill-analysis]');
+    if (!analysisEl) return;
 
-    if (summaryEl) {
-        summaryEl.innerHTML = `
-            <h4 class="match-game-plan-samspill-summary-title">Samspill</h4>
-            ${buildMatchGamePlanSamspillSummaryHtml(match)}
-        `;
-    }
-
-    if (analysisEl) {
-        analysisEl.innerHTML = `
-            <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
-            ${buildMatchGamePlanSamspillAnalysisHtml(match)}
-        `;
-    }
+    analysisEl.innerHTML = `
+        <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+        ${buildMatchGamePlanSamspillAnalysisHtml(match)}
+    `;
 }
 
 function buildMatchGamePlanStarterFooterHtml(match) {
