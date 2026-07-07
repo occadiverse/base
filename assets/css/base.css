@@ -9909,6 +9909,20 @@
             box-shadow: none;
             transform: none;
         }
+        .match-game-plan-player-option.is-unavailable,
+        .match-game-plan-select-modal .match-game-plan-player-option.is-unavailable {
+            cursor: not-allowed;
+            opacity: 0.58;
+        }
+        .match-game-plan-player-option.is-unavailable:hover,
+        .match-game-plan-select-modal .match-game-plan-player-option.is-unavailable:hover {
+            background: #ffffff;
+            border-color: rgba(226, 232, 240, 0.95);
+        }
+        .match-game-plan-player-option.is-unavailable .match-game-plan-player-tag {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
         .match-game-plan-empty {
             align-items: center;
             color: rgba(255, 255, 255, 0.58);
