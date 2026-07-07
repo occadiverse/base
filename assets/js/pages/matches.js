@@ -748,16 +748,77 @@ function getMatchGamePlanPlayerInitials(player) {
 }
 
 function buildMatchGamePlanHeadingAvatarHtml(player, posId) {
-    const photoUrl = player?.photoUrl || player?.bildeUrl || player?.avatarUrl || '';
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
     const fallbackText = player ? getMatchGamePlanPlayerInitials(player) : posId;
 
     return `
         <span class="match-game-plan-heading-avatar" data-player-id="${escapeMatchHtml(player?.id || '')}">
             ${photoUrl
-                ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" class="match-game-plan-heading-avatar-img">`
+                ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" class="match-game-plan-heading-avatar-img" loading="lazy" decoding="async">`
                 : `<span>${escapeMatchHtml(fallbackText)}</span>`}
         </span>
     `;
+}
+
+function buildMatchGamePlanPlayerOptionAvatarHtml(player) {
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
+    const fallbackText = player ? getMatchGamePlanPlayerInitials(player) : '?';
+
+    if (photoUrl) {
+        return `<span class="match-game-plan-player-avatar is-photo"><img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async"></span>`;
+    }
+
+    return `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(fallbackText)}</span></span>`;
+}
+
+function buildMatchGamePlanOnPitchPlayerKeys(lineup) {
+    const keys = new Set();
+    Object.values(lineup || {}).forEach(lineupPlayer => {
+        if (!lineupPlayer) return;
+        if (lineupPlayer.id) keys.add(`id:${lineupPlayer.id}`);
+        if (lineupPlayer.navn) keys.add(`name:${lineupPlayer.navn}`);
+    });
+    return keys;
+}
+
+function isMatchGamePlanPlayerOnPitch(player, onPitchKeys) {
+    if (!player) return false;
+    return Boolean(
+        (player.id && onPitchKeys.has(`id:${player.id}`))
+        || (player.navn && onPitchKeys.has(`name:${player.navn}`))
+    );
+}
+
+function closeMatchGamePlanPlayerSelectModal() {
+    const modal = document.getElementById('tacticalPlayerModal');
+    if (!modal) return;
+    modal.classList.remove('match-game-plan-select-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function renderMatchGamePlanStarterCardNode(match, posId) {
+    const formation = matchGamePlanFormations[getMatchGamePlanDraftFormation(match)] || matchGamePlanFormations['4-2-4'];
+    const coords = formation.positions[posId];
+    if (!coords) return;
+
+    document.querySelectorAll(`.match-detail-lineup-pitch-wrap [data-game-plan-node="${posId}"]`).forEach(existingNode => {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildMatchGamePlanStarterCardNodeHtml(match, posId, coords).trim();
+        existingNode.replaceWith(wrapper.firstElementChild);
+    });
+}
+
+function refreshMatchGamePlanLineupAfterChange(match, affectedPosIds = []) {
+    const uniquePosIds = [...new Set(affectedPosIds.filter(Boolean))];
+    uniquePosIds.forEach(posId => renderMatchGamePlanStarterCardNode(match, posId));
+    renderMatchDetailSquadList(match);
+    syncMatchGamePlanLineupOverlayUi(match);
+    requestAnimationFrame(() => {
+        if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+            window.drawMatchGamePlanChemistryLines(match);
+        }
+    });
 }
 
 function getMatchGamePlanLineup(match) {
@@ -2928,14 +2989,8 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
         [posId]: selectedPlayer ? { ...selectedPlayer } : null
     };
 
-    renderMatchGamePlanStarter11Page(match);
-
-    const modal = document.getElementById('tacticalPlayerModal');
-    if (modal) {
-        modal.classList.remove('match-game-plan-select-modal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    refreshMatchGamePlanLineupAfterChange(match, [posId]);
+    closeMatchGamePlanPlayerSelectModal();
 };
 
 window.setMatchGamePlanFormation = async function(matchId, formationId) {
@@ -3116,30 +3171,103 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     lineup[fromPosId] = targetPlayer || null;
     draft.lineup = lineup;
 
-    renderMatchGamePlanStarter11Page(match);
-
-    const modal = document.getElementById('tacticalPlayerModal');
-    if (modal) {
-        modal.classList.remove('match-game-plan-select-modal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    refreshMatchGamePlanLineupAfterChange(match, [fromPosId, toPosId]);
+    closeMatchGamePlanPlayerSelectModal();
 };
 
-function renderMatchGamePlanSelectActions(list, matchId, posId, mode) {
-    const actions = document.createElement('div');
-    actions.className = 'match-game-plan-select-actions';
-    actions.innerHTML = `
-        <button type="button" class="match-game-plan-select-action ${mode === 'player' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'player')">
-            <i class="fa-solid fa-user-pen"></i>
-            <span>Bytt spiller</span>
-        </button>
-        <button type="button" class="match-game-plan-select-action ${mode === 'position' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'position')">
-            <i class="fa-solid fa-arrows-left-right"></i>
-            <span>Bytt posisjon</span>
-        </button>
+function buildMatchGamePlanSelectActionsHtml(matchId, posId, mode) {
+    return `
+        <div class="match-game-plan-select-actions">
+            <button type="button" class="match-game-plan-select-action ${mode === 'player' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'player')">
+                <i class="fa-solid fa-user-pen"></i>
+                <span>Bytt spiller</span>
+            </button>
+            <button type="button" class="match-game-plan-select-action ${mode === 'position' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'position')">
+                <i class="fa-solid fa-arrows-left-right"></i>
+                <span>Bytt posisjon</span>
+            </button>
+        </div>
     `;
-    list.appendChild(actions);
+}
+
+function buildMatchGamePlanPositionOptionsHtml(match, posId) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const currentPlayer = lineup[posId];
+    if (!currentPlayer) return '';
+
+    return Object.keys(matchGamePlanStarterPositions)
+        .filter(targetPosId => targetPosId !== posId)
+        .filter(targetPosId => !matchGamePlanSamePlayer(lineup[targetPosId], currentPlayer))
+        .sort((a, b) => {
+            const scoreA = getMatchGamePlanPositionScore(currentPlayer, a);
+            const scoreB = getMatchGamePlanPositionScore(currentPlayer, b);
+            return scoreA - scoreB || a.localeCompare(b);
+        })
+        .map(targetPosId => {
+            const targetPlayer = lineup[targetPosId];
+            const score = getMatchGamePlanPositionScore(currentPlayer, targetPosId);
+            const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
+            const avatarHtml = targetPlayer
+                ? buildMatchGamePlanPlayerOptionAvatarHtml(targetPlayer)
+                : `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(targetPosId)}</span></span>`;
+
+            return `
+                <button
+                    type="button"
+                    class="match-game-plan-player-option"
+                    onclick="window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(targetPosId)}')"
+                >
+                    ${avatarHtml}
+                    <span class="match-game-plan-player-copy">
+                        <strong>${escapeMatchHtml(getMatchGamePlanPositionLabel(targetPosId))}</strong>
+                        <span>${targetPlayer ? `Bytt med ${escapeMatchHtml(getMatchGamePlanPlayerShortName(targetPlayer))}` : 'Ledig posisjon'}</span>
+                    </span>
+                    <span class="match-game-plan-player-tag">${matchLabel}</span>
+                </button>
+            `;
+        })
+        .join('');
+}
+
+function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const onPitchKeys = buildMatchGamePlanOnPitchPlayerKeys(lineup);
+    const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) => {
+        const scoreA = getMatchGamePlanPositionScore(a, posId);
+        const scoreB = getMatchGamePlanPositionScore(b, posId);
+        if (scoreA !== scoreB) return scoreA - scoreB;
+
+        const jerseyA = Number(a.drakt || a.draktnummer) || 999;
+        const jerseyB = Number(b.drakt || b.draktnummer) || 999;
+        return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
+    });
+
+    return players
+        .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer))
+        .map(player => {
+            const score = getMatchGamePlanPositionScore(player, posId);
+            const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
+            const jersey = player.drakt || player.draktnummer || '';
+            const isOnPitch = isMatchGamePlanPlayerOnPitch(player, onPitchKeys);
+            const meta = [player.pos1, jersey ? `#${jersey}` : ''].filter(Boolean).join(' · ');
+
+            return `
+                <button
+                    type="button"
+                    class="match-game-plan-player-option"
+                    onclick="window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')"
+                >
+                    <span class="match-game-plan-player-status-dot ${isOnPitch ? 'is-on-pitch' : 'is-off-pitch'}" title="${isOnPitch ? 'Allerede på banen' : 'Ledig'}"></span>
+                    ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
+                    <span class="match-game-plan-player-copy">
+                        <strong>${escapeMatchHtml(player.navn)}</strong>
+                        <span>${escapeMatchHtml(meta || 'Ukjent posisjon')}</span>
+                    </span>
+                    <span class="match-game-plan-player-tag">${matchLabel}</span>
+                </button>
+            `;
+        })
+        .join('');
 }
 
 function removeMatchGamePlanClearPlayerButton(modal) {
@@ -3162,60 +3290,17 @@ function renderMatchGamePlanClearPlayerButton(modal, matchId, posId) {
     header.appendChild(clearButton);
 }
 
-function renderMatchGamePlanPositionOptions(list, match, posId) {
-    const lineup = getMatchGamePlanDraftLineup(match);
-    const currentPlayer = lineup[posId];
-    if (!currentPlayer) return;
-
-    const options = Object.keys(matchGamePlanStarterPositions)
-        .filter(targetPosId => targetPosId !== posId)
-        .filter(targetPosId => !matchGamePlanSamePlayer(lineup[targetPosId], currentPlayer))
-        .sort((a, b) => {
-            const scoreA = getMatchGamePlanPositionScore(currentPlayer, a);
-            const scoreB = getMatchGamePlanPositionScore(currentPlayer, b);
-            return scoreA - scoreB || a.localeCompare(b);
-        });
-
-    options.forEach(targetPosId => {
-        const targetPlayer = lineup[targetPosId];
-        const score = getMatchGamePlanPositionScore(currentPlayer, targetPosId);
-        const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
-        const row = document.createElement('button');
-        row.type = 'button';
-        row.className = 'match-game-plan-player-option';
-        row.onclick = () => window.moveMatchGamePlanPlayerPosition(match.id, posId, targetPosId);
-        row.innerHTML = `
-            <span class="match-game-plan-player-avatar">${escapeMatchHtml(targetPosId)}</span>
-            <span class="match-game-plan-player-copy">
-                <strong>${escapeMatchHtml(getMatchGamePlanPositionLabel(targetPosId))}</strong>
-                <span>${targetPlayer ? `Bytt med ${escapeMatchHtml(getMatchGamePlanPlayerShortName(targetPlayer))}` : 'Ledig posisjon'}</span>
-            </span>
-            <span class="match-game-plan-player-tag">${matchLabel}</span>
-        `;
-        list.appendChild(row);
-    });
-}
-
 window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     const modal = document.getElementById('tacticalPlayerModal');
     const list = document.getElementById('tactical-player-list');
     const label = document.getElementById('tactical-pos-label');
-    const title = modal.querySelector('h3');
+    const title = modal?.querySelector('h3');
     if (!match || !modal || !list) return;
 
     const lineup = getMatchGamePlanDraftLineup(match);
     const selectedPlayer = lineup[posId] || null;
     const currentMode = mode || 'player';
-    const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) => {
-        const scoreA = getMatchGamePlanPositionScore(a, posId);
-        const scoreB = getMatchGamePlanPositionScore(b, posId);
-        if (scoreA !== scoreB) return scoreA - scoreB;
-
-        const jerseyA = Number(a.drakt || a.draktnummer) || 999;
-        const jerseyB = Number(b.drakt || b.draktnummer) || 999;
-        return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
-    });
 
     if (title) {
         title.innerHTML = `
@@ -3227,52 +3312,25 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         `;
     }
     if (label) label.innerText = '';
-    list.innerHTML = '';
     removeMatchGamePlanClearPlayerButton(modal);
 
+    const listHtml = [
+        selectedPlayer ? buildMatchGamePlanSelectActionsHtml(matchId, posId, currentMode) : '',
+        currentMode === 'position' && selectedPlayer
+            ? buildMatchGamePlanPositionOptionsHtml(match, posId)
+            : buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer)
+    ].join('');
+
+    list.innerHTML = listHtml || `
+        <div class="match-game-plan-player-empty">
+            ${currentMode === 'position'
+                ? 'Ingen posisjoner å bytte til.'
+                : 'Ingen påmeldte spillere å velge mellom ennå.'}
+        </div>
+    `;
+
     if (selectedPlayer) {
-        renderMatchGamePlanSelectActions(list, matchId, posId, currentMode);
         renderMatchGamePlanClearPlayerButton(modal, matchId, posId);
-    }
-
-    if (currentMode === 'position' && selectedPlayer) {
-        renderMatchGamePlanPositionOptions(list, match, posId);
-    } else {
-        players
-            .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer))
-            .forEach(player => {
-                const score = getMatchGamePlanPositionScore(player, posId);
-                const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
-                const jersey = player.drakt || player.draktnummer || '-';
-                const isOnPitch = Object.values(lineup).some(lineupPlayer =>
-                    lineupPlayer
-                    && ((lineupPlayer.id && player.id && lineupPlayer.id === player.id)
-                        || (lineupPlayer.navn && player.navn && lineupPlayer.navn === player.navn))
-                );
-                const row = document.createElement('button');
-                row.type = 'button';
-                row.className = 'match-game-plan-player-option';
-                row.onclick = () => window.chooseMatchGamePlanPlayer(matchId, posId, player.id);
-                row.innerHTML = `
-                    <span class="match-game-plan-player-status-dot ${isOnPitch ? 'is-on-pitch' : 'is-off-pitch'}" title="${isOnPitch ? 'Allerede på banen' : 'Ledig'}"></span>
-                    <span class="match-game-plan-player-avatar">${escapeMatchHtml(jersey)}</span>
-                    <span class="match-game-plan-player-copy">
-                        <strong>${escapeMatchHtml(player.navn)}</strong>
-                        <span>${escapeMatchHtml(player.pos1 || 'Ukjent posisjon')}</span>
-                    </span>
-                    <span class="match-game-plan-player-tag">${matchLabel}</span>
-                `;
-                list.appendChild(row);
-            });
-    }
-
-    if (!list.querySelector('.match-game-plan-player-option')) {
-        const empty = document.createElement('div');
-        empty.className = 'match-game-plan-player-empty';
-        empty.textContent = currentMode === 'position'
-            ? 'Ingen posisjoner å bytte til.'
-            : 'Ingen påmeldte spillere å velge mellom ennå.';
-        list.appendChild(empty);
     }
 
     modal.classList.add('match-game-plan-select-modal');
