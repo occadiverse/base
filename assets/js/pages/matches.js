@@ -1288,38 +1288,6 @@ function buildMatchGamePlanFormationPickerHtml(match) {
     `;
 }
 
-function buildMatchGamePlanStarterSelectOptionsHtml(match, posId, selectedPlayer) {
-    const lineup = getMatchGamePlanDraftLineup(match);
-    const usedPlayerIds = new Set(
-        Object.entries(lineup)
-            .filter(([otherPosId]) => otherPosId !== posId)
-            .map(([, player]) => player?.id)
-            .filter(Boolean)
-    );
-
-    return [
-        '<option value="">Velg spiller</option>',
-        ...getMatchGamePlanSelectablePlayers(match)
-            .sort((a, b) => {
-                const scoreA = getMatchGamePlanPositionScore(a, posId);
-                const scoreB = getMatchGamePlanPositionScore(b, posId);
-                if (scoreA !== scoreB) return scoreA - scoreB;
-                const jerseyA = Number(a.drakt || a.draktnummer) || 999;
-                const jerseyB = Number(b.drakt || b.draktnummer) || 999;
-                return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
-            })
-            .map(player => {
-                const isSelected = selectedPlayer && player.id === selectedPlayer.id;
-                const isUsed = usedPlayerIds.has(player.id);
-                const meta = [player.pos1, player.drakt || player.draktnummer ? `#${player.drakt || player.draktnummer}` : '']
-                    .filter(Boolean)
-                    .join(' - ');
-
-                return `<option value="${escapeMatchHtml(player.id)}" ${isSelected ? 'selected' : ''} ${isUsed ? 'disabled' : ''}>${escapeMatchHtml(player.navn)}${meta ? ` (${escapeMatchHtml(meta)})` : ''}</option>`;
-            })
-    ].join('');
-}
-
 function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const selectedPlayer = getMatchGamePlanDraftLineup(match)[posId] || null;
     const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
@@ -1354,14 +1322,12 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
                 `}
                 <strong>${selectedPlayer ? escapeMatchHtml(cardLabel) : ''}</strong>
             </span>
-            <i class="fa-solid fa-chevron-down match-game-plan-lineup-chevron" aria-hidden="true"></i>
-            <select
+            <button
+                type="button"
                 class="match-game-plan-lineup-select"
                 aria-label="Velg spiller for ${escapeMatchHtml(positionLabel)}"
-                onchange="window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', this.value)"
-            >
-                ${buildMatchGamePlanStarterSelectOptionsHtml(match, posId, selectedPlayer)}
-            </select>
+                onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}')"
+            ></button>
         </div>
     `;
 }
@@ -3197,7 +3163,7 @@ function renderMatchGamePlanClearPlayerButton(modal, matchId, posId) {
 }
 
 function renderMatchGamePlanPositionOptions(list, match, posId) {
-    const lineup = getMatchGamePlanLineup(match);
+    const lineup = getMatchGamePlanDraftLineup(match);
     const currentPlayer = lineup[posId];
     if (!currentPlayer) return;
 
@@ -3238,7 +3204,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     const title = modal.querySelector('h3');
     if (!match || !modal || !list) return;
 
-    const lineup = getMatchGamePlanLineup(match);
+    const lineup = getMatchGamePlanDraftLineup(match);
     const selectedPlayer = lineup[posId] || null;
     const currentMode = mode || 'player';
     const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) => {
