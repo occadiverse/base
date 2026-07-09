@@ -8159,20 +8159,34 @@
         }
         .match-bench-player {
             align-items: center;
+            appearance: none;
             background: rgba(255, 255, 255, 0.96);
             border: 1px solid rgba(245, 197, 66, 0.38);
             border-radius: 0.68rem;
             box-shadow: 0 10px 20px rgba(2, 6, 23, 0.18);
             color: #0f172a;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
+            font: inherit;
             gap: 0.12rem;
             justify-content: center;
             min-height: 4.7rem;
             min-width: 0;
             overflow: hidden;
             padding: 0.07rem 0.07rem 0.14rem;
+            text-align: center;
+            transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
             width: 3.7rem;
+        }
+        .match-bench-player:hover {
+            border-color: rgba(245, 197, 66, 0.72);
+            box-shadow: 0 12px 22px rgba(2, 6, 23, 0.22);
+            transform: translateY(-1px);
+        }
+        .match-bench-player:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.28);
+            outline: none;
         }
         .match-bench-player .match-bench-photo {
             border-width: 0;

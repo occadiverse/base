@@ -771,12 +771,69 @@ function buildMatchGamePlanPlayerOptionAvatarHtml(player) {
     return `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(fallbackText)}</span></span>`;
 }
 
+function getMatchGamePlanDraftFormationPositions(match) {
+    const formation = matchGamePlanFormations[getMatchGamePlanDraftFormation(match)] || matchGamePlanFormations['4-2-4'];
+    return formation.positions || {};
+}
+
+function findMatchGamePlanPlayerById(match, playerId) {
+    if (!playerId) return null;
+    const fromActive = (window.activePlayers || []).find(player => player.id === playerId);
+    if (fromActive) return fromActive;
+    return getMatchDetailAttendingPlayers(match).find(player => player.id === playerId) || null;
+}
+
+function showMatchGamePlanPlayerSelectModal(modal) {
+    if (!modal) return;
+    modal.classList.add('match-game-plan-select-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
 function closeMatchGamePlanPlayerSelectModal() {
     const modal = document.getElementById('tacticalPlayerModal');
     if (!modal) return;
     modal.classList.remove('match-game-plan-select-modal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+}
+
+function buildMatchGamePlanBenchPlacementOptionsHtml(match, player) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const positions = getMatchGamePlanDraftFormationPositions(match);
+
+    return Object.entries(positions)
+        .sort(([posA], [posB]) => {
+            const scoreA = getMatchGamePlanPositionScore(player, posA);
+            const scoreB = getMatchGamePlanPositionScore(player, posB);
+            return scoreA - scoreB || posA.localeCompare(posB);
+        })
+        .map(([posId, coords]) => {
+            const targetPlayer = lineup[posId];
+            const score = getMatchGamePlanPositionScore(player, posId);
+            const matchLabel = score === 0 ? 'Primær' : (score === 1 ? 'Sekundær' : 'Annen');
+            const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
+            const avatarHtml = targetPlayer
+                ? buildMatchGamePlanPlayerOptionAvatarHtml(targetPlayer)
+                : `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(posId)}</span></span>`;
+
+            return `
+                <button
+                    type="button"
+                    class="match-game-plan-player-option"
+                    onclick="window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')"
+                >
+                    <span class="match-game-plan-player-status-dot ${targetPlayer ? 'is-on-pitch' : 'is-off-pitch'}" title="${targetPlayer ? 'Opptatt' : 'Ledig'}"></span>
+                    ${avatarHtml}
+                    <span class="match-game-plan-player-copy">
+                        <strong>${escapeMatchHtml(positionLabel)}</strong>
+                        <span>${targetPlayer ? `Erstatter ${escapeMatchHtml(getMatchGamePlanPlayerShortName(targetPlayer))}` : 'Ledig posisjon'} · ${escapeMatchHtml(posId)}</span>
+                    </span>
+                    <span class="match-game-plan-player-tag">${matchLabel}</span>
+                </button>
+            `;
+        })
+        .join('');
 }
 
 function renderMatchGamePlanStarterCardNode(match, posId) {
@@ -1034,11 +1091,17 @@ function buildMatchBenchPlayerHtml(match, player) {
     const isOnPitch = Boolean(pitchPosId);
     const pitchCode = isOnPitch ? getMatchGamePlanPositionBadgeLabel(pitchPosId) : '';
     const ariaLabel = isOnPitch
-        ? `${lastName}, på banen som ${pitchCode}`
-        : lastName;
+        ? `${lastName}, på banen som ${pitchCode}. Klikk for å endre.`
+        : `${lastName}. Klikk for å plassere på banen.`;
 
     return `
-        <div class="match-bench-player${isOnPitch ? ' is-on-pitch' : ''}" data-player-id="${escapeMatchHtml(player.id || '')}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''} aria-label="${escapeMatchHtml(ariaLabel)}">
+        <button
+            type="button"
+            class="match-bench-player${isOnPitch ? ' is-on-pitch' : ''}"
+            data-player-id="${escapeMatchHtml(player.id || '')}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''}
+            aria-label="${escapeMatchHtml(ariaLabel)}"
+            onclick="window.openMatchGamePlanBenchPlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(player.id || '')}')"
+        >
             <span class="match-game-plan-lineup-photo match-bench-photo" aria-hidden="true">
                 ${photoUrl
                     ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
@@ -1048,7 +1111,7 @@ function buildMatchBenchPlayerHtml(match, player) {
             </span>
             <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
             ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
-        </div>
+        </button>
     `;
 }
 
@@ -3366,9 +3429,46 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         renderMatchGamePlanClearPlayerButton(modal, matchId, posId);
     }
 
-    modal.classList.add('match-game-plan-select-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    showMatchGamePlanPlayerSelectModal(modal);
+};
+
+window.openMatchGamePlanBenchPlayerSelect = function(matchId, playerId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    const player = match ? findMatchGamePlanPlayerById(match, playerId) : null;
+    if (!match || !player) return;
+
+    const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+    if (existingPosId) {
+        window.openMatchGamePlanPlayerSelect(matchId, existingPosId);
+        return;
+    }
+
+    const modal = document.getElementById('tacticalPlayerModal');
+    const list = document.getElementById('tactical-player-list');
+    const label = document.getElementById('tactical-pos-label');
+    const title = modal?.querySelector('h3');
+    if (!modal || !list) return;
+
+    if (title) {
+        title.innerHTML = `
+            ${buildMatchGamePlanHeadingAvatarHtml(player, '')}
+            <span class="match-game-plan-heading-copy">
+                <span class="match-game-plan-heading-title">${escapeMatchHtml(player.navn)}</span>
+                <span class="match-game-plan-heading-subtitle">Velg posisjon på banen</span>
+            </span>
+        `;
+    }
+    if (label) label.innerText = '';
+    removeMatchGamePlanClearPlayerButton(modal);
+
+    const listHtml = buildMatchGamePlanBenchPlacementOptionsHtml(match, player);
+    list.innerHTML = listHtml || `
+        <div class="match-game-plan-player-empty">
+            Ingen posisjoner i valgt formasjon.
+        </div>
+    `;
+
+    showMatchGamePlanPlayerSelectModal(modal);
 };
 
 window.syncMatchGamePlanScroller = function() {
