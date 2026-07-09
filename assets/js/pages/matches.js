@@ -915,6 +915,47 @@ function resetMatchGamePlanDraft(match) {
     };
 }
 
+function getMatchGamePlanFormationPositionIds(formationId) {
+    const formation = matchGamePlanFormations[formationId] || matchGamePlanFormations['4-2-4'];
+    return Object.keys(formation.positions || {});
+}
+
+function isMatchGamePlanDraftDirty(match) {
+    if (!match?.id || !window.matchGamePlanDrafts?.[match.id]) return false;
+
+    const savedFormation = getMatchGamePlanFormation(match);
+    const draftFormation = getMatchGamePlanDraftFormation(match);
+    if (savedFormation !== draftFormation) return true;
+
+    const positionIds = getMatchGamePlanFormationPositionIds(draftFormation);
+    const savedRefs = getMatchGamePlanLineupRefs(getMatchGamePlanLineup(match));
+    const draftRefs = getMatchGamePlanLineupRefs(getMatchGamePlanDraftLineup(match));
+
+    return positionIds.some(posId => (savedRefs[posId] || '') !== (draftRefs[posId] || ''));
+}
+
+function syncMatchGamePlanLineupSaveState(match) {
+    const saveBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-save-btn');
+    if (!saveBtn || !match) return;
+
+    const isDirty = isMatchGamePlanDraftDirty(match);
+    saveBtn.classList.toggle('is-dirty', isDirty);
+    saveBtn.setAttribute('aria-label', isDirty ? 'Lagre ulagrede endringer' : 'Lagre lagoppstilling');
+    saveBtn.title = isDirty ? 'Ulagrede endringer i 11eren' : '';
+
+    const label = saveBtn.querySelector('.match-game-plan-lineup-save-label');
+    if (label) {
+        label.textContent = isDirty ? 'Lagre · ulagret' : 'Lagre';
+    }
+}
+
+window.isMatchGamePlanDraftDirty = function(matchOrId) {
+    const match = typeof matchOrId === 'string'
+        ? (window.activeMatches || []).find(item => item.id === matchOrId)
+        : matchOrId;
+    return isMatchGamePlanDraftDirty(match);
+};
+
 function getMatchGamePlanDraftLineup(match) {
     return getMatchGamePlanDraft(match).lineup || {};
 }
@@ -2384,6 +2425,7 @@ function syncMatchGamePlanLineupOverlayUi(match) {
     });
 
     renderMatchGamePlanSamspillSummary(match);
+    syncMatchGamePlanLineupSaveState(match);
 }
 
 function renderMatchGamePlanStarter11Page(match) {
@@ -3816,7 +3858,7 @@ window.toggleBenchOnly = function(btn) {
     const newState = !isActive;
     btn.setAttribute('data-active', newState ? 'true' : 'false');
 
-    const row = btn.closest('.py-3');
+    const row = btn.closest('.match-stats-player-row');
     const pitchStats = row ? row.querySelector('.player-pitch-stats') : null;
 
     if (newState) {

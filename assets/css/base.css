@@ -1374,6 +1374,16 @@
             border-color: rgba(245, 197, 66, 0.28);
             color: #f5c542;
         }
+        .match-detail-lineup-builder .match-game-plan-lineup-save-btn.is-dirty {
+            background: rgba(245, 197, 66, 0.22);
+            border-color: rgba(245, 197, 66, 0.58);
+            color: #f5c542;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-save-btn.is-dirty:hover {
+            background: rgba(245, 197, 66, 0.32);
+            border-color: rgba(245, 197, 66, 0.72);
+            color: #ffffff;
+        }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch {
             border-color: rgba(245, 197, 66, 0.2);
             box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16);

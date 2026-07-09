@@ -209,6 +209,10 @@
             );
             if (isEditing) return;
 
+            if (typeof window.isMatchGamePlanDraftDirty === 'function' && window.isMatchGamePlanDraftDirty(activeMatch)) {
+                return;
+            }
+
             requestAnimationFrame(() => window.showMatchDetails(window.activeDetailsId));
         }
 
