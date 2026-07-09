@@ -2938,6 +2938,8 @@ window.saveMatchSummaryNotes = async function(matchId, sourceElement) {
         setMatchDetailFeedback('[data-notes-save-state]', error.message || 'Kunne ikke lagre notater', 'error', 6000);
     }
 };
+
+window.buildMatchCoachNotesFieldsHtml = function(match) {
     if (!match || !match.id) return '';
 
     const matchId = escapeMatchHtml(match.id);
