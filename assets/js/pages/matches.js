@@ -954,6 +954,53 @@ function syncMatchGamePlanLineupSaveState(match) {
     if (label) {
         label.textContent = isDirty ? 'Lagre · ulagret' : 'Lagre';
     }
+
+    if (isDirty) {
+        setMatchDetailFeedback('[data-lineup-save-state]', '', '');
+    }
+}
+
+function getMatchGamePlanDraftLineupPlayerCount(match) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    return matchGamePlanStarterPositionIds.filter(posId => lineup[posId]).length;
+}
+
+function syncMatchGamePlanSamspillHint(match) {
+    const hint = document.querySelector('[data-samspill-hint]');
+    if (!hint || !match) return;
+
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
+    const shouldShow = !overlayState.samspill && playerCount >= 2;
+
+    hint.hidden = !shouldShow;
+    if (shouldShow) {
+        hint.textContent = 'Slå på Samspill for å se relasjoner og samspillanalyse';
+    }
+}
+
+function setMatchDetailFeedback(selector, message, variant = '', autoClearMs = 0) {
+    const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (!el) return;
+
+    if (el._feedbackTimer) {
+        clearTimeout(el._feedbackTimer);
+        el._feedbackTimer = null;
+    }
+
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.classList.remove('is-success', 'is-error', 'is-pending');
+    if (message && variant) el.classList.add(`is-${variant}`);
+
+    if (message && autoClearMs > 0) {
+        el._feedbackTimer = setTimeout(() => {
+            el.textContent = '';
+            el.hidden = true;
+            el.classList.remove('is-success', 'is-error', 'is-pending');
+            el._feedbackTimer = null;
+        }, autoClearMs);
+    }
 }
 
 window.isMatchGamePlanDraftDirty = function(matchOrId) {
@@ -1974,6 +2021,8 @@ function buildMatchGamePlanStarterFooterHtml(match) {
     return `
         <div class="match-game-plan-lineup-footer">
             ${buildMatchGamePlanOverlayPickerHtml(match)}
+            <p class="match-game-plan-samspill-hint" data-samspill-hint hidden></p>
+            <p class="match-inline-status match-game-plan-lineup-save-state" data-lineup-save-state aria-live="polite" hidden></p>
         </div>
     `;
 }
@@ -2215,7 +2264,10 @@ function updateMatchGamePlanBenchSaveState(matchId) {
     const isDirty = window.dirtyMatchGamePlanBenchMatchIds?.has(matchId) || false;
     const saveButton = getMatchGamePlanBenchSaveButton(matchId);
     const saveState = saveButton?.closest('.match-game-plan-bench-save-row')?.querySelector('[data-bench-save-state]');
-    if (saveState) saveState.textContent = isDirty ? 'Ulagrede endringer' : 'Lagret';
+    if (saveState) {
+        saveState.textContent = isDirty ? 'Ulagrede endringer' : 'Lagret';
+        saveState.classList.remove('is-error');
+    }
     if (!saveButton) return;
 
     saveButton.disabled = !isDirty;
@@ -2434,6 +2486,7 @@ function syncMatchGamePlanLineupOverlayUi(match) {
 
     renderMatchGamePlanSamspillSummary(match);
     syncMatchGamePlanLineupSaveState(match);
+    syncMatchGamePlanSamspillHint(match);
 }
 
 function renderMatchGamePlanStarter11Page(match) {
@@ -2882,11 +2935,9 @@ window.saveMatchSummaryNotes = async function(matchId, sourceElement) {
         }
     } catch (error) {
         console.error(error);
-        alert(error.message);
+        setMatchDetailFeedback('[data-notes-save-state]', error.message || 'Kunne ikke lagre notater', 'error', 6000);
     }
 };
-
-window.buildMatchCoachNotesFieldsHtml = function(match) {
     if (!match || !match.id) return '';
 
     const matchId = escapeMatchHtml(match.id);
@@ -2995,6 +3046,7 @@ window.showMatchDetails = function(id) {
                 </button>
             </div>
             <div class="match-collapsible-content">
+                <p class="match-inline-status match-kampplan-feedback" data-kampplan-feedback aria-live="polite" hidden></p>
                 <div class="match-game-plan-body">
                     ${gamePlanHtml}
                 </div>
@@ -3014,7 +3066,9 @@ window.showMatchDetails = function(id) {
                 <div class="match-coach-notes-body">
                     ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
                 </div>
-                <div class="match-coach-notes-footer" aria-hidden="true"></div>
+                <div class="match-coach-notes-footer">
+                    <p class="match-inline-status match-coach-notes-save-state" data-notes-save-state aria-live="polite" hidden></p>
+                </div>
             </div>
         </section>
 
@@ -3033,6 +3087,7 @@ window.showMatchDetails = function(id) {
                     </div>
                 </div>
                 <div class="match-stats-footer">
+                    <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
                     <button onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
                         <i class="fa-solid fa-floppy-disk"></i>
                         <span>Lagre</span>
@@ -3133,6 +3188,10 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     const draftLineup = getMatchGamePlanDraftLineup(match);
     const draftFormation = getMatchGamePlanDraftFormation(match);
     const selectedCount = matchGamePlanStarterPositionIds.filter(posId => draftLineup[posId]).length;
+    const saveBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-save-btn');
+
+    if (saveBtn) saveBtn.disabled = true;
+    setMatchDetailFeedback('[data-lineup-save-state]', 'Lagrer lagoppstilling...', 'pending');
 
     match.lineup = cloneMatchGamePlanLineup(draft.lineup);
     match.lineupRefs = getMatchGamePlanLineupRefs(draft.lineup);
@@ -3144,7 +3203,8 @@ window.completeMatchGamePlanLineup = async function(matchId) {
         }
     } catch (error) {
         console.error(error);
-        alert(error.message);
+        setMatchDetailFeedback('[data-lineup-save-state]', error.message || 'Lagring feilet', 'error');
+        if (saveBtn) saveBtn.disabled = false;
         return;
     }
 
@@ -3155,11 +3215,13 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     renderMatchGamePlanRolesPage(match);
     renderMatchGamePlanBenchPage(match);
 
-    alert(selectedCount === 11
-        ? `Laget er lagret i ${getMatchGamePlanFormation(match)}.`
+    const successMessage = selectedCount === 11
+        ? `Lagret i ${getMatchGamePlanFormation(match)}.`
         : selectedCount > 0
             ? `Lagret ${selectedCount} av 11 spillere i ${getMatchGamePlanFormation(match)}.`
-            : `Tomt lag lagret i ${getMatchGamePlanFormation(match)}.`);
+            : `Tomt lag lagret i ${getMatchGamePlanFormation(match)}.`;
+    setMatchDetailFeedback('[data-lineup-save-state]', successMessage, 'success', 5000);
+    if (saveBtn) saveBtn.disabled = false;
 };
 
 window.updateMatchGamePlanOffCPlayer = async function(matchId, slot, playerRef = '') {
@@ -3184,7 +3246,7 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
         }
     } catch (error) {
         console.error(error);
-        alert(error.message);
+        setMatchDetailFeedback('[data-kampplan-feedback]', error.message || 'Kunne ikke lagre', 'error', 6000);
     }
 };
 
@@ -3272,10 +3334,12 @@ window.saveMatchGamePlanBenchPlan = async function(matchId) {
         setMatchGamePlanBenchDirty(matchId, false);
     } catch (error) {
         console.error('Kunne ikke lagre bytteplan', error);
-        alert(error.message);
         if (saveButton) saveButton.disabled = false;
         if (label) label.textContent = 'Prøv igjen';
-        if (saveState) saveState.textContent = 'Lagring feilet';
+        if (saveState) {
+            saveState.textContent = error.message || 'Lagring feilet';
+            saveState.classList.add('is-error');
+        }
     } finally {
         if (saveButton) saveButton.classList.remove('is-saving');
     }
@@ -3962,15 +4026,26 @@ window.savePlayerMatchStats = async function() {
     const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
     if (!match.result && totalBskGoals > 0) match.result = `${totalBskGoals}-0`;
 
+    const saveBtn = document.querySelector('.match-stats-save-btn');
+    const saveLabel = saveBtn?.querySelector('span');
+
+    if (saveBtn) saveBtn.disabled = true;
+    if (saveLabel) saveLabel.textContent = 'Lagrer...';
+    setMatchDetailFeedback('[data-stats-save-state]', 'Lagrer spillerbørs...', 'pending');
+
     try {
         await window.saveMatchToDatabase(match);
     } catch (error) {
         console.error(error);
-        alert(error.message);
+        setMatchDetailFeedback('[data-stats-save-state]', error.message || 'Lagring feilet', 'error');
+        if (saveBtn) saveBtn.disabled = false;
+        if (saveLabel) saveLabel.textContent = 'Lagre';
         return;
     }
 
-    alert('Mål, assists, spillerbørs, kort og Banens Beste er oppdatert! 🏆');
+    setMatchDetailFeedback('[data-stats-save-state]', 'Spillerbørs lagret', 'success', 5000);
+    if (saveBtn) saveBtn.disabled = false;
+    if (saveLabel) saveLabel.textContent = 'Lagre';
     applyFilters();
     if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
 };

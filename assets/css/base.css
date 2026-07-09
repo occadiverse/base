@@ -1998,7 +1998,43 @@
         .match-detail-lineup-builder .match-game-plan-lineup-footer {
             display: flex;
             flex-direction: column;
-            gap: 0;
+            gap: 0.35rem;
+        }
+        .match-game-plan-samspill-hint {
+            color: rgba(18, 63, 115, 0.72);
+            font-size: 0.64rem;
+            font-weight: 800;
+            line-height: 1.35;
+            margin: 0;
+            padding: 0 0.35rem;
+            text-align: center;
+        }
+        .match-game-plan-samspill-hint[hidden],
+        .match-inline-status[hidden] {
+            display: none;
+        }
+        .match-inline-status {
+            font-size: 0.68rem;
+            font-weight: 900;
+            line-height: 1.35;
+            margin: 0;
+        }
+        .match-inline-status.is-success,
+        .match-game-plan-lineup-save-state.is-success {
+            color: #166534;
+        }
+        .match-inline-status.is-error,
+        .match-game-plan-lineup-save-state.is-error,
+        .match-game-plan-bench-save-state.is-error {
+            color: #991b1b;
+        }
+        .match-inline-status.is-pending,
+        .match-game-plan-lineup-save-state.is-pending {
+            color: #123f73;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-save-state {
+            padding: 0 0.35rem;
+            text-align: center;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-back {
             border-radius: 0.75rem;
@@ -10119,10 +10155,20 @@
             color: #ffffff;
         }
         .match-stats-footer {
+            align-items: center;
             display: flex;
-            justify-content: flex-start;
+            gap: 0.65rem;
+            justify-content: space-between;
             margin-top: 0.75rem;
             min-height: 2.85rem;
+        }
+        .match-stats-save-state {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .match-kampplan-feedback,
+        .match-coach-notes-save-state {
+            margin: 0 0 0.65rem;
         }
         .match-stats-save-btn {
             gap: 0.45rem;
