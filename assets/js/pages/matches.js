@@ -490,6 +490,10 @@ function buildMatchDetailCardHtml(match, options = {}) {
             <i class="fa-solid fa-user-check" aria-hidden="true"></i>
             <span class="bsk-btn-label">Oppmøte</span>
         </button>
+        <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" onclick="window.goToMatchTactics('${escapeMatchJsString(match.id)}')" title="Åpne laget i Taktikk" aria-label="Åpne i Taktikk">
+            <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
+            <span class="bsk-btn-label">Taktikk</span>
+        </button>
         <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp" aria-label="Rediger kamp">
             <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
             <span class="bsk-btn-label">Rediger</span>
@@ -3782,11 +3786,15 @@ window.closeMatchInfo = function() {
 };
 
 window.goToMatchTactics = function(matchId) {
+    if (!matchId) return;
+
+    window.activeDetailsId = matchId;
     window.switchTab('taktikk');
     setTimeout(() => {
         const tacticalSelect = document.getElementById('tacticalMatchSelect');
-        if (tacticalSelect) {
-            tacticalSelect.value = matchId;
+        if (!tacticalSelect) return;
+        tacticalSelect.value = matchId;
+        if (typeof window.loadMatchTactics === 'function') {
             window.loadMatchTactics();
         }
     }, 50);
