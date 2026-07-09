@@ -555,7 +555,7 @@ const matchGamePlanTabs = [
     { id: 'offc', label: 'OffC' },
     { id: 'defc', label: 'DefC' },
     { id: 'roller', label: 'Roller' },
-    { id: 'bench', label: 'Benk' }
+    { id: 'bench', label: 'Bytteplan' }
 ];
 
 const matchGamePlanStarterPositions = {
@@ -1851,7 +1851,7 @@ function getMatchGamePlanBenchSwapInsight(pitchEntries, benchEntries) {
 function buildMatchGamePlanBenchInsightHtml(insight) {
     if (!insight) return '';
     if (insight.type === 'minus') {
-        return ' <span class="match-game-plan-samspill-analysis-bench-hint is-minus" title="Benkspillere i kategorien, men ingen som hever snittet">(−)</span>';
+        return ' <span class="match-game-plan-samspill-analysis-bench-hint is-minus" title="Spillere fra kamptroppen i kategorien, men ingen som hever snittet">(−)</span>';
     }
 
     const playerName = escapeMatchHtml(insight.playerName);
@@ -2069,7 +2069,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
             <div class="match-game-plan-bench-panel">
                 <div class="match-game-plan-bench-empty">
                     <i class="fa-solid fa-users-slash"></i>
-                    <span>Ingen påmeldte spillere på benken.</span>
+                    <span>Ingen innbyttere å planlegge – alle påmeldte er i 11eren.</span>
                 </div>
             </div>
         `;
@@ -2373,7 +2373,7 @@ function buildMatchGamePlanRolesHtml(match) {
 
 function buildMatchGamePlanBenchHtml(match) {
     return buildMatchGamePlanPitchHtml({
-        ariaLabel: 'Benk bane',
+        ariaLabel: 'Bytteplan bane',
         extraClass: 'match-game-plan-bench-wrap',
         childrenHtml: buildMatchGamePlanBenchPlanHtml(match)
     });
@@ -2951,7 +2951,7 @@ window.showMatchDetails = function(id) {
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadHtml = `
         <div class="match-detail-squad-section relative z-10 ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
-            <div class="match-detail-section-divider" aria-label="Kamptropp">
+            <div class="match-detail-section-divider" aria-label="Kamptropp – påmeldte spillere">
                 <span class="match-detail-section-title">Kamptropp</span>
                 <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
                 <span class="match-detail-section-line" aria-hidden="true"></span>
@@ -3808,7 +3808,7 @@ window.renderPlayerRowForm = function(match) {
                 <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
-                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[9px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" title="Spilleren var kun på benken (15 poeng oppmøte)">BENK</button>
+                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[8px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøte" title="Kun oppmøte – ingen mål, assist eller børs (15 poeng oppmøte)">Kun oppmøte</button>
                 <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
