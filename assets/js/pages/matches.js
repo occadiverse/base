@@ -906,6 +906,13 @@ function getMatchGamePlanDraft(match) {
     return window.matchGamePlanDrafts[match.id];
 }
 
+function pruneMatchGamePlanDraftLineupForFormation(draft, formationId) {
+    const validPosIds = new Set(getMatchGamePlanFormationPositionIds(formationId));
+    draft.lineup = Object.fromEntries(
+        Object.entries(draft.lineup || {}).filter(([posId]) => validPosIds.has(posId))
+    );
+}
+
 function resetMatchGamePlanDraft(match) {
     if (!match?.id) return;
     window.matchGamePlanDrafts = window.matchGamePlanDrafts || {};
@@ -2027,8 +2034,9 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
 }
 
 function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}) {
-    const lineup = getMatchGamePlanLineup(match);
-    const starterPlayers = Object.keys(matchGamePlanStarterPositions)
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const starterPlayers = getMatchGamePlanFormationPositionIds(formationId)
         .map(posId => ({ posId, player: lineup[posId] }))
         .filter(item => item.player);
     const slots = options.slots || ['1', '6', '2', '7', '3', '8', '4', '9', '5', '10'];
@@ -2043,7 +2051,7 @@ function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}
 }
 
 function getMatchGamePlanBenchPlayers(match) {
-    const lineup = getMatchGamePlanLineup(match);
+    const lineup = getMatchGamePlanDraftLineup(match);
     return getMatchGamePlanSelectablePlayers(match)
         .filter(player => !Object.values(lineup).some(lineupPlayer => matchGamePlanSamePlayer(lineupPlayer, player)))
         .sort((a, b) => {
@@ -2936,15 +2944,6 @@ window.showMatchDetails = function(id) {
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
-    const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
-    attendingRefs.forEach(ref => {
-        const player = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null;
-        const category = getMatchDetailPositionCategory(player?.pos1);
-        if (category) positionCounts[category] += 1;
-    });
-    const benchPositionHtml = ['K', 'F', 'M', 'A'].map(letter => (
-        `${positionCounts[letter]}${letter}`
-    )).join('<span class="dashboard-session-radar-sep"> - </span>');
     const benchPlayersHtml = buildMatchDetailSquadListHtml(match);
     const openPanel = window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '';
     const isGamePlanOpen = openPanel === 'kampplan';
@@ -3116,8 +3115,14 @@ window.setMatchGamePlanFormation = async function(matchId, formationId) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match || !matchGamePlanFormations[formationId]) return;
 
-    getMatchGamePlanDraft(match).formation = formationId;
+    const draft = getMatchGamePlanDraft(match);
+    draft.formation = formationId;
+    pruneMatchGamePlanDraftLineupForFormation(draft, formationId);
     renderMatchGamePlanStarter11Page(match);
+    renderMatchGamePlanOffCPage(match);
+    renderMatchGamePlanDefCPage(match);
+    renderMatchGamePlanRolesPage(match);
+    renderMatchGamePlanBenchPage(match);
 };
 
 window.completeMatchGamePlanLineup = async function(matchId) {
