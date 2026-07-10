@@ -248,7 +248,7 @@ window.updateAttendanceModalSummary = function() {
     const checkedCount = [...checkboxes].filter(checkbox => checkbox.checked).length;
     const summary = document.getElementById('attendanceModalSummary');
     if (summary) {
-        summary.textContent = `${checkedCount} / ${checkboxes.length} påmeldt`;
+        summary.textContent = `${checkedCount} / ${checkboxes.length} møtt opp`;
     }
 };
 
@@ -270,7 +270,7 @@ window.saveAttendanceRegistry = async function() {
 
     ev.attendance = typeof window.buildAttendanceMapFromModal === 'function'
         ? window.buildAttendanceMapFromModal(container, ev.attendance, teamPlayers)
-        : ev.attendance;
+        : (ev.attendance || {});
 
     try {
         if (isMatch) {
@@ -535,7 +535,7 @@ window.updateDailySchedule = function() {
                             </div>
                             <div class="calendar-daily-meta-row calendar-match-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
-                                <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
+                                <span><i class="fa-solid fa-user-check"></i>${presentCount} møtt opp</span>
                             </div>
                         </div>
                     </div>
@@ -572,7 +572,7 @@ window.updateDailySchedule = function() {
                             </div>
                             <div class="calendar-daily-meta-row calendar-detail-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(e.location || 'Ikke oppgitt')}</span>
-                                <span><i class="fa-solid fa-user-check"></i>${presentCount} påmeldt</span>
+                                <span><i class="fa-solid fa-user-check"></i>${presentCount} møtt opp</span>
                             </div>
                         </div>
                     </div>

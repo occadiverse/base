@@ -500,7 +500,7 @@
 
     sortedPlayers.forEach(p => {
         const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
-        let attStatusHtml = '', opacityClass = isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20', trengerBekreftelse = false;
+        let attStatusHtml = '', opacityClass = isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20', needsAttendanceConfirm = false;
 
         const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
 
@@ -521,11 +521,10 @@
 
         if (currentMatch && hasAttendance) {
             if (window.isPlayerAttending(currentMatch.attendance, p) && !pSusp.isSuspended) {
-                attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ KLAR</span>';
-            } else if (!pSusp.isSuspended) {
-                attStatusHtml += '<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-2">❌ FORFALL</span>';
-                trengerBekreftelse = true;
-                if (!isPlaying) opacityClass = 'opacity-50 grayscale bg-slate-50';
+                attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ MED</span>';
+            } else if (!pSusp.isSuspended && !isPlaying) {
+                opacityClass = 'opacity-50 bg-slate-50';
+                needsAttendanceConfirm = true;
             }
         }
 
@@ -547,7 +546,7 @@
         div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
         div.onclick = () => {
             if (pSusp.isSuspended && !confirm(`ADVARSEL! ${p.navn} har karantene (${pSusp.reason}). Vil du sette ham på banen likevel?`)) return;
-            else if (!pSusp.isSuspended && trengerBekreftelse && !confirm(`${p.navn} er meldt som forfall til denne kampen. Vil du sette ham på banen likevel?`)) return;
+            else if (!pSusp.isSuspended && needsAttendanceConfirm && !confirm(`${p.navn} er ikke registrert med oppmøte. Vil du sette ham på banen likevel?`)) return;
             if (!isPlaying) window.choosePlayer(p, posId); else alert(`${p.navn} er allerede plassert!`);
         };
         

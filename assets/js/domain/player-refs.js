@@ -5,10 +5,7 @@ window.normalizeAttendanceValue = function(value) {
 };
 
 window.hasRegisteredAttendance = function(attendance) {
-    const sanitized = typeof window.sanitizeAttendanceMap === 'function'
-        ? window.sanitizeAttendanceMap(attendance || {})
-        : (attendance || {});
-    return Object.keys(sanitized).length > 0;
+    return attendance !== undefined && attendance !== null;
 };
 
 window.ensurePlayerId = function(player) {
@@ -85,9 +82,9 @@ window.isPlayerEligibleForMatch = function(attendance, playerOrRef) {
 
 window.getMatchSquadEmptyMessage = function(match) {
     if (window.hasRegisteredAttendance(match?.attendance)) {
-        return 'Alle påmeldte spillere er meldt som forfall.';
+        return 'Ingen spillere er registrert med oppmøte.';
     }
-    return 'Ingen spillere er meldt på ennå.';
+    return 'Registrer oppmøte for å se hvem som møtte opp.';
 };
 
 window.deduplicatePlayerRefs = function(refs) {
@@ -273,7 +270,9 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
 
     Object.entries(sanitizedExisting).forEach(([key, value]) => {
         if (modalPlayerIds.has(key)) return;
-        attMap[key] = value;
+        if (window.normalizeAttendanceValue(value) === true) {
+            attMap[key] = true;
+        }
     });
 
     if (!container) {
@@ -292,7 +291,9 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
         const player = window.findPlayerByRef(storageKey);
         if (!player || window.getPlayerStorageKey(player) !== storageKey) return;
 
-        attMap[storageKey] = checkbox.checked;
+        if (checkbox.checked) {
+            attMap[storageKey] = true;
+        }
     });
 
     return typeof window.sanitizeAttendanceMap === 'function'
@@ -319,10 +320,10 @@ window.sanitizeAttendanceMap = function(map) {
         if (!window.isValidPlayerRefKey(key)) return;
 
         const normalizedValue = window.normalizeAttendanceValue(value);
-        if (normalizedValue === undefined) return;
+        if (normalizedValue !== true) return;
 
         if (players.length === 0) {
-            byId[key] = normalizedValue;
+            byId[key] = true;
             return;
         }
 
@@ -332,8 +333,8 @@ window.sanitizeAttendanceMap = function(map) {
         const storageKey = window.getPlayerStorageKey(player);
         if (!storageKey) return;
 
-        if (key === storageKey) byId[storageKey] = normalizedValue;
-        else byName[storageKey] = normalizedValue;
+        if (key === storageKey) byId[storageKey] = true;
+        else byName[storageKey] = true;
     });
 
     return { ...byName, ...byId };
@@ -362,7 +363,9 @@ window.normalizeMatchPlayerRefs = function(match) {
     if (!match) return match;
     const normalized = { ...match };
 
-    if (match.attendance) normalized.attendance = window.sanitizeAttendanceMap(match.attendance);
+    if (match.attendance !== undefined && match.attendance !== null) {
+        normalized.attendance = window.sanitizeAttendanceMap(match.attendance);
+    }
     if (match.scorers) normalized.scorers = window.normalizePlayerRefMap(match.scorers);
     if (match.assists) normalized.assists = window.normalizePlayerRefMap(match.assists);
     if (match.ratings) normalized.ratings = window.normalizePlayerRefMap(match.ratings);
@@ -406,7 +409,7 @@ window.normalizeMatchPlayerRefs = function(match) {
 
 window.normalizeEventPlayerRefs = function(event) {
     if (!event) return event;
-    if (!event.attendance) return { ...event };
+    if (event.attendance === undefined || event.attendance === null) return { ...event };
     return { ...event, attendance: window.sanitizeAttendanceMap(event.attendance) };
 };
 

@@ -207,18 +207,10 @@ window.updateDashboard = function() {
                     info: window.getPlayerInjuryInfo(p)
                 }));
             
-            // Henter meldte forfall
-            const forfallPlayers = [];
-            if (nm.attendance) {
-                Object.entries(nm.attendance).forEach(([playerRef, isReady]) => {
-                    if (isReady === false) forfallPlayers.push(window.getPlayerNameFromRef(playerRef));
-                });
-            }
-
             // Oppdaterer den dedikerte "Utilgjengelig"-boksen til høyre på forsiden
             if (dangerZoneContainer) {
                 dangerZoneContainer.innerHTML = '';
-                if (suspendedPlayers.length === 0 && atRiskPlayers.length === 0 && injuredPlayers.length === 0 && forfallPlayers.length === 0) {
+                if (suspendedPlayers.length === 0 && atRiskPlayers.length === 0 && injuredPlayers.length === 0) {
                     dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Alle mann er meldt klare og tilgjengelige! 🦅</p>`;
                 } else {
                     suspendedPlayers.forEach(playerRef => {
@@ -246,13 +238,6 @@ window.updateDashboard = function() {
                             <div class="flex items-center justify-between bg-orange-50 border border-orange-100 p-2 rounded-xl text-xs font-bold text-orange-900 shadow-sm">
                                 <span class="truncate">🩹 ${escapeDashboardHtml(p.navn)}</span>
                                 <span class="${badgeClass} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${escapeDashboardHtml(p.info.shortLabel)}</span>
-                            </div>`;
-                    });
-                    forfallPlayers.forEach(p => {
-                        dangerZoneContainer.innerHTML += `
-                            <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-500">
-                                <span class="truncate">❌ ${escapeDashboardHtml(p)}</span>
-                                <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-[9px] font-black shrink-0">MELDT FORFALL</span>
                             </div>`;
                     });
                 }

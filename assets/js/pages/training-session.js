@@ -110,8 +110,8 @@ function buildRegisteredPlayersHtml(players) {
         return `
             <div class="training-session-empty">
                 <i class="fa-solid fa-user-slash"></i>
-                <p>Ingen påmeldte spillere ennå.</p>
-                <p class="training-session-empty-hint">Registrer oppmøte for å se hvem som er påmeldt.</p>
+                <p>Ingen spillere er registrert med oppmøte ennå.</p>
+                <p class="training-session-empty-hint">Registrer oppmøte for å se hvem som møtte opp.</p>
             </div>
         `;
     }

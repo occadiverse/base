@@ -506,7 +506,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
     const footerAttendanceHtml = showAttendance && data.attendingCount > 0
         ? `<div class="match-detail-footer-item">
                 <i class="fa-solid fa-user-check"></i>
-                <span>${data.attendingCount} påmeldt</span>
+                <span>${data.attendingCount} møtt opp</span>
            </div>`
         : '';
     const clickAttrs = clickable
@@ -1232,7 +1232,7 @@ function buildMatchDetailSquadListHtml(match) {
     if (!selectedPlayers.length) {
         const emptyMessage = typeof window.getMatchSquadEmptyMessage === 'function'
             ? window.getMatchSquadEmptyMessage(match)
-            : 'Ingen spillere er meldt på ennå.';
+            : 'Registrer oppmøte for å se hvem som møtte opp.';
         return `
             <div class="match-bench-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
@@ -3011,7 +3011,7 @@ window.showMatchDetails = function(id) {
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadHtml = `
         <div class="match-detail-squad-section relative z-10 ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
-            <div class="match-detail-section-divider" aria-label="Kamptropp – påmeldte spillere">
+            <div class="match-detail-section-divider" aria-label="Kamptropp – spillere med oppmøte">
                 <span class="match-detail-section-title">Kamptropp</span>
                 <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
                 <span class="match-detail-section-line" aria-hidden="true"></span>
@@ -3833,7 +3833,7 @@ window.renderPlayerRowForm = function(match) {
     if (participantRefs.length === 0) {
         const emptyMessage = typeof window.getMatchSquadEmptyMessage === 'function'
             ? window.getMatchSquadEmptyMessage(match)
-            : 'Ingen spillere er meldt på ennå.';
+            : 'Registrer oppmøte for å se hvem som møtte opp.';
         formList.innerHTML = `
             <div class="match-stats-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
