@@ -31,18 +31,29 @@ Kjør etter kodeendringer. Test i nettleser med hard refresh (Cmd+Shift+R). Krys
 
 - [ ] **Opprette aktivitet med dato** — Aktiviteten vises i kalender/dagsplan.
 - [ ] **Avvise aktivitet uten dato** — Alert vises; aktiviteten lagres ikke.
-- [ ] **Registrere oppmøte på kamp/aktivitet** — Oppmøtestatus lagres og vises ved ny åpning av modal.
+- [ ] **Registrere oppmøte (presence-only)** — Kun avkryssede spillere lagres; avkryssing fjernet fjerner spilleren fra listen (ingen `false`/forfall).
+- [ ] **Lagre uten noen avkrysset** — Viser «Ingen registrert med oppmøte», ikke stat-fallback i tropp.
+- [ ] **Teller `X/Y møtt opp`** — Vises i kalender, dashboard og detaljsider etter første lagring; skjules før oppmøte er registrert.
+- [ ] **Inline lagringsstatus fra kalender/dashboard** — Grønn melding i modal (~1,3 s), deretter toast nederst på skjermen.
+- [ ] **Inline lagringsstatus fra kampdetaljer/øktside** — Melding under Kamptropp / Møtt opp etter lagring.
+- [ ] **Trening: åpne øktside** — Fokus, møtt opp og grupper vises.
+- [ ] **Annet: åpne aktivitet** — Hero + møtt opp-liste (uten fokus/grupper).
+- [ ] **Kalender: snarvei til kampdetaljer** — Skjold-knapp på kampkort åpner kampdetaljer.
+- [ ] **Kalender: snarvei til aktivitet** — 📋-knapp åpner øktside/aktivitet.
 
 ## Kampdetaljer og statistikk
 
-- [ ] **Åpne kampdetaljer** — Riktig motstander, dato, oppmøteliste og faner lastes uten feil.
+- [ ] **Åpne kampdetaljer** — Riktig motstander, dato, kamptropp (`X/Y`-badge) og faner lastes uten feil.
+- [ ] **Spillerbørs: «Kun oppmøte» vs oppmøte** — Intro-tekst forklarer forskjellen; benk-knapp markerer kun oppmøtepoeng, ikke oppmøteregistrering.
 - [ ] **Endre mål, assist, spillerbørs og kort** — Verdier lagres og vises i kampdetaljer/statistikk.
-- [ ] **Dashboard viser riktig neste kamp/hero** — Ingen tomme eller feil kort etter datalasting.
+- [ ] **Statistikk viser «Benk» (ikke «Kun oppmøte») i poengfordeling** — Skiller benkspiller fra spillere som bidro på banen.
+- [ ] **Dashboard viser riktig neste kamp/økt** — `X/Y møtt opp` eller «Oppmøte ikke registrert».
 - [ ] **Statistikk-siden viser spillere og tall** — Sortering og filtre fungerer uten konsollfeil.
 
 ## Taktikk og kampplan
 
 - [ ] **Velge kamp i taktikk og plassere spillere** — Banen og benk oppdateres visuelt.
+- [ ] **Taktikk viser ✅ MED for møtt opp** — Ingen forfall/ikke-svart-chips.
 - [ ] **Lagre taktikk** — Oppstilling og roller er der ved reload/nytt kampvalg.
 - [ ] **Bruke kampplan (11-er, dødball, bytteplan)** — Endringer lagres og vises i kampdetaljer.
 
@@ -55,7 +66,7 @@ Kjør etter kodeendringer. Test i nettleser med hard refresh (Cmd+Shift+R). Krys
 
 - [ ] **Valideringsfeil viser alert, modal forblir åpen** — F.eks. tom motstander eller navn gir melding uten at skjema lukkes.
 - [ ] **Firebase-feil ved lagring** (simuler med nettverk av / blokkert request) — Alert med feilmelding; data lagres ikke som om alt gikk bra.
-- [ ] **Lokal modus uten Firebase** (hvis tilgjengelig) — Opprette/redigere kamp og aktivitet fungerer mot localStorage.
+- [ ] **Lokal modus uten Firebase** (hvis tilgjengelig) — Opprette/redigere kamp og aktivitet fungerer mot localStorage; oppmøte oppdaterer kalender umiddelbart.
 
 ---
 

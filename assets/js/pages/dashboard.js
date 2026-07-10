@@ -368,11 +368,11 @@ window.buildNextSessionAttendanceStats = function(event) {
         }
     });
 
-    const påmeldtAntall = attendingRefs.length;
+    const møttOppAntall = attendingRefs.length;
     const lowAttendanceThreshold = Math.max(8, Math.ceil(squadSize * 0.45));
     let fractionTone = 'good';
     if (positionCounts.K === 0) fractionTone = 'critical';
-    else if (påmeldtAntall < lowAttendanceThreshold) fractionTone = 'warning';
+    else if (møttOppAntall < lowAttendanceThreshold) fractionTone = 'warning';
 
     injuredReady.sort((a, b) => {
         const typeOrder = { langvarig: 0, 'dag-til-dag': 1 };
@@ -385,7 +385,7 @@ window.buildNextSessionAttendanceStats = function(event) {
     const injuryTone = hasLangvarigInjury ? 'critical' : 'warning';
 
     return {
-        påmeldtAntall,
+        møttOppAntall,
         squadSize,
         positionCounts,
         injuredReady,
@@ -481,7 +481,7 @@ window.updateHjemWidget = function() {
         const sessionStatsHtml = hasSessionAttendance
             ? `
                             <div class="dashboard-session-stats-line">
-                                <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                                <span class="match-detail-time${fractionToneClass}">${sessionStats.møttOppAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
                                 <span class="dashboard-session-attendance-label">møtt opp</span>
                                 <span class="dashboard-session-radar-inline">${radarParts}</span>
                             </div>`

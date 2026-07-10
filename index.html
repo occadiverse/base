@@ -700,6 +700,7 @@
 
             <div class="attendance-modal-body relative z-10">
                 <p id="attendanceModalSummary" class="attendance-modal-summary">0 / 0 møtt opp</p>
+                <p id="attendanceModalFeedback" class="match-inline-status attendance-modal-feedback" aria-live="polite" hidden></p>
                 <div id="attendance-players-list" class="attendance-modal-list"></div>
             </div>
 
@@ -715,6 +716,8 @@
             </div>
         </div>
     </div>
+
+    <p id="portal-attendance-feedback" class="match-inline-status portal-attendance-feedback" aria-live="polite" hidden></p>
 
     <div id="playerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="match-detail-card player-modal-card w-full max-w-lg relative overflow-hidden max-h-[90vh] flex flex-col">

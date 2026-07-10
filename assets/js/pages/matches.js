@@ -3105,6 +3105,7 @@ window.showMatchDetails = function(id) {
                 </button>
             </div>
             <div class="match-collapsible-content">
+                <p class="match-stats-intro">Oppmøte registreres før kamp via knappen «Oppmøte». «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs.</p>
                 <div class="match-stats-body">
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
@@ -3907,11 +3908,11 @@ window.renderPlayerRowForm = function(match) {
         div.innerHTML = `
             <div class="match-stats-player-info">
                 <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
-                ${isBenchOnly ? '<span class="match-stats-bench-badge">Kun oppmøte</span>' : ''}
+                ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
                 <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
-                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[8px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøte" title="Kun oppmøte – ingen mål, assist eller børs (15 poeng oppmøte)">Kun oppmøte</button>
+                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[8px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs">Kun oppmøte</button>
                 <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>

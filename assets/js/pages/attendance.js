@@ -54,11 +54,61 @@ function bindDailyEventsListEvents() {
             window.editActivity(eventId);
         } else if (action === 'open-session' && eventId) {
             if (typeof window.openTrainingSession === 'function') window.openTrainingSession(eventId);
+        } else if (action === 'open-match-details' && eventId) {
+            if (typeof window.goToMatchDetails === 'function') window.goToMatchDetails(eventId);
         } else if (action === 'add-activity') {
             window.openActivityModal(activityType || 'Trening');
         }
     });
 }
+
+function setAttendanceModalFeedback(message, variant = '', autoClearMs = 0) {
+    const el = document.getElementById('attendanceModalFeedback');
+    if (!el) return;
+
+    if (el._feedbackTimer) {
+        clearTimeout(el._feedbackTimer);
+        el._feedbackTimer = null;
+    }
+
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.classList.remove('is-success', 'is-error', 'is-pending');
+    if (message && variant) el.classList.add(`is-${variant}`);
+
+    if (message && autoClearMs > 0) {
+        el._feedbackTimer = setTimeout(() => {
+            el.textContent = '';
+            el.hidden = true;
+            el.classList.remove('is-success', 'is-error', 'is-pending');
+            el._feedbackTimer = null;
+        }, autoClearMs);
+    }
+}
+
+window.showPortalAttendanceFeedback = function(message, variant = 'success', autoClearMs = 5000) {
+    const el = document.getElementById('portal-attendance-feedback');
+    if (!el) return;
+
+    if (el._feedbackTimer) {
+        clearTimeout(el._feedbackTimer);
+        el._feedbackTimer = null;
+    }
+
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.classList.remove('is-success', 'is-error', 'is-pending');
+    if (message && variant) el.classList.add(`is-${variant}`);
+
+    if (message && autoClearMs > 0) {
+        el._feedbackTimer = setTimeout(() => {
+            el.textContent = '';
+            el.hidden = true;
+            el.classList.remove('is-success', 'is-error', 'is-pending');
+            el._feedbackTimer = null;
+        }, autoClearMs);
+    }
+};
 
 function bindAttendanceListEvents() {
     bindAttendanceModalEvents();
@@ -93,6 +143,8 @@ window.openAttendanceModal = function(eventId) {
     document.getElementById('attendanceModalTitle').innerText = `Oppmøte ${activityLabel} • ${dateLabel}`;
 
     bindAttendanceModalEvents();
+
+    setAttendanceModalFeedback('', '');
 
     const container = document.getElementById('attendance-players-list');
     container.innerHTML = '';
@@ -228,6 +280,12 @@ window.saveAttendanceRegistry = async function() {
     const presenceStats = typeof window.getAttendancePresenceStats === 'function'
         ? window.getAttendancePresenceStats(ev)
         : { presentCount: 0, squadSize: 0, isRegistered: true };
+    const feedbackMessage = typeof window.buildAttendanceSaveFeedbackMessage === 'function'
+        ? window.buildAttendanceSaveFeedbackMessage(presenceStats)
+        : 'Oppmøte lagret';
+    const returnContext = window._modalReturnContext;
+    const returnsToDetailPage = returnContext?.tab === 'kampdetaljer' || returnContext?.tab === 'oktside';
+
     window._pendingAttendanceFeedback = {
         isMatch,
         recordId: realId,
@@ -235,7 +293,19 @@ window.saveAttendanceRegistry = async function() {
         squadSize: presenceStats.squadSize
     };
 
-    window.closeAttendanceModal();
+    if (returnsToDetailPage) {
+        window.closeAttendanceModal();
+        return;
+    }
+
+    setAttendanceModalFeedback(feedbackMessage, 'success');
+    setTimeout(() => {
+        window._pendingAttendanceFeedback = null;
+        window.closeAttendanceModal();
+        if (typeof window.showPortalAttendanceFeedback === 'function') {
+            window.showPortalAttendanceFeedback(feedbackMessage, 'success', 5000);
+        }
+    }, 1300);
 };
 
 window.closeAttendanceModal = function() {
@@ -458,6 +528,7 @@ window.updateDailySchedule = function() {
             <div class="calendar-detail-card calendar-match-detail-card">
                 <i class="fa-solid fa-futbol calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
+                    <button type="button" data-attendance-action="open-match-details" data-event-id="${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary" title="Åpne kampdetaljer" aria-label="Åpne kampdetaljer"><i class="fa-solid fa-shield-halved"></i></button>
                     <button type="button" data-attendance-action="attendance" data-event-id="match_${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-primary" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
                     <button type="button" data-attendance-action="edit-match" data-event-id="${matchId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>

@@ -2531,7 +2531,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             resultBonus: pointsDetails.resultBonus || 0,
             ratingBonus: pointsDetails.ratingBonus || 0,
             bbBonus: pointsDetails.bbBonus || 0,
-            breakdown: `${pointsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
+            breakdown: `${pointsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
         };
     });
 
@@ -2872,7 +2872,7 @@ window.getPlayerMatchPointsHistory = function(playerName) {
                 bbBonus: ptsDetails.bbBonus,
                 onPitch: ptsDetails.onPitch !== false
             },
-            breakdown: `${ptsDetails.onPitch === false ? 'Kun oppmøte' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
+            breakdown: `${ptsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
         });
     });
     
@@ -2946,7 +2946,7 @@ window.renderPlayerPointBreakdownHtml = function(details) {
                 <span class="stats-point-chip-value">${details.base + details.resultBonus + details.ratingBonus + details.bbBonus}</span>
             </div>
         </div>
-        ${details.onPitch === false ? '<p class="stats-match-history-note">Spilleren var på benken – kun oppmøtepoeng er registrert.</p>' : ''}
+        ${details.onPitch === false ? '<p class="stats-match-history-note">Spilleren satt på benken og fikk kun oppmøtepoeng — ikke kampbidrag.</p>' : ''}
     `;
 };
 
