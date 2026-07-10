@@ -931,7 +931,7 @@ function getMatchGamePlanFormationPositionIds(formationId) {
     return Object.keys(formation.positions || {});
 }
 
-function isMatchGamePlanDraftDirty(match) {
+function checkMatchGamePlanDraftDirty(match) {
     if (!match?.id || !window.matchGamePlanDrafts?.[match.id]) return false;
 
     const savedFormation = getMatchGamePlanFormation(match);
@@ -949,7 +949,7 @@ function syncMatchGamePlanLineupSaveState(match) {
     const saveBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-save-btn');
     if (!saveBtn || !match) return;
 
-    const isDirty = isMatchGamePlanDraftDirty(match);
+    const isDirty = checkMatchGamePlanDraftDirty(match);
     saveBtn.classList.toggle('is-dirty', isDirty);
     saveBtn.setAttribute('aria-label', isDirty ? 'Lagre ulagrede endringer' : 'Lagre lagoppstilling');
     saveBtn.title = isDirty ? 'Ulagrede endringer i 11eren' : '';
@@ -1011,7 +1011,7 @@ window.isMatchGamePlanDraftDirty = function(matchOrId) {
     const match = typeof matchOrId === 'string'
         ? (window.activeMatches || []).find(item => item.id === matchOrId)
         : matchOrId;
-    return isMatchGamePlanDraftDirty(match);
+    return checkMatchGamePlanDraftDirty(match);
 };
 
 function getMatchGamePlanDraftLineup(match) {
