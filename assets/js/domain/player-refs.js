@@ -78,6 +78,18 @@ window.isPlayerAttending = function(attendance, playerOrRef) {
     return window.getAttendanceForPlayer(attendance, playerOrRef) === true;
 };
 
+window.isPlayerEligibleForMatch = function(attendance, playerOrRef) {
+    if (!window.hasRegisteredAttendance(attendance)) return true;
+    return window.isPlayerAttending(attendance, playerOrRef);
+};
+
+window.getMatchSquadEmptyMessage = function(match) {
+    if (window.hasRegisteredAttendance(match?.attendance)) {
+        return 'Alle påmeldte spillere er meldt som forfall.';
+    }
+    return 'Ingen spillere er meldt på ennå.';
+};
+
 window.deduplicatePlayerRefs = function(refs) {
     if (!Array.isArray(refs)) return [];
     const seen = new Set();

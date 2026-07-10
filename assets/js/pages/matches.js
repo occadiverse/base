@@ -1230,10 +1230,13 @@ function buildMatchDetailSquadListHtml(match) {
     });
 
     if (!selectedPlayers.length) {
+        const emptyMessage = typeof window.getMatchSquadEmptyMessage === 'function'
+            ? window.getMatchSquadEmptyMessage(match)
+            : 'Ingen spillere er meldt på ennå.';
         return `
             <div class="match-bench-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
-                <span>Ingen spillere er meldt på ennå.</span>
+                <span>${escapeMatchHtml(emptyMessage)}</span>
             </div>
         `;
     }
@@ -3828,10 +3831,13 @@ window.renderPlayerRowForm = function(match) {
     const hasStoredAttendance = window.getAttendingPlayerRefs(match.attendance).length > 0;
 
     if (participantRefs.length === 0) {
+        const emptyMessage = typeof window.getMatchSquadEmptyMessage === 'function'
+            ? window.getMatchSquadEmptyMessage(match)
+            : 'Ingen spillere er meldt på ennå.';
         formList.innerHTML = `
             <div class="match-stats-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
-                <span>Ingen spillere er meldt på ennå.</span>
+                <span>${escapeMatchHtml(emptyMessage)}</span>
             </div>`;
         return;
     }

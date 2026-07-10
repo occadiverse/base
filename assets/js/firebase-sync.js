@@ -473,6 +473,15 @@
                 try {
                     const id = eventObject.id || crypto.randomUUID();
                     eventObject.id = id;
+                    const current = [...(window.activeEvents || [])];
+                    const idx = current.findIndex(ev => ev.id === id);
+                    if (idx > -1) {
+                        current[idx] = { ...current[idx], ...eventObject, id };
+                    } else {
+                        current.push(eventObject);
+                    }
+                    syncEvents(current);
+                    if (typeof window.renderCalendar === 'function') window.renderCalendar();
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), eventObject);
                     return true;
                 } catch (error) {

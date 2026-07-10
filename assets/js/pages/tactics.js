@@ -481,8 +481,8 @@
 
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-    const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
-    
+    const hasAttendance = currentMatch && window.hasRegisteredAttendance(currentMatch.attendance);
+
     // Hent disiplinærstatus for denne kampen
     const suspData = (typeof window.getDisciplineStatusForTeam === 'function' && currentMatch) ? window.getDisciplineStatusForTeam(currentMatch.matchGroup, currentMatch.date) : {};
 
@@ -490,9 +490,9 @@
     const sortedPlayers = [...(window.activePlayers || [])]
         .filter(p => p.status !== 'Passiv')
         .sort((a,b) => {
-            if (currentMatch && currentMatch.attendance) {
-                const valA = window.getAttendanceForPlayer(currentMatch.attendance, a) === true ? 2 : (window.getAttendanceForPlayer(currentMatch.attendance, a) === false ? 0 : 1);
-                const valB = window.getAttendanceForPlayer(currentMatch.attendance, b) === true ? 2 : (window.getAttendanceForPlayer(currentMatch.attendance, b) === false ? 0 : 1);
+            if (hasAttendance) {
+                const valA = window.isPlayerAttending(currentMatch.attendance, a) ? 2 : 0;
+                const valB = window.isPlayerAttending(currentMatch.attendance, b) ? 2 : 0;
                 if (valA !== valB) return valB - valA;
             }
             return a.navn.localeCompare(b.navn);
@@ -519,15 +519,13 @@
             attStatusHtml += `<span class="text-[9px] ${injuryClass} px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="${escapeTacticalHtml(injuryInfo.label)}">🩹 ${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
         }
 
-        if (currentMatch) {
-            const att = window.getAttendanceForPlayer(currentMatch.attendance, p);
-            if (att === true && !pSusp.isSuspended) attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ KLAR</span>';
-            else if (att === false) {
-                attStatusHtml += '<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-2">❌ FORFALL</span>'; trengerBekreftelse = true;
-                if (!isPlaying && !pSusp.isSuspended) opacityClass = 'opacity-50 grayscale bg-slate-50';
-            } else if (isAttendanceStarted) {
-                attStatusHtml += '<span class="text-[9px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold ml-2">❓ IKKE SVART</span>'; trengerBekreftelse = true;
-                if (!isPlaying && !pSusp.isSuspended) opacityClass = 'opacity-50 bg-slate-50';
+        if (currentMatch && hasAttendance) {
+            if (window.isPlayerAttending(currentMatch.attendance, p) && !pSusp.isSuspended) {
+                attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ KLAR</span>';
+            } else if (!pSusp.isSuspended) {
+                attStatusHtml += '<span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-2">❌ FORFALL</span>';
+                trengerBekreftelse = true;
+                if (!isPlaying) opacityClass = 'opacity-50 grayscale bg-slate-50';
             }
         }
 
@@ -549,7 +547,7 @@
         div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
         div.onclick = () => {
             if (pSusp.isSuspended && !confirm(`ADVARSEL! ${p.navn} har karantene (${pSusp.reason}). Vil du sette ham på banen likevel?`)) return;
-            else if (!pSusp.isSuspended && trengerBekreftelse && !confirm(`${p.navn} er ikke bekreftet til denne kampen. Vil du sette ham på banen likevel?`)) return;
+            else if (!pSusp.isSuspended && trengerBekreftelse && !confirm(`${p.navn} er meldt som forfall til denne kampen. Vil du sette ham på banen likevel?`)) return;
             if (!isPlaying) window.choosePlayer(p, posId); else alert(`${p.navn} er allerede plassert!`);
         };
         
@@ -606,11 +604,10 @@
     window.clearTacticalBoard(); 
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-    const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
 
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv') return false;
-        if (currentMatch && isAttendanceStarted && !window.isPlayerAttending(currentMatch.attendance, p)) return false;
+        if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
         return true;
     });
 
@@ -688,12 +685,11 @@ window.updateTacticalBoardStats = function() {
     // --- 2. BEREGN REELL MAKS FOR TROPPEN (GULLREKKA BASERT PÅ TILGJENGELIGHET) ---
     const matchId = document.getElementById('tacticalMatchSelect') ? document.getElementById('tacticalMatchSelect').value : null;
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-    const isAttendanceStarted = currentMatch && currentMatch.attendance && Object.values(currentMatch.attendance).some(v => v === true || v === false);
 
     // Hent alle tilgjengelige spillere til akkurat denne kampen/økten
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv') return false;
-        if (currentMatch && isAttendanceStarted && !window.isPlayerAttending(currentMatch.attendance, p)) return false;
+        if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
         return true;
     });
 
