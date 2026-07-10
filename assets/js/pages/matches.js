@@ -1498,31 +1498,129 @@ function buildMatchGamePlanOverlayPickerHtml(match) {
                     onclick="window.toggleMatchGamePlanLineupOverlay('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(option.id)}')"
                 >${escapeMatchHtml(option.label)}</button>
             `).join('')}
-            <button
-                type="button"
-                class="match-game-plan-lineup-overlay-btn match-game-plan-lineup-save-btn"
-                aria-label="Lagre"
-                onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
-            >
-                <span class="match-game-plan-lineup-save-label">Lagre</span>
-                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-            </button>
         </div>
     `;
+}
+
+function buildMatchGamePlanLineupSaveBtnHtml(match) {
+    return `
+        <button
+            type="button"
+            class="match-game-plan-lineup-save-btn"
+            aria-label="Lagre"
+            onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
+        >
+            <span class="match-game-plan-lineup-save-label">Lagre</span>
+            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+        </button>
+    `;
+}
+
+function buildMatchGamePlanLineupToolbarHtml(match) {
+    return `
+        <div class="match-game-plan-lineup-toolbar">
+            ${buildMatchGamePlanFormationPickerHtml(match)}
+            ${buildMatchGamePlanOverlayPickerHtml(match)}
+            ${buildMatchGamePlanLineupSaveBtnHtml(match)}
+        </div>
+    `;
+}
+
+function closeMatchGamePlanFormationMenus(exceptMenu = null) {
+    document.querySelectorAll('[data-formation-menu].is-open').forEach(menu => {
+        if (exceptMenu && menu === exceptMenu) return;
+
+        menu.classList.remove('is-open');
+        const trigger = menu.querySelector('[data-formation-action="toggle"]');
+        const panel = menu.querySelector('[data-formation-menu-panel]');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        if (panel) panel.hidden = true;
+    });
+}
+
+function setMatchGamePlanFormationMenuOpen(menu, isOpen) {
+    if (!menu) return;
+
+    const trigger = menu.querySelector('[data-formation-action="toggle"]');
+    const panel = menu.querySelector('[data-formation-menu-panel]');
+
+    if (isOpen) {
+        closeMatchGamePlanFormationMenus(menu);
+        menu.classList.add('is-open');
+        if (trigger) trigger.setAttribute('aria-expanded', 'true');
+        if (panel) panel.hidden = false;
+        return;
+    }
+
+    menu.classList.remove('is-open');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    if (panel) panel.hidden = true;
+}
+
+function ensureMatchGamePlanFormationMenuEventsBound() {
+    if (window.matchGamePlanFormationMenuBound) return;
+
+    window.matchGamePlanFormationMenuBound = true;
+    document.addEventListener('click', (event) => {
+        const toggleBtn = event.target.closest('[data-formation-action="toggle"]');
+        if (toggleBtn) {
+            event.stopPropagation();
+            const menu = toggleBtn.closest('[data-formation-menu]');
+            setMatchGamePlanFormationMenuOpen(menu, !menu?.classList.contains('is-open'));
+            return;
+        }
+
+        const selectBtn = event.target.closest('[data-formation-action="select"]');
+        if (selectBtn) {
+            event.stopPropagation();
+            const menu = selectBtn.closest('[data-formation-menu]');
+            const matchId = menu?.dataset.matchId;
+            const formationId = selectBtn.dataset.formationId;
+            if (matchId && formationId) {
+                closeMatchGamePlanFormationMenus();
+                window.setMatchGamePlanFormation(matchId, formationId);
+            }
+            return;
+        }
+
+        if (!event.target.closest('[data-formation-menu]')) {
+            closeMatchGamePlanFormationMenus();
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeMatchGamePlanFormationMenus();
+    });
 }
 
 function buildMatchGamePlanFormationPickerHtml(match) {
     const activeFormation = getMatchGamePlanDraftFormation(match);
 
     return `
-        <div class="match-game-plan-formation-picker" role="group" aria-label="Velg formasjon">
-            ${Object.keys(matchGamePlanFormations).map(formationId => `
-                <button
-                    type="button"
-                    class="match-game-plan-formation-btn ${activeFormation === formationId ? 'is-active' : ''}"
-                    onclick="window.setMatchGamePlanFormation('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(formationId)}')"
-                >${escapeMatchHtml(formationId)}</button>
-            `).join('')}
+        <div class="match-game-plan-formation-menu" data-formation-menu data-match-id="${escapeMatchHtml(match.id)}">
+            <button
+                type="button"
+                class="match-game-plan-formation-trigger"
+                data-formation-action="toggle"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Velg formasjon, valgt ${escapeMatchHtml(activeFormation)}"
+            >
+                <span class="match-game-plan-formation-trigger-label">Formasjon</span>
+                <span class="match-game-plan-formation-trigger-value">${escapeMatchHtml(activeFormation)}</span>
+                <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="Formasjoner" hidden data-formation-menu-panel>
+                ${Object.keys(matchGamePlanFormations).map(formationId => `
+                    <button
+                        type="button"
+                        class="match-game-plan-formation-option ${activeFormation === formationId ? 'is-active' : ''}"
+                        role="option"
+                        aria-selected="${activeFormation === formationId ? 'true' : 'false'}"
+                        data-formation-action="select"
+                        data-formation-id="${escapeMatchHtml(formationId)}"
+                    >${escapeMatchHtml(formationId)}</button>
+                `).join('')}
+            </div>
         </div>
     `;
 }
@@ -2034,7 +2132,6 @@ function renderMatchGamePlanSamspillSummary(match) {
 function buildMatchGamePlanStarterFooterHtml(match) {
     return `
         <div class="match-game-plan-lineup-footer">
-            ${buildMatchGamePlanOverlayPickerHtml(match)}
             <p class="match-game-plan-samspill-hint" data-samspill-hint hidden></p>
             <p class="match-inline-status match-game-plan-lineup-save-state" data-lineup-save-state aria-live="polite" hidden></p>
         </div>
@@ -2393,7 +2490,7 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
 
         return `
             <div class="${getMatchGamePlanLineupBuilderClass(match)}">
-                ${buildMatchGamePlanFormationPickerHtml(match)}
+                ${buildMatchGamePlanLineupToolbarHtml(match)}
                 ${pitchHtml}
                 ${buildMatchGamePlanStarterFooterHtml(match)}
             </div>
@@ -3006,6 +3103,7 @@ window.showMatchDetails = function(id) {
 
     const container = document.getElementById('kampdetaljer-info');
     bindMatchListEvents();
+    ensureMatchGamePlanFormationMenuEventsBound();
     const escapeHtml = escapeMatchHtml;
     const escapeJsString = escapeMatchJsString;
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'

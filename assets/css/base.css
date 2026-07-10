@@ -1325,45 +1325,65 @@
             gap: 0.65rem;
             min-width: 0;
         }
-        .match-detail-lineup-builder .match-game-plan-formation-picker {
-            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
-            border: 1px solid rgba(245, 197, 66, 0.18);
-            box-shadow: 0 12px 26px rgba(11, 43, 76, 0.14);
-            gap: 0.25rem;
-            padding: 0.32rem;
-        }
-        .match-detail-lineup-builder .match-game-plan-formation-btn {
+        .match-detail-lineup-builder .match-game-plan-lineup-toolbar {
             align-items: center;
-            border: 1px solid transparent;
-            color: rgba(255, 255, 255, 0.72);
-            display: inline-flex;
-            font-size: 0.62rem;
-            justify-content: center;
-            letter-spacing: 0.06em;
-            min-height: 2rem;
-            padding: 0.46rem 0.34rem;
+            container-name: lineup-toolbar;
+            container-type: inline-size;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.45rem;
+            width: 100%;
         }
-        .match-detail-lineup-builder .match-game-plan-formation-btn:hover:not(.is-active) {
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            transform: none;
-        }
-        .match-detail-lineup-builder .match-game-plan-formation-btn.is-active {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.28);
-            color: #f5c542;
+        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-game-plan-formation-menu {
+            align-self: auto;
+            flex: 0 0 auto;
+            position: relative;
+            width: fit-content;
+            z-index: 6;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-overlay-picker {
             background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             border: 1px solid rgba(245, 197, 66, 0.18);
             border-radius: 999px;
             box-shadow: 0 12px 26px rgba(11, 43, 76, 0.14);
-            container-name: lineup-toolbar;
-            container-type: inline-size;
             display: flex;
+            flex: 1 1 auto;
+            flex-wrap: nowrap;
             gap: 0.25rem;
+            min-width: 0;
+            overflow-x: auto;
             padding: 0.32rem;
-            width: 100%;
+            scrollbar-width: none;
+            width: auto;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-overlay-picker::-webkit-scrollbar {
+            display: none;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-save-btn {
+            align-items: center;
+            appearance: none;
+            background: rgba(245, 197, 66, 0.18);
+            border: 1px solid rgba(245, 197, 66, 0.34);
+            border-radius: 999px;
+            color: #f5c542;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-family: inherit;
+            font-size: 0.62rem;
+            font-weight: 950;
+            gap: 0.32rem;
+            justify-content: center;
+            letter-spacing: 0.04em;
+            min-height: 2rem;
+            padding: 0.34rem 0.65rem;
+            transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+            white-space: nowrap;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-save-btn:hover {
+            background: rgba(245, 197, 66, 0.28);
+            border-color: rgba(245, 197, 66, 0.48);
+            transform: translateY(-1px);
         }
         .match-detail-lineup-builder .match-game-plan-lineup-save-btn i {
             display: none;
@@ -1386,14 +1406,15 @@
             color: rgba(255, 255, 255, 0.72);
             cursor: pointer;
             display: inline-flex;
-            flex: 1 1 0;
+            flex: 0 0 auto;
             font-size: 0.62rem;
             font-weight: 950;
             justify-content: center;
             letter-spacing: 0.04em;
             min-height: 2rem;
-            padding: 0.46rem 0.34rem;
+            padding: 0.46rem 0.55rem;
             transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+            white-space: nowrap;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-overlay-btn:hover:not(.is-active) {
             background: rgba(255, 255, 255, 0.08);
@@ -8750,40 +8771,103 @@
             flex-direction: column;
             gap: 0.85rem;
         }
-        .match-game-plan-formation-picker {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(245, 197, 66, 0.16);
-            border-radius: 999px;
-            display: flex;
-            gap: 0.28rem;
-            padding: 0.28rem;
-            width: 100%;
+        .match-game-plan-formation-menu {
+            position: relative;
+            width: fit-content;
+            z-index: 6;
         }
-        .match-game-plan-formation-btn {
+        .match-game-plan-formation-trigger {
+            align-items: center;
             appearance: none;
-            background: transparent;
-            border: 0;
+            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.18);
             border-radius: 999px;
-            color: rgba(255, 255, 255, 0.68);
+            box-shadow: 0 12px 26px rgba(11, 43, 76, 0.14);
+            color: #ffffff;
             cursor: pointer;
-            flex: 1;
+            display: inline-flex;
+            font-family: inherit;
+            gap: 0.45rem;
+            min-height: 2rem;
+            padding: 0.34rem 0.58rem 0.34rem 0.65rem;
+            transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+        }
+        .match-game-plan-formation-trigger:hover {
+            border-color: rgba(245, 197, 66, 0.34);
+            transform: translateY(-1px);
+        }
+        .match-game-plan-formation-menu.is-open .match-game-plan-formation-trigger {
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 14px 28px rgba(11, 43, 76, 0.22);
+        }
+        .match-game-plan-formation-trigger-label {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .match-game-plan-formation-trigger-value {
             font-size: 0.68rem;
             font-weight: 950;
             letter-spacing: 0.06em;
-            min-height: 2.2rem;
-            padding: 0.52rem 0.34rem;
-            transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+            white-space: nowrap;
         }
-        .match-game-plan-formation-btn.is-active {
+        .match-game-plan-formation-trigger-chevron {
+            color: #f5c542;
+            font-size: 0.58rem;
+            transition: transform 140ms ease;
+        }
+        .match-game-plan-formation-menu.is-open .match-game-plan-formation-trigger-chevron {
+            transform: rotate(180deg);
+        }
+        .match-game-plan-formation-dropdown {
+            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.22);
+            border-radius: 0.85rem;
+            box-shadow: 0 14px 32px rgba(11, 43, 76, 0.28);
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            left: 0;
+            margin-top: 0.35rem;
+            min-width: 100%;
+            padding: 0.32rem;
+            position: absolute;
+            top: 100%;
+            z-index: 20;
+        }
+        .match-game-plan-formation-dropdown[hidden] {
+            display: none;
+        }
+        .match-game-plan-formation-option {
+            appearance: none;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 0.65rem;
+            color: rgba(255, 255, 255, 0.72);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.06em;
+            min-height: 2rem;
+            padding: 0.46rem 0.72rem;
+            text-align: left;
+            transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+            white-space: nowrap;
+        }
+        .match-game-plan-formation-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+        .match-game-plan-formation-option.is-active {
             background: rgba(245, 197, 66, 0.14);
             border-color: rgba(245, 197, 66, 0.28);
             color: #f5c542;
         }
-        .match-game-plan-formation-btn:hover {
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-        .match-game-plan-formation-btn.is-active:hover {
+        .match-game-plan-formation-option.is-active:hover {
             color: #f5c542;
         }
         .match-game-plan-starter11-wrap .match-game-plan-pitch {
