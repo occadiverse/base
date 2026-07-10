@@ -460,6 +460,8 @@ window.updateHjemWidget = function() {
     if (upcomingEvents.length > 0) {
         const ne = upcomingEvents[0];
         const isTraining = ne.type === 'Trening';
+        const canOpenSession = isTraining || ne.type === 'Annet';
+        const sessionButtonLabel = isTraining ? 'Åpne øktside' : 'Åpne aktivitet';
         const eventTypeLabel = isTraining ? 'Trening' : (ne.type || 'Aktivitet');
         const sessionStats = window.buildNextSessionAttendanceStats(ne);
         const dateValue = new Date(ne.date);
@@ -533,10 +535,10 @@ window.updateHjemWidget = function() {
                                 <i class="fa-solid fa-user-check" aria-hidden="true"></i>
                                 <span class="bsk-btn-label">Oppmøte</span>
                             </button>
-                            ${isTraining ? `
-                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Åpne øktside" aria-label="Åpne øktside">
+                            ${canOpenSession ? `
+                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="${escapeDashboardHtml(sessionButtonLabel)}" aria-label="${escapeDashboardHtml(sessionButtonLabel)}">
                                 <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">Åpne øktside</span>
+                                <span class="bsk-btn-label">${escapeDashboardHtml(sessionButtonLabel)}</span>
                             </button>
                             ` : ''}
                             ${injuryButtonHtml}

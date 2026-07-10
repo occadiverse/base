@@ -7,8 +7,6 @@ window.updateDynamicSelectors = function() {
     const teamName = window.getPrimaryTeamName();
     setHiddenTeamFieldValue('matchGroup', teamName);
     setHiddenTeamFieldValue('playerTeamInput', teamName);
-    setHiddenTeamFieldValue('eventTeam', teamName);
-    setHiddenTeamFieldValue('activityTeam', teamName);
 };
 
 window.renderAdminTeamsList = function() {
@@ -859,7 +857,6 @@ window.markPlayerHealthy = async function(playerId) {
 
     if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
     if (typeof window.updateDashboard === 'function') window.updateDashboard();
-    if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
     if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
 
     return updatedPlayer;

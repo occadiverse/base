@@ -128,8 +128,8 @@ function switchTab(tabId, options = {}) {
     }
 
     if (tabId === 'oppmote') {
-        window.renderEvents();
-        window.recalculateOppmoteAndKjemi();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
     } else if (tabId === 'tropp') {
         window.renderPlayerRoster();
     } else if (tabId === 'statistikk') {

@@ -52,82 +52,18 @@ function bindDailyEventsListEvents() {
             window.openMatchModal(eventId);
         } else if (action === 'edit-activity' && eventId) {
             window.editActivity(eventId);
+        } else if (action === 'open-session' && eventId) {
+            if (typeof window.openTrainingSession === 'function') window.openTrainingSession(eventId);
         } else if (action === 'add-activity') {
             window.openActivityModal(activityType || 'Trening');
         }
     });
 }
 
-function bindEventTableEvents() {
-    const container = document.getElementById('eventTableBody');
-    if (!container || container.dataset.attendanceEventsBound === 'true') return;
-
-    container.dataset.attendanceEventsBound = 'true';
-    container.addEventListener('click', (event) => {
-        const actionEl = event.target.closest('[data-attendance-action="register"]');
-        if (!actionEl) return;
-
-        const eventId = actionEl.dataset.eventId;
-        if (eventId) window.openAttendanceModal(eventId);
-    });
-}
-
 function bindAttendanceListEvents() {
     bindAttendanceModalEvents();
     bindDailyEventsListEvents();
-    bindEventTableEvents();
 }
-
-window.openEventModal = function() {
-    document.getElementById('eventForm').reset();
-    document.getElementById('editEventId').value = '';
-    document.getElementById('eventDate').value = window.selectedCalendarDateStr;
-    window.updateDynamicSelectors();
-    document.getElementById('eventModal').classList.remove('hidden');
-    document.getElementById('eventModal').classList.add('flex');
-};
-
-window.closeEventModal = function() {
-    document.getElementById('eventModal').classList.add('hidden');
-    document.getElementById('eventModal').classList.remove('flex');
-};
-
-window.saveEvent = async function(event) {
-    event.preventDefault();
-
-    const editId = document.getElementById('editEventId').value;
-    const existingEvent = editId ? (window.activeEvents || []).find(e => e.id === editId) : null;
-    const title = document.getElementById('eventTitle').value.trim();
-    const type = document.getElementById('eventType').value || '';
-    const date = document.getElementById('eventDate').value.trim();
-
-    if (!date) {
-        alert('Du må velge dato for aktiviteten.');
-        return;
-    }
-
-    const eventData = {
-        ...(existingEvent || {}),
-        id: editId || crypto.randomUUID(),
-        title,
-        type,
-        team: window.getPrimaryTeamName(),
-        date
-    };
-
-    try {
-        await window.saveEventToDatabase(eventData);
-    } catch (error) {
-        console.error(error);
-        alert(error.message);
-        return;
-    }
-
-    window.closeEventModal();
-    window.recalculateOppmoteAndKjemi();
-
-    if (typeof window.renderCalendar === 'function') window.renderCalendar();
-};
 
 window.openAttendanceModal = function(eventId) {
     activeAttendanceEventId = eventId;
@@ -159,12 +95,7 @@ window.openAttendanceModal = function(eventId) {
     bindAttendanceModalEvents();
 
     const container = document.getElementById('attendance-players-list');
-    const alertsContainer = document.getElementById('attendanceModalAlerts');
     container.innerHTML = '';
-    if (alertsContainer) {
-        alertsContainer.innerHTML = '';
-        alertsContainer.classList.add('hidden');
-    }
 
     const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
         ? window.getAttendanceModalTeamPlayers(ev)
@@ -305,7 +236,6 @@ window.saveAttendanceRegistry = async function() {
     };
 
     window.closeAttendanceModal();
-    window.recalculateOppmoteAndKjemi();
 };
 
 window.closeAttendanceModal = function() {
@@ -326,12 +256,9 @@ window.closeAttendanceModal = function() {
 window.promptDeleteEvent = function(id) {
     window.customConfirm("Slette event?", "Er du sikker på at du ønsker å slette dette oppmøte-eventet permanent?", async () => {
         await window.deleteEventFromDatabase(id);
-        window.recalculateOppmoteAndKjemi();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
     });
-};
-
-window.recalculateOppmoteAndKjemi = function() {
-    // Kalenderens gamle statistikkbokser er fjernet, men andre moduler kaller fortsatt denne kroken.
 };
 
 const calendarMonthNames = ["Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"];
@@ -563,11 +490,14 @@ window.updateDailySchedule = function() {
         const attendanceMeta = typeof window.formatAttendancePresenceLabel === 'function'
             ? window.formatAttendancePresenceLabel(e)
             : '';
+        const displayTitle = e.title && String(e.title).trim() ? e.title : theme.label;
         const eventId = escapeAttendanceHtml(e.id);
+        const sessionActionTitle = e.type === 'Trening' ? 'Åpne øktside' : 'Åpne aktivitet';
         return `
             <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
                 <i class="fa-solid ${theme.icon} calendar-detail-watermark"></i>
                 <div class="calendar-detail-card-actions">
+                    <button type="button" data-attendance-action="open-session" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary" title="${escapeAttendanceHtml(sessionActionTitle)}" aria-label="${escapeAttendanceHtml(sessionActionTitle)}"><i class="fa-solid fa-clipboard-list"></i></button>
                     <button type="button" data-attendance-action="attendance" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-primary" title="Oppmøte" aria-label="Oppmøte"><i class="fa-solid fa-user-check"></i></button>
                     <button type="button" data-attendance-action="edit-activity" data-event-id="${eventId}" class="bsk-btn bsk-btn-icon bsk-btn-secondary" title="Rediger"><i class="fa-solid fa-pen-to-square"></i></button>
                 </div>
@@ -580,7 +510,7 @@ window.updateDailySchedule = function() {
                     <div class="calendar-daily-main calendar-event-main">
                         <div class="calendar-daily-title-block calendar-event-title-block">
                             <div class="calendar-daily-title-line calendar-event-title-line">
-                                <h4 class="calendar-detail-title calendar-daily-title truncate">${theme.label}</h4>
+                                <h4 class="calendar-detail-title calendar-daily-title truncate">${escapeCalendarHtml(displayTitle)}</h4>
                                 <span class="calendar-detail-time-dot" aria-hidden="true"></span>
                                 <span class="calendar-daily-time calendar-event-time">${escapeCalendarHtml(e.time || 'TBA')}</span>
                             </div>
@@ -607,49 +537,6 @@ window.updateDailySchedule = function() {
         .sort((a, b) => getSortTime(a) - getSortTime(b))
         .map(item => item.type === 'match' ? renderDailyMatch(item.data) : renderDailyEvent(item.data))
         .join('');
-};
-
-window.quickAddEvent = function(type) {
-    if (type === 'Kamp') {
-        window.openMatchModal();
-        document.getElementById('matchDate').value = window.selectedCalendarDateStr;
-    } else {
-        window.openEventModal();
-        document.getElementById('eventType').value = type;
-        document.getElementById('eventDate').value = window.selectedCalendarDateStr;
-    }
-};
-
-window.renderEvents = function() {
-    const tableBody = document.getElementById('eventTableBody');
-    const noEventsView = document.getElementById('no-events-view');
-    if (!tableBody) return;
-
-    bindEventTableEvents();
-
-    tableBody.innerHTML = '';
-
-    const events = Array.isArray(window.activeEvents) ? window.activeEvents : [];
-    const formattedMatches = (window.activeMatches || []).map(m => ({
-        id: 'match_' + m.id,
-        title: "Kamp: " + m.opponent,
-        type: "Kamp",
-        date: m.date,
-        attendance: m.attendance || {}
-    }));
-    const combinedList = [...events, ...formattedMatches];
-
-    if (combinedList.length === 0) {
-        if (noEventsView) noEventsView.classList.remove('hidden');
-        return;
-    }
-
-    if (noEventsView) noEventsView.classList.add('hidden');
-
-    combinedList.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ev => {
-        const attendanceCount = ev.attendance ? Object.values(ev.attendance).filter(v => v === true).length : 0;
-        tableBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-4 font-bold text-slate-800">${escapeCalendarHtml(ev.title || 'Uten navn')}</td><td class="py-3 px-4 text-slate-500">${escapeCalendarHtml(ev.type || '-')}</td><td class="py-3 px-4 text-center text-slate-600">${new Date(ev.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})}</td><td class="py-3 px-4 text-center font-bold text-bsk-blue">${attendanceCount}</td><td class="py-3 px-6 text-right"><button type="button" data-attendance-action="register" data-event-id="${escapeAttendanceHtml(ev.id)}" class="bsk-btn bsk-btn-chip bsk-btn-primary">REGISTRER</button></td></tr>`;
-    });
 };
 
 window.openActivityModal = function(defaultType = 'Trening') {
@@ -717,7 +604,6 @@ window.editActivity = function(id) {
     document.getElementById('activityTitle').value = ev.title;
     document.getElementById('activityDate').value = ev.date;
     document.getElementById('activityTime').value = ev.time || '';
-    document.getElementById('activityTeam').value = ev.team;
     document.getElementById('activityLocation').value = ev.location || '';
 };
 
@@ -726,10 +612,8 @@ window.deleteActivity = function(id) {
         if (id.startsWith('match_')) await window.deleteMatchFromDatabase(id.replace('match_', ''));
         else await window.deleteEventFromDatabase(id);
 
-        if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
         if (typeof window.renderCalendar === 'function') window.renderCalendar();
         window.updateDailySchedule();
-        if (typeof window.renderEvents === 'function') window.renderEvents();
     });
 };
 
@@ -741,10 +625,8 @@ window.deleteCurrentActivity = function() {
         await window.deleteEventFromDatabase(activityId);
         window.closeActivityModal();
 
-        if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
         if (typeof window.renderCalendar === 'function') window.renderCalendar();
         if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
-        if (typeof window.renderEvents === 'function') window.renderEvents();
     });
 };
 
@@ -824,7 +706,6 @@ window.saveNewActivity = async function() {
     window.closeActivityModal();
 
     if (typeof window.applyFilters === 'function') window.applyFilters();
-    if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
     if (typeof window.renderCalendar === 'function') window.renderCalendar();
     if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
     if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget();

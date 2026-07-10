@@ -223,29 +223,6 @@ window.clearPlayerAttendanceKeys = function(map, playerOrRef) {
     });
 };
 
-window.repairMatchAttendanceFromStats = function(match) {
-    if (!match) return { match, changed: false };
-
-    if (window.hasRegisteredAttendance(match.attendance)) {
-        return { match, changed: false };
-    }
-
-    const statRefs = window.getMatchStatPlayerRefs(match);
-    if (statRefs.length === 0) return { match, changed: false };
-
-    const attendance = {};
-    statRefs.forEach(ref => {
-        const player = window.findPlayerByRef(ref);
-        const storageKey = player ? window.getPlayerStorageKey(player) : null;
-        if (storageKey) attendance[storageKey] = true;
-    });
-
-    return {
-        match: { ...match, attendance },
-        changed: true
-    };
-};
-
 window.getPlayerRefMapValue = function(map, playerOrRef, defaultValue) {
     if (!map) return defaultValue;
     const player = typeof playerOrRef === 'object' && playerOrRef !== null && playerOrRef.navn

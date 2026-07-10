@@ -4,7 +4,6 @@ setTimeout(() => {
     window.applyFilters();
     window.updateDashboard();
     window.renderPlayerRoster();
-    window.recalculateOppmoteAndKjemi();
     window.renderCalendar();
     window.switchTab('hjem');
     if (typeof window.setupMobileSwipeNavigation === 'function') window.setupMobileSwipeNavigation();

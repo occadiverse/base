@@ -41,6 +41,28 @@ function getTrainingEvent(eventId) {
     return (window.activeEvents || []).find(event => event.id === eventId) || null;
 }
 
+function isActivitySessionType(type) {
+    return type === 'Trening' || type === 'Annet';
+}
+
+function getActivitySessionTheme(event) {
+    if (event?.type === 'Annet') {
+        return {
+            watermarkIcon: 'fa-calendar-check',
+            chipIcon: 'fa-calendar-check',
+            chipLabel: 'Aktivitet',
+            defaultTitle: 'Aktivitet'
+        };
+    }
+
+    return {
+        watermarkIcon: 'fa-person-running',
+        chipIcon: 'fa-stopwatch',
+        chipLabel: 'Trening',
+        defaultTitle: 'Trening'
+    };
+}
+
 function getRegisteredPlayersForEvent(event) {
     const refs = typeof window.getAttendingPlayerRefs === 'function'
         ? window.getAttendingPlayerRefs(event?.attendance)
@@ -274,7 +296,7 @@ function bindTrainingSessionEvents() {
         if (action === 'distribute-groups') {
             if (!eventId) return;
             const trainingEvent = getTrainingEvent(eventId);
-            if (!trainingEvent) return;
+            if (!trainingEvent || trainingEvent.type !== 'Trening') return;
 
             const players = getRegisteredPlayersForEvent(trainingEvent);
             const groupCount = window._trainingSessionGroupCounts[eventId] || 3;
@@ -302,11 +324,11 @@ function bindTrainingSessionEvents() {
 window.openTrainingSession = function(eventId) {
     if (!eventId) return;
 
-    const trainingEvent = getTrainingEvent(eventId);
-    if (!trainingEvent || trainingEvent.type !== 'Trening') return;
+    const activityEvent = getTrainingEvent(eventId);
+    if (!activityEvent || !isActivitySessionType(activityEvent.type)) return;
 
     window._activeTrainingSessionId = eventId;
-    if (!window._trainingSessionGroupCounts[eventId]) {
+    if (activityEvent.type === 'Trening' && !window._trainingSessionGroupCounts[eventId]) {
         window._trainingSessionGroupCounts[eventId] = 3;
     }
 
@@ -320,12 +342,14 @@ window.openTrainingSession = function(eventId) {
 window.renderTrainingSession = function(eventId) {
     const container = document.getElementById('oktside-content');
     const trainingEvent = getTrainingEvent(eventId || window._activeTrainingSessionId);
-    if (!container || !trainingEvent) return;
+    if (!container || !trainingEvent || !isActivitySessionType(trainingEvent.type)) return;
 
     bindTrainingSessionEvents();
 
+    const theme = getActivitySessionTheme(trainingEvent);
+    const isTraining = trainingEvent.type === 'Trening';
     const teamName = trainingEvent.team || window.getPrimaryTeamName();
-    const title = trainingEvent.title || 'Trening';
+    const title = trainingEvent.title || theme.defaultTitle;
     const dateLabel = formatTrainingDateLabel(trainingEvent.date);
     const timeLabel = trainingEvent.time || '--:--';
     const locationLabel = trainingEvent.location || 'Ikke oppgitt';
@@ -336,6 +360,35 @@ window.renderTrainingSession = function(eventId) {
     const attendanceBadge = presenceStats.isRegistered && presenceStats.squadSize > 0
         ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
         : String(registeredPlayers.length);
+    const focusPanelHtml = isTraining
+        ? `
+            <section class="training-session-panel">
+                <div class="training-session-panel-header">
+                    <h3>Fokus fra siste kamp</h3>
+                </div>
+                <div class="training-session-panel-body">
+                    ${buildMatchFocusHtml(teamName)}
+                </div>
+            </section>
+        `
+        : '';
+    const groupsPanelHtml = isTraining
+        ? `
+            <section class="training-session-panel">
+                <div class="training-session-panel-header">
+                    <h3>Grupper</h3>
+                </div>
+                <div class="training-session-panel-body">
+                    ${buildGroupsHtml(trainingEvent.id, registeredPlayers)}
+                </div>
+            </section>
+        `
+        : '';
+
+    const desktopTitle = document.getElementById('current-tab-title');
+    if (desktopTitle && window.currentTab === 'oktside') {
+        desktopTitle.innerText = isTraining ? 'Øktside' : 'Aktivitet';
+    }
 
     container.innerHTML = `
         <div class="training-session-page">
@@ -346,7 +399,7 @@ window.renderTrainingSession = function(eventId) {
 
             <article class="match-detail-card training-session-hero">
                 <div class="dashboard-next-match-watermark">
-                    <i class="fa-solid fa-person-running"></i>
+                    <i class="fa-solid ${theme.watermarkIcon}"></i>
                 </div>
 
                 <div class="match-detail-card-top relative z-10">
@@ -355,8 +408,8 @@ window.renderTrainingSession = function(eventId) {
                         <span>${escapeTrainingHtml(dateLabel)}</span>
                     </div>
                     <div class="match-detail-chip">
-                        <i class="fa-solid fa-stopwatch"></i>
-                        <span>Trening</span>
+                        <i class="fa-solid ${theme.chipIcon}"></i>
+                        <span>${escapeTrainingHtml(theme.chipLabel)}</span>
                     </div>
                 </div>
 
@@ -381,14 +434,7 @@ window.renderTrainingSession = function(eventId) {
                 </div>
             </article>
 
-            <section class="training-session-panel">
-                <div class="training-session-panel-header">
-                    <h3>Fokus fra siste kamp</h3>
-                </div>
-                <div class="training-session-panel-body">
-                    ${buildMatchFocusHtml(teamName)}
-                </div>
-            </section>
+            ${focusPanelHtml}
 
             <section class="training-session-panel">
                 <div class="training-session-panel-header">
@@ -401,14 +447,7 @@ window.renderTrainingSession = function(eventId) {
                 </div>
             </section>
 
-            <section class="training-session-panel">
-                <div class="training-session-panel-header">
-                    <h3>Grupper</h3>
-                </div>
-                <div class="training-session-panel-body">
-                    ${buildGroupsHtml(trainingEvent.id, registeredPlayers)}
-                </div>
-            </section>
+            ${groupsPanelHtml}
         </div>
     `;
 

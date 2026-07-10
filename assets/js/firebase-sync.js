@@ -246,7 +246,6 @@
             window.activePlayers = normalized;
             window.localStorage.setItem('bsk_local_players', JSON.stringify(normalized));
             if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
-            if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             refreshVisibleStatistics();
 
             if (repairedPlayers.length > 0) {
@@ -271,7 +270,6 @@
             });
             window.activeEvents = normalized;
             window.localStorage.setItem('bsk_local_events', JSON.stringify(normalized));
-            if (typeof window.recalculateOppmoteAndKjemi === 'function') window.recalculateOppmoteAndKjemi();
             if (typeof window.renderCalendar === 'function') window.renderCalendar();
             if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
             if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget();

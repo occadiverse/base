@@ -292,7 +292,7 @@ document.getElementById('confirmNoBtn').onclick = function() {
 };
 
 window.onclick = function(event) {
-    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'eventModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'activityModal', 'tacticalPlayerModal'];
+    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'activityModal', 'tacticalPlayerModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
@@ -300,7 +300,6 @@ window.onclick = function(event) {
             if (modalId === 'teamModal') window.closeTeamModal();
             if (modalId === 'playerModal') window.closePlayerModal();
             if (modalId === 'matchInfoModal') window.closeMatchInfo();
-            if (modalId === 'eventModal') window.closeEventModal();
             if (modalId === 'attendanceModal') window.closeAttendanceModal();
             if (modalId === 'confirmModal') window.closeConfirmModal();
             if (modalId === 'sessionInjuryModal') window.closeSessionInjuryModal();

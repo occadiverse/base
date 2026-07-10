@@ -685,51 +685,6 @@
         </div>
     </div>
 
-    <div id="eventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
-                <h3 id="eventModalTitle" class="font-extrabold text-lg text-bsk-blue flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-check text-bsk-yellow"></i> Opprett Event / Trening
-                </h3>
-                <button onclick="closeEventModal()" class="bsk-btn bsk-btn-icon bsk-btn-ghost">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            
-            <form id="eventForm" onsubmit="saveEvent(event)" class="space-y-4">
-                <input type="hidden" id="editEventId">
-                
-                <div>
-                    <label class="portal-label">Tittel / Navn</label>
-                    <input type="text" id="eventTitle" placeholder="F.eks. Tirsdagstrening, lagmøte eller sesongavslutning..." required class="portal-field">
-                </div>
-
-                <div>
-                    <label class="portal-label">Type event</label>
-                    <select id="eventType" class="portal-field">
-                        <option value="Trening">Trening 🏃</option>
-                        <option value="Kamp">Kamp ⚽</option>
-                        <option value="Annet">Annet</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="portal-label">Dato</label>
-                    <input type="date" id="eventDate" required class="portal-field">
-                </div>
-
-                <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button type="submit" class="bsk-btn bsk-btn-primary">
-                        OPPRETT EVENT
-                    </button>
-                    <button type="button" onclick="closeEventModal()" class="bsk-btn bsk-btn-secondary">
-                        AVBRYT
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div id="attendanceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="match-detail-card attendance-modal-card w-full max-w-lg relative overflow-hidden max-h-[90vh] flex flex-col">
             <div class="dashboard-next-match-watermark attendance-modal-watermark">
@@ -745,7 +700,6 @@
 
             <div class="attendance-modal-body relative z-10">
                 <p id="attendanceModalSummary" class="attendance-modal-summary">0 / 0 møtt opp</p>
-                <div id="attendanceModalAlerts" class="attendance-modal-alerts hidden"></div>
                 <div id="attendance-players-list" class="attendance-modal-list"></div>
             </div>
 
@@ -1130,8 +1084,6 @@
     <div id="team-field-store" class="hidden" aria-hidden="true">
         <input type="hidden" id="matchGroup">
         <input type="hidden" id="playerTeamInput">
-        <input type="hidden" id="eventTeam">
-        <input type="hidden" id="activityTeam">
     </div>
 
     <script src="assets/js/state.js?v=20260703-single-team-v1"></script>
