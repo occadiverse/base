@@ -2213,6 +2213,28 @@
             font-weight: 700;
             margin: 0 0.08em;
         }
+        .dashboard-session-attendance-label {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .dashboard-session-unregistered-label {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .match-detail-squad-section > .match-attendance-save-state {
+            margin: 0.35rem 0 0.15rem;
+            padding: 0 0.35rem;
+            text-align: center;
+        }
+        .training-session-panel .match-inline-status {
+            margin: 0.15rem 0 0;
+            padding: 0 0.35rem;
+        }
         .dashboard-session-radar-inline {
             color: rgba(255, 255, 255, 0.88);
             font-size: clamp(0.78rem, 1.65vw, 0.98rem);

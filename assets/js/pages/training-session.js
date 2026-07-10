@@ -13,6 +13,30 @@ function escapeTrainingHtml(value) {
 window._trainingSessionGroupCounts = window._trainingSessionGroupCounts || {};
 window._trainingSessionGroups = window._trainingSessionGroups || {};
 
+function setTrainingSessionFeedback(message, variant = '', autoClearMs = 0) {
+    const el = document.querySelector('[data-training-attendance-save-state]');
+    if (!el) return;
+
+    if (el._feedbackTimer) {
+        clearTimeout(el._feedbackTimer);
+        el._feedbackTimer = null;
+    }
+
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.classList.remove('is-success', 'is-error', 'is-pending');
+    if (message && variant) el.classList.add(`is-${variant}`);
+
+    if (message && autoClearMs > 0) {
+        el._feedbackTimer = setTimeout(() => {
+            el.textContent = '';
+            el.hidden = true;
+            el.classList.remove('is-success', 'is-error', 'is-pending');
+            el._feedbackTimer = null;
+        }, autoClearMs);
+    }
+}
+
 function getTrainingEvent(eventId) {
     return (window.activeEvents || []).find(event => event.id === eventId) || null;
 }
@@ -306,6 +330,12 @@ window.renderTrainingSession = function(eventId) {
     const timeLabel = trainingEvent.time || '--:--';
     const locationLabel = trainingEvent.location || 'Ikke oppgitt';
     const registeredPlayers = getRegisteredPlayersForEvent(trainingEvent);
+    const presenceStats = typeof window.getAttendancePresenceStats === 'function'
+        ? window.getAttendancePresenceStats(trainingEvent)
+        : { presentCount: registeredPlayers.length, squadSize: registeredPlayers.length, isRegistered: false };
+    const attendanceBadge = presenceStats.isRegistered && presenceStats.squadSize > 0
+        ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
+        : String(registeredPlayers.length);
 
     container.innerHTML = `
         <div class="training-session-page">
@@ -362,9 +392,10 @@ window.renderTrainingSession = function(eventId) {
 
             <section class="training-session-panel">
                 <div class="training-session-panel-header">
-                    <h3>Påmeldte</h3>
-                    <span class="training-session-count-badge">${registeredPlayers.length}</span>
+                    <h3>Møtt opp</h3>
+                    <span class="training-session-count-badge">${attendanceBadge}</span>
                 </div>
+                <p class="match-inline-status training-session-attendance-save-state" data-training-attendance-save-state aria-live="polite" hidden></p>
                 <div class="training-session-panel-body">
                     ${buildRegisteredPlayersHtml(registeredPlayers)}
                 </div>
@@ -380,4 +411,13 @@ window.renderTrainingSession = function(eventId) {
             </section>
         </div>
     `;
+
+    const pendingFeedback = window._pendingAttendanceFeedback;
+    if (pendingFeedback && !pendingFeedback.isMatch && pendingFeedback.recordId === eventId) {
+        window._pendingAttendanceFeedback = null;
+        const message = typeof window.buildAttendanceSaveFeedbackMessage === 'function'
+            ? window.buildAttendanceSaveFeedbackMessage(pendingFeedback)
+            : 'Oppmøte lagret';
+        setTrainingSessionFeedback(message, 'success', 5000);
+    }
 };

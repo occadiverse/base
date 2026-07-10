@@ -87,6 +87,29 @@ window.getMatchSquadEmptyMessage = function(match) {
     return 'Registrer oppmøte for å se hvem som møtte opp.';
 };
 
+window.getAttendancePresenceStats = function(record) {
+    const squadPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
+        ? window.getAttendanceModalTeamPlayers(record)
+        : [];
+    const squadSize = squadPlayers.length;
+    const presentCount = window.getAttendingPlayerRefs(record?.attendance).length;
+    const isRegistered = window.hasRegisteredAttendance(record?.attendance);
+    return { presentCount, squadSize, isRegistered };
+};
+
+window.formatAttendancePresenceLabel = function(record) {
+    const { presentCount, squadSize, isRegistered } = window.getAttendancePresenceStats(record);
+    if (!isRegistered) return '';
+    if (squadSize > 0) return `${presentCount}/${squadSize} møtt opp`;
+    return `${presentCount} møtt opp`;
+};
+
+window.buildAttendanceSaveFeedbackMessage = function({ presentCount, squadSize }) {
+    if (presentCount === 0) return 'Oppmøte lagret — ingen møtt opp';
+    const countLabel = squadSize > 0 ? `${presentCount}/${squadSize}` : String(presentCount);
+    return `Oppmøte lagret — ${countLabel} møtt opp`;
+};
+
 window.deduplicatePlayerRefs = function(refs) {
     if (!Array.isArray(refs)) return [];
     const seen = new Set();

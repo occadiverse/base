@@ -86,7 +86,8 @@ window.captureModalReturnContext = function() {
     const tab = window.currentTab || 'hjem';
     return {
         tab,
-        matchId: tab === 'kampdetaljer' ? (window.activeDetailsId || null) : null
+        matchId: tab === 'kampdetaljer' ? (window.activeDetailsId || null) : null,
+        trainingSessionId: tab === 'oktside' ? (window._activeTrainingSessionId || null) : null
     };
 };
 
@@ -95,6 +96,14 @@ window.restoreModalReturnContext = function(context) {
 
     if (context.tab === 'kampdetaljer' && context.matchId && typeof window.showMatchDetails === 'function') {
         window.showMatchDetails(context.matchId);
+        return;
+    }
+
+    if (context.tab === 'oktside' && context.trainingSessionId && typeof window.renderTrainingSession === 'function') {
+        if (window.currentTab !== 'oktside' && typeof window.switchTab === 'function') {
+            window.switchTab('oktside', { backTarget: window.currentTab || 'hjem' });
+        }
+        window.renderTrainingSession(context.trainingSessionId);
         return;
     }
 

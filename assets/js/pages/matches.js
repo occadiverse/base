@@ -430,9 +430,12 @@ function getMatchCardPresentation(match) {
     const centerValue = match.result ? formatMatchResultForDisplay(match.result, venue) : (match.time || '--:--');
     const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
     const durationLabel = match.duration || '90 min';
-    const attendingCount = match.attendance
-        ? Object.values(match.attendance).filter(Boolean).length
-        : 0;
+    const attendanceStats = typeof window.getAttendancePresenceStats === 'function'
+        ? window.getAttendancePresenceStats(match)
+        : { presentCount: 0, squadSize: 0, isRegistered: false };
+    const attendanceLabel = typeof window.formatAttendancePresenceLabel === 'function'
+        ? window.formatAttendancePresenceLabel(match)
+        : '';
 
     let resultTone = '';
 
@@ -448,7 +451,9 @@ function getMatchCardPresentation(match) {
         centerValue,
         centerLabel,
         durationLabel,
-        attendingCount,
+        attendingCount: attendanceStats.presentCount,
+        attendanceLabel,
+        attendanceStats,
         resultTone
     };
 }
@@ -503,10 +508,10 @@ function buildMatchDetailCardHtml(match, options = {}) {
             <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
         </div>
     `;
-    const footerAttendanceHtml = showAttendance && data.attendingCount > 0
+    const footerAttendanceHtml = showAttendance && data.attendanceLabel
         ? `<div class="match-detail-footer-item">
                 <i class="fa-solid fa-user-check"></i>
-                <span>${data.attendingCount} møtt opp</span>
+                <span>${escapeMatchHtml(data.attendanceLabel)}</span>
            </div>`
         : '';
     const clickAttrs = clickable
@@ -1006,6 +1011,8 @@ function setMatchDetailFeedback(selector, message, variant = '', autoClearMs = 0
         }, autoClearMs);
     }
 }
+
+window.setMatchDetailFeedback = setMatchDetailFeedback;
 
 window.isMatchGamePlanDraftDirty = function(matchOrId) {
     const match = typeof matchOrId === 'string'
@@ -2125,7 +2132,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
             <div class="match-game-plan-bench-panel">
                 <div class="match-game-plan-bench-empty">
                     <i class="fa-solid fa-users-slash"></i>
-                    <span>Ingen innbyttere å planlegge – alle påmeldte er i 11eren.</span>
+                    <span>Ingen innbyttere å planlegge – alle møtt opp er i 11eren.</span>
                 </div>
             </div>
         `;
@@ -3004,6 +3011,12 @@ window.showMatchDetails = function(id) {
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
+    const presenceStats = typeof window.getAttendancePresenceStats === 'function'
+        ? window.getAttendancePresenceStats(match)
+        : { presentCount: attendingRefs.length, squadSize: 0, isRegistered: false };
+    const squadBadgeLabel = presenceStats.isRegistered && presenceStats.squadSize > 0
+        ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
+        : String(presenceStats.isRegistered ? presenceStats.presentCount : attendingRefs.length);
     const benchPlayersHtml = buildMatchDetailSquadListHtml(match);
     const openPanel = window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '';
     const isGamePlanOpen = openPanel === 'kampplan';
@@ -3013,9 +3026,10 @@ window.showMatchDetails = function(id) {
         <div class="match-detail-squad-section relative z-10 ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
             <div class="match-detail-section-divider" aria-label="Kamptropp – spillere med oppmøte">
                 <span class="match-detail-section-title">Kamptropp</span>
-                <span class="match-detail-section-badge" aria-label="${attendingRefs.length} spillere med oppmøte">${attendingRefs.length}</span>
+                <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
                 <span class="match-detail-section-line" aria-hidden="true"></span>
             </div>
+            <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
             <div class="match-detail-squad-body">
                 <div class="match-detail-squad-players">
                     <div class="match-bench-list match-detail-squad-list">
@@ -3119,6 +3133,15 @@ window.showMatchDetails = function(id) {
         renderMatchGamePlanSamspillSummary(match);
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
+        }
+
+        const pendingFeedback = window._pendingAttendanceFeedback;
+        if (pendingFeedback?.isMatch && pendingFeedback.recordId === id) {
+            window._pendingAttendanceFeedback = null;
+            const message = typeof window.buildAttendanceSaveFeedbackMessage === 'function'
+                ? window.buildAttendanceSaveFeedbackMessage(pendingFeedback)
+                : 'Oppmøte lagret';
+            setMatchDetailFeedback('[data-attendance-save-state]', message, 'success', 5000);
         }
     });
 };
@@ -3541,7 +3564,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         <div class="match-game-plan-player-empty">
             ${currentMode === 'position'
                 ? 'Ingen posisjoner å bytte til.'
-                : 'Ingen påmeldte spillere å velge mellom ennå.'}
+                : 'Registrer oppmøte for å se hvem som møtte opp.'}
         </div>
     `;
 

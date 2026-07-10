@@ -470,9 +470,23 @@ window.updateHjemWidget = function() {
         const timeLabel = ne.time || '--:--';
         const locationLabel = ne.location || 'Ikke oppgitt';
         const fractionToneClass = sessionStats.fractionTone === 'good' ? '' : ` is-${sessionStats.fractionTone}`;
+        const hasSessionAttendance = typeof window.hasRegisteredAttendance === 'function'
+            ? window.hasRegisteredAttendance(ne.attendance)
+            : false;
         const radarParts = ['K', 'F', 'M', 'A'].map(letter => (
             `${sessionStats.positionCounts[letter]}${letter}`
         )).join('<span class="dashboard-session-radar-sep"> - </span>');
+        const sessionStatsHtml = hasSessionAttendance
+            ? `
+                            <div class="dashboard-session-stats-line">
+                                <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                                <span class="dashboard-session-attendance-label">møtt opp</span>
+                                <span class="dashboard-session-radar-inline">${radarParts}</span>
+                            </div>`
+            : `
+                            <div class="dashboard-session-stats-line">
+                                <span class="dashboard-session-unregistered-label">Oppmøte ikke registrert</span>
+                            </div>`;
 
         window._sessionInjuryPopupData = sessionStats.injuredReady;
 
@@ -512,10 +526,7 @@ window.updateHjemWidget = function() {
                 <div class="dashboard-session-main relative z-10">
                     <div class="dashboard-session-middle">
                         <div class="dashboard-session-focus-block min-w-0">
-                            <div class="dashboard-session-stats-line">
-                                <span class="match-detail-time${fractionToneClass}">${sessionStats.påmeldtAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
-                                <span class="dashboard-session-radar-inline">${radarParts}</span>
-                            </div>
+                            ${sessionStatsHtml}
                         </div>
                         <div class="dashboard-session-actions">
                             <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Oppmøte" aria-label="Oppmøte">

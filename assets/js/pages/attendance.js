@@ -294,6 +294,16 @@ window.saveAttendanceRegistry = async function() {
         return;
     }
 
+    const presenceStats = typeof window.getAttendancePresenceStats === 'function'
+        ? window.getAttendancePresenceStats(ev)
+        : { presentCount: 0, squadSize: 0, isRegistered: true };
+    window._pendingAttendanceFeedback = {
+        isMatch,
+        recordId: realId,
+        presentCount: presenceStats.presentCount,
+        squadSize: presenceStats.squadSize
+    };
+
     window.closeAttendanceModal();
     window.recalculateOppmoteAndKjemi();
 };
@@ -496,7 +506,9 @@ window.updateDailySchedule = function() {
     }
 
     const renderDailyMatch = (m) => {
-        const presentCount = m.attendance ? Object.values(m.attendance).filter(v => v === true).length : 0;
+        const attendanceMeta = typeof window.formatAttendancePresenceLabel === 'function'
+            ? window.formatAttendancePresenceLabel(m)
+            : '';
         const matchId = escapeAttendanceHtml(m.id);
         const opponent = m.opponent || 'Motstander ikke satt';
         const venue = typeof window.getMatchVenue === 'function'
@@ -535,7 +547,7 @@ window.updateDailySchedule = function() {
                             </div>
                             <div class="calendar-daily-meta-row calendar-match-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(m.pitch || 'Sted ikke satt')}</span>
-                                <span><i class="fa-solid fa-user-check"></i>${presentCount} møtt opp</span>
+                                ${attendanceMeta ? `<span><i class="fa-solid fa-user-check"></i>${escapeCalendarHtml(attendanceMeta)}</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -548,7 +560,9 @@ window.updateDailySchedule = function() {
         const theme = e.type === 'Trening'
             ? { icon: 'fa-person-running', label: 'Trening', tone: 'is-training', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
             : { icon: 'fa-calendar-check', label: 'Annet', tone: 'is-other', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
-        const presentCount = e.attendance ? Object.values(e.attendance).filter(v => v === true).length : 0;
+        const attendanceMeta = typeof window.formatAttendancePresenceLabel === 'function'
+            ? window.formatAttendancePresenceLabel(e)
+            : '';
         const eventId = escapeAttendanceHtml(e.id);
         return `
             <div class="calendar-detail-card calendar-event-detail-card ${theme.tone}">
@@ -572,7 +586,7 @@ window.updateDailySchedule = function() {
                             </div>
                             <div class="calendar-daily-meta-row calendar-detail-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(e.location || 'Ikke oppgitt')}</span>
-                                <span><i class="fa-solid fa-user-check"></i>${presentCount} møtt opp</span>
+                                ${attendanceMeta ? `<span><i class="fa-solid fa-user-check"></i>${escapeCalendarHtml(attendanceMeta)}</span>` : ''}
                             </div>
                         </div>
                     </div>
