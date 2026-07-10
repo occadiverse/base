@@ -1131,10 +1131,40 @@
             background: rgba(255, 255, 255, 0.07);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
             display: flex;
+            flex-wrap: nowrap;
             gap: 1rem;
             justify-content: space-between;
             min-height: var(--portal-topline-min-height);
             padding: 1rem 1.25rem;
+        }
+        .match-detail-card-top .match-detail-meta,
+        .match-detail-card-top .match-list-column-title {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .match-detail-card-top .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+        .match-detail-top-chips .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+        .roster-board-top-right > .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+        .roster-topline-actions .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+        .stats-board-tabs .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+        .calendar-heading-panel > .flex.justify-end .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) {
+            flex-shrink: 0;
+            font-size: 0.62rem;
+            font-weight: 950;
+            gap: 0.32rem;
+            letter-spacing: 0.08em;
+            min-height: auto;
+            padding: 0.34rem 0.58rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .match-detail-card-top .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) i,
+        .match-detail-top-chips .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) i,
+        .roster-board-top-right > .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) i,
+        .roster-topline-actions .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) i,
+        .stats-board-tabs .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) i,
+        .calendar-heading-panel > .flex.justify-end .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) i {
+            font-size: 0.68rem;
         }
         .match-detail-meta,
         .match-detail-chip,
@@ -2938,14 +2968,12 @@
         .match-detail-top-chips {
             align-items: center;
             display: flex;
-            flex-wrap: wrap;
+            flex: 0 1 auto;
+            flex-shrink: 0;
+            flex-wrap: nowrap;
             gap: 0.45rem;
             justify-content: flex-end;
-        }
-        .match-detail-top-chips .bsk-btn {
-            font-size: 0.6875rem;
-            min-height: 2.35rem;
-            padding-inline: 0.7rem;
+            min-width: 0;
         }
         .match-detail-chip-muted {
             background: rgba(255, 255, 255, 0.08);
@@ -2982,9 +3010,8 @@
             width: 100%;
         }
         .match-list-page .match-detail-card-top {
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             overflow: visible;
-            row-gap: 0.55rem;
         }
         .match-list-page .match-detail-top-chips {
             align-items: center;
@@ -3000,7 +3027,6 @@
         .match-list-page .match-list-add-btn {
             box-shadow: 0 8px 18px rgba(2, 6, 23, 0.24);
             flex-shrink: 0;
-            min-width: 6.5rem;
             white-space: nowrap;
         }
         .match-list-toolbar {
@@ -3520,18 +3546,21 @@
             background: rgba(255, 255, 255, 0.07);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 0.75rem;
             justify-content: space-between;
+            min-width: 0;
             padding: 1rem 1.25rem;
             width: 100%;
         }
         .roster-topline-actions {
             align-items: center;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.7rem;
+            flex-shrink: 0;
+            flex-wrap: nowrap;
+            gap: 0.45rem;
             justify-content: flex-end;
+            min-width: 0;
             padding: 0 1.25rem 1rem;
             width: 100%;
         }
@@ -3708,7 +3737,6 @@
         }
         .roster-board-top-right > .bsk-btn-primary {
             flex: 0 0 auto;
-            min-width: 7.75rem;
         }
         .roster-empty > .bsk-btn-primary {
             margin-top: 1rem;
@@ -4947,9 +4975,23 @@
         .stats-board-tabs {
             align-items: center;
             display: flex;
+            flex-shrink: 0;
+            flex-wrap: nowrap;
             justify-content: flex-end;
             margin-left: auto;
             min-width: 0;
+        }
+        .stats-board-tabs .stats-chrome,
+        .stats-board-tabs .stats-chrome-actions,
+        .stats-board-tabs .stats-hero-tabs,
+        .stats-board-tabs .stats-hero-tabs .stats-hero-tablist {
+            flex-wrap: nowrap;
+        }
+        .stats-board-top .stats-board-tabs .roster-status-btn,
+        .stats-board-top .stats-board-tabs .stats-chrome-info-btn {
+            font-size: 0.62rem;
+            min-height: auto;
+            padding: 0.34rem 0.58rem;
         }
         .stats-board-body {
             background:
@@ -8010,6 +8052,7 @@
         .match-bench-topline {
             background: rgba(255, 255, 255, 0.07);
             border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+            flex-wrap: nowrap;
             margin: -0.9rem -0.9rem 0.9rem;
             min-height: var(--portal-topline-min-height);
             padding: 0.9rem;
@@ -10295,7 +10338,6 @@
         .calendar-heading-panel .flex.justify-end > .bsk-btn-primary {
             justify-self: end;
             max-width: 100%;
-            min-width: 8.9rem;
             width: max-content;
         }
         .calendar-empty-state > .bsk-btn-primary {
@@ -11865,6 +11907,14 @@
             .stats-sort-btn.bsk-btn-chip {
                 min-height: auto;
             }
+            .match-detail-card-top .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+            .match-detail-top-chips .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+            .roster-board-top-right > .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+            .roster-topline-actions .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+            .stats-board-tabs .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon),
+            .calendar-heading-panel > .flex.justify-end .bsk-btn:not(.bsk-btn-chip):not(.bsk-btn-icon) {
+                min-height: auto;
+            }
             .match-filter-btn.bsk-btn-chip {
                 min-height: 2.75rem;
             }
@@ -11910,6 +11960,16 @@
                     justify-content: center;
                     min-width: 2.85rem;
                     padding-inline: 0.85rem;
+                }
+                .match-detail-card-top .bsk-btn.is-collapsible:not(.bsk-btn-icon),
+                .match-detail-top-chips .bsk-btn.is-collapsible:not(.bsk-btn-icon),
+                .roster-board-top-right > .bsk-btn.is-collapsible:not(.bsk-btn-icon),
+                .calendar-heading-panel > .flex.justify-end .bsk-btn.is-collapsible:not(.bsk-btn-icon) {
+                    gap: 0;
+                    justify-content: center;
+                    min-height: auto;
+                    min-width: auto;
+                    padding: 0.34rem 0.58rem;
                 }
                 .portal-btn.is-collapsible:not(.portal-btn-icon):not(.portal-btn-icon-sm):not(.portal-btn-icon-xs) {
                     gap: 0;
