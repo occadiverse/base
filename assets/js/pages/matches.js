@@ -660,7 +660,7 @@ const matchGamePlanSamspillZoneOptions = [
     { id: 'av', label: 'Av' },
     { id: 'alle', label: 'Alle' },
     { id: 'forsvar', label: 'Forsvar' },
-    { id: 'midtban', label: 'Midtbane' },
+    { id: 'midtbane', label: 'Midtbane' },
     { id: 'angrep', label: 'Angrep' },
     { id: 'venstre', label: 'Venstre' },
     { id: 'sentral', label: 'Sentral' },
