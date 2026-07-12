@@ -1645,7 +1645,6 @@ function buildMatchGamePlanFormationPickerHtml(match) {
                 aria-expanded="false"
                 aria-label="Velg formasjon, valgt ${escapeMatchHtml(activeFormation)}"
             >
-                <span class="match-game-plan-formation-trigger-label">Formasjon</span>
                 <span class="match-game-plan-formation-trigger-value">${escapeMatchHtml(activeFormation)}</span>
                 <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
             </button>
