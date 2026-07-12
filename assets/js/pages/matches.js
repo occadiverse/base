@@ -657,6 +657,7 @@ const matchGamePlanLineupOverlayOptions = [
 ];
 
 const matchGamePlanSamspillZoneOptions = [
+    { id: 'av', label: 'Av' },
     { id: 'alle', label: 'Alle' },
     { id: 'forsvar', label: 'Forsvar' },
     { id: 'midtban', label: 'Midtbane' },
@@ -1664,15 +1665,22 @@ function buildMatchGamePlanFormationPickerHtml(match) {
     `;
 }
 
-function getMatchGamePlanSamspillZoneSelectionLabel(match) {
+function getMatchGamePlanSamspillZoneSelectionId(match) {
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    if (!overlayState.samspill) return 'av';
+
     const zoneId = getMatchGamePlanSamspillZoneFocus(match);
-    if (!zoneId) return 'Alle';
-    const option = matchGamePlanSamspillZoneOptions.find(entry => entry.id === zoneId);
-    return option?.label || 'Alle';
+    return zoneId || 'alle';
+}
+
+function getMatchGamePlanSamspillZoneSelectionLabel(match) {
+    const selectionId = getMatchGamePlanSamspillZoneSelectionId(match);
+    const option = matchGamePlanSamspillZoneOptions.find(entry => entry.id === selectionId);
+    return option?.label || 'Av';
 }
 
 function buildMatchGamePlanSamspillZonePickerHtml(match) {
-    const activeZoneId = getMatchGamePlanSamspillZoneFocus(match) || 'alle';
+    const activeZoneId = getMatchGamePlanSamspillZoneSelectionId(match);
     const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
 
     return `
@@ -1712,7 +1720,7 @@ function syncMatchGamePlanSamspillZonePickerUi(match) {
     const menu = builder.querySelector('[data-samspill-zone-menu]');
     if (!menu) return;
 
-    const activeZoneId = getMatchGamePlanSamspillZoneFocus(match) || 'alle';
+    const activeZoneId = getMatchGamePlanSamspillZoneSelectionId(match);
     const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
     const valueEl = menu.querySelector('[data-samspill-zone-value]');
     const trigger = menu.querySelector('[data-samspill-zone-action="toggle"]');
@@ -2740,12 +2748,16 @@ window.setMatchGamePlanSamspillZoneSelection = function(matchId, zoneId) {
     if (!match) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    overlayState.samspill = true;
-
     window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
-    if (!zoneId || zoneId === 'alle') {
+
+    if (zoneId === 'av') {
+        overlayState.samspill = false;
+        delete window.matchGamePlanSamspillZoneFocus[match.id];
+    } else if (!zoneId || zoneId === 'alle') {
+        overlayState.samspill = true;
         delete window.matchGamePlanSamspillZoneFocus[match.id];
     } else if (matchGamePlanSamspillZonePositions[zoneId]) {
+        overlayState.samspill = true;
         window.matchGamePlanSamspillZoneFocus[match.id] = zoneId;
     }
 
