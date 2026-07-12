@@ -651,10 +651,19 @@ const matchGamePlanFormations = {
 };
 
 const matchGamePlanLineupOverlayOptions = [
-    { id: 'samspill', label: 'Samspill' },
     { id: 'bidrag', label: 'Bidrag' },
     { id: 'startBenk', label: 'Start/benk' },
     { id: 'form', label: 'Form' }
+];
+
+const matchGamePlanSamspillZoneOptions = [
+    { id: 'alle', label: 'Alle' },
+    { id: 'forsvar', label: 'Forsvar' },
+    { id: 'midtban', label: 'Midtbane' },
+    { id: 'angrep', label: 'Angrep' },
+    { id: 'venstre', label: 'Venstre' },
+    { id: 'sentral', label: 'Sentral' },
+    { id: 'hoyre', label: 'Høyre' }
 ];
 
 // OffC corner diagram. top/left are percentages of the pitch: top moves down, left moves right.
@@ -984,7 +993,7 @@ function syncMatchGamePlanSamspillHint(match) {
 
     hint.hidden = !shouldShow;
     if (shouldShow) {
-        hint.textContent = 'Slå på Samspill for å se relasjoner og samspillanalyse';
+        hint.textContent = 'Velg Samspill for å se relasjoner og samspillanalyse';
     }
 }
 
@@ -1520,32 +1529,33 @@ function buildMatchGamePlanLineupToolbarHtml(match) {
     return `
         <div class="match-game-plan-lineup-toolbar">
             ${buildMatchGamePlanFormationPickerHtml(match)}
+            ${buildMatchGamePlanSamspillZonePickerHtml(match)}
             ${buildMatchGamePlanOverlayPickerHtml(match)}
             ${buildMatchGamePlanLineupSaveBtnHtml(match)}
         </div>
     `;
 }
 
-function closeMatchGamePlanFormationMenus(exceptMenu = null) {
-    document.querySelectorAll('[data-formation-menu].is-open').forEach(menu => {
+function closeMatchGamePlanLineupDropdownMenus(exceptMenu = null) {
+    document.querySelectorAll('[data-formation-menu].is-open, [data-samspill-zone-menu].is-open').forEach(menu => {
         if (exceptMenu && menu === exceptMenu) return;
 
         menu.classList.remove('is-open');
-        const trigger = menu.querySelector('[data-formation-action="toggle"]');
-        const panel = menu.querySelector('[data-formation-menu-panel]');
+        const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"]');
+        const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel]');
         if (trigger) trigger.setAttribute('aria-expanded', 'false');
         if (panel) panel.hidden = true;
     });
 }
 
-function setMatchGamePlanFormationMenuOpen(menu, isOpen) {
+function setMatchGamePlanLineupDropdownMenuOpen(menu, isOpen) {
     if (!menu) return;
 
-    const trigger = menu.querySelector('[data-formation-action="toggle"]');
-    const panel = menu.querySelector('[data-formation-menu-panel]');
+    const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"]');
+    const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel]');
 
     if (isOpen) {
-        closeMatchGamePlanFormationMenus(menu);
+        closeMatchGamePlanLineupDropdownMenus(menu);
         menu.classList.add('is-open');
         if (trigger) trigger.setAttribute('aria-expanded', 'true');
         if (panel) panel.hidden = false;
@@ -1555,6 +1565,14 @@ function setMatchGamePlanFormationMenuOpen(menu, isOpen) {
     menu.classList.remove('is-open');
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
     if (panel) panel.hidden = true;
+}
+
+function closeMatchGamePlanFormationMenus(exceptMenu = null) {
+    closeMatchGamePlanLineupDropdownMenus(exceptMenu);
+}
+
+function setMatchGamePlanFormationMenuOpen(menu, isOpen) {
+    setMatchGamePlanLineupDropdownMenuOpen(menu, isOpen);
 }
 
 function ensureMatchGamePlanFormationMenuEventsBound() {
@@ -1577,18 +1595,39 @@ function ensureMatchGamePlanFormationMenuEventsBound() {
             const matchId = menu?.dataset.matchId;
             const formationId = selectBtn.dataset.formationId;
             if (matchId && formationId) {
-                closeMatchGamePlanFormationMenus();
+                closeMatchGamePlanLineupDropdownMenus();
                 window.setMatchGamePlanFormation(matchId, formationId);
             }
             return;
         }
 
-        if (!event.target.closest('[data-formation-menu]')) {
-            closeMatchGamePlanFormationMenus();
+        const samspillToggleBtn = event.target.closest('[data-samspill-zone-action="toggle"]');
+        if (samspillToggleBtn) {
+            event.stopPropagation();
+            const menu = samspillToggleBtn.closest('[data-samspill-zone-menu]');
+            setMatchGamePlanLineupDropdownMenuOpen(menu, !menu?.classList.contains('is-open'));
+            return;
+        }
+
+        const samspillSelectBtn = event.target.closest('[data-samspill-zone-action="select"]');
+        if (samspillSelectBtn) {
+            event.stopPropagation();
+            const menu = samspillSelectBtn.closest('[data-samspill-zone-menu]');
+            const matchId = menu?.dataset.matchId;
+            const zoneId = samspillSelectBtn.dataset.samspillZoneId;
+            if (matchId && zoneId) {
+                closeMatchGamePlanLineupDropdownMenus();
+                window.setMatchGamePlanSamspillZoneSelection(matchId, zoneId);
+            }
+            return;
+        }
+
+        if (!event.target.closest('[data-formation-menu], [data-samspill-zone-menu]')) {
+            closeMatchGamePlanLineupDropdownMenus();
         }
     });
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeMatchGamePlanFormationMenus();
+        if (event.key === 'Escape') closeMatchGamePlanLineupDropdownMenus();
     });
 }
 
@@ -1623,6 +1662,69 @@ function buildMatchGamePlanFormationPickerHtml(match) {
             </div>
         </div>
     `;
+}
+
+function getMatchGamePlanSamspillZoneSelectionLabel(match) {
+    const zoneId = getMatchGamePlanSamspillZoneFocus(match);
+    if (!zoneId) return 'Alle';
+    const option = matchGamePlanSamspillZoneOptions.find(entry => entry.id === zoneId);
+    return option?.label || 'Alle';
+}
+
+function buildMatchGamePlanSamspillZonePickerHtml(match) {
+    const activeZoneId = getMatchGamePlanSamspillZoneFocus(match) || 'alle';
+    const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
+
+    return `
+        <div class="match-game-plan-formation-menu" data-samspill-zone-menu data-match-id="${escapeMatchHtml(match.id)}">
+            <button
+                type="button"
+                class="match-game-plan-formation-trigger"
+                data-samspill-zone-action="toggle"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Velg samspillssone, valgt ${escapeMatchHtml(activeLabel)}"
+            >
+                <span class="match-game-plan-formation-trigger-label">Samspill</span>
+                <span class="match-game-plan-formation-trigger-value" data-samspill-zone-value>${escapeMatchHtml(activeLabel)}</span>
+                <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="Samspillssoner" hidden data-samspill-zone-menu-panel>
+                ${matchGamePlanSamspillZoneOptions.map(option => `
+                    <button
+                        type="button"
+                        class="match-game-plan-formation-option ${activeZoneId === option.id ? 'is-active' : ''}"
+                        role="option"
+                        aria-selected="${activeZoneId === option.id ? 'true' : 'false'}"
+                        data-samspill-zone-action="select"
+                        data-samspill-zone-id="${escapeMatchHtml(option.id)}"
+                    >${escapeMatchHtml(option.label)}</button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function syncMatchGamePlanSamspillZonePickerUi(match) {
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    if (!builder || !match) return;
+
+    const menu = builder.querySelector('[data-samspill-zone-menu]');
+    if (!menu) return;
+
+    const activeZoneId = getMatchGamePlanSamspillZoneFocus(match) || 'alle';
+    const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
+    const valueEl = menu.querySelector('[data-samspill-zone-value]');
+    const trigger = menu.querySelector('[data-samspill-zone-action="toggle"]');
+
+    if (valueEl) valueEl.textContent = activeLabel;
+    if (trigger) trigger.setAttribute('aria-label', `Velg samspillssone, valgt ${activeLabel}`);
+
+    menu.querySelectorAll('[data-samspill-zone-action="select"]').forEach(button => {
+        const isActive = button.dataset.samspillZoneId === activeZoneId;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
 }
 
 function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
@@ -1755,8 +1857,14 @@ function setMatchGamePlanSamspillZoneFocus(match, zoneId) {
     if (!match?.id) return;
     window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
     const current = window.matchGamePlanSamspillZoneFocus[match.id];
-    window.matchGamePlanSamspillZoneFocus[match.id] = current === zoneId ? null : zoneId;
-    applyMatchGamePlanSamspillZoneFocus(match);
+    if (current === zoneId) {
+        delete window.matchGamePlanSamspillZoneFocus[match.id];
+    } else {
+        getMatchGamePlanLineupOverlayState(match).samspill = true;
+        window.matchGamePlanSamspillZoneFocus[match.id] = zoneId;
+    }
+    applyMatchGamePlanLineupOverlayClasses(match);
+    syncMatchGamePlanSamspillZonePickerUi(match);
     if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
         requestAnimationFrame(() => window.drawMatchGamePlanChemistryLines(match));
     }
@@ -1767,6 +1875,7 @@ function clearMatchGamePlanSamspillZoneFocus(match) {
     window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
     delete window.matchGamePlanSamspillZoneFocus[match.id];
     applyMatchGamePlanSamspillZoneFocus(match);
+    syncMatchGamePlanSamspillZonePickerUi(match);
 }
 
 function findBenchPlayerElementMatch(match, benchEl) {
@@ -2598,6 +2707,7 @@ function syncMatchGamePlanLineupOverlayUi(match) {
     renderMatchGamePlanSamspillSummary(match);
     syncMatchGamePlanLineupSaveState(match);
     syncMatchGamePlanSamspillHint(match);
+    syncMatchGamePlanSamspillZonePickerUi(match);
 }
 
 function renderMatchGamePlanStarter11Page(match) {
@@ -2624,6 +2734,27 @@ function renderMatchGamePlanStarter11Page(match) {
         });
     }
 }
+
+window.setMatchGamePlanSamspillZoneSelection = function(matchId, zoneId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
+
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    overlayState.samspill = true;
+
+    window.matchGamePlanSamspillZoneFocus = window.matchGamePlanSamspillZoneFocus || {};
+    if (!zoneId || zoneId === 'alle') {
+        delete window.matchGamePlanSamspillZoneFocus[match.id];
+    } else if (matchGamePlanSamspillZonePositions[zoneId]) {
+        window.matchGamePlanSamspillZoneFocus[match.id] = zoneId;
+    }
+
+    syncMatchGamePlanLineupOverlayUi(match);
+
+    if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+        window.drawMatchGamePlanChemistryLines(match);
+    }
+};
 
 window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);

@@ -8776,6 +8776,9 @@
             width: fit-content;
             z-index: 6;
         }
+        .match-game-plan-formation-menu.is-open {
+            z-index: 22;
+        }
         .match-game-plan-formation-trigger {
             align-items: center;
             appearance: none;
