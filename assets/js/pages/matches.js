@@ -656,6 +656,11 @@ const matchGamePlanLineupOverlayOptions = [
     { id: 'form', label: 'Form' }
 ];
 
+const matchGamePlanLineupOverlayToggleOptions = [
+    { id: 'av', label: 'Av' },
+    { id: 'pa', label: 'På' }
+];
+
 const matchGamePlanSamspillZoneOptions = [
     { id: 'av', label: 'Av' },
     { id: 'alle', label: 'Alle' },
@@ -1494,22 +1499,73 @@ function buildMatchGamePlanLineupCardOverlayHtml(match, player) {
     `;
 }
 
-function buildMatchGamePlanOverlayPickerHtml(match) {
+function getMatchGamePlanLineupOverlaySelectionId(match, overlayKey) {
     const overlayState = getMatchGamePlanLineupOverlayState(match);
+    return overlayState[overlayKey] ? 'pa' : 'av';
+}
+
+function buildMatchGamePlanLineupOverlayMenuHtml(match, option) {
+    const selectionId = getMatchGamePlanLineupOverlaySelectionId(match, option.id);
+    const isOn = selectionId === 'pa';
 
     return `
-        <div class="match-game-plan-lineup-overlay-picker" role="group" aria-label="Baneverktøy">
-            ${matchGamePlanLineupOverlayOptions.map(option => `
-                <button
-                    type="button"
-                    class="match-game-plan-lineup-overlay-btn ${overlayState[option.id] ? 'is-active' : ''}"
-                    data-lineup-overlay="${escapeMatchHtml(option.id)}"
-                    aria-pressed="${overlayState[option.id] ? 'true' : 'false'}"
-                    onclick="window.toggleMatchGamePlanLineupOverlay('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(option.id)}')"
-                >${escapeMatchHtml(option.label)}</button>
-            `).join('')}
+        <div class="match-game-plan-formation-menu" data-lineup-overlay-menu data-lineup-overlay-key="${escapeMatchHtml(option.id)}" data-match-id="${escapeMatchHtml(match.id)}">
+            <button
+                type="button"
+                class="match-game-plan-formation-trigger${isOn ? ' is-active' : ''}"
+                data-lineup-overlay-action="toggle"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="${escapeMatchHtml(option.label)}, valgt ${isOn ? 'På' : 'Av'}"
+            >
+                <span class="match-game-plan-formation-trigger-value">${escapeMatchHtml(option.label)}</span>
+                <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="${escapeMatchHtml(option.label)}" hidden data-lineup-overlay-menu-panel>
+                ${matchGamePlanLineupOverlayToggleOptions.map(toggle => `
+                    <button
+                        type="button"
+                        class="match-game-plan-formation-option ${selectionId === toggle.id ? 'is-active' : ''}"
+                        role="option"
+                        aria-selected="${selectionId === toggle.id ? 'true' : 'false'}"
+                        data-lineup-overlay-action="select"
+                        data-lineup-overlay-value="${escapeMatchHtml(toggle.id)}"
+                    >${escapeMatchHtml(toggle.label)}</button>
+                `).join('')}
+            </div>
         </div>
     `;
+}
+
+function buildMatchGamePlanOverlayPickerHtml(match) {
+    return matchGamePlanLineupOverlayOptions
+        .map(option => buildMatchGamePlanLineupOverlayMenuHtml(match, option))
+        .join('');
+}
+
+function syncMatchGamePlanLineupOverlayPickerUi(match) {
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    if (!builder || !match) return;
+
+    matchGamePlanLineupOverlayOptions.forEach(option => {
+        const menu = builder.querySelector(`[data-lineup-overlay-menu][data-lineup-overlay-key="${option.id}"]`);
+        if (!menu) return;
+
+        const selectionId = getMatchGamePlanLineupOverlaySelectionId(match, option.id);
+        const isOn = selectionId === 'pa';
+        const trigger = menu.querySelector('[data-lineup-overlay-action="toggle"]');
+
+        if (trigger) {
+            trigger.classList.toggle('is-active', isOn);
+            trigger.setAttribute('aria-label', `${option.label}, valgt ${isOn ? 'På' : 'Av'}`);
+        }
+
+        menu.querySelectorAll('[data-lineup-overlay-action="select"]').forEach(button => {
+            const isActive = button.dataset.lineupOverlayValue === selectionId;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+    });
 }
 
 function buildMatchGamePlanLineupSaveBtnHtml(match) {
@@ -1538,12 +1594,12 @@ function buildMatchGamePlanLineupToolbarHtml(match) {
 }
 
 function closeMatchGamePlanLineupDropdownMenus(exceptMenu = null) {
-    document.querySelectorAll('[data-formation-menu].is-open, [data-samspill-zone-menu].is-open').forEach(menu => {
+    document.querySelectorAll('[data-formation-menu].is-open, [data-samspill-zone-menu].is-open, [data-lineup-overlay-menu].is-open').forEach(menu => {
         if (exceptMenu && menu === exceptMenu) return;
 
         menu.classList.remove('is-open');
-        const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"]');
-        const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel]');
+        const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"], [data-lineup-overlay-action="toggle"]');
+        const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel], [data-lineup-overlay-menu-panel]');
         if (trigger) trigger.setAttribute('aria-expanded', 'false');
         if (panel) panel.hidden = true;
     });
@@ -1552,8 +1608,8 @@ function closeMatchGamePlanLineupDropdownMenus(exceptMenu = null) {
 function setMatchGamePlanLineupDropdownMenuOpen(menu, isOpen) {
     if (!menu) return;
 
-    const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"]');
-    const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel]');
+    const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"], [data-lineup-overlay-action="toggle"]');
+    const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel], [data-lineup-overlay-menu-panel]');
 
     if (isOpen) {
         closeMatchGamePlanLineupDropdownMenus(menu);
@@ -1623,7 +1679,29 @@ function ensureMatchGamePlanFormationMenuEventsBound() {
             return;
         }
 
-        if (!event.target.closest('[data-formation-menu], [data-samspill-zone-menu]')) {
+        const overlayToggleBtn = event.target.closest('[data-lineup-overlay-action="toggle"]');
+        if (overlayToggleBtn) {
+            event.stopPropagation();
+            const menu = overlayToggleBtn.closest('[data-lineup-overlay-menu]');
+            setMatchGamePlanLineupDropdownMenuOpen(menu, !menu?.classList.contains('is-open'));
+            return;
+        }
+
+        const overlaySelectBtn = event.target.closest('[data-lineup-overlay-action="select"]');
+        if (overlaySelectBtn) {
+            event.stopPropagation();
+            const menu = overlaySelectBtn.closest('[data-lineup-overlay-menu]');
+            const matchId = menu?.dataset.matchId;
+            const overlayKey = menu?.dataset.lineupOverlayKey;
+            const selectionId = overlaySelectBtn.dataset.lineupOverlayValue;
+            if (matchId && overlayKey && selectionId) {
+                closeMatchGamePlanLineupDropdownMenus();
+                window.setMatchGamePlanLineupOverlaySelection(matchId, overlayKey, selectionId);
+            }
+            return;
+        }
+
+        if (!event.target.closest('[data-formation-menu], [data-samspill-zone-menu], [data-lineup-overlay-menu]')) {
             closeMatchGamePlanLineupDropdownMenus();
         }
     });
@@ -2702,15 +2780,7 @@ function syncMatchGamePlanLineupOverlayUi(match) {
         return;
     }
 
-    const overlayState = getMatchGamePlanLineupOverlayState(match);
-
-    builder.querySelectorAll('[data-lineup-overlay]').forEach(button => {
-        const overlayKey = button.dataset.lineupOverlay;
-        const isActive = !!overlayState[overlayKey];
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-
+    syncMatchGamePlanLineupOverlayPickerUi(match);
     renderMatchGamePlanSamspillSummary(match);
     syncMatchGamePlanLineupSaveState(match);
     syncMatchGamePlanSamspillHint(match);
@@ -2759,6 +2829,20 @@ window.setMatchGamePlanSamspillZoneSelection = function(matchId, zoneId) {
         overlayState.samspill = true;
         window.matchGamePlanSamspillZoneFocus[match.id] = zoneId;
     }
+
+    syncMatchGamePlanLineupOverlayUi(match);
+
+    if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+        window.drawMatchGamePlanChemistryLines(match);
+    }
+};
+
+window.setMatchGamePlanLineupOverlaySelection = function(matchId, overlayKey, selectionId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match || !matchGamePlanLineupOverlayOptions.some(option => option.id === overlayKey)) return;
+
+    const overlayState = getMatchGamePlanLineupOverlayState(match);
+    overlayState[overlayKey] = selectionId === 'pa';
 
     syncMatchGamePlanLineupOverlayUi(match);
 

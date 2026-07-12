@@ -1332,7 +1332,12 @@
             display: flex;
             flex-wrap: nowrap;
             gap: 0.45rem;
+            overflow-x: auto;
+            scrollbar-width: none;
             width: 100%;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-toolbar::-webkit-scrollbar {
+            display: none;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-game-plan-formation-menu {
             align-self: auto;
@@ -1341,23 +1346,13 @@
             width: fit-content;
             z-index: 6;
         }
-        .match-detail-lineup-builder .match-game-plan-lineup-overlay-picker {
-            background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
-            border: 1px solid rgba(245, 197, 66, 0.18);
-            border-radius: 999px;
-            box-shadow: 0 12px 26px rgba(11, 43, 76, 0.14);
-            display: flex;
-            flex: 1 1 auto;
-            flex-wrap: nowrap;
-            gap: 0.25rem;
-            min-width: 0;
-            overflow-x: auto;
-            padding: 0.32rem;
-            scrollbar-width: none;
-            width: auto;
+        .match-game-plan-formation-menu .match-game-plan-formation-trigger.is-active {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.28);
+            color: #f5c542;
         }
-        .match-detail-lineup-builder .match-game-plan-lineup-overlay-picker::-webkit-scrollbar {
-            display: none;
+        .match-game-plan-formation-menu .match-game-plan-formation-trigger.is-active .match-game-plan-formation-trigger-chevron {
+            color: #f5c542;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-save-btn {
             align-items: center;
