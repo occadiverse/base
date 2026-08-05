@@ -74,30 +74,6 @@ function getRegisteredPlayersForEvent(event) {
         .sort((a, b) => (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' }));
 }
 
-window.getLastMatchFocusForTeam = function(teamName) {
-    const playedMatches = (window.activeMatches || [])
-        .filter(match => {
-            if (!match.result || !match.result.includes('-')) return false;
-            if (teamName && match.matchGroup !== teamName) return false;
-            return true;
-        })
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    const match = playedMatches[0];
-    if (!match) return null;
-
-    const notes = match.notes || {};
-    const positive = String(notes.positive || '').trim();
-    const challenge = String(notes.challenge || '').trim();
-
-    return {
-        match,
-        positive,
-        challenge,
-        hasNotes: Boolean(positive || challenge)
-    };
-};
-
 function getPlayerPositionCategory(player) {
     if (typeof window.getPositionCategoryFromPos1 === 'function') {
         return window.getPositionCategoryFromPos1(player?.pos1) || 'M';
@@ -181,44 +157,6 @@ function buildRegisteredPlayersHtml(players) {
     `;
 }
 
-function buildMatchFocusHtml(teamName) {
-    const focus = window.getLastMatchFocusForTeam(teamName);
-    if (!focus) {
-        return `
-            <div class="training-session-empty training-session-empty-compact">
-                <p>Ingen spilte kamper registrert ennå.</p>
-            </div>
-        `;
-    }
-
-    const { match, positive, challenge, hasNotes } = focus;
-    const dateLabel = formatTrainingDateLabel(match.date);
-    const opponent = match.opponent || 'motstander';
-
-    if (!hasNotes) {
-        return `
-            <p class="training-session-focus-meta">${escapeTrainingHtml(dateLabel)} · vs ${escapeTrainingHtml(opponent)}</p>
-            <p class="training-session-focus-empty">Ingen trenernotater fra siste kamp.</p>
-        `;
-    }
-
-    return `
-        <p class="training-session-focus-meta">${escapeTrainingHtml(dateLabel)} · vs ${escapeTrainingHtml(opponent)}</p>
-        ${positive ? `
-            <div class="training-session-focus-note is-positive">
-                <span class="training-session-focus-note-label">Positivt</span>
-                <p>${escapeTrainingHtml(positive)}</p>
-            </div>
-        ` : ''}
-        ${challenge ? `
-            <div class="training-session-focus-note is-challenge">
-                <span class="training-session-focus-note-label">Utfordring</span>
-                <p>${escapeTrainingHtml(challenge)}</p>
-            </div>
-        ` : ''}
-    `;
-}
-
 function buildGroupsHtml(eventId, players) {
     const groupCount = window._trainingSessionGroupCounts[eventId] || 3;
     const groups = window._trainingSessionGroups[eventId] || null;
@@ -293,6 +231,13 @@ function bindTrainingSessionEvents() {
             return;
         }
 
+        if (action === 'injury') {
+            if (typeof window.showSessionInjuryModal === 'function') {
+                window.showSessionInjuryModal();
+            }
+            return;
+        }
+
         if (action === 'distribute-groups') {
             if (!eventId) return;
             const trainingEvent = getTrainingEvent(eventId);
@@ -346,11 +291,15 @@ window.renderTrainingSession = function(eventId) {
 
     bindTrainingSessionEvents();
 
-    const theme = getActivitySessionTheme(trainingEvent);
     const isTraining = trainingEvent.type === 'Trening';
     const teamName = trainingEvent.team || window.getPrimaryTeamName();
-    const title = trainingEvent.title || theme.defaultTitle;
-    const dateLabel = formatTrainingDateLabel(trainingEvent.date);
+    const eventTypeLabel = isTraining ? 'Trening' : (trainingEvent.type || 'Aktivitet');
+    const chipIcon = isTraining ? 'fa-stopwatch' : 'fa-calendar-check';
+    const dateValue = new Date(trainingEvent.date);
+    const dateFormatted = Number.isNaN(dateValue.getTime())
+        ? 'Dato ikke satt'
+        : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+    const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const timeLabel = trainingEvent.time || '--:--';
     const locationLabel = trainingEvent.location || 'Ikke oppgitt';
     const registeredPlayers = getRegisteredPlayersForEvent(trainingEvent);
@@ -360,18 +309,48 @@ window.renderTrainingSession = function(eventId) {
     const attendanceBadge = presenceStats.isRegistered && presenceStats.squadSize > 0
         ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
         : String(registeredPlayers.length);
-    const focusPanelHtml = isTraining
+
+    const sessionStats = typeof window.buildNextSessionAttendanceStats === 'function'
+        ? window.buildNextSessionAttendanceStats(trainingEvent)
+        : {
+            møttOppAntall: registeredPlayers.length,
+            squadSize: registeredPlayers.length,
+            positionCounts: { K: 0, F: 0, M: 0, A: 0 },
+            injuredReady: [],
+            fractionTone: 'good'
+        };
+    const fractionToneClass = sessionStats.fractionTone === 'good' ? '' : ` is-${sessionStats.fractionTone}`;
+    const hasSessionAttendance = typeof window.hasRegisteredAttendance === 'function'
+        ? window.hasRegisteredAttendance(trainingEvent.attendance)
+        : presenceStats.isRegistered;
+    const radarParts = ['K', 'F', 'M', 'A'].map(letter => (
+        `${sessionStats.positionCounts[letter]}${letter}`
+    )).join('<span class="dashboard-session-radar-sep"> - </span>');
+    const sessionStatsHtml = hasSessionAttendance
         ? `
-            <section class="training-session-panel">
-                <div class="training-session-panel-header">
-                    <h3>Fokus fra siste kamp</h3>
-                </div>
-                <div class="training-session-panel-body">
-                    ${buildMatchFocusHtml(teamName)}
-                </div>
-            </section>
-        `
-        : '';
+                        <div class="dashboard-session-stats-line">
+                            <span class="match-detail-time${fractionToneClass}">${sessionStats.møttOppAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                            <span class="dashboard-session-attendance-label">påmeldt</span>
+                            <span class="dashboard-session-radar-inline">${radarParts}</span>
+                        </div>`
+        : `
+                        <div class="dashboard-session-stats-line">
+                            <span class="dashboard-session-unregistered-label">Oppmøte ikke registrert</span>
+                        </div>`;
+
+    window._sessionInjuryPopupData = sessionStats.injuredReady || [];
+    let injuryButtonHtml = '';
+    if (sessionStats.injuredReady && sessionStats.injuredReady.length > 0) {
+        const injuredCount = sessionStats.injuredReady.length;
+        const injuryLabel = injuredCount === 1 ? '1 skadet' : `${injuredCount} skadet`;
+        injuryButtonHtml = `
+                            <button type="button" data-training-action="injury" class="bsk-btn bsk-btn-warning is-collapsible dashboard-session-action-btn" title="${escapeTrainingHtml(injuryLabel)}" aria-label="${escapeTrainingHtml(injuryLabel)}">
+                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">${escapeTrainingHtml(injuryLabel)}</span>
+                            </button>
+        `;
+    }
+
     const groupsPanelHtml = isTraining
         ? `
             <section class="training-session-panel">
@@ -397,9 +376,9 @@ window.renderTrainingSession = function(eventId) {
                 <span class="portal-btn-label">Tilbake</span>
             </button>
 
-            <article class="match-detail-card training-session-hero">
+            <article class="match-detail-card dashboard-next-session-card">
                 <div class="dashboard-next-match-watermark">
-                    <i class="fa-solid ${theme.watermarkIcon}"></i>
+                    <i class="fa-solid fa-stopwatch"></i>
                 </div>
 
                 <div class="match-detail-card-top relative z-10">
@@ -408,18 +387,24 @@ window.renderTrainingSession = function(eventId) {
                         <span>${escapeTrainingHtml(dateLabel)}</span>
                     </div>
                     <div class="match-detail-chip">
-                        <i class="fa-solid ${theme.chipIcon}"></i>
-                        <span>${escapeTrainingHtml(theme.chipLabel)}</span>
+                        <i class="fa-solid ${chipIcon}"></i>
+                        <span>${escapeTrainingHtml(eventTypeLabel)}</span>
                     </div>
                 </div>
 
-                <div class="training-session-hero-main relative z-10">
-                    <h2 class="training-session-title">${escapeTrainingHtml(title)}</h2>
-                    <p class="training-session-subtitle">${escapeTrainingHtml(teamName)}</p>
-                    <button type="button" data-training-action="attendance" class="match-bench-action-btn dashboard-session-action-btn">
-                        <i class="fa-solid fa-user-check"></i>
-                        <span>Oppmøte</span>
-                    </button>
+                <div class="dashboard-session-main relative z-10">
+                    <div class="dashboard-session-middle">
+                        <div class="dashboard-session-focus-block min-w-0">
+                            ${sessionStatsHtml}
+                        </div>
+                        <div class="dashboard-session-actions">
+                            <button type="button" data-training-action="attendance" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Oppmøte" aria-label="Oppmøte">
+                                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">Oppmøte</span>
+                            </button>
+                            ${injuryButtonHtml}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="match-detail-footer relative z-10">
@@ -433,8 +418,6 @@ window.renderTrainingSession = function(eventId) {
                     </div>
                 </div>
             </article>
-
-            ${focusPanelHtml}
 
             <section class="training-session-panel">
                 <div class="training-session-panel-header">
