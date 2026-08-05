@@ -315,7 +315,7 @@ window.buildNextSessionAttendanceStats = function(event) {
 
     attendingRefs.forEach(ref => {
         const player = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null;
-        if (!player) return;
+        if (!player || player.isGuest) return;
 
         const category = window.getPositionCategoryFromPos1(player.pos1);
         if (category) positionCounts[category] += 1;

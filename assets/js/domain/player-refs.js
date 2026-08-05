@@ -4,6 +4,56 @@ window.normalizeAttendanceValue = function(value) {
     return undefined;
 };
 
+window.GUEST_PLAYER_REF_PREFIX = 'guest:';
+
+window.isGuestPlayerRef = function(ref) {
+    return typeof ref === 'string' && ref.startsWith(window.GUEST_PLAYER_REF_PREFIX);
+};
+
+window.getGuestPlayerNumber = function(ref) {
+    if (!window.isGuestPlayerRef(ref)) return null;
+    const number = Number(ref.slice(window.GUEST_PLAYER_REF_PREFIX.length));
+    return Number.isInteger(number) && number > 0 ? number : null;
+};
+
+window.buildGuestPlayerRef = function(number) {
+    return `${window.GUEST_PLAYER_REF_PREFIX}${number}`;
+};
+
+window.getGuestPlayerDisplayName = function(refOrNumber) {
+    const number = typeof refOrNumber === 'number'
+        ? refOrNumber
+        : window.getGuestPlayerNumber(refOrNumber);
+    return number ? `Gjest ${number}` : 'Gjest';
+};
+
+window.createGuestPlayer = function(number) {
+    const id = window.buildGuestPlayerRef(number);
+    return {
+        id,
+        navn: window.getGuestPlayerDisplayName(number),
+        pos1: 'Gjest',
+        isGuest: true,
+        status: 'Aktiv'
+    };
+};
+
+window.getNextGuestPlayerNumber = function(attendance, container) {
+    let max = 0;
+    const consider = (ref) => {
+        const number = window.getGuestPlayerNumber(ref);
+        if (number && number > max) max = number;
+    };
+
+    Object.keys(attendance || {}).forEach(consider);
+    if (container) {
+        container.querySelectorAll('[data-player-id]').forEach((el) => {
+            consider(el.getAttribute('data-player-id'));
+        });
+    }
+    return max + 1;
+};
+
 window.hasRegisteredAttendance = function(attendance) {
     return attendance !== undefined && attendance !== null;
 };
@@ -20,6 +70,10 @@ window.isValidPlayerRefKey = function(ref) {
 
 window.findPlayerByRef = function(ref) {
     if (!window.isValidPlayerRefKey(ref)) return null;
+    if (window.isGuestPlayerRef(ref)) {
+        const number = window.getGuestPlayerNumber(ref);
+        return number ? window.createGuestPlayer(number) : null;
+    }
     const players = window.activePlayers || [];
     const byId = players.find(p => p.id === ref);
     if (byId) return byId;
@@ -257,42 +311,35 @@ window.motmMatchesPlayer = function(motm, playerOrRef) {
 };
 
 window.buildAttendanceMapFromModal = function(container, existingAttendance, teamPlayers) {
-    const modalPlayerIds = new Set(
-        (teamPlayers || [])
-            .map(player => window.getPlayerStorageKey(player))
-            .filter(Boolean)
-    );
-
     const attMap = {};
     const sanitizedExisting = typeof window.sanitizeAttendanceMap === 'function'
         ? window.sanitizeAttendanceMap(existingAttendance || {})
         : { ...(existingAttendance || {}) };
+    const handledKeys = new Set();
 
-    Object.entries(sanitizedExisting).forEach(([key, value]) => {
-        if (modalPlayerIds.has(key)) return;
-        if (window.normalizeAttendanceValue(value) === true) {
-            attMap[key] = true;
-        }
-    });
+    if (container) {
+        container.querySelectorAll('.attendance-modal-player').forEach(row => {
+            const checkbox = row.querySelector('.attendance-modal-checkbox');
+            if (!checkbox) return;
 
-    if (!container) {
-        return typeof window.sanitizeAttendanceMap === 'function'
-            ? window.sanitizeAttendanceMap(attMap)
-            : attMap;
+            const storageKey = checkbox.getAttribute('data-player-id');
+            if (!window.isValidPlayerRefKey(storageKey)) return;
+            handledKeys.add(storageKey);
+
+            const isGuest = window.isGuestPlayerRef(storageKey);
+            const player = window.findPlayerByRef(storageKey);
+            if (!isGuest && (!player || window.getPlayerStorageKey(player) !== storageKey)) return;
+
+            if (checkbox.checked) {
+                attMap[storageKey] = true;
+            }
+        });
     }
 
-    container.querySelectorAll('.attendance-modal-player').forEach(row => {
-        const checkbox = row.querySelector('.attendance-modal-checkbox');
-        if (!checkbox) return;
-
-        const storageKey = checkbox.getAttribute('data-player-id');
-        if (!window.isValidPlayerRefKey(storageKey)) return;
-
-        const player = window.findPlayerByRef(storageKey);
-        if (!player || window.getPlayerStorageKey(player) !== storageKey) return;
-
-        if (checkbox.checked) {
-            attMap[storageKey] = true;
+    Object.entries(sanitizedExisting).forEach(([key, value]) => {
+        if (handledKeys.has(key)) return;
+        if (window.normalizeAttendanceValue(value) === true) {
+            attMap[key] = true;
         }
     });
 
@@ -322,13 +369,19 @@ window.sanitizeAttendanceMap = function(map) {
         const normalizedValue = window.normalizeAttendanceValue(value);
         if (normalizedValue !== true) return;
 
+        if (window.isGuestPlayerRef(key)) {
+            const guestNumber = window.getGuestPlayerNumber(key);
+            if (guestNumber) byId[window.buildGuestPlayerRef(guestNumber)] = true;
+            return;
+        }
+
         if (players.length === 0) {
             byId[key] = true;
             return;
         }
 
         const player = window.findPlayerByRef(key);
-        if (!player) return;
+        if (!player || player.isGuest) return;
 
         const storageKey = window.getPlayerStorageKey(player);
         if (!storageKey) return;

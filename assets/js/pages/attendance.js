@@ -156,12 +156,15 @@ window.openAttendanceModal = function(eventId) {
         ? window.getDisciplineStatusForTeam(ev.matchGroup, ev.date)
         : {};
 
-    const appendPlayerRow = (player) => {
+    const appendPlayerRow = (player, { checked } = {}) => {
         const playerId = window.getPlayerStorageKey(player);
         if (!playerId) return;
 
-        const isRegistered = window.getAttendanceForPlayer(ev.attendance, player) === true;
-        const playerDiscipline = disciplineStatus[playerId] || disciplineStatus[player.navn] || {};
+        const isGuest = Boolean(player.isGuest) || window.isGuestPlayerRef(playerId);
+        const isRegistered = checked === true || window.getAttendanceForPlayer(ev.attendance, player) === true;
+        const playerDiscipline = !isGuest
+            ? (disciplineStatus[playerId] || disciplineStatus[player.navn] || {})
+            : {};
         const hasDisciplineWarning = playerDiscipline.isSuspended || playerDiscipline.isAtRisk;
         const warningLabel = playerDiscipline.isSuspended
             ? (playerDiscipline.reason || 'Karantene')
@@ -182,8 +185,9 @@ window.openAttendanceModal = function(eventId) {
             `
             : '';
         const div = document.createElement('div');
-        div.className = 'attendance-modal-player';
+        div.className = `attendance-modal-player${isGuest ? ' is-guest' : ''}`;
         div.setAttribute('data-player-id', playerId);
+        if (isGuest) div.setAttribute('data-guest', 'true');
         div.innerHTML = `
             <label class="attendance-modal-player-label">
                 <input
@@ -204,9 +208,19 @@ window.openAttendanceModal = function(eventId) {
         container.appendChild(div);
     };
 
-    if (teamPlayers.length === 0) {
+    const guestBtn = document.getElementById('attendanceAddGuestBtn');
+    const canAddGuests = !isMatchClick && (ev.type === 'Trening' || ev.type === 'Annet');
+    if (guestBtn) {
+        guestBtn.classList.toggle('hidden', !canAddGuests);
+    }
+
+    const existingGuestRefs = Object.keys(ev.attendance || {})
+        .filter(ref => window.isGuestPlayerRef(ref) && window.normalizeAttendanceValue(ev.attendance[ref]) === true)
+        .sort((a, b) => (window.getGuestPlayerNumber(a) || 0) - (window.getGuestPlayerNumber(b) || 0));
+
+    if (teamPlayers.length === 0 && existingGuestRefs.length === 0) {
         container.innerHTML = `<div class="attendance-modal-empty">Ingen aktive spillere registrert i systemet.</div>`;
-    } else {
+    } else if (teamPlayers.length > 0) {
         const seenPlayerIds = new Set();
         teamPlayers
             .slice()
@@ -217,13 +231,58 @@ window.openAttendanceModal = function(eventId) {
                 seenPlayerIds.add(playerId);
                 return true;
             })
-            .forEach(appendPlayerRow);
+            .forEach(player => appendPlayerRow(player));
     }
+
+    existingGuestRefs.forEach((ref) => {
+        const guest = window.createGuestPlayer(window.getGuestPlayerNumber(ref));
+        if (guest) appendPlayerRow(guest, { checked: true });
+    });
 
     window.updateAttendanceModalSummary();
 
     document.getElementById('attendanceModal').classList.remove('hidden');
     document.getElementById('attendanceModal').classList.add('flex');
+};
+
+window.addAttendanceGuestPlayer = function() {
+    const container = document.getElementById('attendance-players-list');
+    if (!container || !activeAttendanceEventId) return;
+    if (String(activeAttendanceEventId).startsWith('match_')) return;
+
+    const emptyState = container.querySelector('.attendance-modal-empty');
+    if (emptyState) emptyState.remove();
+
+    const nextNumber = window.getNextGuestPlayerNumber(
+        null,
+        container
+    );
+    const guest = window.createGuestPlayer(nextNumber);
+    if (!guest) return;
+
+    const div = document.createElement('div');
+    div.className = 'attendance-modal-player is-guest';
+    div.setAttribute('data-player-id', guest.id);
+    div.setAttribute('data-guest', 'true');
+    div.innerHTML = `
+        <label class="attendance-modal-player-label">
+            <input
+                type="checkbox"
+                class="attendance-modal-checkbox"
+                data-player-id="${escapeAttendanceHtml(guest.id)}"
+                checked
+            >
+            <div class="attendance-modal-player-info">
+                <span class="attendance-modal-player-name-row">
+                    <span class="attendance-modal-player-name">${escapeAttendanceHtml(guest.navn)}</span>
+                </span>
+                <span class="attendance-modal-player-pos">Gjest</span>
+            </div>
+        </label>
+    `;
+    container.appendChild(div);
+    div.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    window.updateAttendanceModalSummary();
 };
 
 window.updateAttendanceModalSummary = function() {
@@ -311,6 +370,9 @@ window.saveAttendanceRegistry = async function() {
 window.closeAttendanceModal = function() {
     document.getElementById('attendanceModal').classList.add('hidden');
     document.getElementById('attendanceModal').classList.remove('flex');
+
+    const guestBtn = document.getElementById('attendanceAddGuestBtn');
+    if (guestBtn) guestBtn.classList.add('hidden');
 
     const context = window._modalReturnContext;
     window._modalReturnContext = null;
