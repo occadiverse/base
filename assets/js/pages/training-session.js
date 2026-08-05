@@ -207,6 +207,23 @@ function bindTrainingSessionEvents() {
             return;
         }
 
+        if (action === 'toggle-attendance') {
+            const panel = actionEl.closest('.match-collapsible-panel');
+            if (!panel) return;
+
+            const shouldOpen = panel.classList.contains('is-collapsed');
+            panel.classList.toggle('is-collapsed', !shouldOpen);
+            window._trainingSessionAttendanceOpen = shouldOpen;
+            actionEl.setAttribute('aria-expanded', String(shouldOpen));
+            actionEl.setAttribute(
+                'aria-label',
+                shouldOpen
+                    ? (actionEl.dataset.hideLabel || 'Skjul oppmøte')
+                    : (actionEl.dataset.showLabel || 'Vis oppmøte')
+            );
+            return;
+        }
+
         if (action === 'distribute-groups') {
             if (!eventId) return;
             const trainingEvent = getTrainingEvent(eventId);
@@ -336,6 +353,15 @@ window.renderTrainingSession = function(eventId) {
         `
         : '';
 
+    const pendingFeedback = window._pendingAttendanceFeedback;
+    const openForFeedback = Boolean(
+        pendingFeedback && !pendingFeedback.isMatch && pendingFeedback.recordId === trainingEvent.id
+    );
+    if (openForFeedback) {
+        window._trainingSessionAttendanceOpen = true;
+    }
+    const isAttendanceOpen = window._trainingSessionAttendanceOpen === true;
+
     const desktopTitle = document.getElementById('current-tab-title');
     if (desktopTitle && window.currentTab === 'oktside') {
         desktopTitle.innerText = isTraining ? 'Øktside' : 'Aktivitet';
@@ -385,14 +411,21 @@ window.renderTrainingSession = function(eventId) {
                 </div>
             </article>
 
-            <section class="training-session-panel">
-                <div class="training-session-panel-header">
-                    <h3>Møtt opp</h3>
-                    <span class="training-session-count-badge">${attendanceBadge}</span>
+            <section class="training-session-attendance-panel match-game-plan-panel match-collapsible-panel ${isAttendanceOpen ? '' : 'is-collapsed'}">
+                <div class="match-bench-action-row match-bench-topline">
+                    <div class="match-bench-heading">
+                        <h3>Oppmøte</h3>
+                        <span class="match-bench-heading-count">${escapeTrainingHtml(attendanceBadge)}</span>
+                    </div>
+                    <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-attendance" aria-expanded="${isAttendanceOpen ? 'true' : 'false'}" aria-label="${isAttendanceOpen ? 'Skjul oppmøte' : 'Vis oppmøte'}" data-show-label="Vis oppmøte" data-hide-label="Skjul oppmøte">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
                 </div>
-                <p class="match-inline-status training-session-attendance-save-state" data-training-attendance-save-state aria-live="polite" hidden></p>
-                <div class="training-session-panel-body">
-                    ${buildRegisteredPlayersHtml(registeredPlayers)}
+                <div class="match-collapsible-content">
+                    <p class="match-inline-status training-session-attendance-save-state" data-training-attendance-save-state aria-live="polite" hidden></p>
+                    <div class="training-session-attendance-body">
+                        ${buildRegisteredPlayersHtml(registeredPlayers)}
+                    </div>
                 </div>
             </section>
 
@@ -400,8 +433,7 @@ window.renderTrainingSession = function(eventId) {
         </div>
     `;
 
-    const pendingFeedback = window._pendingAttendanceFeedback;
-    if (pendingFeedback && !pendingFeedback.isMatch && pendingFeedback.recordId === eventId) {
+    if (openForFeedback) {
         window._pendingAttendanceFeedback = null;
         const message = typeof window.buildAttendanceSaveFeedbackMessage === 'function'
             ? window.buildAttendanceSaveFeedbackMessage(pendingFeedback)
