@@ -45,24 +45,6 @@ function isActivitySessionType(type) {
     return type === 'Trening' || type === 'Annet';
 }
 
-function getActivitySessionTheme(event) {
-    if (event?.type === 'Annet') {
-        return {
-            watermarkIcon: 'fa-calendar-check',
-            chipIcon: 'fa-calendar-check',
-            chipLabel: 'Aktivitet',
-            defaultTitle: 'Aktivitet'
-        };
-    }
-
-    return {
-        watermarkIcon: 'fa-person-running',
-        chipIcon: 'fa-stopwatch',
-        chipLabel: 'Trening',
-        defaultTitle: 'Trening'
-    };
-}
-
 function getRegisteredPlayersForEvent(event) {
     const refs = typeof window.getAttendingPlayerRefs === 'function'
         ? window.getAttendingPlayerRefs(event?.attendance)
@@ -112,19 +94,6 @@ function distributePlayersIntoGroups(players, groupCount) {
     });
 
     return groups;
-}
-
-function formatTrainingDateLabel(dateStr) {
-    if (!dateStr) return 'Dato ikke satt';
-    const dateValue = new Date(dateStr);
-    if (Number.isNaN(dateValue.getTime())) return dateStr;
-    const formatted = dateValue.toLocaleDateString('no-NO', {
-        weekday: 'long',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 function buildRegisteredPlayersHtml(players) {
@@ -292,7 +261,6 @@ window.renderTrainingSession = function(eventId) {
     bindTrainingSessionEvents();
 
     const isTraining = trainingEvent.type === 'Trening';
-    const teamName = trainingEvent.team || window.getPrimaryTeamName();
     const eventTypeLabel = isTraining ? 'Trening' : (trainingEvent.type || 'Aktivitet');
     const chipIcon = isTraining ? 'fa-stopwatch' : 'fa-calendar-check';
     const dateValue = new Date(trainingEvent.date);
@@ -339,16 +307,20 @@ window.renderTrainingSession = function(eventId) {
                         </div>`;
 
     window._sessionInjuryPopupData = sessionStats.injuredReady || [];
-    let injuryButtonHtml = '';
+    let actionsHtml = '';
     if (sessionStats.injuredReady && sessionStats.injuredReady.length > 0) {
         const injuredCount = sessionStats.injuredReady.length;
         const injuryLabel = injuredCount === 1 ? '1 skadet' : `${injuredCount} skadet`;
-        injuryButtonHtml = `
+        actionsHtml = `
+                        <div class="dashboard-session-actions">
                             <button type="button" data-training-action="injury" class="bsk-btn bsk-btn-warning is-collapsible dashboard-session-action-btn" title="${escapeTrainingHtml(injuryLabel)}" aria-label="${escapeTrainingHtml(injuryLabel)}">
                                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                                 <span class="bsk-btn-label">${escapeTrainingHtml(injuryLabel)}</span>
                             </button>
+                        </div>
         `;
+    } else {
+        window._sessionInjuryPopupData = [];
     }
 
     const groupsPanelHtml = isTraining
@@ -397,13 +369,7 @@ window.renderTrainingSession = function(eventId) {
                         <div class="dashboard-session-focus-block min-w-0">
                             ${sessionStatsHtml}
                         </div>
-                        <div class="dashboard-session-actions">
-                            <button type="button" data-training-action="attendance" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Oppmøte" aria-label="Oppmøte">
-                                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">Oppmøte</span>
-                            </button>
-                            ${injuryButtonHtml}
-                        </div>
+                        ${actionsHtml}
                     </div>
                 </div>
 
