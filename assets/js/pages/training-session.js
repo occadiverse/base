@@ -178,33 +178,67 @@ function buildRegisteredPlayersHtml(players) {
 }
 
 function buildGroupsHtml(eventId, players) {
-    const groupCount = window._trainingSessionGroupCounts[eventId] || 3;
-    const groups = window._trainingSessionGroups[eventId] || null;
+    const groupCount = window._trainingSessionGroupCounts[eventId] || 1;
+    let groups = window._trainingSessionGroups[eventId] || null;
 
-    const groupOptions = [2, 3, 4, 5].map(count => `
-        <option value="${count}" ${count === groupCount ? 'selected' : ''}>${count} grupper</option>
-    `).join('');
+    if (players.length) {
+        if (groupCount === 1) {
+            groups = [players];
+            window._trainingSessionGroups[eventId] = groups;
+        } else if (!groups || groups.length !== groupCount) {
+            groups = distributePlayersIntoGroups(players, groupCount);
+            window._trainingSessionGroups[eventId] = groups;
+        }
+    } else {
+        groups = null;
+        delete window._trainingSessionGroups[eventId];
+    }
+
+    const groupOptions = [1, 2, 3, 4].map(count => {
+        const label = count === 1 ? '1 gruppe' : `${count} grupper`;
+        return `<option value="${count}" ${count === groupCount ? 'selected' : ''}>${label}</option>`;
+    }).join('');
 
     let groupsResultHtml = '';
-    if (groups && groups.length) {
-        groupsResultHtml = `
-            <div class="training-session-groups-result">
-                ${groups.map((groupPlayers, index) => `
-                    <div class="training-session-group-card">
-                        <div class="training-session-group-title">Gruppe ${index + 1} <span>${groupPlayers.length}</span></div>
-                        <div class="training-session-group-players">
-                            ${groupPlayers.length
-                                ? groupPlayers.map(player => `<span>${escapeTrainingHtml(player.navn)}</span>`).join('')
-                                : '<span class="training-session-group-empty">Ingen spillere</span>'}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    } else if (!players.length) {
+    if (!players.length) {
         groupsResultHtml = `
             <div class="training-session-empty training-session-empty-compact">
                 <p>Registrer oppmøte før du fordeler grupper.</p>
+            </div>
+        `;
+    } else if (groups && groups.length) {
+        groupsResultHtml = `
+            <div class="training-session-player-list">
+                ${groups.map((groupPlayers, index) => {
+                    const rowsHtml = groupPlayers.length
+                        ? groupPlayers.map((player) => {
+                            const jersey = player.draktnummer ? `#${player.draktnummer}` : '';
+                            const pos = !player.isGuest && player.pos1 && player.pos1 !== '-' ? player.pos1 : '';
+                            return `
+                                <div class="training-session-player-row">
+                                    <span class="training-session-player-name">${escapeTrainingHtml(player.navn)}</span>
+                                    <span class="training-session-player-meta">
+                                        ${jersey ? `<span>${escapeTrainingHtml(jersey)}</span>` : ''}
+                                        ${pos ? `<span>${escapeTrainingHtml(pos)}</span>` : ''}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')
+                        : `
+                            <div class="training-session-player-row">
+                                <span class="training-session-player-name training-session-group-empty">Ingen spillere</span>
+                            </div>
+                        `;
+
+                    return `
+                        <section class="training-session-player-group">
+                            <header class="match-fixture-month">Gruppe ${index + 1}</header>
+                            <div class="training-session-player-group-box">
+                                ${rowsHtml}
+                            </div>
+                        </section>
+                    `;
+                }).join('')}
             </div>
         `;
     }
@@ -215,10 +249,6 @@ function buildGroupsHtml(eventId, players) {
             <select id="trainingGroupCountSelect" class="training-session-select" data-training-action="set-group-count">
                 ${groupOptions}
             </select>
-            <button type="button" data-training-action="distribute-groups" class="match-bench-action-btn dashboard-session-action-btn" ${players.length ? '' : 'disabled'}>
-                <i class="fa-solid fa-shuffle"></i>
-                <span>Fordel spillere</span>
-            </button>
         </div>
         ${groupsResultHtml}
     `;
@@ -275,15 +305,21 @@ function bindTrainingSessionEvents() {
             return;
         }
 
-        if (action === 'distribute-groups') {
-            if (!eventId) return;
-            const trainingEvent = getTrainingEvent(eventId);
-            if (!trainingEvent || trainingEvent.type !== 'Trening') return;
+        if (action === 'toggle-groups') {
+            const panel = actionEl.closest('.match-collapsible-panel');
+            if (!panel) return;
 
-            const players = getRegisteredPlayersForEvent(trainingEvent);
-            const groupCount = window._trainingSessionGroupCounts[eventId] || 3;
-            window._trainingSessionGroups[eventId] = distributePlayersIntoGroups(players, groupCount);
-            window.renderTrainingSession(eventId);
+            const shouldOpen = panel.classList.contains('is-collapsed');
+            panel.classList.toggle('is-collapsed', !shouldOpen);
+            window._trainingSessionGroupsOpen = shouldOpen;
+            actionEl.setAttribute('aria-expanded', String(shouldOpen));
+            actionEl.setAttribute(
+                'aria-label',
+                shouldOpen
+                    ? (actionEl.dataset.hideLabel || 'Skjul grupper')
+                    : (actionEl.dataset.showLabel || 'Vis grupper')
+            );
+            return;
         }
     });
 
@@ -295,10 +331,22 @@ function bindTrainingSessionEvents() {
         if (!eventId) return;
 
         const groupCount = Number(select.value);
-        if (!Number.isFinite(groupCount) || groupCount < 2 || groupCount > 5) return;
+        if (!Number.isFinite(groupCount) || groupCount < 1 || groupCount > 4) return;
 
+        const trainingEvent = getTrainingEvent(eventId);
+        if (!trainingEvent || trainingEvent.type !== 'Trening') return;
+
+        const players = getRegisteredPlayersForEvent(trainingEvent);
         window._trainingSessionGroupCounts[eventId] = groupCount;
-        delete window._trainingSessionGroups[eventId];
+
+        if (!players.length) {
+            delete window._trainingSessionGroups[eventId];
+        } else if (groupCount === 1) {
+            window._trainingSessionGroups[eventId] = [players];
+        } else {
+            window._trainingSessionGroups[eventId] = distributePlayersIntoGroups(players, groupCount);
+        }
+
         window.renderTrainingSession(eventId);
     });
 }
@@ -311,7 +359,7 @@ window.openTrainingSession = function(eventId) {
 
     window._activeTrainingSessionId = eventId;
     if (activityEvent.type === 'Trening' && !window._trainingSessionGroupCounts[eventId]) {
-        window._trainingSessionGroupCounts[eventId] = 3;
+        window._trainingSessionGroupCounts[eventId] = 1;
     }
 
     const backTarget = window.currentTab && window.currentTab !== 'oktside'
@@ -388,14 +436,22 @@ window.renderTrainingSession = function(eventId) {
         window._sessionInjuryPopupData = [];
     }
 
+    const isGroupsOpen = window._trainingSessionGroupsOpen === true;
     const groupsPanelHtml = isTraining
         ? `
-            <section class="training-session-panel">
-                <div class="training-session-panel-header">
-                    <h3>Grupper</h3>
+            <section class="training-session-groups-panel match-game-plan-panel match-collapsible-panel ${isGroupsOpen ? '' : 'is-collapsed'}">
+                <div class="match-bench-action-row match-bench-topline">
+                    <div class="match-bench-heading">
+                        <h3>Grupper</h3>
+                    </div>
+                    <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-groups" aria-expanded="${isGroupsOpen ? 'true' : 'false'}" aria-label="${isGroupsOpen ? 'Skjul grupper' : 'Vis grupper'}" data-show-label="Vis grupper" data-hide-label="Skjul grupper">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
                 </div>
-                <div class="training-session-panel-body">
-                    ${buildGroupsHtml(trainingEvent.id, registeredPlayers)}
+                <div class="match-collapsible-content">
+                    <div class="training-session-groups-body">
+                        ${buildGroupsHtml(trainingEvent.id, registeredPlayers)}
+                    </div>
                 </div>
             </section>
         `
