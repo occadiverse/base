@@ -416,9 +416,9 @@ window.renderTrainingSession = function(eventId) {
                     <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-attendance" aria-expanded="${isAttendanceOpen ? 'true' : 'false'}" aria-label="${isAttendanceOpen ? 'Skjul oppmøte' : 'Vis oppmøte'}" data-show-label="Vis oppmøte" data-hide-label="Skjul oppmøte">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
-                    <button type="button" class="training-session-attendance-add-btn" data-training-action="attendance" title="Legg til" aria-label="Legg til oppmøte">
+                    <button type="button" class="training-session-attendance-add-btn" data-training-action="attendance" title="Oppdater" aria-label="Oppdater oppmøte">
                         <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                        <span>Legg til</span>
+                        <span>Oppdater</span>
                     </button>
                 </div>
                 <div class="match-collapsible-content">
