@@ -415,11 +415,14 @@ window.renderTrainingSession = function(eventId) {
                 <div class="match-bench-action-row match-bench-topline">
                     <div class="match-bench-heading">
                         <h3>Oppmøte</h3>
-                        <span class="match-bench-heading-count">${escapeTrainingHtml(attendanceBadge)}</span>
                     </div>
                     <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-attendance" aria-expanded="${isAttendanceOpen ? 'true' : 'false'}" aria-label="${isAttendanceOpen ? 'Skjul oppmøte' : 'Vis oppmøte'}" data-show-label="Vis oppmøte" data-hide-label="Skjul oppmøte">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
+                    <div class="match-detail-chip">
+                        <i class="fa-solid fa-user-check"></i>
+                        <span>${escapeTrainingHtml(attendanceBadge)}</span>
+                    </div>
                 </div>
                 <div class="match-collapsible-content">
                     <p class="match-inline-status training-session-attendance-save-state" data-training-attendance-save-state aria-live="polite" hidden></p>

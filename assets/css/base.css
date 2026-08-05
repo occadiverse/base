@@ -2400,11 +2400,8 @@
         .training-session-attendance-panel {
             margin-top: 0;
         }
-        .training-session-attendance-panel .match-bench-heading-count {
-            height: auto !important;
-            min-width: 2.1rem;
-            padding: 0.35rem 0.65rem !important;
-            width: auto !important;
+        .training-session-attendance-panel .match-bench-topline {
+            justify-content: space-between;
         }
         .training-session-attendance-body {
             padding: 0.15rem 0.15rem 0.25rem;
