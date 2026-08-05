@@ -2397,7 +2397,7 @@
         .training-session-panel-body {
             padding: 0.85rem 1rem 1rem;
         }
-        .training-session-attendance-panel {
+        .training-session-attendance-panel.match-game-plan-panel {
             margin-top: 0;
         }
         .training-session-attendance-panel .match-bench-topline {
