@@ -28,7 +28,7 @@ function bindDashboardEvents() {
             if (!actionEl) return;
 
             const action = actionEl.dataset.dashboardAction;
-            if (action === 'match-alert' || action === 'session-injury' || action === 'session-attendance' || action === 'open-training-session') {
+            if (action === 'match-alert' || action === 'session-injury') {
                 event.stopPropagation();
             }
 
@@ -42,9 +42,6 @@ function bindDashboardEvents() {
             } else if (action === 'open-calendar-date') {
                 const date = actionEl.dataset.eventDate;
                 if (date) window.goToCalendarDate(date);
-            } else if (action === 'session-attendance') {
-                const eventId = actionEl.dataset.eventId;
-                if (eventId) window.openAttendanceModal(eventId);
             } else if (action === 'open-training-session') {
                 const eventId = actionEl.dataset.eventId;
                 if (eventId && typeof window.openTrainingSession === 'function') {
@@ -381,7 +378,6 @@ window.updateHjemWidget = function() {
         const ne = upcomingEvents[0];
         const isTraining = ne.type === 'Trening';
         const canOpenSession = isTraining || ne.type === 'Annet';
-        const sessionButtonLabel = isTraining ? 'Åpne øktside' : 'Åpne aktivitet';
         const eventTypeLabel = isTraining ? 'Trening' : (ne.type || 'Aktivitet');
         const sessionStats = window.buildNextSessionAttendanceStats(ne);
         const dateValue = new Date(ne.date);
@@ -402,7 +398,7 @@ window.updateHjemWidget = function() {
             ? `
                             <div class="dashboard-session-stats-line">
                                 <span class="match-detail-time${fractionToneClass}">${sessionStats.møttOppAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
-                                <span class="dashboard-session-attendance-label">møtt opp</span>
+                                <span class="dashboard-session-attendance-label">påmeldt</span>
                                 <span class="dashboard-session-radar-inline">${radarParts}</span>
                             </div>`
             : `
@@ -412,24 +408,30 @@ window.updateHjemWidget = function() {
 
         window._sessionInjuryPopupData = sessionStats.injuredReady;
 
-        let injuryButtonHtml = '';
+        let actionsHtml = '';
         if (sessionStats.injuredReady.length > 0) {
             const injuredCount = sessionStats.injuredReady.length;
             const injuryLabel = injuredCount === 1
                 ? '1 skadet'
                 : `${injuredCount} skadet`;
-            injuryButtonHtml = `
-                <button type="button" data-dashboard-action="session-injury" class="bsk-btn bsk-btn-warning is-collapsible dashboard-session-action-btn" title="${escapeDashboardHtml(injuryLabel)}" aria-label="${escapeDashboardHtml(injuryLabel)}">
-                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                    <span class="bsk-btn-label">${escapeDashboardHtml(injuryLabel)}</span>
-                </button>
+            actionsHtml = `
+                        <div class="dashboard-session-actions">
+                            <button type="button" data-dashboard-action="session-injury" class="bsk-btn bsk-btn-warning is-collapsible dashboard-session-action-btn" title="${escapeDashboardHtml(injuryLabel)}" aria-label="${escapeDashboardHtml(injuryLabel)}">
+                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                <span class="bsk-btn-label">${escapeDashboardHtml(injuryLabel)}</span>
+                            </button>
+                        </div>
             `;
         } else {
             window._sessionInjuryPopupData = [];
         }
 
+        const cardActionAttrs = canOpenSession
+            ? `data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}"`
+            : `data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(ne.date)}"`;
+
         sessionWidgetHtml = `
-            <article data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(ne.date)}" role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full">
+            <article ${cardActionAttrs} role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>
@@ -450,19 +452,7 @@ window.updateHjemWidget = function() {
                         <div class="dashboard-session-focus-block min-w-0">
                             ${sessionStatsHtml}
                         </div>
-                        <div class="dashboard-session-actions">
-                            <button type="button" data-dashboard-action="session-attendance" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="Oppmøte" aria-label="Oppmøte">
-                                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">Oppmøte</span>
-                            </button>
-                            ${canOpenSession ? `
-                            <button type="button" data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}" class="bsk-btn bsk-btn-primary is-collapsible dashboard-session-action-btn" title="${escapeDashboardHtml(sessionButtonLabel)}" aria-label="${escapeDashboardHtml(sessionButtonLabel)}">
-                                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">${escapeDashboardHtml(sessionButtonLabel)}</span>
-                            </button>
-                            ` : ''}
-                            ${injuryButtonHtml}
-                        </div>
+                        ${actionsHtml}
                     </div>
                 </div>
 
