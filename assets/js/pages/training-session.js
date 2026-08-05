@@ -50,10 +50,27 @@ function getRegisteredPlayersForEvent(event) {
         ? window.getAttendingPlayerRefs(event?.attendance)
         : Object.keys(event?.attendance || {}).filter(ref => event.attendance[ref] === true);
 
+    const categoryOrder = { K: 0, F: 1, M: 2, A: 3, Gjest: 4 };
+
+    const getSortCategory = (player) => {
+        if (player?.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player?.id))) {
+            return 'Gjest';
+        }
+        if (typeof window.getPositionCategoryFromPos1 === 'function') {
+            return window.getPositionCategoryFromPos1(player?.pos1) || 'M';
+        }
+        return 'M';
+    };
+
     return refs
         .map(ref => (typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null))
         .filter(Boolean)
-        .sort((a, b) => (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' }));
+        .sort((a, b) => {
+            const orderA = categoryOrder[getSortCategory(a)] ?? 3;
+            const orderB = categoryOrder[getSortCategory(b)] ?? 3;
+            if (orderA !== orderB) return orderA - orderB;
+            return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
+        });
 }
 
 function getPlayerPositionCategory(player) {
