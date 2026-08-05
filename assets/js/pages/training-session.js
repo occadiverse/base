@@ -45,6 +45,16 @@ function isActivitySessionType(type) {
     return type === 'Trening' || type === 'Annet';
 }
 
+function getRegisteredPlayerSortCategory(player) {
+    if (player?.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player?.id))) {
+        return 'Gjest';
+    }
+    if (typeof window.getPositionCategoryFromPos1 === 'function') {
+        return window.getPositionCategoryFromPos1(player?.pos1) || 'M';
+    }
+    return 'M';
+}
+
 function getRegisteredPlayersForEvent(event) {
     const refs = typeof window.getAttendingPlayerRefs === 'function'
         ? window.getAttendingPlayerRefs(event?.attendance)
@@ -52,28 +62,21 @@ function getRegisteredPlayersForEvent(event) {
 
     const categoryOrder = { K: 0, F: 1, M: 2, A: 3, Gjest: 4 };
 
-    const getSortCategory = (player) => {
-        if (player?.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player?.id))) {
-            return 'Gjest';
-        }
-        if (typeof window.getPositionCategoryFromPos1 === 'function') {
-            return window.getPositionCategoryFromPos1(player?.pos1) || 'M';
-        }
-        return 'M';
-    };
-
     return refs
         .map(ref => (typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : null))
         .filter(Boolean)
         .sort((a, b) => {
-            const orderA = categoryOrder[getSortCategory(a)] ?? 3;
-            const orderB = categoryOrder[getSortCategory(b)] ?? 3;
+            const orderA = categoryOrder[getRegisteredPlayerSortCategory(a)] ?? 3;
+            const orderB = categoryOrder[getRegisteredPlayerSortCategory(b)] ?? 3;
             if (orderA !== orderB) return orderA - orderB;
             return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
         });
 }
 
 function getPlayerPositionCategory(player) {
+    if (player?.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player?.id))) {
+        return 'Gjest';
+    }
     if (typeof window.getPositionCategoryFromPos1 === 'function') {
         return window.getPositionCategoryFromPos1(player?.pos1) || 'M';
     }
@@ -84,10 +87,11 @@ function distributePlayersIntoGroups(players, groupCount) {
     const groups = Array.from({ length: groupCount }, () => []);
     const categoryTotals = groups.map(() => ({}));
 
+    const categoryOrder = { K: 0, F: 1, M: 2, A: 3, Gjest: 4 };
     const sortedPlayers = [...players].sort((a, b) => {
-        const catA = getPlayerPositionCategory(a);
-        const catB = getPlayerPositionCategory(b);
-        if (catA !== catB) return catA.localeCompare(catB);
+        const orderA = categoryOrder[getPlayerPositionCategory(a)] ?? 3;
+        const orderB = categoryOrder[getPlayerPositionCategory(b)] ?? 3;
+        if (orderA !== orderB) return orderA - orderB;
         return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
     });
 
@@ -124,11 +128,27 @@ function buildRegisteredPlayersHtml(players) {
         `;
     }
 
-    return `
-        <div class="training-session-player-list">
-            ${players.map(player => {
+    const categoryLabels = {
+        K: 'Keeper',
+        F: 'Forsvar',
+        M: 'Midtbane',
+        A: 'Angrep',
+        Gjest: 'Gjestespiller'
+    };
+    const categoryOrder = ['K', 'F', 'M', 'A', 'Gjest'];
+    const grouped = Object.fromEntries(categoryOrder.map(key => [key, []]));
+
+    players.forEach((player) => {
+        const category = getRegisteredPlayerSortCategory(player);
+        (grouped[category] || grouped.M).push(player);
+    });
+
+    const groupsHtml = categoryOrder
+        .filter(key => grouped[key].length > 0)
+        .map((key) => {
+            const rowsHtml = grouped[key].map((player) => {
                 const jersey = player.draktnummer ? `#${player.draktnummer}` : '';
-                const pos = player.pos1 && player.pos1 !== '-' ? player.pos1 : '';
+                const pos = !player.isGuest && player.pos1 && player.pos1 !== '-' ? player.pos1 : '';
                 return `
                     <div class="training-session-player-row">
                         <span class="training-session-player-name">${escapeTrainingHtml(player.navn)}</span>
@@ -138,7 +158,21 @@ function buildRegisteredPlayersHtml(players) {
                         </span>
                     </div>
                 `;
-            }).join('')}
+            }).join('');
+
+            return `
+                <section class="training-session-player-group">
+                    <header class="match-fixture-month">${escapeTrainingHtml(categoryLabels[key])}</header>
+                    <div class="training-session-player-group-box">
+                        ${rowsHtml}
+                    </div>
+                </section>
+            `;
+        }).join('');
+
+    return `
+        <div class="training-session-player-list">
+            ${groupsHtml}
         </div>
     `;
 }
