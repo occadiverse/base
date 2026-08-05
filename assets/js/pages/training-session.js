@@ -104,17 +104,36 @@ function distributePlayersIntoGroups(players, groupCount) {
     const keepers = sortPlayersByForm(
         players.filter(player => getPlayerPositionCategory(player) === 'K')
     );
-    const outfieldPlayers = players.filter(player => getPlayerPositionCategory(player) !== 'K');
+    const outfieldPlayers = sortPlayersByForm(
+        players.filter(player => getPlayerPositionCategory(player) !== 'K')
+    );
     const fieldGroups = Array.from({ length: groupCount }, () => []);
+    const categoryTotals = fieldGroups.map(() => ({}));
 
-    // Keepere i egen gruppe. Øvrige roller fordeles med høyest form først til gruppe 1.
-    ['F', 'M', 'A', 'Gjest'].forEach((category) => {
-        const inCategory = sortPlayersByForm(
-            outfieldPlayers.filter(player => getPlayerPositionCategory(player) === category)
-        );
-        inCategory.forEach((player, index) => {
-            fieldGroups[index % groupCount].push(player);
-        });
+    // 1) Jevnest mulig antall  2) jevn rollefordeling  3) høy form til lavest gruppeindeks ved likhet
+    outfieldPlayers.forEach((player) => {
+        const category = getPlayerPositionCategory(player);
+        let bestIndex = 0;
+        let bestSize = Infinity;
+        let bestCategoryCount = Infinity;
+
+        for (let i = 0; i < groupCount; i += 1) {
+            const size = fieldGroups[i].length;
+            const categoryCount = categoryTotals[i][category] || 0;
+
+            if (
+                size < bestSize
+                || (size === bestSize && categoryCount < bestCategoryCount)
+                || (size === bestSize && categoryCount === bestCategoryCount && i < bestIndex)
+            ) {
+                bestSize = size;
+                bestCategoryCount = categoryCount;
+                bestIndex = i;
+            }
+        }
+
+        fieldGroups[bestIndex].push(player);
+        categoryTotals[bestIndex][category] = (categoryTotals[bestIndex][category] || 0) + 1;
     });
 
     const groups = [];
@@ -135,7 +154,6 @@ function distributePlayersIntoGroups(players, groupCount) {
         });
     });
 
-    // Hvis bare keepere er påmeldt, vis kun keepergruppen.
     if (!groups.length && keepers.length) {
         groups.push({
             label: keepers.length === 1 ? 'Keeper' : 'Keepere',
