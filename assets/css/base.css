@@ -2403,6 +2403,46 @@
         .training-session-attendance-panel .match-bench-topline {
             justify-content: space-between;
         }
+        .training-session-attendance-add-btn {
+            align-items: center;
+            appearance: none;
+            background: linear-gradient(135deg, #fff3bf 0%, #f5c542 100%);
+            border: 1px solid rgba(245, 197, 66, 0.72);
+            border-radius: 999px;
+            box-shadow: 0 4px 12px rgba(2, 6, 23, 0.18);
+            color: #0b2b4c;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-family: inherit;
+            font-size: 0.64rem;
+            font-weight: 900;
+            gap: 0.4rem;
+            justify-content: center;
+            letter-spacing: 0.08em;
+            padding: 0.38rem 0.62rem;
+            text-transform: uppercase;
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+            z-index: 1;
+        }
+        .training-session-attendance-add-btn i {
+            color: #0b2b4c;
+            font-size: 0.64rem;
+        }
+        .training-session-attendance-add-btn:hover {
+            background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
+            border-color: rgba(245, 197, 66, 0.9);
+            box-shadow: 0 6px 14px rgba(2, 6, 23, 0.22);
+            transform: translateY(-1px);
+        }
+        .training-session-attendance-add-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 4px 12px rgba(2, 6, 23, 0.18);
+        }
+        .training-session-attendance-add-btn:active {
+            transform: translateY(0);
+        }
         .training-session-attendance-body {
             padding: 0.15rem 0.15rem 0.25rem;
         }
