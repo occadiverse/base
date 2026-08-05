@@ -83,36 +83,66 @@ function getPlayerPositionCategory(player) {
     return 'M';
 }
 
-function distributePlayersIntoGroups(players, groupCount) {
-    const groups = Array.from({ length: groupCount }, () => []);
-    const categoryTotals = groups.map(() => ({}));
+function getPlayerFormScore(player) {
+    if (!player || player.isGuest) return 0;
+    if (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id)) return 0;
+    if (typeof window.calculatePlayerPerformanceChemistry === 'function' && player.navn) {
+        return Number(window.calculatePlayerPerformanceChemistry(player.navn)) || 0;
+    }
+    return 0;
+}
 
-    const categoryOrder = { K: 0, F: 1, M: 2, A: 3, Gjest: 4 };
-    const sortedPlayers = [...players].sort((a, b) => {
-        const orderA = categoryOrder[getPlayerPositionCategory(a)] ?? 3;
-        const orderB = categoryOrder[getPlayerPositionCategory(b)] ?? 3;
-        if (orderA !== orderB) return orderA - orderB;
+function sortPlayersByForm(players) {
+    return [...players].sort((a, b) => {
+        const formDiff = getPlayerFormScore(b) - getPlayerFormScore(a);
+        if (formDiff !== 0) return formDiff;
         return (a.navn || '').localeCompare(b.navn || '', 'no', { sensitivity: 'base' });
     });
+}
 
-    sortedPlayers.forEach(player => {
-        const category = getPlayerPositionCategory(player);
-        let bestIndex = 0;
-        let bestScore = Infinity;
+function distributePlayersIntoGroups(players, groupCount) {
+    const keepers = sortPlayersByForm(
+        players.filter(player => getPlayerPositionCategory(player) === 'K')
+    );
+    const outfieldPlayers = players.filter(player => getPlayerPositionCategory(player) !== 'K');
+    const fieldGroups = Array.from({ length: groupCount }, () => []);
 
-        for (let i = 0; i < groupCount; i += 1) {
-            const sizeScore = groups[i].length;
-            const categoryScore = categoryTotals[i][category] || 0;
-            const score = sizeScore * 100 + categoryScore;
-            if (score < bestScore) {
-                bestScore = score;
-                bestIndex = i;
-            }
-        }
-
-        groups[bestIndex].push(player);
-        categoryTotals[bestIndex][category] = (categoryTotals[bestIndex][category] || 0) + 1;
+    // Keepere i egen gruppe. Øvrige roller fordeles med høyest form først til gruppe 1.
+    ['F', 'M', 'A', 'Gjest'].forEach((category) => {
+        const inCategory = sortPlayersByForm(
+            outfieldPlayers.filter(player => getPlayerPositionCategory(player) === category)
+        );
+        inCategory.forEach((player, index) => {
+            fieldGroups[index % groupCount].push(player);
+        });
     });
+
+    const groups = [];
+    if (keepers.length) {
+        groups.push({
+            label: keepers.length === 1 ? 'Keeper' : 'Keepere',
+            players: keepers,
+            isKeeperGroup: true
+        });
+    }
+
+    fieldGroups.forEach((groupPlayers, index) => {
+        if (!groupPlayers.length && keepers.length && outfieldPlayers.length === 0) return;
+        groups.push({
+            label: `Gruppe ${index + 1}`,
+            players: groupPlayers,
+            isKeeperGroup: false
+        });
+    });
+
+    // Hvis bare keepere er påmeldt, vis kun keepergruppen.
+    if (!groups.length && keepers.length) {
+        groups.push({
+            label: keepers.length === 1 ? 'Keeper' : 'Keepere',
+            players: keepers,
+            isKeeperGroup: true
+        });
+    }
 
     return groups;
 }
@@ -177,20 +207,38 @@ function buildRegisteredPlayersHtml(players) {
     `;
 }
 
+function buildGroupPlayersRowsHtml(groupPlayers) {
+    if (!groupPlayers.length) {
+        return `
+            <div class="training-session-player-row">
+                <span class="training-session-player-name training-session-group-empty">Ingen spillere</span>
+            </div>
+        `;
+    }
+
+    return groupPlayers.map((player) => {
+        const jersey = player.draktnummer ? `#${player.draktnummer}` : '';
+        const pos = !player.isGuest && player.pos1 && player.pos1 !== '-' ? player.pos1 : '';
+        return `
+            <div class="training-session-player-row">
+                <span class="training-session-player-name">${escapeTrainingHtml(player.navn)}</span>
+                <span class="training-session-player-meta">
+                    ${jersey ? `<span>${escapeTrainingHtml(jersey)}</span>` : ''}
+                    ${pos ? `<span>${escapeTrainingHtml(pos)}</span>` : ''}
+                </span>
+            </div>
+        `;
+    }).join('');
+}
+
 function buildGroupsHtml(eventId, players) {
     const groupCount = window._trainingSessionGroupCounts[eventId] || 1;
-    let groups = window._trainingSessionGroups[eventId] || null;
+    let groups = null;
 
     if (players.length) {
-        if (groupCount === 1) {
-            groups = [players];
-            window._trainingSessionGroups[eventId] = groups;
-        } else if (!groups || groups.length !== groupCount) {
-            groups = distributePlayersIntoGroups(players, groupCount);
-            window._trainingSessionGroups[eventId] = groups;
-        }
+        groups = distributePlayersIntoGroups(players, groupCount);
+        window._trainingSessionGroups[eventId] = groups;
     } else {
-        groups = null;
         delete window._trainingSessionGroups[eventId];
     }
 
@@ -209,36 +257,14 @@ function buildGroupsHtml(eventId, players) {
     } else if (groups && groups.length) {
         groupsResultHtml = `
             <div class="training-session-player-list">
-                ${groups.map((groupPlayers, index) => {
-                    const rowsHtml = groupPlayers.length
-                        ? groupPlayers.map((player) => {
-                            const jersey = player.draktnummer ? `#${player.draktnummer}` : '';
-                            const pos = !player.isGuest && player.pos1 && player.pos1 !== '-' ? player.pos1 : '';
-                            return `
-                                <div class="training-session-player-row">
-                                    <span class="training-session-player-name">${escapeTrainingHtml(player.navn)}</span>
-                                    <span class="training-session-player-meta">
-                                        ${jersey ? `<span>${escapeTrainingHtml(jersey)}</span>` : ''}
-                                        ${pos ? `<span>${escapeTrainingHtml(pos)}</span>` : ''}
-                                    </span>
-                                </div>
-                            `;
-                        }).join('')
-                        : `
-                            <div class="training-session-player-row">
-                                <span class="training-session-player-name training-session-group-empty">Ingen spillere</span>
-                            </div>
-                        `;
-
-                    return `
-                        <section class="training-session-player-group">
-                            <header class="match-fixture-month">Gruppe ${index + 1}</header>
-                            <div class="training-session-player-group-box">
-                                ${rowsHtml}
-                            </div>
-                        </section>
-                    `;
-                }).join('')}
+                ${groups.map((group) => `
+                    <section class="training-session-player-group">
+                        <header class="match-fixture-month">${escapeTrainingHtml(group.label)}</header>
+                        <div class="training-session-player-group-box">
+                            ${buildGroupPlayersRowsHtml(group.players || [])}
+                        </div>
+                    </section>
+                `).join('')}
             </div>
         `;
     }
@@ -341,8 +367,6 @@ function bindTrainingSessionEvents() {
 
         if (!players.length) {
             delete window._trainingSessionGroups[eventId];
-        } else if (groupCount === 1) {
-            window._trainingSessionGroups[eventId] = [players];
         } else {
             window._trainingSessionGroups[eventId] = distributePlayersIntoGroups(players, groupCount);
         }
