@@ -100,41 +100,141 @@ function sortPlayersByForm(players) {
     });
 }
 
+function allocateCategoryQuotas(remainingByCategory, targetCount) {
+    const categories = ['F', 'M', 'A', 'Gjest'];
+    const available = categories
+        .map((category) => ({
+            category,
+            count: (remainingByCategory[category] || []).length
+        }))
+        .filter(item => item.count > 0);
+
+    const totalRemaining = available.reduce((sum, item) => sum + item.count, 0);
+    const quotas = { F: 0, M: 0, A: 0, Gjest: 0 };
+
+    if (targetCount <= 0 || totalRemaining <= 0) return quotas;
+    if (targetCount >= totalRemaining) {
+        available.forEach((item) => {
+            quotas[item.category] = item.count;
+        });
+        return quotas;
+    }
+
+    const rows = available.map((item) => ({
+        category: item.category,
+        count: item.count,
+        floor: Math.floor((item.count * targetCount) / totalRemaining),
+        remScore: (item.count * targetCount) % totalRemaining
+    }));
+
+    let assigned = rows.reduce((sum, row) => sum + row.floor, 0);
+    let need = targetCount - assigned;
+
+    rows.forEach((row) => {
+        quotas[row.category] = row.floor;
+    });
+
+    // Gi restplasser etter høyest rest; ved likhet: knappest rolle først.
+    rows
+        .slice()
+        .sort((a, b) => {
+            if (b.remScore !== a.remScore) return b.remScore - a.remScore;
+            if (a.count !== b.count) return a.count - b.count;
+            return categories.indexOf(a.category) - categories.indexOf(b.category);
+        })
+        .forEach((row) => {
+            if (need <= 0) return;
+            if (quotas[row.category] >= row.count) return;
+            quotas[row.category] += 1;
+            need -= 1;
+        });
+
+    categories.forEach((category) => {
+        quotas[category] = Math.min(quotas[category], (remainingByCategory[category] || []).length);
+    });
+
+    return quotas;
+}
+
+function takeBestRemainingPlayer(remainingByCategory) {
+    const categories = ['F', 'M', 'A', 'Gjest'];
+    let bestPlayer = null;
+    let bestCategory = null;
+    let bestForm = -Infinity;
+
+    categories.forEach((category) => {
+        const player = (remainingByCategory[category] || [])[0];
+        if (!player) return;
+        const form = getPlayerFormScore(player);
+        if (
+            form > bestForm
+            || (form === bestForm && (bestCategory === null || categories.indexOf(category) < categories.indexOf(bestCategory)))
+        ) {
+            bestForm = form;
+            bestPlayer = player;
+            bestCategory = category;
+        }
+    });
+
+    if (!bestPlayer || !bestCategory) return null;
+    remainingByCategory[bestCategory].shift();
+    return bestPlayer;
+}
+
 function distributePlayersIntoGroups(players, groupCount) {
     const keepers = sortPlayersByForm(
         players.filter(player => getPlayerPositionCategory(player) === 'K')
     );
-    const outfieldPlayers = sortPlayersByForm(
-        players.filter(player => getPlayerPositionCategory(player) !== 'K')
-    );
-    const fieldGroups = Array.from({ length: groupCount }, () => []);
-    const categoryTotals = fieldGroups.map(() => ({}));
+    const outfieldPlayers = players.filter(player => getPlayerPositionCategory(player) !== 'K');
+    const remainingByCategory = { F: [], M: [], A: [], Gjest: [] };
 
-    // 1) Jevnest mulig antall  2) jevn rollefordeling  3) høy form til lavest gruppeindeks ved likhet
     outfieldPlayers.forEach((player) => {
         const category = getPlayerPositionCategory(player);
-        let bestIndex = 0;
-        let bestSize = Infinity;
-        let bestCategoryCount = Infinity;
+        const key = remainingByCategory[category] ? category : 'M';
+        remainingByCategory[key].push(player);
+    });
+    Object.keys(remainingByCategory).forEach((category) => {
+        remainingByCategory[category] = sortPlayersByForm(remainingByCategory[category]);
+    });
 
-        for (let i = 0; i < groupCount; i += 1) {
-            const size = fieldGroups[i].length;
-            const categoryCount = categoryTotals[i][category] || 0;
+    const totalOutfield = outfieldPlayers.length;
+    const base = Math.floor(totalOutfield / groupCount);
+    const remainder = totalOutfield % groupCount;
+    // Restspillere til de siste gruppene, så størrelsene blir så like som mulig
+    // uten at Gruppe 1 blir den største ved rest.
+    const targetSizes = Array.from({ length: groupCount }, (_, index) => (
+        base + (index >= groupCount - remainder ? 1 : 0)
+    ));
 
-            if (
-                size < bestSize
-                || (size === bestSize && categoryCount < bestCategoryCount)
-                || (size === bestSize && categoryCount === bestCategoryCount && i < bestIndex)
-            ) {
-                bestSize = size;
-                bestCategoryCount = categoryCount;
-                bestIndex = i;
-            }
+    const fieldGroups = Array.from({ length: groupCount }, () => []);
+
+    for (let groupIndex = 0; groupIndex < groupCount; groupIndex += 1) {
+        const remainingCount = Object.values(remainingByCategory).reduce((sum, list) => sum + list.length, 0);
+        if (remainingCount === 0) break;
+
+        if (groupIndex === groupCount - 1) {
+            ['F', 'M', 'A', 'Gjest'].forEach((category) => {
+                fieldGroups[groupIndex].push(...remainingByCategory[category]);
+                remainingByCategory[category] = [];
+            });
+            break;
         }
 
-        fieldGroups[bestIndex].push(player);
-        categoryTotals[bestIndex][category] = (categoryTotals[bestIndex][category] || 0) + 1;
-    });
+        const target = targetSizes[groupIndex];
+        const quotas = allocateCategoryQuotas(remainingByCategory, target);
+        ['F', 'M', 'A', 'Gjest'].forEach((category) => {
+            const takeCount = quotas[category] || 0;
+            if (takeCount > 0) {
+                fieldGroups[groupIndex].push(...remainingByCategory[category].splice(0, takeCount));
+            }
+        });
+
+        while (fieldGroups[groupIndex].length < target) {
+            const nextPlayer = takeBestRemainingPlayer(remainingByCategory);
+            if (!nextPlayer) break;
+            fieldGroups[groupIndex].push(nextPlayer);
+        }
+    }
 
     const groups = [];
     if (keepers.length) {
@@ -146,7 +246,7 @@ function distributePlayersIntoGroups(players, groupCount) {
     }
 
     fieldGroups.forEach((groupPlayers, index) => {
-        if (!groupPlayers.length && keepers.length && outfieldPlayers.length === 0) return;
+        if (!groupPlayers.length && keepers.length && totalOutfield === 0) return;
         groups.push({
             label: `Gruppe ${index + 1}`,
             players: groupPlayers,
