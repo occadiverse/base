@@ -460,21 +460,6 @@ function getMatchCardPresentation(match) {
     };
 }
 
-function buildMatchDetailActionsHtml(match) {
-    return `
-        <div class="match-detail-actions">
-            <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="tactics" data-match-id="${escapeMatchHtml(match.id)}" title="Åpne laget i Taktikk" aria-label="Åpne i Taktikk">
-                <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
-                <span class="bsk-btn-label">Taktikk</span>
-            </button>
-            <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp" aria-label="Rediger kamp">
-                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                <span class="bsk-btn-label">Rediger</span>
-            </button>
-        </div>
-    `;
-}
-
 function buildMatchDetailCardHtml(match, options = {}) {
     const {
         extraClass = '',
@@ -3416,7 +3401,6 @@ window.showMatchDetails = function(id) {
 
     container.innerHTML = `
         <div class="match-detail-page">
-        ${buildMatchDetailActionsHtml(match)}
         ${buildMatchDetailCardHtml(match, { showWatermark: true })}
 
         ${matchSquadPanelHtml}

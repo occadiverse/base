@@ -2349,12 +2349,6 @@
             flex-direction: column;
             gap: 1rem;
         }
-        .match-detail-actions {
-            align-items: center;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.45rem;
-        }
         .match-detail-page .match-bench-panel,
         .match-detail-page .match-game-plan-panel,
         .match-detail-page .match-coach-notes-panel,
