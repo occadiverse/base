@@ -1496,19 +1496,38 @@ function getMatchGamePlanLineupOverlayMenuLabel(match) {
     return activeLabels.length ? activeLabels.join(', ') : 'Av';
 }
 
-function buildMatchGamePlanLineupViewSegmentHtml(match) {
+function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
+    const {
+        includeSamspill = false,
+        includePlayerOverlays = false,
+        ariaLabel = 'Visning',
+        extraClass = ''
+    } = options;
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const viewOptions = [
-        { id: 'samspill', label: 'Samspill', active: Boolean(overlayState.samspill) },
-        ...matchGamePlanLineupOverlayOptions.map(option => ({
-            id: option.id,
-            label: option.label,
-            active: Boolean(overlayState[option.id])
-        }))
-    ];
+    const viewOptions = [];
+
+    if (includeSamspill) {
+        viewOptions.push({
+            id: 'samspill',
+            label: 'Samspill',
+            active: Boolean(overlayState.samspill)
+        });
+    }
+
+    if (includePlayerOverlays) {
+        matchGamePlanLineupOverlayOptions.forEach(option => {
+            viewOptions.push({
+                id: option.id,
+                label: option.label,
+                active: Boolean(overlayState[option.id])
+            });
+        });
+    }
+
+    if (!viewOptions.length) return '';
 
     return `
-        <div class="match-game-plan-lineup-view-segment" data-lineup-view-segment data-match-id="${escapeMatchHtml(match.id)}" role="group" aria-label="Visning">
+        <div class="match-game-plan-lineup-view-segment${extraClass ? ` ${extraClass}` : ''}" data-lineup-view-segment data-match-id="${escapeMatchHtml(match.id)}" role="group" aria-label="${escapeMatchHtml(ariaLabel)}">
             ${viewOptions.map(option => `
                 <button
                     type="button"
@@ -1522,21 +1541,27 @@ function buildMatchGamePlanLineupViewSegmentHtml(match) {
     `;
 }
 
-function syncMatchGamePlanLineupViewSegmentUi(match) {
-    const builder = document.querySelector('.match-detail-lineup-builder');
-    if (!builder || !match) return;
+function buildMatchGamePlanSquadOverlaySegmentHtml(match) {
+    return buildMatchGamePlanLineupViewSegmentHtml(match, {
+        includePlayerOverlays: true,
+        ariaLabel: 'Spillerinfo',
+        extraClass: 'match-detail-squad-overlay-segment'
+    });
+}
 
-    const segment = builder.querySelector('[data-lineup-view-segment]');
-    if (!segment) return;
+function syncMatchGamePlanLineupViewSegmentUi(match) {
+    if (!match) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    segment.querySelectorAll('[data-lineup-view-toggle]').forEach(button => {
-        const viewKey = button.dataset.lineupViewToggle;
-        const isActive = viewKey === 'samspill'
-            ? Boolean(overlayState.samspill)
-            : Boolean(overlayState[viewKey]);
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    document.querySelectorAll('[data-lineup-view-segment]').forEach(segment => {
+        segment.querySelectorAll('[data-lineup-view-toggle]').forEach(button => {
+            const viewKey = button.dataset.lineupViewToggle;
+            const isActive = viewKey === 'samspill'
+                ? Boolean(overlayState.samspill)
+                : Boolean(overlayState[viewKey]);
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
     });
 }
 
@@ -1560,7 +1585,11 @@ function buildMatchGamePlanLineupToolbarHtml(match) {
     return `
         <div class="match-game-plan-lineup-toolbar">
             ${buildMatchGamePlanFormationPickerHtml(match)}
-            ${buildMatchGamePlanLineupViewSegmentHtml(match)}
+            ${buildMatchGamePlanLineupViewSegmentHtml(match, {
+                includeSamspill: true,
+                ariaLabel: 'Samspill',
+                extraClass: 'is-samspill-only'
+            })}
             ${buildMatchGamePlanSamspillZonePickerHtml(match, { visible: samspillOn })}
             ${buildMatchGamePlanLineupSaveBtnHtml(match)}
         </div>
@@ -3361,9 +3390,9 @@ window.showMatchDetails = function(id) {
                 <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
                 <div class="match-detail-squad-body">
                     <div class="match-detail-squad-players match-detail-squad-zone">
-                        <div class="match-detail-zone-heading">
+                        <div class="match-detail-zone-heading match-detail-squad-zone-heading">
                             <h4>Tropp</h4>
-                            <span class="match-detail-zone-hint">Plasser spillere</span>
+                            ${buildMatchGamePlanSquadOverlaySegmentHtml(match)}
                         </div>
                         <div class="match-bench-list match-detail-squad-list">
                             ${benchPlayersHtml}
