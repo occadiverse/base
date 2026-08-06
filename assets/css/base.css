@@ -1306,8 +1306,38 @@
         .match-detail-squad-body {
             display: grid;
             gap: 1rem;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
             padding: 0.85rem 1.25rem 1rem;
+        }
+        .match-detail-squad-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            min-width: 0;
+        }
+        .match-detail-zone-heading {
+            align-items: baseline;
+            display: flex;
+            gap: 0.55rem;
+            justify-content: space-between;
+            min-width: 0;
+            padding: 0 0.1rem;
+        }
+        .match-detail-zone-heading h4 {
+            color: #ffffff;
+            font-size: 0.78rem;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            line-height: 1.1;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .match-detail-zone-hint {
+            color: rgba(255, 255, 255, 0.48);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
         }
         .match-detail-squad-players {
             min-width: 0;
@@ -1318,6 +1348,9 @@
         .match-detail-squad-lineup {
             align-self: start;
             min-width: 0;
+        }
+        .match-detail-lineup-builder .match-game-plan-samspill-panels {
+            margin-top: 0.15rem;
         }
         .match-detail-lineup-builder {
             display: flex;
@@ -1652,13 +1685,17 @@
         .match-detail-squad-players .match-game-plan-samspill-summary {
             margin-top: 0;
         }
+        .match-detail-lineup-builder .match-game-plan-samspill-summary {
+            margin-top: 0;
+        }
         .match-game-plan-samspill-panels {
             display: none;
             flex-direction: column;
             gap: 0.65rem;
             margin-top: 0.75rem;
         }
-        .match-detail-squad-section.is-show-samspill .match-game-plan-samspill-panels {
+        .match-detail-squad-section.is-show-samspill .match-game-plan-samspill-panels,
+        .match-detail-lineup-builder.is-show-samspill .match-game-plan-samspill-panels {
             display: flex;
         }
         .match-game-plan-samspill-summary {

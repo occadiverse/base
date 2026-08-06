@@ -1323,7 +1323,9 @@ function getMatchGamePlanLineupOverlayState(match) {
 }
 
 function ensureMatchGamePlanSamspillPanelsDom() {
-    const host = document.querySelector('.match-detail-squad-players');
+    const host = document.querySelector('.match-detail-lineup-builder')
+        || document.querySelector('.match-detail-squad-lineup')
+        || document.querySelector('.match-detail-squad-players');
     if (!host) return;
 
     if (!host.querySelector('[data-samspill-panels]')) {
@@ -2298,7 +2300,41 @@ function buildMatchGamePlanStarterFooterHtml(match) {
             <p class="match-game-plan-samspill-hint" data-samspill-hint hidden></p>
             <p class="match-inline-status match-game-plan-lineup-save-state" data-lineup-save-state aria-live="polite" hidden></p>
         </div>
+        ${buildMatchGamePlanSamspillPanelsShellHtml()}
     `;
+}
+
+function buildMatchGamePlanStarter11Html(match, extraClass = '') {
+    const isCompact = extraClass.includes('match-detail-lineup-pitch-wrap');
+    if (isCompact) {
+        const formation = matchGamePlanFormations[getMatchGamePlanDraftFormation(match)] || matchGamePlanFormations['4-2-4'];
+        const pitchHtml = buildMatchGamePlanPitchHtml({
+            ariaLabel: '11er bane',
+            extraClass: `${extraClass} match-game-plan-starter11-wrap`,
+            childrenHtml: `
+                <svg class="match-game-plan-chemistry-lines" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                ${Object.entries(formation.positions).map(([posId, coords]) => `
+                    ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
+                `).join('')}
+            `
+        });
+
+        return `
+            <div class="${getMatchGamePlanLineupBuilderClass(match)}">
+                ${buildMatchGamePlanLineupToolbarHtml(match)}
+                ${pitchHtml}
+                ${buildMatchGamePlanStarterFooterHtml(match)}
+            </div>
+        `;
+    }
+
+    return buildMatchGamePlanPitchHtml({
+        ariaLabel: '11er bane',
+        extraClass,
+        childrenHtml: Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
+            ${buildMatchGamePlanNodeHtml(match, posId, coords)}
+        `).join('')
+    });
 }
 
 function buildMatchGamePlanDiagramNodeHtml(value, coords, planLabel = 'OffC') {
@@ -2634,39 +2670,6 @@ function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '', extraClass 
             </div>
         </div>
     `;
-}
-
-function buildMatchGamePlanStarter11Html(match, extraClass = '') {
-    const isCompact = extraClass.includes('match-detail-lineup-pitch-wrap');
-    if (isCompact) {
-        const formation = matchGamePlanFormations[getMatchGamePlanDraftFormation(match)] || matchGamePlanFormations['4-2-4'];
-        const pitchHtml = buildMatchGamePlanPitchHtml({
-            ariaLabel: '11er bane',
-            extraClass: `${extraClass} match-game-plan-starter11-wrap`,
-            childrenHtml: `
-                <svg class="match-game-plan-chemistry-lines" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
-                ${Object.entries(formation.positions).map(([posId, coords]) => `
-                    ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
-                `).join('')}
-            `
-        });
-
-        return `
-            <div class="${getMatchGamePlanLineupBuilderClass(match)}">
-                ${buildMatchGamePlanLineupToolbarHtml(match)}
-                ${pitchHtml}
-                ${buildMatchGamePlanStarterFooterHtml(match)}
-            </div>
-        `;
-    }
-
-    return buildMatchGamePlanPitchHtml({
-        ariaLabel: '11er bane',
-        extraClass,
-        childrenHtml: Object.entries(matchGamePlanStarterPositions).map(([posId, coords]) => `
-            ${buildMatchGamePlanNodeHtml(match, posId, coords)}
-        `).join('')
-    });
 }
 
 function buildMatchGamePlanOffCHtml(match) {
@@ -3357,13 +3360,20 @@ window.showMatchDetails = function(id) {
             <div class="match-collapsible-content">
                 <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
                 <div class="match-detail-squad-body">
-                    <div class="match-detail-squad-players">
+                    <div class="match-detail-squad-players match-detail-squad-zone">
+                        <div class="match-detail-zone-heading">
+                            <h4>Tropp</h4>
+                            <span class="match-detail-zone-hint">Plasser spillere</span>
+                        </div>
                         <div class="match-bench-list match-detail-squad-list">
                             ${benchPlayersHtml}
                         </div>
-                        ${buildMatchGamePlanSamspillPanelsShellHtml()}
                     </div>
-                    <aside class="match-detail-squad-lineup" aria-label="Oppstilling">
+                    <aside class="match-detail-squad-lineup match-detail-squad-zone" aria-label="Oppstilling">
+                        <div class="match-detail-zone-heading">
+                            <h4>Oppstilling</h4>
+                            <span class="match-detail-zone-hint">11er og visning</span>
+                        </div>
                         ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
                     </aside>
                 </div>
@@ -3510,11 +3520,6 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     const selectedPlayer = playerId
         ? (window.activePlayers || []).find(player => player.id === playerId)
         : null;
-
-    if (selectedPlayer) {
-        const existingPosId = getMatchGamePlanPlayerPitchPosId(match, selectedPlayer);
-        if (existingPosId && existingPosId !== posId) return;
-    }
 
     const draft = getMatchGamePlanDraft(match);
     const previousLineup = getMatchGamePlanDraftLineup(match);
@@ -3802,12 +3807,16 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
             const meta = [player.pos1, jersey ? `#${jersey}` : ''].filter(Boolean).join(' · ');
 
             if (isOnPitchElsewhere) {
+                const currentAtTarget = getMatchGamePlanDraftLineup(match)[posId];
+                const actionLabel = currentAtTarget
+                    ? `Bytt med ${getMatchGamePlanPlayerShortName(currentAtTarget)}`
+                    : 'Flytt hit';
                 return `
                     <button
                         type="button"
                         class="match-game-plan-player-option"
                         onclick="window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')"
-                        title="Bytt med ${escapeMatchHtml(existingPosId)}"
+                        title="${escapeMatchHtml(actionLabel)} · ${escapeMatchHtml(existingPosId)} → ${escapeMatchHtml(posId)}"
                     >
                         <span class="match-game-plan-player-status-dot is-on-pitch" title="På banen"></span>
                         ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
@@ -3815,7 +3824,7 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
                             <strong>${escapeMatchHtml(player.navn)}</strong>
                             <span>${escapeMatchHtml(meta || 'Ukjent posisjon')} · ${escapeMatchHtml(existingPosId)}</span>
                         </span>
-                        <span class="match-game-plan-player-tag">Bytt hit</span>
+                        <span class="match-game-plan-player-tag">${escapeMatchHtml(actionLabel)}</span>
                     </button>
                 `;
             }
