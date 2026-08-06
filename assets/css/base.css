@@ -2344,6 +2344,17 @@
         .training-session-back-btn {
             align-self: flex-start;
         }
+        .match-detail-page {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .match-detail-actions {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
         .training-session-hero {
             min-height: 0;
         }

@@ -26,7 +26,7 @@ function bindMatchListEvents() {
             const matchId = actionEl.dataset.matchId;
             if (!matchId) return;
 
-            if (action === 'edit' || action === 'alert' || action === 'attendance') {
+            if (action === 'edit' || action === 'alert' || action === 'attendance' || action === 'tactics') {
                 event.stopPropagation();
             }
 
@@ -38,6 +38,8 @@ function bindMatchListEvents() {
                 window.showMatchAlertModal(matchId);
             } else if (action === 'attendance') {
                 window.openAttendanceModal(`match_${matchId}`);
+            } else if (action === 'tactics') {
+                window.goToMatchTactics(matchId);
             }
         });
         container.addEventListener('keydown', (event) => {
@@ -458,6 +460,25 @@ function getMatchCardPresentation(match) {
     };
 }
 
+function buildMatchDetailActionsHtml(match) {
+    return `
+        <div class="match-detail-actions">
+            <button type="button" class="bsk-btn bsk-btn-primary is-collapsible" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppmøte" aria-label="Oppmøte">
+                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                <span class="bsk-btn-label">Oppmøte</span>
+            </button>
+            <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="tactics" data-match-id="${escapeMatchHtml(match.id)}" title="Åpne laget i Taktikk" aria-label="Åpne i Taktikk">
+                <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
+                <span class="bsk-btn-label">Taktikk</span>
+            </button>
+            <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp" aria-label="Rediger kamp">
+                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                <span class="bsk-btn-label">Rediger</span>
+            </button>
+        </div>
+    `;
+}
+
 function buildMatchDetailCardHtml(match, options = {}) {
     const {
         extraClass = '',
@@ -490,24 +511,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
             </button>
         `
         : '';
-    const topChipsHtml = `
-        <button type="button" class="bsk-btn bsk-btn-primary is-collapsible" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppmøte" aria-label="Oppmøte">
-            <i class="fa-solid fa-user-check" aria-hidden="true"></i>
-            <span class="bsk-btn-label">Oppmøte</span>
-        </button>
-        <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" onclick="window.goToMatchTactics('${escapeMatchJsString(match.id)}')" title="Åpne laget i Taktikk" aria-label="Åpne i Taktikk">
-            <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
-            <span class="bsk-btn-label">Taktikk</span>
-        </button>
-        <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="edit" data-match-id="${escapeMatchHtml(match.id)}" title="Rediger kamp" aria-label="Rediger kamp">
-            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-            <span class="bsk-btn-label">Rediger</span>
-        </button>
-        <div class="match-detail-chip">
-            <i class="fa-solid fa-futbol"></i>
-            <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
-        </div>
-    `;
     const footerAttendanceHtml = showAttendance && data.attendanceLabel
         ? `<div class="match-detail-footer-item">
                 <i class="fa-solid fa-user-check"></i>
@@ -527,8 +530,9 @@ function buildMatchDetailCardHtml(match, options = {}) {
                     <span>${escapeMatchHtml(data.dateLabel)}</span>
                     ${alertChipHtml}
                 </div>
-                <div class="match-detail-top-chips">
-                    ${topChipsHtml}
+                <div class="match-detail-chip">
+                    <i class="fa-solid fa-futbol"></i>
+                    <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
                 </div>
             </div>
 
@@ -3392,7 +3396,9 @@ window.showMatchDetails = function(id) {
     }
 
     container.innerHTML = `
-        ${buildMatchDetailCardHtml(match, { bottomContentHtml: matchSquadHtml })}
+        <div class="match-detail-page">
+        ${buildMatchDetailActionsHtml(match)}
+        ${buildMatchDetailCardHtml(match, { showWatermark: true, bottomContentHtml: matchSquadHtml })}
 
         <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}">
             <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
@@ -3454,6 +3460,7 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
         </section>
+        </div>
     `;
 
     renderPlayerRowForm(match);
