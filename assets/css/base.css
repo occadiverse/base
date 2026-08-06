@@ -8469,6 +8469,8 @@
             appearance: none;
             border-radius: var(--lineup-card-radius);
             box-sizing: border-box;
+            container-name: squad-card;
+            container-type: size;
             cursor: pointer;
             flex: 0 0 auto;
             font: inherit;
@@ -8521,19 +8523,19 @@
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-visual strong {
             border-radius: 0 0 calc(var(--lineup-card-radius) - 1px) calc(var(--lineup-card-radius) - 1px);
-            flex: 0 0 0.95rem;
-            font-size: 0.6rem;
+            flex: 0 0 clamp(0.72rem, 17.3cqw, 0.95rem);
+            font-size: clamp(0.46rem, 10.9cqw, 0.6rem);
             line-height: 1.25;
             overflow: hidden;
-            padding: 0.1rem 0.08rem 0.09rem;
+            padding: clamp(0.08rem, 2cqw, 0.12rem) clamp(0.06rem, 1.5cqw, 0.08rem) clamp(0.07rem, 1.6cqw, 0.11rem);
             width: 100%;
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge {
-            --badge-size: 1.22rem;
+            --badge-size: clamp(0.84rem, 22.2cqw, 1.22rem);
             z-index: 2;
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-label {
-            font-size: 0.48rem;
+            font-size: clamp(0.34rem, 8.7cqw, 0.48rem);
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch {
             border-color: rgba(245, 197, 66, 0.7);
@@ -11554,16 +11556,6 @@
             }
             .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card {
                 --squad-card-width: 4.85rem;
-            }
-            .match-detail-squad-list .match-bench-player .match-game-plan-lineup-visual strong {
-                flex: 0 0 0.9rem;
-                font-size: 0.54rem;
-            }
-            .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge {
-                --badge-size: 1.1rem;
-            }
-            .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-label {
-                font-size: 0.44rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-pitch {
                 max-width: none;

@@ -1259,11 +1259,25 @@ function buildMatchDetailSquadListHtml(match) {
     `).join('');
 }
 
+function syncMatchDetailSquadCardSizeToPitch() {
+    const pitchCard = document.querySelector('.match-detail-lineup-pitch-wrap .match-game-plan-lineup-card');
+    const squadList = document.querySelector('.match-detail-squad-list');
+    if (!pitchCard || !squadList) return;
+
+    const width = pitchCard.getBoundingClientRect().width;
+    if (!width) return;
+
+    const pitchStyles = window.getComputedStyle(pitchCard);
+    squadList.style.setProperty('--squad-card-width', `${width}px`);
+    squadList.style.setProperty('--lineup-card-radius', pitchStyles.borderRadius || '0.64rem');
+}
+
 function renderMatchDetailSquadList(match) {
     const list = document.querySelector('.match-detail-squad-list');
     if (!list || !match) return;
     list.innerHTML = buildMatchDetailSquadListHtml(match);
     applyMatchGamePlanSamspillZoneFocus(match);
+    requestAnimationFrame(() => syncMatchDetailSquadCardSizeToPitch());
 }
 
 function getMatchGamePlanRoleLabel(slot) {
@@ -2797,6 +2811,7 @@ function renderMatchGamePlanStarter11Page(match) {
     renderMatchDetailSquadList(match);
     syncMatchGamePlanLineupOverlayUi(match);
     requestAnimationFrame(() => {
+        syncMatchDetailSquadCardSizeToPitch();
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
@@ -2805,6 +2820,7 @@ function renderMatchGamePlanStarter11Page(match) {
     if (!window.matchGamePlanChemistryResizeBound) {
         window.matchGamePlanChemistryResizeBound = true;
         window.addEventListener('resize', () => {
+            syncMatchDetailSquadCardSizeToPitch();
             const activeMatch = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (activeMatch && typeof window.drawMatchGamePlanChemistryLines === 'function') {
                 window.drawMatchGamePlanChemistryLines(activeMatch);
@@ -3502,6 +3518,7 @@ window.showMatchDetails = function(id) {
         ensureMatchGamePlanSamspillPanelsDom();
         syncMatchGamePlanLineupOverlayUi(match);
         renderMatchGamePlanSamspillSummary(match);
+        syncMatchDetailSquadCardSizeToPitch();
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
@@ -4147,6 +4164,7 @@ window.toggleMatchPanel = function(btn) {
             ensureMatchGamePlanSamspillPanelsDom();
             syncMatchGamePlanLineupOverlayUi(match);
             renderMatchGamePlanSamspillSummary(match);
+            syncMatchDetailSquadCardSizeToPitch();
             if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
                 window.drawMatchGamePlanChemistryLines(match);
             }
