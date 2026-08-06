@@ -1355,9 +1355,10 @@
             border: 1px solid rgba(245, 197, 66, 0.16);
             border-radius: 999px;
             display: inline-flex;
-            flex: 1 1 auto;
+            flex: 0 1 auto;
             gap: 0.2rem;
-            justify-content: flex-end;
+            margin-left: auto;
+            max-width: 100%;
             min-width: 0;
             overflow-x: auto;
             padding: 0.18rem;
