@@ -1191,8 +1191,8 @@ function buildMatchBenchPlayerHtml(match, player) {
     const isOnPitch = Boolean(pitchPosId);
     const pitchCode = isOnPitch ? getMatchGamePlanPositionBadgeLabel(pitchPosId) : '';
     const ariaLabel = isOnPitch
-        ? `${lastName}, på banen som ${pitchCode}. Klikk for å endre.`
-        : `${lastName}. Klikk for å plassere på banen.`;
+        ? `${lastName}, på banen som ${pitchCode}. Bytt posisjon eller spiller.`
+        : `${lastName}. Plasser på banen.`;
     const badgeHtml = isOnPitch
         ? `<span class="match-game-plan-lineup-pos-badge" aria-hidden="true"><span class="match-game-plan-lineup-pos-badge-label">${escapeMatchHtml(pitchCode)}</span></span>`
         : '';
@@ -1494,74 +1494,47 @@ function getMatchGamePlanLineupOverlayMenuLabel(match) {
     return activeLabels.length ? activeLabels.join(', ') : 'Av';
 }
 
-function buildMatchGamePlanOverlayPickerHtml(match) {
+function buildMatchGamePlanLineupViewSegmentHtml(match) {
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const triggerLabel = getMatchGamePlanLineupOverlayMenuLabel(match);
-    const hasActive = matchGamePlanLineupOverlayOptions.some(option => overlayState[option.id]);
+    const viewOptions = [
+        { id: 'samspill', label: 'Samspill', active: Boolean(overlayState.samspill) },
+        ...matchGamePlanLineupOverlayOptions.map(option => ({
+            id: option.id,
+            label: option.label,
+            active: Boolean(overlayState[option.id])
+        }))
+    ];
 
     return `
-        <div class="match-game-plan-formation-menu" data-lineup-stats-menu data-match-id="${escapeMatchHtml(match.id)}">
-            <button
-                type="button"
-                class="match-game-plan-formation-trigger${hasActive ? ' is-active' : ''}"
-                data-lineup-stats-action="toggle"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-                aria-label="Visning, valgt ${escapeMatchHtml(triggerLabel)}"
-            >
-                <span class="match-game-plan-formation-trigger-value" data-lineup-stats-value>${escapeMatchHtml(triggerLabel)}</span>
-                <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
-            </button>
-            <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="Visning på banen" hidden data-lineup-stats-menu-panel>
+        <div class="match-game-plan-lineup-view-segment" data-lineup-view-segment data-match-id="${escapeMatchHtml(match.id)}" role="group" aria-label="Visning">
+            ${viewOptions.map(option => `
                 <button
                     type="button"
-                    class="match-game-plan-formation-option${hasActive ? '' : ' is-active'}"
-                    role="option"
-                    aria-selected="${hasActive ? 'false' : 'true'}"
-                    data-lineup-stats-action="select"
-                    data-lineup-stats-option="av"
-                >Av</button>
-                ${matchGamePlanLineupOverlayOptions.map(option => `
-                    <button
-                        type="button"
-                        class="match-game-plan-formation-option ${overlayState[option.id] ? 'is-active' : ''}"
-                        role="option"
-                        aria-selected="${overlayState[option.id] ? 'true' : 'false'}"
-                        data-lineup-stats-action="select"
-                        data-lineup-stats-option="${escapeMatchHtml(option.id)}"
-                    >${escapeMatchHtml(option.label)}</button>
-                `).join('')}
-            </div>
+                    class="match-game-plan-lineup-overlay-btn${option.active ? ' is-active' : ''}"
+                    data-lineup-view-toggle="${escapeMatchHtml(option.id)}"
+                    aria-pressed="${option.active ? 'true' : 'false'}"
+                    title="${escapeMatchHtml(option.label)}"
+                >${escapeMatchHtml(option.label)}</button>
+            `).join('')}
         </div>
     `;
 }
 
-function syncMatchGamePlanLineupOverlayPickerUi(match) {
+function syncMatchGamePlanLineupViewSegmentUi(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
     if (!builder || !match) return;
 
-    const menu = builder.querySelector('[data-lineup-stats-menu]');
-    if (!menu) return;
+    const segment = builder.querySelector('[data-lineup-view-segment]');
+    if (!segment) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const triggerLabel = getMatchGamePlanLineupOverlayMenuLabel(match);
-    const hasActive = matchGamePlanLineupOverlayOptions.some(option => overlayState[option.id]);
-    const valueEl = menu.querySelector('[data-lineup-stats-value]');
-    const trigger = menu.querySelector('[data-lineup-stats-action="toggle"]');
-
-    if (valueEl) valueEl.textContent = triggerLabel;
-    if (trigger) {
-        trigger.classList.toggle('is-active', hasActive);
-        trigger.setAttribute('aria-label', `Visning, valgt ${triggerLabel}`);
-    }
-
-    menu.querySelectorAll('[data-lineup-stats-action="select"]').forEach(button => {
-        const optionId = button.dataset.lineupStatsOption;
-        const isActive = optionId === 'av'
-            ? !hasActive
-            : Boolean(overlayState[optionId]);
+    segment.querySelectorAll('[data-lineup-view-toggle]').forEach(button => {
+        const viewKey = button.dataset.lineupViewToggle;
+        const isActive = viewKey === 'samspill'
+            ? Boolean(overlayState.samspill)
+            : Boolean(overlayState[viewKey]);
         button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
 }
 
@@ -1580,11 +1553,13 @@ function buildMatchGamePlanLineupSaveBtnHtml(match) {
 }
 
 function buildMatchGamePlanLineupToolbarHtml(match) {
+    const samspillOn = Boolean(getMatchGamePlanLineupOverlayState(match).samspill);
+
     return `
         <div class="match-game-plan-lineup-toolbar">
             ${buildMatchGamePlanFormationPickerHtml(match)}
-            ${buildMatchGamePlanSamspillZonePickerHtml(match)}
-            ${buildMatchGamePlanOverlayPickerHtml(match)}
+            ${buildMatchGamePlanLineupViewSegmentHtml(match)}
+            ${buildMatchGamePlanSamspillZonePickerHtml(match, { visible: samspillOn })}
             ${buildMatchGamePlanLineupSaveBtnHtml(match)}
         </div>
     `;
@@ -1676,27 +1651,18 @@ function ensureMatchGamePlanFormationMenuEventsBound() {
             return;
         }
 
-        const statsToggleBtn = event.target.closest('[data-lineup-stats-action="toggle"]');
-        if (statsToggleBtn) {
+        const viewToggleBtn = event.target.closest('[data-lineup-view-toggle]');
+        if (viewToggleBtn) {
             event.stopPropagation();
-            const menu = statsToggleBtn.closest('[data-lineup-stats-menu]');
-            setMatchGamePlanLineupDropdownMenuOpen(menu, !menu?.classList.contains('is-open'));
-            return;
-        }
-
-        const statsSelectBtn = event.target.closest('[data-lineup-stats-action="select"]');
-        if (statsSelectBtn) {
-            event.stopPropagation();
-            const menu = statsSelectBtn.closest('[data-lineup-stats-menu]');
-            const matchId = menu?.dataset.matchId;
-            const optionId = statsSelectBtn.dataset.lineupStatsOption;
-            if (matchId && optionId) {
-                window.setMatchGamePlanLineupStatsMenuSelection(matchId, optionId);
+            const matchId = viewToggleBtn.closest('[data-lineup-view-segment]')?.dataset.matchId;
+            const viewKey = viewToggleBtn.dataset.lineupViewToggle;
+            if (matchId && viewKey) {
+                window.toggleMatchGamePlanLineupView(matchId, viewKey);
             }
             return;
         }
 
-        if (!event.target.closest('[data-formation-menu], [data-samspill-zone-menu], [data-lineup-stats-menu]')) {
+        if (!event.target.closest('[data-formation-menu], [data-samspill-zone-menu], [data-lineup-view-segment]')) {
             closeMatchGamePlanLineupDropdownMenus();
         }
     });
@@ -1751,12 +1717,14 @@ function getMatchGamePlanSamspillZoneSelectionLabel(match) {
     return option?.label || 'Av';
 }
 
-function buildMatchGamePlanSamspillZonePickerHtml(match) {
+function buildMatchGamePlanSamspillZonePickerHtml(match, options = {}) {
+    const { visible = true } = options;
     const activeZoneId = getMatchGamePlanSamspillZoneSelectionId(match);
     const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
+    const zoneOptions = matchGamePlanSamspillZoneOptions.filter(option => option.id !== 'av');
 
     return `
-        <div class="match-game-plan-formation-menu" data-samspill-zone-menu data-match-id="${escapeMatchHtml(match.id)}">
+        <div class="match-game-plan-formation-menu match-game-plan-samspill-zone-filter${visible ? '' : ' is-hidden'}" data-samspill-zone-menu data-match-id="${escapeMatchHtml(match.id)}" ${visible ? '' : 'hidden'}>
             <button
                 type="button"
                 class="match-game-plan-formation-trigger"
@@ -1765,17 +1733,17 @@ function buildMatchGamePlanSamspillZonePickerHtml(match) {
                 aria-expanded="false"
                 aria-label="Velg samspillssone, valgt ${escapeMatchHtml(activeLabel)}"
             >
-                <span class="match-game-plan-formation-trigger-label">Samspill</span>
-                <span class="match-game-plan-formation-trigger-value" data-samspill-zone-value>${escapeMatchHtml(activeLabel)}</span>
+                <span class="match-game-plan-formation-trigger-label">Sone</span>
+                <span class="match-game-plan-formation-trigger-value" data-samspill-zone-value>${escapeMatchHtml(activeLabel === 'Av' ? 'Alle' : activeLabel)}</span>
                 <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
             </button>
             <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="Samspillssoner" hidden data-samspill-zone-menu-panel>
-                ${matchGamePlanSamspillZoneOptions.map(option => `
+                ${zoneOptions.map(option => `
                     <button
                         type="button"
-                        class="match-game-plan-formation-option ${activeZoneId === option.id ? 'is-active' : ''}"
+                        class="match-game-plan-formation-option ${(activeZoneId === option.id || (activeZoneId === 'av' && option.id === 'alle')) ? 'is-active' : ''}"
                         role="option"
-                        aria-selected="${activeZoneId === option.id ? 'true' : 'false'}"
+                        aria-selected="${(activeZoneId === option.id || (activeZoneId === 'av' && option.id === 'alle')) ? 'true' : 'false'}"
                         data-samspill-zone-action="select"
                         data-samspill-zone-id="${escapeMatchHtml(option.id)}"
                     >${escapeMatchHtml(option.label)}</button>
@@ -1792,16 +1760,22 @@ function syncMatchGamePlanSamspillZonePickerUi(match) {
     const menu = builder.querySelector('[data-samspill-zone-menu]');
     if (!menu) return;
 
+    const samspillOn = Boolean(getMatchGamePlanLineupOverlayState(match).samspill);
     const activeZoneId = getMatchGamePlanSamspillZoneSelectionId(match);
     const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
+    const displayLabel = activeLabel === 'Av' ? 'Alle' : activeLabel;
     const valueEl = menu.querySelector('[data-samspill-zone-value]');
     const trigger = menu.querySelector('[data-samspill-zone-action="toggle"]');
 
-    if (valueEl) valueEl.textContent = activeLabel;
-    if (trigger) trigger.setAttribute('aria-label', `Velg samspillssone, valgt ${activeLabel}`);
+    menu.hidden = !samspillOn;
+    menu.classList.toggle('is-hidden', !samspillOn);
+
+    if (valueEl) valueEl.textContent = displayLabel;
+    if (trigger) trigger.setAttribute('aria-label', `Velg samspillssone, valgt ${displayLabel}`);
 
     menu.querySelectorAll('[data-samspill-zone-action="select"]').forEach(button => {
-        const isActive = button.dataset.samspillZoneId === activeZoneId;
+        const isActive = button.dataset.samspillZoneId === activeZoneId
+            || (activeZoneId === 'av' && button.dataset.samspillZoneId === 'alle');
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
@@ -2775,7 +2749,7 @@ function syncMatchGamePlanLineupOverlayUi(match) {
         return;
     }
 
-    syncMatchGamePlanLineupOverlayPickerUi(match);
+    syncMatchGamePlanLineupViewSegmentUi(match);
     renderMatchGamePlanSamspillSummary(match);
     syncMatchGamePlanLineupSaveState(match);
     syncMatchGamePlanSamspillHint(match);
@@ -2853,15 +2827,21 @@ window.setMatchGamePlanLineupStatsMenuSelection = function(matchId, optionId) {
     }
 };
 
-window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
+window.toggleMatchGamePlanLineupView = function(matchId, viewKey) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
-    if (!match || !matchGamePlanLineupOverlayOptions.some(option => option.id === overlayKey)) return;
+    if (!match || !viewKey) return;
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
-    overlayState[overlayKey] = !overlayState[overlayKey];
 
-    if (overlayKey === 'samspill' && !overlayState.samspill) {
-        clearMatchGamePlanSamspillZoneFocus(match);
+    if (viewKey === 'samspill') {
+        overlayState.samspill = !overlayState.samspill;
+        if (!overlayState.samspill) {
+            clearMatchGamePlanSamspillZoneFocus(match);
+        }
+    } else if (matchGamePlanLineupOverlayOptions.some(option => option.id === viewKey)) {
+        overlayState[viewKey] = !overlayState[viewKey];
+    } else {
+        return;
     }
 
     syncMatchGamePlanLineupOverlayUi(match);
@@ -2869,6 +2849,10 @@ window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
     if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
         window.drawMatchGamePlanChemistryLines(match);
     }
+};
+
+window.toggleMatchGamePlanLineupOverlay = function(matchId, overlayKey) {
+    window.toggleMatchGamePlanLineupView(matchId, overlayKey);
 };
 
 function ensureMatchGamePlanSamspillLabelLayer(pitch) {
@@ -3745,13 +3729,13 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
 function buildMatchGamePlanSelectActionsHtml(matchId, posId, mode) {
     return `
         <div class="match-game-plan-select-actions">
-            <button type="button" class="match-game-plan-select-action ${mode === 'player' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'player')">
-                <i class="fa-solid fa-user-pen"></i>
-                <span>Bytt spiller</span>
-            </button>
             <button type="button" class="match-game-plan-select-action ${mode === 'position' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'position')">
                 <i class="fa-solid fa-arrows-left-right"></i>
                 <span>Bytt posisjon</span>
+            </button>
+            <button type="button" class="match-game-plan-select-action ${mode === 'player' ? 'is-active' : ''}" onclick="window.openMatchGamePlanPlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(posId)}', 'player')">
+                <i class="fa-solid fa-user-pen"></i>
+                <span>Bytt spiller</span>
             </button>
         </div>
     `;
@@ -3821,18 +3805,17 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
                 return `
                     <button
                         type="button"
-                        class="match-game-plan-player-option is-unavailable"
-                        disabled
-                        aria-disabled="true"
-                        title="Spilleren er allerede plassert som ${escapeMatchHtml(existingPosId)}"
+                        class="match-game-plan-player-option"
+                        onclick="window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')"
+                        title="Bytt med ${escapeMatchHtml(existingPosId)}"
                     >
-                        <span class="match-game-plan-player-status-dot is-on-pitch" title="Allerede på banen"></span>
+                        <span class="match-game-plan-player-status-dot is-on-pitch" title="På banen"></span>
                         ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
                         <span class="match-game-plan-player-copy">
                             <strong>${escapeMatchHtml(player.navn)}</strong>
                             <span>${escapeMatchHtml(meta || 'Ukjent posisjon')} · ${escapeMatchHtml(existingPosId)}</span>
                         </span>
-                        <span class="match-game-plan-player-tag">På banen</span>
+                        <span class="match-game-plan-player-tag">Bytt hit</span>
                     </button>
                 `;
             }
@@ -3929,7 +3912,8 @@ window.openMatchGamePlanBenchPlayerSelect = function(matchId, playerId) {
 
     const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
     if (existingPosId) {
-        window.openMatchGamePlanPlayerSelect(matchId, existingPosId);
+        // På banen: start i «Bytt posisjon» så flytting er synlig først
+        window.openMatchGamePlanPlayerSelect(matchId, existingPosId, 'position');
         return;
     }
 
@@ -3944,7 +3928,7 @@ window.openMatchGamePlanBenchPlayerSelect = function(matchId, playerId) {
             ${buildMatchGamePlanHeadingAvatarHtml(player, '')}
             <span class="match-game-plan-heading-copy">
                 <span class="match-game-plan-heading-title">${escapeMatchHtml(player.navn)}</span>
-                <span class="match-game-plan-heading-subtitle">Velg posisjon på banen</span>
+                <span class="match-game-plan-heading-subtitle">Plasser på banen</span>
             </span>
         `;
     }
