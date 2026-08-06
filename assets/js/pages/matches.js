@@ -1200,7 +1200,6 @@ function buildMatchGamePlanFormValueHtml(player, match) {
 }
 
 function buildMatchBenchPlayerHtml(match, player) {
-    const jersey = player.drakt ? `#${escapeMatchHtml(player.drakt)}` : '';
     const lastName = getMatchGamePlanPlayerLastName(player);
     const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
     const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
@@ -1209,24 +1208,31 @@ function buildMatchBenchPlayerHtml(match, player) {
     const ariaLabel = isOnPitch
         ? `${lastName}, på banen som ${pitchCode}. Klikk for å endre.`
         : `${lastName}. Klikk for å plassere på banen.`;
+    const badgeHtml = isOnPitch
+        ? `<span class="match-game-plan-lineup-pos-badge" aria-hidden="true"><span class="match-game-plan-lineup-pos-badge-label">${escapeMatchHtml(pitchCode)}</span></span>`
+        : '';
+    const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, player);
 
     return `
         <button
             type="button"
-            class="match-bench-player${isOnPitch ? ' is-on-pitch' : ''}"
+            class="match-game-plan-lineup-card match-bench-player is-filled${isOnPitch ? ' is-on-pitch' : ''}"
             data-player-id="${escapeMatchHtml(player.id || '')}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''}
             aria-label="${escapeMatchHtml(ariaLabel)}"
             onclick="window.openMatchGamePlanBenchPlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(player.id || '')}')"
         >
-            <span class="match-game-plan-lineup-photo match-bench-photo" aria-hidden="true">
-                ${photoUrl
-                    ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
-                    : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                ${isOnPitch ? `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-pitch-pos" aria-hidden="true">${escapeMatchHtml(pitchCode)}</span>` : ''}
-                ${buildMatchGamePlanLineupCardOverlayHtml(match, player)}
+            <span class="match-game-plan-lineup-visual" aria-hidden="true">
+                <span class="match-game-plan-lineup-photo-area">
+                    <span class="match-game-plan-lineup-photo match-bench-photo">
+                        ${photoUrl
+                            ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
+                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                        ${badgeHtml}
+                    </span>
+                    ${overlayHtml}
+                </span>
+                <strong>${escapeMatchHtml(lastName)}</strong>
             </span>
-            <strong class="match-bench-name">${escapeMatchHtml(lastName)}</strong>
-            ${jersey ? `<span class="match-bench-number">${jersey}</span>` : ''}
         </button>
     `;
 }
