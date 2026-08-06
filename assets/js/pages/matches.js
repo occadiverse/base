@@ -463,10 +463,6 @@ function getMatchCardPresentation(match) {
 function buildMatchDetailActionsHtml(match) {
     return `
         <div class="match-detail-actions">
-            <button type="button" class="bsk-btn bsk-btn-primary is-collapsible" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppmøte" aria-label="Oppmøte">
-                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
-                <span class="bsk-btn-label">Oppmøte</span>
-            </button>
             <button type="button" class="bsk-btn bsk-btn-secondary is-collapsible" data-match-action="tactics" data-match-id="${escapeMatchHtml(match.id)}" title="Åpne laget i Taktikk" aria-label="Åpne i Taktikk">
                 <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
                 <span class="bsk-btn-label">Taktikk</span>
@@ -3345,8 +3341,6 @@ window.showMatchDetails = function(id) {
     const container = document.getElementById('kampdetaljer-info');
     bindMatchListEvents();
     ensureMatchGamePlanFormationMenuEventsBound();
-    const escapeHtml = escapeMatchHtml;
-    const escapeJsString = escapeMatchJsString;
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
@@ -3357,30 +3351,49 @@ window.showMatchDetails = function(id) {
         ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
         : String(presenceStats.isRegistered ? presenceStats.presentCount : attendingRefs.length);
     const benchPlayersHtml = buildMatchDetailSquadListHtml(match);
-    const openPanel = window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '';
+    const pendingAttendanceFeedback = window._pendingAttendanceFeedback;
+    const openForAttendanceFeedback = Boolean(
+        pendingAttendanceFeedback?.isMatch && pendingAttendanceFeedback.recordId === id
+    );
+    const openPanel = openForAttendanceFeedback
+        ? 'kamptropp'
+        : (window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '');
+    const isSquadOpen = openPanel === 'kamptropp' || openPanel === '';
     const isGamePlanOpen = openPanel === 'kampplan';
+    const isCoachNotesOpen = openPanel === 'trenernotater';
+    const isStatsOpen = openPanel === 'spillerbors';
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
-    const matchSquadHtml = `
-        <div class="match-detail-squad-section relative z-10 ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
-            <div class="match-detail-section-divider" aria-label="Kamptropp – spillere med oppmøte">
-                <span class="match-detail-section-title">Kamptropp</span>
-                <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
-                <span class="match-detail-section-line" aria-hidden="true"></span>
-            </div>
-            <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
-            <div class="match-detail-squad-body">
-                <div class="match-detail-squad-players">
-                    <div class="match-bench-list match-detail-squad-list">
-                        ${benchPlayersHtml}
-                    </div>
-                    ${buildMatchGamePlanSamspillPanelsShellHtml()}
+    const matchSquadPanelHtml = `
+        <section class="match-bench-panel match-detail-squad-section match-collapsible-panel ${getMatchGamePlanOverlayStateClasses(match).join(' ')} ${isSquadOpen ? '' : 'is-collapsed'}">
+            <div class="match-bench-action-row match-bench-topline">
+                <div class="match-bench-heading">
+                    <h3>Kamptropp</h3>
+                    <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
                 </div>
-                <aside class="match-detail-squad-lineup" aria-label="11er">
-                    ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
-                </aside>
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isSquadOpen ? 'true' : 'false'}" aria-label="${isSquadOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <button type="button" class="training-session-attendance-add-btn" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppdater" aria-label="Oppdater oppmøte">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    <span>Oppdater</span>
+                </button>
             </div>
-        </div>
+            <div class="match-collapsible-content">
+                <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
+                <div class="match-detail-squad-body">
+                    <div class="match-detail-squad-players">
+                        <div class="match-bench-list match-detail-squad-list">
+                            ${benchPlayersHtml}
+                        </div>
+                        ${buildMatchGamePlanSamspillPanelsShellHtml()}
+                    </div>
+                    <aside class="match-detail-squad-lineup" aria-label="Oppstilling">
+                        ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
+                    </aside>
+                </div>
+            </div>
+        </section>
     `;
     let gamePlanHtml = '';
     try {
@@ -3398,7 +3411,9 @@ window.showMatchDetails = function(id) {
     container.innerHTML = `
         <div class="match-detail-page">
         ${buildMatchDetailActionsHtml(match)}
-        ${buildMatchDetailCardHtml(match, { showWatermark: true, bottomContentHtml: matchSquadHtml })}
+        ${buildMatchDetailCardHtml(match, { showWatermark: true })}
+
+        ${matchSquadPanelHtml}
 
         <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}">
             <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
@@ -3417,12 +3432,12 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-coach-notes-panel match-collapsible-panel is-collapsed">
+        <section class="match-coach-notes-panel match-collapsible-panel ${isCoachNotesOpen ? '' : 'is-collapsed'}">
             <div class="match-bench-action-row match-bench-topline match-coach-notes-topline">
                 <div class="match-bench-heading">
                     <h3>Trenernotater</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis trenernotater" data-show-label="Vis trenernotater" data-hide-label="Skjul trenernotater">
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}" aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}" data-show-label="Vis trenernotater" data-hide-label="Skjul trenernotater">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
             </div>
@@ -3436,17 +3451,17 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-stats-panel match-collapsible-panel is-collapsed">
+        <section class="match-stats-panel match-collapsible-panel ${isStatsOpen ? '' : 'is-collapsed'}">
             <div class="match-bench-action-row match-bench-topline match-stats-topline">
                 <div class="match-bench-heading">
                     <h3>Spillerbørs</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="false" aria-label="Vis spillerbørs" data-show-label="Vis spillerbørs" data-hide-label="Skjul spillerbørs">
+                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isStatsOpen ? 'true' : 'false'}" aria-label="${isStatsOpen ? 'Skjul spillerbørs' : 'Vis spillerbørs'}" data-show-label="Vis spillerbørs" data-hide-label="Skjul spillerbørs">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
             </div>
             <div class="match-collapsible-content">
-                <p class="match-stats-intro">Oppmøte registreres før kamp via knappen «Oppmøte». «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs.</p>
+                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs.</p>
                 <div class="match-stats-body">
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
@@ -3478,11 +3493,10 @@ window.showMatchDetails = function(id) {
             window.drawMatchGamePlanChemistryLines(match);
         }
 
-        const pendingFeedback = window._pendingAttendanceFeedback;
-        if (pendingFeedback?.isMatch && pendingFeedback.recordId === id) {
+        if (openForAttendanceFeedback) {
             window._pendingAttendanceFeedback = null;
             const message = typeof window.buildAttendanceSaveFeedbackMessage === 'function'
-                ? window.buildAttendanceSaveFeedbackMessage(pendingFeedback)
+                ? window.buildAttendanceSaveFeedbackMessage(pendingAttendanceFeedback)
                 : 'Oppmøte lagret';
             setMatchDetailFeedback('[data-attendance-save-state]', message, 'success', 5000);
         }
@@ -4111,6 +4125,19 @@ window.toggleMatchPanel = function(btn) {
         requestAnimationFrame(() => {
             window.initMatchGamePlanScroller();
             window.syncMatchGamePlanScroller();
+        });
+    }
+
+    if (shouldOpen && panel.classList.contains('match-bench-panel')) {
+        requestAnimationFrame(() => {
+            const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+            if (!match) return;
+            ensureMatchGamePlanSamspillPanelsDom();
+            syncMatchGamePlanLineupOverlayUi(match);
+            renderMatchGamePlanSamspillSummary(match);
+            if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+                window.drawMatchGamePlanChemistryLines(match);
+            }
         });
     }
 };

@@ -2272,7 +2272,7 @@
             font-weight: 800;
             letter-spacing: 0.02em;
         }
-        .match-detail-squad-section > .match-attendance-save-state {
+        .match-detail-squad-section .match-attendance-save-state {
             margin: 0.35rem 0 0.15rem;
             padding: 0 0.35rem;
             text-align: center;
@@ -2354,6 +2354,35 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.45rem;
+        }
+        .match-detail-page .match-bench-panel,
+        .match-detail-page .match-game-plan-panel,
+        .match-detail-page .match-coach-notes-panel,
+        .match-detail-page .match-stats-panel {
+            margin-top: 0;
+        }
+        .match-bench-panel.match-detail-squad-section {
+            padding-top: 0.9rem;
+        }
+        .match-bench-panel .match-bench-topline {
+            justify-content: space-between;
+        }
+        .match-bench-panel .match-detail-section-badge {
+            background: #f5c542;
+            border-color: rgba(255, 255, 255, 0.24);
+            color: #0b2b4c;
+            font-size: 0.72rem;
+            height: 2.1rem;
+            min-width: 2.1rem;
+            padding: 0 0.55rem;
+        }
+        .match-bench-panel .match-detail-squad-body {
+            padding: 0.15rem 0.15rem 0.25rem;
+        }
+        .match-bench-panel .match-attendance-save-state {
+            margin: 0.15rem 0 0.35rem;
+            padding: 0 0.35rem;
+            text-align: center;
         }
         .training-session-hero {
             min-height: 0;
