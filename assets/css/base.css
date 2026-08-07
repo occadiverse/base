@@ -2825,6 +2825,71 @@
         .training-session-groups-panel.match-game-plan-panel {
             margin-top: 0;
         }
+        .training-session-groups-panel .match-bench-topline {
+            justify-content: space-between;
+        }
+        .training-session-groups-info-btn {
+            align-items: center;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.78);
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-family: inherit;
+            height: 2.1rem;
+            justify-content: center;
+            margin-left: auto;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            width: 2.1rem;
+            z-index: 1;
+        }
+        .training-session-groups-info-btn i {
+            font-size: 0.82rem;
+        }
+        .training-session-groups-info-btn:hover,
+        .training-session-groups-info-btn.is-active {
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.34);
+            color: #f5c542;
+        }
+        .training-session-groups-info-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42);
+        }
+        .training-session-groups-info {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 0.85rem;
+            color: rgba(255, 255, 255, 0.82);
+            margin: 0 0 0.9rem;
+            padding: 0.85rem 0.95rem;
+        }
+        .training-session-groups-info.is-hidden {
+            display: none;
+        }
+        .training-session-groups-info-title {
+            color: #f5c542;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0 0 0.55rem;
+            text-transform: uppercase;
+        }
+        .training-session-groups-info-list {
+            display: grid;
+            gap: 0.4rem;
+            list-style: disc;
+            margin: 0;
+            padding-left: 1.1rem;
+        }
+        .training-session-groups-info-list li {
+            font-size: 0.78rem;
+            font-weight: 650;
+            line-height: 1.35;
+        }
         .training-session-groups-body {
             padding: 0.15rem 0.15rem 0.25rem;
         }

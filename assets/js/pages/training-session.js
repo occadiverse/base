@@ -465,6 +465,13 @@ function bindTrainingSessionEvents() {
             return;
         }
 
+        if (action === 'toggle-groups-info') {
+            window._trainingSessionGroupsInfoOpen = !window._trainingSessionGroupsInfoOpen;
+            const eventId = window._activeTrainingSessionId;
+            if (eventId) window.renderTrainingSession(eventId);
+            return;
+        }
+
         if (action === 'set-group-count') {
             const eventId = window._activeTrainingSessionId;
             if (!eventId) return;
@@ -577,6 +584,7 @@ window.renderTrainingSession = function(eventId) {
     }
 
     const isGroupsOpen = window._trainingSessionGroupsOpen === true;
+    const isGroupsInfoOpen = window._trainingSessionGroupsInfoOpen === true;
     const groupsPanelHtml = isTraining
         ? `
             <section class="training-session-groups-panel match-game-plan-panel match-collapsible-panel ${isGroupsOpen ? '' : 'is-collapsed'}">
@@ -587,6 +595,32 @@ window.renderTrainingSession = function(eventId) {
                     <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-groups" aria-expanded="${isGroupsOpen ? 'true' : 'false'}" aria-label="${isGroupsOpen ? 'Skjul grupper' : 'Vis grupper'}" data-show-label="Vis grupper" data-hide-label="Skjul grupper">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
+                    <button
+                        type="button"
+                        class="training-session-groups-info-btn${isGroupsInfoOpen ? ' is-active' : ''}"
+                        data-training-action="toggle-groups-info"
+                        aria-expanded="${isGroupsInfoOpen ? 'true' : 'false'}"
+                        aria-controls="training-session-groups-info"
+                        title="Slik fordeles gruppene"
+                        aria-label="Slik fordeles gruppene"
+                    >
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div
+                    id="training-session-groups-info"
+                    class="training-session-groups-info${isGroupsInfoOpen ? '' : ' is-hidden'}"
+                    ${isGroupsInfoOpen ? '' : 'hidden'}
+                >
+                    <p class="training-session-groups-info-title">Slik fordeles spillere</p>
+                    <ul class="training-session-groups-info-list">
+                        <li>Keepere trekkes ut i egen gruppe og fordeles ikke på banen.</li>
+                        <li>Utespillere sorteres etter Form innen forsvar, midtbane, angrep og gjester.</li>
+                        <li>Gruppene gjøres så jevnstore som mulig. Eventuell rest legges på de siste gruppene.</li>
+                        <li>Hver gruppe fylles med en proporsjonal blanding av posisjoner fra det som er igjen.</li>
+                        <li>Innen hver rolle tas spillere med høyest Form først, så formstyrken fordeles jevnere.</li>
+                        <li>Siste gruppe får det som er igjen etter at de andre er fylt opp.</li>
+                    </ul>
                 </div>
                 <div class="match-collapsible-content">
                     <div class="training-session-groups-body">
