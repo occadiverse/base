@@ -12,12 +12,19 @@
         }
         html {
             background: var(--portal-bg);
+            height: 100%;
+            overflow: hidden;
             scrollbar-gutter: stable;
         }
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
             background: linear-gradient(180deg, #fbfdff 0%, var(--portal-bg) 48%, var(--portal-bg-soft) 100%);
+            /* Keep document from growing so only .portal-main-shell scrolls;
+               otherwise opening collapsible cards toggles the window scrollbar and shifts layout sideways. */
+            height: 100%;
+            max-height: 100%;
+            overflow: hidden;
         }
         .portal-sidebar-shell {
             background:
@@ -46,6 +53,7 @@
             z-index: 50;
         }
         .portal-main-shell {
+            min-height: 0;
             padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
             scrollbar-gutter: stable;
         }
@@ -2533,11 +2541,6 @@
                 width: 100%;
             }
         }
-        .training-session-view {
-            margin: 0 auto;
-            max-width: 44rem;
-            width: 100%;
-        }
         .training-session-page {
             display: flex;
             flex-direction: column;
@@ -2551,7 +2554,8 @@
         .match-detail-page .match-bench-panel,
         .match-detail-page .match-game-plan-panel,
         .match-detail-page .match-coach-notes-panel,
-        .match-detail-page .match-stats-panel {
+        .match-detail-page .match-stats-panel,
+        .training-session-page .match-game-plan-panel {
             margin-top: 0;
         }
         .match-detail-squad-section > .match-bench-panel {
