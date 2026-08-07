@@ -419,6 +419,14 @@ function bindTrainingSessionEvents() {
         const action = actionEl.dataset.trainingAction;
         const eventId = window._activeTrainingSessionId;
 
+        if (action === 'go-back') {
+            if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) {
+                return;
+            }
+            switchTab('hjem');
+            return;
+        }
+
         if (action === 'attendance') {
             if (eventId) window.openAttendanceModal(eventId);
             return;
@@ -495,6 +503,19 @@ function bindTrainingSessionEvents() {
 
             window.renderTrainingSession(eventId);
         }
+    });
+
+    container.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        const actionEl = event.target.closest('[data-training-action="go-back"]');
+        if (!actionEl) return;
+
+        event.preventDefault();
+        if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) {
+            return;
+        }
+        switchTab('hjem');
     });
 }
 
@@ -653,7 +674,14 @@ window.renderTrainingSession = function(eventId) {
 
     container.innerHTML = `
         <div class="training-session-page">
-            <article class="match-detail-card dashboard-next-session-card">
+            <article
+                class="match-detail-card dashboard-next-session-card dashboard-click-card"
+                data-training-action="go-back"
+                role="button"
+                tabindex="0"
+                title="Tilbake"
+                aria-label="Tilbake til forrige side"
+            >
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>

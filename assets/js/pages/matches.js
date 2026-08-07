@@ -24,11 +24,20 @@ function bindMatchListEvents() {
 
             const action = actionEl.dataset.matchAction;
             const matchId = actionEl.dataset.matchId;
-            if (!matchId) return;
 
             if (action === 'edit' || action === 'alert' || action === 'attendance' || action === 'tactics') {
                 event.stopPropagation();
             }
+
+            if (action === 'go-back') {
+                if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) {
+                    return;
+                }
+                switchTab('kamper');
+                return;
+            }
+
+            if (!matchId) return;
 
             if (action === 'open-details') {
                 window.showMatchDetails(matchId);
@@ -45,10 +54,19 @@ function bindMatchListEvents() {
         container.addEventListener('keydown', (event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
 
-            const actionEl = event.target.closest('[data-match-action="open-details"]');
+            const actionEl = event.target.closest('[data-match-action="open-details"], [data-match-action="go-back"]');
             if (!actionEl) return;
 
             event.preventDefault();
+            const action = actionEl.dataset.matchAction;
+            if (action === 'go-back') {
+                if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) {
+                    return;
+                }
+                switchTab('kamper');
+                return;
+            }
+
             const matchId = actionEl.dataset.matchId;
             if (matchId) window.showMatchDetails(matchId);
         });
@@ -464,6 +482,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
     const {
         extraClass = '',
         clickable = false,
+        backOnClick = false,
         showWatermark = false,
         showAttendance = false,
         bottomContentHtml = ''
@@ -474,7 +493,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
         'match-detail-card',
         extraClass,
         data.resultTone,
-        clickable ? 'dashboard-click-card' : ''
+        (clickable || backOnClick) ? 'dashboard-click-card' : ''
     ].filter(Boolean).join(' ');
     const watermarkHtml = showWatermark
         ? `<div class="dashboard-next-match-watermark"><i class="fa-solid fa-shield-halved"></i></div>`
@@ -500,7 +519,9 @@ function buildMatchDetailCardHtml(match, options = {}) {
         : '';
     const clickAttrs = clickable
         ? `data-match-action="open-details" data-match-id="${escapeMatchHtml(match.id)}" role="button" tabindex="0"`
-        : '';
+        : backOnClick
+            ? 'data-match-action="go-back" role="button" tabindex="0" title="Tilbake" aria-label="Tilbake til forrige side"'
+            : '';
 
     return `
         <article class="${cardClasses}" ${clickAttrs}>
@@ -3609,7 +3630,7 @@ window.showMatchDetails = function(id) {
 
     container.innerHTML = `
         <div class="match-detail-page">
-        ${buildMatchDetailCardHtml(match, { showWatermark: true })}
+        ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: true })}
 
         ${matchSquadPanelHtml}
 
