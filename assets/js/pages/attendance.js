@@ -288,9 +288,11 @@ window.addAttendanceGuestPlayer = function() {
 window.updateAttendanceModalSummary = function() {
     const checkboxes = document.querySelectorAll('#attendance-players-list .attendance-modal-checkbox');
     const checkedCount = [...checkboxes].filter(checkbox => checkbox.checked).length;
+    const totalCount = checkboxes.length;
     const summary = document.getElementById('attendanceModalSummary');
     if (summary) {
-        summary.textContent = `${checkedCount} / ${checkboxes.length} møtt opp`;
+        summary.textContent = `${checkedCount}/${totalCount}`;
+        summary.setAttribute('aria-label', `${checkedCount} av ${totalCount} spillere møtt opp`);
     }
 };
 

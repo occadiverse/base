@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260807-groups-info-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260807-attendance-modal-v5">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -695,11 +695,15 @@
                 <div class="match-detail-meta">
                     <i class="fa-solid fa-user-check"></i>
                     <span id="attendanceModalTitle">Oppmøteregistrering</span>
+                    <span
+                        id="attendanceModalSummary"
+                        class="match-detail-section-badge attendance-modal-count-badge"
+                        aria-label="0 av 0 spillere møtt opp"
+                    >0/0</span>
                 </div>
             </div>
 
             <div class="attendance-modal-body relative z-10">
-                <p id="attendanceModalSummary" class="attendance-modal-summary">0 / 0 møtt opp</p>
                 <p id="attendanceModalFeedback" class="match-inline-status attendance-modal-feedback" aria-live="polite" hidden></p>
                 <div id="attendance-players-list" class="attendance-modal-list"></div>
                 <button type="button" id="attendanceAddGuestBtn" class="attendance-modal-guest-btn hidden" onclick="window.addAttendanceGuestPlayer()" title="Legg til gjestespiller" aria-label="Legg til gjestespiller">
@@ -709,12 +713,12 @@
             </div>
 
             <div class="attendance-modal-footer relative z-10">
-                <button type="button" onclick="saveAttendanceRegistry()" class="bsk-btn bsk-btn-primary attendance-modal-action-btn">
-                    <i class="fa-solid fa-floppy-disk"></i>
+                <button type="button" onclick="saveAttendanceRegistry()" class="attendance-modal-footer-btn">
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
                     <span>Lagre</span>
                 </button>
-                <button type="button" onclick="closeAttendanceModal()" class="bsk-btn bsk-btn-secondary attendance-modal-action-btn">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="closeAttendanceModal()" class="attendance-modal-footer-btn">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                     <span>Avbryt</span>
                 </button>
             </div>
@@ -1112,7 +1116,7 @@
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
     <script src="assets/js/pages/players.js?v=20260703-player-profile-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260807-pos-labels-v2"></script>
-    <script src="assets/js/pages/attendance.js?v=20260703-xss-v1"></script>
+    <script src="assets/js/pages/attendance.js?v=20260807-attendance-modal-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260705-samspill-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260806-squad-card-size-v15"></script>
     <script src="assets/js/pages/dashboard.js?v=20260704-training-session-v1"></script>
