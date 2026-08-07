@@ -1626,14 +1626,14 @@
             .match-detail-lineup-pitch-wrap .match-game-plan-pitch {
                 /* Keep full pitch readable on a normal PC without filling the viewport height. */
                 margin-inline: auto;
-                max-width: min(100%, 24rem, calc((100dvh - 12rem) * 2 / 3));
-                width: min(100%, 24rem, calc((100dvh - 12rem) * 2 / 3));
+                max-width: min(100%, 27rem, calc((100dvh - 10rem) * 2 / 3));
+                width: min(100%, 27rem, calc((100dvh - 10rem) * 2 / 3));
             }
         }
         @media (min-width: 1280px) {
             .match-detail-lineup-pitch-wrap .match-game-plan-pitch {
-                max-width: min(100%, 26rem, calc((100dvh - 10rem) * 2 / 3));
-                width: min(100%, 26rem, calc((100dvh - 10rem) * 2 / 3));
+                max-width: min(100%, 30rem, calc((100dvh - 8rem) * 2 / 3));
+                width: min(100%, 30rem, calc((100dvh - 8rem) * 2 / 3));
             }
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
