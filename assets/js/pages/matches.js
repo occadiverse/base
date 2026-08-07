@@ -1515,7 +1515,8 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
         includeSamspill = false,
         includePlayerOverlays = false,
         ariaLabel = 'Visning',
-        extraClass = ''
+        extraClass = '',
+        buttonClass = ''
     } = options;
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     const viewOptions = [];
@@ -1545,10 +1546,11 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
             ${viewOptions.map(option => `
                 <button
                     type="button"
-                    class="match-game-plan-lineup-overlay-btn${option.active ? ' is-active' : ''}"
+                    class="match-game-plan-lineup-overlay-btn${buttonClass ? ` ${buttonClass}` : ''}${option.active ? ' is-active' : ''}"
                     data-lineup-view-toggle="${escapeMatchHtml(option.id)}"
                     aria-pressed="${option.active ? 'true' : 'false'}"
                     title="${escapeMatchHtml(option.label)}"
+                    aria-label="${escapeMatchHtml(option.label)}"
                 >${escapeMatchHtml(option.label)}</button>
             `).join('')}
         </div>
@@ -1559,7 +1561,8 @@ function buildMatchGamePlanSquadOverlaySegmentHtml(match) {
     return buildMatchGamePlanLineupViewSegmentHtml(match, {
         includePlayerOverlays: true,
         ariaLabel: 'Spillerinfo',
-        extraClass: 'match-detail-squad-overlay-segment'
+        extraClass: 'match-detail-squad-overlay-segment',
+        buttonClass: 'bsk-btn bsk-btn-chip'
     });
 }
 
@@ -3421,7 +3424,7 @@ window.showMatchDetails = function(id) {
                     <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
                     <div class="match-detail-squad-body">
                         <div class="match-detail-squad-players match-detail-squad-zone">
-                            <div class="match-detail-zone-heading match-detail-squad-zone-heading">
+                            <div class="match-detail-squad-overlay-toolbar">
                                 ${buildMatchGamePlanSquadOverlaySegmentHtml(match)}
                             </div>
                             <div class="match-bench-list match-detail-squad-list">
