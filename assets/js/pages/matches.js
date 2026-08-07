@@ -573,14 +573,14 @@ const matchGamePlanFormations = {
         label: '4-2-4',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '71%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '71%', left: '39%', label: 'Stopper' },
-            HMS: { top: '71%', left: '61%', label: 'Stopper' },
-            HB: { top: '71%', left: '83%', label: 'Høyre back' },
-            DM: { top: '50%', left: '61%', label: 'Midtbane' },
-            PM: { top: '29%', left: '61%', label: 'Midtbane' },
+            VB: { top: '71%', left: '17%', label: 'Venstre bekk' },
+            VMS: { top: '71%', left: '39%', label: 'Venstre stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Høyre stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre bekk' },
+            DM: { top: '50%', left: '61%', label: 'Def midtbane' },
+            PM: { top: '29%', left: '61%', label: 'Playmaker' },
             VK: { top: '29%', left: '17%', label: 'Venstre kant' },
-            OM: { top: '50%', left: '39%', label: 'Midtbane' },
+            OM: { top: '50%', left: '39%', label: 'Off midtbane' },
             SP: { top: '29%', left: '39%', label: 'Spiss' },
             HK: { top: '29%', left: '83%', label: 'Høyre kant' }
         }
@@ -589,13 +589,13 @@ const matchGamePlanFormations = {
         label: '4-3-3',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '71%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '71%', left: '39%', label: 'Stopper' },
-            HMS: { top: '71%', left: '61%', label: 'Stopper' },
-            HB: { top: '71%', left: '83%', label: 'Høyre back' },
-            DM: { top: '50%', left: '50%', label: 'Midtbane' },
-            OM: { top: '50%', left: '28%', label: 'Midtbane' },
-            PM: { top: '50%', left: '72%', label: 'Midtbane' },
+            VB: { top: '71%', left: '17%', label: 'Venstre bekk' },
+            VMS: { top: '71%', left: '39%', label: 'Venstre stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Høyre stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre bekk' },
+            DM: { top: '50%', left: '50%', label: 'Def midtbane' },
+            OM: { top: '50%', left: '28%', label: 'Off midtbane' },
+            PM: { top: '50%', left: '72%', label: 'Playmaker' },
             VK: { top: '29%', left: '28%', label: 'Venstre kant' },
             SP: { top: '29%', left: '50%', label: 'Spiss' },
             HK: { top: '29%', left: '72%', label: 'Høyre kant' }
@@ -605,14 +605,14 @@ const matchGamePlanFormations = {
         label: '4-2-3-1',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '71%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '71%', left: '39%', label: 'Stopper' },
-            HMS: { top: '71%', left: '61%', label: 'Stopper' },
-            HB: { top: '71%', left: '83%', label: 'Høyre back' },
-            DM: { top: '50%', left: '61%', label: 'Defensiv midtbane' },
+            VB: { top: '71%', left: '17%', label: 'Venstre bekk' },
+            VMS: { top: '71%', left: '39%', label: 'Venstre stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Høyre stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre bekk' },
+            DM: { top: '50%', left: '61%', label: 'Def midtbane' },
             PM: { top: '29%', left: '50%', label: 'Playmaker' },
             VK: { top: '29%', left: '28%', label: 'Venstre kant' },
-            OM: { top: '50%', left: '39%', label: 'Offensiv midtbane' },
+            OM: { top: '50%', left: '39%', label: 'Off midtbane' },
             HK: { top: '29%', left: '72%', label: 'Høyre kant' },
             SP: { top: '8%', left: '50%', label: 'Spiss' }
         }
@@ -621,15 +621,15 @@ const matchGamePlanFormations = {
         label: '4-5-1',
         positions: {
             GK: { top: '95%', left: '50%', label: 'Keeper' },
-            VB: { top: '71%', left: '17%', label: 'Venstre back' },
-            VMS: { top: '71%', left: '39%', label: 'Stopper' },
-            HMS: { top: '71%', left: '61%', label: 'Stopper' },
-            HB: { top: '71%', left: '83%', label: 'Høyre back' },
-            VK: { top: '50%', left: '10%', label: 'Venstre midtbane' },
-            DM: { top: '50%', left: '50%', label: 'Midtbane' },
-            OM: { top: '50%', left: '28%', label: 'Midtbane' },
-            PM: { top: '50%', left: '72%', label: 'Midtbane' },
-            HK: { top: '50%', left: '90%', label: 'Høyre midtbane' },
+            VB: { top: '71%', left: '17%', label: 'Venstre bekk' },
+            VMS: { top: '71%', left: '39%', label: 'Venstre stopper' },
+            HMS: { top: '71%', left: '61%', label: 'Høyre stopper' },
+            HB: { top: '71%', left: '83%', label: 'Høyre bekk' },
+            VK: { top: '50%', left: '10%', label: 'Venstre kant' },
+            DM: { top: '50%', left: '50%', label: 'Def midtbane' },
+            OM: { top: '50%', left: '28%', label: 'Off midtbane' },
+            PM: { top: '50%', left: '72%', label: 'Playmaker' },
+            HK: { top: '50%', left: '90%', label: 'Høyre kant' },
             SP: { top: '29%', left: '50%', label: 'Spiss' }
         }
     }
@@ -727,6 +727,30 @@ const matchGamePlanPositionLabels = {
     SP: 'Spiss'
 };
 
+const matchGamePlanPositionSortOrder = [
+    'GK',
+    'VMS',
+    'HMS',
+    'VB',
+    'HB',
+    'DM',
+    'OM',
+    'VK',
+    'HK',
+    'PM',
+    'SP'
+];
+
+function getMatchGamePlanPositionSortIndex(posId) {
+    const index = matchGamePlanPositionSortOrder.indexOf(posId);
+    return index === -1 ? 999 : index;
+}
+
+function compareMatchGamePlanPositions(posA, posB) {
+    return getMatchGamePlanPositionSortIndex(posA) - getMatchGamePlanPositionSortIndex(posB)
+        || String(posA).localeCompare(String(posB));
+}
+
 function getMatchGamePlanPlayerShortName(player) {
     return String(player?.navn || '').trim() || 'Spiller';
 }
@@ -818,15 +842,11 @@ function buildMatchGamePlanBenchPlacementOptionsHtml(match, player) {
     const positions = getMatchGamePlanDraftFormationPositions(match);
 
     return Object.entries(positions)
-        .sort(([posA], [posB]) => {
-            const scoreA = getMatchGamePlanPositionScore(player, posA);
-            const scoreB = getMatchGamePlanPositionScore(player, posB);
-            return scoreA - scoreB || posA.localeCompare(posB);
-        })
-        .map(([posId, coords]) => {
+        .sort(([posA], [posB]) => compareMatchGamePlanPositions(posA, posB))
+        .map(([posId]) => {
             const targetPlayer = lineup[posId];
             const score = getMatchGamePlanPositionScore(player, posId);
-            const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
+            const positionLabel = getMatchGamePlanPositionLabel(posId);
             const avatarHtml = targetPlayer
                 ? buildMatchGamePlanPlayerOptionAvatarHtml(targetPlayer)
                 : `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(posId)}</span></span>`;
@@ -1844,7 +1864,7 @@ function syncMatchGamePlanSamspillZonePickerUi(match) {
 
 function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const selectedPlayer = getMatchGamePlanDraftLineup(match)[posId] || null;
-    const positionLabel = coords.label || getMatchGamePlanPositionLabel(posId);
+    const positionLabel = getMatchGamePlanPositionLabel(posId);
     const positionBadge = getMatchGamePlanPositionBadgeLabel(posId);
     const photoUrl = selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : '';
     const cardLabel = selectedPlayer ? getMatchGamePlanPlayerLastName(selectedPlayer) : '';
@@ -3850,15 +3870,11 @@ function buildMatchGamePlanPositionOptionsHtml(match, posId) {
     return Object.keys(positions)
         .filter(targetPosId => targetPosId !== posId)
         .filter(targetPosId => !matchGamePlanSamePlayer(lineup[targetPosId], currentPlayer))
-        .sort((a, b) => {
-            const scoreA = getMatchGamePlanPositionScore(currentPlayer, a);
-            const scoreB = getMatchGamePlanPositionScore(currentPlayer, b);
-            return scoreA - scoreB || a.localeCompare(b);
-        })
+        .sort(compareMatchGamePlanPositions)
         .map(targetPosId => {
             const targetPlayer = lineup[targetPosId];
             const score = getMatchGamePlanPositionScore(currentPlayer, targetPosId);
-            const positionLabel = positions[targetPosId]?.label || getMatchGamePlanPositionLabel(targetPosId);
+            const positionLabel = getMatchGamePlanPositionLabel(targetPosId);
             const avatarHtml = targetPlayer
                 ? buildMatchGamePlanPlayerOptionAvatarHtml(targetPlayer)
                 : `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(targetPosId)}</span></span>`;
@@ -3886,15 +3902,9 @@ function buildMatchGamePlanPositionOptionsHtml(match, posId) {
 }
 
 function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
-    const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) => {
-        const scoreA = getMatchGamePlanPositionScore(a, posId);
-        const scoreB = getMatchGamePlanPositionScore(b, posId);
-        if (scoreA !== scoreB) return scoreA - scoreB;
-
-        const jerseyA = Number(a.drakt || a.draktnummer) || 999;
-        const jerseyB = Number(b.drakt || b.draktnummer) || 999;
-        return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
-    });
+    const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) =>
+        String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' })
+    );
 
     return players
         .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer))
