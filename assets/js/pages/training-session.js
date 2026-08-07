@@ -360,9 +360,20 @@ function buildGroupsHtml(eventId, players) {
         delete window._trainingSessionGroups[eventId];
     }
 
-    const groupOptions = [1, 2, 3, 4].map(count => {
+    const groupCountButtons = [1, 2, 3, 4].map(count => {
         const label = count === 1 ? '1 gruppe' : `${count} grupper`;
-        return `<option value="${count}" ${count === groupCount ? 'selected' : ''}>${label}</option>`;
+        const isActive = count === groupCount;
+        return `
+            <button
+                type="button"
+                class="training-session-group-count-btn${isActive ? ' is-active' : ''}"
+                data-training-action="set-group-count"
+                data-group-count="${count}"
+                aria-pressed="${isActive ? 'true' : 'false'}"
+                title="${escapeTrainingHtml(label)}"
+                aria-label="${escapeTrainingHtml(label)}"
+            >${escapeTrainingHtml(label)}</button>
+        `;
     }).join('');
 
     let groupsResultHtml = '';
@@ -388,11 +399,8 @@ function buildGroupsHtml(eventId, players) {
     }
 
     return `
-        <div class="training-session-groups-controls">
-            <label class="training-session-label" for="trainingGroupCountSelect">Antall grupper</label>
-            <select id="trainingGroupCountSelect" class="training-session-select" data-training-action="set-group-count">
-                ${groupOptions}
-            </select>
+        <div class="training-session-groups-controls" role="group" aria-label="Antall grupper">
+            ${groupCountButtons}
         </div>
         ${groupsResultHtml}
     `;
@@ -465,31 +473,30 @@ function bindTrainingSessionEvents() {
             );
             return;
         }
-    });
 
-    container.addEventListener('change', (event) => {
-        const select = event.target.closest('[data-training-action="set-group-count"]');
-        if (!select) return;
+        if (action === 'set-group-count') {
+            const eventId = window._activeTrainingSessionId;
+            if (!eventId) return;
 
-        const eventId = window._activeTrainingSessionId;
-        if (!eventId) return;
+            const groupCount = Number(actionEl.dataset.groupCount);
+            if (!Number.isFinite(groupCount) || groupCount < 1 || groupCount > 4) return;
 
-        const groupCount = Number(select.value);
-        if (!Number.isFinite(groupCount) || groupCount < 1 || groupCount > 4) return;
+            const trainingEvent = getTrainingEvent(eventId);
+            if (!trainingEvent || trainingEvent.type !== 'Trening') return;
 
-        const trainingEvent = getTrainingEvent(eventId);
-        if (!trainingEvent || trainingEvent.type !== 'Trening') return;
+            if ((window._trainingSessionGroupCounts[eventId] || 1) === groupCount) return;
 
-        const players = getRegisteredPlayersForEvent(trainingEvent);
-        window._trainingSessionGroupCounts[eventId] = groupCount;
+            const players = getRegisteredPlayersForEvent(trainingEvent);
+            window._trainingSessionGroupCounts[eventId] = groupCount;
 
-        if (!players.length) {
-            delete window._trainingSessionGroups[eventId];
-        } else {
-            window._trainingSessionGroups[eventId] = distributePlayersIntoGroups(players, groupCount);
+            if (!players.length) {
+                delete window._trainingSessionGroups[eventId];
+            } else {
+                window._trainingSessionGroups[eventId] = distributePlayersIntoGroups(players, groupCount);
+            }
+
+            window.renderTrainingSession(eventId);
         }
-
-        window.renderTrainingSession(eventId);
     });
 }
 
@@ -607,6 +614,12 @@ window.renderTrainingSession = function(eventId) {
         window._trainingSessionAttendanceOpen = true;
     }
     const isAttendanceOpen = window._trainingSessionAttendanceOpen === true;
+    const attendanceBadgeLabel = presenceStats.isRegistered && presenceStats.squadSize > 0
+        ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
+        : String(presenceStats.isRegistered ? presenceStats.presentCount : (presenceStats.squadSize || 0));
+    const attendanceBadgeAria = presenceStats.isRegistered
+        ? `${presenceStats.presentCount} av ${presenceStats.squadSize || presenceStats.presentCount} spillere påmeldt`
+        : `${presenceStats.squadSize || 0} spillere i troppen`;
 
     const desktopTitle = document.getElementById('current-tab-title');
     if (desktopTitle && window.currentTab === 'oktside') {
@@ -661,6 +674,7 @@ window.renderTrainingSession = function(eventId) {
                 <div class="match-bench-action-row match-bench-topline">
                     <div class="match-bench-heading">
                         <h3>Oppmøte</h3>
+                        <span class="match-detail-section-badge" aria-label="${escapeTrainingHtml(attendanceBadgeAria)}">${escapeTrainingHtml(attendanceBadgeLabel)}</span>
                     </div>
                     <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-attendance" aria-expanded="${isAttendanceOpen ? 'true' : 'false'}" aria-label="${isAttendanceOpen ? 'Skjul oppmøte' : 'Vis oppmøte'}" data-show-label="Vis oppmøte" data-hide-label="Skjul oppmøte">
                         <i class="fa-solid fa-chevron-up"></i>

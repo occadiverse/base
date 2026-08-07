@@ -2563,7 +2563,8 @@
         .match-bench-panel .match-bench-topline {
             justify-content: space-between;
         }
-        .match-bench-panel .match-detail-section-badge {
+        .match-bench-panel .match-detail-section-badge,
+        .training-session-attendance-panel .match-detail-section-badge {
             background: rgba(245, 197, 66, 0.14);
             border: 1px solid rgba(245, 197, 66, 0.34);
             box-shadow: none;
@@ -2817,8 +2818,57 @@
         }
         .training-session-groups-controls {
             display: grid;
-            gap: 0.35rem;
+            gap: 0.5rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             margin-bottom: 0.85rem;
+            max-width: 100%;
+            width: 100%;
+        }
+        .training-session-groups-panel .training-session-group-count-btn {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.8rem;
+            box-shadow: 0 5px 12px rgba(2, 6, 23, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            cursor: pointer;
+            display: inline-flex;
+            font-family: inherit;
+            font-size: 0.66rem;
+            font-weight: 900;
+            height: 2.45rem;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.05em;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            padding: 0.5rem 0.45rem;
+            text-transform: none;
+            transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
+            width: 100%;
+        }
+        .training-session-groups-panel .training-session-group-count-btn:hover:not(.is-active) {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-color: rgba(245, 197, 66, 0.42);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .training-session-groups-panel .training-session-group-count-btn.is-active {
+            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
+            border-color: rgba(245, 197, 66, 0.9);
+            box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            color: #0b2b4c;
+        }
+        .training-session-groups-panel .training-session-group-count-btn.is-active:hover {
+            background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
+            border-color: rgba(245, 197, 66, 0.95);
+            color: #0b2b4c;
+            transform: none;
+        }
+        .training-session-groups-panel .training-session-group-count-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 5px 12px rgba(2, 6, 23, 0.22);
         }
         .training-session-groups-panel .training-session-label {
             color: rgba(255, 255, 255, 0.62);
