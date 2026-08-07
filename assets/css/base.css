@@ -1260,7 +1260,10 @@
             padding: 2.25rem 1.25rem 2rem;
         }
         .match-detail-squad-section {
-            padding-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding-top: 0;
         }
         .match-detail-section-divider {
             align-items: center;
@@ -1304,9 +1307,9 @@
             padding: 0.34rem 0.58rem;
         }
         .match-detail-squad-body {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
             padding: 0.85rem 1.25rem 1rem;
         }
         .match-detail-squad-zone {
@@ -1343,6 +1346,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 0.45rem;
+            width: 100%;
         }
         .match-detail-squad-zone-heading h4 {
             flex: 0 0 auto;
@@ -1399,8 +1403,8 @@
             padding: 0;
         }
         .match-detail-squad-lineup {
-            align-self: start;
             min-width: 0;
+            padding: 0.15rem 0.15rem 0.35rem;
         }
         .match-detail-lineup-builder .match-game-plan-samspill-panels {
             margin-top: 0.15rem;
@@ -2473,8 +2477,8 @@
         .match-detail-page .match-stats-panel {
             margin-top: 0;
         }
-        .match-bench-panel.match-detail-squad-section {
-            padding-top: 0.9rem;
+        .match-detail-squad-section > .match-bench-panel {
+            margin-top: 0;
         }
         .match-bench-panel .match-bench-topline {
             justify-content: space-between;
@@ -2490,6 +2494,12 @@
         }
         .match-bench-panel .match-detail-squad-body {
             padding: 0.15rem 0.15rem 0.25rem;
+        }
+        .match-bench-panel .match-detail-zone-hint {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
         }
         .match-bench-panel .match-attendance-save-state {
             margin: 0.15rem 0 0.35rem;
@@ -11549,8 +11559,7 @@
                 padding-right: 1rem;
             }
             .match-detail-squad-body {
-                gap: 0.85rem;
-                grid-template-columns: 1fr;
+                gap: 0.55rem;
                 padding: 0.85rem 1rem 1rem;
             }
             .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card {

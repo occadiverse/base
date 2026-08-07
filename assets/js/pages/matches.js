@@ -3378,52 +3378,75 @@ window.showMatchDetails = function(id) {
     const openForAttendanceFeedback = Boolean(
         pendingAttendanceFeedback?.isMatch && pendingAttendanceFeedback.recordId === id
     );
+    if (window.matchDetailPairPanelMatchId !== id) {
+        window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
+        window.matchDetailPairPanelMatchId = id;
+        if (!openForAttendanceFeedback && !window.pendingMatchDetailsOpenPanel) {
+            window.activeMatchDetailsOpenPanel = '';
+        }
+    }
     const openPanel = openForAttendanceFeedback
         ? 'kamptropp'
         : (window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '');
-    const isSquadOpen = openPanel === 'kamptropp' || openPanel === '';
+    const exclusiveOpen = openPanel === 'kampplan'
+        || openPanel === 'trenernotater'
+        || openPanel === 'spillerbors';
+    window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
+    const pairState = window.matchDetailPairPanelState;
+    if (openForAttendanceFeedback) pairState.kamptropp = true;
+    const isSquadPanelOpen = !exclusiveOpen && pairState.kamptropp === true;
+    const isLineupPanelOpen = !exclusiveOpen && pairState.oppstilling === true;
     const isGamePlanOpen = openPanel === 'kampplan';
     const isCoachNotesOpen = openPanel === 'trenernotater';
     const isStatsOpen = openPanel === 'spillerbors';
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadPanelHtml = `
-        <section class="match-bench-panel match-detail-squad-section match-collapsible-panel ${getMatchGamePlanOverlayStateClasses(match).join(' ')} ${isSquadOpen ? '' : 'is-collapsed'}">
-            <div class="match-bench-action-row match-bench-topline">
-                <div class="match-bench-heading">
-                    <h3>Kamptropp</h3>
-                    <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
+        <div class="match-detail-squad-section ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
+            <section class="match-bench-panel match-collapsible-panel ${isSquadPanelOpen ? '' : 'is-collapsed'}" data-match-panel="kamptropp">
+                <div class="match-bench-action-row match-bench-topline">
+                    <div class="match-bench-heading">
+                        <h3>Kamptropp</h3>
+                        <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
+                    </div>
+                    <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isSquadPanelOpen ? 'true' : 'false'}" aria-label="${isSquadPanelOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button type="button" class="training-session-attendance-add-btn" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppdater" aria-label="Oppdater oppmøte">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        <span>Oppdater</span>
+                    </button>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isSquadOpen ? 'true' : 'false'}" aria-label="${isSquadOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
-                <button type="button" class="training-session-attendance-add-btn" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppdater" aria-label="Oppdater oppmøte">
-                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                    <span>Oppdater</span>
-                </button>
-            </div>
-            <div class="match-collapsible-content">
-                <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
-                <div class="match-detail-squad-body">
-                    <div class="match-detail-squad-players match-detail-squad-zone">
-                        <div class="match-detail-zone-heading match-detail-squad-zone-heading">
-                            <h4>Tropp</h4>
-                            ${buildMatchGamePlanSquadOverlaySegmentHtml(match)}
-                        </div>
-                        <div class="match-bench-list match-detail-squad-list">
-                            ${benchPlayersHtml}
+                <div class="match-collapsible-content">
+                    <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
+                    <div class="match-detail-squad-body">
+                        <div class="match-detail-squad-players match-detail-squad-zone">
+                            <div class="match-detail-zone-heading match-detail-squad-zone-heading">
+                                ${buildMatchGamePlanSquadOverlaySegmentHtml(match)}
+                            </div>
+                            <div class="match-bench-list match-detail-squad-list">
+                                ${benchPlayersHtml}
+                            </div>
                         </div>
                     </div>
-                    <aside class="match-detail-squad-lineup match-detail-squad-zone" aria-label="Oppstilling">
-                        <div class="match-detail-zone-heading">
-                            <h4>Oppstilling</h4>
-                            <span class="match-detail-zone-hint">11er og visning</span>
-                        </div>
-                        ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
-                    </aside>
                 </div>
-            </div>
-        </section>
+            </section>
+            <section class="match-bench-panel match-collapsible-panel ${isLineupPanelOpen ? '' : 'is-collapsed'}" data-match-panel="oppstilling">
+                <div class="match-bench-action-row match-bench-topline">
+                    <div class="match-bench-heading">
+                        <h3>Lagoppstilling</h3>
+                    </div>
+                    <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isLineupPanelOpen ? 'true' : 'false'}" aria-label="${isLineupPanelOpen ? 'Skjul lagoppstilling' : 'Vis lagoppstilling'}" data-show-label="Vis lagoppstilling" data-hide-label="Skjul lagoppstilling">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="match-collapsible-content">
+                    <div class="match-detail-squad-lineup match-detail-squad-zone" aria-label="Lagoppstilling">
+                        ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
+                    </div>
+                </div>
+            </section>
+        </div>
     `;
     let gamePlanHtml = '';
     try {
@@ -3444,7 +3467,7 @@ window.showMatchDetails = function(id) {
 
         ${matchSquadPanelHtml}
 
-        <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}">
+        <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}" data-match-panel="kampplan">
             <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
                 <div class="match-bench-heading">
                     <h3>Kampplan</h3>
@@ -3461,7 +3484,7 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-coach-notes-panel match-collapsible-panel ${isCoachNotesOpen ? '' : 'is-collapsed'}">
+        <section class="match-coach-notes-panel match-collapsible-panel ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
             <div class="match-bench-action-row match-bench-topline match-coach-notes-topline">
                 <div class="match-bench-heading">
                     <h3>Trenernotater</h3>
@@ -3480,7 +3503,7 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-stats-panel match-collapsible-panel ${isStatsOpen ? '' : 'is-collapsed'}">
+        <section class="match-stats-panel match-collapsible-panel ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
             <div class="match-bench-action-row match-bench-topline match-stats-topline">
                 <div class="match-bench-heading">
                     <h3>Spillerbørs</h3>
@@ -4118,46 +4141,87 @@ window.initMatchGamePlanScroller = function() {
     window.goToMatchGamePlanTab(initialTabId, 'auto');
 };
 
+function getMatchDetailsPanelId(panel) {
+    if (!panel) return '';
+    if (panel.dataset.matchPanel) return panel.dataset.matchPanel;
+    if (panel.classList.contains('match-game-plan-panel')) return 'kampplan';
+    if (panel.classList.contains('match-coach-notes-panel')) return 'trenernotater';
+    if (panel.classList.contains('match-stats-panel')) return 'spillerbors';
+    if (panel.classList.contains('match-bench-panel')) return 'kamptropp';
+    return '';
+}
+
+function setMatchDetailsPanelCollapsed(panel, collapsed) {
+    if (!panel) return;
+    panel.classList.toggle('is-collapsed', collapsed);
+    const toggle = panel.querySelector('.match-panel-toggle-btn');
+    if (!toggle) return;
+    toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    toggle.setAttribute(
+        'aria-label',
+        collapsed
+            ? (toggle.dataset.showLabel || 'Vis seksjon')
+            : (toggle.dataset.hideLabel || 'Skjul seksjon')
+    );
+}
+
+function isMatchDetailsPairPanelId(panelId) {
+    return panelId === 'kamptropp' || panelId === 'oppstilling';
+}
+
+function syncMatchDetailPairPanelsAfterExclusiveClose() {
+    window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
+    const pairState = window.matchDetailPairPanelState;
+    document.querySelectorAll('#kampdetaljer-info [data-match-panel="kamptropp"], #kampdetaljer-info [data-match-panel="oppstilling"]').forEach(panel => {
+        const panelId = getMatchDetailsPanelId(panel);
+        setMatchDetailsPanelCollapsed(panel, pairState[panelId] !== true);
+    });
+    if (pairState.kamptropp === true) return 'kamptropp';
+    if (pairState.oppstilling === true) return 'oppstilling';
+    return '';
+}
+
 window.toggleMatchPanel = function(btn) {
     const panel = btn?.closest('.match-collapsible-panel');
     if (!panel) return;
 
+    const panelId = getMatchDetailsPanelId(panel);
+    const isPairPanel = isMatchDetailsPairPanelId(panelId);
     const shouldOpen = panel.classList.contains('is-collapsed');
+    window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
 
     if (shouldOpen) {
         document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel').forEach(otherPanel => {
-            otherPanel.classList.add('is-collapsed');
-            const otherToggle = otherPanel.querySelector('.match-panel-toggle-btn');
-            if (otherToggle) {
-                otherToggle.setAttribute('aria-expanded', 'false');
-                otherToggle.setAttribute('aria-label', otherToggle.dataset.showLabel || 'Vis seksjon');
-            }
+            if (otherPanel === panel) return;
+            const otherId = getMatchDetailsPanelId(otherPanel);
+            if (isPairPanel && isMatchDetailsPairPanelId(otherId)) return;
+            setMatchDetailsPanelCollapsed(otherPanel, true);
         });
 
-        panel.classList.remove('is-collapsed');
-        window.activeMatchDetailsOpenPanel = panel.classList.contains('match-game-plan-panel')
-            ? 'kampplan'
-            : (panel.classList.contains('match-bench-panel')
-                ? 'kamptropp'
-                : (panel.classList.contains('match-coach-notes-panel')
-                    ? 'trenernotater'
-                    : (panel.classList.contains('match-stats-panel') ? 'spillerbors' : '')));
+        setMatchDetailsPanelCollapsed(panel, false);
+        window.activeMatchDetailsOpenPanel = panelId;
+        if (isPairPanel) window.matchDetailPairPanelState[panelId] = true;
     } else {
-        panel.classList.add('is-collapsed');
-        window.activeMatchDetailsOpenPanel = '';
+        setMatchDetailsPanelCollapsed(panel, true);
+        if (isPairPanel) {
+            window.matchDetailPairPanelState[panelId] = false;
+            const siblingId = panelId === 'kamptropp' ? 'oppstilling' : 'kamptropp';
+            window.activeMatchDetailsOpenPanel = window.matchDetailPairPanelState[siblingId] === true
+                ? siblingId
+                : '';
+        } else {
+            window.activeMatchDetailsOpenPanel = syncMatchDetailPairPanelsAfterExclusiveClose();
+        }
     }
 
-    btn.setAttribute('aria-expanded', String(shouldOpen));
-    btn.setAttribute('aria-label', shouldOpen ? (btn.dataset.hideLabel || 'Skjul seksjon') : (btn.dataset.showLabel || 'Vis seksjon'));
-
-    if (shouldOpen && panel.classList.contains('match-game-plan-panel')) {
+    if (shouldOpen && panelId === 'kampplan') {
         requestAnimationFrame(() => {
             window.initMatchGamePlanScroller();
             window.syncMatchGamePlanScroller();
         });
     }
 
-    if (shouldOpen && panel.classList.contains('match-bench-panel')) {
+    if (shouldOpen && isPairPanel) {
         requestAnimationFrame(() => {
             const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (!match) return;
