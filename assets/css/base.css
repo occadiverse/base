@@ -2499,13 +2499,19 @@
             justify-content: space-between;
         }
         .match-bench-panel .match-detail-section-badge {
-            background: #f5c542;
-            border-color: rgba(255, 255, 255, 0.24);
-            color: #0b2b4c;
-            font-size: 0.72rem;
-            height: 2.1rem;
-            min-width: 2.1rem;
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.34);
+            box-shadow: none;
+            color: #f5c542;
+            cursor: default;
+            font-size: 0.68rem;
+            font-weight: 900;
+            height: 1.7rem;
+            letter-spacing: 0.06em;
+            min-width: 1.7rem;
             padding: 0 0.55rem;
+            pointer-events: none;
+            user-select: none;
         }
         .match-bench-panel .match-detail-squad-body {
             padding: 0.15rem 0.15rem 0.25rem;
