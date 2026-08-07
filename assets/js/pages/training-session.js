@@ -419,15 +419,6 @@ function bindTrainingSessionEvents() {
         const action = actionEl.dataset.trainingAction;
         const eventId = window._activeTrainingSessionId;
 
-        if (action === 'back') {
-            if (typeof window.goBackToPreviousPortalPage === 'function') {
-                window.goBackToPreviousPortalPage();
-            } else {
-                switchTab('hjem', { skipHistory: true });
-            }
-            return;
-        }
-
         if (action === 'attendance') {
             if (eventId) window.openAttendanceModal(eventId);
             return;
@@ -628,11 +619,6 @@ window.renderTrainingSession = function(eventId) {
 
     container.innerHTML = `
         <div class="training-session-page">
-            <button type="button" data-training-action="back" class="training-session-back-btn portal-btn portal-btn-secondary portal-btn-sm is-collapsible" title="Tilbake" aria-label="Tilbake">
-                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                <span class="portal-btn-label">Tilbake</span>
-            </button>
-
             <article class="match-detail-card dashboard-next-session-card">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-stopwatch"></i>
