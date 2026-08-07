@@ -442,7 +442,7 @@
     function getMatchPlanSamspillLabelMetrics(label, pitchWidthPx, cardWidthPx) {
         const safePitchWidth = pitchWidthPx > 0 ? pitchWidthPx : 400;
         const safeCardWidth = cardWidthPx > 0 ? cardWidthPx : safePitchWidth * 0.165;
-        const fontPx = Math.min(18.4, Math.max(11.5, safeCardWidth * 0.4));
+        const fontPx = Math.min(15.2, Math.max(9.5, safeCardWidth * 0.33));
         const fontVb = (fontPx / safePitchWidth) * 100;
         const padVb = fontVb * 0.26;
         const widthVb = Math.max(fontVb * 1.55, label.length * fontVb * 0.58 + padVb * 2);
