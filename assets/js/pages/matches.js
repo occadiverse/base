@@ -1686,17 +1686,10 @@ function buildMatchGamePlanLineupSaveBtnHtml(match) {
 }
 
 function buildMatchGamePlanLineupToolbarHtml(match) {
-    const samspillOn = Boolean(getMatchGamePlanLineupOverlayState(match).samspill);
-
     return `
         <div class="match-game-plan-lineup-toolbar">
             ${buildMatchGamePlanFormationPickerHtml(match)}
-            ${buildMatchGamePlanLineupViewSegmentHtml(match, {
-                includeSamspill: true,
-                ariaLabel: 'Samspill',
-                extraClass: 'is-samspill-only'
-            })}
-            ${buildMatchGamePlanSamspillZonePickerHtml(match, { visible: samspillOn })}
+            ${buildMatchGamePlanSamspillControlHtml(match)}
             <div class="match-game-plan-lineup-actions">
                 ${buildMatchGamePlanLineupClearBtnHtml(match)}
                 ${buildMatchGamePlanLineupSaveBtnHtml(match)}
@@ -1866,9 +1859,14 @@ function ensureMatchGamePlanFormationMenuEventsBound() {
         const viewToggleBtn = event.target.closest('[data-lineup-view-toggle]');
         if (viewToggleBtn) {
             event.stopPropagation();
-            const matchId = viewToggleBtn.closest('[data-lineup-view-segment]')?.dataset.matchId;
+            const samspillMenu = viewToggleBtn.closest('[data-samspill-zone-menu]');
+            const matchId = viewToggleBtn.closest('[data-lineup-view-segment]')?.dataset.matchId
+                || samspillMenu?.dataset.matchId;
             const viewKey = viewToggleBtn.dataset.lineupViewToggle;
             if (matchId && viewKey) {
+                if (samspillMenu && viewKey === 'samspill') {
+                    setMatchGamePlanLineupDropdownMenuOpen(samspillMenu, false);
+                }
                 window.toggleMatchGamePlanLineupView(matchId, viewKey);
             }
             return;
@@ -1929,26 +1927,38 @@ function getMatchGamePlanSamspillZoneSelectionLabel(match) {
     return option?.label || 'Av';
 }
 
-function buildMatchGamePlanSamspillZonePickerHtml(match, options = {}) {
-    const { visible = true } = options;
+function buildMatchGamePlanSamspillControlHtml(match) {
+    const samspillOn = Boolean(getMatchGamePlanLineupOverlayState(match).samspill);
     const activeZoneId = getMatchGamePlanSamspillZoneSelectionId(match);
     const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
+    const displayLabel = activeLabel === 'Av' ? 'Alle' : activeLabel;
     const zoneOptions = matchGamePlanSamspillZoneOptions.filter(option => option.id !== 'av');
 
     return `
-        <div class="match-game-plan-formation-menu match-game-plan-samspill-zone-filter${visible ? '' : ' is-hidden'}" data-samspill-zone-menu data-match-id="${escapeMatchHtml(match.id)}" ${visible ? '' : 'hidden'}>
-            <button
-                type="button"
-                class="match-game-plan-formation-trigger"
-                data-samspill-zone-action="toggle"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-                aria-label="Velg samspillssone, valgt ${escapeMatchHtml(activeLabel)}"
-            >
-                <span class="match-game-plan-formation-trigger-label">Sone</span>
-                <span class="match-game-plan-formation-trigger-value" data-samspill-zone-value>${escapeMatchHtml(activeLabel === 'Av' ? 'Alle' : activeLabel)}</span>
-                <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
-            </button>
+        <div class="match-game-plan-formation-menu match-game-plan-samspill-control" data-samspill-zone-menu data-match-id="${escapeMatchHtml(match.id)}">
+            <div class="match-game-plan-samspill-control-shell${samspillOn ? ' is-active' : ''}" role="group" aria-label="Samspill">
+                <button
+                    type="button"
+                    class="match-game-plan-samspill-control-toggle${samspillOn ? ' is-active' : ''}"
+                    data-lineup-view-toggle="samspill"
+                    aria-pressed="${samspillOn ? 'true' : 'false'}"
+                    title="Samspill"
+                    aria-label="Samspill"
+                >Samspill</button>
+                <button
+                    type="button"
+                    class="match-game-plan-samspill-control-zone${samspillOn ? '' : ' is-hidden'}"
+                    data-samspill-zone-action="toggle"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-label="Velg samspillssone, valgt ${escapeMatchHtml(displayLabel)}"
+                    title="Velg sone"
+                    ${samspillOn ? '' : 'hidden'}
+                >
+                    <span class="match-game-plan-formation-trigger-value" data-samspill-zone-value>${escapeMatchHtml(displayLabel)}</span>
+                    <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
+                </button>
+            </div>
             <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="Samspillssoner" hidden data-samspill-zone-menu-panel>
                 ${zoneOptions.map(option => `
                     <button
@@ -1976,14 +1986,27 @@ function syncMatchGamePlanSamspillZonePickerUi(match) {
     const activeZoneId = getMatchGamePlanSamspillZoneSelectionId(match);
     const activeLabel = getMatchGamePlanSamspillZoneSelectionLabel(match);
     const displayLabel = activeLabel === 'Av' ? 'Alle' : activeLabel;
+    const shell = menu.querySelector('.match-game-plan-samspill-control-shell');
+    const toggleBtn = menu.querySelector('[data-lineup-view-toggle="samspill"]');
     const valueEl = menu.querySelector('[data-samspill-zone-value]');
-    const trigger = menu.querySelector('[data-samspill-zone-action="toggle"]');
+    const zoneTrigger = menu.querySelector('[data-samspill-zone-action="toggle"]');
 
-    menu.hidden = !samspillOn;
-    menu.classList.toggle('is-hidden', !samspillOn);
+    if (shell) shell.classList.toggle('is-active', samspillOn);
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('is-active', samspillOn);
+        toggleBtn.setAttribute('aria-pressed', samspillOn ? 'true' : 'false');
+    }
+
+    if (zoneTrigger) {
+        zoneTrigger.hidden = !samspillOn;
+        zoneTrigger.classList.toggle('is-hidden', !samspillOn);
+        zoneTrigger.setAttribute('aria-label', `Velg samspillssone, valgt ${displayLabel}`);
+        if (!samspillOn) {
+            setMatchGamePlanLineupDropdownMenuOpen(menu, false);
+        }
+    }
 
     if (valueEl) valueEl.textContent = displayLabel;
-    if (trigger) trigger.setAttribute('aria-label', `Velg samspillssone, valgt ${displayLabel}`);
 
     menu.querySelectorAll('[data-samspill-zone-action="select"]').forEach(button => {
         const isActive = button.dataset.samspillZoneId === activeZoneId
@@ -2433,9 +2456,13 @@ function buildMatchGamePlanSamspillAnalysisItemHtml(zone, match) {
             role="button"
             tabindex="0"
             aria-pressed="${isSelected ? 'true' : 'false'}"
+            aria-current="${isSelected ? 'true' : 'false'}"
         >
             <div class="match-game-plan-samspill-analysis-row">
-                <span class="match-game-plan-samspill-analysis-name">${escapeMatchHtml(zone.label)}</span>
+                <span class="match-game-plan-samspill-analysis-name">
+                    ${escapeMatchHtml(zone.label)}
+                    ${isSelected ? '<span class="match-game-plan-samspill-analysis-selected-badge">Valgt</span>' : ''}
+                </span>
                 <span class="match-game-plan-samspill-analysis-status">${escapeMatchHtml(zone.statusLabel)}</span>
             </div>
             ${metricsHtml}
@@ -2472,8 +2499,10 @@ function buildMatchGamePlanSamspillAnalysisHtml(match) {
         `;
     }
 
+    const selectedZoneId = getMatchGamePlanSamspillZoneFocus(match);
+
     return `
-        <div class="match-game-plan-samspill-analysis-body">
+        <div class="match-game-plan-samspill-analysis-body${selectedZoneId ? ' has-zone-focus' : ''}">
             ${buildMatchGamePlanSamspillAnalysisGroupHtml('Rekker', analysis.rows, match)}
             ${buildMatchGamePlanSamspillAnalysisGroupHtml('Korridorer', analysis.corridors, match)}
         </div>
@@ -2497,11 +2526,31 @@ function renderMatchGamePlanSamspillSummary(match) {
     const analysisEl = document.querySelector('[data-samspill-analysis]');
     if (!analysisEl) return;
 
+    const selectedZoneId = getMatchGamePlanSamspillZoneFocus(match);
+    const selectedOption = selectedZoneId
+        ? matchGamePlanSamspillZoneOptions.find(option => option.id === selectedZoneId)
+        : null;
+    const titleText = selectedOption
+        ? `Samspillanalyse · ${selectedOption.label}`
+        : 'Samspillanalyse';
+
+    analysisEl.classList.toggle('has-zone-focus', Boolean(selectedZoneId));
     analysisEl.innerHTML = `
-        <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+        <h4 class="match-game-plan-samspill-analysis-title">${escapeMatchHtml(titleText)}</h4>
         ${buildMatchGamePlanSamspillAnalysisHtml(match)}
     `;
     applyMatchGamePlanSamspillZoneFocus(match);
+
+    if (selectedZoneId) {
+        const selectedItem = analysisEl.querySelector(
+            `.match-game-plan-samspill-analysis-item.is-zone-selected[data-samspill-zone-id="${CSS.escape(selectedZoneId)}"]`
+        );
+        if (selectedItem && typeof selectedItem.scrollIntoView === 'function') {
+            requestAnimationFrame(() => {
+                selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            });
+        }
+    }
 }
 
 function buildMatchGamePlanStarterFooterHtml(match) {
