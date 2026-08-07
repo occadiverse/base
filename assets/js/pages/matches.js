@@ -979,17 +979,33 @@ function checkMatchGamePlanDraftDirty(match) {
 }
 
 function syncMatchGamePlanLineupSaveState(match) {
-    const saveBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-save-btn');
-    if (!saveBtn || !match) return;
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    if (!builder || !match) return;
 
+    const saveBtn = builder.querySelector('.match-game-plan-lineup-save-btn');
+    const clearBtn = builder.querySelector('.match-game-plan-lineup-clear-btn');
+    const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
     const isDirty = checkMatchGamePlanDraftDirty(match);
-    saveBtn.classList.toggle('is-dirty', isDirty);
-    saveBtn.setAttribute('aria-label', isDirty ? 'Lagre ulagrede endringer' : 'Lagre lagoppstilling');
-    saveBtn.title = isDirty ? 'Ulagrede endringer i 11eren' : '';
 
-    const label = saveBtn.querySelector('.match-game-plan-lineup-save-label');
-    if (label) {
-        label.textContent = isDirty ? 'Lagre · ulagret' : 'Lagre';
+    if (saveBtn) {
+        saveBtn.classList.toggle('is-dirty', isDirty);
+        saveBtn.setAttribute('aria-label', isDirty ? 'Lagre ulagrede endringer' : 'Lagre lagoppstilling');
+        saveBtn.title = isDirty ? 'Ulagrede endringer i 11eren' : 'Lagre lagoppstilling';
+
+        const label = saveBtn.querySelector('.match-game-plan-lineup-save-label');
+        if (label) {
+            label.textContent = isDirty ? 'Lagre · ulagret' : 'Lagre';
+        }
+    }
+
+    if (clearBtn) {
+        clearBtn.disabled = playerCount === 0;
+        clearBtn.setAttribute('aria-label', playerCount === 0
+            ? 'Nullstill lagoppstilling (ingen spillere på banen)'
+            : 'Nullstill lagoppstilling');
+        clearBtn.title = playerCount === 0
+            ? 'Ingen spillere å fjerne'
+            : 'Fjern alle spillere fra banen';
     }
 
     if (isDirty) {
@@ -1615,16 +1631,35 @@ function syncMatchGamePlanLineupViewSegmentUi(match) {
     });
 }
 
+function buildMatchGamePlanLineupClearBtnHtml(match) {
+    const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
+
+    return `
+        <button
+            type="button"
+            class="match-game-plan-lineup-clear-btn"
+            aria-label="${playerCount === 0 ? 'Nullstill lagoppstilling (ingen spillere på banen)' : 'Nullstill lagoppstilling'}"
+            title="${playerCount === 0 ? 'Ingen spillere å fjerne' : 'Fjern alle spillere fra banen'}"
+            ${playerCount === 0 ? 'disabled' : ''}
+            onclick="window.clearMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
+        >
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+            <span class="match-game-plan-lineup-clear-label">Nullstill</span>
+        </button>
+    `;
+}
+
 function buildMatchGamePlanLineupSaveBtnHtml(match) {
     return `
         <button
             type="button"
             class="match-game-plan-lineup-save-btn"
-            aria-label="Lagre"
+            aria-label="Lagre lagoppstilling"
+            title="Lagre lagoppstilling"
             onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
         >
-            <span class="match-game-plan-lineup-save-label">Lagre</span>
             <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+            <span class="match-game-plan-lineup-save-label">Lagre</span>
         </button>
     `;
 }
@@ -1641,9 +1676,73 @@ function buildMatchGamePlanLineupToolbarHtml(match) {
                 extraClass: 'is-samspill-only'
             })}
             ${buildMatchGamePlanSamspillZonePickerHtml(match, { visible: samspillOn })}
-            ${buildMatchGamePlanLineupSaveBtnHtml(match)}
+            <div class="match-game-plan-lineup-actions">
+                ${buildMatchGamePlanLineupClearBtnHtml(match)}
+                ${buildMatchGamePlanLineupSaveBtnHtml(match)}
+            </div>
         </div>
     `;
+}
+
+function clearMatchGamePlanDropdownPanelPosition(panel) {
+    if (!panel) return;
+    panel.style.position = '';
+    panel.style.left = '';
+    panel.style.top = '';
+    panel.style.right = '';
+    panel.style.minWidth = '';
+    panel.style.maxHeight = '';
+    panel.style.overflowY = '';
+    panel.style.marginTop = '';
+    panel.style.zIndex = '';
+}
+
+function positionMatchGamePlanDropdownPanel(menu) {
+    if (!menu) return;
+
+    const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"], [data-lineup-stats-action="toggle"]');
+    const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel], [data-lineup-stats-menu-panel]');
+    if (!trigger || !panel || panel.hidden) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const gap = 6;
+    const viewportPadding = 8;
+    const minWidth = Math.max(rect.width, 7.5 * 16);
+
+    panel.style.position = 'fixed';
+    panel.style.minWidth = `${minWidth}px`;
+    panel.style.right = 'auto';
+    panel.style.marginTop = '0';
+    panel.style.zIndex = '120';
+    panel.style.maxHeight = `${Math.max(8 * 16, window.innerHeight - rect.bottom - gap - viewportPadding)}px`;
+    panel.style.overflowY = 'auto';
+
+    // Measure after making visible/fixed so width is accurate.
+    const panelWidth = Math.max(panel.getBoundingClientRect().width, minWidth);
+    let left = rect.left;
+    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - panelWidth - viewportPadding));
+
+    let top = rect.bottom + gap;
+    const panelHeight = panel.getBoundingClientRect().height;
+    if (top + panelHeight > window.innerHeight - viewportPadding && rect.top > panelHeight + gap + viewportPadding) {
+        top = rect.top - panelHeight - gap;
+    }
+
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+}
+
+function repositionOpenMatchGamePlanDropdownMenus() {
+    document.querySelectorAll('[data-formation-menu].is-open, [data-samspill-zone-menu].is-open, [data-lineup-stats-menu].is-open')
+        .forEach(menu => positionMatchGamePlanDropdownPanel(menu));
+}
+
+function ensureMatchGamePlanDropdownRepositionBound() {
+    if (window.matchGamePlanDropdownRepositionBound) return;
+    window.matchGamePlanDropdownRepositionBound = true;
+
+    window.addEventListener('resize', repositionOpenMatchGamePlanDropdownMenus);
+    document.addEventListener('scroll', repositionOpenMatchGamePlanDropdownMenus, true);
 }
 
 function closeMatchGamePlanLineupDropdownMenus(exceptMenu = null) {
@@ -1654,7 +1753,10 @@ function closeMatchGamePlanLineupDropdownMenus(exceptMenu = null) {
         const trigger = menu.querySelector('[data-formation-action="toggle"], [data-samspill-zone-action="toggle"], [data-lineup-stats-action="toggle"]');
         const panel = menu.querySelector('[data-formation-menu-panel], [data-samspill-zone-menu-panel], [data-lineup-stats-menu-panel]');
         if (trigger) trigger.setAttribute('aria-expanded', 'false');
-        if (panel) panel.hidden = true;
+        if (panel) {
+            panel.hidden = true;
+            clearMatchGamePlanDropdownPanelPosition(panel);
+        }
     });
 }
 
@@ -1668,13 +1770,21 @@ function setMatchGamePlanLineupDropdownMenuOpen(menu, isOpen) {
         closeMatchGamePlanLineupDropdownMenus(menu);
         menu.classList.add('is-open');
         if (trigger) trigger.setAttribute('aria-expanded', 'true');
-        if (panel) panel.hidden = false;
+        if (panel) {
+            panel.hidden = false;
+            positionMatchGamePlanDropdownPanel(menu);
+            ensureMatchGamePlanDropdownRepositionBound();
+            requestAnimationFrame(() => positionMatchGamePlanDropdownPanel(menu));
+        }
         return;
     }
 
     menu.classList.remove('is-open');
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    if (panel) panel.hidden = true;
+    if (panel) {
+        panel.hidden = true;
+        clearMatchGamePlanDropdownPanelPosition(panel);
+    }
 }
 
 function closeMatchGamePlanFormationMenus(exceptMenu = null) {
@@ -3653,6 +3763,46 @@ window.setMatchGamePlanFormation = async function(matchId, formationId) {
     renderMatchGamePlanBenchPage(match);
 };
 
+window.clearMatchGamePlanLineup = function(matchId) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
+
+    const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
+    if (!playerCount) return;
+
+    const runClear = () => {
+        const draft = getMatchGamePlanDraft(match);
+        const formationId = getMatchGamePlanDraftFormation(match);
+        const emptyLineup = {};
+        getMatchGamePlanFormationPositionIds(formationId).forEach(posId => {
+            emptyLineup[posId] = null;
+        });
+        draft.lineup = emptyLineup;
+
+        renderMatchGamePlanStarter11Page(match);
+        renderMatchGamePlanOffCPage(match);
+        renderMatchGamePlanDefCPage(match);
+        renderMatchGamePlanRolesPage(match);
+        renderMatchGamePlanBenchPage(match);
+        setMatchDetailFeedback(
+            '[data-lineup-save-state]',
+            'Spillere fjernet fra banen. Trykk Lagre for å beholde endringen.',
+            'pending'
+        );
+    };
+
+    if (typeof window.customConfirm === 'function') {
+        window.customConfirm(
+            'Nullstill lagoppstilling',
+            `Fjerne alle ${playerCount} spillere fra banen? Endringen lagres ikke før du trykker Lagre.`,
+            runClear
+        );
+        return;
+    }
+
+    runClear();
+};
+
 window.completeMatchGamePlanLineup = async function(matchId) {
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match) return;
@@ -3662,8 +3812,10 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     const draftFormation = getMatchGamePlanDraftFormation(match);
     const selectedCount = matchGamePlanStarterPositionIds.filter(posId => draftLineup[posId]).length;
     const saveBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-save-btn');
+    const clearBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-clear-btn');
 
     if (saveBtn) saveBtn.disabled = true;
+    if (clearBtn) clearBtn.disabled = true;
     setMatchDetailFeedback('[data-lineup-save-state]', 'Lagrer lagoppstilling...', 'pending');
 
     match.lineup = cloneMatchGamePlanLineup(draft.lineup);
@@ -3678,6 +3830,7 @@ window.completeMatchGamePlanLineup = async function(matchId) {
         console.error(error);
         setMatchDetailFeedback('[data-lineup-save-state]', error.message || 'Lagring feilet', 'error');
         if (saveBtn) saveBtn.disabled = false;
+        syncMatchGamePlanLineupSaveState(match);
         return;
     }
 
