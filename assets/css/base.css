@@ -10090,14 +10090,39 @@
         }
         .match-game-plan-player-tag {
             background: #f1f5f9;
+            border: 1px solid rgba(148, 163, 184, 0.35);
             border-radius: 999px;
             color: #475569;
+            cursor: default;
             flex: 0 0 auto;
             font-size: 0.58rem;
             font-weight: 950;
             letter-spacing: 0.06em;
-            padding: 0.24rem 0.42rem;
+            line-height: 1;
+            padding: 0.28rem 0.48rem;
+            pointer-events: none;
             text-transform: uppercase;
+            user-select: none;
+        }
+        .match-game-plan-player-tag.is-primary {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.28);
+            color: #15803d;
+        }
+        .match-game-plan-player-tag.is-secondary {
+            background: rgba(245, 158, 11, 0.14);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #b45309;
+        }
+        .match-game-plan-player-tag.is-other {
+            background: #f1f5f9;
+            border-color: rgba(148, 163, 184, 0.35);
+            color: #64748b;
+        }
+        .match-game-plan-player-tag.is-pitch {
+            background: rgba(18, 63, 115, 0.1);
+            border-color: rgba(18, 63, 115, 0.22);
+            color: #123f73;
         }
         .match-game-plan-player-clear,
         .match-game-plan-player-empty {
@@ -10136,50 +10161,81 @@
             max-height: min(72vh, 34rem);
             overflow: hidden;
         }
-        .match-game-plan-select-modal > div > div:first-child {
+        .match-game-plan-select-modal > div > div:first-child,
+        .match-game-plan-select-modal .match-game-plan-select-header {
+            align-items: center;
             background: rgba(255, 255, 255, 0.07) !important;
             border-bottom: 1px solid rgba(245, 197, 66, 0.16) !important;
-            min-height: 5.7rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+            min-height: 5.2rem;
             overflow: visible;
-            padding: 0.8rem 7.35rem 0.8rem 0.85rem !important;
+            padding: 0.85rem !important;
             position: relative;
         }
-        .match-gold-round-icon-btn,
-        .match-game-plan-select-modal [onclick="closePlayerSelect()"] {
+        .match-game-plan-select-heading {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .match-game-plan-select-header-actions {
             align-items: center;
-            background: rgba(8, 27, 50, 0.92) !important;
-            border: 2px solid rgba(245, 197, 66, 0.62) !important;
-            border-radius: 999px !important;
-            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-            color: #f5c542 !important;
-            cursor: pointer;
             display: inline-flex;
             flex: 0 0 auto;
-            height: 2.8rem !important;
-            justify-content: center;
-            margin-left: 0;
-            min-height: 2.8rem !important;
-            padding: 0 !important;
-            position: absolute;
-            right: 0.85rem;
-            top: 50%;
-            transform: translateY(-50%);
-            transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
-            width: 2.8rem !important;
+            gap: 0.45rem;
         }
-        .match-gold-round-icon-btn i,
-        .match-game-plan-select-modal [onclick="closePlayerSelect()"] i {
-            color: #f5c542 !important;
-            font-size: 1.05rem !important;
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.8rem;
+            box-shadow: none;
+            color: #f5c542;
+            height: 2.45rem;
+            min-height: 2.45rem;
+            min-width: 2.45rem;
+            position: static;
+            transform: none;
+            width: 2.45rem;
         }
-        .match-gold-round-icon-btn:hover,
-        .match-game-plan-select-modal [onclick="closePlayerSelect()"]:hover {
-            background: rgba(245, 197, 66, 0.16) !important;
-            border-color: rgba(245, 197, 66, 0.38) !important;
-            transform: translateY(calc(-50% - 1px));
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-icon i {
+            color: #f5c542;
+            font-size: 0.95rem;
         }
-        .match-game-plan-clear-icon-btn {
-            right: 4.05rem;
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-icon:hover:not(:disabled),
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-icon:focus-visible {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(245, 197, 66, 0.46);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.28);
+            transform: none;
+        }
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-icon:active:not(:disabled) {
+            transform: none;
+        }
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-danger {
+            background: rgba(180, 83, 92, 0.16);
+            border-color: rgba(180, 83, 92, 0.38);
+            color: #fda4af;
+        }
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-danger i {
+            color: #fda4af;
+        }
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-danger:hover:not(:disabled),
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-danger:focus-visible {
+            background: rgba(180, 83, 92, 0.24);
+            border-color: rgba(180, 83, 92, 0.5);
+            color: #fecdd3;
+        }
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-danger:hover:not(:disabled) i,
+        .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-danger:focus-visible i {
+            color: #fecdd3;
+        }
+        @media (max-width: 767px) {
+            .match-game-plan-select-modal .match-game-plan-select-header-actions .bsk-btn-icon {
+                height: 2.45rem;
+                min-height: 2.45rem;
+                min-width: 2.45rem;
+                width: 2.45rem;
+            }
         }
         .match-game-plan-select-modal h3 {
             align-items: center;
@@ -10191,7 +10247,7 @@
             min-width: 0;
             position: relative;
             text-align: left;
-            width: 100%;
+            width: auto;
         }
         .match-game-plan-heading-avatar {
             align-items: center;
@@ -10268,37 +10324,75 @@
             background:
                 linear-gradient(180deg, rgba(16, 47, 84, 0.98) 0%, rgba(16, 47, 84, 0.92) 72%, rgba(16, 47, 84, 0) 100%);
             display: grid;
-            gap: 0.45rem;
+            gap: 0.5rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             margin: -0.75rem -0.75rem 0;
+            max-width: none;
             padding: 0.75rem 0.75rem 0.6rem;
             position: sticky;
             top: -0.75rem;
+            width: 100%;
             z-index: 3;
         }
-        .match-game-plan-select-action {
+        .match-game-plan-select-action,
+        .match-game-plan-select-action.bsk-btn,
+        .match-game-plan-select-action.bsk-btn-chip {
             align-items: center;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 999px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.8rem;
+            box-shadow: 0 5px 12px rgba(2, 6, 23, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
             color: #ffffff;
             cursor: pointer;
             display: inline-flex;
             font-size: 0.66rem;
-            font-weight: 950;
-            gap: 0.35rem;
+            font-weight: 900;
+            gap: 0.4rem;
+            height: 2.45rem;
             justify-content: center;
-            letter-spacing: 0.06em;
-            min-height: 2.35rem;
-            padding: 0.55rem 0.65rem;
-            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            padding: 0.5rem 0.55rem;
+            text-transform: none;
+            width: 100%;
         }
         .match-game-plan-select-action i {
             color: #f5c542;
+            font-size: 0.72rem;
+        }
+        .match-game-plan-select-action:hover:not(.is-active) {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-color: rgba(245, 197, 66, 0.42);
+            color: #ffffff;
+            transform: translateY(-1px);
         }
         .match-game-plan-select-action.is-active {
-            background: rgba(245, 197, 66, 0.18);
-            border-color: rgba(245, 197, 66, 0.38);
+            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
+            border-color: rgba(245, 197, 66, 0.9);
+            box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            color: #0b2b4c;
+        }
+        .match-game-plan-select-action.is-active i {
+            color: #0b2b4c;
+        }
+        .match-game-plan-select-action.is-active:hover {
+            background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
+            border-color: rgba(245, 197, 66, 0.95);
+            color: #0b2b4c;
+            transform: none;
+        }
+        .match-game-plan-select-action:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35);
+            outline: none;
+        }
+        @media (max-width: 767px) {
+            .match-game-plan-select-action.bsk-btn,
+            .match-game-plan-select-action.bsk-btn-chip {
+                min-height: 2.45rem;
+            }
         }
         .match-game-plan-select-modal .match-game-plan-player-option {
             contain: layout style paint;
