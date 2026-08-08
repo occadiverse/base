@@ -2622,23 +2622,56 @@ function getMatchGamePlanStarterPlayerValue(player) {
     return player?.id || player?.navn || '';
 }
 
+function findMatchGamePlanStarterPlayerByValue(starterPlayers, value) {
+    if (!value) return null;
+    return starterPlayers.find(({ player }) => getMatchGamePlanStarterPlayerValue(player) === value)?.player || null;
+}
+
+function buildMatchGamePlanRoleSlotAvatarHtml(player) {
+    if (!player) {
+        return `
+            <span class="match-game-plan-role-avatar is-empty" data-role-avatar aria-hidden="true">
+                <i class="fa-solid fa-user" aria-hidden="true"></i>
+            </span>
+        `;
+    }
+
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
+    if (photoUrl) {
+        return `
+            <span class="match-game-plan-role-avatar is-photo" data-role-avatar aria-hidden="true">
+                <img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">
+            </span>
+        `;
+    }
+
+    return `
+        <span class="match-game-plan-role-avatar" data-role-avatar aria-hidden="true">
+            <span>${escapeMatchHtml(getMatchGamePlanPlayerInitials(player))}</span>
+        </span>
+    `;
+}
+
 function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 'offc') {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
     const storedSelectedValue = assignments[slot] || '';
     const selectedValue = starterPlayers.some(({ player }) => getMatchGamePlanStarterPlayerValue(player) === storedSelectedValue)
         ? storedSelectedValue
         : '';
+    const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
     const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
     const slotLabel = planId === 'roller' ? getMatchGamePlanRoleLabel(slot) : slot;
+    const showAvatar = planId === 'roller';
 
     return `
-        <label class="match-game-plan-offc-select-field">
+        <label class="match-game-plan-offc-select-field${showAvatar ? ' has-role-avatar' : ''}">
             <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slotLabel)}</span>
+            ${showAvatar ? buildMatchGamePlanRoleSlotAvatarHtml(selectedPlayer) : ''}
             <select
                 class="match-game-plan-offc-select ${selectedValue ? '' : 'is-empty'}"
                 aria-label="Velg spiller for ${escapeMatchHtml(planLabel)} ${escapeMatchHtml(slot)}"
                 title="${escapeMatchHtml(planId === 'roller' ? `${slot}: ${slotLabel}` : `${planLabel} ${slot}`)}"
-                onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanSetPiecePlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}', this.value)"
+                onchange="this.classList.toggle('is-empty', !this.value); window.syncMatchGamePlanRoleSelectAvatar(this); window.updateMatchGamePlanSetPiecePlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}', this.value)"
             >
                 <option value="">Velg spiller</option>
                 ${starterPlayers.map(({ player }) => {
@@ -3922,6 +3955,31 @@ window.completeMatchGamePlanLineup = async function(matchId) {
 
 window.updateMatchGamePlanOffCPlayer = async function(matchId, slot, playerRef = '') {
     await window.updateMatchGamePlanSetPiecePlayer(matchId, 'offc', slot, playerRef);
+};
+
+window.syncMatchGamePlanRoleSelectAvatar = function(selectEl) {
+    if (!selectEl) return;
+
+    const field = selectEl.closest('.match-game-plan-offc-select-field');
+    const avatar = field?.querySelector('[data-role-avatar]');
+    if (!field || !avatar) return;
+
+    const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+    const value = selectEl.value || '';
+    let player = null;
+
+    if (value && match) {
+        player = findMatchGamePlanPlayerById(match, value)
+            || Object.values(getMatchGamePlanDraftLineup(match)).find(entry => (
+                entry && getMatchGamePlanStarterPlayerValue(entry) === value
+            ))
+            || getMatchDetailAttendingPlayers(match).find(entry => (
+                getMatchGamePlanStarterPlayerValue(entry) === value
+            ))
+            || null;
+    }
+
+    avatar.outerHTML = buildMatchGamePlanRoleSlotAvatarHtml(player);
 };
 
 window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot, playerRef = '') {
