@@ -9977,14 +9977,21 @@
             background: transparent;
             border: 0;
             border-radius: 0;
-            bottom: 0.85rem;
+            bottom: auto;
             box-shadow: none;
             display: grid;
             gap: 0.42rem 0.55rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             left: 50%;
+            max-height: calc(50% - 0.85rem);
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
             padding: 0;
             position: absolute;
+            scrollbar-color: rgba(245, 197, 66, 0.65) rgba(255, 255, 255, 0.12);
+            scrollbar-width: thin;
+            top: calc(50% + 0.45rem);
             transform: translateX(-50%);
             width: calc(100% - 1rem);
             z-index: 4;
@@ -10006,7 +10013,10 @@
             margin: 0 0 0.12rem;
             min-height: 2.15rem;
             padding: 0.45rem 0.75rem;
+            position: sticky;
+            top: 0;
             text-transform: uppercase;
+            z-index: 2;
         }
         .match-game-plan-setpiece-heading i {
             color: #f5c542;
@@ -10019,8 +10029,10 @@
             box-shadow: none;
             gap: 0.58rem;
             grid-template-columns: 1fr;
+            max-height: none;
+            overflow: visible;
             padding: 0;
-            top: 50%;
+            top: 38%;
             transform: translate(-50%, -50%);
             width: min(98%, 26rem);
         }
@@ -12208,8 +12220,9 @@
                 width: 1.58rem;
             }
             .match-game-plan-offc-controls {
-                bottom: 0.55rem;
                 gap: 0.32rem 0.42rem;
+                max-height: calc(50% - 0.65rem);
+                top: calc(50% + 0.35rem);
                 width: calc(100% - 0.7rem);
             }
             .match-game-plan-setpiece-heading {
@@ -12225,6 +12238,8 @@
             }
             .match-game-plan-role-controls {
                 gap: 0.5rem;
+                max-height: none;
+                overflow: visible;
                 width: min(98%, 23rem);
             }
             .match-game-plan-role-controls .match-game-plan-offc-select-field,

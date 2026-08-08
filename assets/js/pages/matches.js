@@ -683,8 +683,8 @@ const matchGamePlanOffCPositions = {
     6: { top: '20%', left: '71%', tone: 'yellow' },
     7: { top: '12%', left: '50%', tone: 'yellow' },
     8: { top: '20%', left: '29%', tone: 'yellow' },
-    9: { top: '41%', left: '50%', tone: 'pink' },
-    10: { top: '50%', left: '50%', tone: 'pink' }
+    9: { top: '30%', left: '50%', tone: 'pink' },
+    10: { top: '44%', left: '50%', tone: 'pink' }
 };
 
 const matchGamePlanDefCPositions = {
@@ -696,8 +696,8 @@ const matchGamePlanDefCPositions = {
     6: { top: '7%', left: '42%', tone: 'red' },
     7: { top: '12%', left: '50%', tone: 'yellow' },
     8: { top: '30%', left: '32%', tone: 'yellow' },
-    9: { top: '50%', left: '25%', tone: 'green' },
-    10: { top: '50%', left: '75%', tone: 'green' }
+    9: { top: '44%', left: '25%', tone: 'green' },
+    10: { top: '44%', left: '75%', tone: 'green' }
 };
 
 const matchGamePlanRoleSlots = ['K', 'K2', 'Cv', 'Ch', 'F', 'F2', 'S', 'S2'];
