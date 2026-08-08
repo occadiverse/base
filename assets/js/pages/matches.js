@@ -2661,12 +2661,11 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
     const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
     const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
     const slotLabel = planId === 'roller' ? getMatchGamePlanRoleLabel(slot) : slot;
-    const showAvatar = planId === 'roller';
 
     return `
-        <label class="match-game-plan-offc-select-field${showAvatar ? ' has-role-avatar' : ''}">
+        <label class="match-game-plan-offc-select-field has-role-avatar">
             <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slotLabel)}</span>
-            ${showAvatar ? buildMatchGamePlanRoleSlotAvatarHtml(selectedPlayer) : ''}
+            ${buildMatchGamePlanRoleSlotAvatarHtml(selectedPlayer)}
             <select
                 class="match-game-plan-offc-select ${selectedValue ? '' : 'is-empty'}"
                 aria-label="Velg spiller for ${escapeMatchHtml(planLabel)} ${escapeMatchHtml(slot)}"
@@ -2693,9 +2692,23 @@ function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}
     const slots = options.slots || ['1', '6', '2', '7', '3', '8', '4', '9', '5', '10'];
     const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
     const extraClass = options.className ? ` ${options.className}` : '';
+    const heading = planId === 'offc'
+        ? 'Offensiv corner'
+        : planId === 'defc'
+            ? 'Defensiv corner'
+            : planId === 'roller'
+                ? 'Roller'
+                : '';
+    const headingIcon = planId === 'roller' ? 'fa-users' : 'fa-flag-checkered';
 
     return `
         <div class="match-game-plan-offc-controls${extraClass}" aria-label="${escapeMatchHtml(planLabel)} spillervalg">
+            ${heading ? `
+                <h3 class="match-game-plan-setpiece-heading">
+                    <i class="fa-solid ${headingIcon}" aria-hidden="true"></i>
+                    <span>${escapeMatchHtml(heading)}</span>
+                </h3>
+            ` : ''}
             ${slots.map(slot => buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId)).join('')}
         </div>
     `;
@@ -2787,6 +2800,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                             data-bench-name-sort="${escapeMatchHtml(player.navn)}"
                         >
                             <span class="match-game-plan-bench-jersey">${escapeMatchHtml(jersey)}</span>
+                            ${buildMatchGamePlanRoleSlotAvatarHtml(player)}
                             <span class="match-game-plan-bench-name">${escapeMatchHtml(player.navn)}</span>
                             <span class="match-game-plan-bench-select-wrap">
                                 <select
