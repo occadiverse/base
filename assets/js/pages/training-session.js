@@ -406,6 +406,21 @@ function buildGroupsHtml(eventId, players) {
     `;
 }
 
+function toggleTrainingSessionCollapsiblePanel(panel, toggleBtn, stateKey) {
+    if (!panel || !toggleBtn) return;
+
+    const shouldOpen = panel.classList.contains('is-collapsed');
+    panel.classList.toggle('is-collapsed', !shouldOpen);
+    window[stateKey] = shouldOpen;
+    toggleBtn.setAttribute('aria-expanded', String(shouldOpen));
+    toggleBtn.setAttribute(
+        'aria-label',
+        shouldOpen
+            ? (toggleBtn.dataset.hideLabel || 'Skjul seksjon')
+            : (toggleBtn.dataset.showLabel || 'Vis seksjon')
+    );
+}
+
 function bindTrainingSessionEvents() {
     const container = document.getElementById('oktside-content');
     if (!container || container.dataset.trainingEventsBound === 'true') return;
@@ -413,6 +428,27 @@ function bindTrainingSessionEvents() {
     container.dataset.trainingEventsBound = 'true';
 
     container.addEventListener('click', (event) => {
+        const topline = event.target.closest('.match-bench-topline');
+        if (topline && container.contains(topline)) {
+            const interactive = event.target.closest('a, button, input, select, textarea, label');
+            if (!interactive || interactive.classList.contains('match-panel-toggle-btn')) {
+                const toggle = interactive?.classList.contains('match-panel-toggle-btn')
+                    ? interactive
+                    : topline.querySelector('.match-panel-toggle-btn[data-training-action^="toggle-"]');
+                const panel = toggle?.closest('.match-collapsible-panel');
+                const action = toggle?.dataset.trainingAction;
+
+                if (panel && action === 'toggle-attendance') {
+                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionAttendanceOpen');
+                    return;
+                }
+                if (panel && action === 'toggle-groups') {
+                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionGroupsOpen');
+                    return;
+                }
+            }
+        }
+
         const actionEl = event.target.closest('[data-training-action]');
         if (!actionEl) return;
 
@@ -441,35 +477,13 @@ function bindTrainingSessionEvents() {
 
         if (action === 'toggle-attendance') {
             const panel = actionEl.closest('.match-collapsible-panel');
-            if (!panel) return;
-
-            const shouldOpen = panel.classList.contains('is-collapsed');
-            panel.classList.toggle('is-collapsed', !shouldOpen);
-            window._trainingSessionAttendanceOpen = shouldOpen;
-            actionEl.setAttribute('aria-expanded', String(shouldOpen));
-            actionEl.setAttribute(
-                'aria-label',
-                shouldOpen
-                    ? (actionEl.dataset.hideLabel || 'Skjul oppmøte')
-                    : (actionEl.dataset.showLabel || 'Vis oppmøte')
-            );
+            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionAttendanceOpen');
             return;
         }
 
         if (action === 'toggle-groups') {
             const panel = actionEl.closest('.match-collapsible-panel');
-            if (!panel) return;
-
-            const shouldOpen = panel.classList.contains('is-collapsed');
-            panel.classList.toggle('is-collapsed', !shouldOpen);
-            window._trainingSessionGroupsOpen = shouldOpen;
-            actionEl.setAttribute('aria-expanded', String(shouldOpen));
-            actionEl.setAttribute(
-                'aria-label',
-                shouldOpen
-                    ? (actionEl.dataset.hideLabel || 'Skjul grupper')
-                    : (actionEl.dataset.showLabel || 'Vis grupper')
-            );
+            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionGroupsOpen');
             return;
         }
 

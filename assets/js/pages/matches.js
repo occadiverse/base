@@ -3971,12 +3971,12 @@ window.showMatchDetails = function(id) {
     const matchSquadPanelHtml = `
         <div class="match-detail-squad-section ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
             <section class="match-bench-panel match-collapsible-panel ${isSquadPanelOpen ? '' : 'is-collapsed'}" data-match-panel="kamptropp">
-                <div class="match-bench-action-row match-bench-topline">
+                <div class="match-bench-action-row match-bench-topline" onclick="window.onMatchPanelToplineClick(event)">
                     <div class="match-bench-heading">
                         <h3>Kamptropp</h3>
                         <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
                     </div>
-                    <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isSquadPanelOpen ? 'true' : 'false'}" aria-label="${isSquadPanelOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
+                    <button type="button" class="match-panel-toggle-btn" aria-expanded="${isSquadPanelOpen ? 'true' : 'false'}" aria-label="${isSquadPanelOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
                     <button type="button" class="training-session-attendance-add-btn" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppdater" aria-label="Oppdater oppmøte">
@@ -3999,11 +3999,11 @@ window.showMatchDetails = function(id) {
                 </div>
             </section>
             <section class="match-bench-panel match-collapsible-panel ${isLineupPanelOpen ? '' : 'is-collapsed'}" data-match-panel="oppstilling">
-                <div class="match-bench-action-row match-bench-topline">
+                <div class="match-bench-action-row match-bench-topline" onclick="window.onMatchPanelToplineClick(event)">
                     <div class="match-bench-heading">
                         <h3>Lagoppstilling</h3>
                     </div>
-                    <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isLineupPanelOpen ? 'true' : 'false'}" aria-label="${isLineupPanelOpen ? 'Skjul lagoppstilling' : 'Vis lagoppstilling'}" data-show-label="Vis lagoppstilling" data-hide-label="Skjul lagoppstilling">
+                    <button type="button" class="match-panel-toggle-btn" aria-expanded="${isLineupPanelOpen ? 'true' : 'false'}" aria-label="${isLineupPanelOpen ? 'Skjul lagoppstilling' : 'Vis lagoppstilling'}" data-show-label="Vis lagoppstilling" data-hide-label="Skjul lagoppstilling">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
                 </div>
@@ -4035,11 +4035,11 @@ window.showMatchDetails = function(id) {
         ${matchSquadPanelHtml}
 
         <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}" data-match-panel="kampplan">
-            <div class="match-bench-action-row match-bench-topline match-game-plan-topline">
+            <div class="match-bench-action-row match-bench-topline match-game-plan-topline" onclick="window.onMatchPanelToplineClick(event)">
                 <div class="match-bench-heading">
                     <h3>Kampplan</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isGamePlanOpen ? 'true' : 'false'}" aria-label="${isGamePlanOpen ? 'Skjul kampplan' : 'Vis kampplan'}" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
+                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isGamePlanOpen ? 'true' : 'false'}" aria-label="${isGamePlanOpen ? 'Skjul kampplan' : 'Vis kampplan'}" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
                 <button type="button"
@@ -4060,11 +4060,11 @@ window.showMatchDetails = function(id) {
         </section>
 
         <section class="match-coach-notes-panel match-collapsible-panel ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
-            <div class="match-bench-action-row match-bench-topline match-coach-notes-topline">
+            <div class="match-bench-action-row match-bench-topline match-coach-notes-topline" onclick="window.onMatchPanelToplineClick(event)">
                 <div class="match-bench-heading">
                     <h3>Trenernotater</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}" aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}" data-show-label="Vis trenernotater" data-hide-label="Skjul trenernotater">
+                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}" aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}" data-show-label="Vis trenernotater" data-hide-label="Skjul trenernotater">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
             </div>
@@ -4079,11 +4079,11 @@ window.showMatchDetails = function(id) {
         </section>
 
         <section class="match-stats-panel match-collapsible-panel ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
-            <div class="match-bench-action-row match-bench-topline match-stats-topline">
+            <div class="match-bench-action-row match-bench-topline match-stats-topline" onclick="window.onMatchPanelToplineClick(event)">
                 <div class="match-bench-heading">
                     <h3>Spillerbørs</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isStatsOpen ? 'true' : 'false'}" aria-label="${isStatsOpen ? 'Skjul spillerbørs' : 'Vis spillerbørs'}" data-show-label="Vis spillerbørs" data-hide-label="Skjul spillerbørs">
+                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isStatsOpen ? 'true' : 'false'}" aria-label="${isStatsOpen ? 'Skjul spillerbørs' : 'Vis spillerbørs'}" data-show-label="Vis spillerbørs" data-hide-label="Skjul spillerbørs">
                     <i class="fa-solid fa-chevron-up"></i>
                 </button>
             </div>
@@ -4840,6 +4840,26 @@ function syncMatchDetailPairPanelsAfterExclusiveClose() {
     if (pairState.oppstilling === true) return 'oppstilling';
     return '';
 }
+
+window.onMatchPanelToplineClick = function(event) {
+    const topline = event.currentTarget;
+    if (!topline) return;
+
+    const interactive = event.target.closest('a, button, input, select, textarea, label');
+    if (interactive && !interactive.classList.contains('match-panel-toggle-btn')) {
+        return;
+    }
+
+    const toggle = interactive?.classList.contains('match-panel-toggle-btn')
+        ? interactive
+        : topline.querySelector('.match-panel-toggle-btn');
+    if (!toggle) return;
+
+    if (interactive?.classList.contains('match-panel-toggle-btn')) {
+        event.preventDefault();
+    }
+    window.toggleMatchPanel(toggle);
+};
 
 window.toggleMatchPanel = function(btn) {
     const panel = btn?.closest('.match-collapsible-panel');

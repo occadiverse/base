@@ -8672,6 +8672,30 @@
             padding: 0.9rem;
             position: relative;
         }
+        #kampdetaljer-info .match-bench-topline {
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        #kampdetaljer-info .match-bench-topline:hover {
+            background: rgba(255, 255, 255, 0.11);
+        }
+        #kampdetaljer-info .match-bench-topline .training-session-attendance-add-btn,
+        #kampdetaljer-info .match-bench-topline .match-print-sheet-btn,
+        #kampdetaljer-info .match-bench-topline .match-panel-toggle-btn {
+            cursor: pointer;
+        }
+        #oktside-content .match-bench-topline {
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        #oktside-content .match-bench-topline:hover {
+            background: rgba(255, 255, 255, 0.11);
+        }
+        #oktside-content .match-bench-topline .training-session-attendance-add-btn,
+        #oktside-content .match-bench-topline .training-session-groups-info-btn,
+        #oktside-content .match-bench-topline .match-panel-toggle-btn {
+            cursor: pointer;
+        }
         .match-panel-toggle-btn {
             align-items: center;
             background: rgba(245, 197, 66, 0.16);
