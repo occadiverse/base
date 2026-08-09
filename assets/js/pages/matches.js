@@ -3392,6 +3392,297 @@ function ensureMatchGamePlanPitchPages(root = document) {
     });
 }
 
+function resolveMatchPrintPlayer(match, value) {
+    if (!value) return null;
+    if (typeof window.findPlayerByRef === 'function') {
+        const byRef = window.findPlayerByRef(value);
+        if (byRef) return byRef;
+    }
+    const byId = findMatchGamePlanPlayerById(match, value);
+    if (byId) return byId;
+
+    const lineupPlayers = Object.values(getMatchGamePlanDraftLineup(match) || {}).filter(Boolean);
+    const fromLineup = lineupPlayers.find(player => getMatchGamePlanStarterPlayerValue(player) === value);
+    if (fromLineup) return fromLineup;
+
+    const attending = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match)
+        : [];
+    const fromAttending = attending.find(player => getMatchGamePlanStarterPlayerValue(player) === value);
+    if (fromAttending) return fromAttending;
+
+    return (window.activePlayers || []).find(player =>
+        player.id === value || player.navn === value
+    ) || null;
+}
+
+function getMatchPrintPlayerLabel(player) {
+    if (!player) return '—';
+    return getMatchGamePlanPlayerShortName(player);
+}
+
+function getMatchPrintJersey(player) {
+    const jersey = player?.drakt || player?.draktnummer;
+    return jersey ? String(jersey) : '—';
+}
+
+function buildMatchPrintPitchHtml(planId) {
+    const isDefC = planId === 'defc';
+    const positions = isDefC ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
+    const label = isDefC ? 'Defensiv corner' : 'Offensiv corner';
+    const markersHtml = Object.entries(positions).map(([value, coords]) => `
+        <span
+            class="match-print-pitch-marker"
+            style="top: ${coords.top}; left: ${coords.left};"
+            aria-hidden="true"
+        >${escapeMatchHtml(value)}</span>
+    `).join('');
+
+    return `
+        <div class="match-print-pitch" aria-label="${escapeMatchHtml(label)} bane">
+            <div class="match-print-pitch-field">
+                <span class="match-print-pitch-halfway" aria-hidden="true"></span>
+                <span class="match-print-pitch-center-circle" aria-hidden="true"></span>
+                <span class="match-print-pitch-box" aria-hidden="true"></span>
+                <span class="match-print-pitch-ball" style="top: 3%; left: 95%;" aria-hidden="true"></span>
+                ${markersHtml}
+            </div>
+        </div>
+    `;
+}
+
+function buildMatchPrintSetPieceListHtml(match, planId) {
+    const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
+    const slots = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+    return `
+        <ul class="match-print-list match-print-setpiece-list">
+            ${slots.map(slot => {
+                const player = resolveMatchPrintPlayer(match, assignments[slot] || '');
+                return `
+                    <li>
+                        <span class="match-print-slot">${escapeMatchHtml(slot)}</span>
+                        <span class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</span>
+                    </li>
+                `;
+            }).join('')}
+        </ul>
+    `;
+}
+
+function buildMatchPrintSetPieceBlockHtml(match, planId) {
+    const title = planId === 'defc' ? 'Defensiv corner' : 'Offensiv corner';
+
+    return `
+        <section class="match-print-setpiece-block">
+            <h2>${escapeMatchHtml(title)}</h2>
+            ${buildMatchPrintPitchHtml(planId)}
+            ${buildMatchPrintSetPieceListHtml(match, planId)}
+        </section>
+    `;
+}
+
+function buildMatchPrintLineupHtml(match) {
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const positionIds = getMatchGamePlanFormationPositionIds(formationId)
+        .slice()
+        .sort(compareMatchGamePlanPositions);
+
+    return `
+        <section class="match-print-section">
+            <h2>Lagoppstilling <span class="match-print-formation">(${escapeMatchHtml(formationId)})</span></h2>
+            <ul class="match-print-list match-print-lineup-list">
+                ${positionIds.map(posId => {
+                    const player = lineup[posId] || null;
+                    return `
+                        <li>
+                            <span class="match-print-jersey">${escapeMatchHtml(getMatchPrintJersey(player))}</span>
+                            <span class="match-print-pos">${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}</span>
+                            <span class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</span>
+                        </li>
+                    `;
+                }).join('')}
+            </ul>
+        </section>
+    `;
+}
+
+function buildMatchPrintRolesHtml(match) {
+    const assignments = getMatchGamePlanSetPieceAssignments(match, 'roller');
+
+    return `
+        <section class="match-print-section match-print-roles-section">
+            <h2>Roller</h2>
+            <ul class="match-print-list match-print-roles-list">
+                ${matchGamePlanRoleSlots.map(slot => {
+                    const player = resolveMatchPrintPlayer(match, assignments[slot] || '');
+                    return `
+                        <li>
+                            <span class="match-print-slot">${escapeMatchHtml(getMatchGamePlanRoleLabel(slot))}</span>
+                            <span class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</span>
+                        </li>
+                    `;
+                }).join('')}
+            </ul>
+        </section>
+    `;
+}
+
+function getMatchPrintBenchPlanItems(match) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const starterKeys = new Set(
+        Object.values(lineup || {})
+            .filter(Boolean)
+            .map(player => getMatchGamePlanStarterPlayerValue(player))
+    );
+    const plan = getMatchGamePlanBenchAssignments(match);
+    const seen = new Set();
+    const items = [];
+
+    const pushPlayer = (player, playerKey) => {
+        const key = playerKey || getMatchGamePlanStarterPlayerValue(player);
+        if (!key || seen.has(key) || starterKeys.has(key)) return;
+        seen.add(key);
+        items.push({
+            player,
+            playerKey: key,
+            assignment: getMatchGamePlanBenchAssignment(match, key)
+        });
+    };
+
+    getMatchGamePlanBenchPlayers(match).forEach(player => pushPlayer(player));
+
+    Object.keys(plan || {}).forEach(playerKey => {
+        if (seen.has(playerKey) || starterKeys.has(playerKey)) return;
+        const player = resolveMatchPrintPlayer(match, playerKey);
+        if (!player) return;
+        pushPlayer(player, playerKey);
+    });
+
+    return items.sort((a, b) => {
+        const minuteA = a.assignment.minute ? Number(a.assignment.minute) : 999;
+        const minuteB = b.assignment.minute ? Number(b.assignment.minute) : 999;
+        if (minuteA !== minuteB) return minuteA - minuteB;
+        const jerseyA = Number(a.player?.drakt || a.player?.draktnummer) || 999;
+        const jerseyB = Number(b.player?.drakt || b.player?.draktnummer) || 999;
+        if (jerseyA !== jerseyB) return jerseyA - jerseyB;
+        return getMatchPrintPlayerLabel(a.player).localeCompare(getMatchPrintPlayerLabel(b.player));
+    });
+}
+
+function buildMatchPrintBenchPlanHtml(match) {
+    const items = getMatchPrintBenchPlanItems(match);
+
+    return `
+        <section class="match-print-section match-print-bench-section">
+            <h2>Bytteplan</h2>
+            ${items.length ? `
+                <table class="match-print-bench-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Tid</th>
+                            <th scope="col">Nr</th>
+                            <th scope="col">Spiller</th>
+                            <th scope="col">Posisjon</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map(({ player, assignment }) => {
+                            const minute = assignment.minute ? `${assignment.minute}'` : '—';
+                            const position = assignment.position
+                                ? getMatchGamePlanPositionLabel(assignment.position)
+                                : '—';
+                            const jersey = getMatchPrintJersey(player);
+                            return `
+                                <tr>
+                                    <td class="match-print-minute">${escapeMatchHtml(minute)}</td>
+                                    <td class="match-print-jersey">${escapeMatchHtml(jersey)}</td>
+                                    <td class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</td>
+                                    <td class="match-print-pos">${escapeMatchHtml(position)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            ` : `
+                <p class="match-print-empty">Ingen innbyttere i troppen.</p>
+            `}
+        </section>
+    `;
+}
+
+function buildMatchPrintSheetHtml(match) {
+    const data = getMatchCardPresentation(match);
+    const sides = typeof window.getMatchCardSides === 'function' ? window.getMatchCardSides(match) : null;
+    const title = sides
+        ? `${sides.left.name} – ${sides.right.name}`
+        : `Bækkelaget – ${match.opponent || 'Motstander'}`;
+    const metaParts = [
+        data.dateLabel,
+        match.time || null,
+        match.pitch || null,
+        data.matchTypeLabel
+    ].filter(Boolean);
+
+    return `
+        <header class="match-print-header">
+            <h1>${escapeMatchHtml(title)}</h1>
+            <p class="match-print-meta">${escapeMatchHtml(metaParts.join('  ·  '))}</p>
+        </header>
+        <div class="match-print-page match-print-page-1">
+            ${buildMatchPrintLineupHtml(match)}
+            <div class="match-print-setpiece-grid">
+                ${buildMatchPrintSetPieceBlockHtml(match, 'offc')}
+                ${buildMatchPrintSetPieceBlockHtml(match, 'defc')}
+            </div>
+        </div>
+        <div class="match-print-page-break" aria-hidden="true">&nbsp;</div>
+        <div class="match-print-page match-print-page-2">
+            ${buildMatchPrintRolesHtml(match)}
+            ${buildMatchPrintBenchPlanHtml(match)}
+        </div>
+    `;
+}
+
+function cleanupMatchPrintSheet() {
+    document.documentElement.classList.remove('is-printing-match-sheet');
+    document.body.classList.remove('is-printing-match-sheet');
+    document.getElementById('match-print-sheet')?.remove();
+    if (window._matchPrintCleanup) {
+        window.removeEventListener('afterprint', window._matchPrintCleanup);
+        window._matchPrintCleanup = null;
+    }
+    if (window._matchPrintCleanupTimer) {
+        clearTimeout(window._matchPrintCleanupTimer);
+        window._matchPrintCleanupTimer = null;
+    }
+}
+
+window.printMatchSheet = function() {
+    const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+    if (!match) return;
+
+    cleanupMatchPrintSheet();
+
+    const sheet = document.createElement('div');
+    sheet.id = 'match-print-sheet';
+    sheet.setAttribute('aria-hidden', 'true');
+    sheet.innerHTML = buildMatchPrintSheetHtml(match);
+    document.body.appendChild(sheet);
+    document.documentElement.classList.add('is-printing-match-sheet');
+    document.body.classList.add('is-printing-match-sheet');
+
+    const cleanup = () => cleanupMatchPrintSheet();
+    window._matchPrintCleanup = cleanup;
+    window.addEventListener('afterprint', cleanup);
+    window._matchPrintCleanupTimer = setTimeout(cleanup, 60000);
+
+    requestAnimationFrame(() => {
+        window.print();
+    });
+};
+
 function buildMatchGamePlanHtml(match) {
     return `
         <div class="match-game-plan-tabs-wrap" data-no-swipe>
@@ -3750,6 +4041,14 @@ window.showMatchDetails = function(id) {
                 </div>
                 <button type="button" class="match-panel-toggle-btn" onclick="window.toggleMatchPanel(this)" aria-expanded="${isGamePlanOpen ? 'true' : 'false'}" aria-label="${isGamePlanOpen ? 'Skjul kampplan' : 'Vis kampplan'}" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
                     <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <button type="button"
+                        class="training-session-attendance-add-btn match-print-sheet-btn"
+                        onclick="window.printMatchSheet()"
+                        title="Skriv ut lagoppstilling og kampplan"
+                        aria-label="Skriv ut lagoppstilling og kampplan">
+                    <i class="fa-solid fa-print" aria-hidden="true"></i>
+                    <span>Skriv ut</span>
                 </button>
             </div>
             <div class="match-collapsible-content">

@@ -13527,3 +13527,301 @@
         #confirmModal {
         z-index: 100 !important;
         }
+
+        /* Match print sheet — hidden on screen, shown only when printing */
+        #match-print-sheet {
+            display: none;
+        }
+
+        .match-game-plan-topline .match-print-sheet-btn {
+            flex: 0 0 auto;
+            margin-left: auto;
+        }
+
+        @media print {
+            @page {
+                margin: 12mm;
+            }
+
+            html.is-printing-match-sheet,
+            body.is-printing-match-sheet {
+                background: #ffffff !important;
+                color: #000000 !important;
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+                width: auto !important;
+            }
+
+            body.is-printing-match-sheet > *:not(#match-print-sheet) {
+                display: none !important;
+            }
+
+            body.is-printing-match-sheet #match-print-sheet {
+                color: #000000;
+                display: block !important;
+                float: none !important;
+                font-family: Georgia, "Times New Roman", Times, serif;
+                font-size: 11pt;
+                height: auto !important;
+                line-height: 1.35;
+                overflow: visible !important;
+                position: static !important;
+                width: 100% !important;
+            }
+
+            body.is-printing-match-sheet #match-print-sheet * {
+                box-shadow: none !important;
+                color: inherit;
+            }
+
+            .match-print-header {
+                border-bottom: 1.5pt solid #000000;
+                margin-bottom: 0.85rem;
+                padding-bottom: 0.45rem;
+            }
+
+            .match-print-header h1 {
+                font-size: 16pt;
+                font-weight: 700;
+                letter-spacing: 0;
+                margin: 0 0 0.2rem;
+            }
+
+            .match-print-meta {
+                font-size: 10pt;
+                margin: 0;
+            }
+
+            .match-print-section,
+            .match-print-setpiece-block {
+                margin: 0 0 0.9rem;
+            }
+
+            .match-print-page {
+                display: block !important;
+                float: none !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
+            .match-print-page-1 {
+                break-after: page !important;
+                page-break-after: always !important;
+            }
+
+            .match-print-page-break {
+                display: none !important;
+            }
+
+            .match-print-page-2 {
+                break-before: page !important;
+                display: block !important;
+                page-break-before: always !important;
+            }
+
+            .match-print-roles-section,
+            .match-print-bench-section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .match-print-section h2,
+            .match-print-setpiece-block h2 {
+                border-bottom: 0.75pt solid #000000;
+                font-size: 12pt;
+                font-weight: 700;
+                margin: 0 0 0.35rem;
+                padding-bottom: 0.15rem;
+                text-transform: uppercase;
+            }
+
+            .match-print-formation {
+                font-size: 10pt;
+                font-weight: 400;
+                text-transform: none;
+            }
+
+            .match-print-list {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .match-print-list li {
+                align-items: baseline;
+                display: grid;
+                gap: 0.35rem 0.55rem;
+                padding: 0.08rem 0;
+            }
+
+            .match-print-lineup-list li {
+                grid-template-columns: 1.8rem 9.5rem 1fr;
+            }
+
+            .match-print-lineup-list .match-print-pos {
+                white-space: nowrap;
+            }
+
+            .match-print-setpiece-list li,
+            .match-print-roles-list li {
+                grid-template-columns: 5.5rem 1fr;
+            }
+
+            .match-print-bench-list li {
+                grid-template-columns: 2.2rem 2rem 1fr auto minmax(5.5rem, 7.5rem);
+            }
+
+            .match-print-bench-list .match-print-pos {
+                white-space: nowrap;
+            }
+
+            .match-print-bench-table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            .match-print-bench-table th,
+            .match-print-bench-table td {
+                border-bottom: 0.5pt solid #000000;
+                padding: 0.22rem 0.35rem 0.22rem 0;
+                text-align: left;
+                vertical-align: baseline;
+            }
+
+            .match-print-bench-table th {
+                border-bottom: 1pt solid #000000;
+                font-size: 9pt;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .match-print-bench-table th:nth-child(1),
+            .match-print-bench-table td:nth-child(1) {
+                width: 2.6rem;
+            }
+
+            .match-print-bench-table th:nth-child(2),
+            .match-print-bench-table td:nth-child(2) {
+                width: 2.2rem;
+            }
+
+            .match-print-bench-table th:nth-child(4),
+            .match-print-bench-table td:nth-child(4) {
+                white-space: nowrap;
+                width: 8.5rem;
+            }
+
+            .match-print-pos,
+            .match-print-slot,
+            .match-print-jersey,
+            .match-print-minute {
+                font-variant-numeric: tabular-nums;
+                font-weight: 700;
+            }
+
+            .match-print-bench-table .match-print-name {
+                font-weight: 400;
+            }
+
+            .match-print-empty {
+                font-style: italic;
+                margin: 0;
+            }
+
+            .match-print-setpiece-grid {
+                break-inside: avoid;
+                display: grid;
+                gap: 0.85rem 1.1rem;
+                grid-template-columns: 1fr 1fr;
+                margin-bottom: 0.9rem;
+                page-break-inside: avoid;
+            }
+
+            .match-print-pitch {
+                margin: 0 0 0.45rem;
+                max-width: 100%;
+            }
+
+            .match-print-pitch-field {
+                aspect-ratio: 2 / 3;
+                border: 1.25pt solid #000000;
+                margin: 0 auto;
+                max-width: 11rem;
+                overflow: visible;
+                position: relative;
+                width: 100%;
+            }
+
+            .match-print-pitch-halfway {
+                border: 0;
+                border-top: 1.5pt solid #000000;
+                display: block;
+                height: 0;
+                left: 0;
+                margin: 0;
+                padding: 0;
+                position: absolute;
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 100%;
+                z-index: 1;
+            }
+
+            .match-print-pitch-center-circle {
+                aspect-ratio: 1 / 1;
+                border: 1pt solid #000000;
+                border-radius: 999px;
+                box-sizing: border-box;
+                display: block;
+                left: 50%;
+                position: absolute;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 28%;
+                z-index: 1;
+            }
+
+            .match-print-pitch-box {
+                border: 0.75pt solid #000000;
+                border-top: 0;
+                box-sizing: border-box;
+                display: block;
+                height: 18%;
+                left: 22%;
+                position: absolute;
+                top: 0;
+                width: 56%;
+            }
+
+            .match-print-pitch-marker {
+                align-items: center;
+                background: #ffffff;
+                border: 1pt solid #000000;
+                border-radius: 999px;
+                display: inline-flex;
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 7.5pt;
+                font-weight: 700;
+                height: 1.05rem;
+                justify-content: center;
+                line-height: 1;
+                position: absolute;
+                transform: translate(-50%, -50%);
+                width: 1.05rem;
+                z-index: 2;
+            }
+
+            .match-print-pitch-ball {
+                background: #000000;
+                border-radius: 999px;
+                display: block;
+                height: 0.4rem;
+                position: absolute;
+                transform: translate(-50%, -50%);
+                width: 0.4rem;
+                z-index: 2;
+            }
+        }
