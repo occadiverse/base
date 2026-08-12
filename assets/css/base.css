@@ -3061,6 +3061,222 @@
         .training-session-groups-panel .match-fixture-month::after {
             background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
         }
+        .training-session-data-panel.match-game-plan-panel {
+            margin-top: 0;
+        }
+        .training-session-data-panel .match-bench-topline {
+            justify-content: space-between;
+        }
+        .training-session-data-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 0.15rem 0.15rem 0.35rem;
+        }
+        .training-data-section h4 {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0 0 0.55rem;
+            text-transform: uppercase;
+        }
+        .training-data-empty {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.85rem;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.82rem;
+            font-weight: 650;
+            padding: 0.75rem 0.85rem;
+        }
+        .training-data-empty p {
+            margin: 0;
+        }
+        .training-data-recommend-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+        .training-data-recommend-intro {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.78rem;
+            font-weight: 650;
+            line-height: 1.4;
+            margin: 0;
+        }
+        .training-data-recommend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .training-data-recommend-item {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(245, 197, 66, 0.22);
+            border-radius: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            padding: 0.7rem 0.8rem;
+        }
+        .training-data-recommend-item strong {
+            color: #f5c542;
+            font-size: 0.84rem;
+            font-weight: 900;
+        }
+        .training-data-recommend-item span {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.76rem;
+            font-weight: 650;
+            line-height: 1.35;
+        }
+        .training-data-stat-grid {
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-bottom: 0.7rem;
+        }
+        .training-data-stat {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            min-width: 0;
+            padding: 0.55rem 0.35rem;
+            text-align: center;
+        }
+        .training-data-stat-label {
+            color: rgba(255, 255, 255, 0.58);
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+        .training-data-stat strong {
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 900;
+        }
+        .training-data-stat.is-up strong,
+        .training-data-split-lists strong.is-up {
+            color: #86efac;
+        }
+        .training-data-stat.is-down strong,
+        .training-data-split-lists strong.is-down {
+            color: #fca5a5;
+        }
+        .training-data-stat.is-flat strong {
+            color: rgba(255, 255, 255, 0.82);
+        }
+        .training-data-rank-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin-top: 0.65rem;
+        }
+        .training-data-rank-block h5 {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .training-data-rank-list {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            list-style: none;
+            margin: 0;
+            padding: 0.35rem 0.55rem;
+        }
+        .training-data-rank-list:not(.is-expanded) .is-overflow {
+            display: none;
+        }
+        .training-data-rank-list li {
+            align-items: baseline;
+            color: rgba(255, 255, 255, 0.88);
+            display: grid;
+            font-size: 0.78rem;
+            font-weight: 700;
+            gap: 0.45rem;
+            grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+            padding: 0.28rem 0;
+        }
+        .training-data-rank-list li + li {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .training-data-rank-index {
+            color: rgba(255, 255, 255, 0.45);
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+        }
+        .training-data-rank-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .training-data-rank-toggle {
+            align-self: flex-start;
+            background: transparent;
+            border: 0;
+            color: #f5c542;
+            cursor: pointer;
+            font-size: 0.74rem;
+            font-weight: 800;
+            padding: 0.15rem 0;
+            text-decoration: underline;
+            text-underline-offset: 0.15em;
+        }
+        .training-data-rank-toggle:hover {
+            color: #ffd76a;
+        }
+        .training-data-split-lists {
+            display: grid;
+            gap: 0.65rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .training-data-split-lists h5 {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            margin: 0 0 0.4rem;
+            text-transform: uppercase;
+        }
+        .training-data-split-lists ul {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            list-style: none;
+            margin: 0;
+            padding: 0.35rem 0.55rem;
+        }
+        .training-data-split-lists li {
+            align-items: baseline;
+            color: rgba(255, 255, 255, 0.88);
+            display: flex;
+            font-size: 0.78rem;
+            font-weight: 700;
+            gap: 0.5rem;
+            justify-content: space-between;
+            padding: 0.28rem 0;
+        }
+        .training-data-split-lists li + li {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .training-data-split-lists li.is-empty {
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 650;
+            justify-content: flex-start;
+        }
+        @media (max-width: 640px) {
+            .training-data-split-lists {
+                grid-template-columns: 1fr;
+            }
+        }
         .training-session-label {
             color: #64748b;
             display: block;

@@ -406,6 +406,382 @@ function buildGroupsHtml(eventId, players) {
     `;
 }
 
+function getTrainingSessionTeamName(event) {
+    return event?.team || event?.matchGroup || '';
+}
+
+function getLatestFinishedMatchForTeam(teamName) {
+    return (window.activeMatches || [])
+        .filter(match => {
+            if (!match?.result || !String(match.result).includes('-')) return false;
+            if (teamName && match.matchGroup && match.matchGroup !== teamName) return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+            return true;
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0] || null;
+}
+
+function getTrainingMatchScore(match) {
+    if (typeof parseScore === 'function') return parseScore(match?.result);
+    if (typeof window.parseScore === 'function') return window.parseScore(match?.result);
+    return null;
+}
+
+function getTrainingMatchPlayerRating(match, player) {
+    if (!match || !player || typeof window.getPlayerRefMapValue !== 'function') return 0;
+    return Number(window.getPlayerRefMapValue(match.ratings, player, 0)) || 0;
+}
+
+function getTrainingMatchLineRatingAverages(match) {
+    const teamName = match?.matchGroup || '';
+    const players = (window.activePlayers || []).filter(player => (
+        player.status !== 'Passiv'
+        && (!teamName || player.spillerLag === teamName)
+        && (typeof window.isPlayerAttending !== 'function' || window.isPlayerAttending(match.attendance, player))
+        && (typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(match, player))
+    ));
+
+    const buckets = { F: [], M: [], A: [] };
+    players.forEach(player => {
+        const category = getPlayerPositionCategory(player);
+        const rating = getTrainingMatchPlayerRating(match, player);
+        if (!buckets[category] || rating <= 0) return;
+        buckets[category].push(rating);
+    });
+
+    return Object.fromEntries(
+        Object.entries(buckets).map(([key, values]) => [
+            key,
+            values.length
+                ? values.reduce((sum, value) => sum + value, 0) / values.length
+                : null
+        ])
+    );
+}
+
+function buildTrainingRecommendationsFromLastMatch(match) {
+    if (!match) return null;
+
+    const score = getTrainingMatchScore(match);
+    if (!score) return null;
+
+    const opponent = match.opponent || 'motstander';
+    const resultLabel = score.bsk > score.opponent
+        ? 'seier'
+        : (score.bsk < score.opponent ? 'tap' : 'uavgjort');
+    const scoreLabel = `${score.bsk}-${score.opponent}`;
+    const intro = `Basert på siste kamp mot ${opponent} — ${resultLabel} ${scoreLabel}.`;
+
+    const recommendations = [];
+    const needsDefensiveShape = score.opponent >= 3
+        || (score.bsk < score.opponent && score.opponent >= 2);
+    const needsDefensiveSetPieces = score.opponent >= 2;
+
+    if (needsDefensiveShape && needsDefensiveSetPieces) {
+        recommendations.push({
+            title: 'Defensiv organisering og dødball',
+            reason: `Med ${score.opponent} mål imot er det naturlig å stramme struktur bakover, og samtidig jobbe DefC og marking i eget felt.`
+        });
+    } else if (needsDefensiveShape) {
+        recommendations.push({
+            title: 'Defensiv organisering',
+            reason: `Med ${score.opponent} mål imot bør økten fokusere struktur, avstander og kommunikasjon bakover.`
+        });
+    } else if (needsDefensiveSetPieces) {
+        recommendations.push({
+            title: 'Defensiv corner / dødball',
+            reason: `${score.opponent} mål imot peker mot sårbarhet i eget felt — prioriter DefC og marking.`
+        });
+    }
+
+    if (score.bsk === 0 || (score.bsk < score.opponent && score.bsk <= 1)) {
+        recommendations.push({
+            title: 'Avslutninger og siste tredjedel',
+            reason: score.bsk === 0
+                ? 'Ingen scoringer sist kamp — mer trening i siste tredjedel og avslutninger.'
+                : `Kun ${score.bsk} mål scoret — mer trening i siste tredjedel og avslutninger.`
+        });
+    }
+
+    const lineAverages = getTrainingMatchLineRatingAverages(match);
+    const lineLabels = { F: 'Forsvar', M: 'Midtbane', A: 'Angrep' };
+    const weakLines = Object.entries(lineAverages)
+        .filter(([, avg]) => avg !== null && avg > 0 && avg < 5)
+        .sort((a, b) => a[1] - b[1]);
+
+    if (weakLines.length) {
+        const [lineKey, avg] = weakLines[0];
+        const lineName = lineLabels[lineKey];
+        recommendations.push({
+            title: `${lineName} i spill`,
+            reason: `Snittbørs ${avg.toFixed(1)} i ${lineName.toLowerCase()} sist kamp — gi den linjen mer spilløving.`
+        });
+    }
+
+    if (!recommendations.length && score.bsk >= score.opponent) {
+        recommendations.push({
+            title: 'Videreutvikle ballbesittelse',
+            reason: 'Resultatet var bra — bygg videre på ballbesittelse og det som fungerte.'
+        });
+    }
+
+    const unique = [];
+    const seen = new Set();
+    recommendations.forEach(item => {
+        if (seen.has(item.title)) return;
+        seen.add(item.title);
+        unique.push(item);
+    });
+
+    const items = unique.slice(0, 3);
+    if (!items.length) return null;
+
+    return { intro, items };
+}
+
+function getTrainingTeamPlayers(teamName) {
+    return (window.activePlayers || []).filter(player => (
+        player.status !== 'Passiv'
+        && (!teamName || player.spillerLag === teamName)
+        && !(typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))
+        && !player.isGuest
+    ));
+}
+
+function getCurrentSeasonDateRange(asOf = new Date()) {
+    const end = new Date(asOf);
+    end.setHours(23, 59, 59, 999);
+    const start = new Date(end.getFullYear(), 0, 1);
+    start.setHours(0, 0, 0, 0);
+    return { start, end, year: end.getFullYear() };
+}
+
+function isTrainingEventInCurrentSeason(event, asOf = new Date()) {
+    if (!event?.date) return false;
+    const eventDate = new Date(event.date);
+    if (Number.isNaN(eventDate.getTime())) return false;
+    eventDate.setHours(12, 0, 0, 0);
+    const { start, end } = getCurrentSeasonDateRange(asOf);
+    return eventDate >= start && eventDate <= end;
+}
+
+function getTrainingHistoricalAttendanceEvents(teamName) {
+    return (window.activeEvents || [])
+        .filter(event => {
+            if (event?.type !== 'Trening') return false;
+            if (!event?.attendance) return false;
+            if (teamName && event.team && event.team !== teamName) return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
+            if (!isTrainingEventInCurrentSeason(event)) return false;
+            return true;
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+}
+
+function getTrainingEventAttendancePct(event, teamPlayers) {
+    if (!event?.attendance || !teamPlayers.length) return null;
+    const possible = teamPlayers.filter(player => {
+        if (typeof window.getStatsHistoricalEventSquad === 'function') return true;
+        return true;
+    });
+    const squad = typeof window.getStatsHistoricalEventSquad === 'function'
+        ? window.getStatsHistoricalEventSquad(event, teamPlayers, teamPlayers)
+        : possible;
+    if (!squad.length) return null;
+    const attending = squad.filter(player => (
+        typeof window.isPlayerAttending === 'function'
+            ? window.isPlayerAttending(event.attendance, player)
+            : Boolean(event.attendance[player.id] || event.attendance[player.navn])
+    )).length;
+    return Math.round((attending / squad.length) * 100);
+}
+
+function buildTrainingAttendanceSeasonStats(teamName) {
+    const teamPlayers = getTrainingTeamPlayers(teamName);
+    const events = getTrainingHistoricalAttendanceEvents(teamName);
+
+    const pctFor = (list) => {
+        const values = list
+            .map(event => getTrainingEventAttendancePct(event, teamPlayers))
+            .filter(value => value !== null);
+        if (!values.length) return null;
+        return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    };
+
+    if (events.length) {
+        const lastFivePct = pctFor(events.slice(0, 5));
+        const baselinePct = pctFor(events.slice(5));
+        const seasonPct = pctFor(events);
+        return {
+            seasonPct,
+            lastFivePct,
+            baselinePct,
+            delta: (lastFivePct !== null && baselinePct !== null) ? lastFivePct - baselinePct : null
+        };
+    }
+
+    return { seasonPct: null, lastFivePct: null, baselinePct: null, delta: null };
+}
+
+function buildTrainingPlayerAttendanceRanking(teamName) {
+    const teamPlayers = getTrainingTeamPlayers(teamName);
+    const events = getTrainingHistoricalAttendanceEvents(teamName);
+    if (!events.length || !teamPlayers.length) return [];
+
+    const rows = teamPlayers.map(player => {
+        let attended = 0;
+        let possible = 0;
+        events.forEach(event => {
+            const squad = typeof window.getStatsHistoricalEventSquad === 'function'
+                ? window.getStatsHistoricalEventSquad(event, teamPlayers, teamPlayers)
+                : teamPlayers;
+            if (!squad.some(entry => entry.id === player.id || entry.navn === player.navn)) return;
+            possible += 1;
+            if (typeof window.isPlayerAttending === 'function'
+                ? window.isPlayerAttending(event.attendance, player)
+                : Boolean(event.attendance?.[player.id] || event.attendance?.[player.navn])) {
+                attended += 1;
+            }
+        });
+        if (possible < 3) return null;
+        return {
+            name: player.navn,
+            pct: Math.round((attended / possible) * 100),
+            attended,
+            possible
+        };
+    }).filter(Boolean);
+
+    return [...rows].sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name, 'no'));
+}
+
+function formatTrainingTrendDelta(delta, suffix = '') {
+    if (delta === null || delta === undefined || Number.isNaN(Number(delta))) return '—';
+    const value = Number(delta);
+    const rounded = Math.round(value * 10) / 10;
+    const prefix = rounded > 0 ? '+' : '';
+    return `${prefix}${rounded}${suffix}`;
+}
+
+function buildTrainingDataRecommendationsHtml(match) {
+    const recommendations = buildTrainingRecommendationsFromLastMatch(match);
+    if (!recommendations?.items?.length) {
+        return `
+            <div class="training-data-empty">
+                <p>Ingen ferdig kamp å basere anbefaling på.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="training-data-recommend-block">
+            <p class="training-data-recommend-intro">${escapeTrainingHtml(recommendations.intro)}</p>
+            <div class="training-data-recommend-list">
+                ${recommendations.items.map(item => `
+                    <article class="training-data-recommend-item">
+                        <strong>${escapeTrainingHtml(item.title)}</strong>
+                        <span>${escapeTrainingHtml(item.reason)}</span>
+                    </article>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function buildTrainingDataAttendanceHtml(teamName) {
+    const stats = buildTrainingAttendanceSeasonStats(teamName);
+    const ranking = buildTrainingPlayerAttendanceRanking(teamName);
+    const visibleLimit = 10;
+    const isExpanded = window._trainingSessionAttendanceListExpanded === true;
+    const hasOverflow = ranking.length > visibleLimit;
+    const trendTone = stats.delta === null
+        ? ''
+        : (stats.delta > 0 ? 'is-up' : (stats.delta < 0 ? 'is-down' : 'is-flat'));
+
+    if (stats.seasonPct === null && stats.lastFivePct === null) {
+        return `
+            <div class="training-data-empty">
+                <p>Ingen oppmøtedata registrert for sesongen ennå.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="training-data-attendance">
+            <div class="training-data-stat-grid">
+                <div class="training-data-stat">
+                    <span class="training-data-stat-label">Sesong</span>
+                    <strong>${stats.seasonPct !== null ? `${stats.seasonPct}%` : '—'}</strong>
+                </div>
+                <div class="training-data-stat">
+                    <span class="training-data-stat-label">Siste 5</span>
+                    <strong>${stats.lastFivePct !== null ? `${stats.lastFivePct}%` : '—'}</strong>
+                </div>
+                <div class="training-data-stat ${trendTone}">
+                    <span class="training-data-stat-label">Retning</span>
+                    <strong>${escapeTrainingHtml(formatTrainingTrendDelta(stats.delta, ' %'))}</strong>
+                </div>
+            </div>
+            ${ranking.length ? `
+                <div class="training-data-rank-block">
+                    <h5>Oppmøte spillere</h5>
+                    <ul class="training-data-rank-list ${isExpanded ? 'is-expanded' : ''}">
+                        ${ranking.map((row, index) => `
+                            <li class="${index >= visibleLimit ? 'is-overflow' : ''}">
+                                <span class="training-data-rank-index">${index + 1}.</span>
+                                <span class="training-data-rank-name">${escapeTrainingHtml(row.name)}</span>
+                                <strong>${row.pct}%</strong>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    ${hasOverflow ? `
+                        <button
+                            type="button"
+                            class="training-data-rank-toggle"
+                            data-training-action="toggle-attendance-list"
+                            aria-expanded="${isExpanded ? 'true' : 'false'}"
+                        >
+                            ${isExpanded ? 'Vis færre' : `Vis alle (${ranking.length})`}
+                        </button>
+                    ` : ''}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function buildTrainingDataPanelHtml(trainingEvent) {
+    const teamName = getTrainingSessionTeamName(trainingEvent);
+    const lastMatch = getLatestFinishedMatchForTeam(teamName);
+    const isOpen = window._trainingSessionDataOpen === true;
+    const seasonYear = getCurrentSeasonDateRange().year;
+
+    return `
+        <section class="training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
+            <div class="match-bench-action-row match-bench-topline">
+                <div class="match-bench-heading">
+                    <h3>Treningsinfo</h3>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-treningsdata" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul treningsinfo' : 'Vis treningsinfo'}" data-show-label="Vis treningsinfo" data-hide-label="Skjul treningsinfo">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="training-session-data-body">
+                    <section class="training-data-section">
+                        <h4>Anbefaling etter siste kamp</h4>
+                        ${buildTrainingDataRecommendationsHtml(lastMatch)}
+                    </section>
+                    <section class="training-data-section">
+                        <h4>Oppmøte sesong ${seasonYear}</h4>
+                        ${buildTrainingDataAttendanceHtml(teamName)}
+                    </section>
+                </div>
+            </div>
+        </section>
+    `;
+}
+
 function toggleTrainingSessionCollapsiblePanel(panel, toggleBtn, stateKey) {
     if (!panel || !toggleBtn) return;
 
@@ -446,6 +822,10 @@ function bindTrainingSessionEvents() {
                     toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionGroupsOpen');
                     return;
                 }
+                if (panel && action === 'toggle-treningsdata') {
+                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionDataOpen');
+                    return;
+                }
             }
         }
 
@@ -484,6 +864,26 @@ function bindTrainingSessionEvents() {
         if (action === 'toggle-groups') {
             const panel = actionEl.closest('.match-collapsible-panel');
             toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionGroupsOpen');
+            return;
+        }
+
+        if (action === 'toggle-treningsdata') {
+            const panel = actionEl.closest('.match-collapsible-panel');
+            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionDataOpen');
+            return;
+        }
+
+        if (action === 'toggle-attendance-list') {
+            const block = actionEl.closest('.training-data-rank-block');
+            const list = block?.querySelector('.training-data-rank-list');
+            if (!list) return;
+
+            const expanded = !list.classList.contains('is-expanded');
+            list.classList.toggle('is-expanded', expanded);
+            window._trainingSessionAttendanceListExpanded = expanded;
+            actionEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            const total = list.querySelectorAll('li').length;
+            actionEl.textContent = expanded ? 'Vis færre' : `Vis alle (${total})`;
             return;
         }
 
@@ -755,6 +1155,7 @@ window.renderTrainingSession = function(eventId) {
             </section>
 
             ${groupsPanelHtml}
+            ${isTraining ? buildTrainingDataPanelHtml(trainingEvent) : ''}
         </div>
     `;
 
