@@ -2671,6 +2671,7 @@
         .match-detail-page .match-game-plan-panel,
         .match-detail-page .match-coach-notes-panel,
         .match-detail-page .match-stats-panel,
+        .match-detail-page .match-opponent-info-panel,
         .training-session-page .match-game-plan-panel {
             margin-top: 0;
         }
@@ -2681,6 +2682,7 @@
             justify-content: space-between;
         }
         .match-bench-panel .match-detail-section-badge,
+        .match-opponent-info-panel .match-detail-section-badge,
         .training-session-attendance-panel .match-detail-section-badge {
             background: rgba(245, 197, 66, 0.14);
             border: 1px solid rgba(245, 197, 66, 0.34);
@@ -11071,8 +11073,94 @@
             overflow: visible;
             padding: 0.9rem;
         }
-        .match-stats-topline {
+        .match-stats-topline,
+        .match-opponent-info-topline {
             margin-bottom: 0.75rem;
+        }
+        .match-opponent-info-panel {
+            background:
+                radial-gradient(circle at 92% 0%, rgba(245, 197, 66, 0.13), transparent 28%),
+                linear-gradient(180deg, #102f54 0%, #0b223e 100%);
+            border: 1px solid rgba(245, 197, 66, 0.14);
+            border-radius: 1.25rem;
+            box-shadow: 0 14px 32px rgba(11, 43, 76, 0.16);
+            color: #ffffff;
+            overflow: visible;
+            padding: 0.9rem;
+        }
+        .match-opponent-info-record {
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 0 0 0.75rem;
+        }
+        .match-opponent-info-record-item {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            padding: 0.55rem 0.4rem 0.5rem;
+            text-align: center;
+        }
+        .match-opponent-info-record-item strong {
+            font-size: 1.15rem;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+        .match-opponent-info-record-item span {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.62rem;
+            font-weight: 850;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .match-opponent-info-record-item.is-win {
+            border-color: rgba(134, 239, 172, 0.28);
+        }
+        .match-opponent-info-record-item.is-win strong {
+            color: #86efac;
+        }
+        .match-opponent-info-record-item.is-draw {
+            border-color: rgba(245, 197, 66, 0.28);
+        }
+        .match-opponent-info-record-item.is-draw strong {
+            color: #f5c542;
+        }
+        .match-opponent-info-record-item.is-loss {
+            border-color: rgba(248, 113, 113, 0.28);
+        }
+        .match-opponent-info-record-item.is-loss strong {
+            color: #f87171;
+        }
+        .match-opponent-info-list {
+            display: grid;
+            gap: 0.55rem;
+        }
+        .match-opponent-info-panel .match-fixture-row {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            cursor: pointer;
+        }
+        .match-opponent-info-empty {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.68);
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            padding: 1.15rem 0.75rem 1.25rem;
+            text-align: center;
+        }
+        .match-opponent-info-empty i {
+            color: rgba(245, 197, 66, 0.72);
+            font-size: 1.15rem;
+        }
+        .match-opponent-info-panel .match-bench-heading .match-detail-section-badge {
+            color: #f5c542;
         }
         .match-stats-body {
             background: rgba(255, 255, 255, 0.055);
@@ -12193,7 +12281,8 @@
             .match-bench-panel,
             .match-game-plan-panel,
             .match-coach-notes-panel,
-            .match-stats-panel {
+            .match-stats-panel,
+            .match-opponent-info-panel {
                 padding: 0.75rem;
             }
             .match-bench-action-row {

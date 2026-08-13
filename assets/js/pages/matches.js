@@ -40,6 +40,9 @@ function bindMatchListEvents() {
             if (!matchId) return;
 
             if (action === 'open-details') {
+                if (actionEl.closest('[data-match-panel="motstanderinfo"]')) {
+                    window.pendingMatchDetailsOpenPanel = 'motstanderinfo';
+                }
                 window.showMatchDetails(matchId);
             } else if (action === 'edit') {
                 window.openMatchModal(matchId);
@@ -379,6 +382,137 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
             </div>
         </section>
     `).join('');
+}
+
+function normalizeOpponentName(name) {
+    return String(name || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/æ/g, 'ae')
+        .replace(/ø/g, 'o')
+        .replace(/å/g, 'a')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+function getMatchTimestamp(match) {
+    const date = String(match?.date || '').trim();
+    if (!date) return 0;
+    const time = String(match?.time || '00:00').trim() || '00:00';
+    const timestamp = new Date(`${date}T${time}`).getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function isPreviousOpponentMatch(match, nowTs = Date.now()) {
+    if (match?.result && String(match.result).includes('-')) return true;
+    const timestamp = getMatchTimestamp(match);
+    return timestamp > 0 && timestamp < nowTs;
+}
+
+function getPreviousMatchesAgainstOpponent(currentMatch) {
+    const opponentKey = normalizeOpponentName(currentMatch?.opponent);
+    if (!opponentKey) return [];
+
+    const nowTs = Date.now();
+    const currentGroup = currentMatch?.matchGroup || '';
+
+    return (window.activeMatches || [])
+        .filter(match => {
+            if (!match || match.id === currentMatch.id) return false;
+            if (normalizeOpponentName(match.opponent) !== opponentKey) return false;
+            if (currentGroup && match.matchGroup && match.matchGroup !== currentGroup) return false;
+            return isPreviousOpponentMatch(match, nowTs);
+        })
+        .sort((a, b) => getMatchTimestamp(b) - getMatchTimestamp(a));
+}
+
+function getOpponentHistoryRecord(matches) {
+    return matches.reduce((record, match) => {
+        const parsedScore = match.result ? parseScore(match.result) : null;
+        if (!parsedScore) {
+            record.unknown += 1;
+            return record;
+        }
+        if (parsedScore.bsk > parsedScore.opponent) record.wins += 1;
+        else if (parsedScore.bsk === parsedScore.opponent) record.draws += 1;
+        else record.losses += 1;
+        return record;
+    }, { wins: 0, draws: 0, losses: 0, unknown: 0 });
+}
+
+function buildMatchOpponentHistoryRowHtml(match) {
+    const data = getMatchFixturePresentation(match);
+    const venue = getMatchVenue(match);
+    const venueLabel = venue === 'Hjemme' ? 'Hjemme' : 'Borte';
+    const parsedScore = match.result ? parseScore(match.result) : null;
+    const resultLabel = parsedScore
+        ? `${parsedScore.bsk}-${parsedScore.opponent}`
+        : (match.result || 'Ikke spilt');
+    const year = Number.isNaN(new Date(match.date).getTime())
+        ? ''
+        : new Date(match.date).getFullYear();
+    const clickAttrs = `data-match-action="open-details" data-match-id="${escapeMatchHtml(match.id)}" role="button" tabindex="0"`;
+    const whereParts = [venueLabel, match.pitch].filter(Boolean);
+
+    return `
+        <article class="match-fixture-row dashboard-click-card ${data.resultTone}" ${clickAttrs}>
+            <div class="match-fixture-date" aria-hidden="true">
+                <span class="match-fixture-date-day">${escapeMatchHtml(data.day)}</span>
+                <span class="match-fixture-date-month">${escapeMatchHtml(data.month)}</span>
+            </div>
+
+            <div class="match-fixture-main">
+                <span class="match-fixture-weekday">${escapeMatchHtml([data.weekday, year].filter(Boolean).join(' · '))}</span>
+                <span class="match-fixture-opponent">${escapeMatchHtml(whereParts.join(' · ') || 'Sted ikke satt')}</span>
+                ${match.matchType ? `<span class="match-fixture-meta">${escapeMatchHtml(match.matchType)}</span>` : ''}
+            </div>
+
+            <div class="match-fixture-side">
+                <span class="match-fixture-side-value">${escapeMatchHtml(resultLabel)}</span>
+            </div>
+
+            <div class="match-fixture-chevron" aria-hidden="true">
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </article>
+    `;
+}
+
+function buildMatchOpponentInfoBodyHtml(match) {
+    const previousMatches = getPreviousMatchesAgainstOpponent(match);
+    const opponentName = match.opponent || 'motstanderen';
+
+    if (!previousMatches.length) {
+        return `
+            <div class="match-opponent-info-empty">
+                <i class="fa-solid fa-shield" aria-hidden="true"></i>
+                <p>Ingen tidligere kamper mot ${escapeMatchHtml(opponentName)}.</p>
+            </div>
+        `;
+    }
+
+    const record = getOpponentHistoryRecord(previousMatches);
+
+    return `
+        <div class="match-opponent-info-record" aria-label="${record.wins} seire, ${record.draws} uavgjort, ${record.losses} tap">
+            <div class="match-opponent-info-record-item is-win">
+                <strong>${record.wins}</strong>
+                <span>Seire</span>
+            </div>
+            <div class="match-opponent-info-record-item is-draw">
+                <strong>${record.draws}</strong>
+                <span>Uavgjort</span>
+            </div>
+            <div class="match-opponent-info-record-item is-loss">
+                <strong>${record.losses}</strong>
+                <span>Tap</span>
+            </div>
+        </div>
+        <div class="match-opponent-info-list">
+            ${previousMatches.map(buildMatchOpponentHistoryRowHtml).join('')}
+        </div>
+    `;
 }
 
 function buildMatchListEmptyHtml(title, text) {
@@ -3957,7 +4091,8 @@ window.showMatchDetails = function(id) {
         : (window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '');
     const exclusiveOpen = openPanel === 'kampplan'
         || openPanel === 'trenernotater'
-        || openPanel === 'spillerbors';
+        || openPanel === 'spillerbors'
+        || openPanel === 'motstanderinfo';
     window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
     const pairState = window.matchDetailPairPanelState;
     if (openForAttendanceFeedback) pairState.kamptropp = true;
@@ -3966,6 +4101,9 @@ window.showMatchDetails = function(id) {
     const isGamePlanOpen = openPanel === 'kampplan';
     const isCoachNotesOpen = openPanel === 'trenernotater';
     const isStatsOpen = openPanel === 'spillerbors';
+    const isOpponentInfoOpen = openPanel === 'motstanderinfo';
+    const previousOpponentMatches = getPreviousMatchesAgainstOpponent(match);
+    const opponentInfoBadgeLabel = String(previousOpponentMatches.length);
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadPanelHtml = `
@@ -4099,6 +4237,23 @@ window.showMatchDetails = function(id) {
                         <i class="fa-solid fa-floppy-disk"></i>
                         <span>Lagre</span>
                     </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="match-opponent-info-panel match-collapsible-panel ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
+            <div class="match-bench-action-row match-bench-topline match-opponent-info-topline" onclick="window.onMatchPanelToplineClick(event)">
+                <div class="match-bench-heading">
+                    <h3>Motstanderinfo</h3>
+                    <span class="match-detail-section-badge" aria-label="${previousOpponentMatches.length} tidligere kamper mot ${escapeMatchHtml(match.opponent || 'motstanderen')}">${escapeMatchHtml(opponentInfoBadgeLabel)}</span>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isOpponentInfoOpen ? 'true' : 'false'}" aria-label="${isOpponentInfoOpen ? 'Skjul motstanderinfo' : 'Vis motstanderinfo'}" data-show-label="Vis motstanderinfo" data-hide-label="Skjul motstanderinfo">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="match-opponent-info-body">
+                    ${buildMatchOpponentInfoBodyHtml(match)}
                 </div>
             </div>
         </section>
@@ -4807,6 +4962,7 @@ function getMatchDetailsPanelId(panel) {
     if (panel.classList.contains('match-game-plan-panel')) return 'kampplan';
     if (panel.classList.contains('match-coach-notes-panel')) return 'trenernotater';
     if (panel.classList.contains('match-stats-panel')) return 'spillerbors';
+    if (panel.classList.contains('match-opponent-info-panel')) return 'motstanderinfo';
     if (panel.classList.contains('match-bench-panel')) return 'kamptropp';
     return '';
 }
