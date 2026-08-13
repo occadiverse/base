@@ -11146,6 +11146,10 @@
             box-shadow: none;
             cursor: pointer;
         }
+        .match-opponent-info-panel .match-fixture-row.is-current {
+            background: rgba(245, 197, 66, 0.12);
+            border-color: rgba(245, 197, 66, 0.34);
+        }
         .match-opponent-info-empty {
             align-items: center;
             color: rgba(255, 255, 255, 0.68);
