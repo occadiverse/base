@@ -11375,7 +11375,10 @@
             line-height: 1;
         }
         .calendar-heading-panel:has(.calendar-year-menu.is-open) {
-            z-index: 6;
+            z-index: 40;
+        }
+        .calendar-shell-panel:has(.calendar-year-menu.is-open) .calendar-body {
+            z-index: 1;
         }
         .calendar-year-block {
             align-items: flex-start;
@@ -11388,6 +11391,9 @@
         .calendar-year-menu {
             position: relative;
             width: fit-content;
+        }
+        .calendar-year-menu.is-open {
+            z-index: 8;
         }
         .calendar-year-trigger {
             align-items: center;
