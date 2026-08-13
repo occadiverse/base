@@ -169,7 +169,22 @@
 
                     <div class="calendar-heading-panel match-detail-card-top calendar-board-top relative z-10">
                         <div class="calendar-year-block min-w-0">
-                            <span id="calendar-year" class="calendar-heading-year">2026</span>
+                            <div class="calendar-year-menu" data-calendar-year-menu>
+                                <button
+                                    type="button"
+                                    id="calendar-year"
+                                    class="calendar-heading-year calendar-year-trigger"
+                                    data-calendar-year-toggle
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                    aria-label="Velg år, valgt 2026"
+                                    title="Velg år"
+                                >
+                                    <span data-calendar-year-label>2026</span>
+                                    <i class="fa-solid fa-chevron-down calendar-year-trigger-chevron" aria-hidden="true"></i>
+                                </button>
+                                <div class="calendar-year-dropdown" role="listbox" aria-label="År" hidden data-calendar-year-panel></div>
+                            </div>
                             <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn">I dag</button>
                         </div>
 

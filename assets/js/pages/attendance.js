@@ -403,6 +403,7 @@ window.navigateCalendar = function(direction) {
     window.currentCalendarDate = targetMonth;
     window.visibleCalendarMonthDate = targetMonth;
     window.selectedCalendarDateStr = formatCalendarDate(targetMonth);
+    setCalendarYearMenuOpen(false);
     window.renderCalendar();
 };
 
@@ -428,29 +429,138 @@ function addCalendarDays(date, days) {
     return d;
 }
 
+function getCalendarYearRange(viewedYear) {
+    const nowYear = new Date().getFullYear();
+    let minYear = Math.min(nowYear - 5, viewedYear);
+    let maxYear = Math.max(nowYear + 3, viewedYear);
+
+    const consider = (value) => {
+        const year = Number(String(value || '').slice(0, 4));
+        if (Number.isInteger(year) && year >= 1990 && year <= 2100) {
+            minYear = Math.min(minYear, year);
+            maxYear = Math.max(maxYear, year);
+        }
+    };
+
+    (window.activeEvents || []).forEach((event) => consider(event.date));
+    (window.activeMatches || []).forEach((match) => consider(match.date));
+
+    if (maxYear - minYear > 16) {
+        minYear = Math.min(nowYear, viewedYear) - 8;
+        maxYear = Math.max(nowYear, viewedYear) + 4;
+    }
+
+    return { minYear, maxYear };
+}
+
+function renderCalendarYearOptions(viewedYear) {
+    const panel = document.querySelector('[data-calendar-year-panel]');
+    if (!panel) return;
+
+    const { minYear, maxYear } = getCalendarYearRange(viewedYear);
+    let html = '';
+    for (let year = minYear; year <= maxYear; year += 1) {
+        const isActive = year === viewedYear;
+        html += `<button type="button" class="calendar-year-option${isActive ? ' is-active' : ''}" role="option" aria-selected="${isActive ? 'true' : 'false'}" data-calendar-year-option="${year}">${year}</button>`;
+    }
+    panel.innerHTML = html;
+}
+
+function setCalendarYearMenuOpen(open) {
+    const menu = document.querySelector('[data-calendar-year-menu]');
+    if (!menu) return;
+
+    const trigger = menu.querySelector('[data-calendar-year-toggle]');
+    const panel = menu.querySelector('[data-calendar-year-panel]');
+    const shouldOpen = Boolean(open);
+
+    menu.classList.toggle('is-open', shouldOpen);
+    if (trigger) trigger.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    if (panel) panel.hidden = !shouldOpen;
+
+    if (shouldOpen && panel) {
+        const activeOption = panel.querySelector('.calendar-year-option.is-active');
+        if (activeOption && typeof activeOption.scrollIntoView === 'function') {
+            activeOption.scrollIntoView({ block: 'nearest' });
+        }
+    }
+}
+
+function bindCalendarYearMenuEvents() {
+    if (window._calendarYearMenuBound) return;
+    window._calendarYearMenuBound = true;
+
+    document.addEventListener('click', (event) => {
+        const menu = document.querySelector('[data-calendar-year-menu]');
+        if (!menu) return;
+
+        const toggleBtn = event.target.closest('[data-calendar-year-toggle]');
+        if (toggleBtn && menu.contains(toggleBtn)) {
+            event.preventDefault();
+            setCalendarYearMenuOpen(!menu.classList.contains('is-open'));
+            return;
+        }
+
+        const optionBtn = event.target.closest('[data-calendar-year-option]');
+        if (optionBtn && menu.contains(optionBtn)) {
+            event.preventDefault();
+            const year = Number(optionBtn.dataset.calendarYearOption);
+            if (year) window.goToCalendarYear(year);
+            return;
+        }
+
+        if (!event.target.closest('[data-calendar-year-menu]')) {
+            setCalendarYearMenuOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setCalendarYearMenuOpen(false);
+    });
+}
+
 function updateCalendarHeading(date) {
     if (!date) return;
     const headingMonthDate = new Date(date.getFullYear(), date.getMonth(), 1);
+    const viewedYear = headingMonthDate.getFullYear();
     window.visibleCalendarMonthDate = headingMonthDate;
     if (document.getElementById('calendar-month-year')) {
         document.getElementById('calendar-month-year').innerText = calendarMonthNames[headingMonthDate.getMonth()];
     }
-    if (document.getElementById('calendar-year')) {
-        document.getElementById('calendar-year').innerText = String(headingMonthDate.getFullYear());
-    }
+    const yearLabel = document.querySelector('[data-calendar-year-label]');
+    if (yearLabel) yearLabel.textContent = String(viewedYear);
+    const yearTrigger = document.querySelector('[data-calendar-year-toggle]');
+    if (yearTrigger) yearTrigger.setAttribute('aria-label', `Velg år, valgt ${viewedYear}`);
+    renderCalendarYearOptions(viewedYear);
 }
+
+window.goToCalendarYear = function(year) {
+    const parsedYear = Number(year);
+    if (!Number.isInteger(parsedYear)) return;
+
+    const current = window.visibleCalendarMonthDate || window.currentCalendarDate || new Date();
+    const targetMonth = new Date(parsedYear, current.getMonth(), 1);
+    window.currentCalendarDate = targetMonth;
+    window.visibleCalendarMonthDate = targetMonth;
+    window.selectedCalendarDateStr = formatCalendarDate(targetMonth);
+    setCalendarYearMenuOpen(false);
+    window.renderCalendar();
+};
 
 window.goToToday = function() {
     const today = new Date();
     window.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
     window.visibleCalendarMonthDate = window.currentCalendarDate;
     window.selectedCalendarDateStr = formatCalendarDate(today);
+    setCalendarYearMenuOpen(false);
     window.renderCalendar();
 };
 
 window.renderCalendar = function() {
     const grid = document.getElementById('calendar-days-grid');
     if (!grid) return;
+
+    bindCalendarYearMenuEvents();
 
     const date = window.currentCalendarDate;
     const year = date.getFullYear();
