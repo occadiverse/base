@@ -146,8 +146,8 @@ const matchRatingGuide = {
     },
     8: {
         label: 'Banens beste-kandidat',
-        tooltip: 'Fremragende. Matchvinner eller dominerende',
-        description: 'Banens beste-kandidat. Dominerende i banespillet og leverte avgjørende målpoeng/redninger'
+        tooltip: 'Dominerende i banespillet og leverte avgjørende målpoeng/scoringer/redninger',
+        description: 'Dominerende i banespillet og leverte avgjørende målpoeng/scoringer/redninger'
     },
     9: {
         label: 'Særdeles god',
