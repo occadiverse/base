@@ -6184,8 +6184,34 @@
         .stats-board-card .stats-inline-metric-value.is-loss,
         .stats-board-card .team-report-record .is-loss,
         .stats-board-card .team-report-goals .is-loss,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-below {
+        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-below,
+        .stats-board-card .stats-mini-value.is-loss {
             color: #fca5a5;
+        }
+        .stats-board-card .stats-mini-value.is-win {
+            color: #86efac;
+        }
+        .stats-board-card .stats-mini-value.is-draw {
+            color: #f5c542;
+        }
+        .stats-board-card .stats-mini-value.is-goals {
+            color: #bfdbfe;
+        }
+        .stats-board-card .stats-kampdata-highlight {
+            background: rgba(7, 31, 56, 0.42);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.76);
+        }
+        .stats-board-card button.stats-kampdata-highlight:hover {
+            background: rgba(245, 197, 66, 0.1);
+            border-color: rgba(245, 197, 66, 0.3);
+        }
+        .stats-board-card .stats-kampdata-highlight-label {
+            color: rgba(255, 255, 255, 0.48);
+        }
+        .stats-board-card .stats-kampdata-highlight-value,
+        .stats-board-card .stats-kampdata-player-row .roster-player-name {
+            color: #ffffff;
         }
         .stats-board-card .stats-inline-metric-value.is-goals {
             color: #bfdbfe;
@@ -8214,6 +8240,100 @@
             background: rgba(245, 197, 66, 0.18);
             border-color: rgba(245, 197, 66, 0.34);
             color: #f5c542;
+        }
+        .stats-kampdata-match {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .stats-kampdata-layout {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .stats-kampdata-header {
+            align-items: flex-start;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+        }
+        .stats-kampdata-panel-actions {
+            align-items: center;
+            display: flex;
+            flex-shrink: 0;
+            gap: 0.4rem;
+        }
+        .stats-kampdata-player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            padding: 0.75rem;
+        }
+        .stats-kampdata-player-row.is-bench {
+            opacity: 0.78;
+        }
+        .stats-kampdata-player-row.is-bb {
+            border-left-color: #f5c542;
+        }
+        .stats-kampdata-summary-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem 1.15rem 1.15rem;
+        }
+        .stats-kampdata-highlights {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .stats-kampdata-highlight {
+            align-items: center;
+            appearance: none;
+            background: rgba(18, 63, 115, 0.04);
+            border: 1px solid rgba(18, 63, 115, 0.08);
+            border-radius: 0.78rem;
+            color: inherit;
+            cursor: pointer;
+            display: grid;
+            font: inherit;
+            gap: 0.12rem 0.45rem;
+            grid-template-columns: auto minmax(0, 1fr);
+            padding: 0.6rem 0.7rem;
+            text-align: left;
+            width: 100%;
+        }
+        div.stats-kampdata-highlight {
+            cursor: default;
+        }
+        .stats-kampdata-highlight i {
+            color: #f5c542;
+            font-size: 0.78rem;
+            grid-row: span 2;
+        }
+        .stats-kampdata-highlight-label {
+            color: #64748b;
+            font-size: 0.55rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .stats-kampdata-highlight-value {
+            color: #0b2b4c;
+            font-size: 0.82rem;
+            font-weight: 950;
+            line-height: 1.2;
+        }
+        .stats-kampdata-notes {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        @media (min-width: 1100px) {
+            .stats-kampdata-layout {
+                align-items: start;
+                grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.95fr);
+            }
         }
         .stats-player-tools {
             display: flex;
