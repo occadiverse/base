@@ -204,21 +204,28 @@
                 };
             }).filter(Boolean);
 
-            pairResults
+            const drawnPairs = pairResults
                 .sort((a, b) => {
                     if (a.focused !== b.focused) return a.focused ? 1 : -1;
                     return b.relevance - a.relevance;
                 })
-                .slice(0, focusPos ? pairResults.length : 14)
-                .forEach(entry => {
-                    if (typeof window.appendSamspillLine === 'function') {
-                        window.appendSamspillLine(svgLayer, entry.coords, entry.samspill, {
-                            focused: entry.focused,
-                            dimUnfocused: !!focusPos && !entry.focused,
-                            coordUnit: '%'
-                        });
-                    }
-                });
+                .slice(0, focusPos ? pairResults.length : 14);
+            const labelPositions = typeof window.getSamspillScoreLabelPositions === 'function'
+                ? window.getSamspillScoreLabelPositions(drawnPairs.map(entry => entry.coords))
+                : [];
+
+            drawnPairs.forEach((entry, index) => {
+                if (typeof window.appendSamspillLine === 'function') {
+                    const label = labelPositions[index];
+                    window.appendSamspillLine(svgLayer, entry.coords, entry.samspill, {
+                        focused: entry.focused,
+                        dimUnfocused: !!focusPos && !entry.focused,
+                        coordUnit: '%',
+                        labelX: label?.x,
+                        labelY: label?.y
+                    });
+                }
+            });
         };
 
         window.setTacticalPhase = function(phaseId) {

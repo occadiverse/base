@@ -1869,22 +1869,67 @@
             inset: 0;
             pointer-events: none;
             position: absolute;
-            z-index: 2;
+            z-index: 12;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score {
             align-items: center;
+            border-radius: 999px;
+            box-shadow: 0 1px 3px rgba(2, 6, 23, 0.35);
             display: inline-flex;
             justify-content: center;
             line-height: 1;
+            min-height: 1.35em;
+            min-width: 1.35em;
+            padding: 0.18em 0.38em;
             pointer-events: none;
             position: absolute;
             transform: translate(-50%, -50%);
             white-space: nowrap;
         }
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-strong {
+            background: #22c55e;
+            color: #052e16;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-ok {
+            background: #facc15;
+            color: #422006;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-potential {
+            background: #6366f1;
+            color: #eef2ff;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-weak {
+            background: #ef4444;
+            color: #450a0a;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-unknown {
+            background: #64748b;
+            color: #f8fafc;
+        }
         .samspill-line-label-bg {
             fill: rgba(255, 255, 255, 0.95);
             stroke: rgba(15, 23, 42, 0.12);
             stroke-width: 1;
+        }
+        .samspill-line-label.is-tone-strong .samspill-line-label-bg {
+            fill: #22c55e;
+            stroke: none;
+        }
+        .samspill-line-label.is-tone-ok .samspill-line-label-bg {
+            fill: #facc15;
+            stroke: none;
+        }
+        .samspill-line-label.is-tone-potential .samspill-line-label-bg {
+            fill: #6366f1;
+            stroke: none;
+        }
+        .samspill-line-label.is-tone-weak .samspill-line-label-bg {
+            fill: #ef4444;
+            stroke: none;
+        }
+        .samspill-line-label.is-tone-unknown .samspill-line-label-bg {
+            fill: #64748b;
+            stroke: none;
         }
         .match-game-plan-chemistry-lines .samspill-line-label-bg {
             stroke-width: 0.28;
@@ -1902,23 +1947,23 @@
         }
         .samspill-line-label.is-tone-strong .samspill-line-label-text,
         #chemistry-lines-layer .samspill-line-label.is-tone-strong .samspill-line-label-text {
-            fill: #047857;
+            fill: #052e16;
         }
         .samspill-line-label.is-tone-ok .samspill-line-label-text,
         #chemistry-lines-layer .samspill-line-label.is-tone-ok .samspill-line-label-text {
-            fill: #a16207;
+            fill: #422006;
         }
         .samspill-line-label.is-tone-potential .samspill-line-label-text,
         #chemistry-lines-layer .samspill-line-label.is-tone-potential .samspill-line-label-text {
-            fill: #4338ca;
+            fill: #eef2ff;
         }
         .samspill-line-label.is-tone-weak .samspill-line-label-text,
         #chemistry-lines-layer .samspill-line-label.is-tone-weak .samspill-line-label-text {
-            fill: #991b1b;
+            fill: #450a0a;
         }
         .samspill-line-label.is-tone-unknown .samspill-line-label-text,
         #chemistry-lines-layer .samspill-line-label.is-tone-unknown .samspill-line-label-text {
-            fill: #475569;
+            fill: #f8fafc;
         }
         .match-detail-squad-players .match-game-plan-samspill-summary {
             margin-top: 0;

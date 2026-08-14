@@ -79,8 +79,8 @@
             ['DM', 'OM'],
             // PM → kant, midtbane og spiss
             ['PM', 'HK'], ['PM', 'DM'], ['PM', 'OM'], ['PM', 'SP'],
-            // SP → kant, midtbanespillere og PM
-            ['SP', 'VK'], ['SP', 'DM'], ['SP', 'OM'], ['SP', 'PM']
+            // SP → kant, midtbanespillere
+            ['SP', 'VK'], ['SP', 'DM'], ['SP', 'OM']
         ]
     };
 
@@ -113,10 +113,18 @@
             : (window.activePlayers || []).find(p => p.navn === playerRef) || { navn: playerRef };
     }
 
+    function pairLimitedScore(a, b) {
+        const left = Number(a) || 0;
+        const right = Number(b) || 0;
+        const minV = Math.min(left, right);
+        const avgV = (left + right) / 2;
+        return minV * 0.75 + avgV * 0.25;
+    }
+
     function normalizeKampbidrag(value) {
         const v = Number(value) || 0;
         if (v <= 0) return 0;
-        return Math.max(0, Math.min(100, ((v - 5) / 35) * 100));
+        return Math.max(0, Math.min(100, ((v - 5) / 25) * 100));
     }
 
     function confidenceToTrustScore(level) {
@@ -177,11 +185,11 @@
         const confidence = history.dataConfidence || 'none';
         const lowHistory = confidence === 'none' || confidence === 'low';
         const sharedLabel = buildSharedHistoryLabel(history);
-        const formAvg = (formA + formB) / 2;
-        const bidragAvg = (normBidragA + normBidragB) / 2;
-        const highForm = formAvg >= 50;
-        const highBidrag = bidragAvg >= 52;
-        const strongIndividuals = highBidrag || (highForm && bidragAvg >= 40);
+        const formFloor = Math.min(formA, formB);
+        const bidragFloor = Math.min(normBidragA, normBidragB);
+        const highForm = formFloor >= 50;
+        const highBidrag = bidragFloor >= 52;
+        const strongIndividuals = highBidrag || (highForm && bidragFloor >= 40);
 
         if (lowHistory) {
             if (strongIndividuals) {
@@ -255,16 +263,19 @@
 
         const normBidragA = normalizeKampbidrag(bidragA);
         const normBidragB = normalizeKampbidrag(bidragB);
-        const kampbidragScore = (normBidragA + normBidragB) / 2;
-        const formScore = (formA + formB) / 2;
+        const kampbidragScore = pairLimitedScore(normBidragA, normBidragB);
+        const formScore = pairLimitedScore(formA, formB);
         const chemistryPct = window.getDuoHistoricalChemistry(playerObjA, playerObjB, opts);
-        const historiskScore = getDuoHistoricalSamspillScore(history, chemistryPct);
+        const rawHistoriskScore = getDuoHistoricalSamspillScore(history, chemistryPct);
+        const currentQuality = kampbidragScore * 0.6 + formScore * 0.4;
+        const historyGate = Math.max(0.15, Math.min(1, currentQuality / 50));
+        const historiskScore = Math.round(rawHistoriskScore * historyGate);
         const dataTrustScore = confidenceToTrustScore(confidence);
 
         const score = Math.round(Math.max(0, Math.min(100, (
-            kampbidragScore * 0.45 +
-            formScore * 0.30 +
-            historiskScore * 0.20 +
+            kampbidragScore * 0.50 +
+            formScore * 0.35 +
+            historiskScore * 0.10 +
             dataTrustScore * 0.05
         ))));
 
@@ -395,32 +406,32 @@
         const status = result.status || result.tone || 'unknown';
 
         let strokeColor = 'rgba(255, 255, 255, 0.42)';
-        let strokeWidth = isMatchPlan ? 1.6 : (focused ? 2.4 : 2);
+        let strokeWidth = isMatchPlan ? 2.4 : (focused ? 2.8 : 2.6);
         let strokeDasharray = null;
         let opacity = 1;
 
         switch (status) {
             case 'strong':
-                strokeColor = '#047857';
-                strokeWidth = isMatchPlan ? 2.4 : (focused ? 3 : 2.6);
+                strokeColor = '#22c55e';
+                strokeWidth = isMatchPlan ? 3.6 : (focused ? 3.8 : 3.4);
                 break;
             case 'ok':
                 strokeColor = '#facc15';
-                strokeWidth = isMatchPlan ? 2.2 : (focused ? 2.8 : 2.4);
+                strokeWidth = isMatchPlan ? 3.2 : (focused ? 3.4 : 3);
                 break;
             case 'potential':
                 strokeColor = '#4f46e5';
-                strokeWidth = isMatchPlan ? 2.1 : (focused ? 2.6 : 2.3);
+                strokeWidth = isMatchPlan ? 3.1 : (focused ? 3.2 : 2.9);
                 strokeDasharray = '5 4';
                 break;
             case 'weak':
-                strokeColor = '#991b1b';
-                strokeWidth = isMatchPlan ? 2.2 : (focused ? 2.8 : 2.4);
+                strokeColor = '#ef4444';
+                strokeWidth = isMatchPlan ? 3.2 : (focused ? 3.4 : 3);
                 break;
             case 'unknown':
             default:
                 strokeColor = 'rgba(71, 85, 105, 0.72)';
-                strokeWidth = isMatchPlan ? 1.8 : (focused ? 2.2 : 2);
+                strokeWidth = isMatchPlan ? 2.6 : (focused ? 2.8 : 2.6);
                 strokeDasharray = '4 4';
                 opacity = 0.85;
                 break;
@@ -437,6 +448,67 @@
             opacity,
             tone: status
         };
+    };
+
+    window.getSamspillScoreLabelPositions = function(coordList, options) {
+        const overlapDistance = Number(options?.minDistance) > 0 ? Number(options.minDistance) : 3;
+        const offset = Number(options?.offset) > 0 ? Number(options.offset) : 3.2;
+        const entries = (coordList || []).map(coords => {
+            const x1 = Number(coords?.x1) || 0;
+            const y1 = Number(coords?.y1) || 0;
+            const x2 = Number(coords?.x2) || 0;
+            const y2 = Number(coords?.y2) || 0;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.hypot(dx, dy) || 1;
+            return {
+                x: (x1 + x2) / 2,
+                y: (y1 + y2) / 2,
+                x1,
+                y1,
+                dx,
+                dy,
+                length,
+                dirX: dx / length,
+                dirY: dy / length
+            };
+        });
+
+        const clampToSegment = (entry) => {
+            const fromStartX = entry.x - entry.x1;
+            const fromStartY = entry.y - entry.y1;
+            const t = Math.max(0.34, Math.min(0.66, (
+                (fromStartX * entry.dx + fromStartY * entry.dy) / (entry.length * entry.length)
+            )));
+            entry.x = entry.x1 + entry.dx * t;
+            entry.y = entry.y1 + entry.dy * t;
+        };
+
+        for (let i = 0; i < entries.length; i++) {
+            for (let j = i + 1; j < entries.length; j++) {
+                const left = entries[i];
+                const right = entries[j];
+                const dist = Math.hypot(right.x - left.x, right.y - left.y);
+                if (dist >= overlapDistance) continue;
+
+                const parallel = Math.abs(left.dirX * right.dirX + left.dirY * right.dirY) > 0.85;
+                if (parallel) {
+                    const perpX = -left.dirY;
+                    const perpY = left.dirX;
+                    left.x -= perpX * offset;
+                    left.y -= perpY * offset;
+                    right.x += perpX * offset;
+                    right.y += perpY * offset;
+                    clampToSegment(left);
+                    clampToSegment(right);
+                } else {
+                    left.x -= offset;
+                    right.x += offset;
+                }
+            }
+        }
+
+        return entries.map(entry => ({ x: entry.x, y: entry.y }));
     };
 
     function getMatchPlanSamspillLabelMetrics(label, pitchWidthPx, cardWidthPx) {
@@ -456,9 +528,9 @@
         };
     }
 
-    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, pitchWidthPx, cardWidthPx) {
-        const midX = (coords.x1 + coords.x2) / 2;
-        const midY = (coords.y1 + coords.y2) / 2;
+    function appendSamspillLineScoreLabel(group, coords, score, unit, status, isMatchPlan, pitchWidthPx, cardWidthPx, labelPos) {
+        const midX = labelPos?.x ?? ((coords.x1 + coords.x2) / 2);
+        const midY = labelPos?.y ?? ((coords.y1 + coords.y2) / 2);
         const label = score > 0 ? String(score) : '–';
         const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
@@ -537,7 +609,8 @@
                 status,
                 isMatchPlan,
                 opts.pitchWidthPx,
-                opts.cardWidthPx
+                opts.cardWidthPx,
+                opts.labelX != null && opts.labelY != null ? { x: opts.labelX, y: opts.labelY } : null
             );
         }
 

@@ -3372,16 +3372,31 @@ function renderMatchGamePlanSamspillLineLabels(pitch, pairResults, textStyle) {
     const layer = ensureMatchGamePlanSamspillLabelLayer(pitch);
     layer.innerHTML = '';
 
-    pairResults.forEach(entry => {
-        const midX = (entry.coords.x1 + entry.coords.x2) / 2;
-        const midY = (entry.coords.y1 + entry.coords.y2) / 2;
+    const positions = typeof window.getSamspillScoreLabelPositions === 'function'
+        ? window.getSamspillScoreLabelPositions(pairResults.map(entry => entry.coords))
+        : pairResults.map(entry => ({
+            x: (entry.coords.x1 + entry.coords.x2) / 2,
+            y: (entry.coords.y1 + entry.coords.y2) / 2
+        }));
+
+    pairResults.forEach((entry, index) => {
+        const point = positions[index] || {
+            x: (entry.coords.x1 + entry.coords.x2) / 2,
+            y: (entry.coords.y1 + entry.coords.y2) / 2
+        };
         const score = Number(entry.samspill?.score) || 0;
+        const status = entry.samspill?.status || entry.samspill?.tone || 'unknown';
         const label = document.createElement('span');
-        label.className = 'match-game-plan-samspill-line-score';
-        label.style.left = `${midX}%`;
-        label.style.top = `${midY}%`;
+        label.className = `match-game-plan-samspill-line-score is-tone-${status}`;
+        label.style.left = `${point.x}%`;
+        label.style.top = `${point.y}%`;
         label.textContent = score > 0 ? String(score) : '–';
-        applyMatchGamePlanPitchValueTextStyle(label, textStyle);
+        if (textStyle) {
+            label.style.fontSize = textStyle.fontSize;
+            label.style.fontWeight = textStyle.fontWeight;
+            label.style.letterSpacing = textStyle.letterSpacing;
+            label.style.fontFamily = textStyle.fontFamily;
+        }
         layer.appendChild(label);
     });
 }
