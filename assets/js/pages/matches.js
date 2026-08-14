@@ -3820,9 +3820,6 @@ window.printMatchSheet = function() {
 function buildMatchGamePlanHtml(match) {
     return `
         <div class="match-game-plan-tabs-wrap" data-no-swipe>
-            <button type="button" class="team-report-detail-scroll-btn match-game-plan-scroll-btn match-game-plan-scroll-btn-left" onclick="window.navigateMatchGamePlan(-1)" aria-label="Forrige del av kampplan" data-no-swipe>
-                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-            </button>
             <div class="match-game-plan-tabs" id="match-game-plan-tabs" role="tablist" aria-label="Kampplan meny" data-no-swipe>
                 ${matchGamePlanTabs.map((tab, index) => `
                     <button
@@ -3830,15 +3827,14 @@ function buildMatchGamePlanHtml(match) {
                         class="match-game-plan-tab ${index === 0 ? 'is-active' : ''}"
                         role="tab"
                         aria-selected="${index === 0 ? 'true' : 'false'}"
+                        title="${escapeMatchHtml(tab.label)}"
+                        aria-label="${escapeMatchHtml(tab.label)}"
                         onclick="window.goToMatchGamePlanTab('${tab.id}')"
                         data-game-plan-tab="${tab.id}"
                         data-no-swipe
                     >${escapeMatchHtml(tab.label)}</button>
                 `).join('')}
             </div>
-            <button type="button" class="team-report-detail-scroll-btn match-game-plan-scroll-btn match-game-plan-scroll-btn-right" onclick="window.navigateMatchGamePlan(1)" aria-label="Neste del av kampplan" data-no-swipe>
-                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-            </button>
         </div>
 
         <div class="match-game-plan-content-scroll" id="match-game-plan-content-scroll" data-no-swipe>
