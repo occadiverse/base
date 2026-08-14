@@ -653,37 +653,31 @@ window.checkIndividualChemistry = function() {
         };
 
 
-window.getPlayerFormComponents = function(playerName, asOfDate) {
+window.getPlayerFormComponents = function(playerName) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
     if (!playerObj) return { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
 
     const spillerLag = playerObj.spillerLag;
     const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
-    const todayForChemistry = new Date();
-    todayForChemistry.setHours(0, 0, 0, 0);
-    let cutoffDate = asOfDate ? new Date(asOfDate) : null;
-    if (cutoffDate && Number.isNaN(cutoffDate.getTime())) {
-        cutoffDate = null;
-    } else if (cutoffDate) {
-        cutoffDate.setHours(23, 59, 59, 999);
-    }
     const isHistorical = (item) => {
-        if (!item.date) return !cutoffDate;
-        const itemDate = new Date(item.date);
-        if (Number.isNaN(itemDate.getTime())) return false;
-        itemDate.setHours(0, 0, 0, 0);
-        if (cutoffDate) {
-            const cut = new Date(cutoffDate);
-            cut.setHours(0, 0, 0, 0);
-            return itemDate <= cut;
-        }
         if (typeof window.isHistoricalActivity === 'function') {
             return window.isHistoricalActivity(item);
         }
-        return itemDate <= todayForChemistry;
+        if (!item?.date) return true;
+        const itemDate = new Date(item.date);
+        if (Number.isNaN(itemDate.getTime())) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate <= today;
     };
+    const hasCompletedMatchResult = (item) => Boolean(item?.result && String(item.result).includes('-'));
     const teamEvents = allEvents
-        .filter(e => e.team === spillerLag && isHistorical(e))
+        .filter(e => {
+            if (e.team !== spillerLag || !isHistorical(e)) return false;
+            if (e.type === 'Kamp' && !hasCompletedMatchResult(e)) return false;
+            return true;
+        })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
     const recentEvents = teamEvents.slice(0, 8);
@@ -695,6 +689,7 @@ window.getPlayerFormComponents = function(playerName, asOfDate) {
     const recentMatches = (window.activeMatches || [])
         .filter(m => (
             isHistorical(m) &&
+            hasCompletedMatchResult(m) &&
             m.matchGroup === spillerLag &&
             m.attendance &&
             window.isPlayerAttending(m.attendance, playerObj)
@@ -760,14 +755,14 @@ window.getPlayerFormComponents = function(playerName, asOfDate) {
     return { total, kamp, oppm, dis, recentRedCardPenalty, hasFormData: true };
 };
 
-window.calculatePlayerPerformanceChemistry = function(playerName, asOfDate) {
-    return window.getPlayerFormComponents(playerName, asOfDate).total;
+window.calculatePlayerPerformanceChemistry = function(playerName) {
+    return window.getPlayerFormComponents(playerName).total;
 };
 
-window.getTeamFormMedian = function(teamName, asOfDate) {
+window.getTeamFormMedian = function(teamName) {
     const scores = (window.activePlayers || [])
         .filter(p => p.status !== 'Passiv' && (!teamName || p.spillerLag === teamName))
-        .map(p => window.calculatePlayerPerformanceChemistry(p.navn, asOfDate))
+        .map(p => window.calculatePlayerPerformanceChemistry(p.navn))
         .filter(score => score > 0)
         .sort((a, b) => a - b);
 
@@ -2342,7 +2337,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="stats-player-panel-heading">
                                 <div class="min-w-0">
                                     <h3 class="stats-panel-title">Utvikling</h3>
-                                    <p class="stats-panel-subtitle">Spiller vs lagets snitt per kamp. Nyeste kamp til høyre.</p>
+                                    <p class="stats-panel-subtitle">Kampbidrag vs lagets snitt per kamp. Nyeste kamp til høyre.</p>
                                 </div>
                                 <button type="button" data-stat-action="open-form-info" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
                                     <i class="fa-solid fa-circle-info"></i>
@@ -2355,15 +2350,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         </div>
                         <div class="stats-chart-legend" aria-hidden="true">
                             <span class="stats-chart-legend-item is-kampbidrag"><i></i> Spiller poeng</span>
-                            <span class="stats-chart-legend-item is-form"><i></i> Spiller form</span>
                             <span class="stats-chart-legend-item is-team-kampbidrag"><i></i> Lag snitt</span>
-                            <span class="stats-chart-legend-item is-team-form"><i></i> Lag form</span>
                         </div>
                     </div>
 
                     <div class="stats-panel stats-form-history-panel">
                         <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Form etter hver kamp — kamp for kamp</h3>
+                            <h3 class="stats-panel-title">Kamper — kamp for kamp</h3>
                         </div>
                         <div class="stats-form-history-table-wrap">${matchHistoryHtml}</div>
                     </div>
@@ -2841,15 +2834,9 @@ window.getPlayerPerformanceTrend = function(playerName) {
                 date: entry.date,
                 opponent: entry.opponent,
                 kampbidrag: entry.points,
-                form: typeof window.calculatePlayerPerformanceChemistry === 'function'
-                    ? window.calculatePlayerPerformanceChemistry(playerName, entry.date)
-                    : 0,
                 teamKampbidrag: match && typeof window.getTeamMatchAveragePoints === 'function'
                     ? window.getTeamMatchAveragePoints(match, teamName)
-                    : null,
-                teamForm: typeof window.getTeamFormMedian === 'function'
-                    ? window.getTeamFormMedian(teamName, entry.date)
-                    : 0
+                    : null
             };
         });
 };
@@ -2923,41 +2910,11 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         return `<div class="stats-form-history-empty">Ingen kamper registrert.</div>`;
     }
 
-    const rows = [...history]
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .map(entry => {
-            const formParts = window.getPlayerFormComponents(playerName, entry.date);
-            return {
-                ...entry,
-                form: formParts.total,
-                formKamp: formParts.kamp,
-                formOppm: formParts.oppm,
-                formDis: formParts.dis,
-                hasForm: formParts.hasFormData
-            };
-        });
-
-    const formValues = rows.filter(row => row.hasForm && row.form > 0).map(row => row.form);
-    const minForm = formValues.length ? Math.min(...formValues) : null;
-    const maxForm = formValues.length ? Math.max(...formValues) : null;
-    const showExtremes = formValues.length > 1;
+    const rows = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const bodyRows = rows.map(entry => {
         const pointsClass = window.getPlayerPointsToneClass(entry.points);
         const ratingText = entry.rating && entry.rating !== '-' ? entry.rating : '–';
-        const formClass = showExtremes && entry.form === minForm
-            ? 'is-lowest'
-            : showExtremes && entry.form === maxForm
-                ? 'is-highest'
-                : '';
-        const formNote = showExtremes && entry.form === minForm
-            ? ' <span class="stats-form-history-flag">← laveste</span>'
-            : showExtremes && entry.form === maxForm
-                ? ' <span class="stats-form-history-flag">← høyeste</span>'
-                : '';
-        const breakdown = entry.hasForm
-            ? `${entry.formKamp}+${entry.formOppm}+${entry.formDis}`
-            : '–';
         const safeMatchId = escapeStatisticsHtml(entry.matchId);
 
         return `
@@ -2967,8 +2924,6 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                 <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
                 <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
                 <td class="stats-form-history-rating">${ratingText}</td>
-                <td class="stats-form-history-form ${formClass}">${entry.hasForm ? entry.form : '–'}${formNote}</td>
-                <td class="stats-form-history-breakdown">${breakdown}</td>
                 <td class="stats-form-history-action">
                     <button type="button" data-stat-action="edit-match" data-match-id="${safeMatchId}" title="Rediger kamp" class="portal-btn portal-btn-icon-sm portal-btn-warning">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -2987,8 +2942,6 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                     <th>Resultat</th>
                     <th>Kampoeng</th>
                     <th>Børs</th>
-                    <th>Form</th>
-                    <th>Kamp+Oppm+Dis</th>
                     <th class="stats-form-history-action-head" aria-label="Rediger"></th>
                 </tr>
             </thead>
@@ -3018,11 +2971,9 @@ window.renderPlayerTrendChartSvg = function(trendData) {
         entry.teamKampbidrag
     ].filter(value => value !== null && value !== undefined));
     const maxPoints = Math.max(35, ...pointValues) * 1.08;
-    const maxForm = 100;
     const xStep = data.length > 1 ? plotW / (data.length - 1) : 0;
     const toX = (index) => pad.left + (index * xStep);
     const toYPoints = (value) => pad.top + plotH - ((value / maxPoints) * plotH);
-    const toYForm = (value) => pad.top + plotH - ((value / maxForm) * plotH);
 
     const gridLines = [0.25, 0.5, 0.75].map(ratio => {
         const y = pad.top + plotH * (1 - ratio);
@@ -3035,9 +2986,7 @@ window.renderPlayerTrendChartSvg = function(trendData) {
         .join(' ');
 
     const kampbidragPoints = buildLinePoints(data.map(entry => entry.kampbidrag), toYPoints);
-    const formPoints = buildLinePoints(data.map(entry => entry.form), toYForm);
     const teamKampbidragPoints = buildLinePoints(data.map(entry => entry.teamKampbidrag), toYPoints);
-    const teamFormPoints = buildLinePoints(data.map(entry => entry.teamForm), toYForm);
 
     const labels = data.map((entry, index) => {
         const label = entry.date
@@ -3050,31 +2999,26 @@ window.renderPlayerTrendChartSvg = function(trendData) {
         const teamPointsText = entry.teamKampbidrag !== null && entry.teamKampbidrag !== undefined
             ? `, lag snitt ${entry.teamKampbidrag}`
             : '';
-        const teamFormText = entry.teamForm ? `, lag form ${entry.teamForm}` : '';
-        const title = `${entry.opponent || 'Kamp'}: spiller ${entry.kampbidrag} poeng / form ${entry.form}${teamPointsText}${teamFormText}`;
+        const title = `${entry.opponent || 'Kamp'}: spiller ${entry.kampbidrag} poeng${teamPointsText}`;
         return `
             <g class="stats-chart-marker-group">
                 <title>${title}</title>
                 <circle cx="${toX(index)}" cy="${toYPoints(entry.kampbidrag)}" r="4.5" class="stats-chart-marker is-kampbidrag" />
-                <circle cx="${toX(index)}" cy="${toYForm(entry.form)}" r="4.5" class="stats-chart-marker is-form" />
             </g>
         `;
     }).join('');
 
-    const teamLines = [
-        teamKampbidragPoints ? `<polyline points="${teamKampbidragPoints}" class="stats-chart-line is-team-kampbidrag" fill="none" />` : '',
-        teamFormPoints ? `<polyline points="${teamFormPoints}" class="stats-chart-line is-team-form" fill="none" />` : ''
-    ].join('');
+    const teamLine = teamKampbidragPoints
+        ? `<polyline points="${teamKampbidragPoints}" class="stats-chart-line is-team-kampbidrag" fill="none" />`
+        : '';
 
     return `
-        <svg class="stats-player-trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Diagram over spiller og lag: poeng og form">
+        <svg class="stats-player-trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Diagram over kampbidrag mot lagets snitt">
             ${gridLines}
             <line x1="${pad.left}" y1="${pad.top + plotH}" x2="${width - pad.right}" y2="${pad.top + plotH}" class="stats-chart-axis" />
             <text x="8" y="${pad.top + 4}" class="stats-chart-axis-caption">Poeng</text>
-            <text x="${width - 8}" y="${pad.top + 4}" class="stats-chart-axis-caption is-right" text-anchor="end">Form</text>
-            ${teamLines}
+            ${teamLine}
             <polyline points="${kampbidragPoints}" class="stats-chart-line is-kampbidrag" fill="none" />
-            <polyline points="${formPoints}" class="stats-chart-line is-form" fill="none" />
             ${markers}
             ${labels}
         </svg>

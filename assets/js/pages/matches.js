@@ -1357,15 +1357,9 @@ function buildMatchGamePlanBidragValueHtml(player, match) {
     return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
 }
 
-function getMatchGamePlanFormAsOfDate(match) {
-    if (!match?.date) return undefined;
-    const dateValue = new Date(match.date);
-    return Number.isNaN(dateValue.getTime()) ? undefined : dateValue;
-}
-
-function getMatchGamePlanPlayerForm(player, match) {
+function getMatchGamePlanPlayerForm(player) {
     if (!player?.navn || typeof window.calculatePlayerPerformanceChemistry !== 'function') return 0;
-    return window.calculatePlayerPerformanceChemistry(player.navn, getMatchGamePlanFormAsOfDate(match));
+    return window.calculatePlayerPerformanceChemistry(player.navn);
 }
 
 function getMatchGamePlanFormToneClass(score, teamName) {

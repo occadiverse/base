@@ -241,10 +241,10 @@
         const confidence = history.dataConfidence || 'none';
 
         const formA = typeof window.calculatePlayerPerformanceChemistry === 'function'
-            ? window.calculatePlayerPerformanceChemistry(playerObjA.navn, opts.asOfDate)
+            ? window.calculatePlayerPerformanceChemistry(playerObjA.navn)
             : 0;
         const formB = typeof window.calculatePlayerPerformanceChemistry === 'function'
-            ? window.calculatePlayerPerformanceChemistry(playerObjB.navn, opts.asOfDate)
+            ? window.calculatePlayerPerformanceChemistry(playerObjB.navn)
             : 0;
         const bidragA = typeof window.getPlayerKampbidragSnitt === 'function'
             ? window.getPlayerKampbidragSnitt(playerObjA, teamName)
