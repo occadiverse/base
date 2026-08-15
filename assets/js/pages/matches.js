@@ -2226,7 +2226,7 @@ function collectMatchGamePlanSamspillPairs(match) {
 const matchGamePlanSamspillZonePositions = {
     forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
     midtbane: ['DM', 'OM', 'PM'],
-    angrep: ['VK', 'SP', 'HK'],
+    angrep: ['VK', 'SP', 'PM', 'HK'],
     venstre: ['VB', 'VMS', 'OM', 'SP', 'VK'],
     sentral: ['VMS', 'HMS', 'OM', 'DM', 'SP', 'PM'],
     hoyre: ['HB', 'HMS', 'HK', 'PM', 'DM']

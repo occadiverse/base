@@ -695,7 +695,7 @@
             {
                 id: 'angrep',
                 label: 'Angrep',
-                pairs: [['VK', 'SP'], ['HK', 'SP'], ['SP', 'OM'], ['SP', 'PM']]
+                pairs: [['VK', 'SP'], ['SP', 'PM'], ['PM', 'HK']]
             }
         ],
         corridors: [
