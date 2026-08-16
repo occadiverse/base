@@ -203,6 +203,11 @@
                 return;
             }
 
+            const isLineupPanelVisible = Boolean(
+                document.querySelector('[data-match-panel="oppstilling"]:not(.is-collapsed) .match-detail-lineup-builder')
+            );
+            if (isLineupPanelVisible) return;
+
             const activeElement = document.activeElement;
             const isEditing = activeElement && activeElement.closest && activeElement.closest(
                 '#kampdetaljer-info input, #kampdetaljer-info textarea, #kampdetaljer-info select'

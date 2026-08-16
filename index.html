@@ -21,9 +21,9 @@
     <div id="portal-sidebar"></div>
     <div id="portal-mobile-header"></div>
 
-    <div class="portal-main-shell flex-1 flex flex-col min-w-0 md:pb-0 overflow-y-auto">
+    <div class="portal-main-shell flex-1 flex flex-col min-w-0 md:pb-0 overflow-x-hidden overflow-y-auto">
         <div id="portal-action-bar"></div>
-        <main class="flex-1 px-4 md:px-8 w-full portal-main-view" id="main-view">
+        <main class="flex-1 px-4 md:px-8 w-full min-w-0 overflow-x-hidden portal-main-view" id="main-view">
             
             <!-- FORSIDE / DASHBOARD REDESIGN -->
             <div id="view-hjem" class="portal-view portal-page space-y-4 md:space-y-6">
@@ -58,10 +58,10 @@
                             <div class="match-detail-top-chips">
                                 <button type="button"
                                         onclick="window.openActivityModal('Kamp')"
-                                        class="bsk-btn bsk-btn-primary match-list-add-btn"
+                                        class="bsk-btn bsk-btn-chip match-filter-btn match-list-add-btn"
                                         title="Legg til kamp"
                                         aria-label="Legg til kamp">
-                                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
                                     <span>Legg til</span>
                                 </button>
                             </div>
@@ -106,14 +106,6 @@
                             <span>Kamper</span>
                         </div>
                         <div class="match-detail-top-chips">
-                            <button type="button"
-                                    onclick="window.openActivityModal('Kamp')"
-                                    class="bsk-btn bsk-btn-primary match-list-add-btn"
-                                    title="Legg til kamp"
-                                    aria-label="Legg til kamp">
-                                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                                <span>Legg til</span>
-                            </button>
                             <div class="match-detail-chip">
                                 <i class="fa-solid fa-futbol"></i>
                                 <span id="matchListMobileCount">0 kamper</span>
@@ -124,14 +116,20 @@
                     <div class="match-list-toolbar match-list-mobile-toolbar relative z-10">
                         <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
                             <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="bsk-btn bsk-btn-chip match-filter-btn is-active" aria-selected="true">
-                                <i class="fa-solid fa-calendar-day"></i>
                                 <span>Kommende</span>
                             </button>
                             <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="bsk-btn bsk-btn-chip match-filter-btn" aria-selected="false">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
                                 <span>Tidligere</span>
                             </button>
                         </div>
+                        <button type="button"
+                                onclick="window.openActivityModal('Kamp')"
+                                class="bsk-btn bsk-btn-chip match-filter-btn match-list-add-btn"
+                                title="Legg til kamp"
+                                aria-label="Legg til kamp">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            <span>Legg til</span>
+                        </button>
                     </div>
 
                     <div class="match-list-column-main match-list-mobile-main relative z-10">
@@ -328,8 +326,8 @@
 
                     <div class="match-detail-card-top stats-board-top relative z-10">
                         <div class="match-detail-meta match-list-column-title stats-board-active-section">
-                            <i id="stats-board-active-icon" class="fa-solid fa-futbol"></i>
-                            <span id="stats-board-active-label">Kampdata</span>
+                            <i id="stats-board-active-icon" class="fa-solid fa-chart-simple"></i>
+                            <span id="stats-board-active-label">Statistikk</span>
                         </div>
                         <div id="stats-tab-hero" class="stats-board-tabs"></div>
                     </div>
@@ -342,8 +340,6 @@
                                 <div id="stats-spillere-summary"></div>
                                 <div id="stat-spillere-content"></div>
                             </div>
-                            <div id="stats-lag-development"></div>
-                            <div id="stats-lag-followups"></div>
                         </div>
                     </div>
 

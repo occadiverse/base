@@ -45,6 +45,25 @@ function bindStatisticsEvents() {
     container.dataset.statEventsBound = 'true';
 
     container.addEventListener('click', (event) => {
+        const topline = event.target.closest('.stats-kamp-collapsible-panel .match-bench-topline');
+        if (topline && container.contains(topline)) {
+            const interactive = event.target.closest('a, button, input, select, textarea, label');
+            if (!interactive || interactive.classList.contains('match-panel-toggle-btn')) {
+                const toggle = interactive?.classList.contains('match-panel-toggle-btn')
+                    ? interactive
+                    : topline.querySelector('.match-panel-toggle-btn');
+                const panelId = toggle?.dataset.panelId
+                    || toggle?.closest('[data-stats-panel]')?.dataset.statsPanel;
+                if (panelId && typeof window.toggleStatsKampPanel === 'function') {
+                    if (interactive?.classList.contains('match-panel-toggle-btn')) {
+                        event.preventDefault();
+                    }
+                    window.toggleStatsKampPanel(panelId);
+                    return;
+                }
+            }
+        }
+
         const actionEl = event.target.closest('[data-stat-action]');
         if (!actionEl || actionEl.disabled) return;
 
@@ -71,6 +90,18 @@ function bindStatisticsEvents() {
         }
         if (action === 'open-form-info') {
             if (typeof window.openStatsFormInfoModal === 'function') window.openStatsFormInfoModal();
+            return;
+        }
+        if (action === 'set-kamp-year') {
+            const year = actionEl.dataset.year;
+            if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
+            return;
+        }
+        if (action === 'toggle-panel') {
+            const panelId = actionEl.dataset.panelId;
+            if (panelId && typeof window.toggleStatsKampPanel === 'function') {
+                window.toggleStatsKampPanel(panelId);
+            }
             return;
         }
         if (action === 'set-lag-section') {
@@ -164,6 +195,126 @@ window.checkIndividualChemistry = function() {
 
         window.getStatsTeamFilter = function() {
             return 'Alle';
+        };
+
+        window.getMatchStatsYear = function(match) {
+            if (!match?.date) return null;
+            const parsed = new Date(match.date);
+            if (!Number.isNaN(parsed.getTime())) return parsed.getFullYear();
+            const prefix = String(match.date).match(/^(\d{4})/);
+            return prefix ? Number(prefix[1]) : null;
+        };
+
+        window.getStatsKampYearFilter = function() {
+            const current = window.statsKampYearFilter;
+            if (current === 'alle' || current == null || current === '') return 'alle';
+            const year = Number(current);
+            return Number.isFinite(year) ? year : 'alle';
+        };
+
+        window.matchBelongsToStatsKampYear = function(match) {
+            const filter = window.getStatsKampYearFilter();
+            if (filter === 'alle') return true;
+            return window.getMatchStatsYear(match) === filter;
+        };
+
+        window.getStatsKampYearOptions = function() {
+            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
+            const years = new Set();
+            (window.activeMatches || []).forEach(match => {
+                if (!match.result || !String(match.result).includes('-')) return;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
+                if (filterLag && filterLag !== 'Alle' && match.matchGroup !== filterLag) return;
+                const year = window.getMatchStatsYear(match);
+                if (year) years.add(year);
+            });
+            return [...years].sort((a, b) => b - a);
+        };
+
+        window.setStatsKampYearFilter = function(year) {
+            const next = year === 'alle' || year == null || year === ''
+                ? 'alle'
+                : Number(year);
+            window.statsKampYearFilter = Number.isFinite(next) ? next : 'alle';
+            window.pendingKampstatMatchId = null;
+            if (typeof window.renderStatistikkSide === 'function') {
+                window.renderStatistikkSide();
+            }
+        };
+
+        window.getStatsKampPanelState = function() {
+            const defaults = {
+                kampdata: true,
+                kamputvikling: false,
+                kampstats: false,
+                oppmote: true,
+                oppmoteutvikling: false,
+                spillerutvikling: false,
+                oppfolging: false
+            };
+            window.statsKampPanelState = window.statsKampPanelState || {};
+            Object.keys(defaults).forEach(key => {
+                if (typeof window.statsKampPanelState[key] !== 'boolean') {
+                    window.statsKampPanelState[key] = defaults[key];
+                }
+            });
+            return window.statsKampPanelState;
+        };
+
+        window.isStatsKampPanelOpen = function(panelId) {
+            const state = window.getStatsKampPanelState();
+            return state[panelId] === true;
+        };
+
+        window.toggleStatsKampPanel = function(panelId) {
+            if (!panelId) return;
+            const state = window.getStatsKampPanelState();
+            const nextOpen = !window.isStatsKampPanelOpen(panelId);
+            state[panelId] = nextOpen;
+            const panel = document.querySelector(`#view-statistikk [data-stats-panel="${panelId}"]`);
+            if (!panel) return;
+            panel.classList.toggle('is-collapsed', !nextOpen);
+            const toggle = panel.querySelector('.match-panel-toggle-btn');
+            if (!toggle) return;
+            toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+            toggle.setAttribute(
+                'aria-label',
+                nextOpen
+                    ? (toggle.dataset.hideLabel || 'Skjul seksjon')
+                    : (toggle.dataset.showLabel || 'Vis seksjon')
+            );
+        };
+
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content }) {
+            const isOpen = window.isStatsKampPanelOpen(id);
+            const badgeHtml = badge !== '' && badge != null
+                ? `<span class="match-detail-section-badge">${badge}</span>`
+                : '';
+            return `
+                <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
+                    <div class="match-bench-action-row match-bench-topline">
+                        <div class="match-bench-heading">
+                            <h3>${title}</h3>
+                            ${badgeHtml}
+                        </div>
+                        <button
+                            type="button"
+                            class="match-panel-toggle-btn"
+                            data-stat-action="toggle-panel"
+                            data-panel-id="${id}"
+                            aria-expanded="${isOpen ? 'true' : 'false'}"
+                            aria-label="${isOpen ? hideLabel : showLabel}"
+                            data-show-label="${showLabel}"
+                            data-hide-label="${hideLabel}"
+                        >
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="match-collapsible-content">
+                        ${content}
+                    </div>
+                </section>
+            `;
         };
 
         window.getTeamFormGuide = function(teamName) {
@@ -372,6 +523,7 @@ window.checkIndividualChemistry = function() {
                     if (!m.result || !m.result.includes('-')) return false;
                     if (teamFilterActive && m.matchGroup !== filterLag) return false;
                     if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
+                    if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(m)) return false;
                     return true;
                 })
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -520,40 +672,30 @@ window.checkIndividualChemistry = function() {
         window.renderStatsFollowUpsHtml = function(followUps) {
             if (!followUps.length) {
                 return `
-                    <div class="stats-panel">
-                        <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Oppfølging</h3>
-                            <p class="stats-panel-subtitle">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
-                        </div>
-                        <div class="stats-empty-state">
-                            <h3>Ingen tydelige oppfølgingspunkter</h3>
-                            <p>Det er ingen spillere som skiller seg ut på skade, disiplin eller oppmøte akkurat nå.</p>
-                        </div>
+                    <p class="stats-kamp-panel-hint">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
+                    <div class="stats-empty-state">
+                        <h3>Ingen tydelige oppfølgingspunkter</h3>
+                        <p>Det er ingen spillere som skiller seg ut på skade, disiplin eller oppmøte akkurat nå.</p>
                     </div>
                 `;
             }
 
             return `
-                <div class="stats-panel">
-                    <div class="stats-panel-header">
-                        <h3 class="stats-panel-title">Oppfølging</h3>
-                        <p class="stats-panel-subtitle">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
-                    </div>
-                    <div class="stats-followup-list">
-                        ${followUps.map(p => `
-                            <button type="button" data-stat-action="open-player" data-player-id="${escapeStatisticsHtml(getStatsPlayerIdForName(p.name))}" data-player-name="${escapeStatisticsHtml(p.name)}" class="stats-followup-item w-full text-left">
-                                <div class="flex items-center gap-3">
-                                    <div class="stats-metric-icon text-bsk-yellow">
-                                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="font-black text-slate-800">${escapeStatsHtml(p.name)}</div>
-                                        <div class="text-xs text-slate-500 leading-snug">${escapeStatsHtml(p.reason)}</div>
-                                    </div>
+                <p class="stats-kamp-panel-hint">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
+                <div class="stats-followup-list">
+                    ${followUps.map(p => `
+                        <button type="button" data-stat-action="open-player" data-player-id="${escapeStatisticsHtml(getStatsPlayerIdForName(p.name))}" data-player-name="${escapeStatisticsHtml(p.name)}" class="stats-followup-item w-full text-left">
+                            <div class="flex items-center gap-3">
+                                <div class="stats-metric-icon text-bsk-yellow">
+                                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
                                 </div>
-                            </button>
-                        `).join('')}
-                    </div>
+                                <div class="min-w-0">
+                                    <div class="font-black text-slate-800">${escapeStatsHtml(p.name)}</div>
+                                    <div class="text-xs text-slate-500 leading-snug">${escapeStatsHtml(p.reason)}</div>
+                                </div>
+                            </div>
+                        </button>
+                    `).join('')}
                 </div>
             `;
         };
@@ -574,6 +716,7 @@ window.checkIndividualChemistry = function() {
                 if (!m.result || !m.result.includes('-')) return false;
                 if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
                 if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
+                if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(m)) return false;
                 return true;
             });
 
@@ -634,6 +777,7 @@ window.checkIndividualChemistry = function() {
             const analysis = typeof window.buildPlayerAnalysisStats === 'function'
                 ? window.buildPlayerAnalysisStats(filterLag)
                 : { followUps: [] };
+            window._statsFollowUps = analysis.followUps || [];
             window._statsTeamReportData = typeof window.buildTeamReportData === 'function'
                 ? window.buildTeamReportData(filterLag, window._statsLagData, analysis)
                 : null;
@@ -642,10 +786,6 @@ window.checkIndividualChemistry = function() {
                 window.renderStatsTabHero('lag');
             }
 
-            const followUpsContainer = document.getElementById('stats-lag-followups');
-            if (followUpsContainer) {
-                followUpsContainer.innerHTML = window.renderStatsFollowUpsHtml(analysis.followUps);
-            }
             if (typeof window.updateStatsLagSectionVisibility === 'function') {
                 window.updateStatsLagSectionVisibility();
             }
@@ -1222,10 +1362,95 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.getTeamReportTrendMeta = function(current, baseline, inverted = false) {
+            if (current === null || current === undefined || baseline === null || baseline === undefined || current === baseline) {
+                return { tone: 'is-neutral', arrow: '→', direction: 'is-neutral' };
+            }
+            const better = inverted ? current < baseline : current > baseline;
+            const arrowIsUp = current > baseline;
+            return {
+                tone: better ? 'is-good' : 'is-alert',
+                arrow: arrowIsUp ? '↑' : '↓',
+                direction: arrowIsUp === inverted ? 'is-down' : 'is-up'
+            };
+        };
+
+        window.renderTeamReportTrendCardHtml = function(label, current, baseline, inverted = false, suffix = '', icon = '') {
+            const meta = window.getTeamReportTrendMeta(current, baseline, inverted);
+            const trendValue = (value) => (
+                value === null || value === undefined ? '-' : `${value}${suffix}`
+            );
+            return `
+                <div class="team-report-trend-card ${meta.tone}">
+                    <span class="team-report-card-label">${label}</span>
+                    <strong class="team-report-trend-values">
+                        <span>${trendValue(current)}</span>
+                        ${icon ? `<i class="fa-solid ${icon} team-report-trend-icon" aria-hidden="true"></i>` : ''}
+                        <span class="team-report-trend-arrow ${meta.direction}">${meta.arrow}</span>
+                        <span>${trendValue(baseline)}</span>
+                    </strong>
+                </div>
+            `;
+        };
+
+        window.renderKamputviklingCardsHtml = function(report) {
+            const trends = report?.trends || {};
+            return `
+                <div class="team-report-trend-grid stats-development-match-grid">
+                    ${window.renderTeamReportTrendCardHtml('Mål scoret siste 5', trends.lastFiveFor, trends.allFor, false, '', 'fa-futbol')}
+                    ${window.renderTeamReportTrendCardHtml('Mål imot siste 5', trends.lastFiveAgainst, trends.allAgainst, true, '', 'fa-futbol')}
+                    ${window.renderTeamReportTrendCardHtml('Kampbidrag siste 5', trends.lastFiveKampbidrag, trends.allKampbidrag, false, '', 'fa-chart-line')}
+                </div>
+            `;
+        };
+
+        window.renderOppmoteutviklingCardsHtml = function(report) {
+            const trends = report?.trends || {};
+            return `
+                <div class="team-report-trend-grid stats-development-attendance-grid">
+                    ${window.renderTeamReportTrendCardHtml('Oppmøte siste 5', trends.lastFiveAttendance, trends.allAttendance, false, '%', 'fa-user-check')}
+                </div>
+            `;
+        };
+
         window.renderTeamReportStatusHtml = function(data, report) {
             const recordClass = data.wins >= data.losses ? 'is-win' : 'is-loss';
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
             const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : 'alle';
+            const yearOptions = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [];
+            const yearFilterHtml = `
+                <div class="stats-kamp-year-filter" role="tablist" aria-label="Filtrer kamper etter år">
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected="${yearFilter === 'alle' ? 'true' : 'false'}"
+                        class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${yearFilter === 'alle' ? 'is-active' : ''}"
+                        data-stat-action="set-kamp-year"
+                        data-year="alle"
+                    >Alle</button>
+                    ${yearOptions.map(year => `
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="${yearFilter === year ? 'true' : 'false'}"
+                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${yearFilter === year ? 'is-active' : ''}"
+                            data-stat-action="set-kamp-year"
+                            data-year="${year}"
+                        >${year}</button>
+                    `).join('')}
+                </div>
+            `;
+            const kampHint = yearFilter === 'alle'
+                ? 'Resultater og mål fra alle spilte kamper med registrert resultat.'
+                : `Resultater og mål fra spilte kamper i ${yearFilter}.`;
+            const utviklingHint = yearFilter === 'alle'
+                ? 'Sammenligner siste 5 kamper med snittet for alle spilte kamper.'
+                : `Sammenligner siste 5 kamper i ${yearFilter} med snittet for ${yearFilter}.`;
             const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
                     <i class="fa-solid ${icon}" aria-hidden="true"></i>
@@ -1234,33 +1459,72 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ${hint ? `<span class="stats-analysis-chip-hint">${hint}</span>` : ''}
                 </div>
             `;
+            const kampdataPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'kampdata',
+                title: 'Sesong',
+                badge: yearFilter === 'alle' ? 'Alle' : yearFilter,
+                showLabel: 'Vis sesong',
+                hideLabel: 'Skjul sesong',
+                content: `
+                    <p class="stats-kamp-panel-hint">${kampHint}</p>
+                    ${yearFilterHtml}
+                    <div class="stats-analysis-strip">
+                        ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days', 'spilte kamper')}
+                        ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'seier - uavgjort - tap')}
+                        ${summaryItem('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'scoret - imot')}
+                    </div>
+                `
+            });
+            const kamputviklingPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'kamputvikling',
+                title: 'Kamputvikling',
+                showLabel: 'Vis kamputvikling',
+                hideLabel: 'Skjul kamputvikling',
+                content: `
+                    <p class="stats-kamp-panel-hint">${utviklingHint}</p>
+                    ${window.renderKamputviklingCardsHtml(report)}
+                `
+            });
+            const kampstatsPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'kampstats',
+                title: 'Kampstats',
+                showLabel: 'Vis kampstats',
+                hideLabel: 'Skjul kampstats',
+                content: `
+                    <div id="stats-lag-kampdata-detail" class="stats-lag-kampdata-detail"></div>
+                `
+            });
+            const oppmotePanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'oppmote',
+                title: 'Oppmøte',
+                badge: `${data.avgAttendance}%`,
+                showLabel: 'Vis oppmøte',
+                hideLabel: 'Skjul oppmøte',
+                content: `
+                    <p class="stats-kamp-panel-hint">Oppmøteregistrering på historiske aktiviteter for valgt lag.</p>
+                    <div class="stats-analysis-strip stats-analysis-strip-single">
+                        ${summaryItem('Oppmøte', `${data.avgAttendance}%`, attendanceTone, 'fa-user-check', 'av mulige registreringer')}
+                    </div>
+                `
+            });
+            const oppmoteutviklingPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'oppmoteutvikling',
+                title: 'Oppmøteutvikling',
+                showLabel: 'Vis oppmøteutvikling',
+                hideLabel: 'Skjul oppmøteutvikling',
+                content: `
+                    <p class="stats-kamp-panel-hint">Viser om oppmøtet i de siste 5 aktivitetene går opp eller ned.</p>
+                    ${window.renderOppmoteutviklingCardsHtml(report)}
+                `
+            });
 
             return `
                 <div class="team-report-status-stack">
-                    <div class="stats-analysis-overview" aria-label="Nøkkeltall for laget">
-                        <section class="stats-analysis-group stats-analysis-group-match">
-                            <div class="stats-analysis-group-head">
-                                <span>Kampdata</span>
-                                <p>Resultater og mål fra spilte kamper med registrert resultat.</p>
-                            </div>
-                            <div class="stats-analysis-strip">
-                                ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days', 'spilte kamper')}
-                                ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'seier - uavgjort - tap')}
-                                ${summaryItem('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'scoret - imot')}
-                            </div>
-                        </section>
-
-                        <section class="stats-analysis-group stats-analysis-group-attendance">
-                            <div class="stats-analysis-group-head">
-                                <span>Oppmøte</span>
-                                <p>Oppmøteregistrering på historiske aktiviteter for valgt lag.</p>
-                            </div>
-                            <div class="stats-analysis-strip stats-analysis-strip-single">
-                                ${summaryItem('Oppmøte', `${data.avgAttendance}%`, attendanceTone, 'fa-user-check', 'av mulige registreringer')}
-                            </div>
-                        </section>
-                    </div>
-                    <div id="stats-lag-kampdata-detail" class="stats-lag-kampdata-detail"></div>
+                    ${kampdataPanel}
+                    ${kamputviklingPanel}
+                    ${kampstatsPanel}
+                    ${oppmotePanel}
+                    ${oppmoteutviklingPanel}
                 </div>
             `;
         };
@@ -1598,83 +1862,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderTeamReportDevelopmentHtml = function(report) {
-            const trendMeta = (current, baseline, inverted = false) => {
-                if (current === null || current === undefined || baseline === null || baseline === undefined || current === baseline) {
-                    return { tone: 'is-neutral', arrow: '→', direction: 'is-neutral' };
-                }
-                const better = inverted ? current < baseline : current > baseline;
-                const arrowIsUp = current > baseline;
-                return {
-                    tone: better ? 'is-good' : 'is-alert',
-                    arrow: arrowIsUp ? '↑' : '↓',
-                    direction: arrowIsUp === inverted ? 'is-down' : 'is-up'
-                };
-            };
-            const trendValue = (value, suffix = '') => (
-                value === null || value === undefined ? '-' : `${value}${suffix}`
-            );
-            const trendCard = (label, current, baseline, inverted = false, suffix = '', icon = '') => {
-                const meta = trendMeta(current, baseline, inverted);
-                return `
-                    <div class="team-report-trend-card ${meta.tone}">
-                        <span class="team-report-card-label">${label}</span>
-                        <strong class="team-report-trend-values">
-                            <span>${trendValue(current, suffix)}</span>
-                            ${icon ? `<i class="fa-solid ${icon} team-report-trend-icon" aria-hidden="true"></i>` : ''}
-                            <span class="team-report-trend-arrow ${meta.direction}">${meta.arrow}</span>
-                            <span>${trendValue(baseline, suffix)}</span>
-                        </strong>
-                    </div>
-                `;
-            };
-
-            return `
-                <section class="stats-panel team-report-panel">
-                    <div class="stats-panel-header team-report-header">
-                        <div>
-                            <h3 class="stats-panel-title">Utvikling</h3>
-                            <p class="stats-panel-subtitle">Retning over tid, delt mellom kamptrend og oppmøte.</p>
-                        </div>
-                    </div>
-                    <div class="team-report-body">
-                        <div class="stats-development-groups">
-                            <section class="stats-development-group stats-development-group-match">
-                                <div class="stats-development-group-head">
-                                    <span>Kamputvikling</span>
-                                    <p>Sammenligner siste 5 kamper med snittet for alle spilte kamper.</p>
-                                </div>
-                                <div class="team-report-trend-grid stats-development-match-grid">
-                                    ${trendCard('Mål scoret siste 5', report.trends.lastFiveFor, report.trends.allFor, false, '', 'fa-futbol')}
-                                    ${trendCard('Mål imot siste 5', report.trends.lastFiveAgainst, report.trends.allAgainst, true, '', 'fa-futbol')}
-                                    ${trendCard('Kampbidrag siste 5', report.trends.lastFiveKampbidrag, report.trends.allKampbidrag, false, '', 'fa-chart-line')}
-                                </div>
-                            </section>
-
-                            <section class="stats-development-group stats-development-group-attendance">
-                                <div class="stats-development-group-head">
-                                    <span>Oppmøteutvikling</span>
-                                    <p>Viser om oppmøtet i de siste 5 aktivitetene går opp eller ned.</p>
-                                </div>
-                                <div class="team-report-trend-grid stats-development-attendance-grid">
-                                    ${trendCard('Oppmøte siste 5', report.trends.lastFiveAttendance, report.trends.allAttendance, false, '%', 'fa-user-check')}
-                                </div>
-                            </section>
-                        </div>
-                    </div>
-                    <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
-                        ${window.renderTeamScoreDiagramHtml()}
-                    </div>
-                </section>
-            `;
-        };
-
         window.statsLagSections = [
-            { id: 'kampdata', label: 'Kampdata', icon: 'fa-shield-halved' },
-            { id: 'treningsdata', label: 'Treningsdata', icon: 'fa-user-check' },
-            { id: 'spillerdata', label: 'Spillerdata', icon: 'fa-users' },
-            { id: 'utvikling', label: 'Utvikling', icon: 'fa-chart-line' },
-            { id: 'oppfolging', label: 'Oppfølging', icon: 'fa-heart-pulse' }
+            { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
+            { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
+            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' }
         ];
         window.statsLagSection = window.statsLagSection || 'kampdata';
 
@@ -1696,7 +1887,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             data-stat-action="set-lag-section"
                             data-section-id="${section.id}"
                         >
-                            <i class="fa-solid ${section.icon}" aria-hidden="true"></i>
                             <span>${section.label}</span>
                         </button>
                     `).join('')}
@@ -1705,16 +1895,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.updateStatsBoardActiveSection = function() {
-            const activeSection = window.getStatsLagSection();
-            const sectionMeta = window.statsLagSections.find(section => section.id === activeSection) || window.statsLagSections[0];
             const icon = document.getElementById('stats-board-active-icon');
             const label = document.getElementById('stats-board-active-label');
 
             if (icon) {
-                icon.className = `fa-solid ${sectionMeta.icon}`;
+                icon.className = 'fa-solid fa-chart-simple';
             }
             if (label) {
-                label.textContent = sectionMeta.label;
+                label.textContent = 'Statistikk';
             }
         };
 
@@ -1723,8 +1911,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const nav = document.getElementById('stats-lag-section-nav');
             const summary = document.getElementById('stats-lag-summary');
             const playerData = document.getElementById('stats-lag-playerdata');
-            const development = document.getElementById('stats-lag-development');
-            const followUps = document.getElementById('stats-lag-followups');
             const view = document.getElementById('stat-view-lag');
 
             if (nav) nav.innerHTML = window.renderStatsLagSectionNav();
@@ -1735,18 +1921,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             if (summary) {
-                summary.classList.toggle('hidden', activeSection === 'spillerdata' || activeSection === 'utvikling' || activeSection === 'oppfolging');
-                const matchGroup = summary.querySelector('.stats-analysis-group-match');
-                const attendanceGroup = summary.querySelector('.stats-analysis-group-attendance');
-                const matchDetail = summary.querySelector('#stats-lag-kampdata-detail');
-                if (matchGroup) matchGroup.classList.toggle('hidden', activeSection !== 'kampdata');
-                if (attendanceGroup) attendanceGroup.classList.toggle('hidden', activeSection !== 'treningsdata');
-                if (matchDetail) matchDetail.classList.toggle('hidden', activeSection !== 'kampdata');
+                summary.classList.toggle('hidden', activeSection === 'spillerdata');
+                const kampdataPanel = summary.querySelector('[data-stats-panel="kampdata"]');
+                const kamputviklingPanel = summary.querySelector('[data-stats-panel="kamputvikling"]');
+                const kampstatsPanel = summary.querySelector('[data-stats-panel="kampstats"]');
+                const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
+                const oppmoteutviklingPanel = summary.querySelector('[data-stats-panel="oppmoteutvikling"]');
+                if (kampdataPanel) kampdataPanel.classList.toggle('hidden', activeSection !== 'kampdata');
+                if (kamputviklingPanel) kamputviklingPanel.classList.toggle('hidden', activeSection !== 'kampdata');
+                if (kampstatsPanel) kampstatsPanel.classList.toggle('hidden', activeSection !== 'kampdata');
+                if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
+                if (oppmoteutviklingPanel) oppmoteutviklingPanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
 
             if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata');
-            if (development) development.classList.toggle('hidden', activeSection !== 'utvikling');
-            if (followUps) followUps.classList.toggle('hidden', activeSection !== 'oppfolging');
         };
 
         window.setStatsLagSection = function(section) {
@@ -1763,14 +1951,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.renderStatsLagSummary = function() {
             const container = document.getElementById('stats-lag-summary');
-            const developmentContainer = document.getElementById('stats-lag-development');
             const navContainer = document.getElementById('stats-lag-section-nav');
             const data = window._statsLagData;
             const report = window._statsTeamReportData;
             if (!container) return;
             if (!data || !report) {
                 container.innerHTML = '';
-                if (developmentContainer) developmentContainer.innerHTML = '';
                 if (navContainer) navContainer.innerHTML = '';
                 return;
             }
@@ -1778,9 +1964,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             container.innerHTML = window.renderTeamReportStatusHtml(data, report);
             if (typeof window.renderMatchStatsView === 'function') {
                 window.renderMatchStatsView();
-            }
-            if (developmentContainer) {
-                developmentContainer.innerHTML = window.renderTeamReportDevelopmentHtml(report);
             }
             if (window.getStatsLagSection() === 'spillerdata') {
                 if (window._statsSelectedPlayer && typeof window.renderSpillereDetail === 'function') {
@@ -1795,7 +1978,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsSpillereSummary = function() {
             const container = document.getElementById('stats-spillere-summary');
             if (!container) return;
-            container.innerHTML = '';
+            if (window._statsSelectedPlayer) {
+                container.innerHTML = '';
+                return;
+            }
+            const followUps = Array.isArray(window._statsFollowUps)
+                ? window._statsFollowUps
+                : [];
+            const utviklingPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'spillerutvikling',
+                title: 'Utvikling',
+                showLabel: 'Vis utvikling',
+                hideLabel: 'Skjul utvikling',
+                content: `
+                    <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
+                        ${window.renderTeamScoreDiagramHtml()}
+                    </div>
+                `
+            });
+            const oppfolgingPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'oppfolging',
+                title: 'Oppfølging',
+                badge: followUps.length,
+                showLabel: 'Vis oppfølging',
+                hideLabel: 'Skjul oppfølging',
+                content: window.renderStatsFollowUpsHtml(followUps)
+            });
+            container.innerHTML = `
+                <div class="team-report-status-stack">
+                    ${utviklingPanel}
+                    ${oppfolgingPanel}
+                </div>
+            `;
         };
 
         window.renderStatsKampContext = function() {
@@ -1855,10 +2069,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     window.clearStatsTabHero();
                     const summary = document.getElementById('stats-lag-summary');
                     if (summary) summary.innerHTML = '';
-                    const development = document.getElementById('stats-lag-development');
-                    if (development) development.innerHTML = '';
-                    const followUps = document.getElementById('stats-lag-followups');
-                    if (followUps) followUps.innerHTML = '';
                     const sectionNav = document.getElementById('stats-lag-section-nav');
                     if (sectionNav) sectionNav.innerHTML = '';
                     return;
@@ -1950,56 +2160,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return;
             }
 
-            list.innerHTML = statsData.map(stat => {
-                const activeSortCol = currentStatSortCol;
+            list.innerHTML = statsData.map((stat, index) => {
                 const player = (window.activePlayers || []).find(p => p.navn === stat.navn);
                 const posStr = player && player.pos2 && player.pos2 !== '-'
                     ? `${player.pos1 || 'Spiller'} / ${player.pos2}`
                     : (stat.pos1 || player?.pos1 || 'Spiller');
                 const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
                 const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
-                const formSortActiveClass = activeSortCol === 'kjemi' ? ' is-sort-active' : '';
-                const bonusClass = stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral';
-                const kbSortActiveClass = activeSortCol === 'kampbonus' ? ' is-sort-active' : '';
-                const bonusText = stat.attendedMatches > 0 ? stat.kampbonus.toFixed(1) : '-';
-                const borsText = stat.snittBors > 0 ? stat.snittBors.toFixed(1) : '-';
-                const totalText = stat.totalScore > 0 ? stat.totalScore.toFixed(1) : '-';
+                const sortOption = window.getStatsSortOption(currentStatSortCol);
+                const sortValue = window.formatStatsSortValue(stat, currentStatSortCol);
+                const sortIcon = window.renderStatsSortIconHtml(sortOption, 'stats-kb-icon');
+                const bonusClass = currentStatSortCol === 'kampbonus'
+                    ? (stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral')
+                    : 'is-metric';
                 const safeNameHtml = escapeStatisticsHtml(stat.navn);
                 const safePosHtml = escapeStatisticsHtml(posStr);
                 const playerIdAttr = escapeStatisticsHtml(getStatsPlayerIdForName(stat.navn));
-
-                const extras = [];
-                if (stat.mal > 0) extras.push(window.renderStatsMetaPartHtml('mal', String(stat.mal)));
-                if (stat.assist > 0) extras.push(window.renderStatsMetaPartHtml('assist', String(stat.assist)));
-                if (stat.bb > 0) extras.push(window.renderStatsMetaPartHtml('bb', String(stat.bb)));
-                if (stat.guleSerie > 0) extras.push(window.renderStatsMetaPartHtml('guleSerie', String(stat.guleSerie)));
-                if (stat.rodeSerie > 0) extras.push(window.renderStatsMetaPartHtml('rodeSerie', String(stat.rodeSerie)));
-
-                const metaParts = [
-                    `<span class="stats-meta-pos">${safePosHtml}</span>`,
-                    window.renderStatsMetaPartHtml('kamper', String(stat.kamper)),
-                    window.renderStatsMetaPartHtml('totalScore', totalText),
-                    window.renderStatsMetaPartHtml('kampbonus', bonusText),
-                    window.renderStatsMetaPartHtml('kjemi', String(stat.kjemi)),
-                    window.renderStatsMetaPartHtml('oppmotePct', `${stat.oppmotePct}%`),
-                    window.renderStatsMetaPartHtml('snittBors', borsText)
-                ];
-                if (extras.length) metaParts.push(...extras);
-
-                const kampbidragIcon = window.renderStatsSortIconHtml(window.getStatsSortOption('kampbonus'), 'stats-kb-icon');
+                const kamperText = `${stat.kamper || 0} kamper`;
+                const sortLabel = sortOption?.label || 'Stat';
 
                 return `
-                    <button type="button" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" class="roster-player-row stats-player-row" aria-label="${safeNameHtml}, total score ${totalText}, form ${stat.kjemi}, snittbørs ${borsText}, kampbidrag ${bonusText}">
-                        <div class="stats-form-jersey ${formClass}${formSortActiveClass}" aria-hidden="true">
-                            <span class="stats-form-jersey-value">${stat.kjemi}</span>
-                            <span class="stats-form-jersey-label">Form</span>
-                        </div>
+                    <button type="button" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" class="roster-player-row stats-player-row" aria-label="${safeNameHtml}, plass ${index + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
+                        <div class="stats-player-rank ${formClass}" aria-hidden="true">${index + 1}</div>
                         <div class="roster-player-main">
                             <div class="roster-player-name">${safeNameHtml}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</div>
-                            <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
+                            <div class="roster-player-meta">
+                                <span class="stats-meta-pos">${safePosHtml}</span>
+                                <span class="roster-player-meta-sep">·</span>
+                                <span>${escapeStatisticsHtml(kamperText)}</span>
+                            </div>
                         </div>
                         <div class="roster-player-side">
-                            <span class="stats-kb-badge ${bonusClass}${kbSortActiveClass}" title="Kampbidrag">${kampbidragIcon}<span>${bonusText}</span></span>
+                            <span class="stats-kb-badge ${bonusClass}" title="${escapeStatisticsHtml(sortLabel)}">${sortIcon}<span>${escapeStatisticsHtml(sortValue)}</span></span>
                         </div>
                     </button>
                 `;
@@ -2096,6 +2288,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.getStatsSortOption = function(id) {
             return (window.STATS_PLAYER_SORT_OPTIONS || []).find(opt => opt.id === id);
+        };
+
+        window.formatStatsSortValue = function(stat, column) {
+            if (!stat) return '-';
+            if (column === 'oppmotePct') return `${Number(stat.oppmotePct) || 0}%`;
+            if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors') {
+                const value = Number(stat[column]) || 0;
+                if (column === 'kampbonus' && !(stat.attendedMatches > 0)) return '-';
+                return value > 0 ? value.toFixed(1) : '-';
+            }
+            if (column === 'kjemi') return String(stat.kjemi || 0);
+            const value = stat[column];
+            if (value == null || value === '') return '-';
+            return String(value);
         };
 
         window.renderStatsSortIconHtml = function(option, extraClass = '') {
@@ -2380,6 +2586,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 .filter(m => {
                     if (!m.result || !m.result.includes('-')) return false;
                     if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
+                    if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(m)) return false;
                     return true;
                 })
                 .sort((a, b) => new Date(b.date) - new Date(a.date));

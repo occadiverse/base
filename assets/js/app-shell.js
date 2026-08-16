@@ -72,7 +72,7 @@ function switchTab(tabId, options = {}) {
     if (activeEl) activeEl.classList.remove('hidden');
 
     const scrollHost = document.querySelector('.portal-main-shell');
-    if (scrollHost) scrollHost.scrollTop = 0;
+    if (scrollHost && previousTab !== tabId) scrollHost.scrollTop = 0;
 
     if (tabId === 'oppmote') {
         const pendingDateStr = window.pendingCalendarDateStr || null;

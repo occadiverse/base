@@ -2668,17 +2668,6 @@ function renderMatchGamePlanSamspillSummary(match) {
         ${buildMatchGamePlanSamspillAnalysisHtml(match)}
     `;
     applyMatchGamePlanSamspillZoneFocus(match);
-
-    if (selectedZoneId) {
-        const selectedItem = analysisEl.querySelector(
-            `.match-game-plan-samspill-analysis-item.is-zone-selected[data-samspill-zone-id="${CSS.escape(selectedZoneId)}"]`
-        );
-        if (selectedItem && typeof selectedItem.scrollIntoView === 'function') {
-            requestAnimationFrame(() => {
-                selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            });
-        }
-    }
 }
 
 function buildMatchGamePlanStarterFooterHtml(match) {
@@ -4059,7 +4048,23 @@ window.promptDeleteMatch = function(id) {
     });
 };
 
+function getPortalMainScrollHost() {
+    return document.querySelector('.portal-main-shell');
+}
+
+function restorePortalMainScroll(scrollTop) {
+    const host = getPortalMainScrollHost();
+    if (!host || scrollTop == null) return;
+    host.scrollTop = scrollTop;
+    requestAnimationFrame(() => {
+        host.scrollTop = scrollTop;
+    });
+}
+
 window.showMatchDetails = function(id) {
+    const stayOnDetails = window.currentTab === 'kampdetaljer';
+    const savedScrollTop = stayOnDetails ? (getPortalMainScrollHost()?.scrollTop || 0) : null;
+
     activeDetailsId = id;
     window.activeDetailsId = id;
 
@@ -4269,8 +4274,10 @@ window.showMatchDetails = function(id) {
     const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
+    if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
 
     requestAnimationFrame(() => {
+        if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
         window.initMatchGamePlanScroller();
         window.syncMatchGamePlanScroller();
         ensureMatchGamePlanSamspillPanelsDom();
@@ -4280,6 +4287,7 @@ window.showMatchDetails = function(id) {
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
+        if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
 
         if (openForAttendanceFeedback) {
             window._pendingAttendanceFeedback = null;
@@ -4402,6 +4410,7 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     const selectedCount = matchGamePlanStarterPositionIds.filter(posId => draftLineup[posId]).length;
     const saveBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-save-btn');
     const clearBtn = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-clear-btn');
+    const savedScrollTop = getPortalMainScrollHost()?.scrollTop || 0;
 
     if (saveBtn) saveBtn.disabled = true;
     if (clearBtn) clearBtn.disabled = true;
@@ -4429,6 +4438,7 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     renderMatchGamePlanDefCPage(match);
     renderMatchGamePlanRolesPage(match);
     renderMatchGamePlanBenchPage(match);
+    restorePortalMainScroll(savedScrollTop);
 
     const successMessage = selectedCount === 11
         ? `Lagret i ${getMatchGamePlanFormation(match)}.`
