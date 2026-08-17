@@ -2741,6 +2741,7 @@
         .match-bench-panel .match-detail-section-badge,
         .match-opponent-info-panel .match-detail-section-badge,
         .training-session-attendance-panel .match-detail-section-badge,
+        .training-session-season-attendance-panel .match-detail-section-badge,
         .stats-kamp-collapsible-panel .match-detail-section-badge {
             background: rgba(245, 197, 66, 0.14);
             border: 1px solid rgba(245, 197, 66, 0.34);
@@ -3066,7 +3067,8 @@
             max-width: 100%;
             width: 100%;
         }
-        .training-session-groups-panel .training-session-group-count-btn {
+        .training-session-groups-panel .training-session-group-count-btn,
+        .training-session-exercise-panel .training-session-group-count-btn {
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
             border: 1px solid rgba(245, 197, 66, 0.28);
@@ -3089,28 +3091,47 @@
             transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
             width: 100%;
         }
-        .training-session-groups-panel .training-session-group-count-btn:hover:not(.is-active) {
+        .training-session-exercise-panel .training-session-group-count-btn {
+            gap: 0.4rem;
+            min-width: 5.5rem;
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+            width: auto;
+        }
+        .training-session-groups-panel .training-session-group-count-btn:hover:not(.is-active),
+        .training-session-exercise-panel .training-session-group-count-btn:hover:not(.is-active):not(:disabled) {
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
             border-color: rgba(245, 197, 66, 0.42);
             color: #ffffff;
             transform: translateY(-1px);
         }
-        .training-session-groups-panel .training-session-group-count-btn.is-active {
+        .training-session-groups-panel .training-session-group-count-btn.is-active,
+        .training-session-exercise-panel .training-session-group-count-btn.is-active {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
             border-color: rgba(245, 197, 66, 0.9);
             box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
             color: #0b2b4c;
         }
-        .training-session-groups-panel .training-session-group-count-btn.is-active:hover {
+        .training-session-groups-panel .training-session-group-count-btn.is-active:hover,
+        .training-session-exercise-panel .training-session-group-count-btn.is-active:hover:not(:disabled) {
             background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
             border-color: rgba(245, 197, 66, 0.95);
             color: #0b2b4c;
             transform: none;
         }
-        .training-session-groups-panel .training-session-group-count-btn:focus-visible {
+        .training-session-groups-panel .training-session-group-count-btn:focus-visible,
+        .training-session-exercise-panel .training-session-group-count-btn:focus-visible {
             outline: none;
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 5px 12px rgba(2, 6, 23, 0.22);
+        }
+        .training-session-exercise-panel .training-session-group-count-btn.is-active i {
+            color: inherit;
+        }
+        .training-session-exercise-panel .training-session-group-count-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none;
         }
         .training-session-groups-panel .training-session-label {
             color: rgba(255, 255, 255, 0.62);
@@ -3126,6 +3147,75 @@
         }
         .training-session-data-panel .match-bench-topline {
             justify-content: space-between;
+        }
+        .training-session-exercise-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            padding: 0.15rem 0.15rem 0.35rem;
+        }
+        .training-session-exercise-hint {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.78rem;
+            font-weight: 650;
+            line-height: 1.4;
+            margin: 0;
+        }
+        .training-session-exercise-fields {
+            display: grid;
+            gap: 0.85rem;
+        }
+        .training-session-exercise-meta {
+            display: grid;
+            gap: 0.85rem;
+        }
+        @media (min-width: 640px) {
+            .training-session-exercise-meta {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            }
+        }
+        .training-session-exercise-panel .portal-label {
+            color: rgba(245, 197, 66, 0.88);
+        }
+        .training-session-exercise-panel .portal-field {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+        .training-session-exercise-panel .portal-field::placeholder {
+            color: rgba(255, 255, 255, 0.38);
+        }
+        .training-session-exercise-panel .portal-field:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+        }
+        .training-session-exercise-panel select.portal-field option {
+            background: #0b2b4c;
+            color: #ffffff;
+        }
+        .training-session-exercise-footer {
+            align-items: center;
+            display: flex;
+            gap: 0.65rem;
+            justify-content: space-between;
+            min-height: 2.85rem;
+        }
+        .training-session-exercise-save-state {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .training-session-exercise-save-state.is-success {
+            color: #86efac;
+        }
+        .training-session-exercise-save-state.is-error {
+            color: #fca5a5;
+        }
+        .training-session-exercise-save-state.is-pending {
+            color: rgba(255, 255, 255, 0.78);
+        }
+        .training-session-exercise-footer .training-session-group-count-btn {
+            flex: 0 0 auto;
         }
         .training-session-data-body {
             display: flex;

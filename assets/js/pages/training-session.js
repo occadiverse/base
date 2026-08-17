@@ -13,8 +13,8 @@ function escapeTrainingHtml(value) {
 window._trainingSessionGroupCounts = window._trainingSessionGroupCounts || {};
 window._trainingSessionGroups = window._trainingSessionGroups || {};
 
-function setTrainingSessionFeedback(message, variant = '', autoClearMs = 0) {
-    const el = document.querySelector('[data-training-attendance-save-state]');
+function setTrainingSessionFeedback(message, variant = '', autoClearMs = 0, selector = '[data-training-attendance-save-state]') {
+    const el = document.querySelector(selector);
     if (!el) return;
 
     if (el._feedbackTimer) {
@@ -751,10 +751,8 @@ function buildTrainingDataAttendanceHtml(teamName) {
 }
 
 function buildTrainingDataPanelHtml(trainingEvent) {
-    const teamName = getTrainingSessionTeamName(trainingEvent);
-    const lastMatch = getLatestFinishedMatchForTeam(teamName);
+    const lastMatch = getLatestFinishedMatchForTeam(getTrainingSessionTeamName(trainingEvent));
     const isOpen = window._trainingSessionDataOpen === true;
-    const seasonYear = getCurrentSeasonDateRange().year;
 
     return `
         <section class="training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
@@ -772,10 +770,376 @@ function buildTrainingDataPanelHtml(trainingEvent) {
                         <h4>Anbefaling etter siste kamp</h4>
                         ${buildTrainingDataRecommendationsHtml(lastMatch)}
                     </section>
-                    <section class="training-data-section">
-                        <h4>Oppmøte sesong ${seasonYear}</h4>
-                        ${buildTrainingDataAttendanceHtml(teamName)}
-                    </section>
+                </div>
+            </div>
+        </section>
+    `;
+}
+
+function getTrainingExerciseCategories() {
+    return [
+        { id: 'defensiv', label: 'Defensiv organisering' },
+        { id: 'dodball', label: 'Dødball' },
+        { id: 'avslutninger', label: 'Avslutninger' },
+        { id: 'ballbesittelse', label: 'Ballbesittelse' },
+        { id: 'linjespill', label: 'Linjespill' },
+        { id: 'annet', label: 'Annet' }
+    ];
+}
+
+function getTrainingExerciseCategoryLabel(categoryId) {
+    return getTrainingExerciseCategories().find(category => category.id === categoryId)?.label || 'Annet';
+}
+
+function inferExerciseCategoryFromRecommendation(title) {
+    const text = String(title || '').toLowerCase();
+    if (text.includes('avslutning')) return 'avslutninger';
+    if (text.includes('ballbesittelse')) return 'ballbesittelse';
+    if (text.includes('i spill')) return 'linjespill';
+    if (text.includes('defensiv')) return 'defensiv';
+    if (text.includes('dødball') || text.includes('corner')) return 'dodball';
+    return 'annet';
+}
+
+function getSuggestedExerciseCategory(trainingEvent) {
+    const lastMatch = getLatestFinishedMatchForTeam(getTrainingSessionTeamName(trainingEvent));
+    const recommendations = buildTrainingRecommendationsFromLastMatch(lastMatch);
+    return inferExerciseCategoryFromRecommendation(recommendations?.items?.[0]?.title);
+}
+
+function normalizeExerciseLibraryItem(raw, fallbackId) {
+    const title = String(raw?.title || '').trim();
+    if (!title) return null;
+
+    const validIds = new Set(getTrainingExerciseCategories().map(category => category.id));
+    const category = validIds.has(raw.category)
+        ? raw.category
+        : inferExerciseCategoryFromRecommendation(raw.title);
+
+    return {
+        id: String(raw.id || fallbackId || '').trim() || `legacy-${category}-${title.toLowerCase()}`,
+        category,
+        title,
+        description: String(raw.description || '').trim(),
+        updatedAt: raw.updatedAt || ''
+    };
+}
+
+function getTrainingExerciseLibrary() {
+    const team = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
+    const fromTeam = Array.isArray(team?.exercises) ? team.exercises : [];
+    const items = new Map();
+
+    fromTeam.forEach(raw => {
+        const item = normalizeExerciseLibraryItem(raw);
+        if (item) items.set(item.id, item);
+    });
+
+    (window.activeEvents || []).forEach(event => {
+        const item = normalizeExerciseLibraryItem(event?.exercise, event?.id ? `legacy-${event.id}` : '');
+        if (!item) return;
+
+        const duplicate = [...items.values()].find(entry => (
+            entry.id === item.id
+            || (
+                entry.title.toLowerCase() === item.title.toLowerCase()
+                && entry.category === item.category
+            )
+        ));
+        if (duplicate) {
+            if ((item.updatedAt || '') > (duplicate.updatedAt || '')) {
+                items.set(duplicate.id, { ...duplicate, ...item, id: duplicate.id });
+            }
+            return;
+        }
+
+        items.set(item.id, item);
+    });
+
+    return [...items.values()].sort((a, b) => a.title.localeCompare(b.title, 'no'));
+}
+
+function getTrainingSessionExerciseValues(trainingEvent) {
+    const eventId = trainingEvent?.id;
+    const draft = window._trainingSessionExerciseDraft;
+    if (draft && draft.eventId === eventId) {
+        return {
+            libraryId: draft.libraryId || '',
+            category: draft.category || getSuggestedExerciseCategory(trainingEvent),
+            title: draft.title || '',
+            description: draft.description || ''
+        };
+    }
+
+    const saved = normalizeExerciseLibraryItem(
+        trainingEvent?.exercise,
+        eventId ? `legacy-${eventId}` : ''
+    );
+
+    return {
+        libraryId: saved?.id || '',
+        category: saved?.category || getSuggestedExerciseCategory(trainingEvent),
+        title: saved?.title || '',
+        description: saved?.description || ''
+    };
+}
+
+function readTrainingExerciseFormValues(form, trainingEvent) {
+    return {
+        libraryId: form?.querySelector('[data-exercise-library]')?.value || '',
+        category: form?.querySelector('[data-exercise-category]')?.value || getSuggestedExerciseCategory(trainingEvent),
+        title: form?.querySelector('[data-exercise-title]')?.value || '',
+        description: form?.querySelector('[data-exercise-description]')?.value || ''
+    };
+}
+
+function setTrainingSessionExerciseDraft(eventId, values) {
+    if (!eventId) return;
+    window._trainingSessionExerciseDraft = {
+        eventId,
+        libraryId: values?.libraryId || values?.id || '',
+        category: values?.category || 'annet',
+        title: values?.title || '',
+        description: values?.description || ''
+    };
+}
+
+function setTrainingSessionExerciseFeedback(message, variant = '', autoClearMs = 0) {
+    setTrainingSessionFeedback(message, variant, autoClearMs, '[data-training-exercise-save-state]');
+}
+
+function buildExerciseLibraryOptionsHtml(categoryId, selectedId) {
+    const items = getTrainingExerciseLibrary().filter(item => item.category === categoryId);
+
+    return [
+        '<option value="">Skriv ny øvelse</option>',
+        ...items.map(item => {
+            const selected = item.id === selectedId ? ' selected' : '';
+            return `<option value="${escapeTrainingHtml(item.id)}"${selected}>${escapeTrainingHtml(item.title)}</option>`;
+        })
+    ].join('');
+}
+
+function refreshTrainingExerciseLibraryOptions(form) {
+    const librarySelect = form?.querySelector('[data-exercise-library]');
+    if (!librarySelect) return;
+
+    const categoryId = form.querySelector('[data-exercise-category]')?.value || 'annet';
+    const selectedId = window._trainingSessionExerciseDraft?.libraryId || librarySelect.value || '';
+    const belongsInCategory = getTrainingExerciseLibrary().some(item => (
+        item.id === selectedId && item.category === categoryId
+    ));
+    const visibleId = belongsInCategory ? selectedId : '';
+    librarySelect.innerHTML = buildExerciseLibraryOptionsHtml(categoryId, visibleId);
+    librarySelect.value = visibleId;
+}
+
+function loadTrainingExerciseFromLibrary(form, libraryId) {
+    const eventId = window._activeTrainingSessionId;
+    const trainingEvent = getTrainingEvent(eventId);
+    const categorySelect = form?.querySelector('[data-exercise-category]');
+    const titleInput = form?.querySelector('[data-exercise-title]');
+    const descriptionInput = form?.querySelector('[data-exercise-description]');
+    if (!form || !titleInput || !descriptionInput) return;
+
+    if (!libraryId) {
+        const category = categorySelect?.value || getSuggestedExerciseCategory(trainingEvent);
+        titleInput.value = '';
+        descriptionInput.value = '';
+        setTrainingSessionExerciseDraft(eventId, {
+            libraryId: '',
+            category,
+            title: '',
+            description: ''
+        });
+        return;
+    }
+
+    const item = getTrainingExerciseLibrary().find(entry => entry.id === libraryId);
+    if (!item) return;
+
+    if (categorySelect) categorySelect.value = item.category;
+    titleInput.value = item.title;
+    descriptionInput.value = item.description;
+    setTrainingSessionExerciseDraft(eventId, item);
+    refreshTrainingExerciseLibraryOptions(form);
+    const librarySelect = form.querySelector('[data-exercise-library]');
+    if (librarySelect) librarySelect.value = item.id;
+}
+
+async function upsertTrainingExerciseInLibrary(item) {
+    const team = typeof window.getPrimaryTeam === 'function' ? window.getPrimaryTeam() : null;
+    if (!team || !item?.id) return;
+
+    const library = getTrainingExerciseLibrary().filter(entry => !String(entry.id).startsWith('legacy-'));
+    const next = library.filter(entry => (
+        entry.id === item.id
+        || entry.title.toLowerCase() !== item.title.toLowerCase()
+    ));
+    const index = next.findIndex(entry => entry.id === item.id);
+    if (index >= 0) next[index] = item;
+    else next.push(item);
+
+    team.exercises = next.sort((a, b) => a.title.localeCompare(b.title, 'no'));
+    if (typeof window.saveTeamToDatabase === 'function') {
+        await window.saveTeamToDatabase(team);
+    }
+}
+
+async function saveTrainingSessionExercise() {
+    const eventId = window._activeTrainingSessionId;
+    const trainingEvent = getTrainingEvent(eventId);
+    if (!trainingEvent) return;
+
+    const form = document.querySelector('[data-training-exercise-form]');
+    const titleInput = form?.querySelector('[data-exercise-title]');
+    const descriptionInput = form?.querySelector('[data-exercise-description]');
+    const categorySelect = form?.querySelector('[data-exercise-category]');
+    const librarySelect = form?.querySelector('[data-exercise-library]');
+    const saveBtn = form?.querySelector('[data-training-action="save-exercise"]');
+    const title = (titleInput?.value || '').trim();
+    const description = (descriptionInput?.value || '').trim();
+    const category = categorySelect?.value || getSuggestedExerciseCategory(trainingEvent);
+    const draftLibraryId = window._trainingSessionExerciseDraft?.libraryId || '';
+    const selectedLibraryId = librarySelect?.value || draftLibraryId || '';
+
+    if (!title) {
+        setTrainingSessionExerciseFeedback('Skriv en overskrift før du lagrer.', 'error', 5000);
+        titleInput?.focus();
+        return;
+    }
+
+    if (!description) {
+        setTrainingSessionExerciseFeedback('Skriv en beskrivelse før du lagrer.', 'error', 5000);
+        descriptionInput?.focus();
+        return;
+    }
+
+    const libraryId = selectedLibraryId && !selectedLibraryId.startsWith('legacy-')
+        ? selectedLibraryId
+        : crypto.randomUUID();
+    const exercise = {
+        id: libraryId,
+        category,
+        title,
+        description,
+        updatedAt: new Date().toISOString()
+    };
+
+    trainingEvent.exercise = exercise;
+    setTrainingSessionExerciseDraft(eventId, exercise);
+
+    if (saveBtn) saveBtn.disabled = true;
+    setTrainingSessionExerciseFeedback('Lagrer øvelse…', 'pending');
+
+    try {
+        if (typeof window.saveEventToDatabase === 'function') {
+            await window.saveEventToDatabase(trainingEvent);
+        }
+        await upsertTrainingExerciseInLibrary(exercise);
+        if (librarySelect) {
+            librarySelect.innerHTML = buildExerciseLibraryOptionsHtml(category, libraryId);
+            librarySelect.value = libraryId;
+        }
+        setTrainingSessionExerciseFeedback('Øvelse lagret. Du kan hente den opp igjen på senere økter.', 'success', 5000);
+    } catch (error) {
+        console.error(error);
+        setTrainingSessionExerciseFeedback(error.message || 'Kunne ikke lagre øvelsen.', 'error', 6000);
+    } finally {
+        if (saveBtn) saveBtn.disabled = false;
+    }
+}
+
+function buildTrainingExercisePanelHtml(trainingEvent) {
+    const isOpen = window._trainingSessionExerciseOpen === true;
+    const values = getTrainingSessionExerciseValues(trainingEvent);
+    const categoryOptions = getTrainingExerciseCategories().map(category => `
+        <option value="${category.id}"${category.id === values.category ? ' selected' : ''}>${escapeTrainingHtml(category.label)}</option>
+    `).join('');
+
+    return `
+        <section class="training-session-exercise-panel training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
+            <div class="match-bench-action-row match-bench-topline">
+                <div class="match-bench-heading">
+                    <h3>Øvelse</h3>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-ovelse" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul øvelse' : 'Vis øvelse'}" data-show-label="Vis øvelse" data-hide-label="Skjul øvelse">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <form class="training-session-exercise-body" data-training-exercise-form>
+                    <p class="training-session-exercise-hint">Velg kategori, hent en lagret øvelse, eller skriv en ny som treffer anbefalingen i Treningsinfo.</p>
+                    <div class="training-session-exercise-fields">
+                        <div class="training-session-exercise-meta">
+                            <div>
+                                <label class="portal-label" for="training-session-exercise-category">Kategori</label>
+                                <select id="training-session-exercise-category" class="portal-field" data-exercise-category>
+                                    ${categoryOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="portal-label" for="training-session-exercise-library">Hent øvelse</label>
+                                <select id="training-session-exercise-library" class="portal-field" data-exercise-library>
+                                    ${buildExerciseLibraryOptionsHtml(values.category, values.libraryId)}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="portal-label" for="training-session-exercise-title">Overskrift</label>
+                            <input
+                                id="training-session-exercise-title"
+                                type="text"
+                                class="portal-field"
+                                data-exercise-title
+                                maxlength="120"
+                                placeholder="F.eks. Defensiv organisering"
+                                value="${escapeTrainingHtml(values.title)}"
+                            >
+                        </div>
+                        <div>
+                            <label class="portal-label" for="training-session-exercise-description">Beskrivelse</label>
+                            <textarea
+                                id="training-session-exercise-description"
+                                class="portal-field portal-textarea-sm"
+                                data-exercise-description
+                                rows="4"
+                                placeholder="Beskriv øvelsen, oppsett og hva dere skal få til."
+                            >${escapeTrainingHtml(values.description)}</textarea>
+                        </div>
+                    </div>
+                    <div class="training-session-exercise-footer">
+                        <p class="match-inline-status training-session-exercise-save-state" data-training-exercise-save-state aria-live="polite" hidden></p>
+                        <button type="submit" class="training-session-group-count-btn is-active" data-training-action="save-exercise" title="Lagre øvelse" aria-label="Lagre øvelse">
+                            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                            <span>Lagre</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    `;
+}
+
+function buildTrainingAttendanceSeasonPanelHtml(trainingEvent) {
+    const teamName = getTrainingSessionTeamName(trainingEvent);
+    const isOpen = window._trainingSessionSeasonAttendanceOpen === true;
+    const seasonYear = getCurrentSeasonDateRange().year;
+
+    return `
+        <section class="training-session-season-attendance-panel training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
+            <div class="match-bench-action-row match-bench-topline">
+                <div class="match-bench-heading">
+                    <h3>Treningsoppmøte</h3>
+                    <span class="match-detail-section-badge" aria-label="Sesong ${seasonYear}">${seasonYear}</span>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-treningsoppmote" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul treningsoppmøte' : 'Vis treningsoppmøte'}" data-show-label="Vis treningsoppmøte" data-hide-label="Skjul treningsoppmøte">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="training-session-data-body">
+                    ${buildTrainingDataAttendanceHtml(teamName)}
                 </div>
             </div>
         </section>
@@ -826,6 +1190,14 @@ function bindTrainingSessionEvents() {
                     toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionDataOpen');
                     return;
                 }
+                if (panel && action === 'toggle-ovelse') {
+                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionExerciseOpen');
+                    return;
+                }
+                if (panel && action === 'toggle-treningsoppmote') {
+                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionSeasonAttendanceOpen');
+                    return;
+                }
             }
         }
 
@@ -873,6 +1245,18 @@ function bindTrainingSessionEvents() {
             return;
         }
 
+        if (action === 'toggle-ovelse') {
+            const panel = actionEl.closest('.match-collapsible-panel');
+            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionExerciseOpen');
+            return;
+        }
+
+        if (action === 'toggle-treningsoppmote') {
+            const panel = actionEl.closest('.match-collapsible-panel');
+            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionSeasonAttendanceOpen');
+            return;
+        }
+
         if (action === 'toggle-attendance-list') {
             const block = actionEl.closest('.training-data-rank-block');
             const list = block?.querySelector('.training-data-rank-list');
@@ -917,6 +1301,50 @@ function bindTrainingSessionEvents() {
 
             window.renderTrainingSession(eventId);
         }
+    });
+
+    container.addEventListener('input', (event) => {
+        const form = event.target.closest('[data-training-exercise-form]');
+        if (!form || !container.contains(form)) return;
+        if (event.target.matches('[data-exercise-library]')) return;
+
+        const eventId = window._activeTrainingSessionId;
+        const trainingEvent = getTrainingEvent(eventId);
+        if (!eventId) return;
+
+        setTrainingSessionExerciseDraft(eventId, readTrainingExerciseFormValues(form, trainingEvent));
+    });
+
+    container.addEventListener('change', (event) => {
+        const form = event.target.closest('[data-training-exercise-form]');
+        if (!form || !container.contains(form)) return;
+
+        const eventId = window._activeTrainingSessionId;
+        const trainingEvent = getTrainingEvent(eventId);
+        if (!eventId) return;
+
+        if (event.target.matches('[data-exercise-library]')) {
+            loadTrainingExerciseFromLibrary(form, event.target.value);
+            return;
+        }
+
+        if (event.target.matches('[data-exercise-category]')) {
+            const previousLibraryId = window._trainingSessionExerciseDraft?.libraryId
+                || form.querySelector('[data-exercise-library]')?.value
+                || '';
+            const values = readTrainingExerciseFormValues(form, trainingEvent);
+            values.libraryId = previousLibraryId;
+            setTrainingSessionExerciseDraft(eventId, values);
+            refreshTrainingExerciseLibraryOptions(form);
+        }
+    });
+
+    container.addEventListener('submit', (event) => {
+        const form = event.target.closest('[data-training-exercise-form]');
+        if (!form || !container.contains(form)) return;
+
+        event.preventDefault();
+        saveTrainingSessionExercise();
     });
 
     container.addEventListener('keydown', (event) => {
@@ -1156,6 +1584,8 @@ window.renderTrainingSession = function(eventId) {
 
             ${groupsPanelHtml}
             ${isTraining ? buildTrainingDataPanelHtml(trainingEvent) : ''}
+            ${isTraining ? buildTrainingExercisePanelHtml(trainingEvent) : ''}
+            ${isTraining ? buildTrainingAttendanceSeasonPanelHtml(trainingEvent) : ''}
         </div>
     `;
 
