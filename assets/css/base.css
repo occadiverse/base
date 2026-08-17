@@ -9,6 +9,9 @@
             --bsk-blue-dark: #0b2b4c;
             --bsk-yellow: #f5c542;
             --bsk-yellow-dark: #d6a820;
+            --bsk-green: #4ade80;
+            --bsk-green-light: #86efac;
+            --bsk-green-rgb: 74, 222, 128;
         }
         html {
             background: var(--portal-bg);
@@ -3206,7 +3209,7 @@
             min-width: 0;
         }
         .training-session-exercise-save-state.is-success {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .training-session-exercise-save-state.is-error {
             color: #fca5a5;
@@ -3310,7 +3313,7 @@
         }
         .training-data-stat.is-up strong,
         .training-data-split-lists strong.is-up {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .training-data-stat.is-down strong,
         .training-data-split-lists strong.is-down {
@@ -3558,7 +3561,7 @@
             background: rgba(16, 185, 129, 0.16);
             border: 1px solid rgba(16, 185, 129, 0.35);
             border-radius: 999px;
-            color: #bbf7d0;
+            color: var(--bsk-green-light);
             display: inline-flex;
             flex: 0 0 auto;
             font-size: 0.62rem;
@@ -3787,7 +3790,7 @@
         }
         .portal-attendance-feedback {
             background: #ffffff;
-            border: 1px solid #bbf7d0;
+            border: 1px solid var(--bsk-green-light);
             border-radius: 0.75rem;
             bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
@@ -3851,7 +3854,7 @@
             width: 100%;
         }
         .attendance-modal-checkbox {
-            accent-color: #86efac;
+            accent-color: var(--bsk-green);
             flex: 0 0 auto;
             height: 1.15rem;
             margin: 0;
@@ -3995,9 +3998,9 @@
             white-space: nowrap;
         }
         .match-detail-result-chip.is-win {
-            background: rgba(134, 239, 172, 0.16);
-            border: 1px solid rgba(134, 239, 172, 0.34);
-            color: #bbf7d0;
+            background: rgba(var(--bsk-green-rgb), 0.16);
+            border: 1px solid rgba(var(--bsk-green-rgb), 0.34);
+            color: var(--bsk-green-light);
         }
         .match-detail-result-chip.is-draw {
             background: rgba(245, 197, 66, 0.16);
@@ -4369,7 +4372,7 @@
             box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
         }
         .match-fixture-row.is-win {
-            border-left: 3px solid #86efac;
+            border-left: 3px solid var(--bsk-green);
         }
         .match-fixture-row.is-draw {
             border-left: 3px solid #f5c542;
@@ -4480,7 +4483,7 @@
             text-transform: uppercase;
         }
         .match-fixture-row.is-win .match-fixture-side-value {
-            color: #bbf7d0;
+            color: var(--bsk-green-light);
         }
         .match-fixture-row.is-draw .match-fixture-side-value {
             color: #fde68a;
@@ -4782,9 +4785,6 @@
             font-weight: 950;
             line-height: 1.1;
         }
-        .roster-board-top-right > .bsk-btn-primary {
-            flex: 0 0 auto;
-        }
         .roster-empty > .bsk-btn-primary {
             margin-top: 1rem;
         }
@@ -4892,7 +4892,7 @@
         }
         .roster-group-heading {
             align-items: center;
-            color: #123f73;
+            color: rgba(255, 255, 255, 0.74);
             display: flex;
             font-size: 0.72rem;
             font-weight: 900;
@@ -4901,17 +4901,17 @@
             text-transform: uppercase;
         }
         .roster-group-heading::after {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.55), rgba(18, 63, 115, 0.08));
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
             content: "";
             flex: 1 1 auto;
             height: 1px;
         }
         .roster-group-count {
             align-items: center;
-            background: rgba(245, 197, 66, 0.16);
-            border: 1px solid rgba(245, 197, 66, 0.34);
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.28);
             border-radius: 999px;
-            color: #0b2b4c;
+            color: #f5c542;
             display: inline-flex;
             font-size: 0.62rem;
             font-weight: 900;
@@ -4944,7 +4944,7 @@
             transform: translateY(-1px);
         }
         .roster-player-row.is-active-player {
-            border-left-color: #86efac;
+            border-left-color: var(--bsk-green);
         }
         .roster-player-row.is-recruit-player {
             border-left-color: #f5c542;
@@ -5049,9 +5049,9 @@
             white-space: nowrap;
         }
         .roster-badge-active {
-            background: rgba(134, 239, 172, 0.16);
-            border: 1px solid rgba(134, 239, 172, 0.34);
-            color: #bbf7d0;
+            background: rgba(var(--bsk-green-rgb), 0.16);
+            border: 1px solid rgba(var(--bsk-green-rgb), 0.34);
+            color: var(--bsk-green-light);
         }
         .roster-badge-recruit {
             background: rgba(245, 197, 66, 0.16);
@@ -5237,7 +5237,7 @@
                 box-shadow: 0 12px 26px rgba(2, 6, 23, 0.18);
             }
             .roster-player-row.is-active-player {
-                border-left-color: #86efac;
+                border-left-color: var(--bsk-green);
             }
             .roster-player-row.is-recruit-player {
                 border-left-color: #f5c542;
@@ -5287,9 +5287,9 @@
                 color: rgba(255, 255, 255, 0.7);
             }
             .roster-badge-active {
-                background: rgba(134, 239, 172, 0.16);
-                border-color: rgba(134, 239, 172, 0.34);
-                color: #bbf7d0;
+                background: rgba(var(--bsk-green-rgb), 0.16);
+                border-color: rgba(var(--bsk-green-rgb), 0.34);
+                color: var(--bsk-green-light);
             }
             .roster-badge-recruit {
                 background: rgba(245, 197, 66, 0.16);
@@ -5383,12 +5383,29 @@
             justify-content: center;
             padding: 0.85rem 1rem;
         }
+        .roster-toolbar-filters {
+            align-items: center;
+            display: flex;
+            flex: 1 1 auto;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+        .roster-board-toolbar .roster-add-player-btn.match-filter-btn {
+            flex: 0 0 auto;
+            min-width: 5.5rem;
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+            width: auto;
+        }
         .roster-board-toolbar .roster-status-filter {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(245, 197, 66, 0.2);
             box-shadow: none;
+            flex: 1 1 auto;
             margin-left: 0;
             margin-right: 0;
+            min-width: 0;
+            width: auto;
         }
         .roster-board-toolbar .match-list-lag-filter,
         .roster-board-toolbar .roster-search-wrap {
@@ -5471,10 +5488,13 @@
             .roster-board-toolbar {
                 justify-content: flex-start;
             }
+            .roster-toolbar-filters {
+                flex: 0 1 auto;
+            }
             .roster-board-toolbar .roster-status-filter {
                 align-items: center;
                 display: flex;
-                flex: 0 0 auto;
+                flex: 0 1 auto;
                 overflow-x: auto;
                 padding: 0.32rem;
                 width: max-content;
@@ -5483,7 +5503,7 @@
                 grid-column: auto;
             }
             .roster-board-toolbar .roster-search-wrap {
-                flex: 1 1 16rem;
+                flex: 1 1 auto;
                 margin-left: auto;
             }
             .roster-board-stats {
@@ -5499,9 +5519,7 @@
                 flex-direction: row;
             }
             .roster-board-top-right {
-                justify-content: flex-end;
-                margin-left: auto;
-                width: auto;
+                display: none;
             }
             .roster-topline-legend {
                 display: none;
@@ -5510,10 +5528,10 @@
                 display: grid;
                 grid-template-columns: minmax(0, 1fr);
             }
-            .roster-board-toolbar .roster-status-filter,
+            .roster-toolbar-filters,
             .roster-board-toolbar .match-list-lag-filter {
                 grid-column: 1 / -1;
-                justify-self: center;
+                width: 100%;
             }
             .roster-board-toolbar .roster-search-wrap {
                 flex: 1 1 auto;
@@ -6404,7 +6422,7 @@
         .stats-board-card .stats-analysis-chip.is-win i,
         .stats-board-card .stats-analysis-chip.is-win .is-win,
         .stats-board-card .stats-analysis-chip.is-win .stats-analysis-chip-value {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .stats-board-card .stats-analysis-chip.is-draw i,
         .stats-board-card .stats-analysis-chip.is-draw .stats-analysis-chip-value {
@@ -6515,7 +6533,7 @@
         .stats-board-card .team-report-record .is-win,
         .stats-board-card .team-report-goals .is-win,
         .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-above {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .stats-board-card .stats-inline-metric-value.is-draw,
         .stats-board-card .stats-inline-metric-value.is-accent,
@@ -6531,7 +6549,7 @@
             color: #fca5a5;
         }
         .stats-board-card .stats-mini-value.is-win {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .stats-board-card .stats-mini-value.is-draw {
             color: #f5c542;
@@ -6646,8 +6664,8 @@
             color: rgba(255, 255, 255, 0.5);
         }
         .stats-board-card .stats-form-jersey.is-high {
-            border-color: rgba(134, 239, 172, 0.78);
-            color: #86efac;
+            border-color: rgba(var(--bsk-green-rgb), 0.78);
+            color: var(--bsk-green);
         }
         .stats-board-card .stats-form-jersey.is-mid {
             border-color: rgba(245, 197, 66, 0.78);
@@ -7320,7 +7338,7 @@
         }
         .team-report-body .stats-form-row.is-light .dashboard-series-form-pill.is-win {
             background: #dcfce7;
-            border-color: #86efac;
+            border-color: var(--bsk-green);
             color: #14532d;
         }
         .team-report-body .stats-form-row.is-light .dashboard-series-form-pill.is-draw {
@@ -7474,7 +7492,7 @@
             height: 100%;
         }
         .team-report-goal-bars .is-for {
-            background: linear-gradient(90deg, #16a34a 0%, #86efac 100%);
+            background: linear-gradient(90deg, #16a34a 0%, var(--bsk-green) 100%);
         }
         .team-report-goal-bars .is-against {
             background: linear-gradient(90deg, #fca5a5 0%, #dc2626 100%);
@@ -7640,7 +7658,7 @@
         }
         .team-report-detail-chip.is-win i,
         .team-report-detail-chip.is-win strong {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .team-report-detail-chip.is-draw i,
         .team-report-detail-chip.is-draw strong {
@@ -8951,7 +8969,7 @@
         }
         .team-report-detail-menu .team-report-detail-chip.is-win .fa-solid,
         .team-report-detail-menu .team-report-detail-chip.is-win .team-report-detail-value {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .team-report-detail-menu .team-report-detail-chip.is-draw .fa-solid,
         .team-report-detail-menu .team-report-detail-chip.is-draw .team-report-detail-value {
@@ -9013,8 +9031,8 @@
             min-width: 2.45rem;
         }
         .stats-player-rank.is-high {
-            border-color: rgba(134, 239, 172, 0.7);
-            color: #86efac;
+            border-color: rgba(var(--bsk-green-rgb), 0.7);
+            color: var(--bsk-green);
         }
         .stats-player-rank.is-mid {
             border-color: rgba(251, 191, 36, 0.7);
@@ -9075,7 +9093,7 @@
             text-transform: uppercase;
         }
         .stats-form-jersey.is-high {
-            border-color: rgba(134, 239, 172, 0.85);
+            border-color: rgba(var(--bsk-green-rgb), 0.85);
             color: #047857;
         }
         .stats-form-jersey.is-mid {
@@ -10877,7 +10895,7 @@
             transform: translateY(-50%);
         }
         .match-game-plan-bench-heading .match-game-plan-bench-save-btn.is-saved {
-            background: linear-gradient(135deg, #bbf7d0 0%, #4ade80 100%);
+            background: linear-gradient(135deg, var(--bsk-green-light) 0%, var(--bsk-green) 100%);
             border-color: rgba(34, 197, 94, 0.72);
             color: #14532d;
             opacity: 1;
@@ -10886,7 +10904,7 @@
             color: #14532d;
         }
         .match-game-plan-bench-heading .match-game-plan-bench-save-btn.is-saved:hover {
-            background: linear-gradient(135deg, #bbf7d0 0%, #4ade80 100%);
+            background: linear-gradient(135deg, var(--bsk-green-light) 0%, var(--bsk-green) 100%);
             border-color: rgba(34, 197, 94, 0.72);
             transform: translateY(-50%);
         }
@@ -11578,10 +11596,10 @@
             text-transform: uppercase;
         }
         .match-opponent-info-record-item.is-win {
-            border-color: rgba(134, 239, 172, 0.28);
+            border-color: rgba(var(--bsk-green-rgb), 0.28);
         }
         .match-opponent-info-record-item.is-win strong {
-            color: #86efac;
+            color: var(--bsk-green);
         }
         .match-opponent-info-record-item.is-draw {
             border-color: rgba(245, 197, 66, 0.28);

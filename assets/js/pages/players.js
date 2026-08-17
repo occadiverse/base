@@ -49,7 +49,7 @@ window.renderAdminTeamsList = function() {
     });
 };
 
-window.rosterStatusFilter = 'alle';
+window.rosterStatusFilter = 'Aktiv';
 
 window.setPlayerStatusFilter = function(status) {
     window.rosterStatusFilter = status;
@@ -64,7 +64,6 @@ window.handlePlayerSearchChange = function() {
 };
 
 function getRosterStatusFilterLabel(status = window.rosterStatusFilter) {
-    if (status === 'tilgjengelig') return 'Tilgjengelige';
     if (status === 'Aktiv') return 'Aktive';
     if (status === 'Rekrutt') return 'Rekrutter';
     if (status === 'skadet') return 'Skadede';
@@ -165,9 +164,7 @@ function getRosterFilteredPlayers() {
             : { isInjured: false };
 
         if (window.rosterStatusFilter === 'skadet' && !injuryInfo.isInjured) return false;
-        if (window.rosterStatusFilter === 'tilgjengelig' && (p.status === 'Passiv' || injuryInfo.isInjured)) return false;
-        if (window.rosterStatusFilter === 'Aktiv' && p.status === 'Passiv') return false;
-        if (!['alle', 'skadet', 'tilgjengelig', 'Aktiv'].includes(window.rosterStatusFilter) && p.status !== window.rosterStatusFilter) return false;
+        if (window.rosterStatusFilter !== 'alle' && window.rosterStatusFilter !== 'skadet' && p.status !== window.rosterStatusFilter) return false;
 
         if (!searchTerm) return true;
 

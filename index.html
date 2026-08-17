@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260817-ovelse-v5">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260818-green-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -236,7 +236,7 @@
                     <div class="match-detail-card-top roster-board-top relative z-10">
                         <div class="match-detail-meta match-list-column-title">
                             <i class="fa-solid fa-users"></i>
-                            <span id="rosterBoardTitle">Alle spillere</span>
+                            <span id="rosterBoardTitle">Aktive</span>
                         </div>
                         <div class="roster-board-top-right">
                             <div class="roster-bottomline-legend roster-topline-legend" aria-label="Forklaring av spillerstatus">
@@ -245,20 +245,25 @@
                                 <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
                                 <span><i class="fa-solid fa-circle roster-legend-injury"></i> Skade</span>
                             </div>
-                            <button type="button" onclick="window.openPlayerModal()" class="bsk-btn bsk-btn-primary is-collapsible inline-flex" title="Ny spiller" aria-label="Ny spiller">
-                                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">Ny spiller</span>
-                            </button>
                         </div>
                     </div>
 
                     <div class="roster-board-toolbar relative z-10">
-                        <div class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
-                            <button type="button" onclick="setPlayerStatusFilter('alle')" id="roster-filter-alle" class="bsk-btn bsk-btn-chip roster-status-btn is-active">Alle</button>
-                            <button type="button" onclick="setPlayerStatusFilter('tilgjengelig')" id="roster-filter-tilgjengelig" class="bsk-btn bsk-btn-chip roster-status-btn">Tilgjengelig</button>
-                            <button type="button" onclick="setPlayerStatusFilter('Aktiv')" id="roster-filter-aktiv" class="bsk-btn bsk-btn-chip roster-status-btn">Aktiv</button>
-                            <button type="button" onclick="setPlayerStatusFilter('Rekrutt')" id="roster-filter-rekrutt" class="bsk-btn bsk-btn-chip roster-status-btn">Rekrutt</button>
-                            <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="bsk-btn bsk-btn-chip roster-status-btn">Skadet</button>
+                        <div class="roster-toolbar-filters">
+                            <div class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
+                                <button type="button" onclick="setPlayerStatusFilter('Aktiv')" id="roster-filter-aktiv" class="bsk-btn bsk-btn-chip roster-status-btn is-active">Aktiv</button>
+                                <button type="button" onclick="setPlayerStatusFilter('Rekrutt')" id="roster-filter-rekrutt" class="bsk-btn bsk-btn-chip roster-status-btn">Rekrutt</button>
+                                <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="bsk-btn bsk-btn-chip roster-status-btn">Skadet</button>
+                                <button type="button" onclick="setPlayerStatusFilter('alle')" id="roster-filter-alle" class="bsk-btn bsk-btn-chip roster-status-btn">Alle</button>
+                            </div>
+                            <button type="button"
+                                    onclick="window.openPlayerModal()"
+                                    class="bsk-btn bsk-btn-chip match-filter-btn roster-add-player-btn"
+                                    title="Legg til ny spiller"
+                                    aria-label="Legg til ny spiller">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                <span>Legg til</span>
+                            </button>
                         </div>
 
                         <div class="roster-search-wrap">
@@ -1125,7 +1130,7 @@
     <script src="assets/js/domain/samspill.js?v=20260814-label-chips-v4"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
-    <script src="assets/js/pages/players.js?v=20260703-player-profile-v1"></script>
+    <script src="assets/js/pages/players.js?v=20260817-roster-filter-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260814-samspill-chips-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260807-attendance-modal-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260705-samspill-v1"></script>
