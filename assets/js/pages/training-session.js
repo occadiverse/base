@@ -934,6 +934,69 @@ function refreshTrainingExerciseLibraryOptions(form) {
     librarySelect.value = visibleId;
 }
 
+function getSavedTrainingExerciseSnapshot(trainingEvent) {
+    const saved = normalizeExerciseLibraryItem(
+        trainingEvent?.exercise,
+        trainingEvent?.id ? `legacy-${trainingEvent.id}` : ''
+    );
+    return {
+        libraryId: saved?.id || '',
+        category: saved?.category || '',
+        title: (saved?.title || '').trim(),
+        description: (saved?.description || '').trim()
+    };
+}
+
+function isTrainingExerciseFormDirty(form, trainingEvent) {
+    const current = readTrainingExerciseFormValues(form, trainingEvent);
+    const title = current.title.trim();
+    const description = current.description.trim();
+    if (!title || !description) return false;
+
+    const saved = getSavedTrainingExerciseSnapshot(trainingEvent);
+    return current.category !== saved.category
+        || title !== saved.title
+        || description !== saved.description
+        || (current.libraryId || '') !== (saved.libraryId || '');
+}
+
+function syncTrainingExerciseSaveButton(form) {
+    const saveBtn = form?.querySelector('[data-training-action="save-exercise"]');
+    if (!saveBtn) return;
+
+    const trainingEvent = getTrainingEvent(window._activeTrainingSessionId);
+    saveBtn.classList.toggle('is-active', isTrainingExerciseFormDirty(form, trainingEvent));
+}
+
+function applyExerciseCategoryChange(form) {
+    const eventId = window._activeTrainingSessionId;
+    const trainingEvent = getTrainingEvent(eventId);
+    const categoryId = form?.querySelector('[data-exercise-category]')?.value || 'annet';
+    const previousLibraryId = window._trainingSessionExerciseDraft?.libraryId
+        || form?.querySelector('[data-exercise-library]')?.value
+        || '';
+    const previousItem = getTrainingExerciseLibrary().find(item => item.id === previousLibraryId);
+    const belongsInCategory = previousItem?.category === categoryId;
+
+    if (!belongsInCategory) {
+        const titleInput = form.querySelector('[data-exercise-title]');
+        const descriptionInput = form.querySelector('[data-exercise-description]');
+        if (titleInput) titleInput.value = '';
+        if (descriptionInput) descriptionInput.value = '';
+        setTrainingSessionExerciseDraft(eventId, {
+            libraryId: '',
+            category: categoryId,
+            title: '',
+            description: ''
+        });
+    } else {
+        setTrainingSessionExerciseDraft(eventId, readTrainingExerciseFormValues(form, trainingEvent));
+    }
+
+    refreshTrainingExerciseLibraryOptions(form);
+    syncTrainingExerciseSaveButton(form);
+}
+
 function loadTrainingExerciseFromLibrary(form, libraryId) {
     const eventId = window._activeTrainingSessionId;
     const trainingEvent = getTrainingEvent(eventId);
@@ -952,6 +1015,7 @@ function loadTrainingExerciseFromLibrary(form, libraryId) {
             title: '',
             description: ''
         });
+        syncTrainingExerciseSaveButton(form);
         return;
     }
 
@@ -965,6 +1029,7 @@ function loadTrainingExerciseFromLibrary(form, libraryId) {
     refreshTrainingExerciseLibraryOptions(form);
     const librarySelect = form.querySelector('[data-exercise-library]');
     if (librarySelect) librarySelect.value = item.id;
+    syncTrainingExerciseSaveButton(form);
 }
 
 async function upsertTrainingExerciseInLibrary(item) {
@@ -1042,11 +1107,13 @@ async function saveTrainingSessionExercise() {
             librarySelect.value = libraryId;
         }
         setTrainingSessionExerciseFeedback('Øvelse lagret. Du kan hente den opp igjen på senere økter.', 'success', 5000);
+        syncTrainingExerciseSaveButton(form);
     } catch (error) {
         console.error(error);
         setTrainingSessionExerciseFeedback(error.message || 'Kunne ikke lagre øvelsen.', 'error', 6000);
     } finally {
         if (saveBtn) saveBtn.disabled = false;
+        syncTrainingExerciseSaveButton(form);
     }
 }
 
@@ -1110,7 +1177,7 @@ function buildTrainingExercisePanelHtml(trainingEvent) {
                     </div>
                     <div class="training-session-exercise-footer">
                         <p class="match-inline-status training-session-exercise-save-state" data-training-exercise-save-state aria-live="polite" hidden></p>
-                        <button type="submit" class="training-session-group-count-btn is-active" data-training-action="save-exercise" title="Lagre øvelse" aria-label="Lagre øvelse">
+                        <button type="submit" class="training-session-group-count-btn" data-training-action="save-exercise" title="Lagre øvelse" aria-label="Lagre øvelse">
                             <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
                             <span>Lagre</span>
                         </button>
@@ -1313,6 +1380,7 @@ function bindTrainingSessionEvents() {
         if (!eventId) return;
 
         setTrainingSessionExerciseDraft(eventId, readTrainingExerciseFormValues(form, trainingEvent));
+        syncTrainingExerciseSaveButton(form);
     });
 
     container.addEventListener('change', (event) => {
@@ -1329,13 +1397,7 @@ function bindTrainingSessionEvents() {
         }
 
         if (event.target.matches('[data-exercise-category]')) {
-            const previousLibraryId = window._trainingSessionExerciseDraft?.libraryId
-                || form.querySelector('[data-exercise-library]')?.value
-                || '';
-            const values = readTrainingExerciseFormValues(form, trainingEvent);
-            values.libraryId = previousLibraryId;
-            setTrainingSessionExerciseDraft(eventId, values);
-            refreshTrainingExerciseLibraryOptions(form);
+            applyExerciseCategoryChange(form);
         }
     });
 
@@ -1596,4 +1658,6 @@ window.renderTrainingSession = function(eventId) {
             : 'Oppmøte lagret';
         setTrainingSessionFeedback(message, 'success', 5000);
     }
+
+    syncTrainingExerciseSaveButton(container.querySelector('[data-training-exercise-form]'));
 };

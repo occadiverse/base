@@ -3125,7 +3125,7 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 5px 12px rgba(2, 6, 23, 0.22);
         }
-        .training-session-exercise-panel .training-session-group-count-btn.is-active i {
+        .training-session-exercise-panel .training-session-group-count-btn i {
             color: inherit;
         }
         .training-session-exercise-panel .training-session-group-count-btn:disabled {
