@@ -81,11 +81,16 @@ function bindStatisticsEvents() {
             if (column && typeof window.sortStatsTable === 'function') window.sortStatsTable(column);
             return;
         }
-        if (action === 'scroll-sort') {
-            const direction = Number(actionEl.dataset.direction);
-            if (!Number.isNaN(direction) && typeof window.scrollStatsSortMenu === 'function') {
-                window.scrollStatsSortMenu(direction);
-            }
+        if (action === 'toggle-player-list') {
+            const block = actionEl.closest('.training-data-rank-block');
+            const rankList = block?.querySelector('.training-data-rank-list');
+            if (!rankList) return;
+            const expanded = !rankList.classList.contains('is-expanded');
+            rankList.classList.toggle('is-expanded', expanded);
+            window._statsPlayerListExpanded = expanded;
+            actionEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            const total = rankList.querySelectorAll('li').length;
+            actionEl.textContent = expanded ? 'Vis færre' : `Vis alle (${total})`;
             return;
         }
         if (action === 'open-form-info') {
@@ -250,7 +255,8 @@ window.checkIndividualChemistry = function() {
                 oppmote: true,
                 oppmoteutvikling: false,
                 spillerutvikling: false,
-                oppfolging: false
+                oppfolging: false,
+                spillerliste: true
             };
             window.statsKampPanelState = window.statsKampPanelState || {};
             Object.keys(defaults).forEach(key => {
@@ -2155,47 +2161,59 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
             });
 
+            const sortOption = window.getStatsSortOption(currentStatSortCol);
+            const sortLabel = sortOption?.label || 'Stat';
+
             if (!statsData.length) {
-                list.innerHTML = `<div class="stats-player-empty">${escapeStatsHtml(window.getStatsSortEmptyMessage(currentStatSortCol, searchTerm))}</div>`;
+                list.innerHTML = `
+                    <div class="training-data-rank-block">
+                        <h5>${escapeStatisticsHtml(sortLabel)}</h5>
+                        <div class="training-data-empty">
+                            <p>${escapeStatsHtml(window.getStatsSortEmptyMessage(currentStatSortCol, searchTerm))}</p>
+                        </div>
+                    </div>
+                `;
                 return;
             }
 
-            list.innerHTML = statsData.map((stat, index) => {
-                const player = (window.activePlayers || []).find(p => p.navn === stat.navn);
-                const posStr = player && player.pos2 && player.pos2 !== '-'
-                    ? `${player.pos1 || 'Spiller'} / ${player.pos2}`
-                    : (stat.pos1 || player?.pos1 || 'Spiller');
-                const formTone = typeof window.getFormScoreTone === 'function' ? window.getFormScoreTone(stat.kjemi, stat.spillerLag) : 'none';
-                const formClass = formTone === 'green' ? 'is-high' : formTone === 'amber' ? 'is-mid' : formTone === 'red' ? 'is-low' : 'is-neutral';
-                const sortOption = window.getStatsSortOption(currentStatSortCol);
+            const visibleLimit = 10;
+            const isExpanded = window._statsPlayerListExpanded === true;
+            const hasOverflow = statsData.length > visibleLimit;
+
+            const rowsHtml = statsData.map((stat, index) => {
                 const sortValue = window.formatStatsSortValue(stat, currentStatSortCol);
-                const sortIcon = window.renderStatsSortIconHtml(sortOption, 'stats-kb-icon');
-                const bonusClass = currentStatSortCol === 'kampbonus'
-                    ? (stat.kampbonus > 15 ? 'is-high' : stat.kampbonus >= 10 ? 'is-mid' : stat.kampbonus > 0 ? 'is-low' : 'is-neutral')
-                    : 'is-metric';
                 const safeNameHtml = escapeStatisticsHtml(stat.navn);
-                const safePosHtml = escapeStatisticsHtml(posStr);
                 const playerIdAttr = escapeStatisticsHtml(getStatsPlayerIdForName(stat.navn));
-                const kamperText = `${stat.kamper || 0} kamper`;
-                const sortLabel = sortOption?.label || 'Stat';
 
                 return `
-                    <button type="button" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" class="roster-player-row stats-player-row" aria-label="${safeNameHtml}, plass ${index + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
-                        <div class="stats-player-rank ${formClass}" aria-hidden="true">${index + 1}</div>
-                        <div class="roster-player-main">
-                            <div class="roster-player-name">${safeNameHtml}${formTone === 'green' ? ' <span class="stats-player-star">★</span>' : ''}</div>
-                            <div class="roster-player-meta">
-                                <span class="stats-meta-pos">${safePosHtml}</span>
-                                <span class="roster-player-meta-sep">·</span>
-                                <span>${escapeStatisticsHtml(kamperText)}</span>
-                            </div>
-                        </div>
-                        <div class="roster-player-side">
-                            <span class="stats-kb-badge ${bonusClass}" title="${escapeStatisticsHtml(sortLabel)}">${sortIcon}<span>${escapeStatisticsHtml(sortValue)}</span></span>
-                        </div>
-                    </button>
+                    <li class="${index >= visibleLimit ? 'is-overflow' : ''}">
+                        <button type="button" class="training-data-rank-row" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" aria-label="${safeNameHtml}, plass ${index + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
+                            <span class="training-data-rank-index">${index + 1}.</span>
+                            <span class="training-data-rank-name">${safeNameHtml}</span>
+                            <strong>${escapeStatisticsHtml(sortValue)}</strong>
+                        </button>
+                    </li>
                 `;
             }).join('');
+
+            list.innerHTML = `
+                <div class="training-data-rank-block">
+                    <h5>${escapeStatisticsHtml(sortLabel)}</h5>
+                    <ul class="training-data-rank-list ${isExpanded ? 'is-expanded' : ''}">
+                        ${rowsHtml}
+                    </ul>
+                    ${hasOverflow ? `
+                        <button
+                            type="button"
+                            class="training-data-rank-toggle"
+                            data-stat-action="toggle-player-list"
+                            aria-expanded="${isExpanded ? 'true' : 'false'}"
+                        >
+                            ${isExpanded ? 'Vis færre' : `Vis alle (${statsData.length})`}
+                        </button>
+                    ` : ''}
+                </div>
+            `;
         };
         
         window.switchStatTab = function(tabId) {
@@ -2343,52 +2361,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             document.querySelectorAll('.stats-sort-btn[data-sort-col]').forEach(btn => {
                 btn.classList.toggle('is-active', btn.dataset.sortCol === currentStatSortCol);
             });
-            window.centerStatsSortButton('smooth');
-        };
-
-        window.syncStatsSortScroller = function() {
-            const scroller = document.getElementById('stats-player-sort-scroller');
-            const wrap = scroller?.closest('.stats-sort-scroller-wrap');
-            if (!scroller || !wrap) return;
-
-            const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-            wrap.classList.toggle('can-scroll-left', scroller.scrollLeft > 6);
-            wrap.classList.toggle('can-scroll-right', maxScroll > 6 && scroller.scrollLeft < maxScroll - 6);
-        };
-
-        window.centerStatsSortButton = function(behavior = 'smooth') {
-            const scroller = document.getElementById('stats-player-sort-scroller');
-            const active = scroller?.querySelector('.stats-sort-btn.is-active');
-            if (!scroller || !active) return;
-
-            requestAnimationFrame(() => {
-                const target = active.offsetLeft - (scroller.clientWidth / 2) + (active.offsetWidth / 2);
-                scroller.scrollTo({ left: Math.max(0, target), behavior });
-                if (behavior === 'auto') {
-                    window.syncStatsSortScroller();
-                } else {
-                    setTimeout(window.syncStatsSortScroller, 280);
-                }
-            });
-        };
-
-        window.bindStatsSortScroller = function() {
-            const scroller = document.getElementById('stats-player-sort-scroller');
-            if (!scroller) return;
-
-            scroller.addEventListener('scroll', window.syncStatsSortScroller, { passive: true });
-            window.centerStatsSortButton('auto');
-        };
-
-        window.scrollStatsSortMenu = function(direction) {
-            const scroller = document.getElementById('stats-player-sort-scroller');
-            if (!scroller) return;
-
-            scroller.scrollBy({
-                left: direction * Math.max(160, Math.round(scroller.clientWidth * 0.72)),
-                behavior: 'smooth'
-            });
-            setTimeout(window.syncStatsSortScroller, 280);
         };
 
         window.openStatsFormInfoModal = function() {
@@ -2407,39 +2379,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.renderStatsTabHero('spillere');
             const searchValue = window.getStatsPlayerSearchTerm();
 
-            container.innerHTML = `
-                <div class="stats-spillere-layout">
-                    <div class="stats-player-search-row">
-                        <div class="roster-search-wrap">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="search" id="statsPlayerSearchInput" oninput="handleStatsPlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon…" class="roster-search-input" aria-label="Søk spillere i statistikk">
+            container.innerHTML = window.renderStatsCollapsiblePanelHtml({
+                id: 'spillerliste',
+                title: 'Spillerstats',
+                showLabel: 'Vis spillerstats',
+                hideLabel: 'Skjul spillerstats',
+                content: `
+                    <div class="stats-spillere-layout">
+                        <div class="stats-player-search-row">
+                            <div class="roster-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" id="statsPlayerSearchInput" oninput="handleStatsPlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon..." class="roster-search-input" aria-label="Søk spillere">
+                            </div>
                         </div>
-                    </div>
-                    <div id="stats-player-list" class="roster-list stats-player-list"></div>
-                    <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
-                        <div class="stats-player-toolbar">
-                            <div class="stats-sort-scroller-wrap">
-                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-left" data-stat-action="scroll-sort" data-direction="-1" aria-label="Scroll sorteringsmeny til venstre" data-no-swipe>
-                                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                                </button>
-                                <div class="stats-sort-scroller" id="stats-player-sort-scroller" data-no-swipe>
-                                    <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
-                                        ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
+                        <div id="stats-player-list" class="stats-player-list"></div>
+                        <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
+                            <div class="stats-player-toolbar">
+                                <div class="stats-sort-scroller-wrap">
+                                    <div class="stats-sort-scroller" id="stats-player-sort-scroller" data-no-swipe>
+                                        <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Sorter spillere">
+                                            ${window.renderStatsSortButtonsHtml(currentStatSortCol)}
+                                        </div>
                                     </div>
                                 </div>
-                                <button type="button" class="team-report-detail-scroll-btn stats-sort-scroll-btn stats-sort-scroll-btn-right" data-stat-action="scroll-sort" data-direction="1" aria-label="Scroll sorteringsmeny til høyre" data-no-swipe>
-                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `
+            });
 
             const searchInput = document.getElementById('statsPlayerSearchInput');
             if (searchInput && searchValue) searchInput.value = searchValue;
 
-            window.bindStatsSortScroller();
             window.renderPlayerStatsList();
         };
 
