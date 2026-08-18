@@ -37,6 +37,12 @@ function bindMatchListEvents() {
                 return;
             }
 
+            if (action === 'toggle-past-year') {
+                event.stopPropagation();
+                togglePastMatchYearGroup(actionEl);
+                return;
+            }
+
             if (!matchId) return;
 
             if (action === 'open-details') {
@@ -237,6 +243,10 @@ function getMatchFixturePresentation(match) {
         ? dateValue.toLocaleDateString('no-NO', { month: 'long', year: 'numeric' })
         : 'Ukjent dato';
     const monthLabel = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
+    const monthNameKey = hasDate
+        ? dateValue.toLocaleDateString('no-NO', { month: 'long' })
+        : 'Ukjent dato';
+    const monthNameLabel = monthNameKey.charAt(0).toUpperCase() + monthNameKey.slice(1);
     const parsedScore = match.result ? parseScore(match.result) : null;
     const displayedResult = match.result || '-';
 
@@ -256,17 +266,20 @@ function getMatchFixturePresentation(match) {
         month,
         weekday,
         monthLabel,
+        monthNameLabel,
         meta: metaParts.join(' · '),
         displayedResult,
         resultTone
     };
 }
 
-function groupMatchesByMonth(matches) {
+function groupMatchesByMonth(matches, options = {}) {
+    const includeYear = options.includeYear !== false;
     const groups = [];
 
     matches.forEach(match => {
-        const { monthLabel } = getMatchFixturePresentation(match);
+        const presentation = getMatchFixturePresentation(match);
+        const monthLabel = includeYear ? presentation.monthLabel : presentation.monthNameLabel;
 
         if (!groups.length || groups[groups.length - 1].monthLabel !== monthLabel) {
             groups.push({ monthLabel, matches: [] });
@@ -276,6 +289,105 @@ function groupMatchesByMonth(matches) {
     });
 
     return groups;
+}
+
+function getMatchListYear(match) {
+    const dateValue = new Date(match?.date);
+    if (Number.isNaN(dateValue.getTime())) return null;
+    return dateValue.getFullYear();
+}
+
+function partitionPastMatchesForArchive(matches) {
+    const currentYear = new Date().getFullYear();
+    const currentYearMatches = [];
+    const olderByYear = new Map();
+
+    matches.forEach(match => {
+        const year = getMatchListYear(match);
+        if (year == null || year >= currentYear) {
+            currentYearMatches.push(match);
+            return;
+        }
+        if (!olderByYear.has(year)) olderByYear.set(year, []);
+        olderByYear.get(year).push(match);
+    });
+
+    const olderYears = [...olderByYear.keys()]
+        .sort((a, b) => b - a)
+        .map(year => ({ year, matches: olderByYear.get(year) }));
+
+    return { currentYearMatches, olderYears };
+}
+
+function isPastMatchYearOpen(year) {
+    return Boolean((window.openPastMatchYears || {})[String(year)]);
+}
+
+function togglePastMatchYearGroup(actionEl) {
+    const year = actionEl?.dataset.matchYear;
+    if (!year) return;
+
+    const groups = document.querySelectorAll(`.match-fixture-year-group[data-match-year="${CSS.escape(String(year))}"]`);
+    const nextOpen = actionEl.closest('.match-fixture-year-group')?.classList.contains('is-collapsed') ?? true;
+
+    window.openPastMatchYears = window.openPastMatchYears || {};
+    if (nextOpen) window.openPastMatchYears[year] = true;
+    else delete window.openPastMatchYears[year];
+
+    groups.forEach(group => {
+        group.classList.toggle('is-collapsed', !nextOpen);
+        const toggle = group.querySelector('[data-match-action="toggle-past-year"]');
+        if (!toggle) return;
+        toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        toggle.setAttribute(
+            'aria-label',
+            nextOpen
+                ? (toggle.dataset.hideLabel || `Skjul kamper fra ${year}`)
+                : (toggle.dataset.showLabel || `Vis kamper fra ${year}`)
+        );
+    });
+}
+
+function buildMatchFixtureGroupsHtml(matches, options = {}) {
+    const { isUpcoming = true, includeYearInMonthLabel = true } = options;
+    return groupMatchesByMonth(matches, { includeYear: includeYearInMonthLabel }).map(group => `
+        <section class="match-fixture-group">
+            <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
+            <div class="match-fixture-group-rows">
+                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { isUpcoming })).join('')}
+            </div>
+        </section>
+    `).join('');
+}
+
+function buildPastYearArchiveHtml(yearGroup) {
+    const year = yearGroup.year;
+    const isOpen = isPastMatchYearOpen(year);
+    const count = yearGroup.matches.length;
+    const showLabel = `Vis kamper fra ${year}`;
+    const hideLabel = `Skjul kamper fra ${year}`;
+
+    return `
+        <section class="match-fixture-year-group ${isOpen ? '' : 'is-collapsed'}" data-match-year="${year}">
+            <button
+                type="button"
+                class="match-fixture-year-toggle"
+                data-match-action="toggle-past-year"
+                data-match-year="${year}"
+                aria-expanded="${isOpen ? 'true' : 'false'}"
+                aria-label="${isOpen ? hideLabel : showLabel}"
+                data-show-label="${showLabel}"
+                data-hide-label="${hideLabel}"
+            >
+                <span class="match-fixture-year-label">${year}</span>
+                <span class="match-fixture-year-count">${count}</span>
+                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="match-fixture-year-content">
+                ${buildMatchFixtureGroupsHtml(yearGroup.matches, { isUpcoming: false, includeYearInMonthLabel: false })}
+            </div>
+        </section>
+    `;
 }
 
 function applyFilters() {
@@ -329,6 +441,7 @@ function applyFilters() {
     });
     renderMatchListIntoContainer(pastContainer, pastMatches, {
         isUpcoming: false,
+        archiveOlderYears: true,
         emptyTitle: 'Ingen tidligere kamper',
         emptyText: 'Resultater dukker opp her etter hvert som kampene er spilt.'
     });
@@ -336,6 +449,7 @@ function applyFilters() {
     const isUpcoming = currentTimeFilter === 'kommende';
     renderMatchListIntoContainer(listContainer, sortedMatches, {
         isUpcoming,
+        archiveOlderYears: !isUpcoming,
         showEmpty: false
     });
 
@@ -361,6 +475,7 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
     const {
         isUpcoming = true,
         showEmpty = true,
+        archiveOlderYears = false,
         emptyTitle = 'Ingen kamper funnet',
         emptyText = 'Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.'
     } = options;
@@ -372,16 +487,17 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
         return;
     }
 
-    const groups = groupMatchesByMonth(matches);
+    if (archiveOlderYears) {
+        const { currentYearMatches, olderYears } = partitionPastMatchesForArchive(matches);
+        const currentHtml = currentYearMatches.length
+            ? buildMatchFixtureGroupsHtml(currentYearMatches, { isUpcoming: false, includeYearInMonthLabel: true })
+            : '';
+        const archiveHtml = olderYears.map(yearGroup => buildPastYearArchiveHtml(yearGroup)).join('');
+        container.innerHTML = `${currentHtml}${archiveHtml}`;
+        return;
+    }
 
-    container.innerHTML = groups.map(group => `
-        <section class="match-fixture-group">
-            <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
-            <div class="match-fixture-group-rows">
-                ${group.matches.map(match => buildMatchFixtureRowHtml(match, { isUpcoming })).join('')}
-            </div>
-        </section>
-    `).join('');
+    container.innerHTML = buildMatchFixtureGroupsHtml(matches, { isUpcoming, includeYearInMonthLabel: true });
 }
 
 function normalizeOpponentName(name) {

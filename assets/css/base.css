@@ -4353,6 +4353,75 @@
             flex-direction: column;
             gap: 0.45rem;
         }
+        .match-fixture-year-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .match-fixture-year-toggle {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 900;
+            gap: 0.55rem;
+            letter-spacing: 0.08em;
+            padding: 0.12rem 0;
+            text-align: left;
+            text-transform: uppercase;
+            width: 100%;
+        }
+        .match-list-column .match-fixture-year-label,
+        .match-list-mobile-card .match-fixture-year-label {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .match-fixture-year-count {
+            align-items: center;
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 999px;
+            color: #f5c542;
+            display: inline-flex;
+            font-size: 0.62rem;
+            font-weight: 900;
+            justify-content: center;
+            letter-spacing: 0;
+            min-width: 1.45rem;
+            padding: 0.18rem 0.45rem;
+            text-transform: none;
+        }
+        .match-fixture-year-toggle i {
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.7rem;
+            transition: transform 160ms ease;
+        }
+        .match-fixture-year-toggle::after {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
+            content: "";
+            flex: 1 1 auto;
+            height: 1px;
+        }
+        .match-fixture-year-toggle:focus-visible {
+            border-radius: 0.55rem;
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35);
+            outline: none;
+        }
+        .match-fixture-year-group:not(.is-collapsed) .match-fixture-year-toggle i {
+            transform: rotate(180deg);
+        }
+        .match-fixture-year-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.15rem;
+        }
+        .match-fixture-year-group.is-collapsed .match-fixture-year-content {
+            display: none;
+        }
         .match-fixture-row {
             align-items: center;
             background: linear-gradient(90deg, #123f73 0%, #0f355f 58%, #0b2b4c 100%);

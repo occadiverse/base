@@ -151,11 +151,14 @@ window.getAttendancePresenceStats = function(record) {
     return { presentCount, squadSize, isRegistered };
 };
 
-window.formatAttendancePresenceLabel = function(record) {
+window.formatAttendancePresenceLabel = function(record, options = {}) {
     const { presentCount, squadSize, isRegistered } = window.getAttendancePresenceStats(record);
     if (!isRegistered) return '';
-    if (squadSize > 0) return `${presentCount}/${squadSize} møtt opp`;
-    return `${presentCount} møtt opp`;
+    const suffix = typeof options.suffix === 'string' && options.suffix.trim()
+        ? options.suffix.trim()
+        : 'møtt opp';
+    if (squadSize > 0) return `${presentCount}/${squadSize} ${suffix}`;
+    return `${presentCount} ${suffix}`;
 };
 
 window.buildAttendanceSaveFeedbackMessage = function({ presentCount, squadSize }) {

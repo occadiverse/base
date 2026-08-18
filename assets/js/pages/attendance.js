@@ -678,7 +678,7 @@ window.updateDailySchedule = function() {
 
     const renderDailyMatch = (m) => {
         const attendanceMeta = typeof window.formatAttendancePresenceLabel === 'function'
-            ? window.formatAttendancePresenceLabel(m)
+            ? window.formatAttendancePresenceLabel(m, { suffix: 'påmeldt' })
             : '';
         const matchId = escapeAttendanceHtml(m.id);
         const opponent = m.opponent || 'Motstander ikke satt';
