@@ -549,11 +549,13 @@ function getOpponentHistoryRecord(matches) {
             record.unknown += 1;
             return record;
         }
+        record.goalsFor += parsedScore.bsk;
+        record.goalsAgainst += parsedScore.opponent;
         if (parsedScore.bsk > parsedScore.opponent) record.wins += 1;
         else if (parsedScore.bsk === parsedScore.opponent) record.draws += 1;
         else record.losses += 1;
         return record;
-    }, { wins: 0, draws: 0, losses: 0, unknown: 0 });
+    }, { wins: 0, draws: 0, losses: 0, unknown: 0, goalsFor: 0, goalsAgainst: 0 });
 }
 
 function buildMatchOpponentHistoryRowHtml(match, currentMatchId) {
@@ -611,7 +613,7 @@ function buildMatchOpponentInfoBodyHtml(match) {
     }
 
     return `
-        <div class="match-opponent-info-record" aria-label="${record.wins} seire, ${record.draws} uavgjort, ${record.losses} tap totalt">
+        <div class="match-opponent-info-record" aria-label="${record.wins} seire, ${record.draws} uavgjort, ${record.losses} tap, ${record.goalsFor}-${record.goalsAgainst} i mål totalt">
             <div class="match-opponent-info-record-item is-win">
                 <strong>${record.wins}</strong>
                 <span>Seire</span>
@@ -623,6 +625,12 @@ function buildMatchOpponentInfoBodyHtml(match) {
             <div class="match-opponent-info-record-item is-loss">
                 <strong>${record.losses}</strong>
                 <span>Tap</span>
+            </div>
+            <div class="match-opponent-info-record-item is-goals">
+                <strong>
+                    <span class="match-opponent-info-goals-for">${record.goalsFor}</span><span class="match-opponent-info-goals-sep">-</span><span class="match-opponent-info-goals-against">${record.goalsAgainst}</span>
+                </strong>
+                <span>Mål</span>
             </div>
         </div>
         <div class="match-opponent-info-list">

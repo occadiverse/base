@@ -5772,27 +5772,20 @@
             display: grid;
             gap: 0.5rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            padding: 0 1.25rem 0.75rem;
+            padding: 0.45rem 1.25rem 0.75rem;
         }
         .player-modal-tab {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 0.85rem;
-            color: rgba(255, 255, 255, 0.78);
-            display: inline-flex;
-            font-size: 0.72rem;
-            font-weight: 800;
-            gap: 0.45rem;
-            justify-content: center;
-            min-height: 2.35rem;
-            padding: 0.55rem 0.75rem;
-            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            flex: 1 1 0;
+            font-size: 0.68rem;
+            gap: 0.35rem;
+            min-height: 2.45rem;
+            padding: 0.5rem 0.85rem;
         }
         .player-modal-tab.is-active {
-            background: rgba(245, 197, 66, 0.16);
-            border-color: rgba(245, 197, 66, 0.42);
-            color: #ffffff;
+            color: #0b2b4c;
+        }
+        .player-modal-tab i {
+            color: inherit;
         }
         .player-modal-profile {
             flex: 1 1 auto;
@@ -11637,7 +11630,7 @@
         .match-opponent-info-record {
             display: grid;
             gap: 0.5rem;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             margin: 0 0 0.75rem;
         }
         .match-opponent-info-record-item {
@@ -11657,7 +11650,7 @@
             letter-spacing: -0.03em;
             line-height: 1;
         }
-        .match-opponent-info-record-item span {
+        .match-opponent-info-record-item > span {
             color: rgba(255, 255, 255, 0.58);
             font-size: 0.62rem;
             font-weight: 850;
@@ -11680,6 +11673,23 @@
             border-color: rgba(248, 113, 113, 0.28);
         }
         .match-opponent-info-record-item.is-loss strong {
+            color: #f87171;
+        }
+        .match-opponent-info-record-item.is-goals {
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+        .match-opponent-info-record-item.is-goals strong {
+            font-size: 0.92rem;
+            letter-spacing: -0.04em;
+        }
+        .match-opponent-info-goals-for {
+            color: var(--bsk-green);
+        }
+        .match-opponent-info-goals-sep {
+            color: rgba(255, 255, 255, 0.45);
+            padding: 0 0.04em;
+        }
+        .match-opponent-info-goals-against {
             color: #f87171;
         }
         .match-opponent-info-list {
