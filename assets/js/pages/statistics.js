@@ -459,6 +459,7 @@ window.checkIndividualChemistry = function() {
 
                 const relevantRecentEvents = allEvents
                     .filter(e => !e.team || e.team === player.spillerLag)
+                    .filter(e => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, e))
                     .slice(0, 5);
                 if (relevantRecentEvents.length >= 3) {
                     const attended = relevantRecentEvents.filter(e => window.isPlayerAttending(e.attendance, player)).length;
@@ -497,12 +498,13 @@ window.checkIndividualChemistry = function() {
 
             current
                 .filter(p => !eventTeam || p.spillerLag === eventTeam)
+                .filter(p => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, event))
                 .forEach(addPlayer);
 
-            // Passive players should count historically when the event itself says they attended.
+            // Players who actually attended still count, even if they later became passive
+            // or got a later tilknytningsdato.
             if (event?.attendance) {
                 scoped.forEach(player => {
-                    if (player.status !== 'Passiv') return;
                     if (eventTeam && player.spillerLag !== eventTeam) return;
                     if (window.isPlayerAttending(event.attendance, player)) addPlayer(player);
                 });
@@ -822,6 +824,7 @@ window.getPlayerFormComponents = function(playerName) {
         .filter(e => {
             if (e.team !== spillerLag || !isHistorical(e)) return false;
             if (e.type === 'Kamp' && !hasCompletedMatchResult(e)) return false;
+            if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(playerObj, e)) return false;
             return true;
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -1023,6 +1026,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const teamEvents = allEvents.filter(e => {
                         if (e.team !== p.spillerLag) return false;
                         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
+                        if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, e)) return false;
                         return true;
                     });
 
@@ -1691,7 +1695,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const teamMatches = (window.activeMatches || [])
                     .filter(match => (
                         match.matchGroup === teamName &&
-                        (!window.isHistoricalActivity || window.isHistoricalActivity(match))
+                        (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
+                        (typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, match))
                     ))
                     .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
                     .slice(0, 5);

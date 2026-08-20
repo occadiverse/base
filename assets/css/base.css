@@ -5670,6 +5670,13 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
+        .player-modal-field-hint {
+            color: rgba(226, 232, 240, 0.52);
+            font-size: 0.68rem;
+            font-weight: 500;
+            line-height: 1.35;
+            margin: 0;
+        }
         .player-modal-field {
             appearance: none;
             background: rgba(255, 255, 255, 0.08);

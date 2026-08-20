@@ -302,10 +302,15 @@ window.getPositionCategoryFromPos1 = function(pos1) {
 window.buildNextSessionAttendanceStats = function(event) {
     const teamName = event?.team || event?.matchGroup;
     const allActivePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
-    const squadPlayers = teamName
+    const scopedPlayers = teamName
         ? allActivePlayers.filter(p => p.spillerLag === teamName)
         : allActivePlayers;
-    const squadSize = squadPlayers.length || allActivePlayers.length;
+    const baseSquad = scopedPlayers.length ? scopedPlayers : allActivePlayers;
+    const squadPlayers = baseSquad.filter(p => (
+        typeof window.isPlayerOnRosterForActivity !== 'function'
+        || window.isPlayerOnRosterForActivity(p, event)
+    ));
+    const squadSize = squadPlayers.length || baseSquad.length;
 
     const positionCounts = { K: 0, F: 0, M: 0, A: 0 };
     const injuredReady = [];

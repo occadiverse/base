@@ -134,6 +134,42 @@ window.isPlayerEligibleForMatch = function(attendance, playerOrRef) {
     return window.isPlayerAttending(attendance, playerOrRef);
 };
 
+window.normalizeActivityDateKey = function(value) {
+    if (!value) return '';
+    if (typeof value === 'string') {
+        const match = value.trim().match(/^(\d{4}-\d{2}-\d{2})/);
+        if (match) return match[1];
+    }
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+window.getPlayerJoinedFromDate = function(player) {
+    if (!player || player.isGuest) return '';
+    if (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id)) return '';
+    return window.normalizeActivityDateKey(player.tilknyttetFra);
+};
+
+window.isPlayerOnRosterForDate = function(player, dateValue) {
+    if (!player) return false;
+    if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
+        return true;
+    }
+    const joinedFrom = window.getPlayerJoinedFromDate(player);
+    if (!joinedFrom) return true;
+    const dateKey = window.normalizeActivityDateKey(dateValue);
+    if (!dateKey) return true;
+    return dateKey >= joinedFrom;
+};
+
+window.isPlayerOnRosterForActivity = function(player, activity) {
+    return window.isPlayerOnRosterForDate(player, activity?.date);
+};
+
 window.getMatchSquadEmptyMessage = function(match) {
     if (window.hasRegisteredAttendance(match?.attendance)) {
         return 'Ingen spillere er registrert med oppmøte.';
@@ -357,7 +393,7 @@ window.getAttendanceModalTeamPlayers = function(ev) {
     if (teamPlayers.length === 0) {
         teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
     }
-    return teamPlayers;
+    return teamPlayers.filter(player => window.isPlayerOnRosterForActivity(player, ev));
 };
 
 window.sanitizeAttendanceMap = function(map) {

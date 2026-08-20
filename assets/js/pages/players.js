@@ -113,6 +113,16 @@ function getTodayDateString() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+function formatPlayerJoinedFromLabel(player) {
+    const joinedFrom = typeof window.getPlayerJoinedFromDate === 'function'
+        ? window.getPlayerJoinedFromDate(player)
+        : (player?.tilknyttetFra || '');
+    if (!joinedFrom) return 'Fra start';
+    const date = new Date(`${joinedFrom}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return joinedFrom;
+    return date.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 function isPlayerCurrentlyInjured(player) {
     const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
         ? window.getPlayerInjuryInfo(player)
@@ -490,6 +500,7 @@ function renderPlayerModalProfile(player) {
                 ${buildPlayerProfileMetricHtml('Posisjon', posLabel)}
                 ${buildPlayerProfileMetricHtml('Fot', foot)}
                 ${buildPlayerProfileMetricHtml('Status', player.status || '-')}
+                ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
                 ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
             </div>
         </div>
@@ -580,6 +591,12 @@ window.openPlayerModal = function(editPlayerId = null) {
             document.getElementById('playerJerseyInput').value = pObj.draktnummer || '';
             document.getElementById('playerBirthYearInput').value = pObj.fodselsaar;
             document.getElementById('playerStatusInput').value = pObj.status;
+            const joinedFromInput = document.getElementById('playerJoinedFromInput');
+            if (joinedFromInput) {
+                joinedFromInput.value = typeof window.getPlayerJoinedFromDate === 'function'
+                    ? window.getPlayerJoinedFromDate(pObj)
+                    : (pObj.tilknyttetFra || '');
+            }
             document.getElementById('playerTeamInput').value = pObj.spillerLag || window.getPrimaryTeamName();
             document.getElementById('playerPos1Input').value = pObj.pos1;
             document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
@@ -594,6 +611,8 @@ window.openPlayerModal = function(editPlayerId = null) {
         document.getElementById('playerFormTitle').innerText = 'Ny spiller';
         document.getElementById('playerPos1Input').value = '-';
         document.getElementById('playerPos2Input').value = '-';
+        const joinedFromInput = document.getElementById('playerJoinedFromInput');
+        if (joinedFromInput) joinedFromInput.value = getTodayDateString();
         document.getElementById('playerSkadeStatusInput').value = 'frisk';
         document.getElementById('playerSkadeNotatInput').value = '';
         document.getElementById('playerSkadeFraDatoInput').value = '';
@@ -754,6 +773,7 @@ window.savePlayer = async function(event) {
     const birthYearInput = document.getElementById('playerBirthYearInput');
     const birthYearRaw = birthYearInput ? birthYearInput.value.trim() : '';
     const status = document.getElementById('playerStatusInput').value;
+    const tilknyttetFra = (document.getElementById('playerJoinedFromInput')?.value || '').trim();
     const pos1 = document.getElementById('playerPos1Input').value.trim();
     const pos2 = document.getElementById('playerPos2Input').value.trim();
     const fot = document.getElementById('playerFootInput').value.trim();
@@ -787,6 +807,7 @@ window.savePlayer = async function(event) {
         draktnummer,
         fodselsaar,
         status,
+        tilknyttetFra,
         spillerLag: playerTeam,
         pos1,
         pos2,
@@ -814,6 +835,7 @@ window.savePlayer = async function(event) {
             draktnummer,
             fodselsaar,
             status,
+            tilknyttetFra,
             spillerLag: playerTeam,
             pos1,
             pos2,

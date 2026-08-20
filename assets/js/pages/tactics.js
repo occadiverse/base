@@ -52,7 +52,13 @@
 
         function loadTacticalRolesFromMatch(match) {
             const roles = ['captain', 'penalty', 'freekick', 'corners'];
-            const players = Array.isArray(window.activePlayers) ? [...window.activePlayers].filter(p => p.status !== 'Passiv') : [];
+            const players = Array.isArray(window.activePlayers)
+                ? [...window.activePlayers].filter(p => {
+                    if (p.status === 'Passiv') return false;
+                    return typeof window.isPlayerOnRosterForActivity !== 'function'
+                        || window.isPlayerOnRosterForActivity(p, match);
+                })
+                : [];
             const sortedPlayers = players.sort((a, b) => a.navn.localeCompare(b.navn));
 
             roles.forEach(roleId => {
@@ -326,7 +332,8 @@
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
     
     let teamPlayers = players.filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
-    if (teamPlayers.length === 0) teamPlayers = players.filter(p => p.status !== 'Passiv'); 
+    if (teamPlayers.length === 0) teamPlayers = players.filter(p => p.status !== 'Passiv');
+    teamPlayers = teamPlayers.filter(p => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, match)); 
 
     const startingPlayerNames = Object.values(window.tacticalLineup).filter(p => p !== null).map(p => p.navn);
 
@@ -496,6 +503,7 @@
    // Henter alle spillere, FJERNER de passive, og sorterer deretter
     const sortedPlayers = [...(window.activePlayers || [])]
         .filter(p => p.status !== 'Passiv')
+        .filter(p => !currentMatch || typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, currentMatch))
         .sort((a,b) => {
             if (hasAttendance) {
                 const valA = window.isPlayerAttending(currentMatch.attendance, a) ? 2 : 0;
@@ -613,6 +621,7 @@
 
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv') return false;
+        if (currentMatch && typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, currentMatch)) return false;
         if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
         return true;
     });
@@ -695,6 +704,7 @@ window.updateTacticalBoardStats = function() {
     // Hent alle tilgjengelige spillere til akkurat denne kampen/økten
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
         if (p.status === 'Passiv') return false;
+        if (currentMatch && typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, currentMatch)) return false;
         if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
         return true;
     });

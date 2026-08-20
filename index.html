@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260818-opponent-goals-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260820-tilknyttet-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -792,6 +792,17 @@
                         <input type="number" id="playerBirthYearInput" placeholder="1998" min="1950" max="2026" required class="player-modal-field">
                     </div>
                     <div class="player-modal-field-block">
+                        <label class="player-modal-label" for="playerFootInput">Foretrukket fot</label>
+                        <select id="playerFootInput" class="player-modal-field">
+                            <option value="Høyre">Høyre</option>
+                            <option value="Venstre">Venstre</option>
+                            <option value="Begge">Begge</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="player-modal-grid">
+                    <div class="player-modal-field-block">
                         <label class="player-modal-label" for="playerStatusInput">Status</label>
                         <select id="playerStatusInput" class="player-modal-field">
                             <option value="Aktiv">Aktiv</option>
@@ -799,16 +810,10 @@
                             <option value="Passiv">Passiv</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="player-modal-grid">
                     <div class="player-modal-field-block">
-                        <label class="player-modal-label" for="playerFootInput">Foretrukket fot</label>
-                        <select id="playerFootInput" class="player-modal-field">
-                            <option value="Høyre">Høyre</option>
-                            <option value="Venstre">Venstre</option>
-                            <option value="Begge">Begge</option>
-                        </select>
+                        <label class="player-modal-label" for="playerJoinedFromInput">Tilknyttet fra</label>
+                        <input type="date" id="playerJoinedFromInput" class="player-modal-field" title="Tom = telles med fra første aktivitet. Sett dato hvis spilleren kom inn underveis.">
+                        <p class="player-modal-field-hint">Tom = med fra start. Sett dato for spillere som kom inn underveis.</p>
                     </div>
                 </div>
 
@@ -1052,7 +1057,7 @@
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Nylig oppmøte (Maks 20 poeng)</h4>
-                    <p class="mb-3 text-slate-300">Oppmøte brukes som en tilgjengelighetsfaktor, ikke som hoveddelen av Form. Systemet ser på de siste 8 historiske aktivitetene for spillerens lag.</p>
+                    <p class="mb-3 text-slate-300">Oppmøte brukes som en tilgjengelighetsfaktor, ikke som hoveddelen av Form. Systemet ser på de siste 8 historiske aktivitetene spilleren kunne møtt på, fra tilknytningsdatoen.</p>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300 mb-5">
                         <li>Fullt oppmøte i perioden gir 20 poeng.</li>
                         <li>Lavt oppmøte trekker Form ned, men kan ikke alene gi grønn Form.</li>
@@ -1125,17 +1130,17 @@
     <script src="assets/js/state.js?v=20260703-single-team-v1"></script>
     <script src="assets/js/components/modals.js?v=20260703-xss-v1"></script>
     <script src="assets/js/app-shell.js?v=20260704-match-list-add-btn"></script>
-    <script src="assets/js/domain/player-refs.js?v=20260818-pameldt-v1"></script>
+    <script src="assets/js/domain/player-refs.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/domain/scoring.js"></script>
     <script src="assets/js/domain/samspill.js?v=20260814-label-chips-v4"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
-    <script src="assets/js/pages/players.js?v=20260817-roster-filter-v1"></script>
+    <script src="assets/js/pages/players.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260818-opponent-goals-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260818-pameldt-v1"></script>
-    <script src="assets/js/pages/statistics.js?v=20260705-samspill-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260814-samspill-labels-v1"></script>
-    <script src="assets/js/pages/dashboard.js?v=20260704-training-session-v1"></script>
+    <script src="assets/js/pages/statistics.js?v=20260820-tilknyttet-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260820-tilknyttet-v1"></script>
+    <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260817-ovelse-v5"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>

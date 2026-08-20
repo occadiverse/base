@@ -9,9 +9,11 @@ Kjør etter kodeendringer. Test i nettleser med hard refresh (Cmd+Shift+R). Krys
 
 ## Spillere
 
-- [ ] **Opprette spiller med gyldig navn og fødselsår** — Spilleren vises i troppen med riktige felt.
+- [ ] **Opprette spiller med gyldig navn og fødselsår** — Spilleren vises i troppen med riktige felt. Ny spiller får dagens dato som «Tilknyttet fra».
 - [ ] **Avvise tom spiller uten navn** — Alert vises; ingen ny spiller lagres.
 - [ ] **Redigere spiller** — Endringer lagres og vises etter lukking av modal.
+- [ ] **Sette tilknytningsdato på sen tilknytning** — Oppmøte, form og totalscore telles først fra den datoen; spilleren vises ikke i oppmøte på eldre økter.
+- [ ] **Eksisterende spiller uten tilknytningsdato** — Tom dato betyr med fra start; statistikk uendret.
 - [ ] **Slette spiller** — Spilleren forsvinner fra troppen etter bekreftelse.
 
 ## Lag
