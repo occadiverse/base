@@ -3283,6 +3283,44 @@
             font-weight: 650;
             line-height: 1.35;
         }
+        .training-data-recommend-item.is-keep {
+            border-color: rgba(var(--bsk-green-rgb), 0.28);
+        }
+        .training-data-recommend-item.is-keep strong {
+            color: var(--bsk-green-light);
+        }
+        .training-data-recommend-item.is-focus {
+            border-color: rgba(245, 197, 66, 0.45);
+            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.12);
+        }
+        .training-data-recommend-focus-top {
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+        .training-data-recommend-focus-title {
+            color: #ffffff !important;
+            font-size: 0.92rem !important;
+        }
+        .training-data-recommend-badge {
+            background: rgba(245, 197, 66, 0.18);
+            border: 1px solid rgba(245, 197, 66, 0.4);
+            border-radius: 999px;
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            padding: 0.18rem 0.5rem;
+            text-transform: uppercase;
+        }
+        .training-data-recommend-source {
+            color: rgba(255, 255, 255, 0.48) !important;
+            font-size: 0.68rem !important;
+            font-weight: 700 !important;
+            margin-top: 0.15rem;
+        }
         .training-data-stat-grid {
             display: grid;
             gap: 0.45rem;

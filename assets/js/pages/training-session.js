@@ -459,48 +459,104 @@ function getTrainingMatchLineRatingAverages(match) {
     );
 }
 
-function buildTrainingRecommendationsFromLastMatch(match) {
-    if (!match) return null;
-
-    const score = getTrainingMatchScore(match);
-    if (!score) return null;
-
+function getTrainingMatchIntro(match, score) {
     const opponent = match.opponent || 'motstander';
     const resultLabel = score.bsk > score.opponent
         ? 'seier'
         : (score.bsk < score.opponent ? 'tap' : 'uavgjort');
-    const scoreLabel = `${score.bsk}-${score.opponent}`;
-    const intro = `Basert på siste kamp mot ${opponent} — ${resultLabel} ${scoreLabel}.`;
+    return `Basert på siste kamp mot ${opponent} — ${resultLabel} ${score.bsk}-${score.opponent}.`;
+}
 
-    const recommendations = [];
+const TRAINING_FOCUS_NOTE_RULES = [
+    {
+        category: 'dodball',
+        title: 'Defensiv corner / dødball',
+        keywords: ['corner', 'defc', 'dødball', 'dodball', '5 meter', '5-meter', '5meter', 'marking i eget', 'eget felt']
+    },
+    {
+        category: 'avslutninger',
+        title: 'Angrep via kantene',
+        keywords: ['kant', 'angrepsmønster', 'innlegg', 'avslutning', 'siste tredjedel']
+    },
+    {
+        category: 'defensiv',
+        title: 'Defensiv organisering',
+        keywords: ['mellomrom', 'mellom rom', 'struktur', 'bakre fire', 'midtrekke', 'kompakt', '451', 'organisering', 'press']
+    },
+    {
+        category: 'ballbesittelse',
+        title: 'Spille seg ut / ballbesittelse',
+        keywords: ['spille ut', 'spille oss ut', 'langs bakken', 'ballbesittelse', 'kombinere']
+    },
+    {
+        category: 'linjespill',
+        title: 'Linjespill',
+        keywords: ['linje i spill', 'forsvar i spill', 'midtbane i spill', 'angrep i spill']
+    },
+    {
+        category: 'annet',
+        title: 'Neste jobb / konsentrasjon',
+        keywords: ['neste jobb', 'dommer', 'provoser']
+    }
+];
+
+function inferTrainingFocusFromCoachNotes(match) {
+    const challenge = String(match?.notes?.challenge || '').trim();
+    if (!challenge) return null;
+
+    const normalized = challenge.toLowerCase();
+    const rule = TRAINING_FOCUS_NOTE_RULES.find(entry => (
+        entry.keywords.some(keyword => normalized.includes(keyword))
+    ));
+    if (!rule) {
+        return {
+            title: 'Fokus fra trenernotat',
+            reason: challenge,
+            category: 'annet',
+            source: 'notes'
+        };
+    }
+
+    return {
+        title: rule.title,
+        reason: challenge,
+        category: rule.category,
+        source: 'notes'
+    };
+}
+
+function buildTrainingFocusFallbackFromMatch(match, score) {
     const needsDefensiveShape = score.opponent >= 3
         || (score.bsk < score.opponent && score.opponent >= 2);
     const needsDefensiveSetPieces = score.opponent >= 2;
 
-    if (needsDefensiveShape && needsDefensiveSetPieces) {
-        recommendations.push({
-            title: 'Defensiv organisering og dødball',
-            reason: `Med ${score.opponent} mål imot er det naturlig å stramme struktur bakover, og samtidig jobbe DefC og marking i eget felt.`
-        });
-    } else if (needsDefensiveShape) {
-        recommendations.push({
-            title: 'Defensiv organisering',
-            reason: `Med ${score.opponent} mål imot bør økten fokusere struktur, avstander og kommunikasjon bakover.`
-        });
-    } else if (needsDefensiveSetPieces) {
-        recommendations.push({
+    if (needsDefensiveSetPieces) {
+        return {
             title: 'Defensiv corner / dødball',
-            reason: `${score.opponent} mål imot peker mot sårbarhet i eget felt — prioriter DefC og marking.`
-        });
+            reason: `${score.opponent} mål imot — prioriter DefC og marking i eget felt.`,
+            category: 'dodball',
+            source: 'result'
+        };
+    }
+
+    if (needsDefensiveShape) {
+        return {
+            title: 'Defensiv organisering',
+            reason: `Med ${score.opponent} mål imot bør økten fokusere struktur, avstander og kommunikasjon bakover.`,
+            category: 'defensiv',
+            source: 'result'
+        };
     }
 
     if (score.bsk === 0 || (score.bsk < score.opponent && score.bsk <= 1)) {
-        recommendations.push({
+        return {
             title: 'Avslutninger og siste tredjedel',
             reason: score.bsk === 0
                 ? 'Ingen scoringer sist kamp — mer trening i siste tredjedel og avslutninger.'
-                : `Kun ${score.bsk} mål scoret — mer trening i siste tredjedel og avslutninger.`
-        });
+                : `Kun ${score.bsk} mål scoret — mer trening i siste tredjedel og avslutninger.`,
+            category: 'avslutninger',
+            source: 'result'
+        };
     }
 
     const lineAverages = getTrainingMatchLineRatingAverages(match);
@@ -512,31 +568,52 @@ function buildTrainingRecommendationsFromLastMatch(match) {
     if (weakLines.length) {
         const [lineKey, avg] = weakLines[0];
         const lineName = lineLabels[lineKey];
-        recommendations.push({
+        return {
             title: `${lineName} i spill`,
-            reason: `Snittbørs ${avg.toFixed(1)} i ${lineName.toLowerCase()} sist kamp — gi den linjen mer spilløving.`
-        });
+            reason: `Snittbørs ${avg.toFixed(1)} i ${lineName.toLowerCase()} sist kamp — gi den linjen mer spilløving.`,
+            category: 'linjespill',
+            source: 'ratings'
+        };
     }
 
-    if (!recommendations.length && score.bsk >= score.opponent) {
-        recommendations.push({
+    if (score.bsk >= score.opponent) {
+        return {
             title: 'Videreutvikle ballbesittelse',
-            reason: 'Resultatet var bra — bygg videre på ballbesittelse og det som fungerte.'
-        });
+            reason: 'Resultatet var bra — bygg videre på ballbesittelse og det som fungerte.',
+            category: 'ballbesittelse',
+            source: 'result'
+        };
     }
 
-    const unique = [];
-    const seen = new Set();
-    recommendations.forEach(item => {
-        if (seen.has(item.title)) return;
-        seen.add(item.title);
-        unique.push(item);
-    });
+    return null;
+}
 
-    const items = unique.slice(0, 3);
-    if (!items.length) return null;
+function buildTrainingSessionFocus(match) {
+    if (!match) return null;
 
-    return { intro, items };
+    const score = getTrainingMatchScore(match);
+    if (!score) return null;
+
+    const focus = inferTrainingFocusFromCoachNotes(match)
+        || buildTrainingFocusFallbackFromMatch(match, score);
+    if (!focus) return null;
+
+    const keepOn = String(match.notes?.positive || '').trim();
+    return {
+        intro: getTrainingMatchIntro(match, score),
+        focus,
+        keepOn,
+        items: [focus]
+    };
+}
+
+function buildTrainingRecommendationsFromLastMatch(match) {
+    return buildTrainingSessionFocus(match);
+}
+
+function getTrainingSessionFocusForEvent(trainingEvent) {
+    const lastMatch = getLatestFinishedMatchForTeam(getTrainingSessionTeamName(trainingEvent));
+    return buildTrainingSessionFocus(lastMatch);
 }
 
 function getTrainingTeamPlayers(teamName) {
@@ -664,8 +741,8 @@ function formatTrainingTrendDelta(delta, suffix = '') {
 }
 
 function buildTrainingDataRecommendationsHtml(match) {
-    const recommendations = buildTrainingRecommendationsFromLastMatch(match);
-    if (!recommendations?.items?.length) {
+    const recommendations = buildTrainingSessionFocus(match);
+    if (!recommendations?.focus) {
         return `
             <div class="training-data-empty">
                 <p>Ingen ferdig kamp å basere anbefaling på.</p>
@@ -673,17 +750,30 @@ function buildTrainingDataRecommendationsHtml(match) {
         `;
     }
 
+    const focus = recommendations.focus;
+    const categoryLabel = getTrainingExerciseCategoryLabel(focus.category);
+    const sourceLabel = focus.source === 'notes'
+        ? 'Fra trenernotat'
+        : (focus.source === 'ratings' ? 'Fra spillerbørs' : 'Fra kampresultat');
+
     return `
         <div class="training-data-recommend-block">
             <p class="training-data-recommend-intro">${escapeTrainingHtml(recommendations.intro)}</p>
-            <div class="training-data-recommend-list">
-                ${recommendations.items.map(item => `
-                    <article class="training-data-recommend-item">
-                        <strong>${escapeTrainingHtml(item.title)}</strong>
-                        <span>${escapeTrainingHtml(item.reason)}</span>
-                    </article>
-                `).join('')}
-            </div>
+            ${recommendations.keepOn ? `
+                <article class="training-data-recommend-item is-keep">
+                    <strong>Bygg videre på</strong>
+                    <span>${escapeTrainingHtml(recommendations.keepOn)}</span>
+                </article>
+            ` : ''}
+            <article class="training-data-recommend-item is-focus">
+                <div class="training-data-recommend-focus-top">
+                    <strong>Hovedfokus denne økten</strong>
+                    <span class="training-data-recommend-badge">${escapeTrainingHtml(categoryLabel)}</span>
+                </div>
+                <strong class="training-data-recommend-focus-title">${escapeTrainingHtml(focus.title)}</strong>
+                <span>${escapeTrainingHtml(focus.reason)}</span>
+                <span class="training-data-recommend-source">${escapeTrainingHtml(sourceLabel)}</span>
+            </article>
         </div>
     `;
 }
@@ -799,20 +889,51 @@ function getTrainingExerciseCategoryLabel(categoryId) {
     return getTrainingExerciseCategories().find(category => category.id === categoryId)?.label || 'Annet';
 }
 
-function inferExerciseCategoryFromRecommendation(title) {
-    const text = String(title || '').toLowerCase();
-    if (text.includes('avslutning')) return 'avslutninger';
-    if (text.includes('ballbesittelse')) return 'ballbesittelse';
-    if (text.includes('i spill')) return 'linjespill';
-    if (text.includes('defensiv')) return 'defensiv';
-    if (text.includes('dødball') || text.includes('corner')) return 'dodball';
+function inferExerciseCategoryFromRecommendation(titleOrFocus) {
+    if (titleOrFocus && typeof titleOrFocus === 'object' && titleOrFocus.category) {
+        return titleOrFocus.category;
+    }
+
+    const text = String(titleOrFocus || '').toLowerCase();
+    if (text.includes('avslutning') || text.includes('kant')) return 'avslutninger';
+    if (text.includes('ballbesittelse') || text.includes('spille')) return 'ballbesittelse';
+    if (text.includes('i spill') || text.includes('linje')) return 'linjespill';
+    if (text.includes('dødball') || text.includes('corner') || text.includes('defc')) return 'dodball';
+    if (text.includes('defensiv') || text.includes('organisering') || text.includes('mellomrom')) return 'defensiv';
     return 'annet';
 }
 
 function getSuggestedExerciseCategory(trainingEvent) {
-    const lastMatch = getLatestFinishedMatchForTeam(getTrainingSessionTeamName(trainingEvent));
-    const recommendations = buildTrainingRecommendationsFromLastMatch(lastMatch);
-    return inferExerciseCategoryFromRecommendation(recommendations?.items?.[0]?.title);
+    const focus = getTrainingSessionFocusForEvent(trainingEvent)?.focus;
+    if (focus?.category) return focus.category;
+    return inferExerciseCategoryFromRecommendation(focus?.title);
+}
+
+function suggestExerciseFromLibrary(categoryId, focus) {
+    const items = getTrainingExerciseLibrary().filter(item => item.category === categoryId);
+    if (!items.length) return null;
+    if (items.length === 1) return items[0];
+
+    const haystack = `${focus?.title || ''} ${focus?.reason || ''}`.toLowerCase();
+    const tokens = haystack.split(/[^a-zæøå0-9]+/i).filter(token => token.length > 3);
+    const ranked = items.map(item => {
+        const blob = `${item.title} ${item.description}`.toLowerCase();
+        const score = tokens.reduce((sum, token) => sum + (blob.includes(token) ? 1 : 0), 0);
+        return { item, score };
+    }).sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title, 'no'));
+
+    return ranked[0]?.item || items[0];
+}
+
+function getSuggestedExerciseForEvent(trainingEvent) {
+    const focusBundle = getTrainingSessionFocusForEvent(trainingEvent);
+    const focus = focusBundle?.focus;
+    const category = focus?.category || getSuggestedExerciseCategory(trainingEvent);
+    return {
+        focus,
+        category,
+        exercise: suggestExerciseFromLibrary(category, focus)
+    };
 }
 
 function normalizeExerciseLibraryItem(raw, fallbackId) {
@@ -875,7 +996,8 @@ function getTrainingSessionExerciseValues(trainingEvent) {
             libraryId: draft.libraryId || '',
             category: draft.category || getSuggestedExerciseCategory(trainingEvent),
             title: draft.title || '',
-            description: draft.description || ''
+            description: draft.description || '',
+            suggestionHint: draft.suggestionHint || ''
         };
     }
 
@@ -883,12 +1005,35 @@ function getTrainingSessionExerciseValues(trainingEvent) {
         trainingEvent?.exercise,
         eventId ? `legacy-${eventId}` : ''
     );
+    if (saved?.title) {
+        return {
+            libraryId: saved.id || '',
+            category: saved.category || getSuggestedExerciseCategory(trainingEvent),
+            title: saved.title || '',
+            description: saved.description || '',
+            suggestionHint: ''
+        };
+    }
+
+    const suggestion = getSuggestedExerciseForEvent(trainingEvent);
+    if (suggestion.exercise) {
+        return {
+            libraryId: suggestion.exercise.id,
+            category: suggestion.category,
+            title: suggestion.exercise.title,
+            description: suggestion.exercise.description,
+            suggestionHint: `Foreslått ut fra Treningsinfo: ${suggestion.focus?.title || getTrainingExerciseCategoryLabel(suggestion.category)}`
+        };
+    }
 
     return {
-        libraryId: saved?.id || '',
-        category: saved?.category || getSuggestedExerciseCategory(trainingEvent),
-        title: saved?.title || '',
-        description: saved?.description || ''
+        libraryId: '',
+        category: suggestion.category || getSuggestedExerciseCategory(trainingEvent),
+        title: '',
+        description: '',
+        suggestionHint: suggestion.focus
+            ? `Foreslått kategori ut fra Treningsinfo: ${getTrainingExerciseCategoryLabel(suggestion.category)}. Skriv en ny øvelse eller hent senere.`
+            : ''
     };
 }
 
@@ -1131,6 +1276,8 @@ function buildTrainingExercisePanelHtml(trainingEvent) {
     const categoryOptions = getTrainingExerciseCategories().map(category => `
         <option value="${category.id}"${category.id === values.category ? ' selected' : ''}>${escapeTrainingHtml(category.label)}</option>
     `).join('');
+    const hint = values.suggestionHint
+        || 'Velg kategori, hent en lagret øvelse, eller skriv en ny som treffer hovedfokuset i Treningsinfo.';
 
     return `
         <section class="training-session-exercise-panel training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
@@ -1144,7 +1291,7 @@ function buildTrainingExercisePanelHtml(trainingEvent) {
             </div>
             <div class="match-collapsible-content">
                 <form class="training-session-exercise-body" data-training-exercise-form>
-                    <p class="training-session-exercise-hint">Velg kategori, hent en lagret øvelse, eller skriv en ny som treffer anbefalingen i Treningsinfo.</p>
+                    <p class="training-session-exercise-hint">${escapeTrainingHtml(hint)}</p>
                     <div class="training-session-exercise-fields">
                         <div class="training-session-exercise-meta">
                             <div>
