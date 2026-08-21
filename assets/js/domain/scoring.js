@@ -1,7 +1,8 @@
-window.getPlayerCardCounts = function(playerRef, teamName) {
+window.getPlayerCardCounts = function(playerRef, teamName, options = {}) {
     const counts = { serie: { gule: 0, rode: 0 }, cup: { gule: 0, rode: 0 } };
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const yearFilter = options.yearFilter;
 
     (window.activeMatches || []).forEach(m => {
         if (m.matchGroup !== teamName) return;
@@ -9,6 +10,9 @@ window.getPlayerCardCounts = function(playerRef, teamName) {
             const matchDate = new Date(m.date);
             matchDate.setHours(0, 0, 0, 0);
             if (matchDate > today) return;
+        }
+        if (yearFilter && yearFilter !== 'alle' && typeof window.getMatchStatsYear === 'function') {
+            if (window.getMatchStatsYear(m) !== yearFilter) return;
         }
 
         const bucket = m.matchType === 'Cup' ? 'cup' : (m.matchType === 'Serie' ? 'serie' : null);
