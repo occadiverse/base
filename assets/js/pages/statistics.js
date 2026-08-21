@@ -81,13 +81,16 @@ function bindStatisticsEvents() {
             if (column && typeof window.sortStatsTable === 'function') window.sortStatsTable(column);
             return;
         }
-        if (action === 'toggle-player-list') {
+        if (action === 'toggle-player-list' || action === 'toggle-attendance-list') {
             const block = actionEl.closest('.training-data-rank-block');
             const rankList = block?.querySelector('.training-data-rank-list');
             if (!rankList) return;
             const expanded = !rankList.classList.contains('is-expanded');
             rankList.classList.toggle('is-expanded', expanded);
-            window._statsPlayerListExpanded = expanded;
+            const stateKey = action === 'toggle-attendance-list'
+                ? '_statsOppmoteListExpanded'
+                : '_statsPlayerListExpanded';
+            window[stateKey] = expanded;
             actionEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
             const total = rankList.querySelectorAll('li').length;
             actionEl.textContent = expanded ? 'Vis færre' : `Vis alle (${total})`;
@@ -1631,18 +1634,32 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div id="stats-lag-kampdata-detail" class="stats-lag-kampdata-detail"></div>
                 `
             });
-            const oppmotePanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'oppmote',
-                title: 'Oppmøte',
-                badge: `${data.avgAttendance}%`,
-                showLabel: 'Vis oppmøte',
-                hideLabel: 'Skjul oppmøte',
-                content: `
+            const oppmoteTeamName = data.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
+            const oppmoteSeasonStats = typeof window.buildTrainingAttendanceSeasonStats === 'function'
+                ? window.buildTrainingAttendanceSeasonStats(oppmoteTeamName)
+                : null;
+            const oppmoteBadge = oppmoteSeasonStats?.seasonPct != null
+                ? `${oppmoteSeasonStats.seasonPct}%`
+                : `${data.avgAttendance}%`;
+            const oppmoteContent = typeof window.buildTrainingDataAttendanceHtml === 'function'
+                ? window.buildTrainingDataAttendanceHtml(oppmoteTeamName, {
+                    listExpandedKey: '_statsOppmoteListExpanded',
+                    toggleActionAttr: 'data-stat-action',
+                    toggleAction: 'toggle-attendance-list'
+                })
+                : `
                     <p class="stats-kamp-panel-hint">Oppmøteregistrering på historiske aktiviteter for valgt lag.</p>
                     <div class="stats-analysis-strip stats-analysis-strip-single">
                         ${summaryItem('Oppmøte', `${data.avgAttendance}%`, attendanceTone, 'fa-user-check', 'av mulige registreringer')}
                     </div>
-                `
+                `;
+            const oppmotePanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'oppmote',
+                title: 'Oppmøte',
+                badge: oppmoteBadge,
+                showLabel: 'Vis oppmøte',
+                hideLabel: 'Skjul oppmøte',
+                content: oppmoteContent
             });
             const oppmoteutviklingPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'oppmoteutvikling',

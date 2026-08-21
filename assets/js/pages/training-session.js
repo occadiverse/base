@@ -688,11 +688,16 @@ function buildTrainingDataRecommendationsHtml(match) {
     `;
 }
 
-function buildTrainingDataAttendanceHtml(teamName) {
+function buildTrainingDataAttendanceHtml(teamName, options = {}) {
+    const {
+        listExpandedKey = '_trainingSessionAttendanceListExpanded',
+        toggleActionAttr = 'data-training-action',
+        toggleAction = 'toggle-attendance-list'
+    } = options;
     const stats = buildTrainingAttendanceSeasonStats(teamName);
     const ranking = buildTrainingPlayerAttendanceRanking(teamName);
     const visibleLimit = 10;
-    const isExpanded = window._trainingSessionAttendanceListExpanded === true;
+    const isExpanded = window[listExpandedKey] === true;
     const hasOverflow = ranking.length > visibleLimit;
     const trendTone = stats.delta === null
         ? ''
@@ -738,7 +743,7 @@ function buildTrainingDataAttendanceHtml(teamName) {
                         <button
                             type="button"
                             class="training-data-rank-toggle"
-                            data-training-action="toggle-attendance-list"
+                            ${toggleActionAttr}="${toggleAction}"
                             aria-expanded="${isExpanded ? 'true' : 'false'}"
                         >
                             ${isExpanded ? 'Vis færre' : `Vis alle (${ranking.length})`}
@@ -749,6 +754,9 @@ function buildTrainingDataAttendanceHtml(teamName) {
         </div>
     `;
 }
+
+window.buildTrainingAttendanceSeasonStats = buildTrainingAttendanceSeasonStats;
+window.buildTrainingDataAttendanceHtml = buildTrainingDataAttendanceHtml;
 
 function buildTrainingDataPanelHtml(trainingEvent) {
     const lastMatch = getLatestFinishedMatchForTeam(getTrainingSessionTeamName(trainingEvent));
