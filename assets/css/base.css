@@ -3396,6 +3396,12 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .training-data-rank-count {
+            color: rgba(255, 255, 255, 0.5);
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            margin-left: 0.35rem;
+        }
         .training-data-rank-toggle {
             align-self: flex-start;
             background: transparent;

@@ -730,7 +730,7 @@ function buildTrainingDataAttendanceHtml(teamName) {
                             <li class="${index >= visibleLimit ? 'is-overflow' : ''}">
                                 <span class="training-data-rank-index">${index + 1}.</span>
                                 <span class="training-data-rank-name">${escapeTrainingHtml(row.name)}</span>
-                                <strong>${row.pct}%</strong>
+                                <strong>${row.pct}% <span class="training-data-rank-count">${row.attended}</span></strong>
                             </li>
                         `).join('')}
                     </ul>
