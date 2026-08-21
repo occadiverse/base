@@ -2347,14 +2347,48 @@ function collectMatchGamePlanSamspillPairs(match) {
     }).filter(Boolean);
 }
 
-const matchGamePlanSamspillZonePositions = {
-    forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
-    midtbane: ['DM', 'OM', 'PM'],
-    angrep: ['VK', 'SP', 'PM', 'HK'],
-    venstre: ['VB', 'VMS', 'OM', 'SP', 'VK'],
-    sentral: ['VMS', 'HMS', 'OM', 'DM', 'SP', 'PM'],
-    hoyre: ['HB', 'HMS', 'HK', 'PM', 'DM']
+const matchGamePlanSamspillZonePositionsByFormation = {
+    default: {
+        forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
+        midtbane: ['DM', 'OM', 'PM'],
+        angrep: ['VK', 'SP', 'PM', 'HK'],
+        venstre: ['VB', 'VMS', 'OM', 'SP', 'VK'],
+        sentral: ['VMS', 'HMS', 'OM', 'DM', 'SP', 'PM'],
+        hoyre: ['HB', 'HMS', 'HK', 'PM', 'DM']
+    },
+    '4-3-3': {
+        forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
+        midtbane: ['DM', 'OM', 'PM'],
+        angrep: ['VK', 'SP', 'HK'],
+        venstre: ['VB', 'VMS', 'OM', 'VK'],
+        sentral: ['GK', 'VMS', 'HMS', 'DM', 'SP'],
+        hoyre: ['HB', 'HMS', 'PM', 'HK']
+    },
+    '4-2-3-1': {
+        forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
+        midtbane: ['OM', 'DM', 'PM'],
+        angrep: ['VK', 'PM', 'HK', 'SP'],
+        venstre: ['VB', 'VMS', 'OM', 'VK'],
+        sentral: ['VMS', 'HMS', 'OM', 'DM', 'PM', 'SP'],
+        hoyre: ['HB', 'HMS', 'DM', 'HK']
+    },
+    '4-5-1': {
+        forsvar: ['GK', 'VB', 'VMS', 'HMS', 'HB'],
+        midtbane: ['VK', 'OM', 'DM', 'PM', 'HK'],
+        angrep: ['SP', 'VK', 'OM', 'PM', 'HK'],
+        venstre: ['VB', 'VMS', 'VK', 'OM'],
+        sentral: ['VMS', 'HMS', 'OM', 'DM', 'PM', 'SP'],
+        hoyre: ['HB', 'HMS', 'HK', 'PM']
+    }
 };
+
+function getMatchGamePlanSamspillZonePositions(matchOrFormationId) {
+    const formationId = typeof matchOrFormationId === 'string'
+        ? matchOrFormationId
+        : getMatchGamePlanDraftFormation(matchOrFormationId);
+    return matchGamePlanSamspillZonePositionsByFormation[formationId]
+        || matchGamePlanSamspillZonePositionsByFormation.default;
+}
 
 const matchGamePlanSamspillZoneBenchCategories = {
     forsvar: ['K', 'F'],
@@ -2365,8 +2399,9 @@ const matchGamePlanSamspillZoneBenchCategories = {
     hoyre: ['F', 'M', 'A']
 };
 
-function isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId) {
-    return Boolean(zoneId && matchGamePlanSamspillZonePositions[zoneId]?.includes(posId));
+function isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId, match) {
+    const positions = getMatchGamePlanSamspillZonePositions(match);
+    return Boolean(zoneId && positions[zoneId]?.includes(posId));
 }
 
 function isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId) {
@@ -2374,7 +2409,7 @@ function isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId) {
 
     const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
     if (pitchPosId) {
-        return isMatchGamePlanPitchPositionInSamspillZone(pitchPosId, zoneId);
+        return isMatchGamePlanPitchPositionInSamspillZone(pitchPosId, zoneId, match);
     }
 
     const categories = matchGamePlanSamspillZoneBenchCategories[zoneId] || [];
@@ -2388,10 +2423,10 @@ function getMatchGamePlanSamspillZoneFocus(match) {
     return window.matchGamePlanSamspillZoneFocus[match.id] || null;
 }
 
-function isMatchGamePlanSamspillPairInZone(posA, posB, zoneId) {
+function isMatchGamePlanSamspillPairInZone(posA, posB, zoneId, match) {
     if (!zoneId) return true;
-    return isMatchGamePlanPitchPositionInSamspillZone(posA, zoneId)
-        && isMatchGamePlanPitchPositionInSamspillZone(posB, zoneId);
+    return isMatchGamePlanPitchPositionInSamspillZone(posA, zoneId, match)
+        && isMatchGamePlanPitchPositionInSamspillZone(posB, zoneId, match);
 }
 
 function setMatchGamePlanSamspillZoneFocus(match, zoneId) {
@@ -2519,7 +2554,7 @@ function applyMatchGamePlanSamspillZoneFocus(match) {
     squadSection.querySelectorAll('.match-detail-lineup-pitch-wrap [data-game-plan-node]').forEach(card => {
         const posId = card.dataset.gamePlanNode;
         const isFilled = card.classList.contains('is-filled');
-        const inZone = Boolean(zoneId && isFilled && isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId));
+        const inZone = Boolean(zoneId && isFilled && isMatchGamePlanPitchPositionInSamspillZone(posId, zoneId, match));
         const zoneState = zoneId && isFilled ? (inZone ? 'in' : 'out') : '';
         card.classList.toggle('is-samspill-zone-clear', inZone);
         card.classList.toggle('is-samspill-zone-out', zoneState === 'out');
@@ -2572,7 +2607,7 @@ function ensureMatchGamePlanSamspillAnalysisEventsBound() {
 }
 
 function getMatchGamePlanZonePitchPlayers(match, zoneId) {
-    const positions = matchGamePlanSamspillZonePositions[zoneId] || [];
+    const positions = getMatchGamePlanSamspillZonePositions(match)[zoneId] || [];
     const lineup = getMatchGamePlanDraftLineup(match);
     const players = [];
     const seenIds = new Set();
@@ -2738,7 +2773,10 @@ function buildMatchGamePlanSamspillAnalysisGroupHtml(title, zones, match) {
 
 function buildMatchGamePlanSamspillAnalysisHtml(match) {
     const lineup = getMatchGamePlanDraftLineup(match);
-    const chemOptions = getMatchGamePlanSamspillFilter(match);
+    const chemOptions = {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId: getMatchGamePlanDraftFormation(match)
+    };
     const analysis = typeof window.buildSamspillZoneAnalysis === 'function'
         ? window.buildSamspillZoneAnalysis(lineup, chemOptions)
         : { rows: [], corridors: [], isEmpty: true };
@@ -3359,7 +3397,7 @@ window.setMatchGamePlanSamspillZoneSelection = function(matchId, zoneId) {
     } else if (!zoneId || zoneId === 'alle') {
         overlayState.samspill = true;
         delete window.matchGamePlanSamspillZoneFocus[match.id];
-    } else if (matchGamePlanSamspillZonePositions[zoneId]) {
+    } else if (getMatchGamePlanSamspillZonePositions(match)[zoneId]) {
         overlayState.samspill = true;
         window.matchGamePlanSamspillZoneFocus[match.id] = zoneId;
     }
@@ -3531,7 +3569,7 @@ window.drawMatchGamePlanChemistryLines = function(match) {
 
     const zoneId = getMatchGamePlanSamspillZoneFocus(match);
     const pairResults = collectMatchGamePlanSamspillPairs(match)
-        .filter(pair => isMatchGamePlanSamspillPairInZone(pair.posA, pair.posB, zoneId))
+        .filter(pair => isMatchGamePlanSamspillPairInZone(pair.posA, pair.posB, zoneId, match))
         .map(pair => {
         const cardA = builder.querySelector(`[data-game-plan-node="${pair.posA}"]`);
         const cardB = builder.querySelector(`[data-game-plan-node="${pair.posB}"]`);

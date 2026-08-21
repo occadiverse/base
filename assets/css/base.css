@@ -9713,11 +9713,11 @@
             width: 100%;
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge {
-            --badge-size: clamp(1rem, 26cqw, 1.45rem);
+            --badge-size: clamp(1.15rem, 30cqw, 1.7rem);
             z-index: 2;
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-label {
-            font-size: clamp(0.4rem, 10.5cqw, 0.58rem);
+            font-size: clamp(0.46rem, 12cqw, 0.68rem);
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch {
             border-color: rgba(245, 197, 66, 0.7);

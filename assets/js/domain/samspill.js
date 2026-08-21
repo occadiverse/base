@@ -81,19 +81,84 @@
             ['PM', 'HK'], ['PM', 'DM'], ['PM', 'OM'], ['PM', 'SP'],
             // SP → kant, midtbanespillere
             ['SP', 'VK'], ['SP', 'DM'], ['SP', 'OM']
+        ],
+        '4-3-3': [
+            // Keeper → hele forsvarsfiresome
+            ['GK', 'VB'], ['GK', 'VMS'], ['GK', 'HMS'], ['GK', 'HB'],
+            // Back four
+            ['VB', 'VMS'], ['VMS', 'HMS'], ['HMS', 'HB'],
+            // Bekker → nærmeste midtbane (ikke direkte til kant/DM)
+            ['VB', 'OM'],
+            ['HB', 'PM'],
+            // Stoppere → nærmeste midtbane + sittende
+            ['VMS', 'OM'], ['VMS', 'DM'],
+            ['HMS', 'DM'], ['HMS', 'PM'],
+            // Flat midtbanetreer via sittende (ikke OM–PM rett over DM)
+            ['OM', 'DM'], ['DM', 'PM'],
+            // Midtbane → angrep
+            ['OM', 'VK'], ['OM', 'SP'],
+            ['DM', 'SP'],
+            ['PM', 'HK'], ['PM', 'SP'],
+            // Front three
+            ['VK', 'SP'], ['SP', 'HK']
+        ],
+        '4-2-3-1': [
+            // Keeper → hele forsvarsfiresome
+            ['GK', 'VB'], ['GK', 'VMS'], ['GK', 'HMS'], ['GK', 'HB'],
+            // Back four
+            ['VB', 'VMS'], ['VMS', 'HMS'], ['HMS', 'HB'],
+            // Bekker → nærmeste sittende midtbane
+            ['VB', 'OM'],
+            ['HB', 'DM'],
+            // Stoppere → dobbel pivot
+            ['VMS', 'OM'], ['VMS', 'DM'],
+            ['HMS', 'OM'], ['HMS', 'DM'],
+            // Dobbel pivot
+            ['OM', 'DM'],
+            // Pivot → nærmeste kant + 10er
+            ['OM', 'VK'], ['OM', 'PM'],
+            ['DM', 'HK'], ['DM', 'PM'],
+            // Offensiv treer (ikke VK–HK rett over PM)
+            ['VK', 'PM'], ['PM', 'HK'],
+            // Mot spiss
+            ['PM', 'SP'], ['VK', 'SP'], ['HK', 'SP']
+        ],
+        '4-5-1': [
+            // Keeper → hele forsvarsfiresome
+            ['GK', 'VB'], ['GK', 'VMS'], ['GK', 'HMS'], ['GK', 'HB'],
+            // Back four
+            ['VB', 'VMS'], ['VMS', 'HMS'], ['HMS', 'HB'],
+            // Bekker → nærmeste kant og midtbane
+            ['VB', 'VK'], ['VB', 'OM'],
+            ['HB', 'HK'], ['HB', 'PM'],
+            // Stoppere → nærmeste midtbane + sittende
+            ['VMS', 'OM'], ['VMS', 'DM'],
+            ['HMS', 'DM'], ['HMS', 'PM'],
+            // Flat midtbanefemmer (kun nabopar, ikke over DM)
+            ['VK', 'OM'], ['OM', 'DM'], ['DM', 'PM'], ['PM', 'HK'],
+            // Mot spiss
+            ['OM', 'SP'], ['DM', 'SP'], ['PM', 'SP'],
+            ['VK', 'SP'], ['HK', 'SP']
         ]
     };
 
     window.getMatchGamePlanSamspillConnections = function(formationId) {
         const id = formationId || '4-2-4';
-        if (MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id]) {
-            return MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id];
-        }
-        return window.getTacticalSamspillConnections(
-            typeof window.getActiveTacticalSamspillPhase === 'function'
-                ? window.getActiveTacticalSamspillPhase()
-                : undefined
-        );
+        const raw = MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id]
+            ? MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id]
+            : window.getTacticalSamspillConnections(
+                typeof window.getActiveTacticalSamspillPhase === 'function'
+                    ? window.getActiveTacticalSamspillPhase()
+                    : undefined
+            );
+        const seen = new Set();
+        return (raw || []).filter(([posA, posB]) => {
+            if (!posA || !posB || posA === posB) return false;
+            const key = pairKey(posA, posB);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
     };
 
     window.hasMatchGamePlanSamspillConnections = function(formationId) {
@@ -680,42 +745,158 @@
         };
     };
 
-    const SAMSPILL_ZONE_DEFINITIONS = {
-        rows: [
-            {
-                id: 'forsvar',
-                label: 'Forsvar',
-                pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB']]
-            },
-            {
-                id: 'midtbane',
-                label: 'Midtbane',
-                pairs: [['DM', 'OM'], ['DM', 'PM'], ['OM', 'PM']]
-            },
-            {
-                id: 'angrep',
-                label: 'Angrep',
-                pairs: [['VK', 'SP'], ['SP', 'PM'], ['PM', 'HK']]
-            }
-        ],
-        corridors: [
-            {
-                id: 'venstre',
-                label: 'Venstre',
-                pairs: [['VMS', 'VB'], ['VB', 'VK'], ['OM', 'VK']]
-            },
-            {
-                id: 'sentral',
-                label: 'Sentral',
-                pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['DM', 'OM'], ['DM', 'PM'], ['OM', 'SP'], ['PM', 'SP']]
-            },
-            {
-                id: 'hoyre',
-                label: 'Høyre',
-                pairs: [['HMS', 'HB'], ['HB', 'HK'], ['PM', 'HK']]
-            }
-        ]
+    const SAMSPILL_ZONE_DEFINITIONS_BY_FORMATION = {
+        '4-2-4': {
+            rows: [
+                {
+                    id: 'forsvar',
+                    label: 'Forsvar',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB']]
+                },
+                {
+                    id: 'midtbane',
+                    label: 'Midtbane',
+                    pairs: [['DM', 'OM'], ['DM', 'PM'], ['OM', 'PM']]
+                },
+                {
+                    id: 'angrep',
+                    label: 'Angrep',
+                    pairs: [['VK', 'SP'], ['SP', 'PM'], ['PM', 'HK']]
+                }
+            ],
+            corridors: [
+                {
+                    id: 'venstre',
+                    label: 'Venstre',
+                    pairs: [['VMS', 'VB'], ['VB', 'VK'], ['OM', 'VK']]
+                },
+                {
+                    id: 'sentral',
+                    label: 'Sentral',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['DM', 'OM'], ['DM', 'PM'], ['OM', 'SP'], ['PM', 'SP']]
+                },
+                {
+                    id: 'hoyre',
+                    label: 'Høyre',
+                    pairs: [['HMS', 'HB'], ['HB', 'HK'], ['PM', 'HK']]
+                }
+            ]
+        },
+        '4-3-3': {
+            rows: [
+                {
+                    id: 'forsvar',
+                    label: 'Forsvar',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB']]
+                },
+                {
+                    id: 'midtbane',
+                    label: 'Midtbane',
+                    pairs: [['OM', 'DM'], ['DM', 'PM']]
+                },
+                {
+                    id: 'angrep',
+                    label: 'Angrep',
+                    pairs: [['VK', 'SP'], ['SP', 'HK'], ['OM', 'SP'], ['PM', 'SP']]
+                }
+            ],
+            corridors: [
+                {
+                    id: 'venstre',
+                    label: 'Venstre',
+                    pairs: [['VMS', 'VB'], ['VB', 'OM'], ['OM', 'VK']]
+                },
+                {
+                    id: 'sentral',
+                    label: 'Sentral',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'DM'], ['HMS', 'DM'], ['DM', 'SP'], ['OM', 'SP'], ['PM', 'SP']]
+                },
+                {
+                    id: 'hoyre',
+                    label: 'Høyre',
+                    pairs: [['HMS', 'HB'], ['HB', 'PM'], ['PM', 'HK']]
+                }
+            ]
+        },
+        '4-2-3-1': {
+            rows: [
+                {
+                    id: 'forsvar',
+                    label: 'Forsvar',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB']]
+                },
+                {
+                    id: 'midtbane',
+                    label: 'Midtbane',
+                    pairs: [['OM', 'DM'], ['OM', 'PM'], ['DM', 'PM']]
+                },
+                {
+                    id: 'angrep',
+                    label: 'Angrep',
+                    pairs: [['VK', 'PM'], ['PM', 'HK'], ['PM', 'SP'], ['VK', 'SP'], ['HK', 'SP']]
+                }
+            ],
+            corridors: [
+                {
+                    id: 'venstre',
+                    label: 'Venstre',
+                    pairs: [['VMS', 'VB'], ['VB', 'OM'], ['OM', 'VK']]
+                },
+                {
+                    id: 'sentral',
+                    label: 'Sentral',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['OM', 'DM'], ['OM', 'PM'], ['DM', 'PM'], ['PM', 'SP']]
+                },
+                {
+                    id: 'hoyre',
+                    label: 'Høyre',
+                    pairs: [['HMS', 'HB'], ['HB', 'DM'], ['DM', 'HK']]
+                }
+            ]
+        },
+        '4-5-1': {
+            rows: [
+                {
+                    id: 'forsvar',
+                    label: 'Forsvar',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB']]
+                },
+                {
+                    id: 'midtbane',
+                    label: 'Midtbane',
+                    pairs: [['VK', 'OM'], ['OM', 'DM'], ['DM', 'PM'], ['PM', 'HK']]
+                },
+                {
+                    id: 'angrep',
+                    label: 'Angrep',
+                    pairs: [['OM', 'SP'], ['DM', 'SP'], ['PM', 'SP'], ['VK', 'SP'], ['HK', 'SP']]
+                }
+            ],
+            corridors: [
+                {
+                    id: 'venstre',
+                    label: 'Venstre',
+                    pairs: [['VMS', 'VB'], ['VB', 'VK'], ['VB', 'OM'], ['VK', 'OM']]
+                },
+                {
+                    id: 'sentral',
+                    label: 'Sentral',
+                    pairs: [['GK', 'VMS'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'DM'], ['HMS', 'DM'], ['OM', 'DM'], ['DM', 'PM'], ['DM', 'SP']]
+                },
+                {
+                    id: 'hoyre',
+                    label: 'Høyre',
+                    pairs: [['HMS', 'HB'], ['HB', 'HK'], ['HB', 'PM'], ['PM', 'HK']]
+                }
+            ]
+        }
     };
+
+    const SAMSPILL_ZONE_DEFINITIONS = SAMSPILL_ZONE_DEFINITIONS_BY_FORMATION['4-2-4'];
+
+    function getSamspillZoneDefinitions(formationId) {
+        return SAMSPILL_ZONE_DEFINITIONS_BY_FORMATION[formationId] || SAMSPILL_ZONE_DEFINITIONS;
+    }
 
     const ZONE_STATUS_LABELS = {
         strong: 'Sterk',
@@ -903,8 +1084,10 @@
             return { rows: [], corridors: [], isEmpty: true };
         }
 
-        const rows = SAMSPILL_ZONE_DEFINITIONS.rows.map(zone => analyzeSamspillZone(zone, lineup, options || {}));
-        const corridors = SAMSPILL_ZONE_DEFINITIONS.corridors.map(zone => analyzeSamspillZone(zone, lineup, options || {}));
+        const opts = options || {};
+        const zones = getSamspillZoneDefinitions(opts.formationId);
+        const rows = zones.rows.map(zone => analyzeSamspillZone(zone, lineup, opts));
+        const corridors = zones.corridors.map(zone => analyzeSamspillZone(zone, lineup, opts));
         const isEmpty = rows.every(zone => zone.isEmpty) && corridors.every(zone => zone.isEmpty);
 
         return { rows, corridors, isEmpty };
