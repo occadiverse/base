@@ -83,17 +83,18 @@ function bindMatchListEvents() {
 }
 
 function bindMatchStatsEvents() {
-    const container = document.getElementById('kampdetaljer-spillerbors');
-    if (!container || container.dataset.matchStatEventsBound === 'true') return;
-    container.dataset.matchStatEventsBound = 'true';
+    const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
+    if (!panel || panel.dataset.matchStatEventsBound === 'true') return;
+    panel.dataset.matchStatEventsBound = 'true';
 
-    container.addEventListener('click', (event) => {
+    panel.addEventListener('click', (event) => {
         const actionEl = event.target.closest('[data-match-stat-action]');
         if (!actionEl) return;
 
         const action = actionEl.dataset.matchStatAction;
         if (action === 'bench-toggle') {
             window.toggleBenchOnly(actionEl);
+            window.updateMatchStatsResultBar();
         } else if (action === 'yellow-card') {
             window.toggleCard(actionEl, 'yellow');
         } else if (action === 'red-card') {
@@ -106,17 +107,27 @@ function bindMatchStatsEvents() {
         }
     });
 
-    container.addEventListener('change', (event) => {
+    panel.addEventListener('change', (event) => {
+        if (event.target.matches('.player-goals-input, #match-stats-opponent-goals')) {
+            window.updateMatchStatsResultBar();
+        }
+
         const select = event.target.closest('[data-match-stat-action="rating-select"]');
         if (select) window.updateMatchRatingHint(select);
     });
 
-    container.addEventListener('focusin', (event) => {
+    panel.addEventListener('input', (event) => {
+        if (event.target.matches('#match-stats-opponent-goals')) {
+            window.updateMatchStatsResultBar();
+        }
+    });
+
+    panel.addEventListener('focusin', (event) => {
         const select = event.target.closest('[data-match-stat-action="rating-select"]');
         if (select) window.updateMatchRatingHint(select);
     });
 
-    container.addEventListener('mouseover', (event) => {
+    panel.addEventListener('mouseover', (event) => {
         if (event.target.matches('[data-match-stat-action="rating-select"]')) {
             window.updateMatchRatingHint(event.target);
         }
@@ -736,6 +747,104 @@ function getMatchCardPresentation(match) {
     };
 }
 
+function getMatchScoreParts(match) {
+    const parsed = match?.result ? parseScore(match.result) : null;
+    return {
+        bsk: parsed ? parsed.bsk : 0,
+        opponent: parsed ? parsed.opponent : 0
+    };
+}
+
+function buildMatchResultString(bskGoals, opponentGoals) {
+    const bsk = Math.max(0, Number(bskGoals) || 0);
+    const opponent = Math.max(0, Number(opponentGoals) || 0);
+    return `${bsk}-${opponent}`;
+}
+
+function collectMatchStatsBenchOnlyFromForm() {
+    const benchOnly = {};
+    document.querySelectorAll('.player-bench-btn').forEach(btn => {
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(btn));
+        if (!playerKey) return;
+        benchOnly[playerKey] = btn.getAttribute('data-active') === 'true';
+    });
+    return benchOnly;
+}
+
+function getMatchBskGoalsFromStatsForm() {
+    const benchOnly = collectMatchStatsBenchOnlyFromForm();
+    let total = 0;
+    document.querySelectorAll('.player-goals-input').forEach(input => {
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(input));
+        if (!playerKey || benchOnly[playerKey] === true) return;
+        total += parseInt(input.value, 10) || 0;
+    });
+    return total;
+}
+
+function getMatchStatsOpponentGoalsFromForm(match) {
+    const input = document.getElementById('match-stats-opponent-goals');
+    if (input) {
+        const val = parseInt(input.value, 10);
+        if (!Number.isNaN(val) && val >= 0) return val;
+    }
+    return getMatchScoreParts(match).opponent;
+}
+
+function buildMatchStatsResultBarHtml(match) {
+    const scoreParts = getMatchScoreParts(match);
+    const storedScorerSum = Object.values(match?.scorers || {}).reduce((sum, goals) => sum + (Number(goals) || 0), 0);
+    const bskGoals = storedScorerSum || scoreParts.bsk;
+    const opponentName = (match?.opponent || '').trim() || 'Motstander';
+    const opponentLabel = escapeMatchHtml(opponentName);
+
+    return `
+        <div class="match-stats-result-bar" aria-label="Kampresultat">
+            <div class="match-stats-result-board">
+                <p class="match-stats-result-heading">Kampresultat</p>
+                <div class="match-stats-result-scoreline">
+                    <span class="match-stats-result-team">BSK</span>
+                    <span class="match-stats-result-dash" aria-hidden="true">-</span>
+                    <label class="match-stats-result-team" for="match-stats-opponent-goals" title="${opponentLabel}">${opponentLabel}</label>
+                    <output id="match-stats-bsk-goals" class="match-stats-result-score" aria-live="polite">${bskGoals}</output>
+                    <input
+                        type="number"
+                        id="match-stats-opponent-goals"
+                        class="match-stats-result-score match-stats-result-input"
+                        min="0"
+                        max="99"
+                        inputmode="numeric"
+                        value="${scoreParts.opponent}"
+                        aria-label="${opponentLabel} mål"
+                    >
+                </div>
+                <p class="match-stats-result-hint">BSK-tall summeres fra spillermål</p>
+            </div>
+        </div>
+    `;
+}
+
+window.updateMatchStatsResultBar = function() {
+    const match = (window.activeMatches || []).find(m => m.id === activeDetailsId);
+    if (!match) return;
+
+    const bskGoals = getMatchBskGoalsFromStatsForm();
+    const bskOutput = document.getElementById('match-stats-bsk-goals');
+
+    if (bskOutput) bskOutput.textContent = String(bskGoals);
+};
+
+function syncMatchDetailCardResult(match) {
+    const center = document.querySelector('#kampdetaljer-info .match-detail-center');
+    if (!center) return;
+
+    const data = getMatchCardPresentation(match);
+    const timeEl = center.querySelector('.match-detail-time');
+    const subEl = center.querySelector('.match-detail-sub');
+    if (timeEl) timeEl.textContent = data.centerValue;
+    if (subEl) subEl.textContent = data.centerLabel;
+}
+
 function buildMatchDetailCardHtml(match, options = {}) {
     const {
         extraClass = '',
@@ -780,7 +889,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
         : backOnClick
             ? 'data-match-action="go-back" role="button" tabindex="0" title="Tilbake" aria-label="Tilbake til forrige side"'
             : '';
-
     return `
         <article class="${cardClasses}" ${clickAttrs}>
             ${watermarkHtml}
@@ -4400,6 +4508,7 @@ window.showMatchDetails = function(id) {
             <div class="match-collapsible-content">
                 <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs.</p>
                 <div class="match-stats-body">
+                    ${buildMatchStatsResultBarHtml(match)}
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
                 </div>
@@ -5436,6 +5545,7 @@ window.renderPlayerRowForm = function(match) {
     });
 
     bindMatchStatsEvents();
+    window.updateMatchStatsResultBar();
 };
 
 window.toggleBenchOnly = function(btn) {
@@ -5540,7 +5650,10 @@ window.savePlayerMatchStats = async function() {
     match.motm = motmPlayer && benchOnly[motmPlayer] !== true ? motmPlayer : null;
 
     const totalBskGoals = Object.values(scorers).reduce((sum, g) => sum + g, 0);
-    if (!match.result && totalBskGoals > 0) match.result = `${totalBskGoals}-0`;
+    const opponentGoals = getMatchStatsOpponentGoalsFromForm(match);
+    if (totalBskGoals > 0 || opponentGoals > 0) {
+        match.result = buildMatchResultString(totalBskGoals, opponentGoals);
+    }
 
     const saveBtn = document.querySelector('.match-stats-save-btn');
     const saveLabel = saveBtn?.querySelector('span');
@@ -5562,6 +5675,14 @@ window.savePlayerMatchStats = async function() {
     setMatchDetailFeedback('[data-stats-save-state]', 'Spillerbørs lagret', 'success', 5000);
     if (saveBtn) saveBtn.disabled = false;
     if (saveLabel) saveLabel.textContent = 'Lagre';
+    window.updateMatchStatsResultBar();
+    syncMatchDetailCardResult(match);
+    const card = document.querySelector('#kampdetaljer-info .match-detail-card');
+    if (card) {
+        const data = getMatchCardPresentation(match);
+        card.classList.remove('is-win', 'is-draw', 'is-loss');
+        if (data.resultTone) card.classList.add(data.resultTone);
+    }
     applyFilters();
     if (typeof window.renderStatistikkSide === 'function') window.renderStatistikkSide();
 };

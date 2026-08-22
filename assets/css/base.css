@@ -11786,6 +11786,117 @@
             border-radius: 1rem;
             overflow: visible;
         }
+        .match-stats-result-bar {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.85rem 0.95rem 0.8rem;
+        }
+        .match-stats-result-board {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.9rem;
+            display: grid;
+            gap: 0.55rem;
+            justify-items: center;
+            padding: 0.8rem 0.9rem 0.75rem;
+        }
+        .match-stats-result-heading {
+            color: rgba(245, 197, 66, 0.82);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .match-stats-result-scoreline {
+            align-items: center;
+            column-gap: 0.75rem;
+            display: grid;
+            grid-template-columns: minmax(4.5rem, 1fr) auto minmax(4.5rem, 1fr);
+            grid-template-rows: auto auto;
+            justify-items: center;
+            row-gap: 0.3rem;
+            width: min(100%, 16rem);
+        }
+        .match-stats-result-team {
+            align-self: end;
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.62rem;
+            font-weight: 850;
+            letter-spacing: 0.06em;
+            line-height: 1.1;
+            margin: 0;
+            max-width: 6.5rem;
+            min-height: 0.7rem;
+            overflow: hidden;
+            text-align: center;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .match-stats-result-team[for="match-stats-opponent-goals"] {
+            grid-column: 3;
+            grid-row: 1;
+        }
+        .match-stats-result-team:not([for]) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        .match-stats-result-score {
+            color: #ffffff;
+            display: block;
+            font-size: clamp(1.45rem, 4vw, 1.85rem);
+            font-weight: 950;
+            grid-row: 2;
+            line-height: 1;
+            min-height: 1.85rem;
+            text-align: center;
+        }
+        #match-stats-bsk-goals {
+            grid-column: 1;
+        }
+        #match-stats-opponent-goals {
+            grid-column: 3;
+        }
+        .match-stats-result-dash {
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 1.35rem;
+            font-weight: 900;
+            grid-column: 2;
+            grid-row: 2;
+            line-height: 1;
+        }
+        .match-stats-result-input {
+            appearance: textfield;
+            -moz-appearance: textfield;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.65rem;
+            color: #ffffff;
+            margin: 0;
+            min-height: 0;
+            padding: 0.1rem 0.2rem;
+            width: 3rem;
+        }
+        .match-stats-result-input::-webkit-outer-spin-button,
+        .match-stats-result-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .match-stats-result-input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+            outline: none;
+        }
+        .match-stats-result-hint {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin: 0;
+            text-align: center;
+        }
         .match-stats-list {
             display: grid;
         }

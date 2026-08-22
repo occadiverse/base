@@ -3097,12 +3097,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.openMatchStatsEditor = function(matchId) {
+            window.pendingMatchDetailsOpenPanel = 'spillerbors';
             if (typeof window.showMatchDetails === 'function') {
                 window.showMatchDetails(matchId);
-        
+
                 setTimeout(() => {
                     const section = document.getElementById('kampdetaljer-spillerbors');
-        
+
                     if (section) {
                         section.scrollIntoView({
                             behavior: 'smooth',
