@@ -5492,8 +5492,10 @@ window.renderPlayerRowForm = function(match) {
         div.className = "match-stats-player-row";
         div.innerHTML = `
             <div class="match-stats-player-info">
-                <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
-                ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
+                <div class="match-stats-player-name-row">
+                    <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
+                    ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
+                </div>
                 <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
