@@ -1162,6 +1162,25 @@ function getMatchGamePlanPlayerInitials(player) {
         .toUpperCase() || 'S';
 }
 
+function buildMatchStatsPlayerAvatarHtml(playerObj) {
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(playerObj);
+    const initials = getMatchGamePlanPlayerInitials(playerObj);
+
+    if (photoUrl) {
+        return `
+            <div class="match-stats-player-avatar is-photo" aria-hidden="true">
+                <img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">
+            </div>
+        `;
+    }
+
+    return `
+        <div class="match-stats-player-avatar" aria-hidden="true">
+            <span>${escapeMatchHtml(initials)}</span>
+        </div>
+    `;
+}
+
 function buildMatchGamePlanHeadingAvatarHtml(player, posId) {
     const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
     const fallbackText = player ? getMatchGamePlanPlayerInitials(player) : posId;
@@ -5491,12 +5510,15 @@ window.renderPlayerRowForm = function(match) {
         const div = document.createElement('div');
         div.className = "match-stats-player-row";
         div.innerHTML = `
-            <div class="match-stats-player-info">
-                <div class="match-stats-player-name-row">
-                    <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
-                    ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
+            <div class="match-stats-player-main">
+                ${buildMatchStatsPlayerAvatarHtml(playerObj)}
+                <div class="match-stats-player-info">
+                    <div class="match-stats-player-name-row">
+                        <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
+                        ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
+                    </div>
+                    <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
                 </div>
-                <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
             <div class="match-stats-controls">
                 <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[8px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs">Kun oppmøte</button>

@@ -11910,6 +11910,39 @@
         .match-stats-player-row + .match-stats-player-row {
             border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
+        .match-stats-player-main {
+            align-items: flex-start;
+            display: flex;
+            flex: 1 1 auto;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+        .match-stats-player-avatar {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.32);
+            border-radius: 0.55rem;
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.18);
+            color: #f5c542;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            font-weight: 950;
+            height: 2.65rem;
+            justify-content: center;
+            overflow: hidden;
+            width: 2rem;
+        }
+        .match-stats-player-avatar.is-photo {
+            background: #0b2b4c;
+            padding: 0;
+        }
+        .match-stats-player-avatar img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
         .match-stats-player-info {
             display: grid;
             flex: 1 1 auto;
