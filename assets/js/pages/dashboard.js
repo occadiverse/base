@@ -109,11 +109,16 @@ window.updateDashboard = function() {
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
     
     matches.forEach(m => {
-        const score = window.parseScore(m.result);
-        if (score !== null) {
-            played++; totalGoals += score.bsk;
-            if (score.bsk > score.opponent) wins++;
-            else if (score.bsk === score.opponent) draws++;
+        const regularScore = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(m)
+            : window.parseScore(m.result);
+        const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+            ? window.getMatchOutcomeScore(m)
+            : regularScore;
+        if (regularScore !== null && outcomeScore !== null) {
+            played++; totalGoals += regularScore.bsk;
+            if (outcomeScore.bsk > outcomeScore.opponent) wins++;
+            else if (outcomeScore.bsk === outcomeScore.opponent) draws++;
             else losses++;
         } else upcoming.push(m);
     });

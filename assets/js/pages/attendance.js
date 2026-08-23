@@ -686,7 +686,7 @@ window.updateDailySchedule = function() {
             ? window.getMatchVenue(m)
             : (m.venue || 'Hjemme');
         const resultValue = m.result && typeof window.formatMatchResultForDisplay === 'function'
-            ? window.formatMatchResultForDisplay(m.result, venue)
+            ? window.formatMatchResultForDisplay(m)
             : (m.result || '');
         const timeValue = m.time || '--:--';
         const matchTimeOrResult = resultValue || timeValue;

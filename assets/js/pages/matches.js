@@ -108,8 +108,11 @@ function bindMatchStatsEvents() {
     });
 
     panel.addEventListener('change', (event) => {
-        if (event.target.matches('.player-goals-input, #match-stats-opponent-goals')) {
+        if (event.target.matches('.player-goals-input, #match-stats-opponent-goals, #match-stats-penalties-enabled, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
             window.updateMatchStatsResultBar();
+        }
+        if (event.target.matches('#match-stats-penalties-enabled')) {
+            window.toggleMatchStatsPenaltyFields();
         }
 
         const select = event.target.closest('[data-match-stat-action="rating-select"]');
@@ -117,7 +120,7 @@ function bindMatchStatsEvents() {
     });
 
     panel.addEventListener('input', (event) => {
-        if (event.target.matches('#match-stats-opponent-goals')) {
+        if (event.target.matches('#match-stats-opponent-goals, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
             window.updateMatchStatsResultBar();
         }
     });
@@ -258,15 +261,23 @@ function getMatchFixturePresentation(match) {
         ? dateValue.toLocaleDateString('no-NO', { month: 'long' })
         : 'Ukjent dato';
     const monthNameLabel = monthNameKey.charAt(0).toUpperCase() + monthNameKey.slice(1);
-    const parsedScore = match.result ? parseScore(match.result) : null;
-    const displayedResult = match.result || '-';
+    const parsedScore = typeof window.getMatchRegularScore === 'function'
+        ? window.getMatchRegularScore(match)
+        : (match.result ? parseScore(match.result) : null);
+    const displayedResult = match.result
+        ? (typeof window.formatMatchResultForDisplay === 'function'
+            ? window.formatMatchResultForDisplay(match)
+            : match.result)
+        : '-';
 
-    let resultTone = '';
-    if (parsedScore) {
-        if (parsedScore.bsk > parsedScore.opponent) resultTone = 'is-win';
-        else if (parsedScore.bsk === parsedScore.opponent) resultTone = 'is-draw';
-        else resultTone = 'is-loss';
-    }
+    const resultTone = typeof window.getMatchResultTone === 'function'
+        ? window.getMatchResultTone(match)
+        : (() => {
+            if (!parsedScore) return '';
+            if (parsedScore.bsk > parsedScore.opponent) return 'is-win';
+            if (parsedScore.bsk === parsedScore.opponent) return 'is-draw';
+            return 'is-loss';
+        })();
 
     const metaParts = [];
     if (match.matchType) metaParts.push(match.matchType);
@@ -555,15 +566,20 @@ function getOpponentRecordMatches(currentMatch) {
 
 function getOpponentHistoryRecord(matches) {
     return matches.reduce((record, match) => {
-        const parsedScore = match.result ? parseScore(match.result) : null;
-        if (!parsedScore) {
+        const regularScore = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : (match.result ? parseScore(match.result) : null);
+        const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+            ? window.getMatchOutcomeScore(match)
+            : regularScore;
+        if (!regularScore || !outcomeScore) {
             record.unknown += 1;
             return record;
         }
-        record.goalsFor += parsedScore.bsk;
-        record.goalsAgainst += parsedScore.opponent;
-        if (parsedScore.bsk > parsedScore.opponent) record.wins += 1;
-        else if (parsedScore.bsk === parsedScore.opponent) record.draws += 1;
+        record.goalsFor += regularScore.bsk;
+        record.goalsAgainst += regularScore.opponent;
+        if (outcomeScore.bsk > outcomeScore.opponent) record.wins += 1;
+        else if (outcomeScore.bsk === outcomeScore.opponent) record.draws += 1;
         else record.losses += 1;
         return record;
     }, { wins: 0, draws: 0, losses: 0, unknown: 0, goalsFor: 0, goalsAgainst: 0 });
@@ -573,9 +589,13 @@ function buildMatchOpponentHistoryRowHtml(match, currentMatchId) {
     const data = getMatchFixturePresentation(match);
     const venue = getMatchVenue(match);
     const venueLabel = venue === 'Hjemme' ? 'Hjemme' : 'Borte';
-    const parsedScore = match.result ? parseScore(match.result) : null;
+    const parsedScore = typeof window.getMatchRegularScore === 'function'
+        ? window.getMatchRegularScore(match)
+        : (match.result ? parseScore(match.result) : null);
     const resultLabel = parsedScore
-        ? `${parsedScore.bsk}-${parsedScore.opponent}`
+        ? (typeof window.formatMatchResultForDisplay === 'function'
+            ? window.formatMatchResultForDisplay(match)
+            : `${parsedScore.bsk}-${parsedScore.opponent}`)
         : (match.result || 'Ikke spilt');
     const year = Number.isNaN(new Date(match.date).getTime())
         ? ''
@@ -715,9 +735,17 @@ function getMatchCardPresentation(match) {
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
     const venue = getMatchVenue(match);
-    const parsedScore = match.result ? parseScore(match.result) : null;
-    const centerValue = match.result ? formatMatchResultForDisplay(match.result, venue) : (match.time || '--:--');
-    const centerLabel = match.result ? (match.time ? `Kl. ${match.time}` : 'Sluttresultat') : 'Kampstart';
+    const parsedScore = typeof window.getMatchRegularScore === 'function'
+        ? window.getMatchRegularScore(match)
+        : (match.result ? parseScore(match.result) : null);
+    const centerValue = match.result
+        ? formatMatchResultForDisplay(match)
+        : (match.time || '--:--');
+    const centerLabel = match.result
+        ? (match.penaltyResult
+            ? 'Etter straffespark'
+            : (match.time ? `Kl. ${match.time}` : 'Sluttresultat'))
+        : 'Kampstart';
     const durationLabel = match.duration || '90 min';
     const attendanceStats = typeof window.getAttendancePresenceStats === 'function'
         ? window.getAttendancePresenceStats(match)
@@ -726,9 +754,11 @@ function getMatchCardPresentation(match) {
         ? window.formatAttendancePresenceLabel(match)
         : '';
 
-    let resultTone = '';
+    let resultTone = typeof window.getMatchResultTone === 'function'
+        ? window.getMatchResultTone(match)
+        : '';
 
-    if (parsedScore) {
+    if (!resultTone && parsedScore) {
         if (parsedScore.bsk > parsedScore.opponent) resultTone = 'is-win';
         else if (parsedScore.bsk === parsedScore.opponent) resultTone = 'is-draw';
         else resultTone = 'is-loss';
@@ -791,17 +821,91 @@ function getMatchStatsOpponentGoalsFromForm(match) {
     return getMatchScoreParts(match).opponent;
 }
 
+function getMatchPenaltyScoreParts(match) {
+    const parsed = match?.penaltyResult ? parseScore(match.penaltyResult) : null;
+    return {
+        bsk: parsed ? parsed.bsk : 0,
+        opponent: parsed ? parsed.opponent : 0
+    };
+}
+
+function getPenaltyResultFromStatsForm() {
+    const enabled = document.getElementById('match-stats-penalties-enabled')?.checked;
+    if (!enabled) return '';
+
+    const bsk = parseInt(document.getElementById('match-stats-penalty-bsk')?.value, 10);
+    const opponent = parseInt(document.getElementById('match-stats-penalty-opponent')?.value, 10);
+    if (Number.isNaN(bsk) || Number.isNaN(opponent) || bsk < 0 || opponent < 0) return '';
+    if (bsk === 0 && opponent === 0) return '';
+    return buildMatchResultString(bsk, opponent);
+}
+
+window.toggleMatchStatsPenaltyFields = function() {
+    const enabled = document.getElementById('match-stats-penalties-enabled')?.checked;
+    const scores = document.getElementById('match-stats-penalty-scores');
+    if (scores) scores.hidden = !enabled;
+};
+
 function buildMatchStatsResultBarHtml(match) {
     const scoreParts = getMatchScoreParts(match);
+    const penaltyParts = getMatchPenaltyScoreParts(match);
     const storedScorerSum = Object.values(match?.scorers || {}).reduce((sum, goals) => sum + (Number(goals) || 0), 0);
     const bskGoals = storedScorerSum || scoreParts.bsk;
     const opponentName = (match?.opponent || '').trim() || 'Motstander';
     const opponentLabel = escapeMatchHtml(opponentName);
+    const isCupMatch = match?.matchType === 'Cup';
+    const penaltiesEnabled = Boolean(match?.penaltyResult);
+    const regularHeading = isCupMatch ? 'Sluttresultat' : 'Kampresultat';
+
+    const penaltySectionHtml = isCupMatch
+        ? `
+            <div class="match-stats-penalty-section">
+                <label class="match-stats-penalty-toggle">
+                    <input
+                        type="checkbox"
+                        id="match-stats-penalties-enabled"
+                        ${penaltiesEnabled ? 'checked' : ''}
+                        onchange="window.toggleMatchStatsPenaltyFields()"
+                    >
+                    <span>Avgjort på straffespark</span>
+                </label>
+                <div class="match-stats-penalty-scores" id="match-stats-penalty-scores" ${penaltiesEnabled ? '' : 'hidden'}>
+                    <p class="match-stats-result-heading">Straffespark</p>
+                    <div class="match-stats-result-scoreline">
+                        <span class="match-stats-result-team">BSK</span>
+                        <span class="match-stats-result-dash" aria-hidden="true">-</span>
+                        <label class="match-stats-result-team" for="match-stats-penalty-opponent" title="${opponentLabel}">${opponentLabel}</label>
+                        <input
+                            type="number"
+                            id="match-stats-penalty-bsk"
+                            class="match-stats-result-score match-stats-result-input"
+                            min="0"
+                            max="99"
+                            inputmode="numeric"
+                            value="${penaltyParts.bsk}"
+                            aria-label="BSK straffemål"
+                        >
+                        <input
+                            type="number"
+                            id="match-stats-penalty-opponent"
+                            class="match-stats-result-score match-stats-result-input"
+                            min="0"
+                            max="99"
+                            inputmode="numeric"
+                            value="${penaltyParts.opponent}"
+                            aria-label="${opponentLabel} straffemål"
+                        >
+                    </div>
+                    <p class="match-stats-result-hint">I Obos cup avgjøres uavgjort direkte på straffespark</p>
+                </div>
+            </div>
+        `
+        : '';
 
     return `
         <div class="match-stats-result-bar" aria-label="Kampresultat">
             <div class="match-stats-result-board">
-                <p class="match-stats-result-heading">Kampresultat</p>
+                <p class="match-stats-result-heading">${regularHeading}</p>
                 <div class="match-stats-result-scoreline">
                     <span class="match-stats-result-team">BSK</span>
                     <span class="match-stats-result-dash" aria-hidden="true">-</span>
@@ -819,6 +923,7 @@ function buildMatchStatsResultBarHtml(match) {
                     >
                 </div>
                 <p class="match-stats-result-hint">BSK-tall summeres fra spillermål</p>
+                ${penaltySectionHtml}
             </div>
         </div>
     `;
@@ -4159,6 +4264,31 @@ function setMatchTimeFilter(filterType) {
     applyFilters();
 }
 
+function populateMatchModalPenaltyFields(matchObj) {
+    const penaltyParts = matchObj?.penaltyResult ? parseScore(matchObj.penaltyResult) : null;
+    const decidedByPenalties = document.getElementById('match-decided-by-penalties');
+    const penaltyBsk = document.getElementById('match-penalty-bsk');
+    const penaltyOpponent = document.getElementById('match-penalty-opponent');
+
+    if (decidedByPenalties) decidedByPenalties.checked = Boolean(penaltyParts);
+    if (penaltyBsk) penaltyBsk.value = penaltyParts ? String(penaltyParts.bsk) : '';
+    if (penaltyOpponent) penaltyOpponent.value = penaltyParts ? String(penaltyParts.opponent) : '';
+}
+
+window.toggleMatchModalPenaltyFields = function() {
+    const matchType = document.getElementById('matchType')?.value;
+    const penaltyFields = document.getElementById('match-penalty-fields');
+    const penaltyScoreFields = document.getElementById('match-penalty-score-fields');
+    const decidedByPenalties = document.getElementById('match-decided-by-penalties');
+    const isCup = matchType === 'Cup';
+
+    if (penaltyFields) penaltyFields.classList.toggle('hidden', !isCup);
+    if (!isCup && decidedByPenalties) decidedByPenalties.checked = false;
+    if (penaltyScoreFields) {
+        penaltyScoreFields.classList.toggle('hidden', !isCup || !decidedByPenalties?.checked);
+    }
+};
+
 window.openMatchModal = function(editId = null) {
     const modal = document.getElementById('matchModal');
     const headerAction = document.getElementById('matchModalHeaderAction');
@@ -4187,6 +4317,7 @@ window.openMatchModal = function(editId = null) {
             document.getElementById('matchGroup').value = matchObj.matchGroup || window.getPrimaryTeamName();
             document.getElementById('matchVenue').value = getMatchVenue(matchObj);
             document.getElementById('result').value = matchObj.result || '';
+            populateMatchModalPenaltyFields(matchObj);
         }
     } else {
         document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-calendar-plus text-bsk-yellow"></i> Registrer Ny Kamp`;
@@ -4201,6 +4332,7 @@ window.openMatchModal = function(editId = null) {
         document.getElementById('matchGroup').value = window.getPrimaryTeamName();
     }
 
+    window.toggleMatchModalPenaltyFields();
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 };
@@ -4251,6 +4383,16 @@ window.saveMatch = async function(event) {
         venue: document.getElementById('matchVenue').value.trim(),
         result: document.getElementById('result').value.trim()
     };
+
+    const decidedByPenalties = document.getElementById('match-decided-by-penalties')?.checked;
+    const penaltyBsk = parseInt(document.getElementById('match-penalty-bsk')?.value, 10);
+    const penaltyOpponent = parseInt(document.getElementById('match-penalty-opponent')?.value, 10);
+
+    if (matchData.matchType === 'Cup' && decidedByPenalties && !Number.isNaN(penaltyBsk) && !Number.isNaN(penaltyOpponent)) {
+        matchData.penaltyResult = buildMatchResultString(penaltyBsk, penaltyOpponent);
+    } else {
+        delete matchData.penaltyResult;
+    }
 
     try {
         await window.saveMatchToDatabase(matchData);
@@ -5677,6 +5819,13 @@ window.savePlayerMatchStats = async function() {
     const opponentGoals = getMatchStatsOpponentGoalsFromForm(match);
     if (totalBskGoals > 0 || opponentGoals > 0) {
         match.result = buildMatchResultString(totalBskGoals, opponentGoals);
+    }
+
+    const penaltyResult = getPenaltyResultFromStatsForm();
+    if (penaltyResult) {
+        match.penaltyResult = penaltyResult;
+    } else {
+        delete match.penaltyResult;
     }
 
     const saveBtn = document.querySelector('.match-stats-save-btn');

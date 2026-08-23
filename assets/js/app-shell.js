@@ -566,23 +566,66 @@ function parseScore(resultStr) {
     return { bsk: pts[0], opponent: pts[1] };
 }
 
+function getMatchRegularScore(match) {
+    if (!match?.result) return null;
+    return parseScore(match.result);
+}
+
+function getMatchPenaltyScore(match) {
+    if (!match?.penaltyResult) return null;
+    return parseScore(match.penaltyResult);
+}
+
+function getMatchOutcomeScore(match) {
+    return getMatchPenaltyScore(match) || getMatchRegularScore(match);
+}
+
+function getMatchResultTone(match) {
+    const score = getMatchOutcomeScore(match);
+    if (!score) return '';
+    if (score.bsk > score.opponent) return 'is-win';
+    if (score.bsk === score.opponent) return 'is-draw';
+    return 'is-loss';
+}
+
 function getMatchVenue(match) {
     if (match && match.venue === 'Hjemme') return 'Hjemme';
     if (match && match.venue === 'Borte') return 'Borte';
     return 'Borte';
 }
 
-function formatMatchResultForDisplay(resultStr, venue) {
+function formatMatchResultForDisplay(resultOrMatch, venue) {
+    let resultStr;
+    let penaltyResult;
+    let venueVal;
+
+    if (resultOrMatch && typeof resultOrMatch === 'object') {
+        resultStr = resultOrMatch.result;
+        penaltyResult = resultOrMatch.penaltyResult;
+        venueVal = getMatchVenue(resultOrMatch);
+    } else {
+        resultStr = resultOrMatch;
+        penaltyResult = null;
+        venueVal = venue;
+    }
+
     if (!resultStr) return '-';
 
     const parsedScore = parseScore(resultStr);
     if (!parsedScore) return resultStr;
 
-    if (venue === 'Hjemme') {
-        return `${parsedScore.bsk}-${parsedScore.opponent}`;
-    }
+    const regularDisplay = venueVal === 'Hjemme'
+        ? `${parsedScore.bsk}-${parsedScore.opponent}`
+        : `${parsedScore.opponent}-${parsedScore.bsk}`;
 
-    return `${parsedScore.opponent}-${parsedScore.bsk}`;
+    const penaltyScore = penaltyResult ? parseScore(penaltyResult) : null;
+    if (!penaltyScore) return regularDisplay;
+
+    const penaltyDisplay = venueVal === 'Hjemme'
+        ? `${penaltyScore.bsk}-${penaltyScore.opponent}`
+        : `${penaltyScore.opponent}-${penaltyScore.bsk}`;
+
+    return `${regularDisplay} (${penaltyDisplay} str.)`;
 }
 
 function getMatchCardSides(match) {
@@ -606,7 +649,12 @@ function getMatchCardSides(match) {
     };
 }
 
+window.parseScore = parseScore;
 window.getMatchVenue = getMatchVenue;
+window.getMatchRegularScore = getMatchRegularScore;
+window.getMatchPenaltyScore = getMatchPenaltyScore;
+window.getMatchOutcomeScore = getMatchOutcomeScore;
+window.getMatchResultTone = getMatchResultTone;
 window.formatMatchResultForDisplay = formatMatchResultForDisplay;
 window.getMatchCardSides = getMatchCardSides;
 
@@ -619,11 +667,14 @@ function getFormGuide() {
     const last5 = playedMatches.slice(0, 5).reverse();
 
     return last5.map(m => {
-        const score = parseScore(m.result);
-        if (!score) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Registrert: ${m.result}` };
-        if (score.bsk > score.opponent) return { m, form: 'S', class: 'bg-emerald-500 text-white', text: 'S', tooltip: `Seier vs ${m.opponent} (${m.result})` };
-        if (score.bsk === score.opponent) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result})` };
-        return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result})` };
+        const score = getMatchOutcomeScore(m);
+        const displayResult = typeof formatMatchResultForDisplay === 'function'
+            ? formatMatchResultForDisplay(m)
+            : m.result;
+        if (!score) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Registrert: ${displayResult}` };
+        if (score.bsk > score.opponent) return { m, form: 'S', class: 'bg-emerald-500 text-white', text: 'S', tooltip: `Seier vs ${m.opponent} (${displayResult})` };
+        if (score.bsk === score.opponent) return { m, form: 'U', class: 'bg-amber-400 text-slate-900', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${displayResult})` };
+        return { m, form: 'T', class: 'bg-rose-500 text-white', text: 'T', tooltip: `Tap vs ${m.opponent} (${displayResult})` };
     });
 }
 

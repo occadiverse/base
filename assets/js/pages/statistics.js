@@ -463,11 +463,16 @@ window.checkIndividualChemistry = function() {
             const last5 = matches.slice(0, 5).reverse();
 
             return last5.map(m => {
-                const score = parseScore(m.result);
-                if (!score) return { m, form: 'U', text: 'U', tooltip: `Registrert: ${m.result}` };
-                if (score.bsk > score.opponent) return { m, form: 'S', text: 'S', tooltip: `Seier vs ${m.opponent} (${m.result})` };
-                if (score.bsk === score.opponent) return { m, form: 'U', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${m.result})` };
-                return { m, form: 'T', text: 'T', tooltip: `Tap vs ${m.opponent} (${m.result})` };
+                const score = typeof window.getMatchOutcomeScore === 'function'
+                    ? window.getMatchOutcomeScore(m)
+                    : parseScore(m.result);
+                const displayResult = typeof window.formatMatchResultForDisplay === 'function'
+                    ? window.formatMatchResultForDisplay(m)
+                    : m.result;
+                if (!score) return { m, form: 'U', text: 'U', tooltip: `Registrert: ${displayResult}` };
+                if (score.bsk > score.opponent) return { m, form: 'S', text: 'S', tooltip: `Seier vs ${m.opponent} (${displayResult})` };
+                if (score.bsk === score.opponent) return { m, form: 'U', text: 'U', tooltip: `Uavgjort vs ${m.opponent} (${displayResult})` };
+                return { m, form: 'T', text: 'T', tooltip: `Tap vs ${m.opponent} (${displayResult})` };
             });
         };
 
@@ -557,22 +562,53 @@ window.checkIndividualChemistry = function() {
 
             const activeStats = playerStats.filter(p => p.matches > 0);
 
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const disciplineUpToDate = tomorrow.toISOString().slice(0, 10);
+            const relevantTeams = filterLag && filterLag !== 'Alle'
+                ? [filterLag]
+                : [...new Set(currentPlayers.map(p => p.spillerLag).filter(Boolean))];
+            const disciplineByPlayerKey = new Map();
+
+            relevantTeams.forEach(teamName => {
+                const discipline = typeof window.getDisciplineStatusForTeam === 'function'
+                    ? window.getDisciplineStatusForTeam(teamName, disciplineUpToDate)
+                    : {};
+                Object.entries(discipline).forEach(([key, status]) => {
+                    disciplineByPlayerKey.set(key, status);
+                });
+            });
+
+            const getDisciplineForPlayerName = (name) => {
+                const player = currentPlayers.find(pl => {
+                    const playerName = pl.navn || pl.name || pl.fullName || pl.spiller || '';
+                    return playerName === name;
+                });
+                if (!player) return null;
+                const key = typeof window.getPlayerStorageKey === 'function'
+                    ? window.getPlayerStorageKey(player)
+                    : (player.id || name);
+                return disciplineByPlayerKey.get(key) || null;
+            };
+
             const followUpMap = new Map();
             activeStats.filter(p => p.status !== 'Passiv').forEach(p => {
-                if (!(p.redSerie > 0 || p.yellowSerie >= 3 || (p.formLastFive > 0 && p.formLastFive < 5.5) || p.matches <= 2)) return;
+                const discipline = getDisciplineForPlayerName(p.name);
+                const hasRedSuspension = Boolean(discipline?.isSuspended && discipline?.cardType === 'red');
+                const hasYellowSuspension = Boolean(discipline?.isSuspended && discipline?.cardType === 'yellow');
+                const hasYellowRisk = Boolean(discipline?.isAtRisk && !discipline?.isSuspended);
 
-                    const reason = [];
-                    if (p.redSerie > 0) reason.push('Rødt kort i serie');
-                    if (p.yellowSerie >= 3) {
-                        const hint = typeof window.getSerieYellowDisciplineHint === 'function'
-                            ? window.getSerieYellowDisciplineHint(p.yellowSerie)
-                            : null;
-                        reason.push(hint && hint.isAtRisk
-                            ? `${p.yellowSerie} gule i serie – karantene ved ${hint.nextSuspensionAt}`
-                            : 'Mange gule kort i serie');
-                    }
-                    if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
-                    if (p.matches <= 2) reason.push('Få kamper registrert');
+                if (!(hasRedSuspension || hasYellowSuspension || hasYellowRisk || (p.formLastFive > 0 && p.formLastFive < 5.5) || p.matches <= 2)) return;
+
+                const reason = [];
+                if (hasRedSuspension) reason.push('Rødt kort i serie – karantene');
+                if (hasYellowSuspension) {
+                    reason.push(`${discipline.yellows || discipline.displayNum || 0} gule kort – karantene`);
+                } else if (hasYellowRisk) {
+                    reason.push(`${discipline.yellows} gule i serie – karantene ved ${discipline.nextKaranteneAt || 4}`);
+                }
+                if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
+                if (p.matches <= 2) reason.push('Få kamper registrert');
                 if (reason.length) followUpMap.set(p.name, reason);
             });
 
@@ -667,7 +703,9 @@ window.checkIndividualChemistry = function() {
 
             let conceded = 0;
             playedMatches.forEach(m => {
-                const score = parseScore(m.result);
+                const score = typeof window.getMatchRegularScore === 'function'
+                    ? window.getMatchRegularScore(m)
+                    : parseScore(m.result);
                 if (score) conceded += score.opponent;
             });
 
@@ -720,7 +758,9 @@ window.checkIndividualChemistry = function() {
             const avgFor = (matches) => {
                 if (!matches.length) return null;
                 const sum = matches.reduce((total, m) => {
-                    const score = parseScore(m.result);
+                    const score = typeof window.getMatchRegularScore === 'function'
+                        ? window.getMatchRegularScore(m)
+                        : parseScore(m.result);
                     return total + (score ? score.bsk : 0);
                 }, 0);
                 return Math.round((sum / matches.length) * 10) / 10;
@@ -728,7 +768,9 @@ window.checkIndividualChemistry = function() {
             const avgAgainst = (matches) => {
                 if (!matches.length) return null;
                 const sum = matches.reduce((total, m) => {
-                    const score = parseScore(m.result);
+                    const score = typeof window.getMatchRegularScore === 'function'
+                        ? window.getMatchRegularScore(m)
+                        : parseScore(m.result);
                     return total + (score ? score.opponent : 0);
                 }, 0);
                 return Math.round((sum / matches.length) * 10) / 10;
@@ -763,14 +805,18 @@ window.checkIndividualChemistry = function() {
             };
 
             const latestMatches = [...lastFiveMatches].reverse().map(m => {
-                const score = parseScore(m.result);
+                const score = typeof window.getMatchOutcomeScore === 'function'
+                    ? window.getMatchOutcomeScore(m)
+                    : parseScore(m.result);
                 let form = 'U';
                 if (score && score.bsk > score.opponent) form = 'S';
                 else if (score && score.bsk < score.opponent) form = 'T';
                 return {
                     opponent: m.opponent || 'Motstander',
                     date: m.date || '',
-                    result: m.result || '-',
+                    result: typeof window.formatMatchResultForDisplay === 'function'
+                        ? window.formatMatchResultForDisplay(m)
+                        : (m.result || '-'),
                     form,
                     points: avgTeamMatchPoints(m)
                 };
@@ -862,12 +908,17 @@ window.checkIndividualChemistry = function() {
 
             let wins = 0, draws = 0, losses = 0, goals = 0, conceded = 0;
             filteredMatches.forEach(m => {
-                const score = parseScore(m.result);
-                if (score !== null) {
-                    goals += score.bsk;
-                    conceded += score.opponent;
-                    if (score.bsk > score.opponent) wins++;
-                    else if (score.bsk === score.opponent) draws++;
+                const regularScore = typeof window.getMatchRegularScore === 'function'
+                    ? window.getMatchRegularScore(m)
+                    : parseScore(m.result);
+                const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+                    ? window.getMatchOutcomeScore(m)
+                    : regularScore;
+                if (regularScore && outcomeScore) {
+                    goals += regularScore.bsk;
+                    conceded += regularScore.opponent;
+                    if (outcomeScore.bsk > outcomeScore.opponent) wins++;
+                    else if (outcomeScore.bsk === outcomeScore.opponent) draws++;
                     else losses++;
                 }
             });

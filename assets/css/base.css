@@ -11834,7 +11834,8 @@
             text-transform: uppercase;
             white-space: nowrap;
         }
-        .match-stats-result-team[for="match-stats-opponent-goals"] {
+        .match-stats-result-team[for="match-stats-opponent-goals"],
+        .match-stats-result-team[for="match-stats-penalty-opponent"] {
             grid-column: 3;
             grid-row: 1;
         }
@@ -11856,6 +11857,12 @@
             grid-column: 1;
         }
         #match-stats-opponent-goals {
+            grid-column: 3;
+        }
+        #match-stats-penalty-bsk {
+            grid-column: 1;
+        }
+        #match-stats-penalty-opponent {
             grid-column: 3;
         }
         .match-stats-result-dash {
@@ -11896,6 +11903,33 @@
             letter-spacing: 0.02em;
             margin: 0;
             text-align: center;
+        }
+        .match-stats-penalty-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: grid;
+            gap: 0.55rem;
+            margin-top: 0.15rem;
+            padding-top: 0.7rem;
+            width: 100%;
+        }
+        .match-stats-penalty-toggle {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.78);
+            cursor: pointer;
+            display: inline-flex;
+            font-size: 0.72rem;
+            font-weight: 800;
+            gap: 0.45rem;
+            justify-self: center;
+        }
+        .match-stats-penalty-toggle input {
+            accent-color: #f5c542;
+        }
+        .match-stats-penalty-scores {
+            display: grid;
+            gap: 0.55rem;
+            justify-items: center;
+            width: 100%;
         }
         .match-stats-list {
             display: grid;

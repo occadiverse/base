@@ -674,7 +674,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-1">
                         <label class="portal-label">Kamp-type</label>
-                        <select id="matchType" class="portal-field">
+                        <select id="matchType" class="portal-field" onchange="window.toggleMatchModalPenaltyFields()">
                             <option value="Serie">Serie</option>
                             <option value="Cup">Cup</option>
                             <option value="Treningskamp">Trening</option>
@@ -685,6 +685,24 @@
                         <input type="text" id="result" placeholder="BSK først, f.eks. 2-0" class="portal-field">
                         <p class="text-[10px] text-slate-500 mt-1">Alltid BSK sitt tall først. Eksempel: 2-0 betyr BSK 2, motstander 0.</p>
                     </div>
+                </div>
+
+                <div id="match-penalty-fields" class="hidden space-y-3">
+                    <label class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                        <input type="checkbox" id="match-decided-by-penalties" onchange="window.toggleMatchModalPenaltyFields()">
+                        <span>Avgjort på straffespark</span>
+                    </label>
+                    <div id="match-penalty-score-fields" class="hidden grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="portal-label" for="match-penalty-bsk">BSK straffemål</label>
+                            <input type="number" id="match-penalty-bsk" min="0" max="99" class="portal-field" placeholder="4">
+                        </div>
+                        <div>
+                            <label class="portal-label" for="match-penalty-opponent">Motstander straffemål</label>
+                            <input type="number" id="match-penalty-opponent" min="0" max="99" class="portal-field" placeholder="2">
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-500">I Obos cup går man rett til straffespark ved uavgjort etter ordinær tid.</p>
                 </div>
 
                 <div class="bsk-modal-footer">

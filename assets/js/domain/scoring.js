@@ -202,16 +202,21 @@ window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false
 
     if (onPitch) {
         if (m.result && m.result.includes('-')) {
-            const score = typeof parseScore === 'function' ? parseScore(m.result) : null;
-            if (score) {
-                if (score.bsk > score.opponent) resultBonus += 5;
-                else if (score.bsk === score.opponent) resultBonus += 2;
+            const regularScore = typeof window.getMatchRegularScore === 'function'
+                ? window.getMatchRegularScore(m)
+                : (typeof parseScore === 'function' ? parseScore(m.result) : null);
+            const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+                ? window.getMatchOutcomeScore(m)
+                : regularScore;
+            if (regularScore && outcomeScore) {
+                if (outcomeScore.bsk > outcomeScore.opponent) resultBonus += 5;
+                else if (outcomeScore.bsk === outcomeScore.opponent) resultBonus += 2;
                 else resultBonus -= 2;
 
-                if (score.opponent === 0) resultBonus += 3;
+                if (regularScore.opponent === 0) resultBonus += 3;
 
-                resultBonus += score.bsk * 1;
-                resultBonus -= score.opponent * 1;
+                resultBonus += regularScore.bsk * 1;
+                resultBonus -= regularScore.opponent * 1;
             }
         }
 
