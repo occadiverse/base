@@ -105,6 +105,13 @@ function bindStatisticsEvents() {
             if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
             return;
         }
+        if (action === 'set-kamp-match-type') {
+            const matchType = actionEl.dataset.matchType;
+            if (matchType && typeof window.setStatsKampMatchTypeFilter === 'function') {
+                window.setStatsKampMatchTypeFilter(matchType);
+            }
+            return;
+        }
         if (action === 'toggle-panel') {
             const panelId = actionEl.dataset.panelId;
             if (panelId && typeof window.toggleStatsKampPanel === 'function') {
@@ -215,15 +222,38 @@ window.checkIndividualChemistry = function() {
 
         window.getStatsKampYearFilter = function() {
             const current = window.statsKampYearFilter;
-            if (current === 'alle' || current == null || current === '') return 'alle';
+            if (current === 'alle') return 'alle';
+            if (current == null || current === '') return 2026;
             const year = Number(current);
-            return Number.isFinite(year) ? year : 'alle';
+            return Number.isFinite(year) ? year : 2026;
+        };
+
+        window.getStatsKampMatchTypeFilter = function() {
+            const current = window.statsKampMatchTypeFilter;
+            if (current === 'Cup' || current === 'alle') return current;
+            return 'Serie';
         };
 
         window.matchBelongsToStatsKampYear = function(match) {
             const filter = window.getStatsKampYearFilter();
             if (filter === 'alle') return true;
             return window.getMatchStatsYear(match) === filter;
+        };
+
+        window.matchBelongsToStatsKampMatchType = function(match) {
+            const filter = window.getStatsKampMatchTypeFilter();
+            if (filter === 'alle') return true;
+            return (match?.matchType || 'Serie') === filter;
+        };
+
+        window.matchBelongsToStatsKampFilters = function(match) {
+            if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(match)) {
+                return false;
+            }
+            if (typeof window.matchBelongsToStatsKampMatchType === 'function' && !window.matchBelongsToStatsKampMatchType(match)) {
+                return false;
+            }
+            return true;
         };
 
         window.invalidateStatsSpillerYearOptionsCache = function() {
@@ -259,9 +289,11 @@ window.checkIndividualChemistry = function() {
                 if (!match.result || !String(match.result).includes('-')) return;
                 if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
                 if (filterLag && filterLag !== 'Alle' && match.matchGroup !== filterLag) return;
+                if (typeof window.matchBelongsToStatsKampMatchType === 'function' && !window.matchBelongsToStatsKampMatchType(match)) return;
                 const year = window.getMatchStatsYear(match);
                 if (year) years.add(year);
             });
+            if (!years.has(2026)) years.add(2026);
             return [...years].sort((a, b) => b - a);
         };
 
@@ -323,6 +355,47 @@ window.checkIndividualChemistry = function() {
             return years[0];
         };
 
+        window.renderStatsSeasonFiltersHtml = function() {
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : 2026;
+            const matchTypeFilter = typeof window.getStatsKampMatchTypeFilter === 'function'
+                ? window.getStatsKampMatchTypeFilter()
+                : 'Serie';
+            const years = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [2026];
+
+            return `
+                <div class="stats-season-filter-row">
+                    <label class="stats-season-filter">
+                        <span class="stats-season-filter-label">År</span>
+                        <select
+                            class="portal-field portal-field-sm stats-season-filter-select"
+                            aria-label="Filtrer kamper etter år"
+                            onchange="window.setStatsKampYearFilter(this.value)"
+                        >
+                            ${years.map(year => `
+                                <option value="${year}" ${yearFilter === year ? 'selected' : ''}>${year}</option>
+                            `).join('')}
+                        </select>
+                    </label>
+                    <label class="stats-season-filter">
+                        <span class="stats-season-filter-label">Type</span>
+                        <select
+                            class="portal-field portal-field-sm stats-season-filter-select"
+                            aria-label="Filtrer kamper etter type"
+                            onchange="window.setStatsKampMatchTypeFilter(this.value)"
+                        >
+                            <option value="Serie" ${matchTypeFilter === 'Serie' ? 'selected' : ''}>Serie</option>
+                            <option value="Cup" ${matchTypeFilter === 'Cup' ? 'selected' : ''}>Cup</option>
+                            <option value="alle" ${matchTypeFilter === 'alle' ? 'selected' : ''}>Alle</option>
+                        </select>
+                    </label>
+                </div>
+            `;
+        };
+
         window.renderStatsYearFilterHtml = function(ariaLabel, yearOptions, selectedYear, options = {}) {
             const includeAlle = options.includeAlle !== false;
             const yearFilter = selectedYear !== undefined
@@ -366,11 +439,20 @@ window.checkIndividualChemistry = function() {
             const next = year === 'alle' || year == null || year === ''
                 ? 'alle'
                 : Number(year);
-            window.statsKampYearFilter = Number.isFinite(next) ? next : 'alle';
+            window.statsKampYearFilter = Number.isFinite(next) ? next : 2026;
             window.pendingKampstatMatchId = null;
             if (typeof window.invalidateStatsSpillerYearOptionsCache === 'function') {
                 window.invalidateStatsSpillerYearOptionsCache();
             }
+            if (typeof window.renderStatistikkSide === 'function') {
+                window.renderStatistikkSide();
+            }
+        };
+
+        window.setStatsKampMatchTypeFilter = function(matchType) {
+            const next = matchType === 'Cup' || matchType === 'alle' ? matchType : 'Serie';
+            window.statsKampMatchTypeFilter = next;
+            window.pendingKampstatMatchId = null;
             if (typeof window.renderStatistikkSide === 'function') {
                 window.renderStatistikkSide();
             }
@@ -696,7 +778,7 @@ window.checkIndividualChemistry = function() {
                     if (!m.result || !m.result.includes('-')) return false;
                     if (teamFilterActive && m.matchGroup !== filterLag) return false;
                     if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
-                    if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(m)) return false;
+                    if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(m)) return false;
                     return true;
                 })
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -902,7 +984,7 @@ window.checkIndividualChemistry = function() {
                 if (!m.result || !m.result.includes('-')) return false;
                 if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
                 if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
-                if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(m)) return false;
+                if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(m)) return false;
                 return true;
             });
 
@@ -1632,16 +1714,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
             const yearFilter = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
-                : 'alle';
-            const yearFilterHtml = typeof window.renderStatsYearFilterHtml === 'function'
-                ? window.renderStatsYearFilterHtml('Filtrer kamper etter år')
+                : 2026;
+            const matchTypeFilter = typeof window.getStatsKampMatchTypeFilter === 'function'
+                ? window.getStatsKampMatchTypeFilter()
+                : 'Serie';
+            const seasonFilterHtml = typeof window.renderStatsSeasonFiltersHtml === 'function'
+                ? window.renderStatsSeasonFiltersHtml()
                 : '';
-            const kampHint = yearFilter === 'alle'
-                ? 'Resultater og mål fra alle spilte kamper med registrert resultat.'
-                : `Resultater og mål fra spilte kamper i ${yearFilter}.`;
-            const utviklingHint = yearFilter === 'alle'
-                ? 'Sammenligner siste 5 kamper med snittet for alle spilte kamper.'
-                : `Sammenligner siste 5 kamper i ${yearFilter} med snittet for ${yearFilter}.`;
+            const matchTypeHint = matchTypeFilter === 'alle'
+                ? 'alle kamptyper'
+                : matchTypeFilter.toLowerCase();
+            const kampHint = `Resultater og mål fra spilte ${matchTypeHint}-kamper i ${yearFilter}.`;
+            const utviklingHint = `Sammenligner siste 5 ${matchTypeHint}-kamper i ${yearFilter} med snittet for ${yearFilter}.`;
+            const seasonBadge = matchTypeFilter === 'Serie'
+                ? String(yearFilter)
+                : `${yearFilter} · ${matchTypeFilter === 'alle' ? 'Alle' : matchTypeFilter}`;
             const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
                     <i class="fa-solid ${icon}" aria-hidden="true"></i>
@@ -1653,12 +1740,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const kampdataPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'kampdata',
                 title: 'Sesong',
-                badge: yearFilter === 'alle' ? 'Alle' : yearFilter,
+                badge: seasonBadge,
                 showLabel: 'Vis sesong',
                 hideLabel: 'Skjul sesong',
                 content: `
                     <p class="stats-kamp-panel-hint">${kampHint}</p>
-                    ${yearFilterHtml}
+                    ${seasonFilterHtml}
                     <div class="stats-analysis-strip">
                         ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days', 'spilte kamper')}
                         ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'seier - uavgjort - tap')}
@@ -2790,7 +2877,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     if (!m.result || !m.result.includes('-')) return false;
                     if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
                     if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
-                    if (typeof window.matchBelongsToStatsKampYear === 'function' && !window.matchBelongsToStatsKampYear(m)) return false;
+                    if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(m)) return false;
                     return true;
                 })
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -3067,11 +3154,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     <p class="stats-panel-subtitle">Poeng og hendelser for de som var registrert med oppmøte.</p>
                                 </div>
                                 <div class="stats-kampdata-panel-actions">
-                                    <button type="button" data-stat-action="open-form-info" class="portal-btn portal-btn-icon-sm portal-btn-secondary" title="Slik regnes form" aria-label="Slik regnes form">
-                                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                                    </button>
-                                    <button type="button" data-stat-action="edit-match" data-match-id="${escapeStatisticsHtml(match.id)}" title="Rediger mål, assist, kort og spillerbørs" aria-label="Rediger kampdata" class="portal-btn portal-btn-icon-sm portal-btn-warning">
-                                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                    <button
+                                        type="button"
+                                        data-stat-action="open-form-info"
+                                        class="roster-status-btn stats-chrome-info-btn"
+                                        title="Slik regnes kampbidrag"
+                                        aria-label="Slik regnes kampbidrag"
+                                    >
+                                        <i class="fa-solid fa-circle-info"></i>
                                     </button>
                                 </div>
                             </div>

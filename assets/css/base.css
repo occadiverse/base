@@ -1833,10 +1833,10 @@
             padding: clamp(0.08rem, 0.55cqi, 0.12rem) clamp(0.06rem, 0.45cqi, 0.08rem) clamp(0.07rem, 0.42cqi, 0.11rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
-            --badge-size: clamp(0.84rem, 4.9cqi, 1.22rem);
+            --badge-size: clamp(1.25rem, 7.5cqi, 1.85rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
-            font-size: clamp(0.34rem, 1.75cqi, 0.48rem);
+            font-size: clamp(0.52rem, 2.7cqi, 0.74rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual > span:not(.match-game-plan-lineup-photo):not(.match-game-plan-lineup-empty-slot):not(.match-game-plan-lineup-photo-area) {
             font-size: 0.38rem;
@@ -6332,6 +6332,42 @@
         .stats-board-card .stats-kamp-collapsible-panel .stats-kamp-year-filter {
             margin-top: 0;
         }
+        .stats-board-card .stats-season-filter-row {
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 0;
+        }
+        .stats-board-card .stats-season-filter {
+            display: grid;
+            gap: 0.28rem;
+            min-width: 0;
+        }
+        .stats-board-card .stats-season-filter-label {
+            color: rgba(245, 197, 66, 0.82);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .stats-board-card .stats-season-filter-select {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            font-size: 0.78rem;
+            font-weight: 800;
+            min-height: 2.15rem;
+            width: 100%;
+        }
+        .stats-board-card .stats-season-filter-select option {
+            background: #0b2b4c;
+            color: #ffffff;
+        }
+        .stats-board-card .stats-season-filter-select:focus {
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+            outline: none;
+        }
         .stats-board-card .stats-kamp-collapsible-panel .stats-lag-kampdata-detail {
             min-width: 0;
         }
@@ -9751,11 +9787,11 @@
             width: 100%;
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge {
-            --badge-size: clamp(1.15rem, 30cqw, 1.7rem);
+            --badge-size: clamp(1.65rem, 42cqw, 2.45rem);
             z-index: 2;
         }
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-label {
-            font-size: clamp(0.46rem, 12cqw, 0.68rem);
+            font-size: clamp(0.66rem, 17cqw, 0.96rem);
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch {
             border-color: rgba(245, 197, 66, 0.7);
@@ -10330,7 +10366,7 @@
             width: 100%;
         }
         .match-game-plan-lineup-pos-badge {
-            --badge-size: 1.22rem;
+            --badge-size: 1.85rem;
             background: var(--lineup-card-surface, #ffffff);
             border: 0;
             border-top-left-radius: 100%;
@@ -10345,7 +10381,7 @@
         }
         .match-game-plan-lineup-pos-badge-label {
             color: #000000;
-            font-size: 0.48rem;
+            font-size: 0.74rem;
             font-weight: 950;
             left: 57%;
             letter-spacing: 0.01em;
@@ -13300,10 +13336,10 @@
                 padding: 0.1rem 0.08rem 0.09rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
-                --badge-size: 0.96rem;
+                --badge-size: 1.45rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
-                font-size: 0.38rem;
+                font-size: 0.56rem;
             }
             .match-bench-group {
                 gap: 0.38rem;
