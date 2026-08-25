@@ -1838,6 +1838,12 @@
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
             font-size: clamp(0.52rem, 2.7cqi, 0.74rem);
         }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-injury {
+            font-size: clamp(0.3rem, 1.6cqi, 0.42rem);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge.is-injury-only .match-game-plan-lineup-pos-badge-injury {
+            font-size: clamp(0.44rem, 2.4cqi, 0.62rem);
+        }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual > span:not(.match-game-plan-lineup-photo):not(.match-game-plan-lineup-empty-slot):not(.match-game-plan-lineup-photo-area) {
             font-size: 0.38rem;
         }
@@ -9793,6 +9799,12 @@
         .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-label {
             font-size: clamp(0.66rem, 17cqw, 0.96rem);
         }
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-injury {
+            font-size: clamp(0.38rem, 10cqw, 0.55rem);
+        }
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge.is-injury-only .match-game-plan-lineup-pos-badge-injury {
+            font-size: clamp(0.58rem, 15cqw, 0.82rem);
+        }
         .match-detail-squad-list .match-bench-player.is-on-pitch {
             border-color: rgba(245, 197, 66, 0.7);
             box-shadow:
@@ -9802,9 +9814,15 @@
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge {
             background: #2fa86d;
         }
+        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured {
+            background: #dc2626;
+        }
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-visual .match-game-plan-lineup-pos-badge-label {
             color: #ffffff;
             text-shadow: 0 1px 1px rgba(15, 23, 42, 0.35);
+        }
+        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured .match-game-plan-lineup-pos-badge-label {
+            color: #ffffff;
         }
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo img,
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo i {
@@ -10379,6 +10397,9 @@
             width: var(--badge-size);
             z-index: 2;
         }
+        .match-game-plan-lineup-pos-badge.is-injured {
+            background: #dc2626;
+        }
         .match-game-plan-lineup-pos-badge-label {
             color: #000000;
             font-size: 0.74rem;
@@ -10390,6 +10411,25 @@
             top: 57%;
             transform: translate(-50%, -50%);
             white-space: nowrap;
+        }
+        .match-game-plan-lineup-pos-badge.is-injured .match-game-plan-lineup-pos-badge-label {
+            color: #ffffff;
+            left: 58%;
+            top: 64%;
+            text-shadow: 0 1px 1px rgba(15, 23, 42, 0.35);
+        }
+        .match-game-plan-lineup-pos-badge-injury {
+            color: #ffffff;
+            font-size: 0.42rem;
+            left: 58%;
+            line-height: 1;
+            position: absolute;
+            top: 38%;
+            transform: translate(-50%, -50%);
+        }
+        .match-game-plan-lineup-pos-badge.is-injury-only .match-game-plan-lineup-pos-badge-injury {
+            font-size: 0.62rem;
+            top: 57%;
         }
         .match-game-plan-lineup-empty-slot {
             background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
@@ -10508,7 +10548,7 @@
             padding: 0.13rem 0.08rem 0.11rem;
             white-space: nowrap;
         }
-        .match-game-plan-lineup-visual span:not(.match-game-plan-lineup-photo):not(.match-game-plan-lineup-photo-area):not(.match-game-plan-lineup-card-overlays):not(.match-game-plan-lineup-card-overlay):not(.match-game-plan-lineup-card-overlay-start):not(.match-game-plan-lineup-card-overlay-sep):not(.match-game-plan-lineup-card-overlay-bench):not(.match-game-plan-lineup-pos-badge):not(.match-game-plan-lineup-pos-badge-label) {
+        .match-game-plan-lineup-visual span:not(.match-game-plan-lineup-photo):not(.match-game-plan-lineup-photo-area):not(.match-game-plan-lineup-card-overlays):not(.match-game-plan-lineup-card-overlay):not(.match-game-plan-lineup-card-overlay-start):not(.match-game-plan-lineup-card-overlay-sep):not(.match-game-plan-lineup-card-overlay-bench):not(.match-game-plan-lineup-pos-badge):not(.match-game-plan-lineup-pos-badge-label):not(.match-game-plan-lineup-pos-badge-injury) {
             color: #64748b;
             display: block;
             font-size: 0.48rem;
