@@ -6344,35 +6344,128 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             margin-top: 0;
         }
-        .stats-board-card .stats-season-filter {
+        .stats-board-card .stats-season-filter-row-inline {
+            display: contents;
+        }
+        .stats-board-card .stats-lag-filters {
+            align-items: stretch;
             display: grid;
-            gap: 0.28rem;
+            gap: 0.45rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             min-width: 0;
         }
-        .stats-board-card .stats-season-filter-label {
-            color: rgba(245, 197, 66, 0.82);
-            font-size: 0.58rem;
-            font-weight: 900;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+        .stats-board-card .stats-filter-menu {
+            min-width: 0;
+            position: relative;
+            width: 100%;
+            z-index: 6;
         }
-        .stats-board-card .stats-season-filter-select {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.18);
+        .stats-board-card .stats-filter-menu.is-open {
+            z-index: 24;
+        }
+        .stats-board-card .stats-filter-trigger {
+            align-items: center;
+            appearance: none;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.8rem;
+            box-shadow: 0 5px 12px rgba(2, 6, 23, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
             color: #ffffff;
-            font-size: 0.78rem;
-            font-weight: 800;
-            min-height: 2.15rem;
+            cursor: pointer;
+            display: inline-flex;
+            font-family: inherit;
+            font-size: 0.66rem;
+            font-weight: 900;
+            gap: 0.35rem;
+            height: 2.45rem;
+            justify-content: center;
+            letter-spacing: 0.05em;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            padding: 0.5rem 0.7rem;
+            text-transform: none;
+            transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
             width: 100%;
         }
-        .stats-board-card .stats-season-filter-select option {
-            background: #0b2b4c;
+        .stats-board-card .stats-filter-trigger:hover {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-color: rgba(245, 197, 66, 0.42);
+            transform: translateY(-1px);
+        }
+        .stats-board-card .stats-filter-menu.is-open .stats-filter-trigger {
+            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
+            border-color: rgba(245, 197, 66, 0.9);
+            box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            color: #0b2b4c;
+            transform: none;
+        }
+        .stats-board-card .stats-filter-trigger-value {
+            color: inherit;
+            font-size: 0.66rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+        .stats-board-card .stats-filter-trigger-chevron {
+            color: #f5c542;
+            font-size: 0.58rem;
+            transition: transform 140ms ease, color 140ms ease;
+        }
+        .stats-board-card .stats-filter-menu.is-open .stats-filter-trigger-chevron {
+            color: #0b2b4c;
+            transform: rotate(180deg);
+        }
+        .stats-board-card .stats-filter-dropdown {
+            background:
+                linear-gradient(180deg, rgba(18, 63, 115, 0.98) 0%, rgba(11, 43, 76, 0.98) 100%);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.85rem;
+            box-shadow: 0 14px 32px rgba(2, 6, 23, 0.36);
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            left: 0;
+            margin-top: 0.35rem;
+            min-width: 100%;
+            padding: 0.32rem;
+            position: absolute;
+            top: 100%;
+            z-index: 20;
+        }
+        .stats-board-card .stats-filter-dropdown[hidden] {
+            display: none;
+        }
+        .stats-board-card .stats-filter-option {
+            appearance: none;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 0.65rem;
+            color: rgba(255, 255, 255, 0.78);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            min-height: 2rem;
+            padding: 0.46rem 0.72rem;
+            text-align: left;
+            transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+            white-space: nowrap;
+        }
+        .stats-board-card .stats-filter-option:hover {
+            background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
         }
-        .stats-board-card .stats-season-filter-select:focus {
-            border-color: rgba(245, 197, 66, 0.42);
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
-            outline: none;
+        .stats-board-card .stats-filter-option.is-active {
+            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
+            border-color: rgba(245, 197, 66, 0.9);
+            color: #0b2b4c;
+        }
+        .stats-board-card .stats-filter-option.is-active:hover {
+            background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
+            color: #0b2b4c;
         }
         .stats-board-card .stats-kamp-collapsible-panel .stats-lag-kampdata-detail {
             min-width: 0;

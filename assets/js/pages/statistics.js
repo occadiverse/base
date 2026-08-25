@@ -65,7 +65,12 @@ function bindStatisticsEvents() {
         }
 
         const actionEl = event.target.closest('[data-stat-action]');
-        if (!actionEl || actionEl.disabled) return;
+        if (!actionEl || actionEl.disabled) {
+            if (!event.target.closest('[data-stats-filter-menu]') && typeof window.closeStatsFilterMenus === 'function') {
+                window.closeStatsFilterMenus();
+            }
+            return;
+        }
 
         const action = actionEl.dataset.statAction;
         if (action === 'open-player') {
@@ -109,6 +114,13 @@ function bindStatisticsEvents() {
             const matchType = actionEl.dataset.matchType;
             if (matchType && typeof window.setStatsKampMatchTypeFilter === 'function') {
                 window.setStatsKampMatchTypeFilter(matchType);
+            }
+            return;
+        }
+        if (action === 'toggle-stats-filter-menu') {
+            event.preventDefault();
+            if (typeof window.toggleStatsFilterMenu === 'function') {
+                window.toggleStatsFilterMenu(actionEl.closest('[data-stats-filter-menu]'));
             }
             return;
         }
@@ -221,11 +233,14 @@ window.checkIndividualChemistry = function() {
         };
 
         window.getStatsKampYearFilter = function() {
+            const years = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [];
             const current = window.statsKampYearFilter;
             if (current === 'alle') return 'alle';
-            if (current == null || current === '') return 2026;
             const year = Number(current);
-            return Number.isFinite(year) ? year : 2026;
+            if (Number.isFinite(year) && years.includes(year)) return year;
+            return years.length ? years[0] : new Date().getFullYear();
         };
 
         window.getStatsKampMatchTypeFilter = function() {
@@ -259,6 +274,8 @@ window.checkIndividualChemistry = function() {
         window.invalidateStatsSpillerYearOptionsCache = function() {
             window._statsSpillerYearOptionsCache = null;
             window._statsSpillerYearOptionsCacheKey = '';
+            window._statsKampYearOptionsCache = null;
+            window._statsKampYearOptionsCacheKey = '';
         };
 
         window.activityBelongsToStatsYear = function(activity, yearFilter) {
@@ -282,19 +299,59 @@ window.checkIndividualChemistry = function() {
             return true;
         };
 
+        window.activityHasAttendanceData = function(item) {
+            if (!item) return false;
+            if (typeof window.getAttendingPlayerRefs === 'function') {
+                return window.getAttendingPlayerRefs(item.attendance).length > 0;
+            }
+            if (item.attendance && typeof item.attendance === 'object') {
+                return Object.values(item.attendance).some(value => value === true || value === 'true');
+            }
+            return false;
+        };
+
         window.getStatsKampYearOptions = function() {
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
+            const cacheKey = String(filterLag || 'Alle');
+            if (
+                window._statsKampYearOptionsCache
+                && window._statsKampYearOptionsCacheKey === cacheKey
+            ) {
+                return window._statsKampYearOptionsCache;
+            }
+
             const years = new Set();
-            (window.activeMatches || []).forEach(match => {
-                if (!match.result || !String(match.result).includes('-')) return;
-                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
-                if (filterLag && filterLag !== 'Alle' && match.matchGroup !== filterLag) return;
-                if (typeof window.matchBelongsToStatsKampMatchType === 'function' && !window.matchBelongsToStatsKampMatchType(match)) return;
-                const year = window.getMatchStatsYear(match);
+            const addYear = (item, teamName) => {
+                if (!item) return;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(item)) return;
+                if (filterLag && filterLag !== 'Alle' && teamName && teamName !== filterLag) return;
+                const year = window.getMatchStatsYear(item);
                 if (year) years.add(year);
+            };
+
+            (window.activeMatches || []).forEach(match => {
+                const hasResult = Boolean(match?.result && String(match.result).includes('-'));
+                const hasStats = typeof window.activityHasPlayerStats === 'function'
+                    && window.activityHasPlayerStats(match);
+                const hasAttendance = typeof window.activityHasAttendanceData === 'function'
+                    && window.activityHasAttendanceData(match);
+                if (!hasResult && !hasStats && !hasAttendance) return;
+                addYear(match, match.matchGroup);
             });
-            if (!years.has(2026)) years.add(2026);
-            return [...years].sort((a, b) => b - a);
+
+            (window.activeEvents || []).forEach(event => {
+                const hasStats = typeof window.activityHasPlayerStats === 'function'
+                    && window.activityHasPlayerStats(event);
+                const hasAttendance = typeof window.activityHasAttendanceData === 'function'
+                    && window.activityHasAttendanceData(event);
+                if (!hasStats && !hasAttendance) return;
+                addYear(event, event.team);
+            });
+
+            const result = [...years].sort((a, b) => b - a);
+            window._statsKampYearOptionsCache = result;
+            window._statsKampYearOptionsCacheKey = cacheKey;
+            return result;
         };
 
         window.activityHasPlayerStats = function(item) {
@@ -355,43 +412,149 @@ window.checkIndividualChemistry = function() {
             return years[0];
         };
 
+        window.closeStatsFilterMenus = function(exceptMenu = null) {
+            document.querySelectorAll('[data-stats-filter-menu].is-open').forEach(menu => {
+                if (exceptMenu && menu === exceptMenu) return;
+                menu.classList.remove('is-open');
+                const trigger = menu.querySelector('[data-stat-action="toggle-stats-filter-menu"]');
+                const panel = menu.querySelector('[data-stats-filter-menu-panel]');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                if (panel) panel.hidden = true;
+            });
+        };
+
+        window.toggleStatsFilterMenu = function(menu) {
+            if (!menu) return;
+            const isOpen = menu.classList.contains('is-open');
+            window.closeStatsFilterMenus();
+            if (isOpen) return;
+
+            menu.classList.add('is-open');
+            const trigger = menu.querySelector('[data-stat-action="toggle-stats-filter-menu"]');
+            const panel = menu.querySelector('[data-stats-filter-menu-panel]');
+            if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            if (panel) panel.hidden = false;
+        };
+
+        window.renderStatsFilterMenuHtml = function({
+            menuId,
+            ariaLabel,
+            valueLabel,
+            options,
+            action,
+            valueAttr
+        }) {
+            return `
+                <div class="stats-filter-menu" data-stats-filter-menu="${escapeStatisticsHtml(menuId)}">
+                    <button
+                        type="button"
+                        class="stats-filter-trigger"
+                        data-stat-action="toggle-stats-filter-menu"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="${escapeStatisticsHtml(ariaLabel)}, valgt ${escapeStatisticsHtml(valueLabel)}"
+                    >
+                        <span class="stats-filter-trigger-value">${escapeStatisticsHtml(valueLabel)}</span>
+                        <i class="fa-solid fa-chevron-down stats-filter-trigger-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="stats-filter-dropdown" role="listbox" aria-label="${escapeStatisticsHtml(ariaLabel)}" hidden data-stats-filter-menu-panel>
+                        ${options.map(option => `
+                            <button
+                                type="button"
+                                class="stats-filter-option ${option.selected ? 'is-active' : ''}"
+                                role="option"
+                                aria-selected="${option.selected ? 'true' : 'false'}"
+                                data-stat-action="${escapeStatisticsHtml(action)}"
+                                data-${escapeStatisticsHtml(valueAttr)}="${escapeStatisticsHtml(option.value)}"
+                            >${escapeStatisticsHtml(option.label)}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        };
+
         window.renderStatsSeasonFiltersHtml = function() {
+            const years = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [];
             const yearFilter = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
-                : 2026;
+                : (years[0] || new Date().getFullYear());
             const matchTypeFilter = typeof window.getStatsKampMatchTypeFilter === 'function'
                 ? window.getStatsKampMatchTypeFilter()
                 : 'Serie';
-            const years = typeof window.getStatsKampYearOptions === 'function'
-                ? window.getStatsKampYearOptions()
-                : [2026];
+            const matchTypeLabel = matchTypeFilter === 'alle' ? 'Alle' : matchTypeFilter;
+            const yearMenuHtml = years.length
+                ? window.renderStatsFilterMenuHtml({
+                    menuId: 'year',
+                    ariaLabel: 'Filtrer etter sesong',
+                    valueLabel: String(yearFilter),
+                    action: 'set-kamp-year',
+                    valueAttr: 'year',
+                    options: years.map(year => ({
+                        value: String(year),
+                        label: String(year),
+                        selected: yearFilter === year
+                    }))
+                })
+                : '';
 
             return `
-                <div class="stats-season-filter-row">
-                    <label class="stats-season-filter">
-                        <span class="stats-season-filter-label">År</span>
-                        <select
-                            class="portal-field portal-field-sm stats-season-filter-select"
-                            aria-label="Filtrer kamper etter år"
-                            onchange="window.setStatsKampYearFilter(this.value)"
-                        >
-                            ${years.map(year => `
-                                <option value="${year}" ${yearFilter === year ? 'selected' : ''}>${year}</option>
-                            `).join('')}
-                        </select>
-                    </label>
-                    <label class="stats-season-filter">
-                        <span class="stats-season-filter-label">Type</span>
-                        <select
-                            class="portal-field portal-field-sm stats-season-filter-select"
-                            aria-label="Filtrer kamper etter type"
-                            onchange="window.setStatsKampMatchTypeFilter(this.value)"
-                        >
-                            <option value="Serie" ${matchTypeFilter === 'Serie' ? 'selected' : ''}>Serie</option>
-                            <option value="Cup" ${matchTypeFilter === 'Cup' ? 'selected' : ''}>Cup</option>
-                            <option value="alle" ${matchTypeFilter === 'alle' ? 'selected' : ''}>Alle</option>
-                        </select>
-                    </label>
+                ${yearMenuHtml}
+                ${window.renderStatsFilterMenuHtml({
+                    menuId: 'match-type',
+                    ariaLabel: 'Filtrer kamper etter type',
+                    valueLabel: matchTypeLabel,
+                    action: 'set-kamp-match-type',
+                    valueAttr: 'match-type',
+                    options: [
+                        { value: 'Serie', label: 'Serie', selected: matchTypeFilter === 'Serie' },
+                        { value: 'Cup', label: 'Cup', selected: matchTypeFilter === 'Cup' },
+                        { value: 'alle', label: 'Alle', selected: matchTypeFilter === 'alle' }
+                    ]
+                })}
+            `;
+        };
+
+        window.renderStatsSectionFilterHtml = function() {
+            const activeSection = typeof window.getStatsLagSection === 'function'
+                ? window.getStatsLagSection()
+                : 'kampdata';
+            const sections = Array.isArray(window.statsLagSections)
+                ? window.statsLagSections
+                : [
+                    { id: 'kampdata', label: 'Kamp' },
+                    { id: 'spillerdata', label: 'Spiller' },
+                    { id: 'treningsdata', label: 'Trening' }
+                ];
+            const activeLabel = sections.find(section => section.id === activeSection)?.label || 'Kamp';
+
+            return window.renderStatsFilterMenuHtml({
+                menuId: 'section',
+                ariaLabel: 'Velg statistikkseksjon',
+                valueLabel: activeLabel,
+                action: 'set-lag-section',
+                valueAttr: 'section-id',
+                options: sections.map(section => ({
+                    value: section.id,
+                    label: section.label,
+                    selected: activeSection === section.id
+                }))
+            });
+        };
+
+        window.renderStatsLagFiltersHtml = function() {
+            const sectionFilterHtml = typeof window.renderStatsSectionFilterHtml === 'function'
+                ? window.renderStatsSectionFilterHtml()
+                : '';
+            const seasonFilterHtml = typeof window.renderStatsSeasonFiltersHtml === 'function'
+                ? window.renderStatsSeasonFiltersHtml()
+                : '';
+
+            return `
+                <div class="stats-lag-filters" aria-label="Statistikkfiltre">
+                    ${sectionFilterHtml}
+                    ${seasonFilterHtml}
                 </div>
             `;
         };
@@ -436,10 +599,19 @@ window.checkIndividualChemistry = function() {
         };
 
         window.setStatsKampYearFilter = function(year) {
+            const availableYears = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [];
             const next = year === 'alle' || year == null || year === ''
                 ? 'alle'
                 : Number(year);
-            window.statsKampYearFilter = Number.isFinite(next) ? next : 2026;
+            if (next === 'alle') {
+                window.statsKampYearFilter = 'alle';
+            } else if (Number.isFinite(next) && availableYears.includes(next)) {
+                window.statsKampYearFilter = next;
+            } else {
+                window.statsKampYearFilter = availableYears.length ? availableYears[0] : new Date().getFullYear();
+            }
             window.pendingKampstatMatchId = null;
             if (typeof window.invalidateStatsSpillerYearOptionsCache === 'function') {
                 window.invalidateStatsSpillerYearOptionsCache();
@@ -1399,12 +1571,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderStatsHeroTabsHtml = function(activeTabId) {
-            const showTeamForm = activeTabId === 'lag' && window._statsLagData;
-            const teamFormHtml = showTeamForm
-                ? window.renderStatsTeamFormPillsHtml(window._statsLagData.filterLag)
-                : '';
-
+        window.renderStatsHeroTabsHtml = function() {
             return `
                 <div class="stats-hero-tabs stats-hero-tabs-info-only">
                     <div class="roster-status-filter stats-hero-tablist stats-hero-tablist-info-only" aria-label="Statistikkvalg">
@@ -1418,7 +1585,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <i class="fa-solid fa-circle-info"></i>
                         </button>
                     </div>
-                    ${teamFormHtml}
                 </div>
             `;
         };
@@ -1714,13 +1880,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
             const yearFilter = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
-                : 2026;
+                : (typeof window.getStatsKampYearOptions === 'function'
+                    ? (window.getStatsKampYearOptions()[0] || new Date().getFullYear())
+                    : new Date().getFullYear());
             const matchTypeFilter = typeof window.getStatsKampMatchTypeFilter === 'function'
                 ? window.getStatsKampMatchTypeFilter()
                 : 'Serie';
-            const seasonFilterHtml = typeof window.renderStatsSeasonFiltersHtml === 'function'
-                ? window.renderStatsSeasonFiltersHtml()
-                : '';
             const matchTypeHint = matchTypeFilter === 'alle'
                 ? 'alle kamptyper'
                 : matchTypeFilter.toLowerCase();
@@ -1745,7 +1910,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 hideLabel: 'Skjul sesong',
                 content: `
                     <p class="stats-kamp-panel-hint">${kampHint}</p>
-                    ${seasonFilterHtml}
                     <div class="stats-analysis-strip">
                         ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days', 'spilte kamper')}
                         ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'seier - uavgjort - tap')}
@@ -2173,23 +2337,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderStatsLagSectionNav = function() {
-            const activeSection = window.getStatsLagSection();
-            return `
-                <div class="stats-lag-section-nav-inner" role="tablist" aria-label="Lagstatistikk">
-                    ${window.statsLagSections.map(section => `
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected="${activeSection === section.id ? 'true' : 'false'}"
-                            class="bsk-btn bsk-btn-chip stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
-                            data-stat-action="set-lag-section"
-                            data-section-id="${section.id}"
-                        >
-                            <span>${section.label}</span>
-                        </button>
-                    `).join('')}
-                </div>
-            `;
+            return typeof window.renderStatsLagFiltersHtml === 'function'
+                ? window.renderStatsLagFiltersHtml()
+                : '';
         };
 
         window.updateStatsBoardActiveSection = function() {
