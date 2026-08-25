@@ -1647,14 +1647,16 @@ function getMatchGamePlanPlayerInjuryInfo(player) {
     return window.getPlayerInjuryInfo(player);
 }
 
-function buildMatchGamePlanPosBadgeHtml(positionLabel, player) {
+function buildMatchGamePlanPosBadgeHtml(positionLabel, player, options = {}) {
     const injuryInfo = getMatchGamePlanPlayerInjuryInfo(player);
     const isInjured = Boolean(injuryInfo.isInjured);
     const label = String(positionLabel || '').trim();
+    const showPositionWhenInjured = Boolean(options.showPositionWhenInjured);
+    const showInjuryPosition = isInjured && showPositionWhenInjured && label;
     const title = isInjured
         ? (injuryInfo.label || injuryInfo.shortLabel || 'Skadet')
         : '';
-    const injuryIconHtml = isInjured
+    const injuryIconHtml = isInjured && !showInjuryPosition
         ? `<span class="match-game-plan-lineup-pos-badge-injury" aria-hidden="true"><i class="fa-solid fa-user-injured"></i></span>`
         : '';
     const labelHtml = label
@@ -1665,7 +1667,7 @@ function buildMatchGamePlanPosBadgeHtml(positionLabel, player) {
 
     return `
         <span
-            class="match-game-plan-lineup-pos-badge${isInjured ? ' is-injured' : ''}${label ? '' : ' is-injury-only'}"
+            class="match-game-plan-lineup-pos-badge${isInjured ? ' is-injured' : ''}${showInjuryPosition ? ' is-injured-position' : ''}${!label && isInjured ? ' is-injury-only' : ''}"
             aria-hidden="true"
             ${title ? `title="${escapeMatchHtml(title)}"` : ''}
         >
@@ -1788,7 +1790,7 @@ function buildMatchBenchPlayerHtml(match, player) {
         ? `${lastName}, på banen som ${pitchCode}${isInjured ? `, ${injuryNote}` : ''}. Bytt posisjon eller spiller.`
         : `${lastName}${isInjured ? `, ${injuryNote}` : ''}. Plasser på banen.`;
     const badgeHtml = (isOnPitch || isInjured)
-        ? buildMatchGamePlanPosBadgeHtml(pitchCode, player)
+        ? buildMatchGamePlanPosBadgeHtml(pitchCode, player, { showPositionWhenInjured: isOnPitch })
         : '';
     const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, player);
 
@@ -2549,7 +2551,7 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const selectedInjuryInfo = getMatchGamePlanPlayerInjuryInfo(selectedPlayer);
     const isInjured = Boolean(selectedInjuryInfo.isInjured);
     const badgeHtml = selectedPlayer
-        ? buildMatchGamePlanPosBadgeHtml(positionBadge, selectedPlayer)
+        ? buildMatchGamePlanPosBadgeHtml(positionBadge, selectedPlayer, { showPositionWhenInjured: true })
         : buildMatchGamePlanPosBadgeHtml(positionBadge);
     const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, selectedPlayer);
 

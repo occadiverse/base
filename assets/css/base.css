@@ -9917,6 +9917,10 @@
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured .match-game-plan-lineup-pos-badge-label {
             color: #ffffff;
         }
+        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured.is-injured-position .match-game-plan-lineup-pos-badge-label {
+            left: 57%;
+            top: 57%;
+        }
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo img,
         .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo i {
             filter: none;
@@ -10510,6 +10514,10 @@
             left: 58%;
             top: 64%;
             text-shadow: 0 1px 1px rgba(15, 23, 42, 0.35);
+        }
+        .match-game-plan-lineup-pos-badge.is-injured.is-injured-position .match-game-plan-lineup-pos-badge-label {
+            left: 57%;
+            top: 57%;
         }
         .match-game-plan-lineup-pos-badge-injury {
             color: #ffffff;
