@@ -10128,12 +10128,12 @@
             overflow: visible;
             padding: 0.1rem 0.1rem 0.35rem;
             position: relative;
-            width: min(100%, 30.5rem);
+            width: min(100%, 34rem);
         }
         .match-game-plan-tabs {
             display: grid;
-            gap: 0.5rem;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.4rem;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             margin: 0;
             max-width: 100%;
             overflow: visible;
@@ -10150,14 +10150,14 @@
             color: #ffffff;
             cursor: pointer;
             font-family: inherit;
-            font-size: 0.66rem;
+            font-size: 0.58rem;
             font-weight: 900;
             height: 2.45rem;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
             max-height: 2.45rem;
             min-height: 2.45rem;
             min-width: 0;
-            padding: 0.5rem 0.45rem;
+            padding: 0.5rem 0.28rem;
             text-transform: none;
             transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
             white-space: nowrap;
@@ -11287,6 +11287,82 @@
         }
         .match-game-plan-bench-empty i {
             color: #123f73;
+        }
+        .match-game-plan-notes-panel {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            display: grid;
+            gap: 0.75rem;
+            padding: 0.85rem 0.9rem 1rem;
+        }
+        .match-game-plan-notes-fields {
+            display: grid;
+            gap: 0.75rem;
+        }
+        .match-game-plan-notes-meta {
+            display: grid;
+            gap: 0.65rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .match-game-plan-notes-panel .portal-label {
+            color: rgba(245, 197, 66, 0.88);
+        }
+        .match-game-plan-notes-panel .portal-field {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+        .match-game-plan-notes-panel .portal-field::placeholder {
+            color: rgba(255, 255, 255, 0.38);
+        }
+        .match-game-plan-notes-panel .portal-field:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+        }
+        .match-game-plan-notes-panel select.portal-field {
+            cursor: pointer;
+        }
+        .match-game-plan-notes-field {
+            min-height: 14rem;
+            resize: vertical;
+        }
+        .match-game-plan-notes-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+        }
+        .match-game-plan-notes-action-btn.training-session-attendance-add-btn {
+            flex: 0 0 auto;
+            gap: 0.4rem;
+            min-height: 2.35rem;
+            padding: 0.45rem 0.85rem;
+        }
+        .match-game-plan-notes-action-btn.is-danger {
+            background: rgba(220, 38, 38, 0.18);
+            border-color: rgba(248, 113, 113, 0.45);
+            color: #fecaca;
+        }
+        .match-game-plan-notes-action-btn.is-danger:hover {
+            background: rgba(220, 38, 38, 0.28);
+            border-color: rgba(248, 113, 113, 0.65);
+        }
+        .match-game-plan-notes-action-btn.is-hidden,
+        .match-game-plan-notes-action-btn[hidden] {
+            display: none !important;
+        }
+        .match-game-plan-notes-hint {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin: 0;
+        }
+        @media (max-width: 640px) {
+            .match-game-plan-notes-meta {
+                grid-template-columns: 1fr;
+            }
         }
         .match-game-plan-offc-select-field {
             align-items: center;
@@ -13490,8 +13566,9 @@
                 min-height: 4.4rem;
             }
             .match-game-plan-tab {
-                font-size: 0.62rem;
-                letter-spacing: 0.03em;
+                font-size: 0.54rem;
+                letter-spacing: 0.02em;
+                padding: 0.5rem 0.2rem;
             }
             .match-game-plan-content-scroll {
                 margin-inline: -0.15rem;
