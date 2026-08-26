@@ -15204,6 +15204,17 @@
                 margin: 0;
             }
 
+            .match-print-kampplan-section {
+                margin-top: 0.85rem;
+            }
+
+            .match-print-kampplan-notes {
+                font-size: 10pt;
+                line-height: 1.45;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
             .match-print-setpiece-grid {
                 break-inside: avoid;
                 display: grid;

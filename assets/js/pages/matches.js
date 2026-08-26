@@ -4379,6 +4379,22 @@ function buildMatchPrintBenchPlanHtml(match) {
     `;
 }
 
+function buildMatchPrintKampplanNotesHtml(match) {
+    const notesText = String(getMatchGamePlanNotesText(match) || '').trim();
+    const template = getMatchGamePlanTemplateById(match?.kampplanTemplateId);
+    const subtitle = template?.title ? ` <span class="match-print-formation">(${escapeMatchHtml(template.title)})</span>` : '';
+
+    return `
+        <section class="match-print-section match-print-kampplan-section">
+            <h2>Kampplan${subtitle}</h2>
+            ${notesText
+                ? `<div class="match-print-kampplan-notes">${escapeMatchHtml(notesText)}</div>`
+                : `<p class="match-print-empty">Ingen kampplan skrevet.</p>`
+            }
+        </section>
+    `;
+}
+
 function buildMatchPrintSheetHtml(match) {
     const data = getMatchCardPresentation(match);
     const sides = typeof window.getMatchCardSides === 'function' ? window.getMatchCardSides(match) : null;
@@ -4408,6 +4424,7 @@ function buildMatchPrintSheetHtml(match) {
         <div class="match-print-page match-print-page-2">
             ${buildMatchPrintRolesHtml(match)}
             ${buildMatchPrintBenchPlanHtml(match)}
+            ${buildMatchPrintKampplanNotesHtml(match)}
         </div>
     `;
 }
