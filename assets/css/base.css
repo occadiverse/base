@@ -15023,6 +15023,7 @@
                 color: #000000 !important;
                 display: block !important;
                 height: auto !important;
+                max-height: none !important;
                 overflow: visible !important;
                 position: static !important;
                 width: auto !important;
@@ -15090,6 +15091,12 @@
             }
 
             .match-print-page-2 {
+                break-before: page !important;
+                display: block !important;
+                page-break-before: always !important;
+            }
+
+            .match-print-page-3 {
                 break-before: page !important;
                 display: block !important;
                 page-break-before: always !important;

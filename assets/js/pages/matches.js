@@ -4380,8 +4380,16 @@ function buildMatchPrintBenchPlanHtml(match) {
 }
 
 function buildMatchPrintKampplanNotesHtml(match) {
-    const notesText = String(getMatchGamePlanNotesText(match) || '').trim();
-    const template = getMatchGamePlanTemplateById(match?.kampplanTemplateId);
+    const liveNotes = document.querySelector(
+        `[data-match-kampplan-notes-form="${match?.id}"] [data-match-kampplan-notes]`
+    )?.value;
+    const notesText = String(
+        (typeof liveNotes === 'string' ? liveNotes : getMatchGamePlanNotesText(match)) || ''
+    ).trim();
+    const liveTemplateId = document.querySelector(
+        `[data-match-kampplan-notes-form="${match?.id}"] [data-match-kampplan-template]`
+    )?.value;
+    const template = getMatchGamePlanTemplateById(liveTemplateId || match?.kampplanTemplateId);
     const subtitle = template?.title ? ` <span class="match-print-formation">(${escapeMatchHtml(template.title)})</span>` : '';
 
     return `
@@ -4424,6 +4432,9 @@ function buildMatchPrintSheetHtml(match) {
         <div class="match-print-page match-print-page-2">
             ${buildMatchPrintRolesHtml(match)}
             ${buildMatchPrintBenchPlanHtml(match)}
+        </div>
+        <div class="match-print-page-break" aria-hidden="true">&nbsp;</div>
+        <div class="match-print-page match-print-page-3">
             ${buildMatchPrintKampplanNotesHtml(match)}
         </div>
     `;
