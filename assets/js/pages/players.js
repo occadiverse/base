@@ -933,9 +933,9 @@ window.renderPlayerProfilePage = function(playerId) {
                     <h2 class="player-profile-panel-title">Utvikling</h2>
                     <p class="player-profile-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
                 </div>
-                <button type="button" class="bsk-btn bsk-btn-chip player-profile-info-btn" data-player-profile-action="open-form-info" title="Slik regnes form">
+                <button type="button" class="bsk-btn bsk-btn-chip player-profile-info-btn" data-player-profile-action="open-form-info" title="Statsforklaring" aria-label="Statsforklaring">
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    <span>Form</span>
+                    <span>Statsforklaring</span>
                 </button>
             </div>
             <div class="player-profile-chart-wrap">${trendHtml}</div>
