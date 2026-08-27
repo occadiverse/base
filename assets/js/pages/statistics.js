@@ -2934,7 +2934,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? window.getTeamFormMedian(player.spillerLag)
                 : 0;
             const formComparison = teamMedian > 0
-                ? (chemistry >= teamMedian + 8 ? 'Over lagssnitt' : chemistry < teamMedian - 8 ? 'Under lagssnitt' : 'Om lagssnitt')
+                ? (chemistry >= teamMedian + 8 ? 'Over lagsmedian' : chemistry < teamMedian - 8 ? 'Under lagsmedian' : 'Om lagsmedian')
                 : 'Ingen sammenligning';
 
             const totalMatches = history.length;
@@ -2972,7 +2972,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </button>
 
                     <div class="stats-metric-grid is-four">
-                        ${card('Form', chemistry + '/100', 'Kampbidrag, oppmøte og nylig disiplin', 'fa-heart-pulse', 'text-emerald-600')}
+                        ${card('Form', chemistry + '/100', 'Nylig kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
                         ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
                         ${card('Total plassering', totalRank > 0 ? `#${totalRank}` : '-', 'Rangert etter total score', 'fa-ranking-star', 'text-bsk-blue')}
                         ${card('Total score', totalScoreText, '50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin (kun med kamp)', 'fa-gauge-high', 'text-bsk-blue')}

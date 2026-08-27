@@ -1062,79 +1062,99 @@
             </div>
             
             <div class="p-6 space-y-6 text-sm">
-                <p class="text-base text-slate-300">Den totale formscoren (0–100) regnes på aktiviteter og kamper som har vært. Den bygger først og fremst på <strong class="text-white">kampbidrag i de siste kampene</strong>, med <strong class="text-white">nylig oppmøte</strong> og <strong class="text-white">disiplin</strong> som justeringer.</p>
-                
-                <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Kampbidrag (Maks 70 poeng)</h4>
+                <p class="text-base text-slate-300">
+                    <strong class="text-white">Form (0–100)</strong> viser hvordan spilleren har vært <strong class="text-white">i det siste</strong> — ikke hele sesongen.
+                    Den bygger på tre deler: kampbidrag, oppmøte og disiplin.
+                </p>
+
+                <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
+                    <strong class="block text-emerald-400 mb-2">Kort sagt</strong>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
-                        <li>Basert på spillerens matchpoeng fra de siste 5 spilte kampene.</li>
-                        <li>Nyeste kamp teller mest, slik at scoren reagerer på faktisk formutvikling.</li>
-                        <li>Spillere uten registrerte spilte kamper vises som grå til det finnes kampdata.</li>
+                        <li><strong class="text-white">Kampbidrag</strong> inntil 70 poeng — siste 5 kamper, nyeste teller mest</li>
+                        <li><strong class="text-white">Oppmøte</strong> inntil 20 poeng — siste 8 aktiviteter</li>
+                        <li><strong class="text-white">Disiplin</strong> inntil 10 poeng — kan trekkes for karantener og røde kort</li>
                     </ul>
+                    <p class="mt-3 text-slate-400 text-[12px]">Uten minst én registrert kamp blir Form grå (0). Form er noe annet enn Total score på spillerkortet.</p>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Nylig oppmøte (Maks 20 poeng)</h4>
-                    <p class="mb-3 text-slate-300">Oppmøte brukes som en tilgjengelighetsfaktor, ikke som hoveddelen av Form. Systemet ser på de siste 8 historiske aktivitetene spilleren kunne møtt på, fra tilknytningsdatoen.</p>
-                    <ul class="list-disc pl-5 space-y-1 text-slate-300 mb-5">
-                        <li>Fullt oppmøte i perioden gir 20 poeng.</li>
-                        <li>Lavt oppmøte trekker Form ned, men kan ikke alene gi grønn Form.</li>
-                    </ul>
-                </div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Hva gir poeng i en kamp?</h4>
+                    <p class="mb-3 text-slate-300">Hver kamp starter på <strong class="text-white">15 poeng</strong>. Deretter legges resultat, mål og spillerbørs til.</p>
 
-                <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Slik regnes kampbidrag</h4>
-                    <p class="mb-3 text-slate-300">Hver spilte kamp starter med <strong class="text-white">15 grunnpoeng</strong>, og justeres deretter opp eller ned. Dette gir grunnlaget for kampbidraget i Form.</p>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
                             <strong class="block text-emerald-400 mb-2 pb-1 border-b border-slate-600">Lagets resultat</strong>
                             <ul class="space-y-1.5">
                                 <li class="flex justify-between"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
-                                <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
                                 <li class="flex justify-between"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
-                                <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">-2</span></li>
-                                <li class="flex justify-between text-bsk-yellow"><span>Mål scoret (Mål for)</span> <span class="font-bold">+1 pr. mål</span></li>
-                                <li class="flex justify-between text-rose-300"><span>Mål sluppet inn (Mål imot)</span> <span class="font-bold">-1 pr. mål</span></li>
-                                <li class="flex justify-between text-indigo-300"><span>Banens beste</span><span class="font-bold">+1</span></li>
-                                <li class="flex justify-between text-sky-300"><span>Assist</span><span class="font-bold">Synlig statistikk, 0 poeng</span></li>
+                                <li class="flex justify-between"><span>Tap</span> <span class="font-bold text-rose-400">−2</span></li>
+                                <li class="flex justify-between"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
+                                <li class="flex justify-between text-bsk-yellow"><span>Mål for</span> <span class="font-bold">+1 pr. mål</span></li>
+                                <li class="flex justify-between text-rose-300"><span>Mål imot</span> <span class="font-bold">−1 pr. mål</span></li>
+                                <li class="flex justify-between text-indigo-300"><span>Banens beste</span> <span class="font-bold">+1</span></li>
+                                <li class="flex justify-between text-sky-300"><span>Assist / egne mål</span> <span class="font-bold">0 (kun statistikk)</span></li>
                             </ul>
+                            <p class="mt-3 text-[11px] text-slate-400 leading-relaxed">
+                                I cup: seier/uavgjort/tap følger det endelige utfallet (også etter straffespark).
+                                Mål for/imot teller fra ordinær tid.
+                            </p>
                         </div>
-                        
+
                         <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-                            <strong class="block text-blue-400 mb-1">Spillerbørs (1-10)</strong>
-                            <p class="text-[11px] text-slate-400 mb-2 pb-1 border-b border-slate-600">Hvert trinn over/under 5 gir ±6 poeng.</p>
+                            <strong class="block text-blue-400 mb-1">Spillerbørs (1–10)</strong>
+                            <p class="text-[11px] text-slate-400 mb-2 pb-1 border-b border-slate-600">Hvert trinn over/under 5 gir ±6 poeng. Dette veier tungt.</p>
                             <ul class="space-y-1.5">
                                 <li class="flex justify-between"><span>Karakter 10</span> <span class="font-bold text-emerald-400">+30</span></li>
                                 <li class="flex justify-between"><span>Karakter 8</span> <span class="font-bold text-emerald-400">+18</span></li>
-                                <li class="flex justify-between"><span>Karakter 5 (Jevnt)</span> <span class="font-bold text-slate-400">0</span></li>
-                                <li class="flex justify-between"><span>Karakter 3</span> <span class="font-bold text-rose-400">-12</span></li>
-                                <li class="flex justify-between"><span>Karakter 1</span> <span class="font-bold text-rose-500">-24</span></li>
+                                <li class="flex justify-between"><span>Karakter 5</span> <span class="font-bold text-slate-400">0</span></li>
+                                <li class="flex justify-between"><span>Karakter 3</span> <span class="font-bold text-rose-400">−12</span></li>
+                                <li class="flex justify-between"><span>Karakter 1</span> <span class="font-bold text-rose-500">−24</span></li>
                             </ul>
+                            <p class="mt-3 text-[11px] text-slate-400 leading-relaxed">
+                                «Kun oppmøte» / benk: spilleren får bare de 15 grunnpoengene — ikke resultatbonus eller børs.
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">4. Disiplin (Maks 10 poeng)</h4>
-                        <ul class="list-disc pl-5 space-y-1 text-rose-300">
-                            <li><strong class="text-rose-400">Gult kort:</strong> Ingen straff for 1-3 kort. Første karantene (ved 4, 6, 8 kort osv.) er "gratis".</li>
-                            <li><strong class="text-rose-400">Gjentatt karantene:</strong> Ved 2. karantene eller flere trekkes det fra disiplinpoengene.</li>
-                            <li><strong class="text-rose-500">Rødt kort:</strong> Trekker fra total Form etter hvor nylig kortet kom i spillerens siste 5 spilte seriekamper: -10, -8, -6, -4 eller -2.</li>
-                            <li>Maks rødt-kort-trekk er 30 poeng, og kortet blir mindre viktig når spilleren har spilt nye kamper etterpå.</li>
-</ul>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Fra kamper til Form-kampbidrag (maks 70)</h4>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-300">
+                        <li>Vi tar de <strong class="text-white">siste 5 kampene</strong> spilleren har vært med på.</li>
+                        <li><strong class="text-white">Nyeste kamp teller mest</strong>, slik at Form følger utviklingen.</li>
+                        <li>Det vektede snittet skaleres til 0–70: rundt <strong class="text-white">5 poeng snitt ≈ 0</strong>, rundt <strong class="text-white">40 poeng snitt ≈ 70</strong>.</li>
+                    </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">5. Farge mot lagets median</h4>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Oppmøte (maks 20)</h4>
+                    <p class="mb-2 text-slate-300">Ser på de siste 8 aktivitetene spilleren kunne møtt på (kamper og treninger), fra tilknytningsdatoen.</p>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
-                        <li><strong class="text-emerald-400">Grønn:</strong> Minst 8 poeng over lagets median.</li>
-                        <li><strong class="text-amber-400">Gul:</strong> Innenfor 8 poeng over eller under medianen.</li>
-                        <li><strong class="text-rose-400">Rød:</strong> Mer enn 8 poeng under medianen.</li>
-                        <li><strong class="text-slate-400">Grå:</strong> Ikke nok formdata ennå.</li>
+                        <li>Fullt oppmøte gir 20 poeng.</li>
+                        <li>Lavt oppmøte trekker Form ned, men kan ikke alene gjøre Form grønn.</li>
                     </ul>
                 </div>
-                
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">4. Disiplin (maks 10, pluss rødt-trekk)</h4>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-300">
+                        <li><strong class="text-white">Gule kort (kun Serie):</strong> 1–3 kort gir ingen trekk. Første karantene (ved 4, 6, 8 …) er «gratis».</li>
+                        <li><strong class="text-white">Gjentatt karantene:</strong> Fra 2. karantene trekkes det fra disiplinpoengene.</li>
+                        <li><strong class="text-rose-400">Rødt kort (Serie, på banen):</strong> trekker direkte fra total Form i de 5 siste seriekampene: −10, −8, −6, −4 eller −2 (nyeste hardeste). Maks −30.</li>
+                        <li>Cup-kort påvirker ikke Form-disiplin.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">5. Fargene — mot lagets median</h4>
+                    <p class="mb-2 text-slate-300">Fargen viser hvordan spilleren ligger an mot midten av laget (median), ikke et absolutt tall.</p>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-300">
+                        <li><strong class="text-emerald-400">Grønn:</strong> minst 8 poeng over lagsmedian</li>
+                        <li><strong class="text-amber-400">Gul:</strong> innenfor ±8 poeng fra median</li>
+                        <li><strong class="text-rose-400">Rød:</strong> mer enn 8 poeng under median</li>
+                        <li><strong class="text-slate-400">Grå:</strong> ikke nok kampdata ennå</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
