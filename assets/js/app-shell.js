@@ -63,7 +63,7 @@ function switchTab(tabId, options = {}) {
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
 
-    ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'oktside'].forEach(id => {
+    ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'spillerprofil', 'oktside'].forEach(id => {
         const el = document.getElementById(`view-${id}`);
         if (el) el.classList.add('hidden');
     });
@@ -99,6 +99,7 @@ function switchTab(tabId, options = {}) {
         taktikk: "Taktikk",
         admin: "Admin",
         kampdetaljer: "Kampdetaljer",
+        spillerprofil: "Spillerprofil",
         oktside: "Øktside"
     };
 
@@ -114,6 +115,10 @@ function switchTab(tabId, options = {}) {
     const sidebarBtn = document.getElementById(`sidebar-${tabId}`);
     if (sidebarBtn) {
         sidebarBtn.classList.add('is-active');
+    } else if (tabId === 'kampdetaljer') {
+        document.getElementById('sidebar-kamper')?.classList.add('is-active');
+    } else if (tabId === 'spillerprofil') {
+        document.getElementById('sidebar-tropp')?.classList.add('is-active');
     }
 
     document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active-nav', 'text-bsk-yellow'));
@@ -124,7 +129,7 @@ function switchTab(tabId, options = {}) {
 
     const mobileToolsBtn = document.querySelector('.portal-mobile-admin-btn');
     if (mobileToolsBtn) {
-        mobileToolsBtn.classList.toggle('is-active', tabId === 'tropp' || tabId === 'admin');
+        mobileToolsBtn.classList.toggle('is-active', tabId === 'tropp' || tabId === 'admin' || tabId === 'spillerprofil');
     }
 
     if (tabId === 'oppmote') {
@@ -148,6 +153,8 @@ function switchTab(tabId, options = {}) {
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
     } else if (tabId === 'oktside' && window._activeTrainingSessionId && typeof window.renderTrainingSession === 'function') {
         window.renderTrainingSession(window._activeTrainingSessionId);
+    } else if (tabId === 'spillerprofil' && window.activePlayerProfileId && typeof window.renderPlayerProfilePage === 'function') {
+        window.renderPlayerProfilePage(window.activePlayerProfileId);
     }
 
     if (options.animate === 'swipe' && previousTab !== tabId) {

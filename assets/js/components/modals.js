@@ -87,6 +87,7 @@ window.captureModalReturnContext = function() {
     return {
         tab,
         matchId: tab === 'kampdetaljer' ? (window.activeDetailsId || null) : null,
+        playerId: tab === 'spillerprofil' ? (window.activePlayerProfileId || null) : null,
         trainingSessionId: tab === 'oktside' ? (window._activeTrainingSessionId || null) : null
     };
 };
@@ -96,6 +97,11 @@ window.restoreModalReturnContext = function(context) {
 
     if (context.tab === 'kampdetaljer' && context.matchId && typeof window.showMatchDetails === 'function') {
         window.showMatchDetails(context.matchId);
+        return;
+    }
+
+    if (context.tab === 'spillerprofil' && context.playerId && typeof window.showPlayerProfile === 'function') {
+        window.showPlayerProfile(context.playerId);
         return;
     }
 

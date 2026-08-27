@@ -21,16 +21,16 @@ function getStatsPlayerIdForName(name) {
 
 function openStatsPlayerFromActionEl(actionEl) {
     const playerId = actionEl.dataset.playerId;
-    if (playerId && typeof window.openPlayerModal === 'function') {
-        window.openPlayerModal(playerId);
+    if (playerId && typeof window.showPlayerProfile === 'function') {
+        window.showPlayerProfile(playerId);
         return;
     }
 
     const playerName = actionEl.dataset.playerName;
     if (playerName) {
         const player = (window.activePlayers || []).find(p => p.navn === playerName);
-        if (player?.id && typeof window.openPlayerModal === 'function') {
-            window.openPlayerModal(player.id);
+        if (player?.id && typeof window.showPlayerProfile === 'function') {
+            window.showPlayerProfile(player.id);
             return;
         }
         if (typeof window.openSpillerDetail === 'function') {
@@ -1471,11 +1471,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.buildPlayerStatsData = function(options = {}) {
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
-            const yearFilter = options.applyYearFilter
-                ? (typeof window.getStatsSpillerYearFilter === 'function'
-                    ? window.getStatsSpillerYearFilter()
-                    : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle'))
-                : 'alle';
+            const yearFilter = options.yearFilter !== undefined
+                ? options.yearFilter
+                : (options.applyYearFilter
+                    ? (typeof window.getStatsSpillerYearFilter === 'function'
+                        ? window.getStatsSpillerYearFilter()
+                        : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle'))
+                    : 'alle');
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
 
             const statsData = (window.activePlayers || [])
@@ -3002,7 +3004,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     <div class="stats-panel stats-form-history-panel">
                         <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Kamper — kamp for kamp</h3>
+                            <h3 class="stats-panel-title">Kamp for Kamp</h3>
                         </div>
                         <div class="stats-form-history-table-wrap">${matchHistoryHtml}</div>
                     </div>
@@ -3427,11 +3429,13 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
     if (!playerObj) return [];
 
-    const yearFilter = options.applyYearFilter
-        ? (typeof window.getStatsSpillerYearFilter === 'function'
-            ? window.getStatsSpillerYearFilter()
-            : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle'))
-        : 'alle';
+    const yearFilter = options.yearFilter !== undefined
+        ? options.yearFilter
+        : (options.applyYearFilter
+            ? (typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle'))
+            : 'alle');
     const history = [];
 
     (window.activeMatches || []).forEach(m => {
@@ -3573,7 +3577,6 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
     const bodyRows = rows.map(entry => {
         const pointsClass = window.getPlayerPointsToneClass(entry.points);
         const ratingText = entry.rating && entry.rating !== '-' ? entry.rating : '–';
-        const safeMatchId = escapeStatisticsHtml(entry.matchId);
 
         return `
             <tr class="stats-form-history-row">
@@ -3582,11 +3585,6 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                 <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
                 <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
                 <td class="stats-form-history-rating">${ratingText}</td>
-                <td class="stats-form-history-action">
-                    <button type="button" data-stat-action="edit-match" data-match-id="${safeMatchId}" title="Rediger kamp" class="portal-btn portal-btn-icon-sm portal-btn-warning">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
@@ -3598,9 +3596,8 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                     <th>Dato</th>
                     <th>Motstander</th>
                     <th>Resultat</th>
-                    <th>Kampoeng</th>
+                    <th>Poeng</th>
                     <th>Børs</th>
-                    <th class="stats-form-history-action-head" aria-label="Rediger"></th>
                 </tr>
             </thead>
             <tbody>${bodyRows}</tbody>

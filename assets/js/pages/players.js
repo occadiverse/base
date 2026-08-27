@@ -275,7 +275,11 @@ function bindPlayerRosterEvents() {
         if (!row) return;
 
         const playerId = row.dataset.playerId;
-        if (playerId) window.openPlayerModal(playerId);
+        if (playerId && typeof window.showPlayerProfile === 'function') {
+            window.showPlayerProfile(playerId);
+        } else if (playerId) {
+            window.openPlayerModal(playerId);
+        }
     });
     listContainer.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -285,7 +289,11 @@ function bindPlayerRosterEvents() {
 
         event.preventDefault();
         const playerId = row.dataset.playerId;
-        if (playerId) window.openPlayerModal(playerId);
+        if (playerId && typeof window.showPlayerProfile === 'function') {
+            window.showPlayerProfile(playerId);
+        } else if (playerId) {
+            window.openPlayerModal(playerId);
+        }
     });
 }
 
@@ -426,9 +434,12 @@ function buildPlayerPositionLabel(player) {
         : player.pos1;
 }
 
-function getPlayerProfileStats(player) {
+function getPlayerProfileStats(player, yearFilter = 'alle') {
     if (!player || typeof window.buildPlayerStatsData !== 'function') return null;
-    return window.buildPlayerStatsData().find(stat => stat.navn === player.navn) || null;
+    const options = yearFilter === 'alle'
+        ? {}
+        : { applyYearFilter: true, yearFilter };
+    return window.buildPlayerStatsData(options).find(stat => stat.navn === player.navn) || null;
 }
 
 function buildPlayerProfileMetricHtml(label, value) {
@@ -533,6 +544,397 @@ function renderPlayerModalProfile(player) {
     `;
 }
 
+function getPlayerProfileYearOptions(player) {
+    if (typeof window.getStatsSpillerYearOptions === 'function') {
+        return window.getStatsSpillerYearOptions();
+    }
+    const years = new Set();
+    (window.activeMatches || []).forEach(match => {
+        if (match.matchGroup !== player?.spillerLag) return;
+        const year = typeof window.getMatchStatsYear === 'function'
+            ? window.getMatchStatsYear(match)
+            : (match.date ? new Date(match.date).getFullYear() : null);
+        if (year) years.add(year);
+    });
+    return [...years].sort((a, b) => b - a);
+}
+
+function getPlayerProfileYearFilter(player) {
+    const years = getPlayerProfileYearOptions(player);
+    const current = window.playerProfileYearFilter;
+    if (current === 'alle') return 'alle';
+    if (current && years.includes(Number(current))) return Number(current);
+    return years[0] || new Date().getFullYear();
+}
+
+function buildPlayerProfileYearFilterHtml(player) {
+    const years = getPlayerProfileYearOptions(player);
+    if (!years.length) return '';
+    const selected = getPlayerProfileYearFilter(player);
+    return `
+        <div class="player-profile-year-filter" role="tablist" aria-label="Filtrer etter år">
+            <button
+                type="button"
+                role="tab"
+                aria-selected="${selected === 'alle' ? 'true' : 'false'}"
+                class="bsk-btn bsk-btn-chip player-profile-year-btn ${selected === 'alle' ? 'is-active' : ''}"
+                data-player-profile-action="set-year"
+                data-year="alle"
+            >Alle</button>
+            ${years.map(year => `
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected="${selected === year ? 'true' : 'false'}"
+                    class="bsk-btn bsk-btn-chip player-profile-year-btn ${selected === year ? 'is-active' : ''}"
+                    data-player-profile-action="set-year"
+                    data-year="${year}"
+                >${year}</button>
+            `).join('')}
+        </div>
+    `;
+}
+
+function buildPlayerProfileStatChipHtml(label, value, options = {}) {
+    const toneClass = options.tone ? ` is-${options.tone}` : '';
+    return `
+        <div class="player-profile-stat-chip${toneClass}">
+            <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}</span>
+            <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
+        </div>
+    `;
+}
+
+function getPlayerProfileTrainingRows(player, limit = 8) {
+    const teamName = player?.spillerLag || window.getPrimaryTeamName();
+    return (window.activeEvents || [])
+        .filter(event => {
+            if (event.team !== teamName) return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
+            if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, event)) return false;
+            return true;
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, limit)
+        .map(event => {
+            const attended = window.isPlayerAttending(event.attendance, player);
+            const dateLabel = event.date
+                ? (typeof window.formatStatsShortDate === 'function'
+                    ? window.formatStatsShortDate(event.date)
+                    : event.date)
+                : '-';
+            return {
+                id: event.id,
+                title: event.title || event.type || 'Trening',
+                dateLabel,
+                attended
+            };
+        });
+}
+
+function buildPlayerProfileTrainingHtml(player) {
+    const rows = getPlayerProfileTrainingRows(player);
+    if (!rows.length) {
+        return `<p class="player-profile-empty">Ingen treningsaktiviteter registrert ennå.</p>`;
+    }
+
+    return `
+        <ul class="player-profile-training-list">
+            ${rows.map(row => `
+                <li class="player-profile-training-row ${row.attended ? 'is-attended' : 'is-missed'}">
+                    <span class="player-profile-training-date">${escapeRosterHtml(row.dateLabel)}</span>
+                    <span class="player-profile-training-title">${escapeRosterHtml(row.title)}</span>
+                    <span class="player-profile-training-status">${row.attended ? 'Møtt' : 'Ikke møtt'}</span>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+}
+
+function bindPlayerProfilePageEvents() {
+    const root = document.getElementById('spillerprofil-content');
+    if (!root || root.dataset.eventsBound === 'true') return;
+    root.dataset.eventsBound = 'true';
+
+    root.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-player-profile-action]');
+        if (!actionEl || !root.contains(actionEl)) return;
+
+        const action = actionEl.dataset.playerProfileAction;
+        const playerId = window.activePlayerProfileId;
+
+        if (action === 'go-back') {
+            if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) return;
+            if (typeof window.switchTab === 'function') window.switchTab('tropp', { skipHistory: true });
+            return;
+        }
+
+        if (action === 'set-year') {
+            const year = actionEl.dataset.year;
+            window.playerProfileYearFilter = year === 'alle' ? 'alle' : Number(year);
+            if (playerId) window.renderPlayerProfilePage(playerId);
+            return;
+        }
+
+        if (action === 'edit' && playerId) {
+            window.openPlayerModal(playerId, { editOnly: true });
+            return;
+        }
+
+        if (action === 'delete' && playerId) {
+            window.promptDeletePlayer(playerId);
+            return;
+        }
+
+        if (action === 'open-form-info' && typeof window.openStatsFormInfoModal === 'function') {
+            window.openStatsFormInfoModal();
+        }
+    });
+}
+
+window.renderPlayerProfilePage = function(playerId) {
+    const container = document.getElementById('spillerprofil-content');
+    if (!container) return;
+
+    bindPlayerProfilePageEvents();
+
+    const player = (window.activePlayers || []).find(item => item.id === playerId);
+    if (!player) {
+        container.innerHTML = `
+            <section class="match-detail-card player-profile-shell">
+                <p class="player-profile-empty">Fant ikke spilleren.</p>
+                <div class="player-profile-page-actions relative z-10">
+                    <button type="button" class="bsk-btn bsk-btn-secondary player-profile-back-btn" data-player-profile-action="go-back">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                        <span>Tilbake</span>
+                    </button>
+                </div>
+            </section>
+        `;
+        return;
+    }
+
+    const yearFilter = getPlayerProfileYearFilter(player);
+    const currentYear = new Date().getFullYear();
+    const birthYear = player.fodselsaar ? String(player.fodselsaar) : '';
+    const age = birthYear ? currentYear - parseInt(birthYear, 10) : null;
+    const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+        ? window.getPlayerInjuryInfo(player)
+        : { isInjured: false, label: '' };
+    const stats = getPlayerProfileStats(player, yearFilter);
+    const formComponents = typeof window.getPlayerFormComponents === 'function'
+        ? window.getPlayerFormComponents(player.navn, { yearFilter })
+        : { total: 0 };
+    const teamMedian = typeof window.getTeamFormMedian === 'function'
+        ? window.getTeamFormMedian(player.spillerLag)
+        : 0;
+    const formTone = typeof window.getFormScoreTone === 'function'
+        ? window.getFormScoreTone(formComponents.total, player.spillerLag)
+        : 'none';
+    const formComparison = teamMedian > 0
+        ? (formComponents.total >= teamMedian + 8
+            ? 'Over lagsmedian'
+            : formComponents.total < teamMedian - 8
+                ? 'Under lagsmedian'
+                : 'Om lagsmedian')
+        : 'Ingen sammenligning';
+
+    const history = typeof window.getPlayerMatchPointsHistory === 'function'
+        ? window.getPlayerMatchPointsHistory(player.navn, { applyYearFilter: true, yearFilter })
+        : [];
+    const trendData = typeof window.getPlayerPerformanceTrend === 'function'
+        ? window.getPlayerPerformanceTrend(player.navn, { applyYearFilter: true, yearFilter })
+        : [];
+    const matchHistoryHtml = typeof window.renderPlayerFormHistoryTableHtml === 'function'
+        ? window.renderPlayerFormHistoryTableHtml(player.navn, history)
+        : '<p class="player-profile-empty">Ingen kamper registrert.</p>';
+    const trendHtml = typeof window.renderPlayerTrendChartSvg === 'function' && trendData.length
+        ? window.renderPlayerTrendChartSvg(trendData)
+        : '<p class="player-profile-empty">Ikke nok kamper til å vise utvikling.</p>';
+
+    const jersey = player.draktnummer ? String(player.draktnummer) : '-';
+    const posLabel = buildPlayerPositionLabel(player);
+    const foot = player.fot ? `${player.fot} fot` : 'Ukjent fot';
+    const ageLabel = age != null && birthYear ? `${age} år (${birthYear})` : (birthYear || '-');
+    const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
+    const yearLabel = yearFilter === 'alle' ? 'Alle år' : String(yearFilter);
+
+    const oppmote = stats ? `${stats.oppmotePct}%` : '-';
+    const form = formComponents.total > 0 ? `${formComponents.total}` : '-';
+    const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus * 10) / 10) : '-';
+    const snittBors = stats && stats.snittBors > 0 ? (Math.round(Number(stats.snittBors) * 10) / 10).toFixed(1) : '-';
+    const kamper = stats ? String(stats.kamper) : '0';
+    const mal = stats ? String(stats.mal) : '0';
+    const assist = stats ? String(stats.assist) : '0';
+    const guleSerie = stats ? String(stats.guleSerie || 0) : '0';
+    const guleCup = stats ? String(stats.guleCup || 0) : '0';
+    const rodeSerie = stats ? String(stats.rodeSerie || 0) : '0';
+    const rodeCup = stats ? String(stats.rodeCup || 0) : '0';
+    const bb = stats ? String(stats.bb || 0) : '0';
+    const totalScore = stats && stats.totalScore > 0 ? String(stats.totalScore) : '-';
+
+    let totalRank = 0;
+    if (stats && typeof window.buildPlayerStatsData === 'function') {
+        const rows = window.buildPlayerStatsData({
+            applyYearFilter: yearFilter !== 'alle',
+            yearFilter
+        }).filter(stat => (Number(stat.attendedMatches) || 0) > 0 || (Number(stat.oppmotePct) || 0) > 0);
+        rows.sort((a, b) => (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0));
+        totalRank = rows.findIndex(stat => stat.navn === player.navn) + 1;
+    }
+
+    const formToneClass = formTone === 'green' ? 'is-green' : formTone === 'red' ? 'is-red' : formTone === 'amber' ? 'is-amber' : 'is-muted';
+
+    container.innerHTML = `
+        <section class="match-detail-card player-profile-shell">
+            <div class="dashboard-next-match-watermark player-profile-page-watermark" aria-hidden="true">
+                <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div class="player-profile-page-hero relative z-10">
+                ${buildPlayerProfileAvatarHtml(player)}
+                <div class="player-profile-page-hero-main">
+                    <div class="player-profile-page-hero-meta">
+                        <span class="player-profile-page-jersey">#${escapeRosterHtml(jersey)}</span>
+                        <div class="player-profile-badges">
+                            ${buildRosterStatusBadge(player.status)}
+                            ${buildRosterInjuryBadge(injuryInfo)}
+                        </div>
+                    </div>
+                    <h1 class="player-profile-page-name">${escapeRosterHtml(player.navn)}${captainMark}</h1>
+                    <p class="player-profile-page-subtitle">${escapeRosterHtml(posLabel)} · ${escapeRosterHtml(player.spillerLag || window.getPrimaryTeamName())}</p>
+                    <div class="player-profile-page-form-row">
+                        <span class="player-profile-form-chip ${formToneClass}" title="${escapeRosterHtml(formComparison)}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}">
+                            Form ${escapeRosterHtml(form)}/100
+                        </span>
+                        <span class="player-profile-form-note">${escapeRosterHtml(formComparison)}${teamMedian > 0 ? ` · median ${teamMedian}` : ''}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-profile-page-actions relative z-10">
+                <button type="button" class="bsk-btn bsk-btn-secondary player-profile-back-btn" data-player-profile-action="go-back" title="Tilbake" aria-label="Tilbake til tropp">
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                    <span>Tilbake</span>
+                </button>
+                <button type="button" class="bsk-btn bsk-btn-primary player-profile-action-btn" data-player-profile-action="edit">
+                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                    <span>Rediger</span>
+                </button>
+                <button type="button" class="bsk-btn bsk-btn-danger player-profile-action-btn" data-player-profile-action="delete">
+                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                    <span>Slett</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="match-detail-card player-profile-panel relative">
+            <div class="player-profile-section">
+                <p class="player-profile-section-title">Spillerinfo</p>
+                <div class="player-profile-grid">
+                    ${buildPlayerProfileMetricHtml('Lag', player.spillerLag || window.getPrimaryTeamName())}
+                    ${buildPlayerProfileMetricHtml('Posisjon', posLabel)}
+                    ${buildPlayerProfileMetricHtml('Fot', foot)}
+                    ${buildPlayerProfileMetricHtml('Status', player.status || '-')}
+                    ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
+                    ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
+                </div>
+            </div>
+
+            <div class="player-profile-section ${injuryInfo.isInjured ? 'player-profile-section-injury' : ''}">
+                <p class="player-profile-section-title">Skade</p>
+                <p class="player-profile-injury-text">${escapeRosterHtml(injuryInfo.isInjured ? (injuryInfo.label || 'Skadet') : 'Frisk')}</p>
+            </div>
+        </section>
+
+        <section class="match-detail-card player-profile-panel relative">
+            <div class="player-profile-panel-header">
+                <div class="min-w-0">
+                    <h2 class="player-profile-panel-title">Sesong i tall</h2>
+                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · kamp, oppmøte og disiplin</p>
+                </div>
+                ${buildPlayerProfileYearFilterHtml(player)}
+            </div>
+            <div class="player-profile-stat-grid">
+                ${buildPlayerProfileStatChipHtml('Kamper', kamper)}
+                ${buildPlayerProfileStatChipHtml('Mål', mal)}
+                ${buildPlayerProfileStatChipHtml('Assist', assist)}
+                ${buildPlayerProfileStatChipHtml('Snittbørs', snittBors)}
+                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag)}
+                ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote)}
+                ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-')}
+                ${buildPlayerProfileStatChipHtml('Banens beste', bb)}
+                ${buildPlayerProfileStatChipHtml('Gule (serie)', guleSerie)}
+                ${buildPlayerProfileStatChipHtml('Gule (cup)', guleCup)}
+                ${buildPlayerProfileStatChipHtml('Røde (serie)', rodeSerie)}
+                ${buildPlayerProfileStatChipHtml('Røde (cup)', rodeCup)}
+                ${buildPlayerProfileStatChipHtml('Total score', totalScore)}
+                ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? `#${totalRank}` : '-')}
+            </div>
+        </section>
+
+        <section class="match-detail-card player-profile-panel relative">
+            <div class="player-profile-panel-header">
+                <div class="min-w-0">
+                    <h2 class="player-profile-panel-title">Utvikling</h2>
+                    <p class="player-profile-panel-subtitle">Kampbidrag vs lagets snitt. Nyeste kamp til høyre.</p>
+                </div>
+                <button type="button" class="bsk-btn bsk-btn-chip player-profile-info-btn" data-player-profile-action="open-form-info" title="Slik regnes form">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    <span>Form</span>
+                </button>
+            </div>
+            <div class="player-profile-chart-wrap">${trendHtml}</div>
+        </section>
+
+        <section class="match-detail-card player-profile-panel relative">
+            <div class="player-profile-panel-header">
+                <div class="min-w-0 player-profile-panel-heading">
+                    <h2 class="player-profile-panel-title">
+                        Kamp for Kamp
+                        <span class="player-profile-year-chip">${escapeRosterHtml(yearLabel)}</span>
+                    </h2>
+                </div>
+            </div>
+            <div class="player-profile-history-wrap">${matchHistoryHtml}</div>
+        </section>
+
+        <section class="match-detail-card player-profile-panel relative">
+            <div class="player-profile-panel-header">
+                <div class="min-w-0">
+                    <h2 class="player-profile-panel-title">Trening / oppmøte</h2>
+                    <p class="player-profile-panel-subtitle">Siste aktiviteter spilleren kunne møtt på</p>
+                </div>
+            </div>
+            ${buildPlayerProfileTrainingHtml(player)}
+        </section>
+    `;
+};
+
+window.showPlayerProfile = function(playerId, options = {}) {
+    if (!playerId) return;
+    const player = (window.activePlayers || []).find(item => item.id === playerId);
+    if (!player) return;
+
+    window.activePlayerProfileId = playerId;
+    if (window.playerProfileYearFilter == null) {
+        window.playerProfileYearFilter = typeof window.getStatsSpillerYearFilter === 'function'
+            ? window.getStatsSpillerYearFilter()
+            : new Date().getFullYear();
+    }
+
+    window.renderPlayerProfilePage(playerId);
+
+    const backTarget = options.backTarget
+        || window.pendingPlayerProfileBackTab
+        || (window.currentTab && window.currentTab !== 'spillerprofil' ? window.currentTab : 'tropp');
+    window.pendingPlayerProfileBackTab = null;
+
+    if (typeof window.switchTab === 'function') {
+        window.switchTab('spillerprofil', { backTarget });
+    }
+};
+
 window.setPlayerModalView = function(mode = 'profile') {
     const profileEl = document.getElementById('playerModalProfile');
     const formEl = document.getElementById('playerForm');
@@ -542,9 +944,10 @@ window.setPlayerModalView = function(mode = 'profile') {
     const deleteBtn = document.getElementById('playerModalDeleteBtn');
     const editPlayerId = document.getElementById('editPlayerId')?.value || '';
     const isExistingPlayer = Boolean(editPlayerId);
-    const isProfile = mode === 'profile' && isExistingPlayer;
+    const editOnly = Boolean(window._playerModalEditOnly);
+    const isProfile = mode === 'profile' && isExistingPlayer && !editOnly;
 
-    if (tabsEl) tabsEl.classList.toggle('hidden', !isExistingPlayer);
+    if (tabsEl) tabsEl.classList.toggle('hidden', !isExistingPlayer || editOnly);
     if (profileEl) profileEl.classList.toggle('hidden', !isProfile);
     if (formEl) formEl.classList.toggle('hidden', isProfile);
 
@@ -576,11 +979,12 @@ window.setPlayerModalView = function(mode = 'profile') {
     if (cancelBtn) cancelBtn.classList.toggle('hidden', isProfile);
 };
 
-window.openPlayerModal = function(editPlayerId = null) {
+window.openPlayerModal = function(editPlayerId = null, options = {}) {
     const modal = document.getElementById('playerModal');
     document.getElementById('playerForm').reset();
     document.getElementById('editPlayerId').value = '';
     window.updateDynamicSelectors();
+    window._playerModalEditOnly = Boolean(options.editOnly);
 
     if (editPlayerId) {
         const pObj = (window.activePlayers || []).find(p => p.id === editPlayerId);
@@ -622,10 +1026,10 @@ window.openPlayerModal = function(editPlayerId = null) {
 
     const deleteBtn = document.getElementById('playerModalDeleteBtn');
     const footer = document.querySelector('.player-modal-footer');
-    if (deleteBtn) deleteBtn.classList.toggle('hidden', !editPlayerId);
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', !editPlayerId || window._playerModalEditOnly);
     if (footer) footer.classList.toggle('is-edit-mode', Boolean(editPlayerId));
 
-    if (editPlayerId) {
+    if (editPlayerId && !window._playerModalEditOnly) {
         const profilePlayer = (window.activePlayers || []).find(p => p.id === editPlayerId);
         if (profilePlayer) renderPlayerModalProfile(profilePlayer);
         window.setPlayerModalView('profile');
@@ -653,6 +1057,7 @@ window.togglePlayerSkadeFields = function() {
 window.closePlayerModal = function() {
     const profileEl = document.getElementById('playerModalProfile');
     if (profileEl) profileEl.innerHTML = '';
+    window._playerModalEditOnly = false;
     document.getElementById('playerModal').classList.add('hidden');
     document.getElementById('playerModal').classList.remove('flex');
 };
@@ -859,6 +1264,9 @@ window.savePlayer = async function(event) {
 
     window.closePlayerModal();
     window.renderPlayerRoster();
+    if (window.currentTab === 'spillerprofil' && window.activePlayerProfileId && typeof window.renderPlayerProfilePage === 'function') {
+        window.renderPlayerProfilePage(window.activePlayerProfileId);
+    }
 };
 
 window.markPlayerHealthy = async function(playerId) {
@@ -887,6 +1295,12 @@ window.promptDeletePlayer = function(id) {
             await window.deletePlayerFromDatabase(id);
             window.closePlayerModal();
             window.renderPlayerRoster();
+            if (window.activePlayerProfileId === id) {
+                window.activePlayerProfileId = null;
+                if (typeof window.switchTab === 'function') {
+                    window.switchTab('tropp', { skipHistory: true });
+                }
+            }
         } catch (error) {
             console.error(error);
             alert(error.message || 'Kunne ikke slette spiller i databasen. Prøv igjen.');
