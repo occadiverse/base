@@ -15376,6 +15376,62 @@
             padding: 1.5rem 1rem;
             text-align: center;
         }
+        @media (max-width: 720px) {
+            .stats-form-history-table {
+                min-width: 0;
+                width: 100%;
+            }
+            .stats-form-history-table th {
+                font-size: 0.52rem;
+                letter-spacing: 0.04em;
+                padding: 0.55rem 0.2rem;
+            }
+            .stats-form-history-table td {
+                font-size: 0.72rem;
+                padding: 0.55rem 0.2rem;
+            }
+            .stats-form-history-table th:first-child,
+            .stats-form-history-table td:first-child {
+                padding-left: 0.5rem;
+                width: 13%;
+            }
+            .stats-form-history-table th:nth-child(2),
+            .stats-form-history-table td:nth-child(2) {
+                width: 34%;
+            }
+            .stats-form-history-table th:nth-child(3),
+            .stats-form-history-table td:nth-child(3) {
+                padding-left: 0.12rem;
+                padding-right: 0.12rem;
+                width: 18%;
+            }
+            .stats-form-history-table th:nth-child(4),
+            .stats-form-history-table td:nth-child(4) {
+                padding-left: 0.1rem;
+                padding-right: 0.1rem;
+                width: 17%;
+            }
+            .stats-form-history-table th:nth-child(5),
+            .stats-form-history-table td:nth-child(5) {
+                padding-left: 0.1rem;
+                padding-right: 0.45rem;
+                width: 18%;
+            }
+            .stats-form-history-table th:last-child,
+            .stats-form-history-table td:last-child {
+                padding-right: 0.45rem;
+            }
+            .stats-form-history-date,
+            .stats-form-history-result {
+                font-size: 0.64rem;
+            }
+            .stats-form-history-opponent {
+                font-size: 0.7rem;
+            }
+            .stats-form-history-points {
+                font-size: 0.82rem;
+            }
+        }
         .stats-point-breakdown-grid {
             display: grid;
             gap: 0.55rem;
