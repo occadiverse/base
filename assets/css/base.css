@@ -6371,6 +6371,61 @@
         .player-profile-panel .player-profile-empty {
             color: rgba(255, 255, 255, 0.72);
         }
+        .player-profile-injury-history {
+            margin-top: 0.75rem;
+        }
+        .player-profile-injury-history-title {
+            color: rgba(245, 197, 66, 0.78);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0 0 0.45rem;
+            text-transform: uppercase;
+        }
+        .player-profile-injury-history-list {
+            display: grid;
+            gap: 0.4rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .player-profile-injury-history-row {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            padding: 0.55rem 0.7rem;
+        }
+        .player-profile-injury-history-main {
+            align-items: baseline;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.75rem;
+            justify-content: space-between;
+        }
+        .player-profile-injury-history-type {
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 900;
+        }
+        .player-profile-injury-history-dates {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.72rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .player-profile-injury-history-note {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.74rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin: 0.3rem 0 0;
+        }
+        .player-profile-injury-history-empty {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.74rem;
+            font-weight: 700;
+            margin: 0;
+        }
         .player-profile-history-wrap .stats-form-history-table {
             border-radius: 0.85rem;
             overflow: hidden;
@@ -6382,6 +6437,39 @@
         }
         .player-profile-chart-wrap .stats-chart-empty i {
             color: #f5c542;
+        }
+        .player-profile-chart-legend {
+            margin-top: 0.65rem;
+        }
+        .player-profile-chart-legend .stats-chart-legend-item {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .player-profile-chart-legend .stats-chart-legend-item.is-kampbidrag i {
+            background: #ffffff;
+        }
+        .player-profile-chart-wrap .stats-chart-line.is-kampbidrag {
+            stroke: #ffffff;
+        }
+        .player-profile-chart-wrap .stats-chart-marker.is-kampbidrag {
+            fill: #ffffff;
+        }
+        .player-profile-chart-wrap .stats-chart-line.is-team-median {
+            stroke: rgba(253, 230, 138, 0.9);
+        }
+        .player-profile-chart-wrap .stats-chart-marker.is-team-median {
+            fill: #fde68a;
+            stroke: rgba(18, 63, 115, 0.55);
+        }
+        .player-profile-chart-wrap .stats-chart-axis-label,
+        .player-profile-chart-wrap .stats-chart-axis-caption {
+            fill: rgba(255, 255, 255, 0.55);
+        }
+        .player-profile-chart-wrap .stats-chart-axis-caption.is-median {
+            fill: #fde68a;
+        }
+        .player-profile-chart-wrap .stats-chart-axis,
+        .player-profile-chart-wrap .stats-chart-grid-line {
+            stroke: rgba(255, 255, 255, 0.12);
         }
         @media (max-width: 720px) {
             .player-profile-page-hero {
@@ -15007,6 +15095,23 @@
             stroke-dasharray: 4 5;
             stroke-width: 2;
         }
+        .stats-chart-line.is-team-median {
+            stroke: rgba(245, 197, 66, 0.92);
+            stroke-dasharray: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2;
+        }
+        .stats-chart-marker.is-team-median {
+            fill: rgba(245, 197, 66, 0.95);
+            stroke: #ffffff;
+            stroke-width: 1.5;
+        }
+        .stats-chart-axis-caption.is-median {
+            fill: rgba(180, 130, 20, 0.95);
+            font-size: 9px;
+            font-weight: 800;
+        }
         .stats-chart-line.is-team-form {
             stroke: rgba(212, 160, 23, 0.42);
             stroke-dasharray: 3 5;
@@ -15052,6 +15157,9 @@
         }
         .stats-chart-legend-item.is-team-kampbidrag i {
             background: rgba(18, 63, 115, 0.34);
+        }
+        .stats-chart-legend-item.is-team-median i {
+            background: rgba(245, 197, 66, 0.95);
         }
         .stats-chart-legend-item.is-team-form i {
             background: rgba(212, 160, 23, 0.42);

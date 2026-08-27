@@ -1365,8 +1365,8 @@ window.getTeamFormMedian = function(teamName) {
         : scores[middle];
 };
 
-window.getTeamMatchAveragePoints = function(match, teamName) {
-    if (!match || !teamName || !match.attendance) return null;
+window.getTeamMatchSquadPoints = function(match, teamName) {
+    if (!match || !teamName || !match.attendance) return [];
 
     const scopedPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName);
     const activePlayers = scopedPlayers.filter(p => p.status !== 'Passiv');
@@ -1375,15 +1375,152 @@ window.getTeamMatchAveragePoints = function(match, teamName) {
         : activePlayers
     ).filter(p => window.isPlayerAttending(match.attendance, p));
 
-    if (!players.length) return null;
+    if (!players.length) return [];
 
-    const sum = players.reduce((total, player) => {
-        return total + (typeof window.calculatePlayerMatchPoints === 'function'
+    return players.map(player => (
+        typeof window.calculatePlayerMatchPoints === 'function'
             ? window.calculatePlayerMatchPoints(match, player)
-            : 0);
-    }, 0);
+            : 0
+    ));
+};
 
-    return Math.round((sum / players.length) * 10) / 10;
+window.getTeamMatchAveragePoints = function(match, teamName) {
+    const values = window.getTeamMatchSquadPoints(match, teamName);
+    if (!values.length) return null;
+
+    const sum = values.reduce((total, value) => total + value, 0);
+    return Math.round((sum / values.length) * 10) / 10;
+};
+
+window.getTeamMatchMedianPoints = function(match, teamName) {
+    const values = window.getTeamMatchSquadPoints(match, teamName)
+        .filter(value => Number.isFinite(value))
+        .sort((a, b) => a - b);
+    if (!values.length) return null;
+
+    const middle = Math.floor(values.length / 2);
+    const median = values.length % 2 === 0
+        ? (values[middle - 1] + values[middle]) / 2
+        : values[middle];
+    return Math.round(median * 10) / 10;
+};
+
+window.getMedianOfNumbers = function(values) {
+    const sorted = (values || [])
+        .map(Number)
+        .filter(value => Number.isFinite(value))
+        .sort((a, b) => a - b);
+    if (!sorted.length) return null;
+
+    const middle = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0
+        ? (sorted[middle - 1] + sorted[middle]) / 2
+        : sorted[middle];
+    return Math.round(median * 10) / 10;
+};
+
+window.getPlayerRollingMatchPointsAsOf = function(player, asOfDate, options = {}) {
+    if (!player || !asOfDate) return null;
+
+    const asOf = new Date(asOfDate);
+    if (Number.isNaN(asOf.getTime())) return null;
+    asOf.setHours(23, 59, 59, 999);
+
+    const yearFilter = options.yearFilter === undefined ? 'alle' : options.yearFilter;
+    const teamName = player.spillerLag;
+    const recentMatches = (window.activeMatches || [])
+        .filter(m => {
+            if (!m?.date || m.matchGroup !== teamName || !m.attendance) return false;
+            if (!window.isPlayerAttending(m.attendance, player)) return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
+            if (!(m.result && String(m.result).includes('-'))) return false;
+            if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return false;
+            const matchDate = new Date(m.date);
+            if (Number.isNaN(matchDate.getTime()) || matchDate > asOf) return false;
+            return true;
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, 5);
+
+    if (!recentMatches.length) return null;
+
+    let weightedPoints = 0;
+    let totalWeight = 0;
+    recentMatches.forEach((match, index) => {
+        const weight = recentMatches.length - index;
+        const points = typeof window.calculatePlayerMatchPoints === 'function'
+            ? window.calculatePlayerMatchPoints(match, player)
+            : 0;
+        weightedPoints += (Number(points) || 0) * weight;
+        totalWeight += weight;
+    });
+
+    if (!totalWeight) return null;
+    return Math.round((weightedPoints / totalWeight) * 10) / 10;
+};
+
+window.getTeamDevelopmentMedianAsOf = function(teamName, asOfDate, options = {}) {
+    if (!teamName || !asOfDate) return null;
+
+    const excludeName = options.excludePlayerName || '';
+    const values = (window.activePlayers || [])
+        .filter(player => (
+            player.status !== 'Passiv' &&
+            player.spillerLag === teamName &&
+            player.navn !== excludeName
+        ))
+        .map(player => window.getPlayerRollingMatchPointsAsOf(player, asOfDate, options))
+        .filter(value => value !== null && value !== undefined && Number(value) > 0);
+
+    return window.getMedianOfNumbers(values);
+};
+
+window.smoothNumericSeries = function(values, windowSize = 3) {
+    const series = Array.isArray(values) ? values : [];
+    if (series.length < 2) return series.map(value => (
+        value === null || value === undefined ? null : Number(value)
+    ));
+
+    const radius = Math.max(1, Math.floor(windowSize / 2));
+    return series.map((value, index) => {
+        if (value === null || value === undefined) return null;
+        let sum = 0;
+        let count = 0;
+        for (let offset = -radius; offset <= radius; offset += 1) {
+            const neighbor = series[index + offset];
+            if (neighbor === null || neighbor === undefined) continue;
+            const numeric = Number(neighbor);
+            if (!Number.isFinite(numeric)) continue;
+            sum += numeric;
+            count += 1;
+        }
+        if (!count) return null;
+        return Math.round((sum / count) * 10) / 10;
+    });
+};
+
+window.buildSmoothChartPath = function(points) {
+    const valid = (points || []).filter(point => (
+        point &&
+        Number.isFinite(point.x) &&
+        Number.isFinite(point.y)
+    ));
+    if (!valid.length) return '';
+    if (valid.length === 1) return `M ${valid[0].x} ${valid[0].y}`;
+
+    let path = `M ${valid[0].x} ${valid[0].y}`;
+    for (let index = 0; index < valid.length - 1; index += 1) {
+        const current = valid[index];
+        const next = valid[index + 1];
+        const previous = valid[index - 1] || current;
+        const afterNext = valid[index + 2] || next;
+        const control1X = current.x + (next.x - previous.x) / 6;
+        const control1Y = current.y + (next.y - previous.y) / 6;
+        const control2X = next.x - (afterNext.x - current.x) / 6;
+        const control2Y = next.y - (afterNext.y - current.y) / 6;
+        path += ` C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${next.x} ${next.y}`;
+    }
+    return path;
 };
 
 window.getFormScoreTone = function(score, teamName) {
@@ -2985,7 +3122,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <div class="stats-player-panel-heading">
                                 <div class="min-w-0">
                                     <h3 class="stats-panel-title">Utvikling</h3>
-                                    <p class="stats-panel-subtitle">Kampbidrag vs lagets snitt per kamp. Nyeste kamp til høyre.</p>
+                                    <p class="stats-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
                                 </div>
                                 <button type="button" data-stat-action="open-form-info" class="portal-btn portal-btn-success portal-btn-sm shrink-0">
                                     <i class="fa-solid fa-circle-info"></i>
@@ -2997,8 +3134,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ${window.renderPlayerTrendChartSvg(trendData)}
                         </div>
                         <div class="stats-chart-legend" aria-hidden="true">
-                            <span class="stats-chart-legend-item is-kampbidrag"><i></i> Spiller poeng</span>
-                            <span class="stats-chart-legend-item is-team-kampbidrag"><i></i> Lag snitt</span>
+                            <span class="stats-chart-legend-item is-kampbidrag"><i></i> Spiller utvikling</span>
+                            <span class="stats-chart-legend-item is-team-median"><i></i> Lagsmedian</span>
                         </div>
                     </div>
 
@@ -3486,19 +3623,33 @@ window.getPlayerPerformanceTrend = function(playerName, options = {}) {
     if (!history.length) return [];
 
     const teamName = playerObj.spillerLag;
+    const yearFilter = options.yearFilter !== undefined
+        ? options.yearFilter
+        : (options.applyYearFilter
+            ? (typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle'))
+            : 'alle');
 
     return [...history]
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .map(entry => {
-            const match = (window.activeMatches || []).find(m => m.id === entry.matchId);
+            const playerDevelopment = typeof window.getPlayerRollingMatchPointsAsOf === 'function'
+                ? window.getPlayerRollingMatchPointsAsOf(playerObj, entry.date, { yearFilter })
+                : null;
+            const teamMedian = typeof window.getTeamDevelopmentMedianAsOf === 'function'
+                ? window.getTeamDevelopmentMedianAsOf(teamName, entry.date, {
+                    yearFilter,
+                    excludePlayerName: playerName
+                })
+                : null;
             return {
                 matchId: entry.matchId,
                 date: entry.date,
                 opponent: entry.opponent,
                 kampbidrag: entry.points,
-                teamKampbidrag: match && typeof window.getTeamMatchAveragePoints === 'function'
-                    ? window.getTeamMatchAveragePoints(match, teamName)
-                    : null
+                playerDevelopment,
+                teamKampbidrag: teamMedian
             };
         });
 };
@@ -3621,9 +3772,21 @@ window.renderPlayerTrendChartSvg = function(trendData) {
     const pad = { top: 18, right: 34, bottom: 36, left: 34 };
     const plotW = width - pad.left - pad.right;
     const plotH = height - pad.top - pad.bottom;
-    const pointValues = data.flatMap(entry => [
-        entry.kampbidrag,
-        entry.teamKampbidrag
+    const playerSeries = data.map(entry => (
+        entry.playerDevelopment !== null && entry.playerDevelopment !== undefined
+            ? entry.playerDevelopment
+            : entry.kampbidrag
+    ));
+    const smoothedPlayer = typeof window.smoothNumericSeries === 'function'
+        ? window.smoothNumericSeries(playerSeries, 3)
+        : playerSeries;
+    const smoothedTeam = typeof window.smoothNumericSeries === 'function'
+        ? window.smoothNumericSeries(data.map(entry => entry.teamKampbidrag), 3)
+        : data.map(entry => entry.teamKampbidrag);
+
+    const pointValues = data.flatMap((entry, index) => [
+        smoothedPlayer[index],
+        smoothedTeam[index]
     ].filter(value => value !== null && value !== undefined));
     const maxPoints = Math.max(35, ...pointValues) * 1.08;
     const xStep = data.length > 1 ? plotW / (data.length - 1) : 0;
@@ -3635,13 +3798,20 @@ window.renderPlayerTrendChartSvg = function(trendData) {
         return `<line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="stats-chart-grid-line" />`;
     }).join('');
 
-    const buildLinePoints = (values, toY) => values
-        .map((value, index) => (value === null || value === undefined ? null : `${toX(index)},${toY(value)}`))
-        .filter(Boolean)
-        .join(' ');
+    const toPathPoints = (values) => values
+        .map((value, index) => (
+            value === null || value === undefined
+                ? null
+                : { x: toX(index), y: toYPoints(value) }
+        ))
+        .filter(Boolean);
 
-    const kampbidragPoints = buildLinePoints(data.map(entry => entry.kampbidrag), toYPoints);
-    const teamKampbidragPoints = buildLinePoints(data.map(entry => entry.teamKampbidrag), toYPoints);
+    const playerPath = typeof window.buildSmoothChartPath === 'function'
+        ? window.buildSmoothChartPath(toPathPoints(smoothedPlayer))
+        : '';
+    const teamMedianPath = typeof window.buildSmoothChartPath === 'function'
+        ? window.buildSmoothChartPath(toPathPoints(smoothedTeam))
+        : '';
 
     const labels = data.map((entry, index) => {
         const label = entry.date
@@ -3651,29 +3821,37 @@ window.renderPlayerTrendChartSvg = function(trendData) {
     }).join('');
 
     const markers = data.map((entry, index) => {
-        const teamPointsText = entry.teamKampbidrag !== null && entry.teamKampbidrag !== undefined
-            ? `, lag snitt ${entry.teamKampbidrag}`
+        const playerValue = smoothedPlayer[index];
+        const teamValue = smoothedTeam[index];
+        const playerText = playerValue !== null && playerValue !== undefined
+            ? `utvikling ${playerValue}`
             : '';
-        const title = `${entry.opponent || 'Kamp'}: spiller ${entry.kampbidrag} poeng${teamPointsText}`;
+        const medianText = teamValue !== null && teamValue !== undefined
+            ? `, lagsmedian ${teamValue}`
+            : '';
+        const title = `${entry.opponent || 'Kamp'}: ${playerText}${medianText}`;
+        const teamMarker = teamValue !== null && teamValue !== undefined
+            ? `<circle cx="${toX(index)}" cy="${toYPoints(teamValue)}" r="3" class="stats-chart-marker is-team-median" />`
+            : '';
+        const playerMarker = playerValue !== null && playerValue !== undefined
+            ? `<circle cx="${toX(index)}" cy="${toYPoints(playerValue)}" r="4.2" class="stats-chart-marker is-kampbidrag" />`
+            : '';
         return `
             <g class="stats-chart-marker-group">
                 <title>${title}</title>
-                <circle cx="${toX(index)}" cy="${toYPoints(entry.kampbidrag)}" r="4.5" class="stats-chart-marker is-kampbidrag" />
+                ${teamMarker}
+                ${playerMarker}
             </g>
         `;
     }).join('');
 
-    const teamLine = teamKampbidragPoints
-        ? `<polyline points="${teamKampbidragPoints}" class="stats-chart-line is-team-kampbidrag" fill="none" />`
-        : '';
-
     return `
-        <svg class="stats-player-trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Diagram over kampbidrag mot lagets snitt">
+        <svg class="stats-player-trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Diagram over spillerutvikling mot lagsmedian">
             ${gridLines}
             <line x1="${pad.left}" y1="${pad.top + plotH}" x2="${width - pad.right}" y2="${pad.top + plotH}" class="stats-chart-axis" />
             <text x="8" y="${pad.top + 4}" class="stats-chart-axis-caption">Poeng</text>
-            ${teamLine}
-            <polyline points="${kampbidragPoints}" class="stats-chart-line is-kampbidrag" fill="none" />
+            ${teamMedianPath ? `<path d="${teamMedianPath}" class="stats-chart-line is-team-median" fill="none" />` : ''}
+            ${playerPath ? `<path d="${playerPath}" class="stats-chart-line is-kampbidrag" fill="none" />` : ''}
             ${markers}
             ${labels}
         </svg>

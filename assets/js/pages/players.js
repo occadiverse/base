@@ -123,6 +123,60 @@ function formatPlayerJoinedFromLabel(player) {
     return date.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function formatPlayerInjuryHistoryDate(value) {
+    if (!value) return '';
+    const date = new Date(`${value}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function getPlayerInjuryHistoryEntries(player) {
+    const history = Array.isArray(player?.skadeHistorikk) ? [...player.skadeHistorikk] : [];
+    return history
+        .filter(entry => entry && (entry.fraDato || entry.tilDato || entry.skadeType || entry.skadeNotat))
+        .sort((a, b) => {
+            const dateA = new Date(a.tilDato || a.fraDato || 0).getTime();
+            const dateB = new Date(b.tilDato || b.fraDato || 0).getTime();
+            return dateB - dateA;
+        });
+}
+
+function buildPlayerInjuryHistoryHtml(player, injuryInfo) {
+    const history = getPlayerInjuryHistoryEntries(player);
+    const currentLabel = injuryInfo?.isInjured
+        ? (injuryInfo.label || 'Skadet')
+        : 'Frisk';
+
+    const historyRows = history.length
+        ? history.map(entry => {
+            const typeLabel = entry.skadeType || entry.skadeStatus || 'Skade';
+            const fromLabel = formatPlayerInjuryHistoryDate(entry.fraDato) || '–';
+            const toLabel = formatPlayerInjuryHistoryDate(entry.tilDato) || '–';
+            const note = entry.skadeNotat ? String(entry.skadeNotat).trim() : '';
+            return `
+                <li class="player-profile-injury-history-row">
+                    <div class="player-profile-injury-history-main">
+                        <span class="player-profile-injury-history-type">${escapeRosterHtml(typeLabel)}</span>
+                        <span class="player-profile-injury-history-dates">${escapeRosterHtml(fromLabel)} – ${escapeRosterHtml(toLabel)}</span>
+                    </div>
+                    ${note ? `<p class="player-profile-injury-history-note">${escapeRosterHtml(note)}</p>` : ''}
+                </li>
+            `;
+        }).join('')
+        : '';
+
+    return `
+        <p class="player-profile-injury-text">${escapeRosterHtml(currentLabel)}</p>
+        <div class="player-profile-injury-history">
+            <p class="player-profile-injury-history-title">Historikk</p>
+            ${history.length
+                ? `<ul class="player-profile-injury-history-list">${historyRows}</ul>`
+                : `<p class="player-profile-injury-history-empty">Ingen tidligere skader registrert.</p>`
+            }
+        </div>
+    `;
+}
+
 function isPlayerCurrentlyInjured(player) {
     const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
         ? window.getPlayerInjuryInfo(player)
@@ -843,7 +897,7 @@ window.renderPlayerProfilePage = function(playerId) {
 
             <div class="player-profile-section ${injuryInfo.isInjured ? 'player-profile-section-injury' : ''}">
                 <p class="player-profile-section-title">Skade</p>
-                <p class="player-profile-injury-text">${escapeRosterHtml(injuryInfo.isInjured ? (injuryInfo.label || 'Skadet') : 'Frisk')}</p>
+                ${buildPlayerInjuryHistoryHtml(player, injuryInfo)}
             </div>
         </section>
 
@@ -877,7 +931,7 @@ window.renderPlayerProfilePage = function(playerId) {
             <div class="player-profile-panel-header">
                 <div class="min-w-0">
                     <h2 class="player-profile-panel-title">Utvikling</h2>
-                    <p class="player-profile-panel-subtitle">Kampbidrag vs lagets snitt. Nyeste kamp til høyre.</p>
+                    <p class="player-profile-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
                 </div>
                 <button type="button" class="bsk-btn bsk-btn-chip player-profile-info-btn" data-player-profile-action="open-form-info" title="Slik regnes form">
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
@@ -885,6 +939,10 @@ window.renderPlayerProfilePage = function(playerId) {
                 </button>
             </div>
             <div class="player-profile-chart-wrap">${trendHtml}</div>
+            <div class="stats-chart-legend player-profile-chart-legend" aria-hidden="true">
+                <span class="stats-chart-legend-item is-kampbidrag"><i></i> Spiller utvikling</span>
+                <span class="stats-chart-legend-item is-team-median"><i></i> Lagsmedian</span>
+            </div>
         </section>
 
         <section class="match-detail-card player-profile-panel relative">
