@@ -105,16 +105,17 @@ function bindStatisticsEvents() {
             if (typeof window.openStatsFormInfoModal === 'function') window.openStatsFormInfoModal();
             return;
         }
+        if (action === 'toggle-diagram-info') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof window.toggleStatsScoreDiagramExplanation === 'function') {
+                window.toggleStatsScoreDiagramExplanation();
+            }
+            return;
+        }
         if (action === 'set-kamp-year') {
             const year = actionEl.dataset.year;
             if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
-            return;
-        }
-        if (action === 'set-kamp-match-type') {
-            const matchType = actionEl.dataset.matchType;
-            if (matchType && typeof window.setStatsKampMatchTypeFilter === 'function') {
-                window.setStatsKampMatchTypeFilter(matchType);
-            }
             return;
         }
         if (action === 'toggle-stats-filter-menu') {
@@ -244,9 +245,7 @@ window.checkIndividualChemistry = function() {
         };
 
         window.getStatsKampMatchTypeFilter = function() {
-            const current = window.statsKampMatchTypeFilter;
-            if (current === 'Cup' || current === 'alle') return current;
-            return 'Serie';
+            return 'alle';
         };
 
         window.matchBelongsToStatsKampYear = function(match) {
@@ -442,8 +441,11 @@ window.checkIndividualChemistry = function() {
             valueLabel,
             options,
             action,
-            valueAttr
+            valueAttr,
+            icon = ''
         }) {
+            const selectedOption = (options || []).find(option => option.selected);
+            const selectedLabel = selectedOption?.label || valueLabel;
             return `
                 <div class="stats-filter-menu" data-stats-filter-menu="${escapeStatisticsHtml(menuId)}">
                     <button
@@ -452,8 +454,9 @@ window.checkIndividualChemistry = function() {
                         data-stat-action="toggle-stats-filter-menu"
                         aria-haspopup="listbox"
                         aria-expanded="false"
-                        aria-label="${escapeStatisticsHtml(ariaLabel)}, valgt ${escapeStatisticsHtml(valueLabel)}"
+                        aria-label="${escapeStatisticsHtml(ariaLabel)}, valgt ${escapeStatisticsHtml(selectedLabel)}"
                     >
+                        ${icon ? `<i class="fa-solid ${escapeStatisticsHtml(icon)}" aria-hidden="true"></i>` : ''}
                         <span class="stats-filter-trigger-value">${escapeStatisticsHtml(valueLabel)}</span>
                         <i class="fa-solid fa-chevron-down stats-filter-trigger-chevron" aria-hidden="true"></i>
                     </button>
@@ -473,49 +476,6 @@ window.checkIndividualChemistry = function() {
             `;
         };
 
-        window.renderStatsSeasonFiltersHtml = function() {
-            const years = typeof window.getStatsKampYearOptions === 'function'
-                ? window.getStatsKampYearOptions()
-                : [];
-            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
-                ? window.getStatsKampYearFilter()
-                : (years[0] || new Date().getFullYear());
-            const matchTypeFilter = typeof window.getStatsKampMatchTypeFilter === 'function'
-                ? window.getStatsKampMatchTypeFilter()
-                : 'Serie';
-            const matchTypeLabel = matchTypeFilter === 'alle' ? 'Alle' : matchTypeFilter;
-            const yearMenuHtml = years.length
-                ? window.renderStatsFilterMenuHtml({
-                    menuId: 'year',
-                    ariaLabel: 'Filtrer etter sesong',
-                    valueLabel: String(yearFilter),
-                    action: 'set-kamp-year',
-                    valueAttr: 'year',
-                    options: years.map(year => ({
-                        value: String(year),
-                        label: String(year),
-                        selected: yearFilter === year
-                    }))
-                })
-                : '';
-
-            return `
-                ${yearMenuHtml}
-                ${window.renderStatsFilterMenuHtml({
-                    menuId: 'match-type',
-                    ariaLabel: 'Filtrer kamper etter type',
-                    valueLabel: matchTypeLabel,
-                    action: 'set-kamp-match-type',
-                    valueAttr: 'match-type',
-                    options: [
-                        { value: 'Serie', label: 'Serie', selected: matchTypeFilter === 'Serie' },
-                        { value: 'Cup', label: 'Cup', selected: matchTypeFilter === 'Cup' },
-                        { value: 'alle', label: 'Alle', selected: matchTypeFilter === 'alle' }
-                    ]
-                })}
-            `;
-        };
-
         window.renderStatsSectionFilterHtml = function() {
             const activeSection = typeof window.getStatsLagSection === 'function'
                 ? window.getStatsLagSection()
@@ -523,22 +483,54 @@ window.checkIndividualChemistry = function() {
             const sections = Array.isArray(window.statsLagSections)
                 ? window.statsLagSections
                 : [
-                    { id: 'kampdata', label: 'Kamp' },
-                    { id: 'spillerdata', label: 'Spiller' },
-                    { id: 'treningsdata', label: 'Trening' }
+                    { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
+                    { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
+                    { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' }
                 ];
-            const activeLabel = sections.find(section => section.id === activeSection)?.label || 'Kamp';
+
+            return sections.map(section => `
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected="${activeSection === section.id ? 'true' : 'false'}"
+                    class="bsk-btn bsk-btn-chip stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
+                    data-stat-action="set-lag-section"
+                    data-section-id="${escapeStatisticsHtml(section.id)}"
+                >
+                    ${section.icon ? `<i class="fa-solid ${escapeStatisticsHtml(section.icon)}" aria-hidden="true"></i>` : ''}
+                    <span>${escapeStatisticsHtml(section.label)}</span>
+                </button>
+            `).join('');
+        };
+
+        window.renderStatsSeasonFiltersHtml = function() {
+            const years = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [];
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : (years[0] || new Date().getFullYear());
+            const yearLabel = String(yearFilter === 'alle' ? (years[0] || new Date().getFullYear()) : yearFilter);
+            if (!years.length) {
+                return `
+                    <button type="button" class="bsk-btn bsk-btn-chip stats-lag-section-btn" disabled>
+                        <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+                        <span>${escapeStatisticsHtml(yearLabel)}</span>
+                    </button>
+                `;
+            }
 
             return window.renderStatsFilterMenuHtml({
-                menuId: 'section',
-                ariaLabel: 'Velg statistikkseksjon',
-                valueLabel: activeLabel,
-                action: 'set-lag-section',
-                valueAttr: 'section-id',
-                options: sections.map(section => ({
-                    value: section.id,
-                    label: section.label,
-                    selected: activeSection === section.id
+                menuId: 'year',
+                ariaLabel: 'Velg sesong',
+                valueLabel: yearLabel,
+                icon: 'fa-calendar',
+                action: 'set-kamp-year',
+                valueAttr: 'year',
+                options: years.map(year => ({
+                    value: String(year),
+                    label: String(year),
+                    selected: yearFilter === year
                 }))
             });
         };
@@ -552,7 +544,7 @@ window.checkIndividualChemistry = function() {
                 : '';
 
             return `
-                <div class="stats-lag-filters" aria-label="Statistikkfiltre">
+                <div class="stats-lag-filters" role="tablist" aria-label="Statistikkvalg">
                     ${sectionFilterHtml}
                     ${seasonFilterHtml}
                 </div>
@@ -621,22 +613,12 @@ window.checkIndividualChemistry = function() {
             }
         };
 
-        window.setStatsKampMatchTypeFilter = function(matchType) {
-            const next = matchType === 'Cup' || matchType === 'alle' ? matchType : 'Serie';
-            window.statsKampMatchTypeFilter = next;
-            window.pendingKampstatMatchId = null;
-            if (typeof window.renderStatistikkSide === 'function') {
-                window.renderStatistikkSide();
-            }
-        };
-
         window.getStatsKampPanelState = function() {
             const defaults = {
                 kampdata: true,
                 kamputvikling: false,
                 kampstats: false,
                 oppmote: true,
-                oppmoteutvikling: false,
                 spillerutvikling: false,
                 oppfolging: false,
                 spillerliste: true
@@ -674,7 +656,7 @@ window.checkIndividualChemistry = function() {
             );
         };
 
-        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content }) {
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', infoPanelHtml = '' }) {
             const isOpen = window.isStatsKampPanelOpen(id);
             const badgeHtml = badge !== '' && badge != null
                 ? `<span class="match-detail-section-badge">${badge}</span>`
@@ -698,7 +680,9 @@ window.checkIndividualChemistry = function() {
                         >
                             <i class="fa-solid fa-chevron-up"></i>
                         </button>
+                        ${headerActionsHtml}
                     </div>
+                    ${infoPanelHtml}
                     <div class="match-collapsible-content">
                         ${content}
                     </div>
@@ -1662,6 +1646,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? window.getSerieYellowDisciplineHint(cardCounts.serie.gule)
                         : { isAtRisk: false };
 
+                    const guleSerie = cardCounts.serie.gule;
+                    const rodeSerie = cardCounts.serie.rode;
+                    const guleCup = cardCounts.cup.gule;
+                    const rodeCup = cardCounts.cup.rode;
+
                     return {
                         navn: p.navn,
                         pos1: p.pos1 || '',
@@ -1672,10 +1661,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         mal,
                         assist,
                         kampbonus: attendedMatches > 0 ? totalMatchPoints / attendedMatches : 0,
-                        guleSerie: cardCounts.serie.gule,
-                        rodeSerie: cardCounts.serie.rode,
-                        guleCup: cardCounts.cup.gule,
-                        rodeCup: cardCounts.cup.rode,
+                        guleSerie,
+                        rodeSerie,
+                        guleCup,
+                        rodeCup,
+                        // Sesongsum for Spillerstats (serie + cup)
+                        gule: guleSerie + guleCup,
+                        rode: rodeSerie + rodeCup,
                         serieAtRisk: serieHint.isAtRisk,
                         kjemi: window.getPlayerFormComponents(p.navn, { yearFilter }).total,
                         snittBors: ratingCount > 0 ? ratingSum / ratingCount : 0,
@@ -1713,18 +1705,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsHeroTabsHtml = function() {
             return `
                 <div class="stats-hero-tabs stats-hero-tabs-info-only">
-                    <div class="roster-status-filter stats-hero-tablist stats-hero-tablist-info-only" aria-label="Statistikkvalg">
-                        <button
-                            type="button"
-                            data-stat-action="open-form-info"
-                            class="roster-status-btn stats-chrome-info-btn"
-                            title="Statsforklaring"
-                            aria-label="Statsforklaring"
-                        >
-                            <i class="fa-solid fa-circle-info"></i>
-                            <span>Statsforklaring</span>
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        data-stat-action="open-form-info"
+                        class="training-session-groups-info-btn stats-chrome-info-btn"
+                        title="Statsforklaring"
+                        aria-label="Statsforklaring"
+                    >
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    </button>
                 </div>
             `;
         };
@@ -1732,8 +1721,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.playerStatsRelevantForSort = function(stat, column) {
             switch (column) {
                 case 'totalScore': return stat.totalScore > 0 && ((Number(stat.attendedMatches) || 0) > 0 || (Number(stat.oppmotePct) || 0) > 0);
-                case 'guleSerie': return stat.guleSerie > 0;
-                case 'rodeSerie': return stat.rodeSerie > 0;
+                case 'gule':
+                case 'guleSerie': return ((Number(stat.gule) || 0) || (Number(stat.guleSerie) || 0) + (Number(stat.guleCup) || 0)) > 0;
+                case 'rode':
+                case 'rodeSerie': return ((Number(stat.rode) || 0) || (Number(stat.rodeSerie) || 0) + (Number(stat.rodeCup) || 0)) > 0;
                 case 'mal': return stat.mal > 0;
                 case 'assist': return stat.assist > 0;
                 case 'bb': return stat.bb > 0;
@@ -1746,11 +1737,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
         };
 
-        window.getStatsSortEmptyMessage = function(column, searchTerm) {
-            if (searchTerm) return 'Ingen spillere matcher søket.';
-
+        window.getStatsSortEmptyMessage = function(column) {
             const labels = {
+                gule: 'gule kort',
                 guleSerie: 'gule kort',
+                rode: 'røde kort',
                 rodeSerie: 'røde kort',
                 totalScore: 'total score',
                 mal: 'mål',
@@ -2005,35 +1996,122 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderOppmoteutviklingCardsHtml = function(report) {
-            const trends = report?.trends || {};
+        window.renderTeamSeasonStatChipHtml = function(label, value) {
             return `
-                <div class="team-report-trend-grid stats-development-attendance-grid">
-                    ${window.renderTeamReportTrendCardHtml('Oppmøte siste 5', trends.lastFiveAttendance, trends.allAttendance, false, '%', 'fa-user-check')}
+                <div class="player-profile-stat-chip">
+                    <span class="player-profile-stat-chip-value">${escapeStatisticsHtml(value)}</span>
+                    <span class="player-profile-stat-chip-label">${escapeStatisticsHtml(label)}</span>
+                </div>
+            `;
+        };
+
+        window.buildTeamSeasonStatsGridHtml = function(data, report) {
+            const filterLag = data?.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : 'alle';
+
+            let assists = 0;
+            let guleSerie = 0;
+            let guleCup = 0;
+            let rodeSerie = 0;
+            let rodeCup = 0;
+            let ratingSum = 0;
+            let ratingCount = 0;
+            let kampbidragSum = 0;
+            let kampbidragCount = 0;
+
+            const matches = (window.activeMatches || []).filter(m => {
+                if (!m.result || !String(m.result).includes('-')) return false;
+                if (filterLag && m.matchGroup !== filterLag) return false;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
+                if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(m)) return false;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return false;
+                return true;
+            });
+
+            const teamPlayers = (window.activePlayers || []).filter(p => !filterLag || p.spillerLag === filterLag);
+
+            matches.forEach(match => {
+                teamPlayers.forEach(player => {
+                    if (!window.isPlayerAttending(match.attendance, player)) return;
+                    assists += Number(window.getPlayerRefMapValue(match.assists, player, 0)) || 0;
+                    const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0));
+                    if (Number.isFinite(rating) && rating > 0) {
+                        ratingSum += rating;
+                        ratingCount += 1;
+                    }
+                    if (typeof window.calculatePlayerMatchPoints === 'function') {
+                        kampbidragSum += Number(window.calculatePlayerMatchPoints(match, player)) || 0;
+                        kampbidragCount += 1;
+                    }
+                });
+
+                // Kort telles direkte fra kampen (samme definisjon som getPlayerCardCounts):
+                // bare Serie/Cup — ikke øvrige kamptyper som «serie».
+                const yellowCount = Array.isArray(match.guleKort) ? match.guleKort.length : 0;
+                const redCount = Array.isArray(match.rodeKort) ? match.rodeKort.length : 0;
+                if (match.matchType === 'Cup') {
+                    guleCup += yellowCount;
+                    rodeCup += redCount;
+                } else if (match.matchType === 'Serie') {
+                    guleSerie += yellowCount;
+                    rodeSerie += redCount;
+                }
+            });
+
+            const snittBors = ratingCount > 0 ? (Math.round((ratingSum / ratingCount) * 10) / 10).toFixed(1) : '-';
+            const kampbidrag = kampbidragCount > 0
+                ? String(Math.round((kampbidragSum / kampbidragCount) * 10) / 10)
+                : '-';
+            const chip = window.renderTeamSeasonStatChipHtml;
+
+            let totalScoreLabel = '-';
+            if (typeof window.buildPlayerStatsData === 'function') {
+                const totalScores = window.buildPlayerStatsData({
+                    applyYearFilter: yearFilter !== 'alle',
+                    yearFilter
+                })
+                    .filter(stat => (
+                        (!filterLag || stat.spillerLag === filterLag) &&
+                        (Number(stat.totalScore) || 0) > 0
+                    ))
+                    .map(stat => Number(stat.totalScore))
+                    .filter(score => Number.isFinite(score) && score > 0);
+                const medianTotal = typeof window.getMedianOfNumbers === 'function'
+                    ? window.getMedianOfNumbers(totalScores)
+                    : null;
+                if (medianTotal != null) totalScoreLabel = String(medianTotal);
+            }
+
+            return `
+                <div class="player-profile-stat-grid stats-team-season-grid">
+                    ${chip('Kamper', String(report?.matchCount ?? 0))}
+                    ${chip('Seire', String(data?.wins ?? 0))}
+                    ${chip('Uavgjort', String(data?.draws ?? 0))}
+                    ${chip('Tap', String(data?.losses ?? 0))}
+                    ${chip('Mål', String(data?.goals ?? 0))}
+                    ${chip('Mål imot', String(report?.conceded ?? 0))}
+                    ${chip('Assist', String(assists))}
+                    ${chip('Børs', snittBors)}
+                    ${chip('Kampbidrag', kampbidrag)}
+                    ${chip('Totalscore', totalScoreLabel)}
+                    ${chip('Gule (serie)', String(guleSerie))}
+                    ${chip('Gule (cup)', String(guleCup))}
+                    ${chip('Røde (serie)', String(rodeSerie))}
+                    ${chip('Røde (cup)', String(rodeCup))}
                 </div>
             `;
         };
 
         window.renderTeamReportStatusHtml = function(data, report) {
-            const recordClass = data.wins >= data.losses ? 'is-win' : 'is-loss';
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
-            const goalTone = data.goals >= report.conceded ? 'is-goals' : 'is-loss';
             const yearFilter = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
                 : (typeof window.getStatsKampYearOptions === 'function'
                     ? (window.getStatsKampYearOptions()[0] || new Date().getFullYear())
                     : new Date().getFullYear());
-            const matchTypeFilter = typeof window.getStatsKampMatchTypeFilter === 'function'
-                ? window.getStatsKampMatchTypeFilter()
-                : 'Serie';
-            const matchTypeHint = matchTypeFilter === 'alle'
-                ? 'alle kamptyper'
-                : matchTypeFilter.toLowerCase();
-            const kampHint = `Resultater og mål fra spilte ${matchTypeHint}-kamper i ${yearFilter}.`;
-            const utviklingHint = `Sammenligner siste 5 ${matchTypeHint}-kamper i ${yearFilter} med snittet for ${yearFilter}.`;
-            const seasonBadge = matchTypeFilter === 'Serie'
-                ? String(yearFilter)
-                : `${yearFilter} · ${matchTypeFilter === 'alle' ? 'Alle' : matchTypeFilter}`;
+            const utviklingHint = `Sammenligner siste 5 kamper i ${yearFilter} med snittet for ${yearFilter}.`;
             const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
                     <i class="fa-solid ${icon}" aria-hidden="true"></i>
@@ -2044,18 +2122,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
             const kampdataPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'kampdata',
-                title: 'Sesong',
-                badge: seasonBadge,
-                showLabel: 'Vis sesong',
-                hideLabel: 'Skjul sesong',
-                content: `
-                    <p class="stats-kamp-panel-hint">${kampHint}</p>
-                    <div class="stats-analysis-strip">
-                        ${summaryItem('Kamper', report.matchCount, '', 'fa-calendar-days', 'spilte kamper')}
-                        ${summaryItem('Resultat', `<span class="team-report-record"><span class="is-win">${data.wins}</span><span>${data.draws}</span><span class="is-loss">${data.losses}</span></span>`, recordClass, 'fa-trophy', 'seier - uavgjort - tap')}
-                        ${summaryItem('Mål', `<span class="team-report-goals"><span class="is-win">${data.goals}</span><span class="team-report-goal-sep">-</span><span class="is-loss">${report.conceded}</span></span>`, goalTone, 'fa-futbol', 'scoret - imot')}
-                    </div>
-                `
+                title: 'Sesong i tall',
+                badge: String(yearFilter),
+                showLabel: 'Vis sesong i tall',
+                hideLabel: 'Skjul sesong i tall',
+                content: typeof window.buildTeamSeasonStatsGridHtml === 'function'
+                    ? window.buildTeamSeasonStatsGridHtml(data, report)
+                    : ''
             });
             const kamputviklingPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'kamputvikling',
@@ -2077,12 +2150,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `
             });
             const oppmoteTeamName = data.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
-            const oppmoteSeasonStats = typeof window.buildTrainingAttendanceSeasonStats === 'function'
-                ? window.buildTrainingAttendanceSeasonStats(oppmoteTeamName)
-                : null;
-            const oppmoteBadge = oppmoteSeasonStats?.seasonPct != null
-                ? `${oppmoteSeasonStats.seasonPct}%`
-                : `${data.avgAttendance}%`;
             const oppmoteContent = typeof window.buildTrainingDataAttendanceHtml === 'function'
                 ? window.buildTrainingDataAttendanceHtml(oppmoteTeamName, {
                     listExpandedKey: '_statsOppmoteListExpanded',
@@ -2098,20 +2165,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const oppmotePanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'oppmote',
                 title: 'Oppmøte',
-                badge: oppmoteBadge,
                 showLabel: 'Vis oppmøte',
                 hideLabel: 'Skjul oppmøte',
                 content: oppmoteContent
-            });
-            const oppmoteutviklingPanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'oppmoteutvikling',
-                title: 'Oppmøteutvikling',
-                showLabel: 'Vis oppmøteutvikling',
-                hideLabel: 'Skjul oppmøteutvikling',
-                content: `
-                    <p class="stats-kamp-panel-hint">Viser om oppmøtet i de siste 5 aktivitetene går opp eller ned.</p>
-                    ${window.renderOppmoteutviklingCardsHtml(report)}
-                `
             });
 
             return `
@@ -2120,7 +2176,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ${kamputviklingPanel}
                     ${kampstatsPanel}
                     ${oppmotePanel}
-                    ${oppmoteutviklingPanel}
                 </div>
             `;
         };
@@ -2191,23 +2246,58 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (target === 'injured') return openRoster('skadet');
             if (target === 'passive') return openRoster('Passiv');
             if (target === 'form') return openPlayerStats('kjemi');
-            if (target === 'redCards') return openPlayerStats('rodeSerie');
-            if (target === 'yellowCards') return openPlayerStats('guleSerie');
+            if (target === 'redCards') return openPlayerStats('rode');
+            if (target === 'yellowCards') return openPlayerStats('gule');
         };
 
         window.statsScoreDiagramMode = window.statsScoreDiagramMode || 'total';
         window.statsScoreDiagramExplanationOpen = window.statsScoreDiagramExplanationOpen || false;
 
+        window.renderTeamScoreDiagramExplanationHtml = function() {
+            const isTotal = (window.statsScoreDiagramMode || 'total') !== 'five';
+            return `
+                <p class="training-session-groups-info-title">Lesing av diagrammet</p>
+                <ul class="training-session-groups-info-list">
+                    ${isTotal ? `
+                        <li>Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
+                        <li>Boblen viser total score, som også tar med oppmøte og disiplin.</li>
+                        <li>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</li>
+                    ` : `
+                        <li>Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
+                        <li>Boblen viser 5 siste score. Grønn boble er over egen total score, rød boble er under.</li>
+                        <li>Kilde: spillerstatistikken. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</li>
+                    `}
+                </ul>
+            `;
+        };
+
+        window.syncStatsScoreDiagramExplanationUi = function() {
+            const open = window.statsScoreDiagramExplanationOpen === true;
+            const panel = document.getElementById('stats-diagram-info');
+            if (panel) {
+                panel.classList.toggle('is-hidden', !open);
+                if (open) panel.removeAttribute('hidden');
+                else panel.setAttribute('hidden', '');
+                panel.innerHTML = window.renderTeamScoreDiagramExplanationHtml();
+            }
+            document.querySelectorAll('[data-stat-action="toggle-diagram-info"]').forEach(btn => {
+                btn.classList.toggle('is-active', open);
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        };
+
         window.setStatsScoreDiagramMode = function(mode) {
             window.statsScoreDiagramMode = mode === 'five' ? 'five' : 'total';
             const container = document.getElementById('team-score-diagram-wrap');
             if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
+            if (window.statsScoreDiagramExplanationOpen) {
+                window.syncStatsScoreDiagramExplanationUi();
+            }
         };
 
         window.toggleStatsScoreDiagramExplanation = function() {
             window.statsScoreDiagramExplanationOpen = !window.statsScoreDiagramExplanationOpen;
-            const container = document.getElementById('team-score-diagram-wrap');
-            if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
+            window.syncStatsScoreDiagramExplanationUi();
         };
 
         window.setStatsDiagramPointTooltip = function(point, isActive) {
@@ -2421,22 +2511,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}">Total score</button>
                             <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}">5 siste score</button>
                         </div>
-                        <button type="button" onclick="window.toggleStatsScoreDiagramExplanation()" class="team-score-diagram-help">Diagramforklaring</button>
                     </div>
-
-                    ${window.statsScoreDiagramExplanationOpen ? `
-                        <div class="team-score-diagram-explanation">
-                            <h4>Lesing av diagrammet</h4>
-                            ${isTotal ? `
-                                <p>Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs. Boblen viser total score, som fortsatt tar med oppmøte og disiplin.</p>
-                                <p>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</p>
-                            ` : `
-                                <p>Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode. Boblen viser 5 siste score, som også tar med nylig kampoppmøte og disiplin.</p>
-                                <p>Grønn boble betyr at spilleren er over egen total score. Rød boble betyr under.</p>
-                                <p>Kilde: spillerstatistikken. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</p>
-                            `}
-                        </div>
-                    ` : ''}
 
                     <div class="team-score-diagram-scroll">
                         <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${isTotal ? 'Total score' : '5 siste score'} diagram" class="team-score-diagram-svg">
@@ -2514,12 +2589,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const kamputviklingPanel = summary.querySelector('[data-stats-panel="kamputvikling"]');
                 const kampstatsPanel = summary.querySelector('[data-stats-panel="kampstats"]');
                 const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
-                const oppmoteutviklingPanel = summary.querySelector('[data-stats-panel="oppmoteutvikling"]');
                 if (kampdataPanel) kampdataPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (kamputviklingPanel) kamputviklingPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (kampstatsPanel) kampstatsPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
-                if (oppmoteutviklingPanel) oppmoteutviklingPanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
 
             if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata');
@@ -2563,21 +2636,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.updateStatsLagSectionVisibility();
         };
 
-        window.renderStatsSpillereSummary = function() {
-            const container = document.getElementById('stats-spillere-summary');
-            if (!container) return;
-            if (window._statsSelectedPlayer) {
-                container.innerHTML = '';
-                return;
-            }
+        window.renderStatsSpillereExtraPanelsHtml = function() {
             const followUps = Array.isArray(window._statsFollowUps)
                 ? window._statsFollowUps
                 : [];
+            const diagramInfoOpen = window.statsScoreDiagramExplanationOpen === true;
             const utviklingPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerutvikling',
                 title: 'Utvikling',
                 showLabel: 'Vis utvikling',
                 hideLabel: 'Skjul utvikling',
+                headerActionsHtml: `
+                    <button
+                        type="button"
+                        class="training-session-groups-info-btn${diagramInfoOpen ? ' is-active' : ''}"
+                        data-stat-action="toggle-diagram-info"
+                        aria-expanded="${diagramInfoOpen ? 'true' : 'false'}"
+                        aria-controls="stats-diagram-info"
+                        title="Diagramforklaring"
+                        aria-label="Diagramforklaring"
+                    >
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    </button>
+                `,
+                infoPanelHtml: `
+                    <div
+                        id="stats-diagram-info"
+                        class="training-session-groups-info${diagramInfoOpen ? '' : ' is-hidden'}"
+                        ${diagramInfoOpen ? '' : 'hidden'}
+                    >
+                        ${window.renderTeamScoreDiagramExplanationHtml()}
+                    </div>
+                `,
                 content: `
                     <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
                         ${window.renderTeamScoreDiagramHtml()}
@@ -2592,12 +2682,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 hideLabel: 'Skjul oppfølging',
                 content: window.renderStatsFollowUpsHtml(followUps)
             });
-            container.innerHTML = `
-                <div class="team-report-status-stack">
-                    ${utviklingPanel}
-                    ${oppfolgingPanel}
-                </div>
-            `;
+            return `${utviklingPanel}${oppfolgingPanel}`;
+        };
+
+        window.renderStatsSpillereSummary = function() {
+            const summary = document.getElementById('stats-spillere-summary');
+            if (summary) summary.innerHTML = '';
+            if (window._statsSelectedPlayer) return;
+
+            const diagramWrap = document.getElementById('team-score-diagram-wrap');
+            if (diagramWrap && typeof window.renderTeamScoreDiagramHtml === 'function') {
+                diagramWrap.innerHTML = window.renderTeamScoreDiagramHtml();
+            }
         };
 
         window.renderStatsKampContext = function() {
@@ -2699,41 +2795,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ));
         };
 
-        window.getStatsPlayerSearchTerm = function() {
-            const el = document.getElementById('statsPlayerSearchInput');
-            return (el ? el.value : '').trim().toLowerCase();
-        };
-
-        window.handleStatsPlayerSearchChange = function() {
-            if (window._statsSelectedPlayer) return;
-            if (window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata') {
-                window.renderPlayerStatsList();
-            }
-        };
-
         window.renderPlayerStatsList = function() {
             const list = document.getElementById('stats-player-list');
             if (!list) return;
 
             let statsData = window.buildPlayerStatsData({ applyYearFilter: true });
-            const searchTerm = window.getStatsPlayerSearchTerm();
-
-            if (searchTerm) {
-                statsData = statsData.filter(stat => {
-                    const player = (window.activePlayers || []).find(p => p.navn === stat.navn);
-                    const posStr = player && player.pos2 && player.pos2 !== '-'
-                        ? `${player.pos1} / ${player.pos2}`
-                        : (stat.pos1 || '');
-                    const haystack = [
-                        stat.navn,
-                        player && player.draktnummer ? String(player.draktnummer) : '',
-                        posStr,
-                        stat.spillerLag
-                    ].join(' ').toLowerCase();
-                    return haystack.includes(searchTerm);
-                });
-            }
-
             statsData = statsData.filter(stat => window.playerStatsRelevantForSort(stat, currentStatSortCol));
 
             statsData.sort((a, b) => {
@@ -2751,7 +2817,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="training-data-rank-block">
                         <h5>${escapeStatisticsHtml(sortLabel)}</h5>
                         <div class="training-data-empty">
-                            <p>${escapeStatsHtml(window.getStatsSortEmptyMessage(currentStatSortCol, searchTerm))}</p>
+                            <p>${escapeStatsHtml(window.getStatsSortEmptyMessage(currentStatSortCol))}</p>
                         </div>
                     </div>
                 `;
@@ -2879,8 +2945,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
-            { id: 'guleSerie', label: 'Gule kort', glyph: 'g' },
-            { id: 'rodeSerie', label: 'Røde kort', glyph: 'r' },
+            { id: 'gule', label: 'Gule kort', glyph: 'g' },
+            { id: 'rode', label: 'Røde kort', glyph: 'r' },
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' }
@@ -2959,7 +3025,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             window.statsLagSection = 'spillerdata';
             window.renderStatsTabHero('spillere');
-            const searchValue = window.getStatsPlayerSearchTerm();
             const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
                 ? window.getStatsSpillerYearFilter()
                 : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : new Date().getFullYear());
@@ -2974,24 +3039,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     { includeAlle: false }
                 )
                 : '';
-            const yearHint = `Oppmøte, kampbidrag og totalscore fra ${yearFilter}.`;
-
-            container.innerHTML = window.renderStatsCollapsiblePanelHtml({
+            const spillerstatsPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerliste',
                 title: 'Spillerstats',
                 badge: yearFilter,
                 showLabel: 'Vis spillerstats',
                 hideLabel: 'Skjul spillerstats',
                 content: `
-                    <p class="stats-kamp-panel-hint">${yearHint}</p>
                     ${yearFilterHtml}
                     <div class="stats-spillere-layout">
-                        <div class="stats-player-search-row">
-                            <div class="roster-search-wrap">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="search" id="statsPlayerSearchInput" oninput="handleStatsPlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon..." class="roster-search-input" aria-label="Søk spillere">
-                            </div>
-                        </div>
                         <div id="stats-player-list" class="stats-player-list"></div>
                         <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
                             <div class="stats-player-toolbar">
@@ -3007,9 +3063,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                 `
             });
+            const extraPanelsHtml = typeof window.renderStatsSpillereExtraPanelsHtml === 'function'
+                ? window.renderStatsSpillereExtraPanelsHtml()
+                : '';
 
-            const searchInput = document.getElementById('statsPlayerSearchInput');
-            if (searchInput && searchValue) searchInput.value = searchValue;
+            container.innerHTML = `
+                <div class="team-report-status-stack">
+                    ${spillerstatsPanel}
+                    ${extraPanelsHtml}
+                </div>
+            `;
+
+            const summary = document.getElementById('stats-spillere-summary');
+            if (summary) summary.innerHTML = '';
 
             window.renderPlayerStatsList();
         };
@@ -3388,8 +3454,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (s.goals > 0) metaParts.push(metaPart('mal', String(s.goals)));
                 if (s.assists > 0) metaParts.push(metaPart('assist', String(s.assists)));
                 if (s.isBbInMatch) metaParts.push(metaPart('bb', 'BB'));
-                if (s.yellow > 0) metaParts.push(metaPart('guleSerie', String(s.yellow)));
-                if (s.red > 0) metaParts.push(metaPart('rodeSerie', String(s.red)));
+                if (s.yellow > 0) metaParts.push(metaPart('gule', String(s.yellow)));
+                if (s.red > 0) metaParts.push(metaPart('rode', String(s.red)));
                 if (!metaParts.length) metaParts.push('<span class="stats-meta-pos">Ingen registrerte hendelser</span>');
 
                 const kampbidragIcon = window.renderStatsSortIconHtml
@@ -3767,7 +3833,7 @@ window.renderPlayerTrendChartSvg = function(trendData) {
         `;
     }
 
-    const data = trendData.slice(-12);
+    const data = trendData.slice(-10);
     const width = 360;
     const height = 188;
     const pad = { top: 18, right: 34, bottom: 36, left: 34 };
