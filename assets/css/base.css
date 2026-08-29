@@ -6483,6 +6483,9 @@
         .player-profile-chart-wrap .stats-chart-axis-caption {
             fill: rgba(255, 255, 255, 0.55);
         }
+        .player-profile-chart-wrap .stats-chart-grid-value {
+            fill: rgba(255, 255, 255, 0.34);
+        }
         .player-profile-chart-wrap .stats-chart-axis-caption.is-median {
             fill: #fde68a;
         }
@@ -15097,6 +15100,11 @@
         .stats-chart-grid-line {
             stroke: rgba(18, 63, 115, 0.12);
             stroke-width: 1;
+        }
+        .stats-chart-grid-value {
+            fill: rgba(18, 63, 115, 0.34);
+            font-size: 8px;
+            font-weight: 700;
         }
         .stats-chart-axis-caption {
             fill: #64748b;

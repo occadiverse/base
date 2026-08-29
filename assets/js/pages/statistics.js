@@ -3793,10 +3793,19 @@ window.renderPlayerTrendChartSvg = function(trendData) {
     const xStep = data.length > 1 ? plotW / (data.length - 1) : 0;
     const toX = (index) => pad.left + (index * xStep);
     const toYPoints = (value) => pad.top + plotH - ((value / maxPoints) * plotH);
+    const formatGridValue = (value) => {
+        const rounded = Math.round(value * 10) / 10;
+        return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    };
 
-    const gridLines = [0.25, 0.5, 0.75].map(ratio => {
-        const y = pad.top + plotH * (1 - ratio);
-        return `<line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="stats-chart-grid-line" />`;
+    const gridLines = [0, 0.25, 0.5, 0.75].map(ratio => {
+        const value = maxPoints * ratio;
+        const y = toYPoints(value);
+        const labelY = ratio === 0 ? y - 1 : y + 3;
+        return `
+            <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="${ratio === 0 ? 'stats-chart-axis' : 'stats-chart-grid-line'}" />
+            <text x="${pad.left - 5}" y="${labelY}" class="stats-chart-grid-value" text-anchor="end">${formatGridValue(value)}</text>
+        `;
     }).join('');
 
     const toPathPoints = (values) => values
@@ -3849,7 +3858,6 @@ window.renderPlayerTrendChartSvg = function(trendData) {
     return `
         <svg class="stats-player-trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Diagram over spillerutvikling mot lagsmedian">
             ${gridLines}
-            <line x1="${pad.left}" y1="${pad.top + plotH}" x2="${width - pad.right}" y2="${pad.top + plotH}" class="stats-chart-axis" />
             <text x="8" y="${pad.top + 4}" class="stats-chart-axis-caption">Poeng</text>
             ${teamMedianPath ? `<path d="${teamMedianPath}" class="stats-chart-line is-team-median" fill="none" />` : ''}
             ${playerPath ? `<path d="${playerPath}" class="stats-chart-line is-kampbidrag" fill="none" />` : ''}
