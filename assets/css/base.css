@@ -3327,6 +3327,33 @@
             font-weight: 700 !important;
             margin-top: 0.15rem;
         }
+        .stats-team-season-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .stats-team-season-trends {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+        .stats-team-season-trend-block {
+            min-width: 0;
+        }
+        .stats-team-season-trend-title {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin: 0 0 0.35rem;
+            text-transform: uppercase;
+        }
+        .stats-team-season-trends .training-data-stat-grid {
+            margin-bottom: 0;
+        }
+        .stats-board-card .stats-team-season-trend-title {
+            color: rgba(255, 255, 255, 0.72);
+        }
         .training-data-stat-grid {
             display: grid;
             gap: 0.45rem;
@@ -6936,6 +6963,20 @@
         }
         .stats-board-card .stats-team-season-grid {
             margin-top: 0.15rem;
+        }
+        .stats-board-card .stats-team-season-grid .stats-team-season-chip,
+        .stats-team-season-grid .stats-team-season-chip {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .stats-board-card .stats-team-season-grid .player-profile-stat-chip-label,
+        .stats-team-season-grid .player-profile-stat-chip-label {
+            order: 0;
+        }
+        .stats-board-card .stats-team-season-grid .player-profile-stat-chip-value,
+        .stats-team-season-grid .player-profile-stat-chip-value {
+            order: 1;
         }
         .stats-board-card .stats-kamp-collapsible-panel .player-profile-stat-chip {
             background: rgba(255, 255, 255, 0.06);

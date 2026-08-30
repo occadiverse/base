@@ -616,7 +616,6 @@ window.checkIndividualChemistry = function() {
         window.getStatsKampPanelState = function() {
             const defaults = {
                 kampdata: true,
-                kamputvikling: false,
                 kampstats: false,
                 oppmote: true,
                 spillerutvikling: false,
@@ -1076,11 +1075,17 @@ window.checkIndividualChemistry = function() {
                     atRisk: atRiskCount
                 },
                 trends: {
+                    seasonFor: avgFor(playedMatches),
                     lastFiveFor: avgFor(lastFiveMatches),
+                    baselineFor: avgFor(previousMatches),
                     allFor: avgFor(previousMatches),
+                    seasonAgainst: avgAgainst(playedMatches),
                     lastFiveAgainst: avgAgainst(lastFiveMatches),
+                    baselineAgainst: avgAgainst(previousMatches),
                     allAgainst: avgAgainst(previousMatches),
+                    seasonKampbidrag: avgKampbidrag(playedMatches),
                     lastFiveKampbidrag: avgKampbidrag(lastFiveMatches),
+                    baselineKampbidrag: avgKampbidrag(previousMatches),
                     allKampbidrag: avgKampbidrag(previousMatches),
                     lastFiveAttendance: avgAttendancePct(historicalEvents.slice(0, 5)),
                     allAttendance: avgAttendancePct(historicalEvents.slice(5)),
@@ -1985,22 +1990,85 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
+        window.formatStatsTrendDelta = function(delta, suffix = '') {
+            if (delta === null || delta === undefined || Number.isNaN(Number(delta))) return '—';
+            const value = Number(delta);
+            const rounded = Math.round(value * 10) / 10;
+            const prefix = rounded > 0 ? '+' : '';
+            return `${prefix}${rounded}${suffix}`;
+        };
+
+        window.renderTeamSeasonTrendStatGridHtml = function({ label, season, lastFive, baseline, inverted = false, suffix = '' }) {
+            const delta = (lastFive !== null && lastFive !== undefined && baseline !== null && baseline !== undefined)
+                ? Number(lastFive) - Number(baseline)
+                : null;
+            const trendTone = delta === null
+                ? ''
+                : (inverted
+                    ? (delta < 0 ? 'is-up' : (delta > 0 ? 'is-down' : 'is-flat'))
+                    : (delta > 0 ? 'is-up' : (delta < 0 ? 'is-down' : 'is-flat')));
+            const formatValue = (value) => (
+                value === null || value === undefined || Number.isNaN(Number(value))
+                    ? '—'
+                    : `${Number(value)}${suffix}`
+            );
+
+            return `
+                <div class="stats-team-season-trend-block">
+                    <h5 class="stats-team-season-trend-title">${escapeStatisticsHtml(label)}</h5>
+                    <div class="training-data-stat-grid">
+                        <div class="training-data-stat">
+                            <span class="training-data-stat-label">Sesong</span>
+                            <strong>${escapeStatisticsHtml(formatValue(season))}</strong>
+                        </div>
+                        <div class="training-data-stat">
+                            <span class="training-data-stat-label">Siste 5</span>
+                            <strong>${escapeStatisticsHtml(formatValue(lastFive))}</strong>
+                        </div>
+                        <div class="training-data-stat ${trendTone}">
+                            <span class="training-data-stat-label">Retning</span>
+                            <strong>${escapeStatisticsHtml(window.formatStatsTrendDelta(delta, suffix))}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
         window.renderKamputviklingCardsHtml = function(report) {
             const trends = report?.trends || {};
             return `
-                <div class="team-report-trend-grid stats-development-match-grid">
-                    ${window.renderTeamReportTrendCardHtml('Mål scoret siste 5', trends.lastFiveFor, trends.allFor, false, '', 'fa-futbol')}
-                    ${window.renderTeamReportTrendCardHtml('Mål imot siste 5', trends.lastFiveAgainst, trends.allAgainst, true, '', 'fa-futbol')}
-                    ${window.renderTeamReportTrendCardHtml('Kampbidrag siste 5', trends.lastFiveKampbidrag, trends.allKampbidrag, false, '', 'fa-chart-line')}
+                <div class="stats-team-season-trends">
+                    ${window.renderTeamSeasonTrendStatGridHtml({
+                        label: 'Mål scoret',
+                        season: trends.seasonFor,
+                        lastFive: trends.lastFiveFor,
+                        baseline: trends.baselineFor ?? trends.allFor,
+                        suffix: ''
+                    })}
+                    ${window.renderTeamSeasonTrendStatGridHtml({
+                        label: 'Mål imot',
+                        season: trends.seasonAgainst,
+                        lastFive: trends.lastFiveAgainst,
+                        baseline: trends.baselineAgainst ?? trends.allAgainst,
+                        inverted: true,
+                        suffix: ''
+                    })}
+                    ${window.renderTeamSeasonTrendStatGridHtml({
+                        label: 'Kampbidrag',
+                        season: trends.seasonKampbidrag,
+                        lastFive: trends.lastFiveKampbidrag,
+                        baseline: trends.baselineKampbidrag ?? trends.allKampbidrag,
+                        suffix: ''
+                    })}
                 </div>
             `;
         };
 
         window.renderTeamSeasonStatChipHtml = function(label, value) {
             return `
-                <div class="player-profile-stat-chip">
-                    <span class="player-profile-stat-chip-value">${escapeStatisticsHtml(value)}</span>
+                <div class="player-profile-stat-chip stats-team-season-chip">
                     <span class="player-profile-stat-chip-label">${escapeStatisticsHtml(label)}</span>
+                    <span class="player-profile-stat-chip-value">${escapeStatisticsHtml(value)}</span>
                 </div>
             `;
         };
@@ -2085,21 +2153,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             return `
-                <div class="player-profile-stat-grid stats-team-season-grid">
-                    ${chip('Kamper', String(report?.matchCount ?? 0))}
-                    ${chip('Seire', String(data?.wins ?? 0))}
-                    ${chip('Uavgjort', String(data?.draws ?? 0))}
-                    ${chip('Tap', String(data?.losses ?? 0))}
-                    ${chip('Mål', String(data?.goals ?? 0))}
-                    ${chip('Mål imot', String(report?.conceded ?? 0))}
-                    ${chip('Assist', String(assists))}
-                    ${chip('Børs', snittBors)}
-                    ${chip('Kampbidrag', kampbidrag)}
-                    ${chip('Totalscore', totalScoreLabel)}
-                    ${chip('Gule (serie)', String(guleSerie))}
-                    ${chip('Gule (cup)', String(guleCup))}
-                    ${chip('Røde (serie)', String(rodeSerie))}
-                    ${chip('Røde (cup)', String(rodeCup))}
+                <div class="stats-team-season-wrap">
+                    ${typeof window.renderKamputviklingCardsHtml === 'function'
+                        ? window.renderKamputviklingCardsHtml(report)
+                        : ''}
+                    <div class="player-profile-stat-grid stats-team-season-grid">
+                        ${chip('Kamper', String(report?.matchCount ?? 0))}
+                        ${chip('Seire', String(data?.wins ?? 0))}
+                        ${chip('Uavgjort', String(data?.draws ?? 0))}
+                        ${chip('Tap', String(data?.losses ?? 0))}
+                        ${chip('Mål', String(data?.goals ?? 0))}
+                        ${chip('Mål imot', String(report?.conceded ?? 0))}
+                        ${chip('Assist', String(assists))}
+                        ${chip('Børs', snittBors)}
+                        ${chip('Kampbidrag', kampbidrag)}
+                        ${chip('Totalscore', totalScoreLabel)}
+                        ${chip('Gule (serie)', String(guleSerie))}
+                        ${chip('Gule (cup)', String(guleCup))}
+                        ${chip('Røde (serie)', String(rodeSerie))}
+                        ${chip('Røde (cup)', String(rodeCup))}
+                    </div>
                 </div>
             `;
         };
@@ -2111,7 +2184,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : (typeof window.getStatsKampYearOptions === 'function'
                     ? (window.getStatsKampYearOptions()[0] || new Date().getFullYear())
                     : new Date().getFullYear());
-            const utviklingHint = `Sammenligner siste 5 kamper i ${yearFilter} med snittet for ${yearFilter}.`;
             const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
                     <i class="fa-solid ${icon}" aria-hidden="true"></i>
@@ -2129,16 +2201,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 content: typeof window.buildTeamSeasonStatsGridHtml === 'function'
                     ? window.buildTeamSeasonStatsGridHtml(data, report)
                     : ''
-            });
-            const kamputviklingPanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'kamputvikling',
-                title: 'Kamputvikling',
-                showLabel: 'Vis kamputvikling',
-                hideLabel: 'Skjul kamputvikling',
-                content: `
-                    <p class="stats-kamp-panel-hint">${utviklingHint}</p>
-                    ${window.renderKamputviklingCardsHtml(report)}
-                `
             });
             const kampstatsPanel = window.renderStatsCollapsiblePanelHtml({
                 id: 'kampstats',
@@ -2173,7 +2235,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return `
                 <div class="team-report-status-stack">
                     ${kampdataPanel}
-                    ${kamputviklingPanel}
                     ${kampstatsPanel}
                     ${oppmotePanel}
                 </div>
@@ -2586,11 +2647,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (summary) {
                 summary.classList.toggle('hidden', activeSection === 'spillerdata');
                 const kampdataPanel = summary.querySelector('[data-stats-panel="kampdata"]');
-                const kamputviklingPanel = summary.querySelector('[data-stats-panel="kamputvikling"]');
                 const kampstatsPanel = summary.querySelector('[data-stats-panel="kampstats"]');
                 const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
                 if (kampdataPanel) kampdataPanel.classList.toggle('hidden', activeSection !== 'kampdata');
-                if (kamputviklingPanel) kamputviklingPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (kampstatsPanel) kampstatsPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
