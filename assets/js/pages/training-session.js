@@ -878,6 +878,7 @@ function getTrainingExerciseCategories() {
     return [
         { id: 'defensiv', label: 'Defensiv organisering' },
         { id: 'dodball', label: 'Dødball' },
+        { id: 'angrep', label: 'Angrep' },
         { id: 'avslutninger', label: 'Avslutninger' },
         { id: 'ballbesittelse', label: 'Ballbesittelse' },
         { id: 'linjespill', label: 'Linjespill' },
