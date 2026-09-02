@@ -3332,6 +3332,20 @@
             flex-direction: column;
             gap: 0.85rem;
         }
+        .stats-team-match-history {
+            margin-top: 0;
+        }
+        .stats-board-card .stats-team-match-history .stats-form-history-table-wrap {
+            background: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 0.85rem;
+            overflow: hidden;
+        }
+        .stats-board-card .stats-team-match-history .stats-form-history-empty {
+            color: #64748b;
+            padding: 1rem;
+            text-align: center;
+        }
         .stats-team-season-trends {
             display: flex;
             flex-direction: column;
@@ -15453,6 +15467,34 @@
         }
         .stats-form-history-form.is-highest {
             color: #047857;
+        }
+        .stats-form-history-result-pill {
+            align-items: center;
+            border-radius: 999px;
+            display: inline-flex;
+            font-size: 0.68rem;
+            font-weight: 950;
+            height: 1.45rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            min-width: 1.45rem;
+            padding: 0 0.35rem;
+        }
+        .stats-form-history-result-pill.is-win {
+            background: #dcfce7;
+            border: 1px solid var(--bsk-green, #16a34a);
+            color: #14532d;
+        }
+        .stats-form-history-result-pill.is-draw {
+            background: #fef3c7;
+            border: 1px solid #f5c542;
+            color: #713f12;
+        }
+        .stats-form-history-result-pill.is-loss {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #7f1d1d;
         }
         .stats-form-history-flag {
             color: inherit;

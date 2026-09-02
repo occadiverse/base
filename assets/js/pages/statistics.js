@@ -616,6 +616,7 @@ window.checkIndividualChemistry = function() {
         window.getStatsKampPanelState = function() {
             const defaults = {
                 kampdata: true,
+                kampforkamp: false,
                 kampstats: false,
                 oppmote: true,
                 spillerutvikling: false,
@@ -1998,7 +1999,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return `${prefix}${rounded}${suffix}`;
         };
 
-        window.renderTeamSeasonTrendStatGridHtml = function({ label, season, lastFive, baseline, inverted = false, suffix = '' }) {
+        window.renderTeamSeasonTrendStatGridHtml = function({ label, season, lastFive, baseline, inverted = false, suffix = '', title = '' }) {
             const delta = (lastFive !== null && lastFive !== undefined && baseline !== null && baseline !== undefined)
                 ? Number(lastFive) - Number(baseline)
                 : null;
@@ -2012,10 +2013,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? '—'
                     : `${Number(value)}${suffix}`
             );
+            const titleAttr = title
+                ? ` title="${escapeStatisticsHtml(title)}"`
+                : '';
 
             return `
                 <div class="stats-team-season-trend-block">
-                    <h5 class="stats-team-season-trend-title">${escapeStatisticsHtml(label)}</h5>
+                    <h5 class="stats-team-season-trend-title"${titleAttr}>${escapeStatisticsHtml(label)}</h5>
                     <div class="training-data-stat-grid">
                         <div class="training-data-stat">
                             <span class="training-data-stat-label">Sesong</span>
@@ -2054,19 +2058,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         suffix: ''
                     })}
                     ${window.renderTeamSeasonTrendStatGridHtml({
-                        label: 'Kampbidrag',
+                        label: 'Kampbidrag per kamp',
                         season: trends.seasonKampbidrag,
                         lastFive: trends.lastFiveKampbidrag,
                         baseline: trends.baselineKampbidrag ?? trends.allKampbidrag,
-                        suffix: ''
+                        suffix: '',
+                        title: 'Snitt kampbidrag blant oppmøtte i hver kamp — hver kamp teller likt'
                     })}
                 </div>
             `;
         };
 
-        window.renderTeamSeasonStatChipHtml = function(label, value) {
+        window.renderTeamSeasonStatChipHtml = function(label, value, title = '') {
+            const titleAttr = title
+                ? ` title="${escapeStatisticsHtml(title)}"`
+                : '';
             return `
-                <div class="player-profile-stat-chip stats-team-season-chip">
+                <div class="player-profile-stat-chip stats-team-season-chip"${titleAttr}>
                     <span class="player-profile-stat-chip-label">${escapeStatisticsHtml(label)}</span>
                     <span class="player-profile-stat-chip-value">${escapeStatisticsHtml(value)}</span>
                 </div>
@@ -2080,10 +2088,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : 'alle';
 
             let assists = 0;
-            let guleSerie = 0;
-            let guleCup = 0;
-            let rodeSerie = 0;
-            let rodeCup = 0;
+            let guleKort = 0;
+            let rodeKort = 0;
             let ratingSum = 0;
             let ratingCount = 0;
             let kampbidragSum = 0;
@@ -2115,16 +2121,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     }
                 });
 
-                // Kort telles direkte fra kampen (samme definisjon som getPlayerCardCounts):
-                // bare Serie/Cup — ikke øvrige kamptyper som «serie».
-                const yellowCount = Array.isArray(match.guleKort) ? match.guleKort.length : 0;
-                const redCount = Array.isArray(match.rodeKort) ? match.rodeKort.length : 0;
-                if (match.matchType === 'Cup') {
-                    guleCup += yellowCount;
-                    rodeCup += redCount;
-                } else if (match.matchType === 'Serie') {
-                    guleSerie += yellowCount;
-                    rodeSerie += redCount;
+                // Kort telles fra Serie + Cup (samme kamptyper som getPlayerCardCounts).
+                if (match.matchType === 'Serie' || match.matchType === 'Cup') {
+                    guleKort += Array.isArray(match.guleKort) ? match.guleKort.length : 0;
+                    rodeKort += Array.isArray(match.rodeKort) ? match.rodeKort.length : 0;
                 }
             });
 
@@ -2166,13 +2166,81 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ${chip('Mål imot', String(report?.conceded ?? 0))}
                         ${chip('Assist', String(assists))}
                         ${chip('Børs', snittBors)}
-                        ${chip('Kampbidrag', kampbidrag)}
+                        ${chip(
+                            'Kampbidrag per spiller',
+                            kampbidrag,
+                            'Snitt kampbidrag per oppmøtt spiller på tvers av alle kamper'
+                        )}
                         ${chip('Totalscore', totalScoreLabel)}
-                        ${chip('Gule (serie)', String(guleSerie))}
-                        ${chip('Gule (cup)', String(guleCup))}
-                        ${chip('Røde (serie)', String(rodeSerie))}
-                        ${chip('Røde (cup)', String(rodeCup))}
+                        ${chip('Gule kort', String(guleKort))}
+                        ${chip('Røde kort', String(rodeKort))}
                     </div>
+                </div>
+            `;
+        };
+
+        window.buildTeamMatchHistoryHtml = function(data) {
+            const filterLag = data?.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : 'alle';
+            const matchHistory = [];
+
+            const matches = (window.activeMatches || []).filter(m => {
+                if (!m.result || !String(m.result).includes('-')) return false;
+                if (filterLag && m.matchGroup !== filterLag) return false;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
+                if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(m)) return false;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return false;
+                return true;
+            });
+
+            const teamPlayers = (window.activePlayers || []).filter(p => !filterLag || p.spillerLag === filterLag);
+
+            matches.forEach(match => {
+                let matchRatingSum = 0;
+                let matchRatingCount = 0;
+
+                teamPlayers.forEach(player => {
+                    if (!window.isPlayerAttending(match.attendance, player)) return;
+                    const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0));
+                    if (Number.isFinite(rating) && rating > 0) {
+                        matchRatingSum += rating;
+                        matchRatingCount += 1;
+                    }
+                });
+
+                const score = typeof window.getMatchOutcomeScore === 'function'
+                    ? window.getMatchOutcomeScore(match)
+                    : null;
+                let form = '';
+                if (score) {
+                    if (score.bsk > score.opponent) form = 'S';
+                    else if (score.bsk < score.opponent) form = 'T';
+                    else form = 'U';
+                }
+
+                matchHistory.push({
+                    date: match.date,
+                    opponent: match.opponent,
+                    matchType: match.matchType || 'Kamp',
+                    result: typeof window.formatMatchResultForDisplay === 'function'
+                        ? window.formatMatchResultForDisplay(match)
+                        : (match.result || '-'),
+                    form,
+                    rating: matchRatingCount > 0
+                        ? Math.round((matchRatingSum / matchRatingCount) * 10) / 10
+                        : '-'
+                });
+            });
+
+            const tableHtml = typeof window.renderTeamMatchHistoryTableHtml === 'function'
+                ? window.renderTeamMatchHistoryTableHtml(matchHistory)
+                : '';
+
+            return `
+                <div class="stats-team-match-history">
+                    <div class="stats-form-history-table-wrap">${tableHtml}</div>
                 </div>
             `;
         };
@@ -2200,6 +2268,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 hideLabel: 'Skjul sesong i tall',
                 content: typeof window.buildTeamSeasonStatsGridHtml === 'function'
                     ? window.buildTeamSeasonStatsGridHtml(data, report)
+                    : ''
+            });
+            const kampForKampPanel = window.renderStatsCollapsiblePanelHtml({
+                id: 'kampforkamp',
+                title: 'Kamp for Kamp',
+                badge: String(yearFilter),
+                showLabel: 'Vis kamp for kamp',
+                hideLabel: 'Skjul kamp for kamp',
+                content: typeof window.buildTeamMatchHistoryHtml === 'function'
+                    ? window.buildTeamMatchHistoryHtml(data)
                     : ''
             });
             const kampstatsPanel = window.renderStatsCollapsiblePanelHtml({
@@ -2235,6 +2313,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return `
                 <div class="team-report-status-stack">
                     ${kampdataPanel}
+                    ${kampForKampPanel}
                     ${kampstatsPanel}
                     ${oppmotePanel}
                 </div>
@@ -2647,9 +2726,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (summary) {
                 summary.classList.toggle('hidden', activeSection === 'spillerdata');
                 const kampdataPanel = summary.querySelector('[data-stats-panel="kampdata"]');
+                const kampForKampPanel = summary.querySelector('[data-stats-panel="kampforkamp"]');
                 const kampstatsPanel = summary.querySelector('[data-stats-panel="kampstats"]');
                 const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
                 if (kampdataPanel) kampdataPanel.classList.toggle('hidden', activeSection !== 'kampdata');
+                if (kampForKampPanel) kampForKampPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (kampstatsPanel) kampstatsPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
@@ -3874,6 +3955,49 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                     <th>Motstander</th>
                     <th>Resultat</th>
                     <th>Poeng</th>
+                    <th>Børs</th>
+                </tr>
+            </thead>
+            <tbody>${bodyRows}</tbody>
+        </table>
+    `;
+};
+
+window.renderTeamMatchHistoryTableHtml = function(history) {
+    if (!Array.isArray(history) || !history.length) {
+        return `<div class="stats-form-history-empty">Ingen kamper registrert.</div>`;
+    }
+
+    const rows = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const bodyRows = rows.map(entry => {
+        const ratingText = entry.rating && entry.rating !== '-' ? entry.rating : '–';
+        const formTone = entry.form === 'S'
+            ? 'is-win'
+            : (entry.form === 'T' ? 'is-loss' : (entry.form === 'U' ? 'is-draw' : ''));
+        const formHtml = entry.form
+            ? `<span class="stats-form-history-result-pill ${formTone}">${escapeStatisticsHtml(entry.form)}</span>`
+            : '–';
+
+        return `
+            <tr class="stats-form-history-row">
+                <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
+                <td class="stats-form-history-opponent">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</td>
+                <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
+                <td class="stats-form-history-form">${formHtml}</td>
+                <td class="stats-form-history-rating">${ratingText}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <table class="stats-form-history-table">
+            <thead>
+                <tr>
+                    <th>Dato</th>
+                    <th>Motstander</th>
+                    <th>Resultat</th>
+                    <th>Form</th>
                     <th>Børs</th>
                 </tr>
             </thead>
