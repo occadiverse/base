@@ -9309,179 +9309,304 @@
             color: #94a3b8;
         }
         .stats-kamp-bar {
-            background:
-                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.16), transparent 34%),
-                linear-gradient(135deg, #123f73 0%, #0b2b4c 100%);
-            border: 1px solid rgba(245, 197, 66, 0.24);
-            border-radius: 1.25rem;
-            box-shadow: 0 16px 34px rgba(11, 43, 76, 0.14);
-            padding: 0.95rem 1rem;
+            margin: 0;
         }
-        .stats-kamp-bar-row {
+        .stats-kamp-bar.match-fixture-row {
+            background: linear-gradient(90deg, #123f73 0%, #0f355f 58%, #0b2b4c 100%);
+            border: 1px solid rgba(245, 197, 66, 0.16);
+            box-shadow: 0 8px 20px rgba(11, 43, 76, 0.14);
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            pointer-events: auto;
+        }
+        .stats-kamp-opponent-line {
             align-items: center;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.45rem 0.75rem;
-            justify-content: space-between;
-        }
-        .stats-kamp-bar .stats-kamp-matchline {
-            align-items: center;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem 0.5rem;
+            gap: 0.55rem;
             min-width: 0;
         }
-        .stats-kamp-bar .stats-kamp-vs {
-            color: #ffffff;
-            font-size: 1rem;
-            font-weight: 950;
+        .stats-kamp-bar .match-fixture-opponent-logo {
+            height: 2.05rem;
+            width: 2.05rem;
         }
-        .stats-kamp-bar .stats-kamp-vs-sep {
-            color: rgba(255, 255, 255, 0.55);
-        }
-        .stats-kamp-bar .stats-kamp-select-wrap .portal-field {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.18);
-            color: #ffffff;
+        .stats-kamp-bar .match-fixture-opponent-fallback i {
             font-size: 0.92rem;
-            font-weight: 950;
-            max-width: 14rem;
-            padding-right: 2rem;
         }
-        .stats-kamp-bar .stats-kamp-select-wrap .portal-field option {
+        .stats-kamp-bar .stats-kamp-select-wrap.stats-hero-select-wrap {
+            display: inline-block;
+            flex: 0 1 auto;
+            max-width: min(12.5rem, 100%);
+            min-width: 0;
+            position: relative;
+            vertical-align: middle;
+            width: auto;
+        }
+        .stats-kamp-bar .stats-kamp-select-wrap .stats-kamp-opponent-select.portal-field {
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            color: #ffffff;
+            font-size: clamp(1.12rem, 2.8vw, 1.35rem);
+            font-weight: 900;
+            height: auto;
+            line-height: 1.15;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0 1.45rem 0 0;
+            width: auto;
+        }
+        .stats-kamp-bar .stats-kamp-opponent-select.portal-field option {
             background: #0b2b4c;
             color: #ffffff;
         }
         .stats-kamp-bar .stats-kamp-select-wrap i {
-            color: #f5c542;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.78rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.1rem;
+            top: 50%;
+            transform: translateY(-50%);
         }
-        .stats-kamp-bar-meta {
+        .stats-kamp-bar-side {
             align-items: center;
-            color: rgba(255, 255, 255, 0.68);
             display: flex;
-            flex-wrap: wrap;
-            font-size: 0.68rem;
-            font-weight: 700;
-            gap: 0.45rem 0.75rem;
-            justify-content: space-between;
-            margin-top: 0.45rem;
+            flex-direction: row;
+            gap: 0.4rem;
+            justify-content: flex-end;
         }
-        .stats-kamp-bar-result {
+        .stats-kamp-bar-form.stats-form-history-result-pill {
+            height: 1.45rem;
+            min-width: 1.45rem;
+        }
+        .stats-kamp-bar .match-fixture-side-value {
             color: #f5c542;
-            font-size: 0.95rem;
+            font-size: clamp(1.2rem, 3vw, 1.45rem);
             font-weight: 950;
+            line-height: 1;
         }
-        .stats-kamp-bar .stats-kamp-nav {
-            margin-top: 0;
+        .stats-kamp-bar.is-win .match-fixture-side-value {
+            color: var(--bsk-green);
         }
-        .stats-kamp-bar .stats-kamp-nav span {
-            color: rgba(255, 255, 255, 0.72);
-            font-weight: 900;
-        }
-        .stats-kamp-bar .stats-kamp-nav .portal-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 0.75rem;
-            color: #ffffff;
-        }
-        .stats-kamp-bar .stats-kamp-nav .portal-btn:not(:disabled):hover {
-            background: rgba(245, 197, 66, 0.18);
-            border-color: rgba(245, 197, 66, 0.34);
+        .stats-kamp-bar.is-draw .match-fixture-side-value {
             color: #f5c542;
+        }
+        .stats-kamp-bar.is-loss .match-fixture-side-value {
+            color: #fca5a5;
         }
         .stats-kampdata-match {
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
-        .stats-kampdata-layout {
+        .stats-kampdata-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .stats-kampdata-snapshot {
             display: grid;
-            gap: 1rem;
-            grid-template-columns: minmax(0, 1fr);
-        }
-        .stats-kampdata-header {
-            align-items: flex-start;
-            display: flex;
-            gap: 0.75rem;
-            justify-content: space-between;
-        }
-        .stats-kampdata-panel-actions {
-            align-items: center;
-            display: flex;
-            flex-shrink: 0;
-            gap: 0.4rem;
-        }
-        .stats-kampdata-player-list {
-            display: flex;
-            flex-direction: column;
             gap: 0.45rem;
-            padding: 0.75rem;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
         }
-        .stats-kampdata-player-row.is-bench {
-            opacity: 0.78;
+        .stats-kampdata-snapshot-item {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            padding: 0.55rem 0.45rem;
+            text-align: center;
         }
-        .stats-kampdata-player-row.is-bb {
-            border-left-color: #f5c542;
-        }
-        .stats-kampdata-summary-body {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1rem 1.15rem 1.15rem;
-        }
-        .stats-kampdata-highlights {
-            display: flex;
-            flex-direction: column;
-            gap: 0.45rem;
-        }
-        .stats-kampdata-highlight {
-            align-items: center;
-            appearance: none;
-            background: rgba(18, 63, 115, 0.04);
-            border: 1px solid rgba(18, 63, 115, 0.08);
-            border-radius: 0.78rem;
-            color: inherit;
-            cursor: pointer;
-            display: grid;
-            font: inherit;
-            gap: 0.12rem 0.45rem;
-            grid-template-columns: auto minmax(0, 1fr);
-            padding: 0.6rem 0.7rem;
-            text-align: left;
-            width: 100%;
-        }
-        div.stats-kampdata-highlight {
-            cursor: default;
-        }
-        .stats-kampdata-highlight i {
-            color: #f5c542;
-            font-size: 0.78rem;
-            grid-row: span 2;
-        }
-        .stats-kampdata-highlight-label {
-            color: #64748b;
-            font-size: 0.55rem;
-            font-weight: 950;
-            letter-spacing: 0.1em;
-            line-height: 1;
+        .stats-kampdata-snapshot-label {
+            color: rgba(255, 255, 255, 0.55);
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.2rem;
             text-transform: uppercase;
         }
-        .stats-kampdata-highlight-value {
-            color: #0b2b4c;
-            font-size: 0.82rem;
+        .stats-kampdata-snapshot-value {
+            color: #ffffff;
+            font-size: 0.95rem;
             font-weight: 950;
-            line-height: 1.2;
+        }
+        .stats-kampdata-players-panel {
+            background: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 0.95rem;
+            overflow: hidden;
+        }
+        .stats-kampdata-table-toolbar {
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+            padding: 0.55rem 0.75rem 0.15rem;
+        }
+        .stats-kampdata-table-title {
+            color: #0b2b4c;
+            font-size: 0.85rem;
+            font-weight: 950;
+            margin: 0;
+        }
+        .stats-kampdata-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .stats-kampdata-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 26rem;
+            table-layout: fixed;
+            width: 100%;
+        }
+        .stats-kampdata-table thead {
+            background: linear-gradient(90deg, #0b2b4c 0%, #123f73 58%, #1f5d9e 100%);
+        }
+        .stats-kampdata-table th {
+            border-bottom: 2px solid rgba(245, 197, 66, 0.35);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            padding: 0.7rem 0.45rem;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .stats-kampdata-table th:first-child {
+            padding-left: 0.9rem;
+        }
+        .stats-kampdata-table th:nth-child(2),
+        .stats-kampdata-table th:nth-child(3),
+        .stats-kampdata-table th:nth-child(4),
+        .stats-kampdata-table th:nth-child(5),
+        .stats-kampdata-table td:nth-child(2),
+        .stats-kampdata-table td:nth-child(3),
+        .stats-kampdata-table td:nth-child(4),
+        .stats-kampdata-table td:nth-child(5) {
+            text-align: center;
+            width: 3.4rem;
+        }
+        .stats-kampdata-table th:last-child,
+        .stats-kampdata-table td:last-child {
+            padding-right: 0.9rem;
+        }
+        .stats-kampdata-table-row {
+            cursor: pointer;
+            transition: background-color 140ms ease;
+        }
+        .stats-kampdata-table-row:hover,
+        .stats-kampdata-table-row:focus-visible {
+            background: rgba(245, 197, 66, 0.1);
+            outline: none;
+        }
+        .stats-kampdata-table-row + .stats-kampdata-table-row td {
+            border-top: 1px solid rgba(18, 63, 115, 0.08);
+        }
+        .stats-kampdata-table td {
+            color: #0b2b4c;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.62rem 0.45rem;
+            vertical-align: middle;
+        }
+        .stats-kampdata-table td:first-child {
+            padding-left: 0.9rem;
+        }
+        .stats-kampdata-table-row.is-bench {
+            opacity: 0.72;
+        }
+        .stats-kampdata-col-player {
+            min-width: 0;
+        }
+        .stats-kampdata-player-name {
+            display: block;
+            font-weight: 950;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .stats-kampdata-role {
+            color: #64748b;
+            display: inline-block;
+            font-size: 0.62rem;
+            font-weight: 800;
+            margin-top: 0.1rem;
+            text-transform: uppercase;
+        }
+        .stats-kampdata-col-rating.is-high {
+            color: #047857;
+            font-weight: 950;
+        }
+        .stats-kampdata-col-rating.is-mid {
+            color: #123f73;
+            font-weight: 950;
+        }
+        .stats-kampdata-col-rating.is-low {
+            color: #be123c;
+            font-weight: 950;
+        }
+        .stats-kampdata-col-points.is-high {
+            color: #047857;
+            font-weight: 950;
+        }
+        .stats-kampdata-col-points.is-mid {
+            color: #123f73;
+            font-weight: 950;
+        }
+        .stats-kampdata-col-points.is-low,
+        .stats-kampdata-col-points.is-neutral {
+            color: #0b2b4c;
+            font-weight: 900;
+        }
+        .stats-kampdata-col-cards {
+            white-space: nowrap;
+        }
+        .stats-kampdata-card-dot {
+            border-radius: 0.2rem;
+            display: inline-block;
+            font-size: 0.58rem;
+            font-weight: 950;
+            height: 0.72rem;
+            line-height: 0.72rem;
+            min-width: 0.55rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .stats-kampdata-card-dot.is-yellow {
+            background: #f5c542;
+            color: #713f12;
+        }
+        .stats-kampdata-card-dot.is-red {
+            background: #dc2626;
+            color: #ffffff;
+        }
+        .stats-kampdata-bb-mark {
+            color: #d4a017;
+            font-size: 0.78rem;
+            font-weight: 950;
+            margin-left: 0.15rem;
+        }
+        .stats-kampdata-secondary {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .stats-board-card .stats-kampdata-secondary .stats-mini-label {
+            color: rgba(255, 255, 255, 0.55);
         }
         .stats-kampdata-notes {
             display: flex;
             flex-direction: column;
             gap: 0.45rem;
         }
-        @media (min-width: 1100px) {
-            .stats-kampdata-layout {
-                align-items: start;
-                grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.95fr);
+        @media (max-width: 640px) {
+            .stats-kampdata-snapshot {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
+        }
+        .stats-kampdata-layout {
+            display: none;
         }
         .stats-player-tools {
             display: flex;
@@ -15394,6 +15519,17 @@
         }
         .stats-form-history-row {
             transition: background-color 150ms ease;
+        }
+        .stats-form-history-row.is-clickable {
+            cursor: pointer;
+        }
+        .stats-form-history-row.is-clickable:hover {
+            background: rgba(245, 197, 66, 0.12);
+        }
+        .stats-form-history-row.is-clickable:focus-visible {
+            background: rgba(245, 197, 66, 0.16);
+            outline: 2px solid rgba(245, 197, 66, 0.65);
+            outline-offset: -2px;
         }
         .stats-form-history-row:hover {
             background: rgba(245, 197, 66, 0.06);

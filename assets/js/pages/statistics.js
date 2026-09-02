@@ -144,6 +144,13 @@ function bindStatisticsEvents() {
             }
             return;
         }
+        if (action === 'open-kampstats') {
+            const matchId = actionEl.dataset.matchId;
+            if (matchId && typeof window.openKampstatsForMatch === 'function') {
+                window.openKampstatsForMatch(matchId);
+            }
+            return;
+        }
         if (action === 'edit-match') {
             const matchId = actionEl.dataset.matchId;
             if (matchId && typeof window.openMatchStatsEditor === 'function') window.openMatchStatsEditor(matchId);
@@ -615,7 +622,7 @@ window.checkIndividualChemistry = function() {
 
         window.getStatsKampPanelState = function() {
             const defaults = {
-                kampdata: true,
+                kampdata: false,
                 kampforkamp: false,
                 kampstats: false,
                 oppmote: true,
@@ -654,6 +661,26 @@ window.checkIndividualChemistry = function() {
                     ? (toggle.dataset.hideLabel || 'Skjul seksjon')
                     : (toggle.dataset.showLabel || 'Vis seksjon')
             );
+        };
+
+        window.openStatsKampPanel = function(panelId) {
+            if (!panelId || window.isStatsKampPanelOpen(panelId)) return;
+            window.toggleStatsKampPanel(panelId);
+        };
+
+        window.openKampstatsForMatch = function(matchId) {
+            if (!matchId) return;
+            window.pendingKampstatMatchId = matchId;
+            if (typeof window.openStatsKampPanel === 'function') {
+                window.openStatsKampPanel('kampstats');
+            }
+            if (typeof window.showMatchStatsTable === 'function') {
+                window.showMatchStatsTable();
+            }
+            const panel = document.querySelector('#view-statistikk [data-stats-panel="kampstats"]');
+            if (panel && typeof panel.scrollIntoView === 'function') {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         };
 
         window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', infoPanelHtml = '' }) {
@@ -2221,6 +2248,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 }
 
                 matchHistory.push({
+                    matchId: match.id,
                     date: match.date,
                     opponent: match.opponent,
                     matchType: match.matchType || 'Kamp',
@@ -2845,17 +2873,42 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return;
             }
 
-            const { playedMatches, matchId, matchType, matchGroup, dateStr, pitch, matchResult } = data;
-            const currentIdx = playedMatches.findIndex(m => m.id === matchId);
+            const { playedMatches, matchId, matchType, pitch, matchResult, form = '', attendingCount = 0 } = data;
+            const match = (window.activeMatches || []).find(m => m.id === matchId) || null;
+            const dateValue = match?.date ? new Date(match.date) : null;
+            const hasDate = dateValue && !Number.isNaN(dateValue.getTime());
+            const day = hasDate ? dateValue.toLocaleDateString('no-NO', { day: '2-digit' }) : '--';
+            const month = hasDate
+                ? dateValue.toLocaleDateString('no-NO', { month: 'short' }).replace('.', '').toUpperCase()
+                : '---';
+            const weekday = hasDate
+                ? dateValue.toLocaleDateString('no-NO', { weekday: 'short' }).replace('.', '')
+                : '';
+            const formTone = form === 'S' ? 'is-win' : (form === 'T' ? 'is-loss' : (form === 'U' ? 'is-draw' : ''));
+            const resultTone = formTone || '';
+            const metaParts = [matchType, pitch, attendingCount ? `${attendingCount} oppmøtt` : ''].filter(Boolean);
+            const opponentLogoHtml = (match?.opponent && typeof window.buildClubLogoImgHtml === 'function')
+                ? window.buildClubLogoImgHtml(match.opponent, 'match-fixture-opponent-logo')
+                : '';
+            const opponentMarkHtml = opponentLogoHtml || `
+                <span class="match-fixture-opponent-logo match-fixture-opponent-fallback" aria-hidden="true">
+                    <i class="fa-solid fa-shield"></i>
+                </span>
+            `;
 
             container.innerHTML = `
-                <div class="stats-kamp-bar">
-                    <div class="stats-kamp-bar-row">
-                        <div class="stats-kamp-matchline">
-                            <span class="stats-kamp-vs">BSK</span>
-                            <span class="stats-kamp-vs-sep">–</span>
+                <article class="stats-kamp-bar match-fixture-row ${resultTone}">
+                    <div class="match-fixture-date" aria-hidden="true">
+                        <span class="match-fixture-date-day">${escapeStatsHtml(day)}</span>
+                        <span class="match-fixture-date-month">${escapeStatsHtml(month)}</span>
+                    </div>
+
+                    <div class="match-fixture-main">
+                        ${weekday ? `<span class="match-fixture-weekday">${escapeStatsHtml(weekday)}</span>` : ''}
+                        <div class="stats-kamp-opponent-line">
+                            ${opponentMarkHtml}
                             <span class="stats-kamp-select-wrap stats-hero-select-wrap">
-                                <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate">
+                                <select id="kampstat-match-select" onfocus="expandKampSelectLabels()" onmousedown="expandKampSelectLabels()" onblur="collapseKampSelectLabel()" onchange="showMatchStatsTable()" class="portal-field portal-field-display truncate stats-kamp-opponent-select" aria-label="Velg kamp">
                                     ${playedMatches.map(m => {
                                         const optionDate = m.date ? new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
                                         const shortText = m.opponent || 'Motstander';
@@ -2866,17 +2919,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <i class="fa-solid fa-chevron-down"></i>
                             </span>
                         </div>
-                        <span class="stats-kamp-bar-result">${escapeStatsHtml(matchResult)}</span>
+                        ${metaParts.length ? `<span class="match-fixture-meta">${escapeStatsHtml(metaParts.join(' · '))}</span>` : ''}
                     </div>
-                    <div class="stats-kamp-bar-meta">
-                        <span>${[matchType, matchGroup, dateStr, pitch].filter(Boolean).map(escapeStatsHtml).join(' · ')}</span>
-                        <div class="stats-kamp-nav">
-                            <button type="button" data-stat-action="navigate-match" data-direction="-1" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx <= 0 ? 'disabled' : ''} title="Forrige kamp"><i class="fa-solid fa-chevron-left"></i></button>
-                            <span>${currentIdx + 1} / ${playedMatches.length}</span>
-                            <button type="button" data-stat-action="navigate-match" data-direction="1" class="portal-btn portal-btn-icon-sm portal-btn-secondary" ${currentIdx >= playedMatches.length - 1 ? 'disabled' : ''} title="Neste kamp"><i class="fa-solid fa-chevron-right"></i></button>
-                        </div>
+
+                    <div class="match-fixture-side stats-kamp-bar-side">
+                        <span class="match-fixture-side-value">${escapeStatsHtml(matchResult)}</span>
+                        ${form ? `<span class="stats-kamp-bar-form stats-form-history-result-pill ${formTone}">${escapeStatsHtml(form)}</span>` : ''}
                     </div>
-                </div>
+                </article>
             `;
             if (typeof window.collapseKampSelectLabel === 'function') window.collapseKampSelectLabel();
         };
@@ -3484,6 +3534,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const matchGroup = match.matchGroup || match.team || '';
             const pitch = match.pitch || match.bane || '';
 
+            const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+                ? window.getMatchOutcomeScore(match)
+                : null;
+            let form = '';
+            if (outcomeScore) {
+                if (outcomeScore.bsk > outcomeScore.opponent) form = 'S';
+                else if (outcomeScore.bsk < outcomeScore.opponent) form = 'T';
+                else form = 'U';
+            }
+
+            const regularScore = typeof window.getMatchRegularScore === 'function'
+                ? window.getMatchRegularScore(match)
+                : (typeof window.parseScore === 'function' ? window.parseScore(match.result) : null);
+            const goalsFor = regularScore ? regularScore.bsk : null;
+            const goalsAgainst = regularScore ? regularScore.opponent : null;
+
+            const participantRefs = typeof window.getMatchParticipantRefs === 'function'
+                ? window.getMatchParticipantRefs(match)
+                : window.getAttendingPlayerRefs(match.attendance);
+
             window._statsKampHeroData = {
                 playedMatches,
                 matchId,
@@ -3491,13 +3561,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 matchGroup,
                 dateStr,
                 pitch,
-                matchResult
+                matchResult,
+                form,
+                attendingCount: participantRefs.length
             };
             window.renderStatsKampContext();
-
-            const participantRefs = typeof window.getMatchParticipantRefs === 'function'
-                ? window.getMatchParticipantRefs(match)
-                : window.getAttendingPlayerRefs(match.attendance);
 
             if (participantRefs.length === 0) {
                 container.innerHTML = emptyState('Ingen spillere var registrert med oppmøte på denne kampen.');
@@ -3536,181 +3604,135 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     isBbInMatch,
                     onPitch: pointsDetails.onPitch !== false,
                     points: pointsDetails.total || 0,
-                    base: pointsDetails.base || 0,
-                    resultBonus: pointsDetails.resultBonus || 0,
-                    ratingBonus: pointsDetails.ratingBonus || 0,
-                    bbBonus: pointsDetails.bbBonus || 0,
                     breakdown: `${pointsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
                 };
             });
 
-            stats.sort((a, b) => b.points - a.points || b.rating - a.rating || b.goals - a.goals || b.assists - a.assists);
+            stats.sort((a, b) => (
+                b.points - a.points
+                || b.rating - a.rating
+                || b.goals - a.goals
+                || b.assists - a.assists
+                || a.name.localeCompare(b.name, 'nb')
+            ));
 
             const ratedStats = stats.filter(s => s.rating > 0);
             const avgRating = ratedStats.length
                 ? ratedStats.reduce((sum, s) => sum + s.rating, 0) / ratedStats.length
                 : 0;
-            const totalGoals = stats.reduce((sum, s) => sum + s.goals, 0);
-            const totalAssists = stats.reduce((sum, s) => sum + s.assists, 0);
             const totalYellow = stats.reduce((sum, s) => sum + s.yellow, 0);
             const totalRed = stats.reduce((sum, s) => sum + s.red, 0);
-            const bbPlayer = stats.find(s => s.isBbInMatch);
-            const topScorer = [...stats].sort((a, b) => b.goals - a.goals)[0];
-            const assistLeader = [...stats].sort((a, b) => b.assists - a.assists)[0];
-            const pointsLeader = stats[0];
 
-            const metaPart = (id, text) => {
-                const option = window.getStatsSortOption ? window.getStatsSortOption(id) : null;
-                const iconHtml = window.renderStatsSortIconHtml ? window.renderStatsSortIconHtml(option, 'stats-meta-icon') : '';
-                return `<span class="stats-meta-part">${iconHtml}<span class="stats-meta-text">${escapeStatisticsHtml(text)}</span></span>`;
-            };
-
-            const highlightRow = (icon, label, valueHtml, playerName = '') => {
-                const inner = `
-                    <i class="fa-solid ${icon}" aria-hidden="true"></i>
-                    <span class="stats-kampdata-highlight-label">${label}</span>
-                    <strong class="stats-kampdata-highlight-value">${valueHtml}</strong>
-                `;
-                if (!playerName) {
-                    return `<div class="stats-kampdata-highlight">${inner}</div>`;
-                }
-                const playerId = escapeStatisticsHtml(getStatsPlayerIdForName(playerName) || '');
-                return `
-                    <button type="button" class="stats-kampdata-highlight" data-stat-action="open-player" data-player-id="${playerId}" data-player-name="${escapeStatisticsHtml(playerName)}">
-                        ${inner}
-                    </button>
-                `;
-            };
-
+            const formatDash = (value) => (value == null || value === '' || value === 0 ? '–' : String(value));
             const rowsHtml = stats.map(s => {
                 const pointsClass = window.getPlayerPointsToneClass ? window.getPlayerPointsToneClass(s.points) : 'is-neutral';
                 const playerId = escapeStatisticsHtml(s.id || getStatsPlayerIdForName(s.name) || '');
                 const safeName = escapeStatisticsHtml(s.name);
                 const ratingText = s.rating > 0 ? String(s.rating) : '–';
                 const ratingClass = s.rating >= 8 ? 'is-high' : s.rating >= 6 ? 'is-mid' : s.rating > 0 ? 'is-low' : 'is-neutral';
-                const metaParts = [];
-
-                if (s.onPitch === false) metaParts.push('<span class="stats-meta-pos">Benk</span>');
-                if (s.goals > 0) metaParts.push(metaPart('mal', String(s.goals)));
-                if (s.assists > 0) metaParts.push(metaPart('assist', String(s.assists)));
-                if (s.isBbInMatch) metaParts.push(metaPart('bb', 'BB'));
-                if (s.yellow > 0) metaParts.push(metaPart('gule', String(s.yellow)));
-                if (s.red > 0) metaParts.push(metaPart('rode', String(s.red)));
-                if (!metaParts.length) metaParts.push('<span class="stats-meta-pos">Ingen registrerte hendelser</span>');
-
-                const kampbidragIcon = window.renderStatsSortIconHtml
-                    ? window.renderStatsSortIconHtml(window.getStatsSortOption('kampbonus'), 'stats-kb-icon')
+                const maText = (s.goals > 0 || s.assists > 0)
+                    ? `${s.goals}/${s.assists}`
+                    : '–';
+                const cardBits = [];
+                if (s.yellow > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-yellow" title="Gult kort">${s.yellow > 1 ? s.yellow : ''}</span>`);
+                if (s.red > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-red" title="Rødt kort">${s.red > 1 ? s.red : ''}</span>`);
+                if (s.isBbInMatch) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste">★</span>');
+                const cardsHtml = cardBits.length ? cardBits.join('') : '–';
+                const roleHtml = s.onPitch === false
+                    ? '<span class="stats-kampdata-role is-bench">Benk</span>'
                     : '';
 
                 return `
-                    <button
-                        type="button"
-                        class="roster-player-row stats-player-row stats-kampdata-player-row${s.onPitch === false ? ' is-bench' : ''}${s.isBbInMatch ? ' is-bb' : ''}"
+                    <tr
+                        class="stats-kampdata-table-row${s.onPitch === false ? ' is-bench' : ''}${s.isBbInMatch ? ' is-bb' : ''}"
                         data-stat-action="open-player"
                         data-player-id="${playerId}"
                         data-player-name="${safeName}"
+                        role="button"
+                        tabindex="0"
                         title="${escapeStatisticsHtml(s.breakdown)}"
-                        aria-label="${safeName}, ${s.points} poeng${s.rating > 0 ? ', børs ' + s.rating : ''}"
+                        aria-label="${safeName}, børs ${ratingText}, ${s.points} poeng"
                     >
-                        <div class="stats-form-jersey ${ratingClass}" aria-hidden="true">
-                            <span class="stats-form-jersey-value">${ratingText}</span>
-                            <span class="stats-form-jersey-label">Børs</span>
-                        </div>
-                        <div class="roster-player-main">
-                            <div class="roster-player-name">${safeName}${s.isBbInMatch ? ' <span class="stats-player-star">★</span>' : ''}</div>
-                            <div class="roster-player-meta">${metaParts.join('<span class="roster-player-meta-sep">·</span>')}</div>
-                        </div>
-                        <div class="roster-player-side">
-                            <span class="stats-kb-badge ${pointsClass}" title="Kamppoeng">${kampbidragIcon}<span>${s.points}</span></span>
-                        </div>
-                    </button>
+                        <td class="stats-kampdata-col-player">
+                            <span class="stats-kampdata-player-name">${safeName}</span>
+                            ${roleHtml}
+                        </td>
+                        <td class="stats-kampdata-col-rating ${ratingClass}">${ratingText}</td>
+                        <td class="stats-kampdata-col-ma">${maText}</td>
+                        <td class="stats-kampdata-col-cards">${cardsHtml}</td>
+                        <td class="stats-kampdata-col-points ${pointsClass}">${s.points}</td>
+                    </tr>
                 `;
             }).join('');
 
-            const topScorerHtml = topScorer && topScorer.goals > 0
-                ? highlightRow('fa-futbol', 'Toppscorer', `${escapeStatisticsHtml(topScorer.name)} · ${topScorer.goals} mål`, topScorer.name)
-                : highlightRow('fa-futbol', 'Toppscorer', '–');
-            const assistHtml = assistLeader && assistLeader.assists > 0
-                ? highlightRow('fa-handshake-angle', 'Assist', `${escapeStatisticsHtml(assistLeader.name)} · ${assistLeader.assists} assist`, assistLeader.name)
-                : highlightRow('fa-handshake-angle', 'Assist', '–');
-            const bbHtml = bbPlayer
-                ? highlightRow('fa-crown', 'Banens beste', escapeStatisticsHtml(bbPlayer.name), bbPlayer.name)
-                : highlightRow('fa-crown', 'Banens beste', '–');
-            const pointsHtml = pointsLeader
-                ? highlightRow('fa-chart-line', 'Mest poeng', `${escapeStatisticsHtml(pointsLeader.name)} · ${pointsLeader.points} p`, pointsLeader.name)
-                : highlightRow('fa-chart-line', 'Mest poeng', '–');
+            const notesHtml = typeof window.buildMatchCoachNotesFieldsHtml === 'function'
+                ? window.buildMatchCoachNotesFieldsHtml(match)
+                : '';
 
             container.innerHTML = `
-                <div class="stats-kampdata-layout">
-                    <section class="stats-table-panel stats-kampdata-players">
-                        <div class="stats-panel-header">
-                            <div class="stats-kampdata-header">
-                                <div class="min-w-0">
-                                    <h3 class="stats-panel-title">Spillere i kampen</h3>
-                                    <p class="stats-panel-subtitle">Poeng og hendelser for de som var registrert med oppmøte.</p>
-                                </div>
-                                <div class="stats-kampdata-panel-actions">
-                                    <button
-                                        type="button"
-                                        data-stat-action="open-form-info"
-                                        class="roster-status-btn stats-chrome-info-btn"
-                                        title="Slik regnes kampbidrag"
-                                        aria-label="Slik regnes kampbidrag"
-                                    >
-                                        <i class="fa-solid fa-circle-info"></i>
-                                    </button>
-                                </div>
-                            </div>
+                <div class="stats-kampdata-stack">
+                    <div class="stats-kampdata-snapshot" aria-label="Kamp-snapshot">
+                        <div class="stats-kampdata-snapshot-item">
+                            <span class="stats-kampdata-snapshot-label">Snittbørs</span>
+                            <strong class="stats-kampdata-snapshot-value">${avgRating ? avgRating.toFixed(1) : '–'}</strong>
                         </div>
-                        <div class="stats-kampdata-player-list">
-                            ${rowsHtml}
+                        <div class="stats-kampdata-snapshot-item">
+                            <span class="stats-kampdata-snapshot-label">Mål for</span>
+                            <strong class="stats-kampdata-snapshot-value">${formatDash(goalsFor)}</strong>
+                        </div>
+                        <div class="stats-kampdata-snapshot-item">
+                            <span class="stats-kampdata-snapshot-label">Mål imot</span>
+                            <strong class="stats-kampdata-snapshot-value">${formatDash(goalsAgainst)}</strong>
+                        </div>
+                        <div class="stats-kampdata-snapshot-item">
+                            <span class="stats-kampdata-snapshot-label">Gule</span>
+                            <strong class="stats-kampdata-snapshot-value">${totalYellow}</strong>
+                        </div>
+                        <div class="stats-kampdata-snapshot-item">
+                            <span class="stats-kampdata-snapshot-label">Røde</span>
+                            <strong class="stats-kampdata-snapshot-value">${totalRed}</strong>
+                        </div>
+                    </div>
+
+                    <section class="stats-kampdata-players-panel">
+                        <div class="stats-kampdata-table-toolbar">
+                            <h3 class="stats-kampdata-table-title">Spillere</h3>
+                            <button
+                                type="button"
+                                data-stat-action="open-form-info"
+                                class="roster-status-btn stats-chrome-info-btn"
+                                title="Slik regnes kampbidrag"
+                                aria-label="Slik regnes kampbidrag"
+                            >
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                        </div>
+                        <div class="stats-kampdata-table-wrap">
+                            <table class="stats-kampdata-table">
+                                <thead>
+                                    <tr>
+                                        <th>Spiller</th>
+                                        <th>Børs</th>
+                                        <th>M/A</th>
+                                        <th>Kort</th>
+                                        <th>Poeng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rowsHtml}</tbody>
+                            </table>
                         </div>
                     </section>
 
-                    <aside class="stats-panel stats-kampdata-summary">
-                        <div class="stats-panel-header">
-                            <h3 class="stats-panel-title">Kampoppsummering</h3>
-                            <p class="stats-panel-subtitle">Kort bilde av kampen basert på registrerte data.</p>
+                    <div class="stats-kampdata-secondary">
+                        <div class="stats-kampdata-notes">
+                            <p class="stats-mini-label">Trenernotater</p>
+                            ${notesHtml}
                         </div>
-                        <div class="stats-kampdata-summary-body">
-                            <div class="stats-mini-grid">
-                                <div class="stats-mini-card">
-                                    <p class="stats-mini-label">Snittbørs</p>
-                                    <p class="stats-mini-value">${avgRating ? avgRating.toFixed(1) : '–'}</p>
-                                </div>
-                                <div class="stats-mini-card">
-                                    <p class="stats-mini-label">Mål</p>
-                                    <p class="stats-mini-value is-win">${totalGoals}</p>
-                                </div>
-                                <div class="stats-mini-card">
-                                    <p class="stats-mini-label">Assist</p>
-                                    <p class="stats-mini-value is-goals">${totalAssists}</p>
-                                </div>
-                                <div class="stats-mini-card">
-                                    <p class="stats-mini-label">Gule kort</p>
-                                    <p class="stats-mini-value is-draw">${totalYellow}</p>
-                                </div>
-                                <div class="stats-mini-card">
-                                    <p class="stats-mini-label">Røde kort</p>
-                                    <p class="stats-mini-value is-loss">${totalRed}</p>
-                                </div>
-                            </div>
-                            <div class="stats-kampdata-highlights">
-                                ${bbHtml}
-                                ${topScorerHtml}
-                                ${assistHtml}
-                                ${pointsHtml}
-                            </div>
-                            <div class="stats-kampdata-notes">
-                                <p class="stats-mini-label">Trenernotater</p>
-                                ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
-                            </div>
-                            <button type="button" data-stat-action="open-tactical" data-match-id="${escapeStatisticsHtml(match.id)}" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">
-                                <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
-                                Gå til kampplan
-                            </button>
-                        </div>
-                    </aside>
+                        <button type="button" data-stat-action="open-tactical" data-match-id="${escapeStatisticsHtml(match.id)}" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">
+                            <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
+                            Gå til kampplan
+                        </button>
+                    </div>
                 </div>
             `;
         };
@@ -3978,9 +4000,13 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
         const formHtml = entry.form
             ? `<span class="stats-form-history-result-pill ${formTone}">${escapeStatisticsHtml(entry.form)}</span>`
             : '–';
+        const matchId = entry.matchId ? String(entry.matchId) : '';
+        const rowAttrs = matchId
+            ? ` class="stats-form-history-row is-clickable" data-stat-action="open-kampstats" data-match-id="${escapeStatisticsHtml(matchId)}" role="button" tabindex="0" title="Vis kampstats" aria-label="Vis kampstats for ${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}"`
+            : ' class="stats-form-history-row"';
 
         return `
-            <tr class="stats-form-history-row">
+            <tr${rowAttrs}>
                 <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
                 <td class="stats-form-history-opponent">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</td>
                 <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>

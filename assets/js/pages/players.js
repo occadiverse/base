@@ -1348,22 +1348,29 @@ window.markPlayerHealthy = async function(playerId) {
 };
 
 window.promptDeletePlayer = function(id) {
-    window.customConfirm("Slette spiller?", "Er du sikker på at du vil slette denne spilleren fra troppen permanent?", async () => {
-        try {
-            await window.deletePlayerFromDatabase(id);
-            window.closePlayerModal();
-            window.renderPlayerRoster();
-            if (window.activePlayerProfileId === id) {
-                window.activePlayerProfileId = null;
-                if (typeof window.switchTab === 'function') {
-                    window.switchTab('tropp', { skipHistory: true });
+    const player = (window.activePlayers || []).find(item => item.id === id);
+    const playerName = player?.navn ? `«${player.navn}»` : 'denne spilleren';
+    window.customConfirm(
+        'Slette spiller?',
+        `Vil du slette ${playerName} fra troppen? Spilleren og tilknyttet data fjernes permanent.`,
+        async () => {
+            try {
+                await window.deletePlayerFromDatabase(id);
+                window.closePlayerModal();
+                window.renderPlayerRoster();
+                if (window.activePlayerProfileId === id) {
+                    window.activePlayerProfileId = null;
+                    if (typeof window.switchTab === 'function') {
+                        window.switchTab('tropp', { skipHistory: true });
+                    }
                 }
+            } catch (error) {
+                console.error(error);
+                alert(error.message || 'Kunne ikke slette spiller i databasen. Prøv igjen.');
             }
-        } catch (error) {
-            console.error(error);
-            alert(error.message || 'Kunne ikke slette spiller i databasen. Prøv igjen.');
-        }
-    });
+        },
+        { confirmLabel: 'Ja, slett', danger: true }
+    );
 };
 
 window.deletePlayerFromModal = function() {

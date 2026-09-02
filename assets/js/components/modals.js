@@ -263,10 +263,20 @@ window.closeDashboardAlertModal = function() {
     window.restoreModalReturnContext(context);
 };
 
-window.customConfirm = function(title, message, callback) {
+window.customConfirm = function(title, message, callback, options = {}) {
     customConfirmCallback = callback;
     document.getElementById('confirmTitle').innerText = title;
     document.getElementById('confirmMessage').innerText = message;
+
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const yesLabel = yesBtn?.querySelector('span');
+    if (yesLabel) {
+        yesLabel.textContent = options.confirmLabel || 'Ja, utfør';
+    }
+    if (yesBtn) {
+        yesBtn.classList.toggle('bsk-btn-danger', options.danger === true);
+        yesBtn.classList.toggle('bsk-btn-primary', options.danger !== true);
+    }
 
     const modal = document.getElementById('confirmModal');
     modal.classList.remove('hidden');
@@ -278,6 +288,14 @@ window.closeConfirmModal = function() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     customConfirmCallback = null;
+
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const yesLabel = yesBtn?.querySelector('span');
+    if (yesLabel) yesLabel.textContent = 'Ja, utfør';
+    if (yesBtn) {
+        yesBtn.classList.remove('bsk-btn-danger');
+        yesBtn.classList.add('bsk-btn-primary');
+    }
 };
 
 document.getElementById('confirmYesBtn').onclick = async function() {
