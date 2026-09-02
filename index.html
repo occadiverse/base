@@ -982,7 +982,7 @@
             <form id="activityForm" class="space-y-4">
                 <input type="hidden" id="editActivityId">
                 <div>
-                    <label class="portal-label" id="activityTitleLabel">Hva skal dere?</label>
+                    <label class="portal-label" id="activityTypeLabel">Type</label>
                     <select id="activityType" onchange="updateActivityTitlePlaceholder()" class="portal-field">
                         <option value="Trening">Trening</option>
                         <option value="Kamp">Kamp</option>
@@ -991,9 +991,17 @@
                 </div>
 
                 <div>
-                    <label class="portal-label">Tittel / Motstander</label>
-                    <input type="text" id="activityTitle" placeholder="F.eks. BSK - KFUM (Valgfritt)"
+                    <label class="portal-label" id="activityTitleLabel">Tittel</label>
+                    <input type="text" id="activityTitle" placeholder="F.eks. Taktisk trening, Lagfest..."
                         class="portal-field">
+                </div>
+
+                <div id="activityVenueWrap" class="hidden">
+                    <label class="portal-label" for="activityVenue">Hjemme / Borte</label>
+                    <select id="activityVenue" class="portal-field">
+                        <option value="Hjemme">Hjemme</option>
+                        <option value="Borte">Borte</option>
+                    </select>
                 </div>
 
                 <div>
@@ -1179,7 +1187,7 @@
     <script src="assets/js/domain/club-logos.js?v=20260627-oldenborg"></script>
     <script src="assets/js/pages/players.js?v=20260902-confirm-delete-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260821-451-samspill-v1"></script>
-    <script src="assets/js/pages/attendance.js?v=20260818-pameldt-v1"></script>
+    <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>

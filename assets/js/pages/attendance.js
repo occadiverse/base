@@ -808,6 +808,8 @@ window.openActivityModal = function(defaultType = 'Trening') {
     document.getElementById('activityDate').value = window.selectedCalendarDateStr || new Date().toISOString().split('T')[0];
     document.getElementById('activityTitle').value = '';
     document.getElementById('activityLocation').value = '';
+    const venueSelect = document.getElementById('activityVenue');
+    if (venueSelect) venueSelect.value = 'Hjemme';
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -876,17 +878,20 @@ window.deleteCurrentActivity = function() {
 };
 
 window.updateActivityTitlePlaceholder = function() {
-    const type = document.getElementById('activityType').value;
+    const type = document.getElementById('activityType')?.value || '';
     const titleInput = document.getElementById('activityTitle');
     const titleLabel = document.getElementById('activityTitleLabel');
+    const venueWrap = document.getElementById('activityVenueWrap');
+    const isMatch = type === 'Kamp';
 
-    if (type === 'Kamp') {
-        if (titleLabel) titleLabel.innerText = "Motstander";
-        titleInput.placeholder = "F.eks. BSK - KFUM";
-    } else {
-        if (titleLabel) titleLabel.innerText = "Tittel";
-        titleInput.placeholder = "F.eks. Taktisk trening, Lagfest...";
+    if (titleLabel) titleLabel.innerText = isMatch ? 'Motstander' : 'Tittel';
+    if (titleInput) {
+        titleInput.placeholder = isMatch
+            ? 'F.eks. KFUM, Lyn, Skeid...'
+            : 'F.eks. Taktisk trening, Lagfest...';
+        titleInput.required = isMatch;
     }
+    if (venueWrap) venueWrap.classList.toggle('hidden', !isMatch);
 };
 
 window.saveNewActivity = async function() {
@@ -914,6 +919,9 @@ window.saveNewActivity = async function() {
     try {
         if (type === 'Kamp') {
             const existingMatch = editId ? (window.activeMatches || []).find(m => m.id === editId) : null;
+            const venue = document.getElementById('activityVenue')?.value?.trim()
+                || existingMatch?.venue
+                || 'Hjemme';
             const matchData = {
                 ...(existingMatch || {}),
                 id: editId || Date.now().toString(),
@@ -923,6 +931,7 @@ window.saveNewActivity = async function() {
                 pitch: location || 'Ikke satt',
                 matchType: existingMatch ? existingMatch.matchType : 'Treningskamp',
                 matchGroup: selectedTeam,
+                venue,
                 result: existingMatch ? existingMatch.result : ''
             };
 
