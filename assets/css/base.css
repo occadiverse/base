@@ -15467,7 +15467,7 @@
         .stats-form-history-table {
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 28rem;
+            min-width: 30rem;
             table-layout: fixed;
             width: 100%;
         }
@@ -15493,20 +15493,16 @@
         .stats-form-history-table td:nth-child(2) {
             width: auto;
         }
+        .stats-form-history-table th:nth-child(n+3),
+        .stats-form-history-table td:nth-child(n+3) {
+            padding-left: 0.28rem;
+            padding-right: 0.28rem;
+            text-align: center;
+            width: 3.2rem;
+        }
         .stats-form-history-table th:nth-child(3),
         .stats-form-history-table td:nth-child(3) {
-            width: 4.2rem;
-            padding-left: 0.35rem;
-            padding-right: 0.35rem;
-        }
-        .stats-form-history-table th:nth-child(4),
-        .stats-form-history-table td:nth-child(4),
-        .stats-form-history-table th:nth-child(5),
-        .stats-form-history-table td:nth-child(5) {
-            width: 3.4rem;
-            padding-left: 0.3rem;
-            padding-right: 0.3rem;
-            text-align: center;
+            width: 3.6rem;
         }
         .stats-form-history-table th:first-child {
             padding-left: 0.85rem;
@@ -15559,6 +15555,11 @@
         .stats-form-history-opponent {
             font-weight: 950;
             max-width: none;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .stats-form-history-opponent-name {
+            display: block;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -15585,12 +15586,46 @@
             color: #be123c;
         }
         .stats-form-history-rating {
+            font-weight: 950;
             text-align: center;
             white-space: nowrap;
         }
-        .stats-form-history-rating:not(:empty) {
+        .stats-form-history-rating.is-high {
+            color: #047857;
+        }
+        .stats-form-history-rating.is-mid {
             color: #123f73;
-            font-weight: 950;
+        }
+        .stats-form-history-rating.is-low {
+            color: #be123c;
+        }
+        .stats-form-history-rating.is-neutral {
+            color: #94a3b8;
+            font-weight: 800;
+        }
+        .stats-form-history-ma {
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .stats-form-history-cards {
+            text-align: center;
+            white-space: nowrap;
+        }
+        .stats-form-history-cards .stats-kampdata-card-dot {
+            margin: 0 0.04rem;
+        }
+        .stats-form-history-bench {
+            color: #94a3b8;
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-top: 0.1rem;
+            text-transform: uppercase;
+        }
+        .stats-form-history-row.is-bench {
+            opacity: 0.72;
         }
         .stats-form-history-form {
             font-size: 0.92rem;
@@ -15678,29 +15713,17 @@
             .stats-form-history-table th:first-child,
             .stats-form-history-table td:first-child {
                 padding-left: 0.5rem;
-                width: 13%;
+                width: 12%;
             }
             .stats-form-history-table th:nth-child(2),
             .stats-form-history-table td:nth-child(2) {
-                width: 34%;
+                width: 28%;
             }
-            .stats-form-history-table th:nth-child(3),
-            .stats-form-history-table td:nth-child(3) {
-                padding-left: 0.12rem;
-                padding-right: 0.12rem;
-                width: 18%;
-            }
-            .stats-form-history-table th:nth-child(4),
-            .stats-form-history-table td:nth-child(4) {
-                padding-left: 0.1rem;
-                padding-right: 0.1rem;
-                width: 17%;
-            }
-            .stats-form-history-table th:nth-child(5),
-            .stats-form-history-table td:nth-child(5) {
-                padding-left: 0.1rem;
-                padding-right: 0.45rem;
-                width: 18%;
+            .stats-form-history-table th:nth-child(n+3),
+            .stats-form-history-table td:nth-child(n+3) {
+                padding-left: 0.08rem;
+                padding-right: 0.08rem;
+                width: 15%;
             }
             .stats-form-history-table th:last-child,
             .stats-form-history-table td:last-child {
@@ -15715,6 +15738,9 @@
             }
             .stats-form-history-points {
                 font-size: 0.82rem;
+            }
+            .stats-form-history-bench {
+                font-size: 0.52rem;
             }
         }
         .stats-point-breakdown-grid {

@@ -3956,15 +3956,32 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
 
     const bodyRows = rows.map(entry => {
         const pointsClass = window.getPlayerPointsToneClass(entry.points);
-        const ratingText = entry.rating && entry.rating !== '-' ? entry.rating : '–';
+        const ratingRaw = entry.rating && entry.rating !== '-' ? Number(entry.rating) : 0;
+        const ratingText = ratingRaw > 0 ? String(ratingRaw) : '–';
+        const ratingClass = ratingRaw >= 8 ? 'is-high' : ratingRaw >= 6 ? 'is-mid' : ratingRaw > 0 ? 'is-low' : 'is-neutral';
+        const goals = Number(entry.goals) || 0;
+        const assists = Number(entry.assists) || 0;
+        const maText = (goals > 0 || assists > 0) ? `${goals}/${assists}` : '–';
+        const cardBits = [];
+        if (entry.yellow) cardBits.push('<span class="stats-kampdata-card-dot is-yellow" title="Gult kort"></span>');
+        if (entry.red) cardBits.push('<span class="stats-kampdata-card-dot is-red" title="Rødt kort"></span>');
+        if (entry.bb) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste">★</span>');
+        const cardsHtml = cardBits.length ? cardBits.join('') : '–';
+        const benchNote = entry.onPitch === false
+            ? '<span class="stats-form-history-bench">Benk</span>'
+            : '';
 
         return `
-            <tr class="stats-form-history-row">
+            <tr class="stats-form-history-row${entry.onPitch === false ? ' is-bench' : ''}">
                 <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
-                <td class="stats-form-history-opponent">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</td>
-                <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
+                <td class="stats-form-history-opponent">
+                    <span class="stats-form-history-opponent-name">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</span>
+                    ${benchNote}
+                </td>
+                <td class="stats-form-history-rating ${ratingClass}">${ratingText}</td>
+                <td class="stats-form-history-ma">${maText}</td>
+                <td class="stats-form-history-cards">${cardsHtml}</td>
                 <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
-                <td class="stats-form-history-rating">${ratingText}</td>
             </tr>
         `;
     }).join('');
@@ -3975,9 +3992,10 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                 <tr>
                     <th>Dato</th>
                     <th>Motstander</th>
-                    <th>Resultat</th>
-                    <th>Poeng</th>
                     <th>Børs</th>
+                    <th>M/A</th>
+                    <th>Kort</th>
+                    <th>Poeng</th>
                 </tr>
             </thead>
             <tbody>${bodyRows}</tbody>
@@ -4008,7 +4026,9 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
         return `
             <tr${rowAttrs}>
                 <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
-                <td class="stats-form-history-opponent">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</td>
+                <td class="stats-form-history-opponent">
+                    <span class="stats-form-history-opponent-name">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</span>
+                </td>
                 <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
                 <td class="stats-form-history-form">${formHtml}</td>
                 <td class="stats-form-history-rating">${ratingText}</td>
