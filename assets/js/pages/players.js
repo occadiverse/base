@@ -1043,6 +1043,7 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
     document.getElementById('editPlayerId').value = '';
     window.updateDynamicSelectors();
     window._playerModalEditOnly = Boolean(options.editOnly);
+    window._playerModalWasInjured = false;
 
     if (editPlayerId) {
         const pObj = (window.activePlayers || []).find(p => p.id === editPlayerId);
@@ -1067,6 +1068,9 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
             document.getElementById('playerSkadeNotatInput').value = pObj.skadeNotat || '';
             document.getElementById('playerSkadeFraDatoInput').value = pObj.skadeFraDato || '';
             document.getElementById('playerSkadeTilDatoInput').value = pObj.skadeTilDato || '';
+            window._playerModalWasInjured = isPlayerCurrentlyInjured(pObj);
+            const friskDatoInput = document.getElementById('playerSkadeFriskDatoInput');
+            if (friskDatoInput) friskDatoInput.value = getTodayDateString();
             window.togglePlayerSkadeFields();
         }
     } else {
@@ -1079,6 +1083,8 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
         document.getElementById('playerSkadeNotatInput').value = '';
         document.getElementById('playerSkadeFraDatoInput').value = '';
         document.getElementById('playerSkadeTilDatoInput').value = '';
+        const friskDatoInput = document.getElementById('playerSkadeFriskDatoInput');
+        if (friskDatoInput) friskDatoInput.value = getTodayDateString();
         window.togglePlayerSkadeFields();
     }
 
@@ -1104,18 +1110,26 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
 window.togglePlayerSkadeFields = function() {
     const status = document.getElementById('playerSkadeStatusInput')?.value || 'frisk';
     const isInjured = status !== 'frisk';
+    const isClearingInjury = !isInjured && Boolean(window._playerModalWasInjured);
     const fromDateWrap = document.getElementById('playerSkadeFraDatoWrap');
     const dateWrap = document.getElementById('playerSkadeTilDatoWrap');
     const notatWrap = document.getElementById('playerSkadeNotatWrap');
+    const friskDatoWrap = document.getElementById('playerSkadeFriskDatoWrap');
+    const friskDatoInput = document.getElementById('playerSkadeFriskDatoInput');
     if (fromDateWrap) fromDateWrap.classList.toggle('hidden', !isInjured);
     if (dateWrap) dateWrap.classList.toggle('hidden', !isInjured);
     if (notatWrap) notatWrap.classList.toggle('hidden', !isInjured);
+    if (friskDatoWrap) friskDatoWrap.classList.toggle('hidden', !isClearingInjury);
+    if (isClearingInjury && friskDatoInput && !friskDatoInput.value) {
+        friskDatoInput.value = getTodayDateString();
+    }
 };
 
 window.closePlayerModal = function() {
     const profileEl = document.getElementById('playerModalProfile');
     if (profileEl) profileEl.innerHTML = '';
     window._playerModalEditOnly = false;
+    window._playerModalWasInjured = false;
     document.getElementById('playerModal').classList.add('hidden');
     document.getElementById('playerModal').classList.remove('flex');
 };
@@ -1290,7 +1304,13 @@ window.savePlayer = async function(event) {
     };
 
     if (existingPlayer && isPlayerCurrentlyInjured(existingPlayer) && playerData.skadeStatus === 'frisk') {
-        playerData = finishPlayerInjury(existingPlayer, todayStr);
+        const recoveredOn = document.getElementById('playerSkadeFriskDatoInput')?.value || todayStr;
+        const injuryStart = existingPlayer.skadeFraDato || '';
+        if (injuryStart && recoveredOn && recoveredOn < injuryStart) {
+            alert('Friskmeldt-dato kan ikke være før skadet-fra-dato.');
+            return;
+        }
+        playerData = finishPlayerInjury(existingPlayer, recoveredOn);
         playerData = {
             ...playerData,
             id: existingPlayer.id,
