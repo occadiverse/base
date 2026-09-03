@@ -4729,6 +4729,7 @@
         .roster-page {
             margin: 0 auto;
             max-width: 88rem;
+            overflow-anchor: none;
             width: 100%;
         }
         .roster-topline {

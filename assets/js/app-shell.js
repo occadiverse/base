@@ -47,6 +47,32 @@ function setMobileNavTab(tabId) {
     setMobileNavSettling(false);
 }
 
+function getPortalMainScrollHost() {
+    return document.querySelector('.portal-main-shell');
+}
+
+function resetPortalMainScroll() {
+    const host = getPortalMainScrollHost();
+    if (host) host.scrollTop = 0;
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+}
+
+function schedulePortalMainScrollReset() {
+    resetPortalMainScroll();
+    requestAnimationFrame(() => {
+        resetPortalMainScroll();
+        requestAnimationFrame(resetPortalMainScroll);
+    });
+}
+
+function blurPortalViewFocus(viewEl) {
+    const active = document.activeElement;
+    if (!viewEl || !active || active === document.body || active === document.documentElement) return;
+    if (viewEl.contains(active) && typeof active.blur === 'function') active.blur();
+}
+
 function switchTab(tabId, options = {}) {
     const previousTab = currentTab;
     if (previousTab && previousTab !== tabId && !options.skipHistory) {
@@ -69,10 +95,8 @@ function switchTab(tabId, options = {}) {
     });
 
     const activeEl = document.getElementById(`view-${tabId}`);
+    if (tabId === 'tropp') blurPortalViewFocus(activeEl);
     if (activeEl) activeEl.classList.remove('hidden');
-
-    const scrollHost = document.querySelector('.portal-main-shell');
-    if (scrollHost && previousTab !== tabId) scrollHost.scrollTop = 0;
 
     if (tabId === 'oppmote') {
         const pendingDateStr = window.pendingCalendarDateStr || null;
@@ -156,6 +180,8 @@ function switchTab(tabId, options = {}) {
     } else if (tabId === 'spillerprofil' && window.activePlayerProfileId && typeof window.renderPlayerProfilePage === 'function') {
         window.renderPlayerProfilePage(window.activePlayerProfileId);
     }
+
+    if (previousTab !== tabId || tabId === 'tropp') schedulePortalMainScrollReset();
 
     if (options.animate === 'swipe' && previousTab !== tabId) {
         animateMobileSwipeTab(tabId, options.direction);
