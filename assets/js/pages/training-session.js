@@ -911,6 +911,28 @@ function getTrainingExerciseCategoryLabel(categoryId) {
     return getTrainingExerciseCategories().find(category => category.id === categoryId)?.label || 'Annet';
 }
 
+function getTrainingExerciseCategoryCounts() {
+    const counts = Object.fromEntries(
+        getTrainingExerciseCategories().map(category => [category.id, 0])
+    );
+    getTrainingExerciseLibrary().forEach(item => {
+        const key = Object.prototype.hasOwnProperty.call(counts, item.category)
+            ? item.category
+            : 'annet';
+        counts[key] += 1;
+    });
+    return counts;
+}
+
+function buildExerciseCategoryOptionsHtml(selectedId) {
+    const counts = getTrainingExerciseCategoryCounts();
+    return getTrainingExerciseCategories().map(category => {
+        const count = counts[category.id] || 0;
+        const label = `${category.label} (${count})`;
+        return `<option value="${escapeTrainingHtml(category.id)}"${category.id === selectedId ? ' selected' : ''}>${escapeTrainingHtml(label)}</option>`;
+    }).join('');
+}
+
 function inferExerciseCategoryFromRecommendation(titleOrFocus) {
     if (titleOrFocus && typeof titleOrFocus === 'object' && titleOrFocus.category) {
         return titleOrFocus.category;
@@ -1277,6 +1299,11 @@ async function saveTrainingSessionExercise() {
             await window.saveEventToDatabase(trainingEvent);
         }
         await upsertTrainingExerciseInLibrary(exercise);
+        if (categorySelect) {
+            const selectedCategory = categorySelect.value || category;
+            categorySelect.innerHTML = buildExerciseCategoryOptionsHtml(selectedCategory);
+            categorySelect.value = selectedCategory;
+        }
         if (librarySelect) {
             librarySelect.innerHTML = buildExerciseLibraryOptionsHtml(category, libraryId);
             librarySelect.value = libraryId;
@@ -1295,9 +1322,7 @@ async function saveTrainingSessionExercise() {
 function buildTrainingExercisePanelHtml(trainingEvent) {
     const isOpen = window._trainingSessionExerciseOpen === true;
     const values = getTrainingSessionExerciseValues(trainingEvent);
-    const categoryOptions = getTrainingExerciseCategories().map(category => `
-        <option value="${category.id}"${category.id === values.category ? ' selected' : ''}>${escapeTrainingHtml(category.label)}</option>
-    `).join('');
+    const categoryOptions = buildExerciseCategoryOptionsHtml(values.category);
     const hint = values.suggestionHint
         || 'Velg kategori, hent en lagret øvelse, eller skriv en ny som treffer hovedfokuset i Treningsinfo.';
 
