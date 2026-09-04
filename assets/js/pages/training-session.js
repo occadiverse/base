@@ -462,9 +462,23 @@ function getTrainingMatchLineRatingAverages(match) {
 function getTrainingMatchIntro(match, score) {
     const opponent = match.opponent || 'Motstander';
     const resultLabel = score.bsk > score.opponent
-        ? 'seier'
-        : (score.bsk < score.opponent ? 'tap' : 'uavgjort');
-    return `${opponent}: ${resultLabel} ${score.bsk}-${score.opponent}`;
+        ? 'Seier'
+        : (score.bsk < score.opponent ? 'Tap' : 'Uavgjort');
+    return `${opponent} · ${resultLabel} ${score.bsk}-${score.opponent}`;
+}
+
+function getTrainingRecommendationHeading(match, score, categoryLabel = '') {
+    if (!match || !score) {
+        return { text: 'Anbefaling etter siste kamp', categoryLabel: '' };
+    }
+    const opponent = match.opponent || 'Motstander';
+    const resultLabel = score.bsk > score.opponent
+        ? 'Seier'
+        : (score.bsk < score.opponent ? 'Tap' : 'Uavgjort');
+    return {
+        text: `Etter kamp mot ${opponent} - ${resultLabel} ${score.bsk}-${score.opponent} anbefales det å fokusere på`,
+        categoryLabel: categoryLabel || ''
+    };
 }
 
 const TRAINING_FOCUS_NOTE_RULES = [
@@ -599,8 +613,11 @@ function buildTrainingSessionFocus(match) {
     if (!focus) return null;
 
     const keepOn = String(match.notes?.positive || '').trim();
+    const categoryLabel = getTrainingExerciseCategoryLabel(focus.category);
     return {
         intro: getTrainingMatchIntro(match, score),
+        heading: getTrainingRecommendationHeading(match, score, categoryLabel),
+        categoryLabel,
         focus,
         keepOn,
         items: [focus]
@@ -751,28 +768,23 @@ function buildTrainingDataRecommendationsHtml(match) {
     }
 
     const focus = recommendations.focus;
-    const categoryLabel = getTrainingExerciseCategoryLabel(focus.category);
     const sourceLabel = focus.source === 'notes'
         ? 'Fra trenernotat'
         : (focus.source === 'ratings' ? 'Fra spillerbørs' : 'Fra kampresultat');
 
     return `
         <div class="training-data-recommend-block">
+            <div class="training-data-recommend-section">
+                <strong class="training-data-recommend-focus-title">Utfordringer — ${escapeTrainingHtml(focus.title)}</strong>
+                <p class="training-data-recommend-reason">${escapeTrainingHtml(focus.reason)}</p>
+            </div>
             ${recommendations.keepOn ? `
-                <article class="training-data-recommend-item is-keep">
-                    <strong>Bygg videre på</strong>
-                    <span>${escapeTrainingHtml(recommendations.keepOn)}</span>
-                </article>
-            ` : ''}
-            <article class="training-data-recommend-item is-focus">
-                <div class="training-data-recommend-focus-top">
-                    <strong>Hovedfokus denne økten</strong>
-                    <span class="training-data-recommend-badge">${escapeTrainingHtml(categoryLabel)}</span>
+                <div class="training-data-recommend-keep">
+                    <strong class="training-data-recommend-focus-title">Positivt</strong>
+                    <p class="training-data-recommend-keep-text">${escapeTrainingHtml(recommendations.keepOn)}</p>
                 </div>
-                <strong class="training-data-recommend-focus-title">${escapeTrainingHtml(focus.title)}</strong>
-                <span>${escapeTrainingHtml(focus.reason)}</span>
-                <span class="training-data-recommend-source">${escapeTrainingHtml(sourceLabel)}</span>
-            </article>
+            ` : ''}
+            <span class="training-data-recommend-source">${escapeTrainingHtml(sourceLabel)}</span>
         </div>
     `;
 }
@@ -853,9 +865,11 @@ function buildTrainingDataPanelHtml(trainingEvent) {
     const recommendations = typeof buildTrainingSessionFocus === 'function'
         ? buildTrainingSessionFocus(lastMatch)
         : null;
-    const matchIntro = recommendations?.intro
-        ? `<p class="training-data-section-match">${escapeTrainingHtml(recommendations.intro)}</p>`
-        : '';
+    const headingParts = recommendations?.heading || { text: 'Anbefaling etter siste kamp', categoryLabel: '' };
+    const categoryLabel = headingParts.categoryLabel || '';
+    const headingHtml = categoryLabel
+        ? `${escapeTrainingHtml(headingParts.text)} - <span class="training-data-section-category">${escapeTrainingHtml(categoryLabel)}</span>`
+        : escapeTrainingHtml(headingParts.text);
 
     return `
         <section class="training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
@@ -871,8 +885,7 @@ function buildTrainingDataPanelHtml(trainingEvent) {
                 <div class="training-session-data-body">
                     <section class="training-data-section">
                         <div class="training-data-section-heading">
-                            <h4>Anbefaling etter siste kamp</h4>
-                            ${matchIntro}
+                            <p class="training-data-section-title">${headingHtml}</p>
                         </div>
                         ${buildTrainingDataRecommendationsHtml(lastMatch)}
                     </section>
