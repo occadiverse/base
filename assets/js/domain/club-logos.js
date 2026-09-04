@@ -78,6 +78,18 @@
             name: 'Oldenborg IL',
             aliases: ['Oldenborg', 'Oldenborg IL', 'Oldenborg Idrettsselskab'],
             logo: 'assets/img/clubs/oldenborg-20260627.png'
+        },
+        {
+            id: 'lyn',
+            name: 'SFK Lyn',
+            aliases: [
+                'Lyn',
+                'SFK Lyn',
+                'Lyn Oslo',
+                'Lyn Fotball',
+                'Ski- og Fotballklubben Lyn'
+            ],
+            logo: 'assets/img/clubs/lyn-20260904.png'
         }
     ];
 
