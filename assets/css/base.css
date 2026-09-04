@@ -3232,12 +3232,29 @@
             gap: 1rem;
             padding: 0.15rem 0.15rem 0.35rem;
         }
+        .training-data-section-heading {
+            align-items: baseline;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.7rem;
+            margin: 0 0 0.55rem;
+        }
         .training-data-section h4 {
             color: rgba(255, 255, 255, 0.78);
             font-size: 0.72rem;
             font-weight: 900;
             letter-spacing: 0.08em;
-            margin: 0 0 0.55rem;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .training-data-section-match {
+            color: rgba(255, 255, 255, 0.78);
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            line-height: 1.3;
+            margin: 0;
             text-transform: uppercase;
         }
         .training-data-empty {
@@ -3258,10 +3275,11 @@
             gap: 0.55rem;
         }
         .training-data-recommend-intro {
-            color: rgba(255, 255, 255, 0.72);
-            font-size: 0.78rem;
-            font-weight: 650;
-            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            line-height: 1.3;
             margin: 0;
         }
         .training-data-recommend-list {

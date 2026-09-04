@@ -460,11 +460,11 @@ function getTrainingMatchLineRatingAverages(match) {
 }
 
 function getTrainingMatchIntro(match, score) {
-    const opponent = match.opponent || 'motstander';
+    const opponent = match.opponent || 'Motstander';
     const resultLabel = score.bsk > score.opponent
         ? 'seier'
         : (score.bsk < score.opponent ? 'tap' : 'uavgjort');
-    return `Basert på siste kamp mot ${opponent} — ${resultLabel} ${score.bsk}-${score.opponent}.`;
+    return `${opponent}: ${resultLabel} ${score.bsk}-${score.opponent}`;
 }
 
 const TRAINING_FOCUS_NOTE_RULES = [
@@ -758,7 +758,6 @@ function buildTrainingDataRecommendationsHtml(match) {
 
     return `
         <div class="training-data-recommend-block">
-            <p class="training-data-recommend-intro">${escapeTrainingHtml(recommendations.intro)}</p>
             ${recommendations.keepOn ? `
                 <article class="training-data-recommend-item is-keep">
                     <strong>Bygg videre på</strong>
@@ -851,6 +850,12 @@ window.buildTrainingDataAttendanceHtml = buildTrainingDataAttendanceHtml;
 function buildTrainingDataPanelHtml(trainingEvent) {
     const lastMatch = getLatestFinishedMatchForTeam(getTrainingSessionTeamName(trainingEvent));
     const isOpen = window._trainingSessionDataOpen === true;
+    const recommendations = typeof buildTrainingSessionFocus === 'function'
+        ? buildTrainingSessionFocus(lastMatch)
+        : null;
+    const matchIntro = recommendations?.intro
+        ? `<p class="training-data-section-match">${escapeTrainingHtml(recommendations.intro)}</p>`
+        : '';
 
     return `
         <section class="training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
@@ -865,7 +870,10 @@ function buildTrainingDataPanelHtml(trainingEvent) {
             <div class="match-collapsible-content">
                 <div class="training-session-data-body">
                     <section class="training-data-section">
-                        <h4>Anbefaling etter siste kamp</h4>
+                        <div class="training-data-section-heading">
+                            <h4>Anbefaling etter siste kamp</h4>
+                            ${matchIntro}
+                        </div>
                         ${buildTrainingDataRecommendationsHtml(lastMatch)}
                     </section>
                 </div>
