@@ -1882,12 +1882,17 @@
             position: absolute;
             z-index: 12;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score {
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score,
+        #full-pitch-container .match-game-plan-samspill-line-score {
             align-items: center;
             border-radius: 999px;
             box-shadow: 0 1px 3px rgba(2, 6, 23, 0.35);
             display: inline-flex;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: clamp(0.58rem, 2.8cqi, 0.78rem);
+            font-weight: 900;
             justify-content: center;
+            letter-spacing: -0.03em;
             line-height: 1;
             min-height: 1.35em;
             min-width: 1.35em;
@@ -1896,24 +1901,30 @@
             position: absolute;
             transform: translate(-50%, -50%);
             white-space: nowrap;
+            z-index: 14;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-strong {
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-strong,
+        #full-pitch-container .match-game-plan-samspill-line-score.is-tone-strong {
             background: #22c55e;
             color: #052e16;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-ok {
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-ok,
+        #full-pitch-container .match-game-plan-samspill-line-score.is-tone-ok {
             background: #facc15;
             color: #422006;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-potential {
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-potential,
+        #full-pitch-container .match-game-plan-samspill-line-score.is-tone-potential {
             background: #6366f1;
             color: #eef2ff;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-weak {
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-weak,
+        #full-pitch-container .match-game-plan-samspill-line-score.is-tone-weak {
             background: #ef4444;
             color: #450a0a;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-unknown {
+        .match-detail-lineup-pitch-wrap .match-game-plan-samspill-line-score.is-tone-unknown,
+        #full-pitch-container .match-game-plan-samspill-line-score.is-tone-unknown {
             background: #64748b;
             color: #f8fafc;
         }
@@ -2278,22 +2289,16 @@
             width: 0.62rem;
         }
         .samspill-legend-item.is-strong::before {
-            background: #047857;
+            background: #22c55e;
         }
         .samspill-legend-item.is-ok::before {
             background: #facc15;
         }
         .samspill-legend-item.is-weak::before {
-            background: #991b1b;
+            background: #ef4444;
         }
         .samspill-legend-item.is-unknown::before {
-            background: repeating-linear-gradient(
-                90deg,
-                rgba(18, 63, 115, 0.55) 0,
-                rgba(18, 63, 115, 0.55) 3px,
-                transparent 3px,
-                transparent 5px
-            );
+            background: #64748b;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card-overlays {
             inset: 0;

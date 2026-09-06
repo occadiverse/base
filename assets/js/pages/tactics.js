@@ -313,8 +313,19 @@
 
         window.drawChemistryLines = function() {
             const svgLayer = document.getElementById('chemistry-lines-layer');
+            const pitch = document.getElementById('full-pitch-container');
             if (!svgLayer) return;
             svgLayer.innerHTML = '';
+
+            let labelLayer = pitch?.querySelector('[data-samspill-line-labels]');
+            if (pitch && !labelLayer) {
+                labelLayer = document.createElement('div');
+                labelLayer.className = 'match-game-plan-samspill-line-labels tactical-samspill-line-labels';
+                labelLayer.dataset.samspillLineLabels = '';
+                labelLayer.setAttribute('aria-hidden', 'true');
+                pitch.appendChild(labelLayer);
+            }
+            if (labelLayer) labelLayer.innerHTML = '';
             
             const connections = typeof window.getTacticalSamspillConnections === 'function'
                 ? window.getTacticalSamspillConnections(
@@ -372,15 +383,29 @@
 
             drawnPairs.forEach((entry, index) => {
                 if (typeof window.appendSamspillLine === 'function') {
-                    const label = labelPositions[index];
                     window.appendSamspillLine(svgLayer, entry.coords, entry.samspill, {
+                        context: 'match-plan',
+                        showScoreLabel: false,
                         focused: entry.focused,
                         dimUnfocused: !!focusPos && !entry.focused,
-                        coordUnit: '%',
-                        labelX: label?.x,
-                        labelY: label?.y
+                        coordUnit: '%'
                     });
                 }
+
+                if (!labelLayer) return;
+                const point = labelPositions[index] || {
+                    x: (entry.coords.x1 + entry.coords.x2) / 2,
+                    y: (entry.coords.y1 + entry.coords.y2) / 2
+                };
+                const score = Number(entry.samspill?.score) || 0;
+                const status = entry.samspill?.status || entry.samspill?.tone || 'unknown';
+                const label = document.createElement('span');
+                label.className = `match-game-plan-samspill-line-score is-tone-${status}`;
+                label.style.left = `${point.x}%`;
+                label.style.top = `${point.y}%`;
+                label.textContent = score > 0 ? String(score) : '–';
+                if (focusPos && !entry.focused) label.style.opacity = '0.5';
+                labelLayer.appendChild(label);
             });
         };
 
@@ -405,6 +430,8 @@
             const pitch = document.getElementById('full-pitch-container');
             if (pitch) {
                 pitch.querySelectorAll('.tactical-live-ghost').forEach(ghost => ghost.remove());
+                const labelLayer = pitch.querySelector('[data-samspill-line-labels]');
+                if (labelLayer) labelLayer.innerHTML = '';
             }
 
             const coords = tacticalPhases[phaseId] || {};
