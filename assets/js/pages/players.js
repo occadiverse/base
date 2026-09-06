@@ -910,19 +910,19 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>
             <div class="player-profile-stat-grid">
+                ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-')}
+                ${buildPlayerProfileStatChipHtml('Børs', snittBors)}
+                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag)}
+                ${buildPlayerProfileStatChipHtml('Total score', totalScore)}
                 ${buildPlayerProfileStatChipHtml('Kamper', kamper)}
                 ${buildPlayerProfileStatChipHtml('Mål', mal)}
                 ${buildPlayerProfileStatChipHtml('Assist', assist)}
-                ${buildPlayerProfileStatChipHtml('Snittbørs', snittBors)}
-                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag)}
                 ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote)}
-                ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-')}
                 ${buildPlayerProfileStatChipHtml('Banens beste', bb)}
                 ${buildPlayerProfileStatChipHtml('Gule (serie)', guleSerie)}
                 ${buildPlayerProfileStatChipHtml('Gule (cup)', guleCup)}
                 ${buildPlayerProfileStatChipHtml('Røde (serie)', rodeSerie)}
                 ${buildPlayerProfileStatChipHtml('Røde (cup)', rodeCup)}
-                ${buildPlayerProfileStatChipHtml('Total score', totalScore)}
                 ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? `#${totalRank}` : '-')}
             </div>
         </section>
