@@ -1,28 +1,27 @@
 (function() {
     const POSITION_PAIR_RELEVANCE = {
         'VB|VK': 1.0, 'HB|HK': 1.0,
-        'VMS|HMS': 1.0,
-        'VMS|VB': 0.95, 'HMS|HB': 0.95,
-        'VMS|DM': 0.95, 'HMS|DM': 0.95,
+        'HMS|VMS': 1.0,
+        'VB|VMS': 0.95, 'HB|HMS': 0.95,
+        'DM|VMS': 0.95, 'DM|HMS': 0.95,
         'DM|OM': 1.0, 'DM|PM': 1.0,
         'OM|SP': 1.0, 'PM|SP': 1.0,
-        'VK|SP': 1.0, 'HK|SP': 1.0,
-        'VK|OM': 0.95, 'HK|PM': 0.95,
+        'SP|VK': 1.0, 'HK|SP': 1.0,
+        'OM|VK': 0.95, 'HK|PM': 0.95,
         'OM|PM': 0.9,
-        'VB|OM': 0.9, 'HB|PM': 0.9,
-        'VB|DM': 0.85, 'HB|DM': 0.85,
-        'VMS|OM': 0.75, 'HMS|PM': 0.75,
+        'OM|VB': 0.9, 'HB|PM': 0.9,
+        'DM|VB': 0.85, 'DM|HB': 0.95,
+        'OM|VMS': 0.95, 'HMS|PM': 0.75,
         'DM|VK': 0.7, 'DM|HK': 0.7,
         'GK|VMS': 0.7, 'GK|HMS': 0.7,
-        'GK|DM': 0.55,
+        'DM|GK': 0.55,
         'GK|SP': 0.3,
-        'VK|HK': 0.3,
-        'VB|HK': 0.35, 'HB|VK': 0.35,
+        'HK|VK': 0.3,
+        'HB|VK': 0.35, 'HK|VB': 0.35, 'HB|VB': 0.5,
         'GK|VK': 0.35, 'GK|HK': 0.35,
         'GK|OM': 0.4, 'GK|PM': 0.4,
-        'VMS|SP': 0.45, 'HMS|SP': 0.45,
-        'VK|PM': 0.65, 'HK|OM': 0.65,
-        'VB|HB': 0.5
+        'SP|VMS': 0.45, 'HMS|SP': 0.45,
+        'PM|VK': 0.65, 'HK|OM': 0.65
     };
 
     const DEFAULT_POSITION_RELEVANCE = 0.65;
@@ -392,6 +391,14 @@
         const key = pairKey(posA, posB);
         if (Object.prototype.hasOwnProperty.call(POSITION_PAIR_RELEVANCE, key)) {
             return POSITION_PAIR_RELEVANCE[key];
+        }
+        const legacy = `${posA}|${posB}`;
+        const legacyRev = `${posB}|${posA}`;
+        if (Object.prototype.hasOwnProperty.call(POSITION_PAIR_RELEVANCE, legacy)) {
+            return POSITION_PAIR_RELEVANCE[legacy];
+        }
+        if (Object.prototype.hasOwnProperty.call(POSITION_PAIR_RELEVANCE, legacyRev)) {
+            return POSITION_PAIR_RELEVANCE[legacyRev];
         }
         return DEFAULT_POSITION_RELEVANCE;
     };

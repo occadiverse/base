@@ -173,8 +173,11 @@ function switchTab(tabId, options = {}) {
     } else if (tabId === 'hjem') {
         window.updateDashboard();
     } else if (tabId === 'taktikk') {
-        if (typeof window.setTacticalPhase === 'function') window.setTacticalPhase('fase1');
         if (typeof window.updateTacticalMatchSelector === 'function') window.updateTacticalMatchSelector();
+        if (typeof window.loadMatchTactics === 'function') window.loadMatchTactics();
+        if (typeof window.setTacticalPhase === 'function') window.setTacticalPhase(
+            typeof currentTacticalPhase !== 'undefined' ? currentTacticalPhase : 'fase1'
+        );
     } else if (tabId === 'oktside' && window._activeTrainingSessionId && typeof window.renderTrainingSession === 'function') {
         window.renderTrainingSession(window._activeTrainingSessionId);
     } else if (tabId === 'spillerprofil' && window.activePlayerProfileId && typeof window.renderPlayerProfilePage === 'function') {
