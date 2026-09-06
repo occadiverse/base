@@ -3729,8 +3729,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ${notesHtml}
                         </div>
                         <button type="button" data-stat-action="open-tactical" data-match-id="${escapeStatisticsHtml(match.id)}" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">
-                            <i class="fa-solid fa-chess-board" aria-hidden="true"></i>
-                            Gå til kampplan
+                            <i class="fa-solid fa-broadcast-tower" aria-hidden="true"></i>
+                            Gå til Live
                         </button>
                     </div>
                 </div>

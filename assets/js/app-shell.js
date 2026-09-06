@@ -120,7 +120,7 @@ function switchTab(tabId, options = {}) {
         oppmote: "Kalender",
         tropp: "Spillertropp",
         statistikk: "Statistikk",
-        taktikk: "Taktikk",
+        taktikk: "Live",
         admin: "Admin",
         kampdetaljer: "Kampdetaljer",
         spillerprofil: "Spillerprofil",

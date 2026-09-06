@@ -4,7 +4,7 @@ const NAV_ITEMS = [
     { id: 'oppmote', label: 'Kalender', mobileLabel: 'Kalender', icon: 'fa-calendar' },
     { id: 'tropp', label: 'Spillertropp', mobileLabel: 'Tropp', icon: 'fa-users' },
     { id: 'statistikk', label: 'Statistikk', mobileLabel: 'Stats', icon: 'fa-chart-simple' },
-    { id: 'taktikk', label: 'Taktikk', mobileLabel: 'Taktikk', icon: 'fa-chess-board' }
+    { id: 'taktikk', label: 'Live', mobileLabel: 'Live', icon: 'fa-broadcast-tower' }
 ];
 
 const MOBILE_NAV_ITEMS = [

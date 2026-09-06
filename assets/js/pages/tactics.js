@@ -17,15 +17,15 @@
             // Insets account for taller photo cards so nodes stay inside the pitch frame.
             fase1: {
                 'GK': { top: '93%', left: '50%' },
-                'VMS': { top: '93%', left: '34%' },
-                'HMS': { top: '93%', left: '66%' },
+                'VMS': { top: '92%', left: '34%' },
+                'HMS': { top: '92%', left: '66%' },
                 'VB': { top: '86%', left: '16%' },
                 'HB': { top: '86%', left: '84%' },
                 'DM': { top: '75%', left: '62%' },
                 'OM': { top: '75%', left: '38%' },
                 'PM': { top: '56%', left: '58%' },
-                'VK': { top: '50%', left: '12%' },
-                'HK': { top: '50%', left: '88%' },
+                'VK': { top: '50%', left: '8%' },
+                'HK': { top: '50%', left: '92%' },
                 'SP': { top: '50%', left: '42%' }
             },
             fase2: {
@@ -253,7 +253,7 @@
                 : '<span class="tactical-lineup-status-badge is-locked"><i class="fa-solid fa-circle-info"></i> Ingen lagret 11er – sett opp i Kampdetaljer</span>';
 
             actionsEl.innerHTML = `
-                <button type="button" class="bsk-btn bsk-btn-chip portal-btn portal-btn-secondary text-[10px]" onclick="window.resetTacticalLiveBoard()">
+                <button type="button" class="bsk-btn bsk-btn-chip match-filter-btn" onclick="window.resetTacticalLiveBoard()">
                     <i class="fa-solid fa-rotate-left"></i> Tilbakestill live
                 </button>
             `;
@@ -339,6 +339,36 @@
                 ? window.getTacticalChemistryFilter()
                 : { historicalOnly: true };
 
+            const pitchRect = pitch?.getBoundingClientRect();
+
+            function getTacticalPairCoords(posA, posB, nodeA, nodeB) {
+                const activePhase = typeof window.getActiveTacticalSamspillPhase === 'function'
+                    ? window.getActiveTacticalSamspillPhase()
+                    : (typeof currentTacticalPhase !== 'undefined' ? currentTacticalPhase : 'fase1');
+                const isF1StopperPair = activePhase === 'fase1'
+                    && ((posA === 'VMS' && posB === 'HMS') || (posA === 'HMS' && posB === 'VMS'));
+                if (isF1StopperPair && pitchRect?.width && pitchRect?.height) {
+                    const leftNode = posA === 'VMS' ? nodeA : nodeB;
+                    const rightNode = posA === 'VMS' ? nodeB : nodeA;
+                    const leftRect = leftNode.getBoundingClientRect();
+                    const rightRect = rightNode.getBoundingClientRect();
+                    // F1 only: top edge to top edge, inner corners
+                    return {
+                        x1: ((leftRect.right - pitchRect.left) / pitchRect.width) * 100,
+                        y1: ((leftRect.top - pitchRect.top) / pitchRect.height) * 100,
+                        x2: ((rightRect.left - pitchRect.left) / pitchRect.width) * 100,
+                        y2: ((rightRect.top - pitchRect.top) / pitchRect.height) * 100
+                    };
+                }
+
+                return {
+                    x1: parseFloat(nodeA.style.left),
+                    y1: parseFloat(nodeA.style.top),
+                    x2: parseFloat(nodeB.style.left),
+                    y2: parseFloat(nodeB.style.top)
+                };
+            }
+
             const pairResults = connections.map(pair => {
                 const player1 = window.tacticalLineup[pair[0]];
                 const player2 = window.tacticalLineup[pair[1]];
@@ -360,12 +390,7 @@
                 return {
                     pair,
                     samspill,
-                    coords: {
-                        x1: parseFloat(node1.style.left),
-                        y1: parseFloat(node1.style.top),
-                        x2: parseFloat(node2.style.left),
-                        y2: parseFloat(node2.style.top)
-                    },
+                    coords: getTacticalPairCoords(pair[0], pair[1], node1, node2),
                     relevance: samspill.positionalRelevance,
                     focused: focusPos && (pair[0] === focusPos || pair[1] === focusPos)
                 };
@@ -471,20 +496,65 @@
             }, 520);
         };
 
+        window.syncTacticalSandboxButton = function() {
+            const btn = document.getElementById('tactical-sandbox-btn');
+            if (!btn) return;
+            const isSandbox = !getTacticalMatchSelectValue();
+            btn.classList.toggle('is-active', isSandbox);
+            btn.setAttribute('aria-pressed', isSandbox ? 'true' : 'false');
+        };
+
+        window.enterTacticalSandbox = function() {
+            const select = document.getElementById('tacticalMatchSelect');
+            if (select) select.value = '';
+            if (typeof window.loadMatchTactics === 'function') window.loadMatchTactics();
+            window.syncTacticalSandboxButton();
+        };
+
+        window.onTacticalMatchSelectChange = function() {
+            if (typeof window.loadMatchTactics === 'function') window.loadMatchTactics();
+            window.syncTacticalSandboxButton();
+        };
+
         window.updateTacticalMatchSelector = function() {
             const select = document.getElementById('tacticalMatchSelect');
             if (!select) return;
             const currentSelectedValue = select.value;
             
-            select.innerHTML = '<option value="">Sandkasse</option>';
-            
-            const sortedMatches = [...(window.activeMatches || [])].sort((a,b) => a.date.localeCompare(b.date));
-            sortedMatches.forEach(m => {
-                const opt = document.createElement('option'); opt.value = m.id;
-                opt.innerText = `${new Date(m.date).toLocaleDateString('no-NO', {day:'2-digit', month:'2-digit'})} - vs ${m.opponent} (${m.matchGroup || 'A-lag'})`;
+            select.innerHTML = '<option value="">Velg kamp</option>';
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const liveMatches = [...(window.activeMatches || [])]
+                .filter(m => {
+                    if (!m?.date) return false;
+                    const matchDate = new Date(m.date);
+                    if (Number.isNaN(matchDate.getTime())) return false;
+                    matchDate.setHours(0, 0, 0, 0);
+                    return matchDate >= today;
+                })
+                .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+            liveMatches.forEach((m, index) => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                const dateLabel = new Date(m.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' });
+                const prefix = index === 0 ? 'Neste · ' : '';
+                opt.innerText = `${prefix}${dateLabel} - vs ${m.opponent}`;
                 select.appendChild(opt);
             });
-            if (currentSelectedValue) select.value = currentSelectedValue;
+
+            const stillAvailable = !currentSelectedValue
+                || [...select.options].some(opt => opt.value === currentSelectedValue);
+            if (stillAvailable && currentSelectedValue) {
+                select.value = currentSelectedValue;
+            } else if (currentSelectedValue && !stillAvailable) {
+                select.value = '';
+                if (typeof window.loadMatchTactics === 'function') window.loadMatchTactics();
+            }
+
+            window.syncTacticalSandboxButton();
         };
 
         function refreshTacticalLiveBoard() {
@@ -538,6 +608,7 @@
                 window.clearTacticalBoard();
                 window.updateTacticalLineupControls();
                 window.applyTacticalLineupReadOnlyState();
+                window.syncTacticalSandboxButton();
                 return;
             }
             
@@ -552,6 +623,7 @@
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
             refreshTacticalLiveBoard();
+            window.syncTacticalSandboxButton();
         };
 
         window.saveMatchTactics = async function() {

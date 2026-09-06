@@ -28,7 +28,7 @@
     const MIN_RELEVANCE_TO_DRAW = 0.45;
     const TACTICAL_SAMSPILL_CONNECTIONS = {
         fase1: [
-            ['VMS', 'GK'], ['GK', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'], ['VMS', 'OM'], ['HMS', 'DM'],
+            ['VMS', 'GK'], ['GK', 'HMS'], ['VMS', 'HMS'], ['VMS', 'VB'], ['HMS', 'HB'], ['VMS', 'OM'], ['HMS', 'DM'],
             ['VB', 'OM'], ['VB', 'VK'], ['DM', 'OM'], ['HB', 'DM'], ['HB', 'HK'],
             ['OM', 'VK'], ['OM', 'SP'], ['VK', 'SP'], ['SP', 'PM'], ['PM', 'DM'],
             ['HK', 'DM'], ['HK', 'PM']

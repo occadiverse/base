@@ -360,23 +360,48 @@
             </div>
 
             <div id="view-taktikk" class="hidden portal-view portal-page space-y-4 md:space-y-6">
-                <div id="taktikk-toolbar" class="max-w-lg mx-auto w-full flex flex-col items-center gap-4 bg-white/90 border border-slate-200 border-b-4 border-bsk-yellow/40 rounded-2xl p-4 shadow-sm">
-                    
-                    <!-- Kampvelger sentrert -->
-                    <div class="w-full sm:w-auto flex items-center justify-center gap-3 bg-slate-50/80 border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
-                        <label class="portal-label whitespace-nowrap mb-0">Modus / Kamp:</label>
-                        <select id="tacticalMatchSelect" onchange="loadMatchTactics()" class="portal-field portal-field-inline min-w-[180px] text-xs font-black text-bsk-blue cursor-pointer text-left">
-                            <option value="">Sandkasse</option>
-                        </select>
+                <div id="taktikk-toolbar" class="match-detail-card tactical-live-board max-w-lg mx-auto w-full">
+                    <div class="dashboard-next-match-watermark match-list-column-watermark" aria-hidden="true">
+                        <i class="fa-solid fa-broadcast-tower"></i>
                     </div>
 
-                    <div id="tactical-lineup-controls" class="tactical-lineup-controls hidden w-full flex flex-col items-center gap-2">
+                    <div class="match-detail-card-top relative z-10">
+                        <div class="match-detail-meta match-list-column-title">
+                            <i class="fa-solid fa-broadcast-tower"></i>
+                            <span>Live</span>
+                        </div>
+                    </div>
+
+                    <div class="tactical-live-toolbar relative z-10">
+                        <label class="match-list-lag-filter tactical-match-select-wrap" for="tacticalMatchSelect">
+                            <i class="fa-solid fa-futbol" aria-hidden="true"></i>
+                            <select
+                                id="tacticalMatchSelect"
+                                aria-label="Velg kamp"
+                                onchange="window.onTacticalMatchSelectChange()"
+                                class="match-list-lag-select tactical-match-select"
+                            >
+                                <option value="">Velg kamp</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down match-list-lag-chevron" aria-hidden="true"></i>
+                        </label>
+                        <button
+                            type="button"
+                            id="tactical-sandbox-btn"
+                            onclick="window.enterTacticalSandbox()"
+                            class="bsk-btn bsk-btn-chip match-filter-btn is-active"
+                            aria-pressed="true"
+                        >
+                            Sandkasse
+                        </button>
+                    </div>
+
+                    <div id="tactical-lineup-controls" class="tactical-lineup-controls hidden relative z-10">
                         <div id="tactical-lineup-status" class="tactical-lineup-status"></div>
                         <div id="tactical-lineup-actions" class="tactical-lineup-actions flex flex-wrap items-center justify-center gap-2"></div>
                     </div>
 
-                    <!-- Faseknapper og verktøy sentrert rett over banen -->
-                    <div class="flex flex-wrap items-center justify-center gap-2">
+                    <div class="tactical-live-phases relative z-10 flex flex-wrap items-center justify-center gap-2">
                         <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-primary">
                         F1
                         </button>
@@ -388,7 +413,7 @@
                         </button>
 
                         <div id="tactical-sandbox-tools" class="contents">
-                            <div class="w-px h-6 bg-slate-300 mx-1 rounded"></div>
+                            <div class="w-px h-6 bg-white/20 mx-1 rounded"></div>
 
                             <button type="button" id="tactical-autofill-btn" onclick="autoFillTeam()" title="Autofullfør ellever" class="bsk-btn bsk-btn-icon bsk-btn-warning">
                                 <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
