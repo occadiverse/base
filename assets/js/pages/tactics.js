@@ -16,17 +16,17 @@
         const tacticalPhases = {
             // Insets account for taller photo cards so nodes stay inside the pitch frame.
             fase1: {
-                'GK': { top: '90%', left: '50%' },
-                'VMS': { top: '91%', left: '34%' },
-                'HMS': { top: '91%', left: '66%' },
-                'VB': { top: '78%', left: '16%' },
-                'HB': { top: '78%', left: '84%' },
-                'DM': { top: '66%', left: '62%' },
-                'OM': { top: '66%', left: '38%' },
-                'PM': { top: '48%', left: '58%' },
-                'VK': { top: '42%', left: '12%' },
-                'HK': { top: '42%', left: '88%' },
-                'SP': { top: '42%', left: '42%' }
+                'GK': { top: '93%', left: '50%' },
+                'VMS': { top: '93%', left: '34%' },
+                'HMS': { top: '93%', left: '66%' },
+                'VB': { top: '86%', left: '16%' },
+                'HB': { top: '86%', left: '84%' },
+                'DM': { top: '75%', left: '62%' },
+                'OM': { top: '75%', left: '38%' },
+                'PM': { top: '56%', left: '58%' },
+                'VK': { top: '50%', left: '12%' },
+                'HK': { top: '50%', left: '88%' },
+                'SP': { top: '50%', left: '42%' }
             },
             fase2: {
                 'GK': { top: '88%', left: '50%' },
