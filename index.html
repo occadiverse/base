@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260907-live-two-col-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260907-autofill-info-dot-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -418,6 +418,16 @@
                                     </button>
                                     <button type="button" id="tactical-clear-btn" onclick="clearTacticalBoard()" title="Tøm banen" class="bsk-btn bsk-btn-icon bsk-btn-danger">
                                         <i class="fa-solid fa-eraser text-base"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        id="tactical-autofill-info-btn"
+                                        onclick="window.openAutofillInfoModal()"
+                                        class="tactical-autofill-info-chip"
+                                        title="Slik fungerer autofyll"
+                                        aria-label="Slik fungerer autofyll"
+                                    >
+                                        <i class="fa-solid fa-info" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>
@@ -1190,6 +1200,70 @@
         </div>
     </div>
 
+    <div id="autofill-info-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4 transition-opacity">
+        <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
+            <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
+                <h3 class="text-xl font-black text-bsk-yellow">
+                    <i class="fa-solid fa-wand-magic-sparkles text-bsk-yellow mr-2"></i>Slik fungerer autofyll
+                </h3>
+                <button
+                    type="button"
+                    onclick="window.closeAutofillInfoModal()"
+                    class="bsk-btn bsk-btn-icon bsk-btn-ghost text-2xl font-light leading-none"
+                    aria-label="Lukk"
+                >&times;</button>
+            </div>
+
+            <div class="p-6 space-y-6 text-sm">
+                <p class="text-base text-slate-300">
+                    Autofyll bygger et forslag til 11er i sandkassen. Den prioriterer <strong class="text-white">riktig posisjon først</strong>, deretter form og kampbidrag.
+                </p>
+
+                <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
+                    <strong class="block text-bsk-yellow mb-2">Kort sagt</strong>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-300">
+                        <li>Ekte posisjon slår reserveposisjon</li>
+                        <li><strong class="text-white">pos1</strong> teller tyngre enn <strong class="text-white">pos2</strong></li>
+                        <li>Blant like gode treff vinner høyest <strong class="text-white">Form + Kampbidrag</strong></li>
+                        <li>Fot brukes som ekstra hint på stoppere</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Rekkefølge på banen</h4>
+                    <p class="mb-2 text-slate-300">Posisjonene fylles i denne rekkefølgen, slik at midtbane og angrep får sine før kantene henter reservebekker:</p>
+                    <p class="text-slate-200 font-semibold leading-relaxed">
+                        Keeper → Stoppere → DM → OM → Playmaker → Spiss → Bekker → Kanter
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Hvem får hvilken plass?</h4>
+                    <ul class="list-disc pl-5 space-y-1.5 text-slate-300">
+                        <li><strong class="text-white">Kanter:</strong> først <em>Venstre/Høyre kant</em>. Bekk brukes bare hvis ingen kant er ledig.</li>
+                        <li><strong class="text-white">Bekker:</strong> <em>Venstre/Høyre bekk</em>.</li>
+                        <li><strong class="text-white">Stoppere:</strong> matcher stopper-posisjon, med bonus for riktig fot.</li>
+                        <li><strong class="text-white">Øvrige:</strong> matcher hovedposisjonen for plassen (Keeper, DM, OM, Playmaker, Spiss).</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Poeng når flere passer</h4>
+                    <p class="mb-2 text-slate-300">Når flere spillere passer like godt posisjonsmessig, sorteres de slik:</p>
+                    <ol class="list-decimal pl-5 space-y-1 text-slate-300">
+                        <li>Best posisjonstreff (hovedposisjon før reserveposisjon)</li>
+                        <li>Høyest Form</li>
+                        <li>Høyest Kampbidrag</li>
+                        <li>Riktig fot (på plasser der fot er relevant)</li>
+                    </ol>
+                    <p class="mt-3 text-slate-400 text-[12px]">
+                        Eksempel: en Venstre kant prioriteres foran en Venstre bekk på VK, selv om bekken har litt høyere form.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="assets/js/components/navigation.js?v=20260613-mobile-nav7"></script>
     <div id="team-field-store" class="hidden" aria-hidden="true">
         <input type="hidden" id="matchGroup">
@@ -1197,7 +1271,7 @@
     </div>
 
     <script src="assets/js/state.js?v=20260703-single-team-v1"></script>
-    <script src="assets/js/components/modals.js?v=20260902-confirm-delete-v1"></script>
+    <script src="assets/js/components/modals.js?v=20260907-autofill-info-v1"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20260820-spiller-year-v1"></script>
@@ -1208,7 +1282,7 @@
     <script src="assets/js/pages/matches.js?v=20260821-451-samspill-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260907-live-had-roles-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260907-autofill-info-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>

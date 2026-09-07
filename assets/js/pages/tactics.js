@@ -1307,7 +1307,21 @@
             window.liveLineup = {};
             ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'].forEach(pos => window.choosePlayer(null, pos));
             window.updateTacticalBoardStats();
-        }
+        };
+
+        window.openAutofillInfoModal = function() {
+            const modal = document.getElementById('autofill-info-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeAutofillInfoModal = function() {
+            const modal = document.getElementById('autofill-info-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
 
         window.autoFillTeam = function() {
             if (!window.isTacticalLineupEditable()) return;
@@ -1326,9 +1340,9 @@
                 { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false },
                 { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true },
                 { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true },
-                { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false }, 
-                { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false }, 
-                { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false },         
+                { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false },
+                { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false },
+                { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false },
                 { id: 'SP',  pos: ['Spiss'], foot: null, requireFoot: false },
                 { id: 'VB',  pos: ['Venstre bekk'], foot: null, requireFoot: true },
                 { id: 'HB',  pos: ['Høyre bekk'], foot: null, requireFoot: true },
@@ -1342,18 +1356,44 @@
                     : 0
             );
 
+            const getPositionFitScore = (player, req) => {
+                const preferred = req.pos[0];
+                const fallback = req.pos.slice(1);
+                if (preferred && player.pos1 === preferred) return 100;
+                if (preferred && player.pos2 === preferred) return 80;
+                if (fallback.includes(player.pos1)) return 40;
+                if (fallback.includes(player.pos2)) return 20;
+                return 0;
+            };
+
             priorityOrder.forEach(req => {
-                let candidates = availablePlayers.filter(p => req.pos.includes(p.pos1) || req.pos.includes(p.pos2));
-                if (candidates.length === 0 && availablePlayers.length > 0) candidates = [...availablePlayers];
+                const preferredPos = req.pos[0] ? [req.pos[0]] : req.pos;
+                let candidates = availablePlayers.filter(p => (
+                    preferredPos.includes(p.pos1) || preferredPos.includes(p.pos2)
+                ));
+
+                // Bruk reserveposisjoner (f.eks. bekk på kant) bare hvis ingen ekte match finnes.
+                if (candidates.length === 0) {
+                    candidates = availablePlayers.filter(p => (
+                        req.pos.includes(p.pos1) || req.pos.includes(p.pos2)
+                    ));
+                }
+                if (candidates.length === 0 && availablePlayers.length > 0) {
+                    candidates = [...availablePlayers];
+                }
 
                 if (candidates.length > 0) {
                     candidates.sort((a, b) => {
+                        const fitA = getPositionFitScore(a, req);
+                        const fitB = getPositionFitScore(b, req);
+                        if (fitA !== fitB) return fitB - fitA;
+
                         const penaltyA = (req.requireFoot && req.foot && a.fot !== req.foot && a.fot !== 'Begge') ? -5 : 0;
                         const penaltyB = (req.requireFoot && req.foot && b.fot !== req.foot && b.fot !== 'Begge') ? -5 : 0;
 
                         const scoreA = window.calculatePlayerPerformanceChemistry(a.navn) + getKampbonus(a) + penaltyA;
                         const scoreB = window.calculatePlayerPerformanceChemistry(b.navn) + getKampbonus(b) + penaltyB;
-                        return scoreB - scoreA; 
+                        return scoreB - scoreA;
                     });
                     const selectedPlayer = candidates[0];
                     window.choosePlayer(selectedPlayer, req.id);
