@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260904-treningsinfo-brief-v7">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260907-live-had-roles-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -359,16 +359,22 @@
                 </section>
             </div>
 
-            <div id="view-taktikk" class="hidden portal-view portal-page space-y-4 md:space-y-6">
-                <div id="taktikk-toolbar" class="match-detail-card tactical-live-board max-w-lg mx-auto w-full">
-                    <div class="dashboard-next-match-watermark match-list-column-watermark" aria-hidden="true">
+            <div id="view-taktikk" class="hidden portal-view portal-page live-page">
+                <section id="taktikk-toolbar" class="match-detail-card tactical-live-board">
+                    <div class="dashboard-next-match-watermark tactical-live-watermark" aria-hidden="true">
                         <i class="fa-solid fa-broadcast-tower"></i>
                     </div>
 
-                    <div class="match-detail-card-top relative z-10">
+                    <div class="match-detail-card-top tactical-live-top relative z-10">
                         <div class="match-detail-meta match-list-column-title">
                             <i class="fa-solid fa-broadcast-tower"></i>
                             <span>Live</span>
+                        </div>
+                        <div class="match-detail-top-chips">
+                            <div class="match-detail-chip">
+                                <i class="fa-solid fa-futbol"></i>
+                                <span>Kampbord</span>
+                            </div>
                         </div>
                     </div>
 
@@ -394,6 +400,26 @@
                         >
                             Sandkasse
                         </button>
+                        <div class="tactical-live-phases flex flex-wrap items-center justify-center gap-2">
+                            <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-primary">
+                            F1
+                            </button>
+                            <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-secondary">
+                            F2
+                            </button>
+                            <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-secondary">
+                            F3
+                            </button>
+                            <div id="tactical-sandbox-tools" class="contents">
+                                <div class="w-px h-6 bg-white/20 mx-1 rounded"></div>
+                                <button type="button" id="tactical-autofill-btn" onclick="autoFillTeam()" title="Autofullfør ellever" class="bsk-btn bsk-btn-icon bsk-btn-warning">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                                </button>
+                                <button type="button" id="tactical-clear-btn" onclick="clearTacticalBoard()" title="Tøm banen" class="bsk-btn bsk-btn-icon bsk-btn-danger">
+                                    <i class="fa-solid fa-eraser text-base"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="tactical-lineup-controls" class="tactical-lineup-controls hidden relative z-10">
@@ -401,98 +427,80 @@
                         <div id="tactical-lineup-actions" class="tactical-lineup-actions flex flex-wrap items-center justify-center gap-2"></div>
                     </div>
 
-                    <div class="tactical-live-phases relative z-10 flex flex-wrap items-center justify-center gap-2">
-                        <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-primary">
-                        F1
-                        </button>
-                        <button onclick="setTacticalPhase('fase2')" id="btn-fase2" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-secondary">
-                        F2
-                        </button>
-                        <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-secondary">
-                        F3
-                        </button>
+                    <div class="tactical-live-main relative z-10">
+                        <div class="tactical-live-pitch-column">
+                            <div class="tactical-pitch relative w-full aspect-[2/3] rounded-2xl shadow-lg border overflow-hidden" id="full-pitch-container">
 
-                        <div id="tactical-sandbox-tools" class="contents">
-                            <div class="w-px h-6 bg-white/20 mx-1 rounded"></div>
+                                <div id="tactical-stats-overlay" class="tactical-stats-overlay absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
+                                    <div class="tactical-stats-chip">
+                                        <span class="tactical-stats-chip-label">Kampbidrag</span>
+                                        <span id="stat-total-bonus" class="tactical-stats-chip-value">0/0</span>
+                                    </div>
+                                    <div class="tactical-stats-chip">
+                                        <span class="tactical-stats-chip-label">Form</span>
+                                        <span id="stat-avg-chem" class="tactical-stats-chip-value">0/0</span>
+                                    </div>
+                                </div>
 
-                            <button type="button" id="tactical-autofill-btn" onclick="autoFillTeam()" title="Autofullfør ellever" class="bsk-btn bsk-btn-icon bsk-btn-warning">
-                                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
-                            </button>
-                            <button type="button" id="tactical-clear-btn" onclick="clearTacticalBoard()" title="Tøm banen" class="bsk-btn bsk-btn-icon bsk-btn-danger">
-                                <i class="fa-solid fa-eraser text-base"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                                <div class="absolute top-1/2 w-full h-[2px] bg-white/45 -translate-y-1/2"></div>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/45"></div>
 
-                <div class="px-4 lg:px-0 pb-12">
-                    <div class="tactical-pitch relative w-full max-w-lg mx-auto aspect-[2/3] rounded-2xl shadow-lg border overflow-hidden" id="full-pitch-container">
+                                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/45 border-b-0"></div>
+                                <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/45 border-b-0"></div>
+                                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/45 border-b-0"></div>
 
-                        <div id="tactical-stats-overlay" class="absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
-                            <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
-                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Kampbidrag</span>
-                                <span id="stat-total-bonus" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
+                                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/45 border-t-0"></div>
+                                <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/45 border-t-0"></div>
+                                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/45 border-t-0"></div>
+
+                                <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full z-0">
+                                </svg>
+
+                                <div id="node-GK" class="player-node tactical-live-card absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('GK')" data-pos="GK"></div>
+                                <div id="node-VMS" class="player-node tactical-live-card absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('VMS')" data-pos="VMS"></div>
+                                <div id="node-HMS" class="player-node tactical-live-card absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('HMS')" data-pos="HMS"></div>
+                                <div id="node-VB" class="player-node tactical-live-card absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('VB')" data-pos="VB"></div>
+                                <div id="node-HB" class="player-node tactical-live-card absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('HB')" data-pos="HB"></div>
+                                <div id="node-DM" class="player-node tactical-live-card absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('DM')" data-pos="DM"></div>
+                                <div id="node-OM" class="player-node tactical-live-card absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('OM')" data-pos="OM"></div>
+                                <div id="node-PM" class="player-node tactical-live-card absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('PM')" data-pos="PM"></div>
+                                <div id="node-VK" class="player-node tactical-live-card absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('VK')" data-pos="VK"></div>
+                                <div id="node-HK" class="player-node tactical-live-card absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('HK')" data-pos="HK"></div>
+                                <div id="node-SP" class="player-node tactical-live-card absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('SP')" data-pos="SP"></div>
                             </div>
-                            <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/70 text-center min-w-[100px] shadow-sm">
-                                <span class="block text-[8px] uppercase font-black text-slate-500 tracking-wider mb-0.5">Form</span>
-                                <span id="stat-avg-chem" class="text-xs font-black text-bsk-blue tracking-wide">0/0</span>
+                        </div>
+
+                        <div class="tactical-live-side-column">
+                            <div id="tactical-live-sub-panel" class="hidden tactical-live-panel space-y-3 transition-all" aria-live="polite"></div>
+
+                            <div id="tactical-bench-card" class="hidden tactical-live-panel space-y-4 transition-all">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-users-rectangle text-slate-500"></i> Benken / Innbyttere
+                                    </h3>
+                                    <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Live-bytter</span>
+                                </div>
+                                <p id="tactical-bench-hint" class="text-[11px] text-slate-500 m-0">«Overtar» gjelder planlagt innbytte. «Hadde» viser roller/OffC/DefC til spillere som er byttet ut.</p>
+                                <div id="tactical-bench-list" class="grid grid-cols-1 gap-2 text-xs font-medium text-slate-700">
+                                </div>
+                            </div>
+
+                            <div id="tactical-roles-card" class="hidden tactical-live-panel space-y-4 transition-all">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-clipboard-list text-bsk-blue"></i> Roller (live)
+                                    </h3>
+                                    <span class="bg-sky-100 text-sky-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Kun på tavlen</span>
+                                </div>
+                                <div id="tactical-live-roles-list" class="grid grid-cols-1 gap-2 text-xs font-medium text-slate-700"></div>
                             </div>
                         </div>
-                        
-                        <div class="absolute top-1/2 w-full h-[2px] bg-white/45 -translate-y-1/2"></div> 
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/45"></div> 
-        
-                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/45 border-b-0"></div> 
-                        <div class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-t-full border-2 border-white/45 border-b-0"></div> 
-                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/45 border-b-0"></div> 
-
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%] border-2 border-white/45 border-t-0"></div> 
-                        <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[25%] h-[8%] rounded-b-full border-2 border-white/45 border-t-0"></div> 
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[25%] h-[5%] border-2 border-white/45 border-t-0"></div>
-
-                        <svg id="chemistry-lines-layer" class="absolute inset-0 w-full h-full z-0">
-                        </svg>
-
-                        <div id="node-GK" class="player-node tactical-live-card absolute top-[90%] left-[50%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('GK')" data-pos="GK"></div>
-                        <div id="node-VMS" class="player-node tactical-live-card absolute top-[80%] left-[25%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('VMS')" data-pos="VMS"></div>
-                        <div id="node-HMS" class="player-node tactical-live-card absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('HMS')" data-pos="HMS"></div>
-                        <div id="node-VB" class="player-node tactical-live-card absolute top-[60%] left-[10%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('VB')" data-pos="VB"></div>
-                        <div id="node-HB" class="player-node tactical-live-card absolute top-[60%] left-[90%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('HB')" data-pos="HB"></div>
-                        <div id="node-DM" class="player-node tactical-live-card absolute top-[55%] left-[40%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('DM')" data-pos="DM"></div>
-                        <div id="node-OM" class="player-node tactical-live-card absolute top-[50%] left-[60%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('OM')" data-pos="OM"></div>
-                        <div id="node-PM" class="player-node tactical-live-card absolute top-[35%] left-[50%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('PM')" data-pos="PM"></div>
-                        <div id="node-VK" class="player-node tactical-live-card absolute top-[25%] left-[20%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('VK')" data-pos="VK"></div>
-                        <div id="node-HK" class="player-node tactical-live-card absolute top-[25%] left-[80%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('HK')" data-pos="HK"></div>
-                        <div id="node-SP" class="player-node tactical-live-card absolute top-[15%] left-[50%] -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 transition-all duration-500" onclick="openPlayerSelect('SP')" data-pos="SP"></div>
                     </div>
 
-                    <div id="tactical-live-sub-panel" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-3 transition-all" aria-live="polite"></div>
-
-                    <div id="tactical-bench-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-users-rectangle text-slate-500"></i> Benken / Innbyttere
-                            </h3>
-                            <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Live-bytter</span>
-                        </div>
-                        <p id="tactical-bench-hint" class="text-[11px] text-slate-500 m-0">Velg planlagt bytte, eller trykk innbytter og deretter posisjon på banen.</p>
-                        <div id="tactical-planned-subs" class="space-y-2"></div>
-                        <div id="tactical-bench-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-medium text-slate-700">
-                        </div>
-                    </div>
-                    
-                    <div id="tactical-roles-card" class="hidden w-full max-w-lg mx-auto mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-md space-y-4 transition-all">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-clipboard-list text-bsk-blue"></i> Roller (live)
-                            </h3>
-                            <span class="bg-sky-100 text-sky-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Kun på tavlen</span>
-                        </div>
-                        <div id="tactical-live-roles-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-medium text-slate-700"></div>
-                    </div>        
-                </div>
+                    <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
+                </section>
             </div>
-            
+
             <div id="view-admin" class="hidden portal-view portal-page space-y-6">
                 <div id="admin-gate" class="bg-white border border-slate-200 rounded-2xl p-8 max-w-md mx-auto text-center shadow-md">
                     <div class="bg-bsk-yellow/15 text-bsk-blue inline-flex p-4 rounded-full mb-4">
@@ -1175,7 +1183,7 @@
     <script src="assets/js/pages/matches.js?v=20260821-451-samspill-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260820-tilknyttet-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260907-live-had-roles-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>

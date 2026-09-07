@@ -187,6 +187,91 @@
             });
         }
 
+        function getSetPieceSlotsForPlayer(match, planKey, player) {
+            const assignments = match && typeof match[planKey] === 'object' && match[planKey]
+                ? match[planKey]
+                : {};
+            if (!player) return [];
+            return Object.entries(assignments)
+                .filter(([, value]) => {
+                    if (!value) return false;
+                    return typeof window.playerRefMatches === 'function'
+                        ? window.playerRefMatches(value, player)
+                        : value === getTacticalLivePlayerRef(player) || value === player.id || value === player.navn;
+                })
+                .map(([slot]) => String(slot))
+                .sort((a, b) => (Number(a) || 0) - (Number(b) || 0) || a.localeCompare(b));
+        }
+
+        function getInheritancePreviewForOutPlayer(match, outPlayer) {
+            return {
+                roles: getRolesForPlayer(outPlayer),
+                offc: getSetPieceSlotsForPlayer(match, 'offcAssignments', outPlayer),
+                defc: getSetPieceSlotsForPlayer(match, 'defcAssignments', outPlayer)
+            };
+        }
+
+        function buildInheritanceBadgesHtml(preview, options = {}) {
+            const badges = [];
+            (preview?.roles || []).forEach(slot => {
+                badges.push({
+                    key: `role-${slot}`,
+                    label: TACTICAL_LIVE_ROLE_BADGE[slot] || slot,
+                    title: getTacticalLiveRoleLabel(slot),
+                    tone: 'role'
+                });
+            });
+            (preview?.offc || []).forEach(slot => {
+                badges.push({
+                    key: `offc-${slot}`,
+                    label: `OffC ${slot}`,
+                    title: `Offensiv corner ${slot}`,
+                    tone: 'offc'
+                });
+            });
+            (preview?.defc || []).forEach(slot => {
+                badges.push({
+                    key: `defc-${slot}`,
+                    label: `DefC ${slot}`,
+                    title: `Defensiv corner ${slot}`,
+                    tone: 'defc'
+                });
+            });
+            if (!badges.length) {
+                return options.emptyHtml || '';
+            }
+            const labelHtml = options.label
+                ? `<span class="tactical-bench-inherit-label">${escapeTacticalHtml(options.label)}</span>`
+                : '';
+            const stateClass = options.state ? ` is-${options.state}` : '';
+            return `
+                <div class="tactical-bench-inherit${stateClass}">
+                    ${labelHtml}
+                    <div class="tactical-bench-inherit-badges">
+                        ${badges.map(badge => (
+                            `<span class="tactical-bench-inherit-badge is-${escapeTacticalHtml(badge.tone)}" title="${escapeTacticalHtml(badge.title)}">${escapeTacticalHtml(badge.label)}</span>`
+                        )).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function findLatestAppliedLiveSubForPlayer(player, side = 'out') {
+            if (!player) return null;
+            const key = side === 'in' ? 'inId' : 'outId';
+            const subs = window.tacticalAppliedLiveSubs || [];
+            for (let i = subs.length - 1; i >= 0; i -= 1) {
+                const sub = subs[i];
+                const ref = sub?.[key];
+                if (!ref) continue;
+                const matches = typeof window.playerRefMatches === 'function'
+                    ? window.playerRefMatches(ref, player)
+                    : ref === getTacticalLivePlayerRef(player) || ref === player.id || ref === player.navn;
+                if (matches) return sub;
+            }
+            return null;
+        }
+
         function getBenchAssignmentFromMatch(match, playerRef) {
             const plan = match && typeof match.benchSubstitutionPlan === 'object' && match.benchSubstitutionPlan
                 ? match.benchSubstitutionPlan
@@ -248,15 +333,15 @@
             const actionsEl = document.getElementById('tactical-lineup-actions');
             if (!statusEl || !actionsEl) return;
 
-            statusEl.innerHTML = hasSaved
-                ? '<span class="tactical-lineup-status-badge is-live"><i class="fa-solid fa-broadcast-tower"></i> Live-visning · endrer ikke Kampplan</span>'
-                : '<span class="tactical-lineup-status-badge is-locked"><i class="fa-solid fa-circle-info"></i> Ingen lagret 11er – sett opp i Kampdetaljer</span>';
+            if (hasSaved) {
+                container.classList.add('hidden');
+                statusEl.innerHTML = '';
+                actionsEl.innerHTML = '';
+                return;
+            }
 
-            actionsEl.innerHTML = `
-                <button type="button" class="bsk-btn bsk-btn-chip match-filter-btn" onclick="window.resetTacticalLiveBoard()">
-                    <i class="fa-solid fa-rotate-left"></i> Tilbakestill live
-                </button>
-            `;
+            statusEl.innerHTML = '<span class="tactical-lineup-status-badge is-locked"><i class="fa-solid fa-circle-info"></i> Ingen lagret 11er – sett opp i Kampdetaljer</span>';
+            actionsEl.innerHTML = '';
         };
 
         window.applyTacticalLineupReadOnlyState = function() {
@@ -654,21 +739,31 @@
             }).join('');
         };
 
-        window.showTacticalLiveSubPanel = function({ outPlayer, inPlayer, posId, inheritedRoles }) {
+        window.showTacticalLiveSubPanel = function({ outPlayer, inPlayer, posId, inheritedRoles, inheritedOffc = [], inheritedDefc = [] }) {
             const panel = document.getElementById('tactical-live-sub-panel');
             if (!panel) return;
 
-            const rolesHtml = inheritedRoles.length
-                ? `<ul class="tactical-live-inherit-list">${inheritedRoles.map(slot => (
-                    `<li><span class="tactical-live-inherit-badge">${escapeTacticalHtml(TACTICAL_LIVE_ROLE_BADGE[slot] || slot)}</span>${escapeTacticalHtml(getTacticalLiveRoleLabel(slot))}</li>`
-                )).join('')}</ul>`
-                : '<p class="tactical-live-inherit-empty">Ingen roller å arve.</p>';
+            const transferred = {
+                roles: inheritedRoles || [],
+                offc: inheritedOffc || [],
+                defc: inheritedDefc || []
+            };
+            const hadHtml = buildInheritanceBadgesHtml(transferred, {
+                label: 'Hadde',
+                state: 'had',
+                emptyHtml: '<p class="tactical-live-inherit-empty m-0">Ingen roller eller corner-ansvar.</p>'
+            });
+            const inheritHtml = buildInheritanceBadgesHtml(transferred, {
+                label: 'Overtar',
+                state: 'takes',
+                emptyHtml: '<p class="tactical-live-inherit-empty m-0">Ingen roller eller corner-ansvar å arve.</p>'
+            });
 
             panel.classList.remove('hidden');
             panel.innerHTML = `
                 <div class="flex items-center justify-between gap-2">
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2 m-0">
-                        <i class="fa-solid fa-right-left text-bsk-blue"></i> Innbytte · rolle-arv
+                        <i class="fa-solid fa-right-left text-bsk-blue"></i> Innbytte · arv
                     </h3>
                     <span class="text-[9px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">Live</span>
                 </div>
@@ -677,17 +772,15 @@
                         <span class="tactical-live-sub-label">Ut</span>
                         <strong>${escapeTacticalHtml(outPlayer?.navn || '—')}</strong>
                         <span class="tactical-live-sub-pos">${escapeTacticalHtml(posId)}</span>
+                        ${hadHtml}
                     </div>
                     <div class="tactical-live-sub-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
                     <div class="tactical-live-sub-side is-in">
                         <span class="tactical-live-sub-label">Inn</span>
                         <strong>${escapeTacticalHtml(inPlayer?.navn || '—')}</strong>
                         <span class="tactical-live-sub-pos">${escapeTacticalHtml(posId)}</span>
+                        ${inheritHtml}
                     </div>
-                </div>
-                <div>
-                    <p class="tactical-live-inherit-title">Innbytteren arver:</p>
-                    ${rolesHtml}
                 </div>
             `;
         };
@@ -733,6 +826,9 @@
             }
 
             const inheritedRoles = getRolesForPlayer(outPlayer);
+            const match = getSelectedTacticalMatch();
+            const inheritedOffc = getSetPieceSlotsForPlayer(match, 'offcAssignments', outPlayer);
+            const inheritedDefc = getSetPieceSlotsForPlayer(match, 'defcAssignments', outPlayer);
             const inRef = getTacticalLivePlayerRef(inPlayer);
 
             inheritedRoles.forEach(slot => {
@@ -748,7 +844,10 @@
                     minute: options.minute || '',
                     posId,
                     outId: getTacticalLivePlayerRef(outPlayer),
-                    inId: inRef
+                    inId: inRef,
+                    outRoles: [...inheritedRoles],
+                    outOffc: [...inheritedOffc],
+                    outDefc: [...inheritedDefc]
                 }
             ];
             window.tacticalPendingSubIn = null;
@@ -757,7 +856,9 @@
                 outPlayer,
                 inPlayer,
                 posId,
-                inheritedRoles
+                inheritedRoles,
+                inheritedOffc,
+                inheritedDefc
             });
 
             refreshTacticalLiveBoard();
@@ -777,10 +878,8 @@
 
         window.renderBench = function() {
             const benchList = document.getElementById('tactical-bench-list');
-            const plannedList = document.getElementById('tactical-planned-subs');
             if (!benchList) return;
             benchList.innerHTML = '';
-            if (plannedList) plannedList.innerHTML = '';
 
             const match = getSelectedTacticalMatch();
             if (!match) return;
@@ -791,10 +890,10 @@
 
             const teamName = match.matchGroup;
             const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
-            
+
             let teamPlayers = players.filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
             if (teamPlayers.length === 0) teamPlayers = players.filter(p => p.status !== 'Passiv');
-            teamPlayers = teamPlayers.filter(p => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, match)); 
+            teamPlayers = teamPlayers.filter(p => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, match));
 
             const startingPlayerNames = Object.values(window.tacticalLineup || {}).filter(p => p !== null).map(p => p.navn);
 
@@ -804,10 +903,10 @@
                 return !starterIKampen && erBekreftetKlar;
             });
 
-            const planned = [];
             const plan = match.benchSubstitutionPlan && typeof match.benchSubstitutionPlan === 'object'
                 ? match.benchSubstitutionPlan
                 : {};
+            const plannedByRef = new Map();
             Object.entries(plan).forEach(([playerRef, raw]) => {
                 const assignment = typeof raw === 'string'
                     ? { minute: raw, position: '' }
@@ -819,58 +918,39 @@
                 if (!player) return;
                 if (startingPlayerNames.includes(player.navn)) return;
                 if (window.tacticalAppliedLiveSubs?.some(sub => sub.inId === getTacticalLivePlayerRef(player))) return;
-                planned.push({ player, playerRef, assignment });
+                plannedByRef.set(getTacticalLivePlayerRef(player), { playerRef, assignment });
             });
-
-            planned.sort((a, b) => {
-                const minuteA = a.assignment.minute ? Number(a.assignment.minute) : 999;
-                const minuteB = b.assignment.minute ? Number(b.assignment.minute) : 999;
-                return minuteA - minuteB;
-            });
-
-            if (plannedList) {
-                if (planned.length === 0) {
-                    plannedList.innerHTML = '<p class="text-xs text-slate-400 italic py-1 m-0">Ingen planlagte bytter fra Kampdetaljer.</p>';
-                } else {
-                    planned.forEach(({ player, playerRef, assignment }) => {
-                        const canApply = Boolean(assignment.position && window.liveLineup?.[assignment.position]);
-                        const div = document.createElement('div');
-                        div.className = 'tactical-planned-sub-row';
-                        const actionLabel = canApply ? 'Bytt inn' : (assignment.position ? 'Posisjon tom' : 'Velg pos');
-                        div.innerHTML = `
-                            <div class="tactical-planned-sub-meta">
-                                <span class="tactical-planned-sub-minute">${assignment.minute ? `${escapeTacticalHtml(assignment.minute)}'` : '—'}</span>
-                                <div class="min-w-0">
-                                    <p class="font-bold text-slate-800 text-xs truncate m-0">${escapeTacticalHtml(player.navn)}</p>
-                                    <p class="text-[10px] text-slate-500 m-0">→ ${escapeTacticalHtml(assignment.position || 'velg posisjon')}</p>
-                                </div>
-                            </div>
-                            <button type="button" class="bsk-btn bsk-btn-chip portal-btn portal-btn-primary text-[10px]" ${canApply || !assignment.position ? '' : 'disabled'}>${actionLabel}</button>
-                        `;
-                        const btn = div.querySelector('button');
-                        if (btn) {
-                            btn.addEventListener('click', () => {
-                                if (canApply) {
-                                    window.applyPlannedLiveSub(playerRef, assignment.position);
-                                } else if (!assignment.position) {
-                                    window.beginTacticalLiveSub(player.id || playerRef);
-                                }
-                            });
-                        }
-                        plannedList.appendChild(div);
-                    });
-                }
-            }
 
             if (benchPlayers.length === 0) {
                 benchList.innerHTML = '<p class="text-xs text-slate-400 italic col-span-2 py-2">Ingen tilgjengelige innbyttere på benken.</p>';
                 return;
             }
 
-            benchPlayers.sort((a, b) => window.calculatePlayerPerformanceChemistry(b.navn) - window.calculatePlayerPerformanceChemistry(a.navn));
+            const getChem = (p) => (
+                typeof window.calculatePlayerPerformanceChemistry === 'function'
+                    ? window.calculatePlayerPerformanceChemistry(p.navn)
+                    : 0
+            );
+
+            benchPlayers.sort((a, b) => {
+                const planA = plannedByRef.get(getTacticalLivePlayerRef(a));
+                const planB = plannedByRef.get(getTacticalLivePlayerRef(b));
+                const hasPlanA = Boolean(planA);
+                const hasPlanB = Boolean(planB);
+                if (hasPlanA !== hasPlanB) return hasPlanA ? -1 : 1;
+                if (hasPlanA && hasPlanB) {
+                    const minuteA = planA.assignment.minute ? Number(planA.assignment.minute) : 999;
+                    const minuteB = planB.assignment.minute ? Number(planB.assignment.minute) : 999;
+                    if (minuteA !== minuteB) return minuteA - minuteB;
+                }
+                return getChem(b) - getChem(a);
+            });
 
             benchPlayers.forEach(p => {
-                const playerChem = window.calculatePlayerPerformanceChemistry(p.navn);
+                const playerRef = getTacticalLivePlayerRef(p);
+                const planned = plannedByRef.get(playerRef) || null;
+                const assignment = planned?.assignment || null;
+                const playerChem = getChem(p);
                 const chemColor = typeof window.getFormScoreTextClass === 'function'
                     ? window.getFormScoreTextClass(playerChem, p.spillerLag)
                     : 'text-slate-400';
@@ -888,48 +968,131 @@
                 let benchSuspBadge = '';
                 let borderClass = 'border-slate-200/60';
                 if (pSusp.isSuspended) {
-                    benchSuspBadge = `<span class="text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded-full font-black ml-2 animate-pulse" title="${escapeTacticalHtml(pSusp.reason)}">KARANTENE</span>`;
+                    benchSuspBadge = `<span class="tactical-bench-status-badge is-suspension" title="${escapeTacticalHtml(pSusp.reason)}">KARANTENE</span>`;
                     borderClass = 'border-rose-300 bg-rose-50';
                 } else if (pSusp.isAtRisk) {
-                    benchSuspBadge = `<span class="text-[8px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full font-black ml-2" title="Faresone: ${escapeTacticalHtml(pSusp.yellows)} gule i serie. Karantene ved ${escapeTacticalHtml(pSusp.nextKaranteneAt || 4)}.">FARESONE</span>`;
+                    benchSuspBadge = `<span class="tactical-bench-status-badge is-risk" title="Faresone: ${escapeTacticalHtml(pSusp.yellows)} gule i serie. Karantene ved ${escapeTacticalHtml(pSusp.nextKaranteneAt || 4)}.">FARESONE</span>`;
                 }
 
                 const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
                 if (injuryInfo.isInjured) {
-                    benchSuspBadge += `<span class="text-[8px] ${injuryInfo.type === 'langvarig' ? 'bg-rose-600' : 'bg-orange-500'} text-white px-1.5 py-0.5 rounded-full font-black ml-2" title="${escapeTacticalHtml(injuryInfo.label)}">${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
+                    benchSuspBadge += `<span class="tactical-bench-status-badge ${injuryInfo.type === 'langvarig' ? 'is-injury-long' : 'is-injury-short'}" title="${escapeTacticalHtml(injuryInfo.label)}">${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
                 }
 
                 const isPending = window.tacticalPendingSubIn && (
                     window.tacticalPendingSubIn.id === p.id || window.tacticalPendingSubIn.navn === p.navn
                 );
                 const photoUrl = getTacticalLivePlayerPhotoUrl(p);
+                const canApplyPlanned = Boolean(assignment?.position && window.liveLineup?.[assignment.position]);
+                const planDisabled = Boolean(assignment?.position) && !canApplyPlanned;
+                const outPlayer = assignment?.position ? (window.liveLineup?.[assignment.position] || null) : null;
+                const inheritPreview = outPlayer
+                    ? getInheritancePreviewForOutPlayer(match, outPlayer)
+                    : { roles: [], offc: [], defc: [] };
+                const inheritHtml = buildInheritanceBadgesHtml(inheritPreview, {
+                    label: 'Overtar',
+                    state: 'takes'
+                });
+                const appliedOutSub = findLatestAppliedLiveSubForPlayer(p, 'out');
+                const hadHtml = appliedOutSub
+                    ? buildInheritanceBadgesHtml({
+                        roles: appliedOutSub.outRoles || [],
+                        offc: appliedOutSub.outOffc || [],
+                        defc: appliedOutSub.outDefc || []
+                    }, {
+                        label: 'Hadde',
+                        state: 'had'
+                    })
+                    : '';
+                const roleMetaHtml = [hadHtml, inheritHtml].filter(Boolean).join('');
+                const planTitle = !assignment
+                    ? ''
+                    : canApplyPlanned
+                        ? `Bytt inn på ${assignment.position}${assignment.minute ? ` (${assignment.minute}')` : ''}`
+                        : assignment.position
+                            ? `Posisjon ${assignment.position} er tom`
+                            : 'Mangler planlagt posisjon – bruk Fritt';
+                const planLabelParts = [];
+                if (assignment?.minute) planLabelParts.push(`${assignment.minute}'`);
+                if (assignment?.position) planLabelParts.push(`→ ${assignment.position}`);
+                else if (assignment) planLabelParts.push('→ velg pos');
+                const planHtml = assignment
+                    ? `<button
+                            type="button"
+                            class="bsk-btn bsk-btn-primary tactical-bench-btn"
+                            data-bench-action="planned"
+                            title="${escapeTacticalHtml(planTitle)}"
+                            ${planDisabled ? 'disabled' : ''}
+                       >${escapeTacticalHtml(planLabelParts.join(' ') || 'Bytt')}</button>`
+                    : '';
 
-                const div = document.createElement('button');
-                div.type = 'button';
-                div.className = `tactical-bench-player flex justify-between items-center bg-slate-50 border ${borderClass} p-2.5 rounded-xl shadow-sm text-left ${isPending ? 'is-pending-sub' : ''}`;
-                div.onclick = () => {
-                    if (pSusp.isSuspended && !confirm(`ADVARSEL! ${p.navn} har karantene (${pSusp.reason}). Vil du bytte inn likevel?`)) return;
-                    window.beginTacticalLiveSub(p.id || p.navn);
-                };
+                const div = document.createElement('div');
+                div.className = `tactical-bench-player ${borderClass}${isPending ? ' is-pending-sub' : ''}${assignment ? ' has-plan' : ''}`;
                 div.innerHTML = `
-                    <div class="flex items-center min-w-0 gap-2">
+                    <div class="tactical-bench-player-main">
                         <span class="tactical-bench-avatar" aria-hidden="true">
                             ${photoUrl
                                 ? `<img src="${escapeTacticalHtml(photoUrl)}" alt="">`
                                 : '<i class="fa-solid fa-user"></i>'}
                         </span>
-                        <div class="min-w-0">
-                            <span class="font-bold ${pSusp.isSuspended ? 'text-rose-900' : 'text-slate-800'} truncate text-xs block">${escapeTacticalHtml(p.navn)}</span>
-                            ${benchSuspBadge}
-                            ${isPending ? '<span class="text-[9px] text-bsk-blue font-black uppercase">Velg posisjon</span>' : ''}
+                        <div class="tactical-bench-player-copy min-w-0">
+                            <div class="tactical-bench-player-name-row">
+                                <span class="tactical-bench-player-name ${pSusp.isSuspended ? 'is-suspended' : ''}">${escapeTacticalHtml(p.navn)}</span>
+                                ${benchSuspBadge}
+                            </div>
+                            ${roleMetaHtml}
+                            ${isPending ? '<span class="tactical-bench-pending">Velg posisjon på banen</span>' : ''}
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 shrink-0 ml-2">
-                        <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
-                        <div class="w-px h-3 bg-slate-300"></div>
-                        <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
+                    <div class="tactical-bench-player-actions">
+                        <div class="tactical-bench-buttons">
+                            ${planHtml}
+                            <button
+                                type="button"
+                                class="bsk-btn bsk-btn-secondary tactical-bench-btn${isPending ? ' is-active' : ''}"
+                                data-bench-action="free"
+                                aria-pressed="${isPending ? 'true' : 'false'}"
+                                title="${isPending ? 'Avbryt fritt bytte' : 'Bytt inn fritt – velg posisjon på banen'}"
+                            >${isPending ? 'Avbryt' : 'Fritt'}</button>
+                        </div>
+                        <div class="tactical-bench-scores">
+                            <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
+                            <span class="tactical-bench-score-sep" aria-hidden="true"></span>
+                            <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
+                        </div>
                     </div>
                 `;
+
+                const confirmSuspended = () => {
+                    if (!pSusp.isSuspended) return true;
+                    return confirm(`ADVARSEL! ${p.navn} har karantene (${pSusp.reason}). Vil du bytte inn likevel?`);
+                };
+
+                const plannedBtn = div.querySelector('[data-bench-action="planned"]');
+                if (plannedBtn) {
+                    plannedBtn.addEventListener('click', () => {
+                        if (planDisabled) return;
+                        if (!confirmSuspended()) return;
+                        if (canApplyPlanned) {
+                            window.applyPlannedLiveSub(planned.playerRef || playerRef, assignment.position);
+                            return;
+                        }
+                        window.beginTacticalLiveSub(p.id || p.navn);
+                    });
+                }
+
+                const freeBtn = div.querySelector('[data-bench-action="free"]');
+                if (freeBtn) {
+                    freeBtn.addEventListener('click', () => {
+                        if (isPending) {
+                            window.clearTacticalPendingSub();
+                            return;
+                        }
+                        if (!confirmSuspended()) return;
+                        window.beginTacticalLiveSub(p.id || p.navn);
+                    });
+                }
+
                 benchList.appendChild(div);
             });
         };
