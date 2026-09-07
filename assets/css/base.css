@@ -15805,6 +15805,12 @@
         .live-page {
             width: 100%;
         }
+        .live-page-columns {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
         .tactical-live-board {
             background:
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
@@ -15816,10 +15822,19 @@
             color: #ffffff;
             display: flex;
             flex-direction: column;
-            min-height: min(52rem, calc(100vh - 7rem));
+            min-width: 0;
             overflow: hidden;
             position: relative;
             width: 100%;
+        }
+        .live-pitch-board {
+            min-height: min(44rem, calc(100vh - 7rem));
+        }
+        .live-side-board {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
+                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+            min-height: 0;
         }
         .tactical-live-watermark {
             bottom: auto;
@@ -15903,16 +15918,24 @@
             color: #ffffff;
         }
         .tactical-live-main {
-            display: grid;
+            display: flex;
             flex: 1 1 auto;
-            gap: 1rem;
-            grid-template-columns: minmax(0, 1fr);
+            justify-content: center;
+            min-width: 0;
+            padding: 1rem 1rem 1.35rem;
+        }
+        .tactical-live-side-main {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-width: 0;
             padding: 1rem 1rem 1.35rem;
         }
         .tactical-live-pitch-column {
             display: flex;
             justify-content: center;
             min-width: 0;
+            width: 100%;
         }
         .tactical-live-pitch-column .tactical-pitch {
             max-width: 28rem;
@@ -15920,9 +15943,11 @@
         }
         .tactical-live-side-column {
             display: flex;
+            flex: 1 1 auto;
             flex-direction: column;
             gap: 0.85rem;
             min-width: 0;
+            width: 100%;
         }
         .tactical-live-panel {
             background: rgba(255, 255, 255, 0.96);
@@ -15953,6 +15978,16 @@
             color: #0b2b4c;
         }
         @media (min-width: 1024px) {
+            .live-page-columns {
+                align-items: stretch;
+                display: grid;
+                gap: 1.25rem;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .live-pitch-board,
+            .live-side-board {
+                min-height: min(52rem, calc(100vh - 7rem));
+            }
             .tactical-live-toolbar {
                 justify-content: flex-start;
                 padding-left: 1.25rem;
@@ -15962,12 +15997,12 @@
                 justify-content: flex-end;
                 margin-left: auto;
             }
-            .tactical-live-main {
-                grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 24rem);
+            .tactical-live-main,
+            .tactical-live-side-main {
                 padding: 1.15rem 1.25rem 1.5rem;
             }
             .tactical-live-pitch-column .tactical-pitch {
-                max-width: 32rem;
+                max-width: 34rem;
             }
         }
         .tactical-lineup-status-badge.is-locked {
