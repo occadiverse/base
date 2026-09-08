@@ -359,12 +359,51 @@
             window.renderLiveMatchClock();
         };
 
+        window.editLiveMatchClockTime = function() {
+            if (!getTacticalMatchSelectValue()) return;
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return;
+            }
+
+            const currentMinute = Math.floor(getLiveMatchClockElapsedMs() / 60000);
+            const raw = window.prompt('Sett kampminutt (byttene beholdes):', String(currentMinute));
+            if (raw === null) return;
+
+            const parsed = Number(String(raw).trim().replace(/'$/, '').replace(',', '.'));
+            if (!Number.isFinite(parsed) || parsed < 0) {
+                window.alert('Ugyldig minutt. Skriv f.eks. 67.');
+                return;
+            }
+
+            const minute = Math.floor(parsed);
+            liveMatchClockState.elapsedMs = minute * 60000;
+            liveMatchClockState.startedAt = liveMatchClockState.running ? Date.now() : null;
+            liveMatchClockState.phaseMessage = '';
+            liveMatchClockState.autoPauseKeys = (liveMatchClockState.autoPauseKeys || []).filter((key) => {
+                const pauseMinute = Number(String(key).replace(/^autoPause:/, ''));
+                return Number.isFinite(pauseMinute) && pauseMinute <= minute;
+            });
+            persistLiveMatchClockState();
+            window.renderLiveMatchClock();
+        };
+
         window.resetLiveMatchClock = function() {
             if (!getTacticalMatchSelectValue()) return;
             if (window.isLiveSessionLocked()) {
                 setLivePlayingTimeStatus('Live er låst', 'error');
                 return;
             }
+            const subCount = Array.isArray(window.tacticalAppliedLiveSubs)
+                ? window.tacticalAppliedLiveSubs.length
+                : 0;
+            const message = subCount > 0
+                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• ${subCount} bytte(r) fjernes lokalt, XI/roller tilbake til kampplan\n\nAllerede lagret spilletid på kampen beholdes til du trykker «Lagre og Lås».`
+                : 'Start Live på nytt? Klokken settes til 00:00 og tavlen tilbake til kampplanen.';
+            if (!confirm(message)) {
+                return;
+            }
+
             stopLiveMatchClockTicker();
             liveMatchClockState.running = false;
             liveMatchClockState.elapsedMs = 0;
@@ -373,7 +412,12 @@
             liveMatchClockState.autoPauseKeys = [];
             liveMatchClockState.phaseMessage = '';
             persistLiveMatchClockState();
-            window.renderLiveMatchClock();
+
+            if (typeof window.resetTacticalLiveBoard === 'function') {
+                window.resetTacticalLiveBoard();
+            } else {
+                window.renderLiveMatchClock();
+            }
         };
 
         window.syncLiveMatchClockBar = function() {
@@ -423,6 +467,7 @@
             const lockBtn = document.getElementById('tactical-live-lock-toggle');
             const toggleBtn = document.getElementById('tactical-live-clock-toggle');
             const resetBtn = document.getElementById('tactical-live-clock-reset');
+            const timeBtn = document.getElementById('tactical-live-clock-time');
 
             if (bar) bar.classList.toggle('is-live-locked', locked);
             if (benchCard) benchCard.classList.toggle('is-live-locked', locked);
@@ -438,6 +483,13 @@
             }
             if (toggleBtn) toggleBtn.disabled = locked;
             if (resetBtn) resetBtn.disabled = locked;
+            if (timeBtn) {
+                timeBtn.disabled = locked;
+                timeBtn.classList.toggle('is-disabled', locked);
+                timeBtn.title = locked
+                    ? 'Live er låst'
+                    : 'Trykk for å justere kampminutt';
+            }
         }
 
         window.toggleLiveSessionLock = async function() {

@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-lock-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260908-clock-edit-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -438,39 +438,6 @@
                             <div id="tactical-lineup-actions" class="tactical-lineup-actions flex flex-wrap items-center justify-center gap-2"></div>
                         </div>
 
-                        <div id="tactical-live-clock-bar" class="tactical-live-clock-bar hidden relative z-10" aria-live="polite">
-                            <div class="tactical-live-clock-controls">
-                                <span class="tactical-live-clock-label">Kampklokke</span>
-                                <div class="tactical-live-clock-time" id="tactical-live-clock-time" aria-label="Kampklokke">00:00</div>
-                                <button
-                                    type="button"
-                                    id="tactical-live-clock-toggle"
-                                    class="bsk-btn bsk-btn-primary tactical-bench-btn tactical-live-clock-toggle"
-                                    onclick="window.toggleLiveMatchClock()"
-                                >Start</button>
-                                <button
-                                    type="button"
-                                    id="tactical-live-clock-reset"
-                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-clock-reset"
-                                    onclick="window.resetLiveMatchClock()"
-                                    title="Nullstill klokke"
-                                >Nullstill</button>
-                                <button
-                                    type="button"
-                                    id="tactical-live-lock-toggle"
-                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-lock-toggle"
-                                    onclick="window.toggleLiveSessionLock()"
-                                    title="Lagre spilletid og lås Live mot endringer"
-                                >Lagre og Lås</button>
-                            </div>
-                            <div class="tactical-live-clock-alert" id="tactical-live-clock-alert" hidden></div>
-                            <div
-                                class="tactical-live-playing-time-status"
-                                id="tactical-live-playing-time-status"
-                                hidden
-                            ></div>
-                        </div>
-
                         <div class="tactical-live-main relative z-10">
                             <div class="tactical-live-pitch-column">
                                 <div class="tactical-pitch relative w-full aspect-[2/3] rounded-2xl shadow-lg border overflow-hidden" id="full-pitch-container">
@@ -526,6 +493,60 @@
                         <div class="tactical-live-side-main relative z-10">
                             <div class="tactical-live-side-column">
                                 <div id="tactical-live-sub-panel" class="hidden tactical-live-panel space-y-3 transition-all" aria-live="polite"></div>
+
+                                <div
+                                    id="tactical-live-clock-bar"
+                                    class="tactical-live-clock-bar tactical-live-panel hidden transition-all"
+                                    aria-live="polite"
+                                >
+                                    <div class="tactical-live-panel-header">
+                                        <h3 class="tactical-live-panel-title">
+                                            <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                                            <span>Kampklokke</span>
+                                        </h3>
+                                        <span class="tactical-live-panel-badge">Live</span>
+                                    </div>
+                                    <div class="tactical-live-clock-body">
+                                        <div class="tactical-live-clock-controls">
+                                                <button
+                                                    type="button"
+                                                    id="tactical-live-clock-time"
+                                                    class="tactical-live-clock-time"
+                                                    onclick="window.editLiveMatchClockTime()"
+                                                    title="Trykk for å justere kampminutt"
+                                                    aria-label="Kampklokke, trykk for å justere"
+                                                >00:00</button>
+                                            <div class="tactical-live-clock-actions">
+                                                <button
+                                                    type="button"
+                                                    id="tactical-live-clock-toggle"
+                                                    class="bsk-btn bsk-btn-primary tactical-bench-btn tactical-live-clock-toggle"
+                                                    onclick="window.toggleLiveMatchClock()"
+                                                >Start</button>
+                                                <button
+                                                    type="button"
+                                                    id="tactical-live-clock-reset"
+                                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-clock-reset"
+                                                    onclick="window.resetLiveMatchClock()"
+                                                    title="Tilbake til kampplan og nullstill klokke"
+                                                >Start på nytt</button>
+                                                <button
+                                                    type="button"
+                                                    id="tactical-live-lock-toggle"
+                                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-lock-toggle"
+                                                    onclick="window.toggleLiveSessionLock()"
+                                                    title="Lagre spilletid og lås Live mot endringer"
+                                                >Lagre og Lås</button>
+                                            </div>
+                                        </div>
+                                        <div class="tactical-live-clock-alert" id="tactical-live-clock-alert" hidden></div>
+                                        <div
+                                            class="tactical-live-playing-time-status"
+                                            id="tactical-live-playing-time-status"
+                                            hidden
+                                        ></div>
+                                    </div>
+                                </div>
 
                                 <div id="tactical-bench-card" class="hidden tactical-live-panel space-y-4 transition-all">
                                     <div class="tactical-live-panel-header">
@@ -1331,7 +1352,7 @@
     <script src="assets/js/pages/matches.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260908-live-lock-v3"></script>
+    <script src="assets/js/pages/tactics.js?v=20260908-clock-edit-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260908-local-hydrate-v1"></script>
