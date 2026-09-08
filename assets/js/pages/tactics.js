@@ -761,11 +761,12 @@
 
             panel.classList.remove('hidden');
             panel.innerHTML = `
-                <div class="flex items-center justify-between gap-2">
-                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2 m-0">
-                        <i class="fa-solid fa-right-left text-bsk-blue"></i> Innbytte · arv
+                <div class="tactical-live-panel-header">
+                    <h3 class="tactical-live-panel-title m-0">
+                        <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                        <span>Innbytte · arv</span>
                     </h3>
-                    <span class="text-[9px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">Live</span>
+                    <span class="tactical-live-panel-badge">Live</span>
                 </div>
                 <div class="tactical-live-sub-swap">
                     <div class="tactical-live-sub-side is-out">
@@ -966,10 +967,10 @@
 
                 const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
                 let benchSuspBadge = '';
-                let borderClass = 'border-slate-200/60';
+                let borderClass = '';
                 if (pSusp.isSuspended) {
                     benchSuspBadge = `<span class="tactical-bench-status-badge is-suspension" title="${escapeTacticalHtml(pSusp.reason)}">KARANTENE</span>`;
-                    borderClass = 'border-rose-300 bg-rose-50';
+                    borderClass = 'is-suspended';
                 } else if (pSusp.isAtRisk) {
                     benchSuspBadge = `<span class="tactical-bench-status-badge is-risk" title="Faresone: ${escapeTacticalHtml(pSusp.yellows)} gule i serie. Karantene ved ${escapeTacticalHtml(pSusp.nextKaranteneAt || 4)}.">FARESONE</span>`;
                 }

@@ -15319,8 +15319,8 @@
         }
         .tactical-live-role-row {
             align-items: center;
-            background: #f8fafc;
-            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.75rem;
             display: flex;
             gap: 0.65rem;
@@ -15328,14 +15328,14 @@
             padding: 0.55rem 0.7rem;
         }
         .tactical-live-role-slot {
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.58);
             font-size: 0.65rem;
             font-weight: 800;
             letter-spacing: 0.03em;
             text-transform: uppercase;
         }
         .tactical-live-role-name {
-            color: #0f172a;
+            color: #ffffff;
             font-weight: 700;
             text-align: right;
         }
@@ -15346,8 +15346,8 @@
             grid-template-columns: 1fr auto 1fr;
         }
         .tactical-live-sub-side {
-            background: #f8fafc;
-            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 0.85rem;
             display: flex;
             flex-direction: column;
@@ -15355,42 +15355,48 @@
             padding: 0.7rem 0.75rem;
         }
         .tactical-live-sub-side.is-out {
-            border-color: rgba(244, 63, 94, 0.28);
-            background: rgba(255, 241, 242, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+            border-color: rgba(248, 113, 113, 0.28);
         }
         .tactical-live-sub-side.is-in {
-            border-color: rgba(16, 185, 129, 0.28);
-            background: rgba(236, 253, 245, 0.9);
+            background: rgba(52, 211, 153, 0.12);
+            border-color: rgba(52, 211, 153, 0.28);
         }
         .tactical-live-sub-label {
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.58);
             font-size: 0.62rem;
             font-weight: 900;
             letter-spacing: 0.06em;
             text-transform: uppercase;
         }
         .tactical-live-sub-side strong {
-            color: #0f172a;
+            color: #ffffff;
             font-size: 0.8rem;
             line-height: 1.25;
         }
         .tactical-live-sub-pos {
-            color: #475569;
+            color: rgba(255, 255, 255, 0.72);
             font-size: 0.65rem;
             font-weight: 700;
         }
         .tactical-live-sub-arrow {
             align-items: center;
-            color: #123f73;
+            color: #f5c542;
             display: flex;
             font-size: 0.85rem;
             justify-content: center;
         }
         .tactical-live-inherit-title {
-            color: #334155;
+            color: rgba(255, 255, 255, 0.78);
             font-size: 0.72rem;
             font-weight: 800;
             margin: 0 0 0.35rem;
+        }
+        .tactical-live-inherit-empty {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.72rem;
+            font-style: italic;
+            margin: 0;
         }
         .tactical-live-inherit-list {
             display: flex;
@@ -15423,7 +15429,7 @@
             text-align: center;
         }
         .tactical-live-inherit-empty {
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.45);
             font-size: 0.72rem;
             font-style: italic;
             margin: 0;
@@ -15457,23 +15463,29 @@
         }
         .tactical-bench-player {
             align-items: center;
-            background: #f8fafc;
-            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.85rem;
+            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
             display: flex;
             gap: 0.65rem;
             justify-content: space-between;
             padding: 0.55rem 0.7rem;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
             width: 100%;
         }
+        .tactical-bench-player.is-suspended {
+            background: rgba(248, 113, 113, 0.14);
+            border-color: rgba(248, 113, 113, 0.35);
+        }
         .tactical-bench-player.has-plan {
-            background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
-            border-color: rgba(18, 63, 115, 0.18);
+            background: rgba(245, 197, 66, 0.1);
+            border-color: rgba(245, 197, 66, 0.28);
         }
         .tactical-bench-player.is-pending-sub {
-            border-color: rgba(18, 63, 115, 0.45);
-            box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.55);
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.55);
+            box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.28);
         }
         .tactical-bench-player-main {
             align-items: center;
@@ -15495,7 +15507,7 @@
             min-width: 0;
         }
         .tactical-bench-player-name {
-            color: #1e293b;
+            color: #ffffff;
             font-size: 0.75rem;
             font-weight: 700;
             line-height: 1.2;
@@ -15505,7 +15517,7 @@
             white-space: nowrap;
         }
         .tactical-bench-player-name.is-suspended {
-            color: #881337;
+            color: #fecaca;
         }
         .tactical-bench-buttons {
             align-items: center;
@@ -15529,31 +15541,31 @@
             }
         }
         .tactical-live-panel .tactical-bench-btn.bsk-btn-primary {
-            background: var(--bsk-blue);
-            border-color: rgba(31, 93, 158, 0.42);
-            box-shadow: 0 1px 2px rgba(11, 43, 76, 0.16);
-            color: #ffffff;
+            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
+            border-color: rgba(245, 197, 66, 0.9);
+            box-shadow: 0 4px 12px rgba(2, 6, 23, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            color: #0b2b4c;
         }
         .tactical-live-panel .tactical-bench-btn.bsk-btn-primary:hover:not(:disabled) {
-            background: var(--bsk-blue-light);
-            border-color: rgba(31, 93, 158, 0.58);
-            color: #ffffff;
+            background: linear-gradient(135deg, #fff4c4 0%, #f7cf55 100%);
+            border-color: rgba(245, 197, 66, 0.95);
+            color: #0b2b4c;
         }
         .tactical-live-panel .tactical-bench-btn.bsk-btn-secondary {
-            background: #ffffff;
-            border-color: #dbe5ef;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(245, 197, 66, 0.22);
             box-shadow: none;
-            color: #0b2b4c;
+            color: rgba(255, 255, 255, 0.92);
         }
         .tactical-live-panel .tactical-bench-btn.bsk-btn-secondary:hover:not(:disabled) {
-            background: #eef4f8;
-            border-color: rgba(18, 63, 115, 0.22);
-            color: #123f73;
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(245, 197, 66, 0.38);
+            color: #ffffff;
         }
         .tactical-bench-btn.bsk-btn-secondary.is-active {
-            background: rgba(245, 197, 66, 0.22);
-            border-color: rgba(214, 168, 32, 0.55);
-            color: #0b2b4c;
+            background: rgba(245, 197, 66, 0.28);
+            border-color: rgba(245, 197, 66, 0.7);
+            color: #fff4c4;
         }
         .tactical-bench-inherit {
             align-items: center;
@@ -15563,7 +15575,7 @@
             margin-top: 0.12rem;
         }
         .tactical-bench-inherit-label {
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.55);
             font-size: 0.52rem;
             font-weight: 800;
             letter-spacing: 0.04em;
@@ -15585,26 +15597,26 @@
             white-space: nowrap;
         }
         .tactical-bench-inherit-badge.is-role {
-            background: rgba(18, 63, 115, 0.1);
-            color: #123f73;
+            background: rgba(255, 255, 255, 0.12);
+            color: #e2e8f0;
         }
         .tactical-bench-inherit-badge.is-offc {
             background: rgba(245, 197, 66, 0.22);
-            color: #92400e;
+            color: #ffe08a;
         }
         .tactical-bench-inherit-badge.is-defc {
-            background: rgba(239, 68, 68, 0.12);
-            color: #9f1239;
+            background: rgba(248, 113, 113, 0.2);
+            color: #fecaca;
         }
         .tactical-bench-inherit.is-had .tactical-bench-inherit-label {
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.42);
         }
         .tactical-bench-inherit.is-had .tactical-bench-inherit-badge {
             opacity: 0.78;
         }
         .tactical-bench-inherit.is-had .tactical-bench-inherit-badge.is-role {
-            background: rgba(100, 116, 139, 0.12);
-            color: #475569;
+            background: rgba(148, 163, 184, 0.18);
+            color: #cbd5e1;
         }
         .tactical-live-sub-side .tactical-bench-inherit {
             justify-content: center;
@@ -15645,7 +15657,7 @@
             color: #fff;
         }
         .tactical-bench-pending {
-            color: #123f73;
+            color: #f5c542;
             font-size: 0.56rem;
             font-weight: 900;
             letter-spacing: 0.04em;
@@ -15666,7 +15678,7 @@
             min-width: 4.75rem;
         }
         .tactical-bench-score-sep {
-            background: #cbd5e1;
+            background: rgba(255, 255, 255, 0.22);
             height: 0.75rem;
             width: 1px;
         }
@@ -15683,9 +15695,10 @@
         }
         .tactical-bench-avatar {
             align-items: center;
-            background: #e2e8f0;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 0.55rem;
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.7);
             display: inline-flex;
             flex-shrink: 0;
             height: 1.85rem;
@@ -15697,6 +15710,10 @@
             height: 100%;
             object-fit: cover;
             width: 100%;
+        }
+        #tactical-bench-list .text-slate-400,
+        #tactical-bench-list .text-slate-700 {
+            color: rgba(255, 255, 255, 0.55) !important;
         }
         .player-node-pos,
         .player-node-value {
@@ -15975,12 +15992,50 @@
             width: 100%;
         }
         .tactical-live-panel {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(245, 197, 66, 0.14);
             border-radius: 1rem;
-            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.16);
-            color: #0f172a;
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.14);
+            color: #ffffff;
             padding: 1rem 1.05rem;
+        }
+        .tactical-live-panel-header {
+            align-items: center;
+            border-bottom: 1px solid rgba(245, 197, 66, 0.14);
+            display: flex;
+            gap: 0.65rem;
+            justify-content: space-between;
+            padding-bottom: 0.65rem;
+        }
+        .tactical-live-panel-title {
+            align-items: center;
+            color: #ffffff;
+            display: flex;
+            font-size: 0.875rem;
+            font-weight: 800;
+            gap: 0.5rem;
+            margin: 0;
+        }
+        .tactical-live-panel-title i {
+            color: #f5c542;
+        }
+        .tactical-live-panel-badge {
+            background: rgba(245, 197, 66, 0.16);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 999px;
+            color: #ffe08a;
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            padding: 0.22rem 0.5rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .tactical-live-panel-hint {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.6875rem;
+            line-height: 1.4;
+            margin: 0;
         }
         .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-secondary {
             background: rgba(255, 255, 255, 0.1);

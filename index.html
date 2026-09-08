@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260907-autofill-info-dot-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260907-live-bench-theme-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -508,25 +508,27 @@
                                 <div id="tactical-live-sub-panel" class="hidden tactical-live-panel space-y-3 transition-all" aria-live="polite"></div>
 
                                 <div id="tactical-bench-card" class="hidden tactical-live-panel space-y-4 transition-all">
-                                    <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                                        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                                            <i class="fa-solid fa-users-rectangle text-slate-500"></i> Benken
+                                    <div class="tactical-live-panel-header">
+                                        <h3 class="tactical-live-panel-title">
+                                            <i class="fa-solid fa-users-rectangle" aria-hidden="true"></i>
+                                            <span>Benken</span>
                                         </h3>
-                                        <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Live</span>
+                                        <span class="tactical-live-panel-badge">Live</span>
                                     </div>
-                                    <p id="tactical-bench-hint" class="text-[11px] text-slate-500 m-0">«Overtar» gjelder planlagt innbytte. «Hadde» viser roller/OffC/DefC til spillere som er byttet ut.</p>
-                                    <div id="tactical-bench-list" class="grid grid-cols-1 gap-2 text-xs font-medium text-slate-700">
+                                    <p id="tactical-bench-hint" class="tactical-live-panel-hint">«Overtar» gjelder planlagt innbytte. «Hadde» viser roller/OffC/DefC til spillere som er byttet ut.</p>
+                                    <div id="tactical-bench-list" class="grid grid-cols-1 gap-2 text-xs font-medium">
                                     </div>
                                 </div>
 
                                 <div id="tactical-roles-card" class="hidden tactical-live-panel space-y-4 transition-all">
-                                    <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                                        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                                            <i class="fa-solid fa-clipboard-list text-bsk-blue"></i> Roller (live)
+                                    <div class="tactical-live-panel-header">
+                                        <h3 class="tactical-live-panel-title">
+                                            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                                            <span>Roller (live)</span>
                                         </h3>
-                                        <span class="bg-sky-100 text-sky-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Kun på tavlen</span>
+                                        <span class="tactical-live-panel-badge">Kun på tavlen</span>
                                     </div>
-                                    <div id="tactical-live-roles-list" class="grid grid-cols-1 gap-2 text-xs font-medium text-slate-700"></div>
+                                    <div id="tactical-live-roles-list" class="grid grid-cols-1 gap-2 text-xs font-medium"></div>
                                 </div>
                             </div>
                         </div>
@@ -1282,7 +1284,7 @@
     <script src="assets/js/pages/matches.js?v=20260821-451-samspill-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260907-autofill-info-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260907-live-bench-theme-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>
