@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260908-clock-edit-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260908-samspill-toggle-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -451,6 +451,17 @@
                                             <span class="tactical-stats-chip-label">Form</span>
                                             <span id="stat-avg-chem" class="tactical-stats-chip-value">0/0</span>
                                         </div>
+                                        <button
+                                            type="button"
+                                            id="tactical-samspill-toggle"
+                                            class="tactical-stats-chip tactical-samspill-toggle is-active"
+                                            onclick="window.toggleTacticalSamspillLines()"
+                                            aria-pressed="true"
+                                            title="Vis eller skjul samspill-linjer"
+                                        >
+                                            <span class="tactical-stats-chip-label">Samspill</span>
+                                            <span class="tactical-stats-chip-value" id="tactical-samspill-toggle-value">På</span>
+                                        </button>
                                     </div>
 
                                     <div class="absolute top-1/2 w-full h-[2px] bg-white/45 -translate-y-1/2"></div>
@@ -557,27 +568,6 @@
                                         <span class="tactical-live-panel-badge">Live</span>
                                     </div>
                                     <div id="tactical-bench-list" class="grid grid-cols-1 gap-2 text-xs font-medium">
-                                    </div>
-                                </div>
-
-                                <div id="tactical-roles-card" class="hidden tactical-live-panel tactical-live-roles-panel is-collapsed transition-all">
-                                    <button
-                                        type="button"
-                                        class="tactical-live-panel-header tactical-live-roles-toggle"
-                                        onclick="window.toggleTacticalLiveRolesPanel()"
-                                        aria-expanded="false"
-                                        aria-controls="tactical-live-roles-content"
-                                    >
-                                        <h3 class="tactical-live-panel-title">
-                                            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                                            <span>Roller</span>
-                                        </h3>
-                                        <span class="tactical-live-roles-chevron" aria-hidden="true">
-                                            <i class="fa-solid fa-chevron-down"></i>
-                                        </span>
-                                    </button>
-                                    <div id="tactical-live-roles-content" class="tactical-live-roles-content">
-                                        <div id="tactical-live-roles-list" class="grid grid-cols-1 gap-2 text-xs font-medium"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1352,7 +1342,7 @@
     <script src="assets/js/pages/matches.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260908-clock-edit-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260908-samspill-toggle-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260908-local-hydrate-v1"></script>

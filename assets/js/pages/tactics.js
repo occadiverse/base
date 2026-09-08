@@ -85,6 +85,7 @@
         window.tacticalPendingSubIn = null;
         window.tacticalLiveDirty = false;
         window.tacticalAppliedLiveSubs = window.tacticalAppliedLiveSubs || [];
+        window.tacticalSamspillLinesVisible = window.tacticalSamspillLinesVisible !== false;
 
         const LIVE_MATCH_CLOCK_STORAGE_PREFIX = 'occa.liveMatchClock.';
         const LIVE_MATCH_CLOCK_WARMUP_MINUTES = 10;
@@ -1071,7 +1072,11 @@
                 pitch.appendChild(labelLayer);
             }
             if (labelLayer) labelLayer.innerHTML = '';
-            
+
+            if (window.tacticalSamspillLinesVisible === false) {
+                syncTacticalSamspillToggleUi();
+                return;
+            }
             const connections = typeof window.getTacticalSamspillConnections === 'function'
                 ? window.getTacticalSamspillConnections(
                     typeof window.getActiveTacticalSamspillPhase === 'function'
@@ -1177,6 +1182,23 @@
                 if (focusPos && !entry.focused) label.style.opacity = '0.5';
                 labelLayer.appendChild(label);
             });
+            syncTacticalSamspillToggleUi();
+        };
+
+        function syncTacticalSamspillToggleUi() {
+            const btn = document.getElementById('tactical-samspill-toggle');
+            const valueEl = document.getElementById('tactical-samspill-toggle-value');
+            if (!btn) return;
+            const visible = window.tacticalSamspillLinesVisible !== false;
+            btn.classList.toggle('is-active', visible);
+            btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            if (valueEl) valueEl.textContent = visible ? 'På' : 'Av';
+        }
+
+        window.toggleTacticalSamspillLines = function() {
+            window.tacticalSamspillLinesVisible = window.tacticalSamspillLinesVisible === false;
+            syncTacticalSamspillToggleUi();
+            window.drawChemistryLines();
         };
 
         window.setTacticalPhase = function(phaseId) {
@@ -1310,7 +1332,6 @@
             });
             window.drawChemistryLines();
             if (typeof window.renderBench === 'function') window.renderBench();
-            if (typeof window.renderTacticalLiveRoles === 'function') window.renderTacticalLiveRoles();
             if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
             window.updateTacticalLineupControls();
             window.applyTacticalLineupReadOnlyState();
@@ -1340,7 +1361,6 @@
 
         window.loadMatchTactics = function() {
             const matchId = getTacticalMatchSelectValue();
-            const rolesCard = document.getElementById('tactical-roles-card');
             const benchCard = document.getElementById('tactical-bench-card');
             const subPanel = document.getElementById('tactical-live-sub-panel');
             
@@ -1350,7 +1370,6 @@
             setLivePlayingTimeStatus('');
 
             if (!matchId) {
-                if (rolesCard) rolesCard.classList.add('hidden');
                 if (benchCard) benchCard.classList.add('hidden');
                 if (subPanel) {
                     subPanel.classList.add('hidden');
@@ -1366,7 +1385,6 @@
                 return;
             }
             
-            if (rolesCard) rolesCard.classList.remove('hidden');
             if (benchCard) benchCard.classList.remove('hidden');
             
             const match = getSelectedTacticalMatch();
@@ -1383,49 +1401,6 @@
 
         window.saveMatchTactics = async function() {
             return window.persistLivePlayingTime();
-        };
-
-        window.renderTacticalLiveRoles = function() {
-            const list = document.getElementById('tactical-live-roles-list');
-            if (!list) return;
-
-            if (!window.isTacticalLiveMatchMode()) {
-                list.innerHTML = '';
-                return;
-            }
-
-            list.innerHTML = TACTICAL_LIVE_ROLE_SLOTS.map(slot => {
-                const ref = window.liveRoles?.[slot] || '';
-                const player = ref && typeof window.findPlayerByRef === 'function'
-                    ? window.findPlayerByRef(ref)
-                    : null;
-                const name = player?.navn || (ref ? String(ref) : '—');
-                const photoUrl = player ? getTacticalLivePlayerPhotoUrl(player) : '';
-                return `
-                    <div class="tactical-live-role-row">
-                        <span class="tactical-live-role-slot">${escapeTacticalHtml(getTacticalLiveRoleLabel(slot))}</span>
-                        <div class="tactical-live-role-player">
-                            <span class="tactical-bench-avatar" aria-hidden="true">
-                                ${photoUrl
-                                    ? `<img src="${escapeTacticalHtml(photoUrl)}" alt="">`
-                                    : '<i class="fa-solid fa-user"></i>'}
-                            </span>
-                            <span class="tactical-live-role-name">${escapeTacticalHtml(name)}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        };
-
-        window.toggleTacticalLiveRolesPanel = function() {
-            const card = document.getElementById('tactical-roles-card');
-            const toggle = card?.querySelector('.tactical-live-roles-toggle');
-            if (!card || !toggle) return;
-
-            const willOpen = card.classList.contains('is-collapsed');
-            card.classList.toggle('is-collapsed', !willOpen);
-            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-            toggle.setAttribute('aria-label', willOpen ? 'Skjul roller' : 'Vis roller');
         };
 
         window.showTacticalLiveSubPanel = function({ outPlayer, inPlayer, posId, inheritedRoles, inheritedOffc = [], inheritedDefc = [], minute = '' }) {
