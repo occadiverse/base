@@ -536,6 +536,7 @@ function renderPlayerModalProfile(player) {
     const oppmote = stats ? `${stats.oppmotePct}%` : '-';
     const form = stats && stats.kjemi > 0 ? `${stats.kjemi}/100` : '-';
     const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus)) : '-';
+    const spilletid = formatPlayerProfileMinutesLabel(stats);
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
@@ -587,6 +588,7 @@ function renderPlayerModalProfile(player) {
                     ${buildPlayerProfileMetricHtml('Oppmøte', oppmote)}
                     ${buildPlayerProfileMetricHtml('Form', form)}
                     ${buildPlayerProfileMetricHtml('Kampbidrag', kampbidrag)}
+                    ${buildPlayerProfileMetricHtml('Spilletid', spilletid)}
                     ${buildPlayerProfileMetricHtml('Gule kort', gule)}
                     ${buildPlayerProfileMetricHtml('Røde kort', rode)}
                     ${buildPlayerProfileMetricHtml('Banens beste', bb)}
@@ -649,10 +651,19 @@ function buildPlayerProfileYearFilterHtml(player) {
     `;
 }
 
+function formatPlayerProfileMinutesLabel(stats) {
+    const matches = Number(stats?.minutesMatches) || 0;
+    if (matches <= 0) return '-';
+    const total = Math.round(Number(stats.minutesTotal) || 0);
+    const avg = Math.round(Number(stats.minutesAvg) || 0);
+    return `${total}' / ${avg}'`;
+}
+
 function buildPlayerProfileStatChipHtml(label, value, options = {}) {
     const toneClass = options.tone ? ` is-${options.tone}` : '';
+    const titleAttr = options.title ? ` title="${escapeRosterHtml(options.title)}"` : '';
     return `
-        <div class="player-profile-stat-chip${toneClass}">
+        <div class="player-profile-stat-chip${toneClass}"${titleAttr}>
             <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}</span>
             <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
         </div>
@@ -817,6 +828,7 @@ window.renderPlayerProfilePage = function(playerId) {
     const form = formComponents.total > 0 ? `${formComponents.total}` : '-';
     const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus * 10) / 10) : '-';
     const snittBors = stats && stats.snittBors > 0 ? (Math.round(Number(stats.snittBors) * 10) / 10).toFixed(1) : '-';
+    const spilletid = formatPlayerProfileMinutesLabel(stats);
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
@@ -923,6 +935,9 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileStatChipHtml('Gule (cup)', guleCup)}
                 ${buildPlayerProfileStatChipHtml('Røde (serie)', rodeSerie)}
                 ${buildPlayerProfileStatChipHtml('Røde (cup)', rodeCup)}
+                ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
+                    title: 'Total spilletid / snitt per kamp med registrert spilletid'
+                })}
                 ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? `#${totalRank}` : '-')}
             </div>
         </section>

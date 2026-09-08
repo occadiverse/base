@@ -1647,6 +1647,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     let attended = 0, kamper = 0, attendedMatches = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
                     let ratingSum = 0, ratingCount = 0;
+                    let minutesTotal = 0, minutesMatches = 0;
 
                     teamEvents.forEach(e => {
                         if (window.isPlayerAttending(e.attendance, p)) {
@@ -1666,6 +1667,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                         ratingSum += playerRating;
                                         ratingCount++;
                                     }
+                                }
+                                const minutes = Math.max(
+                                    0,
+                                    Math.floor(Number(window.getPlayerRefMapValue(e.minutesPlayed, p, 0)) || 0)
+                                );
+                                if (minutes > 0) {
+                                    minutesTotal += minutes;
+                                    minutesMatches += 1;
                                 }
                                 totalMatchPoints += window.calculatePlayerMatchPoints(e, p);
                             }
@@ -1704,7 +1713,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         serieAtRisk: serieHint.isAtRisk,
                         kjemi: window.getPlayerFormComponents(p.navn, { yearFilter }).total,
                         snittBors: ratingCount > 0 ? ratingSum / ratingCount : 0,
-                        bb
+                        bb,
+                        minutesTotal,
+                        minutesMatches,
+                        minutesAvg: minutesMatches > 0 ? minutesTotal / minutesMatches : 0
                     };
                 });
 
@@ -3588,6 +3600,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const assists = Number(window.getPlayerRefMapValue(match.assists, playerObj, 0)) || 0;
                 const yellow = window.playerRefListIncludes(match.guleKort, playerObj) ? 1 : 0;
                 const red = window.playerRefListIncludes(match.rodeKort, playerObj) ? 1 : 0;
+                const minutesRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+                const minutes = minutesRaw === null || minutesRaw === undefined || minutesRaw === ''
+                    ? null
+                    : Math.max(0, Math.floor(Number(minutesRaw) || 0));
                 const isBbInMatch = window.motmMatchesPlayer(match.motm, playerObj);
                 const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
                     ? window.calculatePlayerMatchPoints(match, playerObj, true)
@@ -3601,6 +3617,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     assists,
                     yellow,
                     red,
+                    minutes,
                     isBbInMatch,
                     onPitch: pointsDetails.onPitch !== false,
                     points: pointsDetails.total || 0,
@@ -3633,6 +3650,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const maText = (s.goals > 0 || s.assists > 0)
                     ? `${s.goals}/${s.assists}`
                     : '–';
+                const minutesText = s.minutes != null && s.minutes > 0 ? `${s.minutes}'` : '–';
                 const cardBits = [];
                 if (s.yellow > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-yellow" title="Gult kort">${s.yellow > 1 ? s.yellow : ''}</span>`);
                 if (s.red > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-red" title="Rødt kort">${s.red > 1 ? s.red : ''}</span>`);
@@ -3657,6 +3675,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <span class="stats-kampdata-player-name">${safeName}</span>
                             ${roleHtml}
                         </td>
+                        <td class="stats-kampdata-col-min">${minutesText}</td>
                         <td class="stats-kampdata-col-rating ${ratingClass}">${ratingText}</td>
                         <td class="stats-kampdata-col-ma">${maText}</td>
                         <td class="stats-kampdata-col-cards">${cardsHtml}</td>
@@ -3712,6 +3731,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <thead>
                                     <tr>
                                         <th>Spiller</th>
+                                        <th>MIN</th>
                                         <th>Børs</th>
                                         <th>M/A</th>
                                         <th>Kort</th>

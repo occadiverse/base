@@ -9494,6 +9494,11 @@
         .stats-kampdata-col-player {
             min-width: 0;
         }
+        .stats-kampdata-col-min {
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            white-space: nowrap;
+        }
         .stats-kampdata-player-name {
             display: block;
             font-weight: 950;
