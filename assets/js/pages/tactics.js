@@ -506,8 +506,27 @@
             };
         }
 
+        function resolveLiveSubMinute(explicitMinute) {
+            const raw = explicitMinute === undefined || explicitMinute === null
+                ? ''
+                : String(explicitMinute).trim().replace(/'$/, '');
+            if (raw !== '') return raw;
+            return String(Math.floor(getLiveMatchClockElapsedMs() / 60000));
+        }
+
         function buildInheritanceBadgesHtml(preview, options = {}) {
             const badges = [];
+            if (options.showBenchOut) {
+                const minute = options.benchOutMinute
+                    ? String(options.benchOutMinute).trim().replace(/'$/, '')
+                    : '';
+                badges.push({
+                    key: 'bench-out',
+                    label: minute ? `Benk ${minute}'` : 'Benk',
+                    title: minute ? `Byttet ut til benk (${minute}')` : 'Byttet ut til benk',
+                    tone: 'role'
+                });
+            }
             (preview?.roles || []).forEach(slot => {
                 badges.push({
                     key: `role-${slot}`,
@@ -1069,7 +1088,7 @@
             toggle.setAttribute('aria-label', willOpen ? 'Skjul roller' : 'Vis roller');
         };
 
-        window.showTacticalLiveSubPanel = function({ outPlayer, inPlayer, posId, inheritedRoles, inheritedOffc = [], inheritedDefc = [] }) {
+        window.showTacticalLiveSubPanel = function({ outPlayer, inPlayer, posId, inheritedRoles, inheritedOffc = [], inheritedDefc = [], minute = '' }) {
             const panel = document.getElementById('tactical-live-sub-panel');
             if (!panel) return;
 
@@ -1082,6 +1101,11 @@
                 label: 'Hadde',
                 state: 'had',
                 emptyHtml: '<p class="tactical-live-inherit-empty m-0">Ingen roller eller corner-ansvar.</p>'
+            });
+            const benchOutHtml = buildInheritanceBadgesHtml({}, {
+                state: 'had',
+                showBenchOut: true,
+                benchOutMinute: minute
             });
             const inheritHtml = buildInheritanceBadgesHtml(transferred, {
                 label: 'Overtar',
@@ -1103,6 +1127,7 @@
                         <span class="tactical-live-sub-label">Ut</span>
                         <strong>${escapeTacticalHtml(outPlayer?.navn || '—')}</strong>
                         <span class="tactical-live-sub-pos">${escapeTacticalHtml(posId)}</span>
+                        ${benchOutHtml}
                         ${hadHtml}
                     </div>
                     <div class="tactical-live-sub-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
@@ -1161,6 +1186,7 @@
             const inheritedOffc = getSetPieceSlotsForPlayer(match, 'offcAssignments', outPlayer);
             const inheritedDefc = getSetPieceSlotsForPlayer(match, 'defcAssignments', outPlayer);
             const inRef = getTacticalLivePlayerRef(inPlayer);
+            const subMinute = resolveLiveSubMinute(options.minute);
 
             inheritedRoles.forEach(slot => {
                 window.liveRoles[slot] = inRef;
@@ -1172,7 +1198,7 @@
             window.tacticalAppliedLiveSubs = [
                 ...(window.tacticalAppliedLiveSubs || []),
                 {
-                    minute: options.minute || '',
+                    minute: subMinute,
                     posId,
                     outId: getTacticalLivePlayerRef(outPlayer),
                     inId: inRef,
@@ -1189,7 +1215,8 @@
                 posId,
                 inheritedRoles,
                 inheritedOffc,
-                inheritedDefc
+                inheritedDefc,
+                minute: subMinute
             });
 
             refreshTacticalLiveBoard();
@@ -1325,6 +1352,13 @@
                     state: 'takes'
                 });
                 const appliedOutSub = findLatestAppliedLiveSubForPlayer(p, 'out');
+                const benchOutHtml = appliedOutSub
+                    ? buildInheritanceBadgesHtml({}, {
+                        state: 'had',
+                        showBenchOut: true,
+                        benchOutMinute: appliedOutSub.minute || ''
+                    })
+                    : '';
                 const hadHtml = appliedOutSub
                     ? buildInheritanceBadgesHtml({
                         roles: appliedOutSub.outRoles || [],
@@ -1335,7 +1369,7 @@
                         state: 'had'
                     })
                     : '';
-                const roleMetaHtml = [hadHtml, inheritHtml].filter(Boolean).join('');
+                const roleMetaHtml = [benchOutHtml, hadHtml, inheritHtml].filter(Boolean).join('');
                 const planTitle = !assignment
                     ? ''
                     : canApplyPlanned

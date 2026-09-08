@@ -23,6 +23,9 @@
         let firebaseEnabled = false;
         let hasHandledInitialPlayersSnapshot = false;
 
+        // Paint cached data immediately so mobile/UI is not blocked on Firebase CDN + auth.
+        // Snapshots below will reconcile once the connection is ready.
+        loadAllFromLocalStorage();
 
         async function loadFirestoreConfig() {
             try {

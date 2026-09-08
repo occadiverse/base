@@ -13,10 +13,25 @@ window.getPrimaryTeamName = function() {
     return window.getPrimaryTeam()?.name || 'Lag A';
 };
 
-window.activeMatches = [];
-window.activeTeams = [];
-        window.activePlayers = [];
-        window.activeEvents = [];
+// Hydrate from localStorage immediately so the first paint is not blocked on Firebase.
+(function hydrateFromLocalCache() {
+    function readLocalCollection(key) {
+        try {
+            const raw = window.localStorage.getItem('bsk_local_' + key);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn(`Kunne ikke lese lokal cache for ${key}:`, error);
+            return [];
+        }
+    }
+
+    window.activeMatches = readLocalCollection('matches');
+    window.activeTeams = readLocalCollection('teams');
+    window.activePlayers = readLocalCollection('players');
+    window.activeEvents = readLocalCollection('events');
+})();
         window.tacticalLineup = {}; 
         let currentSelectPos = null;
         let currentTacticalPhase = 'fase1'; 
