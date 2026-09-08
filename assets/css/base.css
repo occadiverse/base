@@ -9450,16 +9450,11 @@
         }
         .stats-kampdata-table th:first-child {
             padding-left: 0.9rem;
+            text-align: left;
         }
-        .stats-kampdata-table th:nth-child(2),
-        .stats-kampdata-table th:nth-child(3),
-        .stats-kampdata-table th:nth-child(4),
-        .stats-kampdata-table th:nth-child(5),
-        .stats-kampdata-table td:nth-child(2),
-        .stats-kampdata-table td:nth-child(3),
-        .stats-kampdata-table td:nth-child(4),
-        .stats-kampdata-table td:nth-child(5) {
-            text-align: center;
+        .stats-kampdata-table th:not(:first-child),
+        .stats-kampdata-table td:not(:first-child) {
+            text-align: right;
             width: 3.4rem;
         }
         .stats-kampdata-table th:last-child,
@@ -9496,7 +9491,6 @@
         }
         .stats-kampdata-col-min {
             font-variant-numeric: tabular-nums;
-            text-align: center;
             white-space: nowrap;
         }
         .stats-kampdata-player-name {
