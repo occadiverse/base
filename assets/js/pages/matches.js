@@ -6137,6 +6137,11 @@ window.renderPlayerRowForm = function(match) {
         const prevGoals = window.getPlayerRefMapValue(match.scorers, playerObj, 0);
         const prevAssists = window.getPlayerRefMapValue(match.assists, playerObj, 0);
         const prevRating = window.getPlayerRefMapValue(match.ratings, playerObj, 0);
+        const minutesPlayedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+        const minutesPlayed = minutesPlayedRaw === null || minutesPlayedRaw === undefined || minutesPlayedRaw === ''
+            ? null
+            : Math.max(0, Math.floor(Number(minutesPlayedRaw) || 0));
+        const minutesLabel = minutesPlayed === null ? '—' : `${minutesPlayed}'`;
         const hasYellow = window.playerRefListIncludes(match.guleKort, playerObj);
         const hasRed = window.playerRefListIncludes(match.rodeKort, playerObj);
         const isMotm = window.motmMatchesPlayer(match.motm, playerObj);
@@ -6163,6 +6168,13 @@ window.renderPlayerRowForm = function(match) {
             <div class="match-stats-controls">
                 <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[8px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs">Kun oppmøte</button>
                 <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
+                <div class="match-stat-field">
+                    <span class="match-stat-label">Min</span>
+                    <span
+                        class="match-stats-minutes-value${minutesPlayed === null ? ' is-empty' : ''}"
+                        title="${minutesPlayed === null ? 'Spilletid ikke lagret fra Live' : `Spilletid ${escapeMatchHtml(minutesLabel)}`}"
+                    >${escapeMatchHtml(minutesLabel)}</span>
+                </div>
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
                     <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">

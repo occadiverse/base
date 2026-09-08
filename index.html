@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-roles-photo-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-playing-time-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -455,8 +455,20 @@
                                     onclick="window.resetLiveMatchClock()"
                                     title="Nullstill klokke"
                                 >Nullstill</button>
+                                <button
+                                    type="button"
+                                    id="tactical-live-playing-time-save"
+                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-playing-time-save"
+                                    onclick="window.persistLivePlayingTime()"
+                                    title="Lagre byttelog og spilletid på kampen"
+                                >Lagre spilletid</button>
                             </div>
                             <div class="tactical-live-clock-alert" id="tactical-live-clock-alert" hidden></div>
+                            <div
+                                class="tactical-live-playing-time-status"
+                                id="tactical-live-playing-time-status"
+                                hidden
+                            ></div>
                         </div>
 
                         <div class="tactical-live-main relative z-10">
@@ -1310,16 +1322,16 @@
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
     <script src="assets/js/components/modals.js?v=20260908-live-setpiece-preview-v1"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
-    <script src="assets/js/domain/player-refs.js?v=20260820-tilknyttet-v1"></script>
+    <script src="assets/js/domain/player-refs.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20260820-spiller-year-v1"></script>
     <script src="assets/js/domain/samspill.js?v=20260821-451-samspill-v1"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20260906-profile-season-chips-v1"></script>
-    <script src="assets/js/pages/matches.js?v=20260908-live-setpiece-preview-v1"></script>
+    <script src="assets/js/pages/matches.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260908-bench-out-chip-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260908-local-hydrate-v1"></script>

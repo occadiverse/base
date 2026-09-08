@@ -463,8 +463,22 @@ window.normalizeMatchPlayerRefs = function(match) {
     if (match.ratings) normalized.ratings = window.normalizePlayerRefMap(match.ratings);
     if (match.benchOnly) normalized.benchOnly = window.normalizePlayerRefMap(match.benchOnly);
     if (match.benchSubstitutionPlan) normalized.benchSubstitutionPlan = window.normalizePlayerRefMap(match.benchSubstitutionPlan);
+    if (match.minutesPlayed) normalized.minutesPlayed = window.normalizePlayerRefMap(match.minutesPlayed);
     if (match.guleKort) normalized.guleKort = window.normalizePlayerRefList(match.guleKort);
     if (match.rodeKort) normalized.rodeKort = window.normalizePlayerRefList(match.rodeKort);
+
+    if (Array.isArray(match.liveSubstitutions)) {
+        normalized.liveSubstitutions = match.liveSubstitutions.map((sub) => {
+            if (!sub || typeof sub !== 'object') return sub;
+            const outPlayer = window.findPlayerByRef(sub.outId);
+            const inPlayer = window.findPlayerByRef(sub.inId);
+            return {
+                ...sub,
+                outId: outPlayer?.id || sub.outId || '',
+                inId: inPlayer?.id || sub.inId || ''
+            };
+        });
+    }
 
     if (match.motm) {
         const motmPlayer = window.findPlayerByRef(match.motm);
@@ -525,7 +539,7 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
         let changed = false;
         const updated = { ...entity };
 
-        ['attendance', 'scorers', 'assists', 'ratings', 'benchOnly', 'benchSubstitutionPlan'].forEach((field) => {
+        ['attendance', 'scorers', 'assists', 'ratings', 'benchOnly', 'benchSubstitutionPlan', 'minutesPlayed'].forEach((field) => {
             if (!entity[field]) return;
             const newMap = {};
             Object.entries(entity[field]).forEach(([key, value]) => {
@@ -544,6 +558,16 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
                 return newRef;
             });
         });
+
+        if (Array.isArray(entity.liveSubstitutions)) {
+            updated.liveSubstitutions = entity.liveSubstitutions.map((sub) => {
+                if (!sub || typeof sub !== 'object') return sub;
+                const outId = remapKey(sub.outId);
+                const inId = remapKey(sub.inId);
+                if (outId !== sub.outId || inId !== sub.inId) changed = true;
+                return { ...sub, outId, inId };
+            });
+        }
 
         if (entity.motm === oldName) {
             updated.motm = playerId;

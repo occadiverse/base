@@ -137,6 +137,11 @@
                 liveMatchClockState.phaseMessage = getLiveMatchClockPhaseMessage(minute);
                 stopLiveMatchClockTicker();
                 persistLiveMatchClockState();
+                if (minute === 90 && typeof window.persistLivePlayingTime === 'function') {
+                    setTimeout(() => {
+                        window.persistLivePlayingTime({ durationMinutes: 90 });
+                    }, 0);
+                }
                 return milestoneMs;
             }
             return elapsedMs;
@@ -513,6 +518,174 @@
             if (raw !== '') return raw;
             return String(Math.floor(getLiveMatchClockElapsedMs() / 60000));
         }
+
+        function parseLiveSubMinuteValue(value) {
+            const n = Number(String(value ?? '').trim().replace(/'$/, ''));
+            return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+        }
+
+        function getLivePlayingTimeStorageKey(playerOrRef) {
+            if (!playerOrRef) return '';
+            if (typeof window.getPlayerStorageKey === 'function') {
+                return window.getPlayerStorageKey(playerOrRef) || '';
+            }
+            if (typeof playerOrRef === 'string') return playerOrRef;
+            return playerOrRef.id || playerOrRef.navn || '';
+        }
+
+        function getKickoffLineupPlayer(match, posId) {
+            if (!match || !posId) return null;
+            const savedLineupRefs = match.lineupRefs || {};
+            const savedLineup = match.lineup || {};
+            const refPlayer = savedLineupRefs[posId] && typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(savedLineupRefs[posId])
+                : null;
+            if (refPlayer) return refPlayer;
+            if (typeof savedLineup[posId] === 'string' && typeof window.findPlayerByRef === 'function') {
+                return window.findPlayerByRef(savedLineup[posId]);
+            }
+            return savedLineup[posId] || null;
+        }
+
+        function serializeLiveSubstitutions(subs) {
+            return (Array.isArray(subs) ? subs : []).map((sub) => ({
+                minute: String(sub?.minute ?? ''),
+                posId: sub?.posId || '',
+                outId: sub?.outId || '',
+                inId: sub?.inId || '',
+                outRoles: Array.isArray(sub?.outRoles) ? [...sub.outRoles] : [],
+                outOffc: Array.isArray(sub?.outOffc) ? [...sub.outOffc] : [],
+                outDefc: Array.isArray(sub?.outDefc) ? [...sub.outDefc] : []
+            }));
+        }
+
+        function computeMinutesPlayed(match, substitutions, durationMinutes) {
+            const duration = Math.max(0, Math.floor(Number(durationMinutes) || 0));
+            const stints = new Map();
+
+            const ensure = (key) => {
+                if (!key) return null;
+                if (!stints.has(key)) stints.set(key, { onSince: null, total: 0 });
+                return stints.get(key);
+            };
+
+            TACTICAL_POSITIONS.forEach((posId) => {
+                const player = getKickoffLineupPlayer(match, posId);
+                if (!player) return;
+                const key = getLivePlayingTimeStorageKey(player);
+                const state = ensure(key);
+                if (state && state.onSince === null) state.onSince = 0;
+            });
+
+            const sortedSubs = serializeLiveSubstitutions(substitutions)
+                .slice()
+                .sort((a, b) => parseLiveSubMinuteValue(a.minute) - parseLiveSubMinuteValue(b.minute));
+
+            sortedSubs.forEach((sub) => {
+                const minute = Math.min(parseLiveSubMinuteValue(sub.minute), duration);
+                const outKey = getLivePlayingTimeStorageKey(
+                    typeof window.findPlayerByRef === 'function'
+                        ? (window.findPlayerByRef(sub.outId) || sub.outId)
+                        : sub.outId
+                );
+                const inKey = getLivePlayingTimeStorageKey(
+                    typeof window.findPlayerByRef === 'function'
+                        ? (window.findPlayerByRef(sub.inId) || sub.inId)
+                        : sub.inId
+                );
+
+                const outState = ensure(outKey);
+                if (outState && outState.onSince !== null) {
+                    outState.total += Math.max(0, minute - outState.onSince);
+                    outState.onSince = null;
+                }
+
+                const inState = ensure(inKey);
+                if (inState && inState.onSince === null) {
+                    inState.onSince = minute;
+                }
+            });
+
+            stints.forEach((state) => {
+                if (state.onSince !== null) {
+                    state.total += Math.max(0, duration - state.onSince);
+                    state.onSince = null;
+                }
+            });
+
+            const minutesPlayed = {};
+            stints.forEach((state, key) => {
+                if (state.total > 0) minutesPlayed[key] = state.total;
+            });
+            return minutesPlayed;
+        }
+
+        function setLivePlayingTimeStatus(message, tone = '') {
+            const statusEl = document.getElementById('tactical-live-playing-time-status');
+            if (!statusEl) return;
+            statusEl.textContent = message || '';
+            statusEl.hidden = !message;
+            statusEl.classList.toggle('is-error', tone === 'error');
+            statusEl.classList.toggle('is-success', tone === 'success');
+            statusEl.classList.toggle('is-pending', tone === 'pending');
+        }
+
+        function hydrateLiveSubstitutionsFromMatch(match) {
+            const saved = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : [];
+            window.tacticalAppliedLiveSubs = serializeLiveSubstitutions(saved);
+
+            loadTacticalLineupFromMatch(match);
+            loadLiveRolesFromMatch(match);
+
+            window.tacticalAppliedLiveSubs.forEach((sub) => {
+                const inPlayer = typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(sub.inId)
+                    : null;
+                if (!inPlayer || !sub.posId) return;
+
+                (sub.outRoles || []).forEach((slot) => {
+                    window.liveRoles[slot] = getTacticalLivePlayerRef(inPlayer);
+                });
+                window.liveLineup[sub.posId] = inPlayer;
+            });
+            syncLiveLineupToTactical();
+        }
+
+        window.persistLivePlayingTime = async function(options = {}) {
+            const match = getSelectedTacticalMatch();
+            if (!match || !window.isTacticalLiveMatchMode()) return false;
+
+            const clockMinute = Math.floor(getLiveMatchClockElapsedMs() / 60000);
+            const liveSubstitutions = serializeLiveSubstitutions(window.tacticalAppliedLiveSubs || []);
+            const lastSubMinute = liveSubstitutions.reduce(
+                (max, sub) => Math.max(max, parseLiveSubMinuteValue(sub.minute)),
+                0
+            );
+            const duration = options.durationMinutes != null && options.durationMinutes !== ''
+                ? Math.max(0, Math.floor(Number(options.durationMinutes) || 0))
+                : Math.max(clockMinute, lastSubMinute);
+
+            match.liveSubstitutions = liveSubstitutions;
+            match.liveDurationMinutes = duration;
+            match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
+
+            setLivePlayingTimeStatus('Lagrer spilletid…', 'pending');
+
+            if (typeof window.saveMatchToDatabase !== 'function') {
+                setLivePlayingTimeStatus('Kunne ikke lagre spilletid', 'error');
+                return false;
+            }
+
+            try {
+                await window.saveMatchToDatabase(match);
+                setLivePlayingTimeStatus(`Spilletid lagret · ${duration}'`, 'success');
+                return true;
+            } catch (error) {
+                console.error('Kunne ikke lagre spilletid:', error);
+                setLivePlayingTimeStatus('Kunne ikke lagre spilletid', 'error');
+                return false;
+            }
+        };
 
         function buildInheritanceBadgesHtml(preview, options = {}) {
             const badges = [];
@@ -992,6 +1165,7 @@
             window.tacticalAppliedLiveSubs = [];
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
+            setLivePlayingTimeStatus('');
             const panel = document.getElementById('tactical-live-sub-panel');
             if (panel) {
                 panel.classList.add('hidden');
@@ -1009,6 +1183,7 @@
             window.tacticalPendingSubIn = null;
             window.tacticalAppliedLiveSubs = [];
             window.tacticalLiveDirty = false;
+            setLivePlayingTimeStatus('');
 
             if (!matchId) {
                 if (rolesCard) rolesCard.classList.add('hidden');
@@ -1035,14 +1210,16 @@
 
             window.tacticalLineupIsEditing = false;
 
-            loadTacticalLineupFromMatch(match);
-            loadLiveRolesFromMatch(match);
+            hydrateLiveSubstitutionsFromMatch(match);
+            if (match.liveDurationMinutes != null && Array.isArray(match.liveSubstitutions)) {
+                setLivePlayingTimeStatus(`Spilletid lagret · ${match.liveDurationMinutes}'`, 'success');
+            }
             refreshTacticalLiveBoard();
             window.syncTacticalSandboxButton();
         };
 
         window.saveMatchTactics = async function() {
-            return;
+            return window.persistLivePlayingTime();
         };
 
         window.renderTacticalLiveRoles = function() {
@@ -1220,6 +1397,9 @@
             });
 
             refreshTacticalLiveBoard();
+            if (typeof window.persistLivePlayingTime === 'function') {
+                window.persistLivePlayingTime().catch(() => {});
+            }
             return true;
         };
 

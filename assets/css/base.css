@@ -14950,6 +14950,21 @@
             text-align: center;
             width: 3.1rem;
         }
+        .match-stats-minutes-value {
+            align-items: center;
+            color: #0f172a;
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 800;
+            justify-content: center;
+            min-height: 1.95rem;
+            min-width: 2.4rem;
+            text-align: center;
+        }
+        .match-stats-minutes-value.is-empty {
+            color: #94a3b8;
+            font-weight: 700;
+        }
         .match-stat-select-rating {
             width: 3.75rem;
         }
@@ -16094,9 +16109,13 @@
             white-space: nowrap;
         }
         .tactical-live-clock-bar .tactical-live-clock-toggle.bsk-btn,
-        .tactical-live-clock-bar .tactical-live-clock-reset.bsk-btn {
+        .tactical-live-clock-bar .tactical-live-clock-reset.bsk-btn,
+        .tactical-live-clock-bar .tactical-live-playing-time-save.bsk-btn {
             justify-content: center;
             min-width: 5.75rem;
+        }
+        .tactical-live-clock-bar .tactical-live-playing-time-save.bsk-btn {
+            min-width: 8.5rem;
         }
         .tactical-live-clock-bar .tactical-live-clock-toggle.bsk-btn-primary {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
@@ -16162,6 +16181,27 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .tactical-live-playing-time-status {
+            color: rgba(255, 244, 196, 0.78);
+            flex: 1 1 100%;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+            text-align: center;
+        }
+        .tactical-live-playing-time-status[hidden] {
+            display: none;
+        }
+        .tactical-live-playing-time-status.is-success {
+            color: #86efac;
+        }
+        .tactical-live-playing-time-status.is-error {
+            color: #fca5a5;
+        }
+        .tactical-live-playing-time-status.is-pending {
+            color: rgba(255, 244, 196, 0.78);
         }
         .tactical-bench-player.has-warmup-alert {
             box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.55);
