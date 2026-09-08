@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260907-live-bench-theme-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-role-chip-v2">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -515,20 +515,29 @@
                                         </h3>
                                         <span class="tactical-live-panel-badge">Live</span>
                                     </div>
-                                    <p id="tactical-bench-hint" class="tactical-live-panel-hint">«Overtar» gjelder planlagt innbytte. «Hadde» viser roller/OffC/DefC til spillere som er byttet ut.</p>
                                     <div id="tactical-bench-list" class="grid grid-cols-1 gap-2 text-xs font-medium">
                                     </div>
                                 </div>
 
-                                <div id="tactical-roles-card" class="hidden tactical-live-panel space-y-4 transition-all">
-                                    <div class="tactical-live-panel-header">
+                                <div id="tactical-roles-card" class="hidden tactical-live-panel tactical-live-roles-panel is-collapsed transition-all">
+                                    <button
+                                        type="button"
+                                        class="tactical-live-panel-header tactical-live-roles-toggle"
+                                        onclick="window.toggleTacticalLiveRolesPanel()"
+                                        aria-expanded="false"
+                                        aria-controls="tactical-live-roles-content"
+                                    >
                                         <h3 class="tactical-live-panel-title">
                                             <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                                            <span>Roller (live)</span>
+                                            <span>Roller</span>
                                         </h3>
-                                        <span class="tactical-live-panel-badge">Kun på tavlen</span>
+                                        <span class="tactical-live-roles-chevron" aria-hidden="true">
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </span>
+                                    </button>
+                                    <div id="tactical-live-roles-content" class="tactical-live-roles-content">
+                                        <div id="tactical-live-roles-list" class="grid grid-cols-1 gap-2 text-xs font-medium"></div>
                                     </div>
-                                    <div id="tactical-live-roles-list" class="grid grid-cols-1 gap-2 text-xs font-medium"></div>
                                 </div>
                             </div>
                         </div>
@@ -1266,6 +1275,24 @@
         </div>
     </div>
 
+    <div id="live-setpiece-preview-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4 transition-opacity">
+        <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
+            <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
+                <h3 id="live-setpiece-preview-title" class="text-xl font-black text-bsk-yellow">Hjørneplassering</h3>
+                <button
+                    type="button"
+                    onclick="window.closeLiveSetPiecePreview()"
+                    class="bsk-btn bsk-btn-icon bsk-btn-ghost text-2xl font-light leading-none"
+                    aria-label="Lukk"
+                >&times;</button>
+            </div>
+            <div class="p-4 space-y-3">
+                <p id="live-setpiece-preview-caption" class="text-sm text-slate-300 m-0"></p>
+                <div id="live-setpiece-preview-body" class="live-setpiece-preview-body"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="assets/js/components/navigation.js?v=20260613-mobile-nav7"></script>
     <div id="team-field-store" class="hidden" aria-hidden="true">
         <input type="hidden" id="matchGroup">
@@ -1273,7 +1300,7 @@
     </div>
 
     <script src="assets/js/state.js?v=20260703-single-team-v1"></script>
-    <script src="assets/js/components/modals.js?v=20260907-autofill-info-v1"></script>
+    <script src="assets/js/components/modals.js?v=20260908-live-setpiece-preview-v1"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20260820-spiller-year-v1"></script>
@@ -1281,10 +1308,10 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20260906-profile-season-chips-v1"></script>
-    <script src="assets/js/pages/matches.js?v=20260821-451-samspill-v1"></script>
+    <script src="assets/js/pages/matches.js?v=20260908-live-setpiece-preview-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260907-live-bench-theme-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260908-live-role-chip-v2"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>

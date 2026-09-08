@@ -225,16 +225,20 @@
                 badges.push({
                     key: `offc-${slot}`,
                     label: `OffC ${slot}`,
-                    title: `Offensiv corner ${slot}`,
-                    tone: 'offc'
+                    title: `Vis OffC ${slot} på hjørnebane`,
+                    tone: 'offc',
+                    planId: 'offc',
+                    slot: String(slot)
                 });
             });
             (preview?.defc || []).forEach(slot => {
                 badges.push({
                     key: `defc-${slot}`,
                     label: `DefC ${slot}`,
-                    title: `Defensiv corner ${slot}`,
-                    tone: 'defc'
+                    title: `Vis DefC ${slot} på hjørnebane`,
+                    tone: 'defc',
+                    planId: 'defc',
+                    slot: String(slot)
                 });
             });
             if (!badges.length) {
@@ -248,9 +252,18 @@
                 <div class="tactical-bench-inherit${stateClass}">
                     ${labelHtml}
                     <div class="tactical-bench-inherit-badges">
-                        ${badges.map(badge => (
-                            `<span class="tactical-bench-inherit-badge is-${escapeTacticalHtml(badge.tone)}" title="${escapeTacticalHtml(badge.title)}">${escapeTacticalHtml(badge.label)}</span>`
-                        )).join('')}
+                        ${badges.map(badge => {
+                            if (badge.planId) {
+                                return `<button
+                                    type="button"
+                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-bench-setpiece-btn"
+                                    data-live-setpiece="${escapeTacticalHtml(badge.planId)}"
+                                    data-live-slot="${escapeTacticalHtml(badge.slot)}"
+                                    title="${escapeTacticalHtml(badge.title)}"
+                                ><span>${escapeTacticalHtml(badge.label)}</span></button>`;
+                            }
+                            return `<span class="tactical-live-card-role tactical-bench-role-chip" title="${escapeTacticalHtml(badge.title)}">${escapeTacticalHtml(badge.label)}</span>`;
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -739,6 +752,17 @@
             }).join('');
         };
 
+        window.toggleTacticalLiveRolesPanel = function() {
+            const card = document.getElementById('tactical-roles-card');
+            const toggle = card?.querySelector('.tactical-live-roles-toggle');
+            if (!card || !toggle) return;
+
+            const willOpen = card.classList.contains('is-collapsed');
+            card.classList.toggle('is-collapsed', !willOpen);
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            toggle.setAttribute('aria-label', willOpen ? 'Skjul roller' : 'Vis roller');
+        };
+
         window.showTacticalLiveSubPanel = function({ outPlayer, inPlayer, posId, inheritedRoles, inheritedOffc = [], inheritedDefc = [] }) {
             const panel = document.getElementById('tactical-live-sub-panel');
             if (!panel) return;
@@ -991,7 +1015,6 @@
                     ? getInheritancePreviewForOutPlayer(match, outPlayer)
                     : { roles: [], offc: [], defc: [] };
                 const inheritHtml = buildInheritanceBadgesHtml(inheritPreview, {
-                    label: 'Overtar',
                     state: 'takes'
                 });
                 const appliedOutSub = findLatestAppliedLiveSubForPlayer(p, 'out');
@@ -1039,8 +1062,10 @@
                         <div class="tactical-bench-player-copy min-w-0">
                             <div class="tactical-bench-player-name-row">
                                 <span class="tactical-bench-player-name ${pSusp.isSuspended ? 'is-suspended' : ''}">${escapeTacticalHtml(p.navn)}</span>
-                                ${benchSuspBadge}
                             </div>
+                            ${benchSuspBadge
+                                ? `<div class="tactical-bench-status-row">${benchSuspBadge}</div>`
+                                : ''}
                             ${roleMetaHtml}
                             ${isPending ? '<span class="tactical-bench-pending">Velg posisjon på banen</span>' : ''}
                         </div>
@@ -1323,6 +1348,45 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         };
+
+        window.openLiveSetPiecePreview = function(planId, slot) {
+            const modal = document.getElementById('live-setpiece-preview-modal');
+            const titleEl = document.getElementById('live-setpiece-preview-title');
+            const captionEl = document.getElementById('live-setpiece-preview-caption');
+            const bodyEl = document.getElementById('live-setpiece-preview-body');
+            if (!modal || !bodyEl) return;
+            const normalizedPlanId = planId === 'defc' ? 'defc' : 'offc';
+            const label = normalizedPlanId === 'defc' ? 'DefC' : 'OffC';
+            const slotLabel = String(slot || '').trim();
+            if (titleEl) titleEl.textContent = slotLabel ? `${label} ${slotLabel}` : label;
+            if (captionEl) {
+                captionEl.textContent = slotLabel
+                    ? `Markert plassering for ${label} ${slotLabel} (samme som i Kampplan).`
+                    : `Plasseringer for ${label} (samme som i Kampplan).`;
+            }
+            bodyEl.innerHTML = typeof window.buildMatchGamePlanSetPiecePreviewHtml === 'function'
+                ? window.buildMatchGamePlanSetPiecePreviewHtml(normalizedPlanId, slotLabel)
+                : '<p class="text-sm text-slate-400 m-0">Kunne ikke laste hjørnebane.</p>';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeLiveSetPiecePreview = function() {
+            const modal = document.getElementById('live-setpiece-preview-modal');
+            const bodyEl = document.getElementById('live-setpiece-preview-body');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (bodyEl) bodyEl.innerHTML = '';
+        };
+
+        document.getElementById('view-taktikk')?.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-live-setpiece]');
+            if (!btn || !document.getElementById('view-taktikk')?.contains(btn)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            window.openLiveSetPiecePreview(btn.dataset.liveSetpiece, btn.dataset.liveSlot);
+        });
 
         window.autoFillTeam = function() {
             if (!window.isTacticalLineupEditable()) return;

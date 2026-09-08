@@ -1172,6 +1172,36 @@ const matchGamePlanDefCPositions = {
     10: { top: '44%', left: '75%', tone: 'green' }
 };
 
+window.getMatchGamePlanSetPiecePositions = function(planId) {
+    return planId === 'defc' ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
+};
+
+window.buildMatchGamePlanSetPiecePreviewHtml = function(planId, highlightSlot) {
+    const isDefC = planId === 'defc';
+    const positions = isDefC ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
+    const planLabel = isDefC ? 'DefC' : 'OffC';
+    const highlight = String(highlightSlot || '');
+    const nodesHtml = Object.entries(positions).map(([value, coords]) => {
+        const isHighlight = String(value) === highlight;
+        const stateClass = isHighlight ? ' is-highlight' : ' is-dimmed';
+        return `
+            <span
+                class="match-game-plan-diagram-node is-${escapeMatchHtml(coords.tone || 'neutral')}${stateClass}"
+                style="top: ${coords.top}; left: ${coords.left};"
+                aria-label="${escapeMatchHtml(planLabel)} ${escapeMatchHtml(value)}"
+            >${escapeMatchHtml(value)}</span>
+        `;
+    }).join('');
+    const ballHtml = isDefC
+        ? buildMatchGamePlanBallMarkerHtml({ top: '3%', left: '95%' }, 'DefC')
+        : '';
+    return buildMatchGamePlanPitchHtml({
+        ariaLabel: `${planLabel} bane`,
+        extraClass: 'live-setpiece-preview-pitch',
+        childrenHtml: nodesHtml + ballHtml
+    });
+};
+
 const matchGamePlanRoleSlots = ['K', 'K2', 'Cv', 'Ch', 'F', 'F2', 'S', 'S2'];
 const matchGamePlanBenchMinutes = ['10', '20', '30', '45', '50', '55', '60', '65', '70', '75', '80', '85'];
 
