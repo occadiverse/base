@@ -86,6 +86,301 @@
         window.tacticalLiveDirty = false;
         window.tacticalAppliedLiveSubs = window.tacticalAppliedLiveSubs || [];
 
+        const LIVE_MATCH_CLOCK_STORAGE_PREFIX = 'occa.liveMatchClock.';
+        const LIVE_MATCH_CLOCK_WARMUP_MINUTES = 10;
+        const LIVE_MATCH_CLOCK_AUTO_PAUSE_MINUTES = [45, 90];
+        let liveMatchClockState = {
+            matchId: null,
+            running: false,
+            elapsedMs: 0,
+            startedAt: null,
+            intervalId: null,
+            alertedKeys: [],
+            autoPauseKeys: [],
+            phaseMessage: ''
+        };
+
+        function getLiveMatchClockStorageKey(matchId) {
+            return `${LIVE_MATCH_CLOCK_STORAGE_PREFIX}${matchId || 'none'}`;
+        }
+
+        function getLiveMatchClockElapsedMs() {
+            const base = Number(liveMatchClockState.elapsedMs) || 0;
+            if (!liveMatchClockState.running || !liveMatchClockState.startedAt) return base;
+            return base + Math.max(0, Date.now() - liveMatchClockState.startedAt);
+        }
+
+        function formatLiveMatchClock(ms) {
+            const totalSeconds = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function getLiveMatchClockPhaseMessage(minute) {
+            if (minute === 45) return 'Halvtid – trykk Start for 2. omgang';
+            if (minute === 90) return 'Full tid – trykk Start for overtid';
+            return '';
+        }
+
+        function applyLiveMatchClockAutoPause(elapsedMs) {
+            if (!liveMatchClockState.running) return elapsedMs;
+            for (const minute of LIVE_MATCH_CLOCK_AUTO_PAUSE_MINUTES) {
+                const key = `autoPause:${minute}`;
+                const milestoneMs = minute * 60000;
+                if (elapsedMs < milestoneMs) continue;
+                if (liveMatchClockState.autoPauseKeys.includes(key)) continue;
+                liveMatchClockState.elapsedMs = milestoneMs;
+                liveMatchClockState.running = false;
+                liveMatchClockState.startedAt = null;
+                liveMatchClockState.autoPauseKeys.push(key);
+                liveMatchClockState.phaseMessage = getLiveMatchClockPhaseMessage(minute);
+                stopLiveMatchClockTicker();
+                persistLiveMatchClockState();
+                return milestoneMs;
+            }
+            return elapsedMs;
+        }
+
+        function persistLiveMatchClockState() {
+            const matchId = liveMatchClockState.matchId;
+            if (!matchId) return;
+            try {
+                const payload = {
+                    elapsedMs: getLiveMatchClockElapsedMs(),
+                    running: Boolean(liveMatchClockState.running),
+                    startedAt: liveMatchClockState.running ? Date.now() : null,
+                    alertedKeys: Array.isArray(liveMatchClockState.alertedKeys)
+                        ? liveMatchClockState.alertedKeys
+                        : [],
+                    autoPauseKeys: Array.isArray(liveMatchClockState.autoPauseKeys)
+                        ? liveMatchClockState.autoPauseKeys
+                        : [],
+                    phaseMessage: liveMatchClockState.phaseMessage || ''
+                };
+                localStorage.setItem(getLiveMatchClockStorageKey(matchId), JSON.stringify(payload));
+            } catch (_) {
+                /* ignore quota / private mode */
+            }
+        }
+
+        function loadLiveMatchClockState(matchId) {
+            liveMatchClockState.matchId = matchId || null;
+            liveMatchClockState.running = false;
+            liveMatchClockState.elapsedMs = 0;
+            liveMatchClockState.startedAt = null;
+            liveMatchClockState.alertedKeys = [];
+            liveMatchClockState.autoPauseKeys = [];
+            liveMatchClockState.phaseMessage = '';
+            if (!matchId) return;
+            try {
+                const raw = localStorage.getItem(getLiveMatchClockStorageKey(matchId));
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                liveMatchClockState.elapsedMs = Math.max(0, Number(parsed?.elapsedMs) || 0);
+                liveMatchClockState.alertedKeys = Array.isArray(parsed?.alertedKeys)
+                    ? parsed.alertedKeys.map(String)
+                    : [];
+                liveMatchClockState.autoPauseKeys = Array.isArray(parsed?.autoPauseKeys)
+                    ? parsed.autoPauseKeys.map(String)
+                    : [];
+                liveMatchClockState.phaseMessage = String(parsed?.phaseMessage || '');
+                if (parsed?.running && parsed?.startedAt) {
+                    liveMatchClockState.running = true;
+                    liveMatchClockState.startedAt = Number(parsed.startedAt) || Date.now();
+                }
+            } catch (_) {
+                /* ignore corrupt storage */
+            }
+        }
+
+        function stopLiveMatchClockTicker() {
+            if (liveMatchClockState.intervalId) {
+                clearInterval(liveMatchClockState.intervalId);
+                liveMatchClockState.intervalId = null;
+            }
+        }
+
+        function startLiveMatchClockTicker() {
+            stopLiveMatchClockTicker();
+            liveMatchClockState.intervalId = setInterval(() => {
+                window.renderLiveMatchClock();
+            }, 250);
+        }
+
+        function getPlannedWarmupAlerts(elapsedMs) {
+            const match = getSelectedTacticalMatch();
+            if (!match) return [];
+            const elapsedMinutes = Math.floor((Number(elapsedMs) || 0) / 60000);
+            const plan = match.benchSubstitutionPlan && typeof match.benchSubstitutionPlan === 'object'
+                ? match.benchSubstitutionPlan
+                : {};
+            const startingNames = Object.values(window.liveLineup || window.tacticalLineup || {})
+                .filter(Boolean)
+                .map(p => p.navn);
+            const alerts = [];
+
+            Object.entries(plan).forEach(([playerRef, raw]) => {
+                const minute = Number(typeof raw === 'string' ? raw : raw?.minute);
+                if (!Number.isFinite(minute) || minute <= 0) return;
+                const player = typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(playerRef)
+                    : null;
+                if (!player) return;
+                if (startingNames.includes(player.navn)) return;
+                const inRef = getTacticalLivePlayerRef(player);
+                if ((window.tacticalAppliedLiveSubs || []).some(sub => sub.inId === inRef)) return;
+                if (elapsedMinutes < minute - LIVE_MATCH_CLOCK_WARMUP_MINUTES) return;
+                if (elapsedMinutes >= minute + 5) return;
+                const key = `${inRef}@${minute}`;
+                alerts.push({
+                    key,
+                    player,
+                    playerRef: inRef,
+                    minute,
+                    minutesUntil: minute - elapsedMinutes
+                });
+            });
+
+            alerts.sort((a, b) => {
+                if (a.minute !== b.minute) return a.minute - b.minute;
+                return String(a.player?.navn || '').localeCompare(String(b.player?.navn || ''), 'nb');
+            });
+            return alerts;
+        }
+
+        function formatWarmupAlertLabel(alert) {
+            const parts = String(alert.player?.navn || '').trim().split(/\s+/).filter(Boolean);
+            const firstName = parts[0] || 'Spiller';
+            const lastInitial = parts.length > 1 ? ` ${parts[parts.length - 1][0]}.` : '';
+            return `Oppvarming: ${firstName}${lastInitial} (${alert.minute}')`;
+        }
+
+        window.renderLiveMatchClock = function() {
+            const bar = document.getElementById('tactical-live-clock-bar');
+            const timeEl = document.getElementById('tactical-live-clock-time');
+            const toggleBtn = document.getElementById('tactical-live-clock-toggle');
+            const alertEl = document.getElementById('tactical-live-clock-alert');
+            if (!bar || !timeEl || !toggleBtn || !alertEl) return;
+
+            const matchId = getTacticalMatchSelectValue();
+            const visible = Boolean(matchId);
+            bar.classList.toggle('hidden', !visible);
+            if (!visible) {
+                stopLiveMatchClockTicker();
+                alertEl.hidden = true;
+                alertEl.innerHTML = '';
+                alertEl.classList.remove('is-phase');
+                document.querySelectorAll('.tactical-bench-player.has-warmup-alert').forEach(el => {
+                    el.classList.remove('has-warmup-alert');
+                });
+                return;
+            }
+
+            if (liveMatchClockState.matchId !== matchId) {
+                stopLiveMatchClockTicker();
+                loadLiveMatchClockState(matchId);
+                if (liveMatchClockState.running) startLiveMatchClockTicker();
+            }
+
+            let elapsedMs = getLiveMatchClockElapsedMs();
+            elapsedMs = applyLiveMatchClockAutoPause(elapsedMs);
+
+            timeEl.textContent = formatLiveMatchClock(elapsedMs);
+            toggleBtn.textContent = liveMatchClockState.running ? 'Pause' : 'Start';
+            toggleBtn.classList.toggle('is-running', liveMatchClockState.running);
+            toggleBtn.classList.toggle('bsk-btn-primary', !liveMatchClockState.running);
+            toggleBtn.classList.toggle('bsk-btn-secondary', liveMatchClockState.running);
+
+            const alerts = getPlannedWarmupAlerts(elapsedMs);
+            alerts.forEach(alert => {
+                if (!liveMatchClockState.alertedKeys.includes(alert.key)) {
+                    liveMatchClockState.alertedKeys.push(alert.key);
+                }
+            });
+
+            const phaseMessage = liveMatchClockState.phaseMessage || '';
+            if (phaseMessage && !liveMatchClockState.running) {
+                alertEl.hidden = false;
+                alertEl.classList.add('is-phase');
+                alertEl.innerHTML = `
+                    <i class="fa-solid fa-flag" aria-hidden="true"></i>
+                    <span class="tactical-live-clock-alert-text">${escapeTacticalHtml(phaseMessage)}</span>
+                `;
+            } else if (alerts.length) {
+                const primary = alerts[0];
+                const extra = alerts.length > 1 ? ` +${alerts.length - 1}` : '';
+                alertEl.hidden = false;
+                alertEl.classList.remove('is-phase');
+                alertEl.innerHTML = `
+                    <i class="fa-solid fa-person-running" aria-hidden="true"></i>
+                    <span class="tactical-live-clock-alert-text">${escapeTacticalHtml(formatWarmupAlertLabel(primary))}${escapeTacticalHtml(extra)}</span>
+                `;
+            } else {
+                alertEl.hidden = true;
+                alertEl.classList.remove('is-phase');
+                alertEl.innerHTML = '';
+            }
+
+            const alertRefs = new Set(alerts.map(alert => alert.playerRef));
+            document.querySelectorAll('.tactical-bench-player').forEach(row => {
+                const ref = row.dataset.benchPlayerRef || '';
+                row.classList.toggle('has-warmup-alert', alertRefs.has(ref));
+            });
+
+            if (liveMatchClockState.running) persistLiveMatchClockState();
+        };
+
+        window.toggleLiveMatchClock = function() {
+            if (!getTacticalMatchSelectValue()) return;
+            if (liveMatchClockState.running) {
+                liveMatchClockState.elapsedMs = getLiveMatchClockElapsedMs();
+                liveMatchClockState.running = false;
+                liveMatchClockState.startedAt = null;
+                stopLiveMatchClockTicker();
+            } else {
+                liveMatchClockState.phaseMessage = '';
+                liveMatchClockState.running = true;
+                liveMatchClockState.startedAt = Date.now();
+                startLiveMatchClockTicker();
+            }
+            persistLiveMatchClockState();
+            window.renderLiveMatchClock();
+        };
+
+        window.resetLiveMatchClock = function() {
+            if (!getTacticalMatchSelectValue()) return;
+            stopLiveMatchClockTicker();
+            liveMatchClockState.running = false;
+            liveMatchClockState.elapsedMs = 0;
+            liveMatchClockState.startedAt = null;
+            liveMatchClockState.alertedKeys = [];
+            liveMatchClockState.autoPauseKeys = [];
+            liveMatchClockState.phaseMessage = '';
+            persistLiveMatchClockState();
+            window.renderLiveMatchClock();
+        };
+
+        window.syncLiveMatchClockBar = function() {
+            const matchId = getTacticalMatchSelectValue() || null;
+            if (!matchId) {
+                stopLiveMatchClockTicker();
+                liveMatchClockState.matchId = null;
+                liveMatchClockState.running = false;
+                liveMatchClockState.elapsedMs = 0;
+                liveMatchClockState.startedAt = null;
+                liveMatchClockState.phaseMessage = '';
+                window.renderLiveMatchClock();
+                return;
+            }
+            if (liveMatchClockState.matchId !== matchId) {
+                stopLiveMatchClockTicker();
+                loadLiveMatchClockState(matchId);
+                if (liveMatchClockState.running) startLiveMatchClockTicker();
+            }
+            window.renderLiveMatchClock();
+        };
+
         function getTacticalMatchSelectValue() {
             const select = document.getElementById('tacticalMatchSelect');
             return select ? select.value : '';
@@ -607,11 +902,13 @@
             if (select) select.value = '';
             if (typeof window.loadMatchTactics === 'function') window.loadMatchTactics();
             window.syncTacticalSandboxButton();
+            if (typeof window.syncLiveMatchClockBar === 'function') window.syncLiveMatchClockBar();
         };
 
         window.onTacticalMatchSelectChange = function() {
             if (typeof window.loadMatchTactics === 'function') window.loadMatchTactics();
             window.syncTacticalSandboxButton();
+            if (typeof window.syncLiveMatchClockBar === 'function') window.syncLiveMatchClockBar();
         };
 
         window.updateTacticalMatchSelector = function() {
@@ -665,6 +962,7 @@
             if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
             window.updateTacticalLineupControls();
             window.applyTacticalLineupReadOnlyState();
+            if (typeof window.syncLiveMatchClockBar === 'function') window.syncLiveMatchClockBar();
         }
 
         window.resetTacticalLiveBoard = function() {
@@ -948,6 +1246,7 @@
 
             if (benchPlayers.length === 0) {
                 benchList.innerHTML = '<p class="text-xs text-slate-400 italic col-span-2 py-2">Ingen tilgjengelige innbyttere på benken.</p>';
+                if (typeof window.renderLiveMatchClock === 'function') window.renderLiveMatchClock();
                 return;
             }
 
@@ -1052,6 +1351,7 @@
 
                 const div = document.createElement('div');
                 div.className = `tactical-bench-player ${borderClass}${isPending ? ' is-pending-sub' : ''}${assignment ? ' has-plan' : ''}`;
+                div.dataset.benchPlayerRef = playerRef;
                 div.innerHTML = `
                     <div class="tactical-bench-player-main">
                         <span class="tactical-bench-avatar" aria-hidden="true">
@@ -1121,6 +1421,7 @@
 
                 benchList.appendChild(div);
             });
+            if (typeof window.renderLiveMatchClock === 'function') window.renderLiveMatchClock();
         };
 
         window.renderNodeVisually = function(playerObj, posId) {

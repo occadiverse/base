@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-role-chip-v2">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-match-clock-v4">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -436,6 +436,27 @@
                         <div id="tactical-lineup-controls" class="tactical-lineup-controls hidden relative z-10">
                             <div id="tactical-lineup-status" class="tactical-lineup-status"></div>
                             <div id="tactical-lineup-actions" class="tactical-lineup-actions flex flex-wrap items-center justify-center gap-2"></div>
+                        </div>
+
+                        <div id="tactical-live-clock-bar" class="tactical-live-clock-bar hidden relative z-10" aria-live="polite">
+                            <div class="tactical-live-clock-controls">
+                                <span class="tactical-live-clock-label">Kampklokke</span>
+                                <div class="tactical-live-clock-time" id="tactical-live-clock-time" aria-label="Kampklokke">00:00</div>
+                                <button
+                                    type="button"
+                                    id="tactical-live-clock-toggle"
+                                    class="bsk-btn bsk-btn-primary tactical-bench-btn tactical-live-clock-toggle"
+                                    onclick="window.toggleLiveMatchClock()"
+                                >Start</button>
+                                <button
+                                    type="button"
+                                    id="tactical-live-clock-reset"
+                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-clock-reset"
+                                    onclick="window.resetLiveMatchClock()"
+                                    title="Nullstill klokke"
+                                >Nullstill</button>
+                            </div>
+                            <div class="tactical-live-clock-alert" id="tactical-live-clock-alert" hidden></div>
                         </div>
 
                         <div class="tactical-live-main relative z-10">
@@ -1311,7 +1332,7 @@
     <script src="assets/js/pages/matches.js?v=20260908-live-setpiece-preview-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260908-live-role-chip-v2"></script>
+    <script src="assets/js/pages/tactics.js?v=20260908-live-match-clock-v3"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260703-single-team-fix"></script>
