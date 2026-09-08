@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-playing-time-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260908-live-lock-v2">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -457,11 +457,11 @@
                                 >Nullstill</button>
                                 <button
                                     type="button"
-                                    id="tactical-live-playing-time-save"
-                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-playing-time-save"
-                                    onclick="window.persistLivePlayingTime()"
-                                    title="Lagre byttelog og spilletid på kampen"
-                                >Lagre spilletid</button>
+                                    id="tactical-live-lock-toggle"
+                                    class="bsk-btn bsk-btn-secondary tactical-bench-btn tactical-live-lock-toggle"
+                                    onclick="window.toggleLiveSessionLock()"
+                                    title="Lagre spilletid og lås Live mot endringer"
+                                >Lagre og Lås</button>
                             </div>
                             <div class="tactical-live-clock-alert" id="tactical-live-clock-alert" hidden></div>
                             <div
@@ -1331,7 +1331,7 @@
     <script src="assets/js/pages/matches.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260902-player-history-cols-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260908-live-playing-time-v1"></script>
+    <script src="assets/js/pages/tactics.js?v=20260908-live-lock-v3"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260904-exercise-category-counts-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260908-local-hydrate-v1"></script>

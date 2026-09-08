@@ -16110,12 +16110,30 @@
         }
         .tactical-live-clock-bar .tactical-live-clock-toggle.bsk-btn,
         .tactical-live-clock-bar .tactical-live-clock-reset.bsk-btn,
-        .tactical-live-clock-bar .tactical-live-playing-time-save.bsk-btn {
+        .tactical-live-clock-bar .tactical-live-lock-toggle.bsk-btn {
             justify-content: center;
             min-width: 5.75rem;
         }
-        .tactical-live-clock-bar .tactical-live-playing-time-save.bsk-btn {
-            min-width: 8.5rem;
+        .tactical-live-clock-bar .tactical-live-lock-toggle.bsk-btn {
+            min-width: 7.25rem;
+        }
+        .tactical-live-clock-bar .tactical-live-lock-toggle.is-locked.bsk-btn {
+            background: rgba(239, 68, 68, 0.28);
+            border-color: rgba(239, 68, 68, 0.55);
+            color: #fecaca;
+        }
+        .tactical-live-clock-bar.is-live-locked {
+            border-bottom-color: rgba(239, 68, 68, 0.28);
+        }
+        .tactical-live-board #full-pitch-container.is-live-locked {
+            outline: 1px solid rgba(239, 68, 68, 0.28);
+        }
+        .tactical-live-board #full-pitch-container.is-live-locked .player-node {
+            cursor: default;
+        }
+        #tactical-bench-card.is-live-locked .tactical-bench-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
         }
         .tactical-live-clock-bar .tactical-live-clock-toggle.bsk-btn-primary {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);

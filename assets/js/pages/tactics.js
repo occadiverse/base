@@ -139,6 +139,7 @@
                 persistLiveMatchClockState();
                 if (minute === 90 && typeof window.persistLivePlayingTime === 'function') {
                     setTimeout(() => {
+                        if (typeof window.isLiveSessionLocked === 'function' && window.isLiveSessionLocked()) return;
                         window.persistLivePlayingTime({ durationMinutes: 90 });
                     }, 0);
                 }
@@ -334,10 +335,15 @@
             });
 
             if (liveMatchClockState.running) persistLiveMatchClockState();
+            syncLiveLockUi();
         };
 
         window.toggleLiveMatchClock = function() {
             if (!getTacticalMatchSelectValue()) return;
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return;
+            }
             if (liveMatchClockState.running) {
                 liveMatchClockState.elapsedMs = getLiveMatchClockElapsedMs();
                 liveMatchClockState.running = false;
@@ -355,6 +361,10 @@
 
         window.resetLiveMatchClock = function() {
             if (!getTacticalMatchSelectValue()) return;
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return;
+            }
             stopLiveMatchClockTicker();
             liveMatchClockState.running = false;
             liveMatchClockState.elapsedMs = 0;
@@ -399,6 +409,98 @@
 
         window.isTacticalLiveMatchMode = function() {
             return Boolean(getTacticalMatchSelectValue());
+        };
+
+        window.isLiveSessionLocked = function(match = getSelectedTacticalMatch()) {
+            return Boolean(match?.liveLocked);
+        };
+
+        function syncLiveLockUi() {
+            const locked = window.isLiveSessionLocked();
+            const bar = document.getElementById('tactical-live-clock-bar');
+            const benchCard = document.getElementById('tactical-bench-card');
+            const pitch = document.getElementById('full-pitch-container');
+            const lockBtn = document.getElementById('tactical-live-lock-toggle');
+            const toggleBtn = document.getElementById('tactical-live-clock-toggle');
+            const resetBtn = document.getElementById('tactical-live-clock-reset');
+
+            if (bar) bar.classList.toggle('is-live-locked', locked);
+            if (benchCard) benchCard.classList.toggle('is-live-locked', locked);
+            if (pitch) pitch.classList.toggle('is-live-locked', locked);
+
+            if (lockBtn) {
+                lockBtn.textContent = locked ? 'Låst' : 'Lagre og Lås';
+                lockBtn.classList.toggle('is-locked', locked);
+                lockBtn.setAttribute('aria-pressed', locked ? 'true' : 'false');
+                lockBtn.title = locked
+                    ? 'Live er låst – trykk for å låse opp'
+                    : 'Lagre spilletid og lås Live mot endringer';
+            }
+            if (toggleBtn) toggleBtn.disabled = locked;
+            if (resetBtn) resetBtn.disabled = locked;
+        }
+
+        window.toggleLiveSessionLock = async function() {
+            const match = getSelectedTacticalMatch();
+            if (!match || !window.isTacticalLiveMatchMode()) return false;
+
+            if (match.liveLocked) {
+                if (!confirm('Lås opp Live? Da kan bytter og spilletid endres og overskrives.')) {
+                    return false;
+                }
+                match.liveLocked = false;
+                if (typeof window.saveMatchToDatabase === 'function') {
+                    try {
+                        await window.saveMatchToDatabase(match);
+                    } catch (error) {
+                        console.error('Kunne ikke låse opp Live:', error);
+                        match.liveLocked = true;
+                        setLivePlayingTimeStatus('Kunne ikke låse opp', 'error');
+                        syncLiveLockUi();
+                        return false;
+                    }
+                }
+                syncLiveLockUi();
+                if (typeof window.renderBench === 'function') window.renderBench();
+                window.applyTacticalLineupReadOnlyState();
+                setLivePlayingTimeStatus('');
+                return true;
+            }
+
+            window.clearTacticalPendingSub();
+            const saved = await window.persistLivePlayingTime({ skipLockCheck: true });
+            if (!saved) {
+                setLivePlayingTimeStatus('Kunne ikke låse Live (lagring feilet)', 'error');
+                return false;
+            }
+
+            match.liveLocked = true;
+            if (typeof window.saveMatchToDatabase === 'function') {
+                try {
+                    await window.saveMatchToDatabase(match);
+                } catch (error) {
+                    console.error('Kunne ikke låse Live:', error);
+                    match.liveLocked = false;
+                    setLivePlayingTimeStatus('Kunne ikke låse Live', 'error');
+                    syncLiveLockUi();
+                    return false;
+                }
+            }
+
+            if (liveMatchClockState.running) {
+                liveMatchClockState.elapsedMs = getLiveMatchClockElapsedMs();
+                liveMatchClockState.running = false;
+                liveMatchClockState.startedAt = null;
+                stopLiveMatchClockTicker();
+                persistLiveMatchClockState();
+            }
+
+            syncLiveLockUi();
+            if (typeof window.renderBench === 'function') window.renderBench();
+            window.applyTacticalLineupReadOnlyState();
+            if (typeof window.renderLiveMatchClock === 'function') window.renderLiveMatchClock();
+            setLivePlayingTimeStatus('');
+            return true;
         };
 
         function getTacticalLivePlayerRef(player) {
@@ -654,6 +756,11 @@
         window.persistLivePlayingTime = async function(options = {}) {
             const match = getSelectedTacticalMatch();
             if (!match || !window.isTacticalLiveMatchMode()) return false;
+            if (match.liveLocked && !options.skipLockCheck) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                syncLiveLockUi();
+                return false;
+            }
 
             const clockMinute = Math.floor(getLiveMatchClockElapsedMs() / 60000);
             const liveSubstitutions = serializeLiveSubstitutions(window.tacticalAppliedLiveSubs || []);
@@ -669,8 +776,6 @@
             match.liveDurationMinutes = duration;
             match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
 
-            setLivePlayingTimeStatus('Lagrer spilletid…', 'pending');
-
             if (typeof window.saveMatchToDatabase !== 'function') {
                 setLivePlayingTimeStatus('Kunne ikke lagre spilletid', 'error');
                 return false;
@@ -678,7 +783,7 @@
 
             try {
                 await window.saveMatchToDatabase(match);
-                setLivePlayingTimeStatus(`Spilletid lagret · ${duration}'`, 'success');
+                setLivePlayingTimeStatus('');
                 return true;
             } catch (error) {
                 console.error('Kunne ikke lagre spilletid:', error);
@@ -848,10 +953,12 @@
             const pitch = document.getElementById('full-pitch-container');
             const editable = window.isTacticalLineupEditable();
             const liveMatch = window.isTacticalLiveMatchMode();
+            const liveLocked = liveMatch && window.isLiveSessionLocked();
             if (pitch) {
                 pitch.classList.toggle('is-lineup-readonly', !editable && !liveMatch);
                 pitch.classList.toggle('is-live-board', liveMatch);
-                pitch.classList.toggle('is-sub-targeting', liveMatch && Boolean(window.tacticalPendingSubIn));
+                pitch.classList.toggle('is-live-locked', liveLocked);
+                pitch.classList.toggle('is-sub-targeting', liveMatch && !liveLocked && Boolean(window.tacticalPendingSubIn));
             }
 
             ['tactical-autofill-btn', 'tactical-clear-btn'].forEach(id => {
@@ -863,8 +970,9 @@
 
             document.querySelectorAll('.player-node').forEach(node => {
                 node.classList.toggle('is-lineup-readonly', !editable && !liveMatch);
-                node.classList.toggle('is-sub-target', liveMatch && Boolean(window.tacticalPendingSubIn));
+                node.classList.toggle('is-sub-target', liveMatch && !liveLocked && Boolean(window.tacticalPendingSubIn));
             });
+            syncLiveLockUi();
         };
 
         window.requestEditTacticalLineup = function() {};
@@ -1160,6 +1268,10 @@
         window.resetTacticalLiveBoard = function() {
             const match = getSelectedTacticalMatch();
             if (!match) return;
+            if (window.isLiveSessionLocked(match)) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return;
+            }
             window.tacticalPendingSubIn = null;
             window.tacticalLiveDirty = false;
             window.tacticalAppliedLiveSubs = [];
@@ -1211,10 +1323,9 @@
             window.tacticalLineupIsEditing = false;
 
             hydrateLiveSubstitutionsFromMatch(match);
-            if (match.liveDurationMinutes != null && Array.isArray(match.liveSubstitutions)) {
-                setLivePlayingTimeStatus(`Spilletid lagret · ${match.liveDurationMinutes}'`, 'success');
-            }
+            setLivePlayingTimeStatus('');
             refreshTacticalLiveBoard();
+            syncLiveLockUi();
             window.syncTacticalSandboxButton();
         };
 
@@ -1326,6 +1437,10 @@
 
         window.beginTacticalLiveSub = function(playerId) {
             if (!window.isTacticalLiveMatchMode()) return;
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return;
+            }
             const player = typeof window.findPlayerByRef === 'function'
                 ? window.findPlayerByRef(playerId)
                 : (window.activePlayers || []).find(p => p.id === playerId);
@@ -1343,6 +1458,10 @@
 
         window.applyLiveSubstitution = function(posId, inPlayer, options = {}) {
             if (!window.isTacticalLiveMatchMode() || !posId || !inPlayer) return false;
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return false;
+            }
 
             const outPlayer = window.liveLineup?.[posId] || null;
             if (!outPlayer) {
@@ -1421,6 +1540,7 @@
 
             const match = getSelectedTacticalMatch();
             if (!match) return;
+            const liveLocked = window.isLiveSessionLocked(match);
 
             const suspData = typeof window.getDisciplineStatusForTeam === 'function'
                 ? window.getDisciplineStatusForTeam(match.matchGroup, match.date)
@@ -1566,13 +1686,13 @@
                             type="button"
                             class="bsk-btn bsk-btn-primary tactical-bench-btn"
                             data-bench-action="planned"
-                            title="${escapeTacticalHtml(planTitle)}"
-                            ${planDisabled ? 'disabled' : ''}
+                            title="${escapeTacticalHtml(liveLocked ? 'Live er låst' : planTitle)}"
+                            ${planDisabled || liveLocked ? 'disabled' : ''}
                        >${escapeTacticalHtml(planLabelParts.join(' ') || 'Bytt')}</button>`
                     : '';
 
                 const div = document.createElement('div');
-                div.className = `tactical-bench-player ${borderClass}${isPending ? ' is-pending-sub' : ''}${assignment ? ' has-plan' : ''}`;
+                div.className = `tactical-bench-player ${borderClass}${isPending ? ' is-pending-sub' : ''}${assignment ? ' has-plan' : ''}${liveLocked ? ' is-live-locked' : ''}`;
                 div.dataset.benchPlayerRef = playerRef;
                 div.innerHTML = `
                     <div class="tactical-bench-player-main">
@@ -1589,7 +1709,8 @@
                                 ? `<div class="tactical-bench-status-row">${benchSuspBadge}</div>`
                                 : ''}
                             ${roleMetaHtml}
-                            ${isPending ? '<span class="tactical-bench-pending">Velg posisjon på banen</span>' : ''}
+                            ${liveLocked ? '<span class="tactical-bench-pending">Live låst</span>' : ''}
+                            ${!liveLocked && isPending ? '<span class="tactical-bench-pending">Velg posisjon på banen</span>' : ''}
                         </div>
                     </div>
                     <div class="tactical-bench-buttons">
@@ -1599,7 +1720,8 @@
                             class="bsk-btn bsk-btn-secondary tactical-bench-btn${isPending ? ' is-active' : ''}"
                             data-bench-action="free"
                             aria-pressed="${isPending ? 'true' : 'false'}"
-                            title="${isPending ? 'Avbryt fritt bytte' : 'Bytt inn fritt – velg posisjon på banen'}"
+                            title="${liveLocked ? 'Live er låst' : (isPending ? 'Avbryt fritt bytte' : 'Bytt inn fritt – velg posisjon på banen')}"
+                            ${liveLocked ? 'disabled' : ''}
                         >${isPending ? 'Avbryt' : 'Fritt'}</button>
                     </div>
                     <div class="tactical-bench-scores">
@@ -1617,7 +1739,7 @@
                 const plannedBtn = div.querySelector('[data-bench-action="planned"]');
                 if (plannedBtn) {
                     plannedBtn.addEventListener('click', () => {
-                        if (planDisabled) return;
+                        if (liveLocked || planDisabled) return;
                         if (!confirmSuspended()) return;
                         if (canApplyPlanned) {
                             window.applyPlannedLiveSub(planned.playerRef || playerRef, assignment.position);
@@ -1630,6 +1752,7 @@
                 const freeBtn = div.querySelector('[data-bench-action="free"]');
                 if (freeBtn) {
                     freeBtn.addEventListener('click', () => {
+                        if (liveLocked) return;
                         if (isPending) {
                             window.clearTacticalPendingSub();
                             return;
@@ -1718,6 +1841,10 @@
 
         window.openPlayerSelect = function(posId) {
             if (window.isTacticalLiveMatchMode()) {
+                if (window.isLiveSessionLocked()) {
+                    setLivePlayingTimeStatus('Live er låst', 'error');
+                    return;
+                }
                 if (window.tacticalPendingSubIn) {
                     window.applyLiveSubstitution(posId, window.tacticalPendingSubIn);
                 }
