@@ -1041,10 +1041,18 @@
                     ? window.findPlayerByRef(ref)
                     : null;
                 const name = player?.navn || (ref ? String(ref) : '—');
+                const photoUrl = player ? getTacticalLivePlayerPhotoUrl(player) : '';
                 return `
                     <div class="tactical-live-role-row">
                         <span class="tactical-live-role-slot">${escapeTacticalHtml(getTacticalLiveRoleLabel(slot))}</span>
-                        <span class="tactical-live-role-name">${escapeTacticalHtml(name)}</span>
+                        <div class="tactical-live-role-player">
+                            <span class="tactical-bench-avatar" aria-hidden="true">
+                                ${photoUrl
+                                    ? `<img src="${escapeTacticalHtml(photoUrl)}" alt="">`
+                                    : '<i class="fa-solid fa-user"></i>'}
+                            </span>
+                            <span class="tactical-live-role-name">${escapeTacticalHtml(name)}</span>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -1370,22 +1378,20 @@
                             ${isPending ? '<span class="tactical-bench-pending">Velg posisjon på banen</span>' : ''}
                         </div>
                     </div>
-                    <div class="tactical-bench-player-actions">
-                        <div class="tactical-bench-buttons">
-                            ${planHtml}
-                            <button
-                                type="button"
-                                class="bsk-btn bsk-btn-secondary tactical-bench-btn${isPending ? ' is-active' : ''}"
-                                data-bench-action="free"
-                                aria-pressed="${isPending ? 'true' : 'false'}"
-                                title="${isPending ? 'Avbryt fritt bytte' : 'Bytt inn fritt – velg posisjon på banen'}"
-                            >${isPending ? 'Avbryt' : 'Fritt'}</button>
-                        </div>
-                        <div class="tactical-bench-scores">
-                            <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
-                            <span class="tactical-bench-score-sep" aria-hidden="true"></span>
-                            <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
-                        </div>
+                    <div class="tactical-bench-buttons">
+                        ${planHtml}
+                        <button
+                            type="button"
+                            class="bsk-btn bsk-btn-secondary tactical-bench-btn${isPending ? ' is-active' : ''}"
+                            data-bench-action="free"
+                            aria-pressed="${isPending ? 'true' : 'false'}"
+                            title="${isPending ? 'Avbryt fritt bytte' : 'Bytt inn fritt – velg posisjon på banen'}"
+                        >${isPending ? 'Avbryt' : 'Fritt'}</button>
+                    </div>
+                    <div class="tactical-bench-scores">
+                        <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
+                        <span class="tactical-bench-score-sep" aria-hidden="true"></span>
+                        <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
                     </div>
                 `;
 

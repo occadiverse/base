@@ -15329,15 +15329,32 @@
         }
         .tactical-live-role-slot {
             color: rgba(255, 255, 255, 0.58);
+            flex-shrink: 0;
             font-size: 0.65rem;
             font-weight: 800;
             letter-spacing: 0.03em;
             text-transform: uppercase;
         }
+        .tactical-live-role-player {
+            align-items: center;
+            display: flex;
+            gap: 0.45rem;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+        .tactical-live-role-player .tactical-bench-avatar {
+            flex-shrink: 0;
+            height: 1.85rem;
+            width: 1.85rem;
+        }
         .tactical-live-role-name {
             color: #ffffff;
             font-weight: 700;
+            min-width: 0;
+            overflow: hidden;
             text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .tactical-live-sub-swap {
             align-items: stretch;
@@ -15467,9 +15484,9 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.85rem;
             box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
-            display: flex;
-            gap: 0.65rem;
-            justify-content: space-between;
+            display: grid;
+            gap: 0.65rem 0.7rem;
+            grid-template-columns: minmax(0, 1fr) auto auto;
             padding: 0.55rem 0.7rem;
             transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
             width: 100%;
@@ -15544,7 +15561,7 @@
         }
         @media (max-width: 767px) {
             .tactical-bench-btn.bsk-btn {
-                min-height: 1.85rem;
+                min-height: 2rem;
             }
         }
         .tactical-live-panel .tactical-bench-btn.bsk-btn-primary {
@@ -15725,13 +15742,6 @@
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
-        .tactical-bench-player-actions {
-            align-items: center;
-            display: flex;
-            flex-shrink: 0;
-            gap: 0.45rem;
-            margin-left: auto;
-        }
         .tactical-bench-scores {
             align-items: center;
             display: flex;
@@ -15744,15 +15754,59 @@
             height: 0.75rem;
             width: 1px;
         }
-        @media (max-width: 420px) {
+        @media (max-width: 767px) {
             .tactical-bench-player {
-                align-items: flex-start;
-                flex-direction: column;
+                align-items: start;
+                gap: 0.55rem;
+                grid-template-areas:
+                    "main scores"
+                    "buttons buttons";
+                grid-template-columns: minmax(0, 1fr) auto;
+                padding: 0.7rem 0.75rem;
             }
-            .tactical-bench-player-actions {
+            .tactical-bench-player-main {
+                grid-area: main;
+            }
+            .tactical-bench-scores {
+                align-items: center;
+                flex-direction: row;
+                gap: 0.35rem;
+                grid-area: scores;
                 justify-content: flex-end;
-                margin-left: 0;
+                min-width: 0;
+                padding-top: 0.15rem;
+            }
+            .tactical-bench-score-sep {
+                display: block;
+                height: 0.7rem;
+            }
+            .tactical-bench-scores .font-black {
+                font-size: 0.7rem;
+                line-height: 1.15;
+            }
+            .tactical-bench-buttons {
+                display: grid;
+                gap: 0.4rem;
+                grid-area: buttons;
+                grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+                justify-content: stretch;
                 width: 100%;
+            }
+            .tactical-bench-buttons .tactical-bench-btn.bsk-btn {
+                justify-content: center;
+                min-height: 2.15rem;
+                width: 100%;
+            }
+            .tactical-bench-player-name {
+                font-size: 0.8rem;
+                white-space: normal;
+            }
+            .tactical-bench-player-copy {
+                gap: 0.28rem;
+            }
+            .tactical-bench-inherit-badges,
+            .tactical-bench-status-row {
+                gap: 0.28rem;
             }
         }
         .tactical-bench-avatar {
@@ -16148,6 +16202,9 @@
             flex-direction: column;
             min-width: 0;
             padding: 1rem 1rem 1.35rem;
+        }
+        .live-side-board > .tactical-live-side-main {
+            padding-top: 1.15rem;
         }
         .tactical-live-pitch-column {
             display: flex;
