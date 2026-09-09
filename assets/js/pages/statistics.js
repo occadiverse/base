@@ -4017,7 +4017,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         return `<div class="stats-form-history-empty">Ingen kamper registrert.</div>`;
     }
 
-    const rows = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const rows = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const bodyRows = rows.map(entry => {
         const pointsClass = window.getPlayerPointsToneClass(entry.points);
