@@ -775,6 +775,8 @@
             return minutesPlayed;
         }
 
+        window.computeLiveMinutesPlayed = computeMinutesPlayed;
+
         function setLivePlayingTimeStatus(message, tone = '') {
             const statusEl = document.getElementById('tactical-live-playing-time-status');
             if (!statusEl) return;
@@ -827,7 +829,11 @@
 
             match.liveSubstitutions = liveSubstitutions;
             match.liveDurationMinutes = duration;
-            match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
+            // Spillerbørs-lagrede minutter er fasit; Live oppdaterer kun hvis ikke bekreftet der.
+            if (match.minutesSource !== 'spillerbors') {
+                match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
+                match.minutesSource = 'live';
+            }
 
             if (typeof window.saveMatchToDatabase !== 'function') {
                 setLivePlayingTimeStatus('Kunne ikke lagre spilletid', 'error');

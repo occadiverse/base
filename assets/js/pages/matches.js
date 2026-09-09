@@ -123,6 +123,10 @@ function bindMatchStatsEvents() {
         if (event.target.matches('#match-stats-opponent-goals, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
             window.updateMatchStatsResultBar();
         }
+        if (event.target.matches('.player-minutes-input')) {
+            const raw = String(event.target.value || '').trim();
+            event.target.classList.toggle('is-empty', raw === '');
+        }
     });
 
     panel.addEventListener('focusin', (event) => {
@@ -5177,7 +5181,7 @@ window.showMatchDetails = function(id) {
                 </button>
             </div>
             <div class="match-collapsible-content">
-                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs.</p>
+                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min hentes fra Live og kan justeres; det du lagrer her blir gjeldende spilletid.</p>
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
@@ -6099,6 +6103,44 @@ window.toggleMotm = function(btn) {
     }
 };
 
+window.resolveMatchLiveDurationMinutes = function(match) {
+    const stored = Math.max(0, Math.floor(Number(match?.liveDurationMinutes) || 0));
+    if (stored > 0) return stored;
+
+    const subs = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : [];
+    return subs.reduce((max, sub) => {
+        const minute = Math.floor(Number(String(sub?.minute ?? '').trim().replace(/'$/, '')) || 0);
+        return Number.isFinite(minute) ? Math.max(max, minute) : max;
+    }, 0);
+};
+
+window.getMatchLiveMinutesPlayedMap = function(match) {
+    if (!match || typeof window.computeLiveMinutesPlayed !== 'function') return {};
+    const duration = window.resolveMatchLiveDurationMinutes(match);
+    const subs = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions : [];
+    if (duration <= 0 && !subs.length) return {};
+    return window.computeLiveMinutesPlayed(match, subs, duration > 0 ? duration : 90) || {};
+};
+
+window.getMatchPlayerMinutesForSpillerbors = function(match, playerObj) {
+    if (!match || !playerObj) return null;
+
+    const storedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+    if (storedRaw !== null && storedRaw !== undefined && storedRaw !== '') {
+        const stored = Math.max(0, Math.floor(Number(storedRaw) || 0));
+        return stored > 0 ? stored : null;
+    }
+
+    // Etter Spillerbørs-lagring er minutesPlayed fasit (også tomme felt).
+    if (match.minutesSource === 'spillerbors') return null;
+
+    const liveMap = window.getMatchLiveMinutesPlayedMap(match);
+    const liveRaw = window.getPlayerRefMapValue(liveMap, playerObj, null);
+    if (liveRaw === null || liveRaw === undefined || liveRaw === '') return null;
+    const live = Math.max(0, Math.floor(Number(liveRaw) || 0));
+    return live > 0 ? live : null;
+};
+
 window.renderPlayerRowForm = function(match) {
     const formList = document.getElementById('kampdetaljer-spillerbors');
     if (!formList) return;
@@ -6149,11 +6191,14 @@ window.renderPlayerRowForm = function(match) {
         const prevGoals = window.getPlayerRefMapValue(match.scorers, playerObj, 0);
         const prevAssists = window.getPlayerRefMapValue(match.assists, playerObj, 0);
         const prevRating = window.getPlayerRefMapValue(match.ratings, playerObj, 0);
-        const minutesPlayedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
-        const minutesPlayed = minutesPlayedRaw === null || minutesPlayedRaw === undefined || minutesPlayedRaw === ''
-            ? null
-            : Math.max(0, Math.floor(Number(minutesPlayedRaw) || 0));
-        const minutesLabel = minutesPlayed === null ? '—' : `${minutesPlayed}'`;
+        const minutesPlayed = typeof window.getMatchPlayerMinutesForSpillerbors === 'function'
+            ? window.getMatchPlayerMinutesForSpillerbors(match, playerObj)
+            : (() => {
+                const minutesPlayedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+                return minutesPlayedRaw === null || minutesPlayedRaw === undefined || minutesPlayedRaw === ''
+                    ? null
+                    : Math.max(0, Math.floor(Number(minutesPlayedRaw) || 0)) || null;
+            })();
         const hasYellow = window.playerRefListIncludes(match.guleKort, playerObj);
         const hasRed = window.playerRefListIncludes(match.rodeKort, playerObj);
         const isMotm = window.motmMatchesPlayer(match.motm, playerObj);
@@ -6182,10 +6227,20 @@ window.renderPlayerRowForm = function(match) {
                 <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Min</span>
-                    <span
-                        class="match-stats-minutes-value${minutesPlayed === null ? ' is-empty' : ''}"
-                        title="${minutesPlayed === null ? 'Spilletid ikke lagret fra Live' : `Spilletid ${escapeMatchHtml(minutesLabel)}`}"
-                    >${escapeMatchHtml(minutesLabel)}</span>
+                    <input
+                        type="number"
+                        inputmode="numeric"
+                        min="0"
+                        max="120"
+                        step="1"
+                        class="player-minutes-input portal-field portal-field-sm match-stat-select match-stat-minutes-input${minutesPlayed === null ? ' is-empty' : ''}"
+                        data-player-id="${playerIdAttr}"
+                        data-player="${playerAttr}"
+                        value="${minutesPlayed === null ? '' : minutesPlayed}"
+                        placeholder="—"
+                        aria-label="Spilletid i minutter for ${playerAttr}"
+                        title="Hentes fra Live, kan justeres. Lagres i Spillerbørs som gjeldende spilletid."
+                    >
                 </div>
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
@@ -6286,6 +6341,7 @@ window.savePlayerMatchStats = async function() {
     const scorers = {};
     const assists = {};
     const ratings = {};
+    const minutesPlayed = {};
     const guleKort = [];
     const rodeKort = [];
     const benchOnly = {};
@@ -6294,6 +6350,15 @@ window.savePlayerMatchStats = async function() {
         const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(btn));
         if (!playerKey) return;
         benchOnly[playerKey] = btn.getAttribute('data-active') === 'true';
+    });
+
+    document.querySelectorAll('.player-minutes-input').forEach(input => {
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(input));
+        if (!playerKey || benchOnly[playerKey] === true) return;
+        const raw = String(input.value || '').trim();
+        if (raw === '') return;
+        const val = Math.max(0, Math.min(120, Math.floor(Number(raw) || 0)));
+        if (val > 0) minutesPlayed[playerKey] = val;
     });
 
     document.querySelectorAll('.player-goals-input').forEach(input => {
@@ -6329,6 +6394,8 @@ window.savePlayerMatchStats = async function() {
     match.scorers = scorers;
     match.assists = assists;
     match.ratings = ratings;
+    match.minutesPlayed = minutesPlayed;
+    match.minutesSource = 'spillerbors';
     match.guleKort = guleKort;
     match.rodeKort = rodeKort;
     match.benchOnly = benchOnly;

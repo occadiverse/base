@@ -14991,6 +14991,21 @@
             color: #94a3b8;
             font-weight: 700;
         }
+        .match-stat-minutes-input {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            font-variant-numeric: tabular-nums;
+            padding-right: 0.35rem;
+            width: 3.1rem;
+        }
+        .match-stat-minutes-input::-webkit-outer-spin-button,
+        .match-stat-minutes-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .match-stat-minutes-input.is-empty {
+            color: #94a3b8;
+        }
         .match-stat-select-rating {
             width: 3.75rem;
         }
