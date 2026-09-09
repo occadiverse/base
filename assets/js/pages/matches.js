@@ -1003,9 +1003,21 @@ function buildMatchDetailCardHtml(match, options = {}) {
                     <span>${escapeMatchHtml(data.dateLabel)}</span>
                     ${alertChipHtml}
                 </div>
-                <div class="match-detail-chip">
-                    <i class="fa-solid fa-futbol"></i>
-                    <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
+                <div class="match-detail-top-chips">
+                    <button
+                        type="button"
+                        data-match-action="edit"
+                        data-match-id="${escapeMatchHtml(match.id)}"
+                        class="bsk-btn bsk-btn-icon match-topline-action-btn match-detail-edit-btn"
+                        title="Endre kamp"
+                        aria-label="Endre kamp"
+                    >
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                    </button>
+                    <div class="match-detail-chip">
+                        <i class="fa-solid fa-futbol"></i>
+                        <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
+                    </div>
                 </div>
             </div>
 

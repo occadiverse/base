@@ -118,6 +118,13 @@ function bindStatisticsEvents() {
             if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
             return;
         }
+        if (action === 'set-oppmote-range') {
+            const range = actionEl.dataset.range;
+            if (range && typeof window.setStatsOppmoteRangeFilter === 'function') {
+                window.setStatsOppmoteRangeFilter(range);
+            }
+            return;
+        }
         if (action === 'toggle-stats-filter-menu') {
             event.preventDefault();
             if (typeof window.toggleStatsFilterMenu === 'function') {
@@ -620,6 +627,17 @@ window.checkIndividualChemistry = function() {
             }
         };
 
+        window.getStatsOppmoteRangeFilter = function() {
+            return window._statsOppmoteRange === 'last8' ? 'last8' : 'season';
+        };
+
+        window.setStatsOppmoteRangeFilter = function(range) {
+            window._statsOppmoteRange = range === 'last8' ? 'last8' : 'season';
+            if (typeof window.renderStatsLagSummary === 'function') {
+                window.renderStatsLagSummary();
+            }
+        };
+
         window.getStatsKampPanelState = function() {
             const defaults = {
                 kampdata: false,
@@ -683,7 +701,7 @@ window.checkIndividualChemistry = function() {
             }
         };
 
-        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', infoPanelHtml = '' }) {
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '' }) {
             const isOpen = window.isStatsKampPanelOpen(id);
             const badgeHtml = badge !== '' && badge != null
                 ? `<span class="match-detail-section-badge">${badge}</span>`
@@ -694,6 +712,7 @@ window.checkIndividualChemistry = function() {
                         <div class="match-bench-heading">
                             <h3>${title}</h3>
                             ${badgeHtml}
+                            ${headingExtraHtml}
                         </div>
                         <button
                             type="button"
@@ -2330,11 +2349,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `
             });
             const oppmoteTeamName = data.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
+            const oppmoteRange = typeof window.getStatsOppmoteRangeFilter === 'function'
+                ? window.getStatsOppmoteRangeFilter()
+                : 'season';
+            const oppmoteIsLast8 = oppmoteRange === 'last8';
             const oppmoteContent = typeof window.buildTrainingDataAttendanceHtml === 'function'
                 ? window.buildTrainingDataAttendanceHtml(oppmoteTeamName, {
                     listExpandedKey: '_statsOppmoteListExpanded',
                     toggleActionAttr: 'data-stat-action',
-                    toggleAction: 'toggle-attendance-list'
+                    toggleAction: 'toggle-attendance-list',
+                    eventLimit: oppmoteIsLast8 ? 8 : null,
+                    rangeLabel: oppmoteIsLast8 ? 'Siste 8' : 'Sesong'
                 })
                 : `
                     <p class="stats-kamp-panel-hint">Oppmøteregistrering på historiske aktiviteter for valgt lag.</p>
@@ -2347,6 +2372,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 title: 'Oppmøte',
                 showLabel: 'Vis oppmøte',
                 hideLabel: 'Skjul oppmøte',
+                headingExtraHtml: `
+                    <div class="stats-kamp-year-filter stats-oppmote-range-filter" role="tablist" aria-label="Filtrer oppmøteperiode">
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="${oppmoteIsLast8 ? 'false' : 'true'}"
+                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${oppmoteIsLast8 ? '' : 'is-active'}"
+                            data-stat-action="set-oppmote-range"
+                            data-range="season"
+                        >Sesong</button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="${oppmoteIsLast8 ? 'true' : 'false'}"
+                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${oppmoteIsLast8 ? 'is-active' : ''}"
+                            data-stat-action="set-oppmote-range"
+                            data-range="last8"
+                        >Siste 8</button>
+                    </div>
+                `,
                 content: oppmoteContent
             });
 

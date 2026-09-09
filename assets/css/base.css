@@ -1220,6 +1220,20 @@
             text-transform: uppercase;
             white-space: nowrap;
         }
+        .match-detail-edit-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            flex-shrink: 0;
+            height: 1.85rem;
+            min-height: 1.85rem;
+            min-width: 1.85rem;
+            padding: 0;
+            width: 1.85rem;
+        }
+        .match-detail-edit-btn i {
+            font-size: 0.72rem;
+        }
         .match-topline-action-btn {
             appearance: none;
             color: #ffffff;
@@ -6792,6 +6806,18 @@
         .stats-board-card .stats-kamp-collapsible-panel .stats-kamp-year-filter {
             margin-top: 0;
         }
+        .stats-board-card .stats-oppmote-range-filter {
+            flex-shrink: 0;
+            gap: 0.35rem;
+            margin-left: auto;
+        }
+        .stats-board-card .stats-oppmote-range-filter .stats-kamp-year-btn {
+            height: 1.9rem;
+            max-height: 1.9rem;
+            min-height: 1.9rem;
+            min-width: 0;
+            padding: 0.28rem 0.55rem;
+        }
         .stats-board-card .stats-season-filter-row {
             display: grid;
             gap: 0.55rem;
@@ -10258,7 +10284,8 @@
             background: rgba(255, 255, 255, 0.11);
         }
         #view-statistikk .stats-kamp-collapsible-panel .match-bench-topline .match-panel-toggle-btn,
-        #view-statistikk .stats-kamp-collapsible-panel .match-bench-topline .training-session-groups-info-btn {
+        #view-statistikk .stats-kamp-collapsible-panel .match-bench-topline .training-session-groups-info-btn,
+        #view-statistikk .stats-kamp-collapsible-panel .match-bench-topline .stats-oppmote-range-filter .stats-kamp-year-btn {
             cursor: pointer;
         }
         #oktside-content .match-bench-topline {

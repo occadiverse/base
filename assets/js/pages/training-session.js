@@ -659,8 +659,8 @@ function isTrainingEventInCurrentSeason(event, asOf = new Date()) {
     return eventDate >= start && eventDate <= end;
 }
 
-function getTrainingHistoricalAttendanceEvents(teamName) {
-    return (window.activeEvents || [])
+function getTrainingHistoricalAttendanceEvents(teamName, options = {}) {
+    const events = (window.activeEvents || [])
         .filter(event => {
             if (event?.type !== 'Trening') return false;
             if (!event?.attendance) return false;
@@ -670,6 +670,12 @@ function getTrainingHistoricalAttendanceEvents(teamName) {
             return true;
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    const limit = Number(options.limit);
+    if (Number.isFinite(limit) && limit > 0) {
+        return events.slice(0, limit);
+    }
+    return events;
 }
 
 function getTrainingEventAttendancePct(event, teamPlayers) {
@@ -690,9 +696,9 @@ function getTrainingEventAttendancePct(event, teamPlayers) {
     return Math.round((attending / squad.length) * 100);
 }
 
-function buildTrainingAttendanceSeasonStats(teamName) {
+function buildTrainingAttendanceSeasonStats(teamName, options = {}) {
     const teamPlayers = getTrainingTeamPlayers(teamName);
-    const events = getTrainingHistoricalAttendanceEvents(teamName);
+    const events = getTrainingHistoricalAttendanceEvents(teamName, options);
 
     const pctFor = (list) => {
         const values = list
@@ -710,17 +716,22 @@ function buildTrainingAttendanceSeasonStats(teamName) {
             seasonPct,
             lastFivePct,
             baselinePct,
-            delta: (lastFivePct !== null && baselinePct !== null) ? lastFivePct - baselinePct : null
+            delta: (lastFivePct !== null && baselinePct !== null) ? lastFivePct - baselinePct : null,
+            eventCount: events.length
         };
     }
 
-    return { seasonPct: null, lastFivePct: null, baselinePct: null, delta: null };
+    return { seasonPct: null, lastFivePct: null, baselinePct: null, delta: null, eventCount: 0 };
 }
 
-function buildTrainingPlayerAttendanceRanking(teamName) {
+function buildTrainingPlayerAttendanceRanking(teamName, options = {}) {
     const teamPlayers = getTrainingTeamPlayers(teamName);
-    const events = getTrainingHistoricalAttendanceEvents(teamName);
+    const events = getTrainingHistoricalAttendanceEvents(teamName, options);
     if (!events.length || !teamPlayers.length) return [];
+
+    const minPossible = Number.isFinite(Number(options.minPossible))
+        ? Math.max(1, Number(options.minPossible))
+        : (Number(options.limit) > 0 ? 1 : 3);
 
     const rows = teamPlayers.map(player => {
         let attended = 0;
@@ -737,7 +748,7 @@ function buildTrainingPlayerAttendanceRanking(teamName) {
                 attended += 1;
             }
         });
-        if (possible < 3) return null;
+        if (possible < minPossible) return null;
         return {
             name: player.navn,
             pct: Math.round((attended / possible) * 100),
@@ -793,16 +804,23 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
     const {
         listExpandedKey = '_trainingSessionAttendanceListExpanded',
         toggleActionAttr = 'data-training-action',
-        toggleAction = 'toggle-attendance-list'
+        toggleAction = 'toggle-attendance-list',
+        eventLimit = null,
+        rangeLabel = null
     } = options;
-    const stats = buildTrainingAttendanceSeasonStats(teamName);
-    const ranking = buildTrainingPlayerAttendanceRanking(teamName);
+    const eventOptions = Number.isFinite(Number(eventLimit)) && Number(eventLimit) > 0
+        ? { limit: Number(eventLimit) }
+        : {};
+    const stats = buildTrainingAttendanceSeasonStats(teamName, eventOptions);
+    const ranking = buildTrainingPlayerAttendanceRanking(teamName, eventOptions);
     const visibleLimit = 10;
     const isExpanded = window[listExpandedKey] === true;
     const hasOverflow = ranking.length > visibleLimit;
     const trendTone = stats.delta === null
         ? ''
         : (stats.delta > 0 ? 'is-up' : (stats.delta < 0 ? 'is-down' : 'is-flat'));
+    const primaryLabel = rangeLabel
+        || (eventOptions.limit ? `Siste ${eventOptions.limit}` : 'Sesong');
 
     if (stats.seasonPct === null && stats.lastFivePct === null) {
         return `
@@ -816,7 +834,7 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
         <div class="training-data-attendance">
             <div class="training-data-stat-grid">
                 <div class="training-data-stat">
-                    <span class="training-data-stat-label">Sesong</span>
+                    <span class="training-data-stat-label">${escapeTrainingHtml(primaryLabel)}</span>
                     <strong>${stats.seasonPct !== null ? `${stats.seasonPct}%` : '—'}</strong>
                 </div>
                 <div class="training-data-stat">
