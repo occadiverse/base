@@ -666,12 +666,37 @@ function formatPlayerProfileMinutesShareLabel(stats) {
     return `${Math.round(Number(stats.minutesSharePct) || 0)}%`;
 }
 
+function getPlayerProfileStatRows(player, yearFilter = 'alle') {
+    if (!player || typeof window.buildPlayerStatsData !== 'function') return [];
+    return window.buildPlayerStatsData({
+        applyYearFilter: yearFilter !== 'alle',
+        yearFilter
+    });
+}
+
+function getPlayerProfileStatRank(playerName, column, statsData) {
+    if (!playerName || !column || !Array.isArray(statsData) || !statsData.length) return null;
+    const relevant = typeof window.playerStatsRelevantForSort === 'function'
+        ? statsData.filter(stat => window.playerStatsRelevantForSort(stat, column))
+        : statsData.slice();
+    const playerStat = relevant.find(stat => stat.navn === playerName);
+    if (!playerStat) return null;
+
+    const playerValue = Number(playerStat[column]) || 0;
+    const betterCount = relevant.filter(stat => (Number(stat[column]) || 0) > playerValue).length;
+    return betterCount + 1;
+}
+
 function buildPlayerProfileStatChipHtml(label, value, options = {}) {
     const toneClass = options.tone ? ` is-${options.tone}` : '';
     const titleAttr = options.title ? ` title="${escapeRosterHtml(options.title)}"` : '';
+    const rank = Number(options.rank) || 0;
+    const rankHtml = rank > 0
+        ? `<span class="player-profile-stat-chip-rank"> (${rank})</span>`
+        : '';
     return `
         <div class="player-profile-stat-chip${toneClass}"${titleAttr}>
-            <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}</span>
+            <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}${rankHtml}</span>
             <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
         </div>
     `;
@@ -846,14 +871,17 @@ window.renderPlayerProfilePage = function(playerId) {
     const totalScore = stats && stats.totalScore > 0 ? String(stats.totalScore) : '-';
 
     let totalRank = 0;
-    if (stats && typeof window.buildPlayerStatsData === 'function') {
-        const rows = window.buildPlayerStatsData({
-            applyYearFilter: yearFilter !== 'alle',
-            yearFilter
-        }).filter(stat => (Number(stat.attendedMatches) || 0) > 0 || (Number(stat.oppmotePct) || 0) > 0);
-        rows.sort((a, b) => (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0));
-        totalRank = rows.findIndex(stat => stat.navn === player.navn) + 1;
+    const rankRows = getPlayerProfileStatRows(player, yearFilter);
+    if (stats && rankRows.length) {
+        const totalRows = rankRows.filter(stat =>
+            (Number(stat.attendedMatches) || 0) > 0 || (Number(stat.oppmotePct) || 0) > 0
+        );
+        const playerScore = Number(stats.totalScore) || 0;
+        const betterCount = totalRows.filter(stat => (Number(stat.totalScore) || 0) > playerScore).length;
+        totalRank = betterCount + 1;
     }
+
+    const rankOf = (column) => getPlayerProfileStatRank(player.navn, column, rankRows);
 
     const formToneClass = formTone === 'green' ? 'is-green' : formTone === 'red' ? 'is-red' : formTone === 'amber' ? 'is-amber' : 'is-muted';
 
@@ -928,23 +956,25 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>
             <div class="player-profile-stat-grid">
-                ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? `#${totalRank}` : '-')}
-                ${buildPlayerProfileStatChipHtml('Kamper', kamper)}
-                ${buildPlayerProfileStatChipHtml('Mål', mal)}
-                ${buildPlayerProfileStatChipHtml('Assist', assist)}
-                ${buildPlayerProfileStatChipHtml('Gule kort', gule)}
-                ${buildPlayerProfileStatChipHtml('Røde kort', rode)}
-                ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-')}
-                ${buildPlayerProfileStatChipHtml('Børs', snittBors)}
-                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag)}
-                ${buildPlayerProfileStatChipHtml('Total score', totalScore)}
-                ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote)}
-                ${buildPlayerProfileStatChipHtml('Banens beste', bb)}
+                ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? String(totalRank) : '-')}
+                ${buildPlayerProfileStatChipHtml('Kamper', kamper, { rank: rankOf('kamper') })}
+                ${buildPlayerProfileStatChipHtml('Mål', mal, { rank: rankOf('mal') })}
+                ${buildPlayerProfileStatChipHtml('Assist', assist, { rank: rankOf('assist') })}
+                ${buildPlayerProfileStatChipHtml('Gule kort', gule, { rank: rankOf('gule') })}
+                ${buildPlayerProfileStatChipHtml('Røde kort', rode, { rank: rankOf('rode') })}
+                ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-', { rank: rankOf('kjemi') })}
+                ${buildPlayerProfileStatChipHtml('Børs', snittBors, { rank: rankOf('snittBors') })}
+                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, { rank: rankOf('kampbonus') })}
+                ${buildPlayerProfileStatChipHtml('Total score', totalScore, { rank: rankOf('totalScore') })}
+                ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, { rank: rankOf('oppmotePct') })}
+                ${buildPlayerProfileStatChipHtml('Banens beste', bb, { rank: rankOf('bb') })}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
-                    title: 'Total spilletid / snitt per kamp med registrert spilletid'
+                    title: 'Total spilletid / snitt per kamp med registrert spilletid',
+                    rank: rankOf('minutesTotal')
                 })}
                 ${buildPlayerProfileStatChipHtml('Minuttandel', minuttandel, {
-                    title: 'Spilte minutter / mulige minutter (kamper i troppen med spilletid × kamplengde)'
+                    title: 'Spilte minutter / mulige minutter (kamper i troppen med spilletid × kamplengde)',
+                    rank: rankOf('minutesSharePct')
                 })}
             </div>
         </section>
@@ -955,9 +985,8 @@ window.renderPlayerProfilePage = function(playerId) {
                     <h2 class="player-profile-panel-title">Utvikling</h2>
                     <p class="player-profile-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
                 </div>
-                <button type="button" class="bsk-btn bsk-btn-chip player-profile-info-btn" data-player-profile-action="open-form-info" title="Statsforklaring" aria-label="Statsforklaring">
+                <button type="button" class="training-session-groups-info-btn player-profile-info-btn" data-player-profile-action="open-form-info" title="Statsforklaring" aria-label="Statsforklaring">
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    <span>Statsforklaring</span>
                 </button>
             </div>
             <div class="player-profile-chart-wrap">${trendHtml}</div>
