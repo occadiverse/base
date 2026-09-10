@@ -537,6 +537,7 @@ function renderPlayerModalProfile(player) {
     const form = stats && stats.kjemi > 0 ? `${stats.kjemi}/100` : '-';
     const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus)) : '-';
     const spilletid = formatPlayerProfileMinutesLabel(stats);
+    const minuttandel = formatPlayerProfileMinutesShareLabel(stats);
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
@@ -589,6 +590,7 @@ function renderPlayerModalProfile(player) {
                     ${buildPlayerProfileMetricHtml('Form', form)}
                     ${buildPlayerProfileMetricHtml('Kampbidrag', kampbidrag)}
                     ${buildPlayerProfileMetricHtml('Spilletid', spilletid)}
+                    ${buildPlayerProfileMetricHtml('Minuttandel', minuttandel)}
                     ${buildPlayerProfileMetricHtml('Gule kort', gule)}
                     ${buildPlayerProfileMetricHtml('Røde kort', rode)}
                     ${buildPlayerProfileMetricHtml('Banens beste', bb)}
@@ -657,6 +659,11 @@ function formatPlayerProfileMinutesLabel(stats) {
     const total = Math.round(Number(stats.minutesTotal) || 0);
     const avg = Math.round(Number(stats.minutesAvg) || 0);
     return `${total}' / ${avg}'`;
+}
+
+function formatPlayerProfileMinutesShareLabel(stats) {
+    if (!(Number(stats?.minutesPossible) > 0) || stats?.minutesSharePct == null) return '-';
+    return `${Math.round(Number(stats.minutesSharePct) || 0)}%`;
 }
 
 function buildPlayerProfileStatChipHtml(label, value, options = {}) {
@@ -829,6 +836,7 @@ window.renderPlayerProfilePage = function(playerId) {
     const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus * 10) / 10) : '-';
     const snittBors = stats && stats.snittBors > 0 ? (Math.round(Number(stats.snittBors) * 10) / 10).toFixed(1) : '-';
     const spilletid = formatPlayerProfileMinutesLabel(stats);
+    const minuttandel = formatPlayerProfileMinutesShareLabel(stats);
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
@@ -934,6 +942,9 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileStatChipHtml('Banens beste', bb)}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
                     title: 'Total spilletid / snitt per kamp med registrert spilletid'
+                })}
+                ${buildPlayerProfileStatChipHtml('Minuttandel', minuttandel, {
+                    title: 'Spilte minutter / mulige minutter (kamper i troppen med spilletid × kamplengde)'
                 })}
             </div>
         </section>

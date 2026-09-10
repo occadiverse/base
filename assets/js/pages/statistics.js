@@ -1642,6 +1642,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return rows;
         };
 
+        window.matchHasMinutesTracking = function(match) {
+            if (!match) return false;
+            if (match.minutesSource) return true;
+            if (Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) > 0) return true;
+            const map = match.minutesPlayed;
+            return Boolean(map && typeof map === 'object' && Object.keys(map).length > 0);
+        };
+
+        window.getMatchDurationForMinutesShare = function(match) {
+            if (typeof window.resolveMatchLiveDurationMinutes === 'function') {
+                const resolved = window.resolveMatchLiveDurationMinutes(match);
+                if (resolved > 0) return resolved;
+            }
+            const stored = Math.max(0, Math.floor(Number(match?.liveDurationMinutes) || 0));
+            return stored > 0 ? stored : 90;
+        };
+
         window.buildPlayerStatsData = function(options = {}) {
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
             const yearFilter = options.yearFilter !== undefined
@@ -1666,7 +1683,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     let attended = 0, kamper = 0, attendedMatches = 0, mal = 0, assist = 0, totalMatchPoints = 0, bb = 0;
                     let ratingSum = 0, ratingCount = 0;
-                    let minutesTotal = 0, minutesMatches = 0;
+                    let minutesTotal = 0, minutesMatches = 0, minutesPossible = 0;
 
                     teamEvents.forEach(e => {
                         if (window.isPlayerAttending(e.attendance, p)) {
@@ -1695,6 +1712,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     minutesTotal += minutes;
                                     minutesMatches += 1;
                                 }
+                                if (window.matchHasMinutesTracking(e)) {
+                                    minutesPossible += window.getMatchDurationForMinutesShare(e);
+                                }
                                 totalMatchPoints += window.calculatePlayerMatchPoints(e, p);
                             }
                         }
@@ -1711,6 +1731,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const rodeSerie = cardCounts.serie.rode;
                     const guleCup = cardCounts.cup.gule;
                     const rodeCup = cardCounts.cup.rode;
+                    const minutesSharePct = minutesPossible > 0
+                        ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
+                        : null;
 
                     return {
                         navn: p.navn,
@@ -1735,7 +1758,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         bb,
                         minutesTotal,
                         minutesMatches,
-                        minutesAvg: minutesMatches > 0 ? minutesTotal / minutesMatches : 0
+                        minutesAvg: minutesMatches > 0 ? minutesTotal / minutesMatches : 0,
+                        minutesPossible,
+                        minutesSharePct
                     };
                 });
 
@@ -1798,6 +1823,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'snittBors': return stat.snittBors > 0;
                 case 'oppmotePct': return stat.oppmotePct > 0;
                 case 'minutesTotal': return (Number(stat.minutesTotal) || 0) > 0;
+                case 'minutesSharePct': return (Number(stat.minutesPossible) || 0) > 0 && stat.minutesSharePct != null;
                 default: return true;
             }
         };
@@ -1817,7 +1843,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 kjemi: 'form',
                 snittBors: 'spillerbørs',
                 oppmotePct: 'oppmøte',
-                minutesTotal: 'spilleminutter'
+                minutesTotal: 'spilleminutter',
+                minutesSharePct: 'minuttandel'
             };
 
             const label = labels[column];
@@ -1898,6 +1925,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (Number.isNaN(numeric)) return '-';
 
             if (column === 'oppmotePct') return `${Math.round(numeric)}%`;
+            if (column === 'minutesSharePct') return Number.isFinite(numeric) ? `${Math.round(numeric)}%` : '-';
             if (column === 'minutesTotal') return numeric > 0 ? `${Math.round(numeric)}'` : '-';
             if (column === 'kjemi') return String(Math.round(numeric));
             if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') return numeric > 0 ? numeric.toFixed(1) : '-';
@@ -1915,12 +1943,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return { text: '+0', tone: 'is-equal' };
             }
 
-            const rounded = column === 'oppmotePct'
+            const rounded = (column === 'oppmotePct' || column === 'minutesSharePct')
                 ? Math.round(delta)
                 : (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore')
                     ? Math.round(delta * 10) / 10
                     : Math.round(delta);
-            const suffix = column === 'oppmotePct' ? '%' : '';
+            const suffix = (column === 'oppmotePct' || column === 'minutesSharePct') ? '%' : '';
             const sign = rounded > 0 ? '+' : '';
             return {
                 text: `${sign}${rounded}${suffix}`,
@@ -3200,7 +3228,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
-            { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch' }
+            { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch' },
+            { id: 'minutesSharePct', label: 'Minuttandel', icon: 'fa-chart-pie' }
         ];
 
         window.getStatsSortOption = function(id) {
@@ -3214,6 +3243,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const column = columnOrValue;
                 if (!stat) return '-';
                 if (column === 'oppmotePct') return `${Number(stat.oppmotePct) || 0}%`;
+                if (column === 'minutesSharePct') {
+                    if (!(Number(stat.minutesPossible) > 0) || stat.minutesSharePct == null) return '-';
+                    return `${Math.round(Number(stat.minutesSharePct) || 0)}%`;
+                }
                 if (column === 'minutesTotal') {
                     const total = Math.round(Number(stat.minutesTotal) || 0);
                     return total > 0 ? `${total}'` : '-';
@@ -3232,7 +3265,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const column = statOrColumn;
             const numeric = Number(columnOrValue);
             if (Number.isNaN(numeric)) return '-';
-            if (column === 'oppmotePct') return `${Math.round(numeric)}%`;
+            if (column === 'oppmotePct' || column === 'minutesSharePct') return `${Math.round(numeric)}%`;
             if (column === 'minutesTotal') return numeric > 0 ? `${Math.round(numeric)}'` : '-';
             if (column === 'kjemi') return String(Math.round(numeric));
             if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') {
