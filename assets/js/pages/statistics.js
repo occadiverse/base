@@ -1797,6 +1797,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'kjemi': return stat.kjemi > 0;
                 case 'snittBors': return stat.snittBors > 0;
                 case 'oppmotePct': return stat.oppmotePct > 0;
+                case 'minutesTotal': return (Number(stat.minutesTotal) || 0) > 0;
                 default: return true;
             }
         };
@@ -1815,7 +1816,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 kampbonus: 'kampbidrag',
                 kjemi: 'form',
                 snittBors: 'spillerbørs',
-                oppmotePct: 'oppmøte'
+                oppmotePct: 'oppmøte',
+                minutesTotal: 'spilleminutter'
             };
 
             const label = labels[column];
@@ -1896,6 +1898,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (Number.isNaN(numeric)) return '-';
 
             if (column === 'oppmotePct') return `${Math.round(numeric)}%`;
+            if (column === 'minutesTotal') return numeric > 0 ? `${Math.round(numeric)}'` : '-';
             if (column === 'kjemi') return String(Math.round(numeric));
             if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') return numeric > 0 ? numeric.toFixed(1) : '-';
             if (numeric > 0 || column === 'kamper') return String(Math.round(numeric));
@@ -3196,25 +3199,47 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'rode', label: 'Røde kort', glyph: 'r' },
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
-            { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' }
+            { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
+            { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch' }
         ];
 
         window.getStatsSortOption = function(id) {
             return (window.STATS_PLAYER_SORT_OPTIONS || []).find(opt => opt.id === id);
         };
 
-        window.formatStatsSortValue = function(stat, column) {
-            if (!stat) return '-';
-            if (column === 'oppmotePct') return `${Number(stat.oppmotePct) || 0}%`;
-            if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors') {
-                const value = Number(stat[column]) || 0;
-                if (column === 'kampbonus' && !(stat.attendedMatches > 0)) return '-';
-                return value > 0 ? value.toFixed(1) : '-';
+        window.formatStatsSortValue = function(statOrColumn, columnOrValue) {
+            // Støtt både (stat, column) og (column, value)
+            if (statOrColumn && typeof statOrColumn === 'object') {
+                const stat = statOrColumn;
+                const column = columnOrValue;
+                if (!stat) return '-';
+                if (column === 'oppmotePct') return `${Number(stat.oppmotePct) || 0}%`;
+                if (column === 'minutesTotal') {
+                    const total = Math.round(Number(stat.minutesTotal) || 0);
+                    return total > 0 ? `${total}'` : '-';
+                }
+                if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors') {
+                    const value = Number(stat[column]) || 0;
+                    if (column === 'kampbonus' && !(stat.attendedMatches > 0)) return '-';
+                    return value > 0 ? value.toFixed(1) : '-';
+                }
+                if (column === 'kjemi') return String(stat.kjemi || 0);
+                const value = stat[column];
+                if (value == null || value === '') return '-';
+                return String(value);
             }
-            if (column === 'kjemi') return String(stat.kjemi || 0);
-            const value = stat[column];
-            if (value == null || value === '') return '-';
-            return String(value);
+
+            const column = statOrColumn;
+            const numeric = Number(columnOrValue);
+            if (Number.isNaN(numeric)) return '-';
+            if (column === 'oppmotePct') return `${Math.round(numeric)}%`;
+            if (column === 'minutesTotal') return numeric > 0 ? `${Math.round(numeric)}'` : '-';
+            if (column === 'kjemi') return String(Math.round(numeric));
+            if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') {
+                return numeric > 0 ? numeric.toFixed(1) : '-';
+            }
+            if (numeric > 0 || column === 'kamper') return String(Math.round(numeric));
+            return '-';
         };
 
         window.renderStatsSortIconHtml = function(option, extraClass = '') {
