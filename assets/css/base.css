@@ -2755,6 +2755,7 @@
         .match-detail-page .match-bench-panel,
         .match-detail-page .match-game-plan-panel,
         .match-detail-page .match-coach-notes-panel,
+        .match-detail-page .match-summary-panel,
         .match-detail-page .match-stats-panel,
         .match-detail-page .match-opponent-info-panel,
         .training-session-page .match-game-plan-panel {
@@ -9404,6 +9405,151 @@
             flex-direction: column;
             gap: 0.85rem;
         }
+        .stats-kamp-summary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 0.9rem;
+        }
+        .stats-kamp-summary-header {
+            align-items: flex-start;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+        }
+        .stats-kamp-summary-kicker {
+            color: rgba(245, 197, 66, 0.9);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0 0 0.25rem;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-title {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 950;
+            line-height: 1.25;
+            margin: 0;
+        }
+        .stats-kamp-summary-result {
+            color: #f5c542;
+            font-weight: 950;
+            margin-left: 0.35rem;
+            white-space: nowrap;
+        }
+        .stats-kamp-summary-meta {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.7rem;
+            font-weight: 750;
+            margin: 0.28rem 0 0;
+        }
+        .stats-kamp-summary-story {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.82rem;
+            font-weight: 650;
+            line-height: 1.45;
+            margin: 0;
+        }
+        .stats-kamp-summary-facts {
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .stats-kamp-summary-fact {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.55rem;
+        }
+        .stats-kamp-summary-fact span {
+            color: rgba(255, 255, 255, 0.55);
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.18rem;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-fact strong {
+            color: #ffffff;
+            font-size: 0.82rem;
+            font-weight: 950;
+            word-break: break-word;
+        }
+        .stats-kamp-summary-grid {
+            display: grid;
+            gap: 0.65rem;
+        }
+        .stats-kamp-summary-block h4 {
+            color: rgba(245, 197, 66, 0.92);
+            font-size: 0.64rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            margin: 0 0 0.28rem;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-block p {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.78rem;
+            font-weight: 650;
+            line-height: 1.4;
+            margin: 0;
+        }
+        .stats-kamp-summary-note-label {
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 800;
+        }
+        .stats-kamp-summary-usage {
+            display: grid;
+            gap: 0.35rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .stats-kamp-summary-usage li {
+            align-items: baseline;
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: minmax(7.5rem, 0.9fr) minmax(0, 1.4fr);
+        }
+        .stats-kamp-summary-usage span {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.7rem;
+            font-weight: 750;
+        }
+        .stats-kamp-summary-usage strong {
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.76rem;
+            font-weight: 800;
+            word-break: break-word;
+        }
+        .stats-kamp-summary-header.is-compact {
+            align-items: center;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+        }
+        .stats-kamp-summary.is-embedded {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+        }
+        .match-summary-panel .match-collapsible-content {
+            padding-top: 0.15rem;
+        }
+        @media (min-width: 720px) {
+            .stats-kamp-summary-facts {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .stats-kamp-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
         .stats-kampdata-snapshot {
             display: grid;
             gap: 0.45rem;
@@ -10746,7 +10892,8 @@
             line-height: 1.2;
         }
         .match-game-plan-panel,
-        .match-coach-notes-panel {
+        .match-coach-notes-panel,
+        .match-summary-panel {
             background:
                 radial-gradient(circle at 92% 0%, rgba(245, 197, 66, 0.13), transparent 28%),
                 linear-gradient(180deg, #102f54 0%, #0b223e 100%);
@@ -10759,7 +10906,8 @@
             padding: 0.9rem;
         }
         .match-game-plan-topline,
-        .match-coach-notes-topline {
+        .match-coach-notes-topline,
+        .match-summary-topline {
             margin-bottom: 0.75rem;
         }
         .match-coach-notes-body {

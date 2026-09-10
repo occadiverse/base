@@ -5006,6 +5006,44 @@ function restorePortalMainScroll(scrollTop) {
     });
 }
 
+window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
+    if (!match) return '';
+
+    let summaryBody = '';
+    if (typeof window.buildMatchSummaryStatsFromMatch === 'function'
+        && typeof window.buildKampstatsMatchSummaryHtml === 'function') {
+        const summary = window.buildMatchSummaryStatsFromMatch(match);
+        summaryBody = window.buildKampstatsMatchSummaryHtml(match, summary.stats, {
+            ...summary,
+            embedInPanel: true
+        });
+    }
+
+    if (!summaryBody) {
+        summaryBody = `
+            <div class="stats-kamp-summary is-embedded">
+                <p class="stats-kamp-summary-story">Kampen er ferdigspilt. Fyll inn Spillerbørs og spilletid for en rikere oppsummering.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <section class="match-summary-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}" data-match-panel="kampoppsummering">
+            <div class="match-bench-action-row match-bench-topline match-summary-topline" onclick="window.onMatchPanelToplineClick(event)">
+                <div class="match-bench-heading">
+                    <h3>Kampoppsummering</h3>
+                </div>
+                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul kampoppsummering' : 'Vis kampoppsummering'}" data-show-label="Vis kampoppsummering" data-hide-label="Skjul kampoppsummering">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                ${summaryBody}
+            </div>
+        </section>
+    `;
+};
+
 window.showMatchDetails = function(id) {
     const stayOnDetails = window.currentTab === 'kampdetaljer';
     const savedScrollTop = stayOnDetails ? (getPortalMainScrollHost()?.scrollTop || 0) : null;
@@ -5047,7 +5085,8 @@ window.showMatchDetails = function(id) {
     const exclusiveOpen = openPanel === 'kampplan'
         || openPanel === 'trenernotater'
         || openPanel === 'spillerbors'
-        || openPanel === 'motstanderinfo';
+        || openPanel === 'motstanderinfo'
+        || openPanel === 'kampoppsummering';
     window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
     const pairState = window.matchDetailPairPanelState;
     if (openForAttendanceFeedback) pairState.kamptropp = true;
@@ -5057,6 +5096,11 @@ window.showMatchDetails = function(id) {
     const isCoachNotesOpen = openPanel === 'trenernotater';
     const isStatsOpen = openPanel === 'spillerbors';
     const isOpponentInfoOpen = openPanel === 'motstanderinfo';
+    const isMatchFinished = Boolean(match.result && String(match.result).includes('-'));
+    const isSummaryOpen = openPanel === 'kampoppsummering';
+    const matchSummaryPanelHtml = isMatchFinished
+        ? buildMatchSummaryPanelHtml(match, isSummaryOpen)
+        : '';
     const opponentRecord = getOpponentHistoryRecord(getOpponentRecordMatches(match));
     const opponentInfoBadgeLabel = String(opponentRecord.wins + opponentRecord.draws + opponentRecord.losses);
     window.pendingMatchDetailsOpenPanel = null;
@@ -5124,6 +5168,8 @@ window.showMatchDetails = function(id) {
     container.innerHTML = `
         <div class="match-detail-page">
         ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: true })}
+
+        ${matchSummaryPanelHtml}
 
         ${matchSquadPanelHtml}
 
@@ -5924,6 +5970,7 @@ function getMatchDetailsPanelId(panel) {
     if (panel.classList.contains('match-coach-notes-panel')) return 'trenernotater';
     if (panel.classList.contains('match-stats-panel')) return 'spillerbors';
     if (panel.classList.contains('match-opponent-info-panel')) return 'motstanderinfo';
+    if (panel.classList.contains('match-summary-panel')) return 'kampoppsummering';
     if (panel.classList.contains('match-bench-panel')) return 'kamptropp';
     return '';
 }

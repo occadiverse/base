@@ -3606,6 +3606,271 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
         };
 
+        window.buildMatchSummaryStatsFromMatch = function(match) {
+            if (!match) {
+                return {
+                    stats: [],
+                    avgRating: 0,
+                    goalsFor: null,
+                    goalsAgainst: null,
+                    totalYellow: 0,
+                    totalRed: 0,
+                    form: '',
+                    matchResult: '',
+                    matchType: 'Kamp'
+                };
+            }
+
+            const matchResult = match.result || '';
+            const matchType = match.type || match.matchType || 'Kamp';
+            const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+                ? window.getMatchOutcomeScore(match)
+                : null;
+            let form = '';
+            if (outcomeScore) {
+                if (outcomeScore.bsk > outcomeScore.opponent) form = 'S';
+                else if (outcomeScore.bsk < outcomeScore.opponent) form = 'T';
+                else form = 'U';
+            }
+
+            const regularScore = typeof window.getMatchRegularScore === 'function'
+                ? window.getMatchRegularScore(match)
+                : (typeof window.parseScore === 'function' ? window.parseScore(match.result) : null);
+            const goalsFor = regularScore ? regularScore.bsk : null;
+            const goalsAgainst = regularScore ? regularScore.opponent : null;
+
+            const participantRefs = typeof window.getMatchParticipantRefs === 'function'
+                ? window.getMatchParticipantRefs(match)
+                : (typeof window.getAttendingPlayerRefs === 'function'
+                    ? window.getAttendingPlayerRefs(match.attendance)
+                    : []);
+
+            const sortedPlayers = [...(window.activePlayers || [])]
+                .filter(p => participantRefs.some(ref => window.playerRefMatches(ref, p)));
+            const fallbackPlayers = participantRefs
+                .filter(ref => !sortedPlayers.some(p => window.playerRefMatches(ref, p)))
+                .map(ref => window.findPlayerByRef(ref) || { id: ref, navn: window.getPlayerNameFromRef(ref) });
+            const playersToRender = [...sortedPlayers, ...fallbackPlayers];
+
+            const stats = playersToRender.map(playerObj => {
+                const playerRef = playerObj.id || playerObj.navn;
+                const rating = Number(window.getPlayerRefMapValue(match.ratings, playerObj, 0)) || 0;
+                const goals = Number(window.getPlayerRefMapValue(match.scorers, playerObj, 0)) || 0;
+                const assists = Number(window.getPlayerRefMapValue(match.assists, playerObj, 0)) || 0;
+                const yellow = window.playerRefListIncludes(match.guleKort, playerObj) ? 1 : 0;
+                const red = window.playerRefListIncludes(match.rodeKort, playerObj) ? 1 : 0;
+                const minutesRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+                const minutes = minutesRaw === null || minutesRaw === undefined || minutesRaw === ''
+                    ? null
+                    : Math.max(0, Math.floor(Number(minutesRaw) || 0));
+                const isBbInMatch = window.motmMatchesPlayer(match.motm, playerObj);
+                const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
+                    ? window.calculatePlayerMatchPoints(match, playerObj, true)
+                    : { total: 0, onPitch: true };
+
+                return {
+                    id: playerObj.id || '',
+                    name: playerObj.navn || window.getPlayerNameFromRef(playerRef),
+                    rating,
+                    goals,
+                    assists,
+                    yellow,
+                    red,
+                    minutes,
+                    isBbInMatch,
+                    onPitch: pointsDetails.onPitch !== false,
+                    points: pointsDetails.total || 0
+                };
+            });
+
+            stats.sort((a, b) => (
+                b.points - a.points
+                || b.rating - a.rating
+                || b.goals - a.goals
+                || b.assists - a.assists
+                || a.name.localeCompare(b.name, 'nb')
+            ));
+
+            const ratedStats = stats.filter(s => s.rating > 0);
+            const avgRating = ratedStats.length
+                ? ratedStats.reduce((sum, s) => sum + s.rating, 0) / ratedStats.length
+                : 0;
+
+            return {
+                stats,
+                avgRating,
+                goalsFor,
+                goalsAgainst,
+                totalYellow: stats.reduce((sum, s) => sum + s.yellow, 0),
+                totalRed: stats.reduce((sum, s) => sum + s.red, 0),
+                form,
+                matchResult,
+                matchType
+            };
+        };
+
+        window.buildKampstatsMatchSummaryHtml = function(match, stats, context = {}) {
+            if (!match) return '';
+            const rows = Array.isArray(stats) ? stats : [];
+
+            const opponent = match.opponent || 'Motstander';
+            const matchType = context.matchType || match.matchType || match.type || 'Kamp';
+            const resultLabel = typeof window.formatStatsMatchResult === 'function'
+                ? window.formatStatsMatchResult(context.matchResult || match.result)
+                : (context.matchResult || match.result || '–');
+            const form = context.form || '';
+            const formWord = form === 'S' ? 'Seier' : (form === 'T' ? 'Tap' : (form === 'U' ? 'Uavgjort' : ''));
+            const avgRating = Number(context.avgRating) || 0;
+            const totalYellow = Number(context.totalYellow) || 0;
+            const totalRed = Number(context.totalRed) || 0;
+            const duration = typeof window.getMatchDurationForMinutesShare === 'function'
+                ? window.getMatchDurationForMinutesShare(match)
+                : (Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) || 90);
+            const subCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
+
+            const withMinutes = rows
+                .filter(s => s.minutes != null && s.minutes > 0)
+                .sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, 'nb'));
+            const full = withMinutes.filter(s => s.minutes >= 80);
+            const rotation = withMinutes.filter(s => s.minutes >= 30 && s.minutes < 80);
+            const shortSubs = withMinutes.filter(s => s.minutes < 30);
+            const mostMinutes = withMinutes[0] || null;
+            const bb = rows.find(s => s.isBbInMatch) || null;
+            const scorers = rows
+                .filter(s => (Number(s.goals) || 0) > 0)
+                .sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name, 'nb'));
+            const assisters = rows
+                .filter(s => (Number(s.assists) || 0) > 0)
+                .sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name, 'nb'));
+            const topPoints = [...rows]
+                .filter(s => (Number(s.points) || 0) > 0)
+                .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'nb'))
+                .slice(0, 3);
+
+            const listNames = (rows, valueKey) => rows.map(row => {
+                const value = Number(row[valueKey]) || 0;
+                const mins = row.minutes != null && row.minutes > 0 ? ` · ${row.minutes}'` : '';
+                return valueKey === 'minutes'
+                    ? `${row.name} ${row.minutes}'`
+                    : `${row.name} (${value}${mins})`;
+            }).join(', ');
+
+            const storyParts = [];
+            if (formWord) {
+                storyParts.push(`${formWord} ${resultLabel} mot ${opponent}.`);
+            } else {
+                storyParts.push(`Kamp mot ${opponent}${resultLabel && resultLabel !== '–' ? ` (${resultLabel})` : ''}.`);
+            }
+            if (avgRating > 0) storyParts.push(`Snittbørs ${avgRating.toFixed(1)}.`);
+            if (withMinutes.length) {
+                let usage = `${withMinutes.length} spillere med registrert spilletid`;
+                if (full.length) usage += ` · ${full.length} på 80'+`;
+                if (shortSubs.length) usage += ` · ${shortSubs.length} under 30'`;
+                storyParts.push(`${usage}.`);
+            } else {
+                storyParts.push('Spilletid er ikke registrert for denne kampen ennå.');
+            }
+            if (bb) storyParts.push(`Banens beste: ${bb.name}.`);
+
+            const metaBits = [
+                escapeStatisticsHtml(matchType),
+                `${duration}'`
+            ];
+            if (subCount > 0) metaBits.push(`${subCount} bytte${subCount === 1 ? '' : 'r'}`);
+            if (match.minutesSource === 'spillerbors') metaBits.push('Spilletid bekreftet');
+            else if (window.matchHasMinutesTracking?.(match)) metaBits.push('Spilletid fra Live');
+
+            const block = (title, body) => {
+                if (!body) return '';
+                return `
+                    <div class="stats-kamp-summary-block">
+                        <h4>${escapeStatisticsHtml(title)}</h4>
+                        <p>${body}</p>
+                    </div>
+                `;
+            };
+
+            const formatPeopleList = (rows, key) => {
+                if (!rows.length) return '';
+                return escapeStatisticsHtml(listNames(rows, key));
+            };
+
+            const rotationHtml = withMinutes.length ? `
+                <div class="stats-kamp-summary-block">
+                    <h4>Bruk</h4>
+                    <ul class="stats-kamp-summary-usage">
+                        <li><span>Full kamp (80'+)</span><strong>${full.length ? escapeStatisticsHtml(full.map(s => s.name).join(', ')) : '–'}</strong></li>
+                        <li><span>Rotasjon (30–79')</span><strong>${rotation.length ? escapeStatisticsHtml(rotation.map(s => `${s.name} ${s.minutes}'`).join(', ')) : '–'}</strong></li>
+                        <li><span>Korte innbytter (&lt;30')</span><strong>${shortSubs.length ? escapeStatisticsHtml(shortSubs.map(s => `${s.name} ${s.minutes}'`).join(', ')) : '–'}</strong></li>
+                    </ul>
+                </div>
+            ` : '';
+
+            const notesPositive = String(match.notes?.positive || '').trim();
+            const notesChallenge = String(match.notes?.challenge || '').trim();
+            const notesHtml = (notesPositive || notesChallenge) ? `
+                <div class="stats-kamp-summary-block">
+                    <h4>Trenernotat</h4>
+                    ${notesPositive ? `<p><span class="stats-kamp-summary-note-label">Positivt:</span> ${escapeStatisticsHtml(notesPositive)}</p>` : ''}
+                    ${notesChallenge ? `<p><span class="stats-kamp-summary-note-label">Utfordringer:</span> ${escapeStatisticsHtml(notesChallenge)}</p>` : ''}
+                </div>
+            ` : '';
+
+            return `
+                <section class="stats-kamp-summary${context.embedInPanel ? ' is-embedded' : ''}" aria-label="Kampoppsummering">
+                    ${context.embedInPanel ? '' : `
+                    <div class="stats-kamp-summary-header">
+                        <div class="min-w-0">
+                            <p class="stats-kamp-summary-kicker">Kampoppsummering</p>
+                            <h3 class="stats-kamp-summary-title">
+                                BSK – ${escapeStatisticsHtml(opponent)}
+                                <span class="stats-kamp-summary-result">${escapeStatisticsHtml(resultLabel)}</span>
+                            </h3>
+                            <p class="stats-kamp-summary-meta">${metaBits.join(' · ')}</p>
+                        </div>
+                        ${form ? `<span class="stats-form-history-result-pill ${form === 'S' ? 'is-win' : (form === 'T' ? 'is-loss' : 'is-draw')}">${escapeStatisticsHtml(form)}</span>` : ''}
+                    </div>
+                    `}
+                    ${context.embedInPanel ? `
+                    <div class="stats-kamp-summary-header is-compact">
+                        <p class="stats-kamp-summary-meta">${metaBits.join(' · ')}</p>
+                        ${form ? `<span class="stats-form-history-result-pill ${form === 'S' ? 'is-win' : (form === 'T' ? 'is-loss' : 'is-draw')}">${escapeStatisticsHtml(form)}</span>` : ''}
+                    </div>
+                    ` : ''}
+                    <p class="stats-kamp-summary-story">${escapeStatisticsHtml(storyParts.join(' '))}</p>
+                    <div class="stats-kamp-summary-facts" aria-label="Nøkkeltall">
+                        <div class="stats-kamp-summary-fact">
+                            <span>Snittbørs</span>
+                            <strong>${avgRating > 0 ? avgRating.toFixed(1) : '–'}</strong>
+                        </div>
+                        <div class="stats-kamp-summary-fact">
+                            <span>Kort</span>
+                            <strong>${totalYellow}/${totalRed}</strong>
+                        </div>
+                        <div class="stats-kamp-summary-fact">
+                            <span>Banens beste</span>
+                            <strong>${bb ? escapeStatisticsHtml(bb.name) : '–'}</strong>
+                        </div>
+                        <div class="stats-kamp-summary-fact">
+                            <span>Mest spilletid</span>
+                            <strong>${mostMinutes ? escapeStatisticsHtml(`${mostMinutes.name} ${mostMinutes.minutes}'`) : '–'}</strong>
+                        </div>
+                    </div>
+                    <div class="stats-kamp-summary-grid">
+                        ${block('Produksjon', [
+                            scorers.length ? `Mål: ${formatPeopleList(scorers, 'goals')}` : '',
+                            assisters.length ? `Assist: ${formatPeopleList(assisters, 'assists')}` : ''
+                        ].filter(Boolean).join('<br>') || null)}
+                        ${block('Topp poeng', topPoints.length
+                            ? escapeStatisticsHtml(topPoints.map(s => `${s.name} ${s.points}`).join(', '))
+                            : null)}
+                        ${rotationHtml}
+                        ${notesHtml}
+                    </div>
+                </section>
+            `;
+        };
+
         window.showMatchStatsTable = function() {
             const matchSelect = document.getElementById('kampstat-match-select');
             const playedMatches = window.getFilteredPlayedMatches();
