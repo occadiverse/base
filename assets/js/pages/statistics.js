@@ -1631,6 +1631,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     : 0;
 
                 stat.disiplinScore = disciplineScore;
+                // Total Score = beste sesong-helhet. Form = beste nå.
+                // Spilletid/minuttandel er forklarende stats og inngår ikke her.
                 stat.totalScore = Math.round((
                     (kampbidragScore * 0.50) +
                     (borsScore * 0.25) +
@@ -2037,14 +2039,51 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderStatsSpillereSummaryCardsHtml = function(statsData) {
-            const leader = statsData
-                .filter(stat => window.playerStatsRelevantForSort(stat, 'totalScore'))
-                .sort((a, b) => b.totalScore - a.totalScore)[0] || null;
+            const rows = Array.isArray(statsData) ? statsData : [];
+            const pickLeader = (column) => {
+                const relevant = rows.filter(stat => window.playerStatsRelevantForSort(stat, column));
+                if (!relevant.length) return null;
+                const bestValue = Math.max(...relevant.map(stat => Number(stat[column]) || 0));
+                return relevant.find(stat => (Number(stat[column]) || 0) === bestValue) || null;
+            };
+            const seasonLeader = pickLeader('totalScore');
+            const nowLeader = pickLeader('kjemi');
+
+            const card = (horizon, title, leader, column) => {
+                if (!leader) {
+                    return `
+                        <div class="stats-best-player-card ${horizon}">
+                            <span class="stats-best-player-eyebrow">${title}</span>
+                            <span class="stats-best-player-name">—</span>
+                            <span class="stats-best-player-meta">Ingen data</span>
+                        </div>
+                    `;
+                }
+                const valueText = column === 'kjemi'
+                    ? `${window.formatStatsSortValue(column, leader[column])}/100`
+                    : window.formatStatsSortValue(column, leader[column]);
+                const playerId = typeof getStatsPlayerIdForName === 'function'
+                    ? getStatsPlayerIdForName(leader.navn)
+                    : '';
+                return `
+                    <button
+                        type="button"
+                        data-stat-action="open-player"
+                        data-player-id="${escapeStatisticsHtml(playerId)}"
+                        data-player-name="${escapeStatisticsHtml(leader.navn)}"
+                        class="stats-best-player-card ${horizon} is-clickable"
+                    >
+                        <span class="stats-best-player-eyebrow">${title}</span>
+                        <span class="stats-best-player-name">${escapeStatisticsHtml(leader.navn)}</span>
+                        <span class="stats-best-player-meta">${escapeStatisticsHtml(valueText)}</span>
+                    </button>
+                `;
+            };
 
             return `
-                <div class="stats-spillere-summary-metrics">
-                    ${window.renderStatsSpillereLeaderNameCardHtml(leader)}
-                    ${window.renderStatsSpillereMetricCardHtml('totalScore', leader, statsData)}
+                <div class="stats-best-player-horizons">
+                    ${card('is-season', 'Beste sesong', seasonLeader, 'totalScore')}
+                    ${card('is-now', 'Beste nå', nowLeader, 'kjemi')}
                 </div>
             `;
         };
@@ -2515,13 +2554,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <p class="training-session-groups-info-title">Lesing av diagrammet</p>
                 <ul class="training-session-groups-info-list">
                     ${isTotal ? `
-                        <li>Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
-                        <li>Boblen viser total score, som også tar med oppmøte og disiplin.</li>
+                        <li><strong>Sesong:</strong> Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
+                        <li>Boblen viser Total Score (beste sesong) — kampbidrag, børs, oppmøte og disiplin. Spilletid inngår ikke.</li>
                         <li>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</li>
                     ` : `
-                        <li>Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
-                        <li>Boblen viser 5 siste score. Grønn boble er over egen total score, rød boble er under.</li>
-                        <li>Kilde: spillerstatistikken. 5 siste score bruker samme formel som total score, men avgrenset til nylige kamper.</li>
+                        <li><strong>Nå:</strong> Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
+                        <li>Boblen viser nylig score vs egen Total Score. Grønn boble er over egen sesongscore, rød boble er under.</li>
+                        <li>Form (Beste nå) er den separate 0–100-scoren basert på siste kamper — ikke det samme som Total Score.</li>
                     `}
                 </ul>
             `;
@@ -2745,14 +2784,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     : recentDelta >= 0 ? 'is-up' : 'is-down';
 
                 return `
-                    <g class="team-score-diagram-point" tabindex="0" aria-label="${escapeHtml(isTotal ? `${row.name}. Sesongform ${row.score.toFixed(1)}` : `${row.name}. Form 5 siste ${recentDeltaLabel}`)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
+                    <g class="team-score-diagram-point" tabindex="0" aria-label="${escapeHtml(isTotal ? `${row.name}. Sesong ${row.score.toFixed(1)}` : `${row.name}. Nå ${recentDeltaLabel}`)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
                         <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
                         <g class="team-score-diagram-tooltip" transform="translate(${tooltipX} ${tooltipY})">
                             <rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
                             <text x="12" y="19" class="team-score-diagram-tooltip-name">${escapeHtml(row.name)}</text>
                             <text x="12" y="38" class="team-score-diagram-tooltip-meta">
-                                <tspan>${isTotal ? 'Sesongform' : 'Form 5 siste'}</tspan>
+                                <tspan>${isTotal ? 'Sesong' : 'Nå vs sesong'}</tspan>
                                 <tspan class="team-score-diagram-tooltip-value ${tooltipValueClass}" dx="6">${isTotal ? row.score.toFixed(1) : recentDeltaLabel}</tspan>
                             </text>
                         </g>
@@ -2764,13 +2803,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="team-score-diagram-card">
                     <div class="team-score-diagram-topbar">
                         <div class="team-score-diagram-tabs">
-                            <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}">Total score</button>
-                            <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}">5 siste score</button>
+                            <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}">Sesong</button>
+                            <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}">Nå</button>
                         </div>
                     </div>
 
                     <div class="team-score-diagram-scroll">
-                        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${isTotal ? 'Total score' : '5 siste score'} diagram" class="team-score-diagram-svg">
+                        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${isTotal ? 'Sesong' : 'Nå'} diagram" class="team-score-diagram-svg">
                             <rect x="0" y="0" width="${width}" height="${height}" class="team-score-diagram-bg"></rect>
                             ${gridX.map(tick => `
                                 <g>
@@ -2943,8 +2982,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.renderStatsSpillereSummary = function() {
             const summary = document.getElementById('stats-spillere-summary');
-            if (summary) summary.innerHTML = '';
-            if (window._statsSelectedPlayer) return;
+            if (!summary) return;
+            if (window._statsSelectedPlayer) {
+                summary.innerHTML = '';
+                return;
+            }
+
+            const statsData = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true })
+                : [];
+            summary.innerHTML = window.renderStatsSpillereSummaryCardsHtml(statsData);
 
             const diagramWrap = document.getElementById('team-score-diagram-wrap');
             if (diagramWrap && typeof window.renderTeamScoreDiagramHtml === 'function') {
@@ -3066,7 +3113,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <div class="stats-chrome-badge">
                         <span>Snitt ${avgPoints ? avgPoints.toFixed(1) : '-'}</span>
                         <span class="stats-chrome-badge-sep">·</span>
-                        <span>Form ${chemistry}/100</span>
+                        <span>Form (nå) ${chemistry}/100</span>
                     </div>
                 `,
                 `<p class="stats-chrome-subtitle">${escapeStatisticsHtml(player.pos1 || 'Spiller')} · ${escapeStatisticsHtml(player.spillerLag || '')} · ${escapeStatisticsHtml(formComparison)}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}</p>`
@@ -3217,9 +3264,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
         
         window.STATS_PLAYER_SORT_OPTIONS = [
-            { id: 'totalScore', label: 'Total', icon: 'fa-ranking-star' },
+            { id: 'totalScore', label: 'Sesong', icon: 'fa-ranking-star' },
             { id: 'kampbonus', label: 'Kampbidrag', icon: 'fa-chart-line' },
-            { id: 'kjemi', label: 'Form', icon: 'fa-heart-pulse' },
+            { id: 'kjemi', label: 'Form (nå)', icon: 'fa-heart-pulse' },
             { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
@@ -3379,9 +3426,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             `;
 
-            const summary = document.getElementById('stats-spillere-summary');
-            if (summary) summary.innerHTML = '';
-
+            window.renderStatsSpillereSummary();
             window.renderPlayerStatsList();
         };
 
@@ -3456,10 +3501,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : [];
             const playerTotalStat = playerStatsData.find(stat => stat.navn === playerName);
             const totalRank = playerTotalStat
-                ? [...playerStatsData]
-                    .filter(stat => window.playerStatsRelevantForSort(stat, 'totalScore'))
-                    .sort((a, b) => b.totalScore - a.totalScore)
-                    .findIndex(stat => stat.navn === playerName) + 1
+                ? (() => {
+                    const relevant = playerStatsData.filter(stat =>
+                        window.playerStatsRelevantForSort(stat, 'totalScore')
+                    );
+                    const playerScore = Number(playerTotalStat.totalScore) || 0;
+                    const betterCount = relevant.filter(stat =>
+                        (Number(stat.totalScore) || 0) > playerScore
+                    ).length;
+                    return betterCount + 1;
+                })()
                 : 0;
             const totalScoreText = playerTotalStat && playerTotalStat.totalScore > 0
                 ? playerTotalStat.totalScore.toFixed(1)
@@ -3483,10 +3534,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </button>
 
                     <div class="stats-metric-grid is-four">
-                        ${card('Form', chemistry + '/100', 'Nylig kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
+                        ${card('Form (nå)', chemistry + '/100', 'Beste nå — nylig kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
                         ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
-                        ${card('Total plassering', totalRank > 0 ? `#${totalRank}` : '-', 'Rangert etter total score', 'fa-ranking-star', 'text-bsk-blue')}
-                        ${card('Total score', totalScoreText, '50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin (kun med kamp)', 'fa-gauge-high', 'text-bsk-blue')}
+                        ${card('Plassering (sesong)', totalRank > 0 ? String(totalRank) : '-', 'Beste sesong — rangert etter Total Score', 'fa-ranking-star', 'text-bsk-blue')}
+                        ${card('Total score (sesong)', totalScoreText, 'Beste sesong: 50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin', 'fa-gauge-high', 'text-bsk-blue')}
                     </div>
 
                     <div class="stats-panel stats-player-chart-panel">

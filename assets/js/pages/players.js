@@ -882,6 +882,13 @@ window.renderPlayerProfilePage = function(playerId) {
     }
 
     const rankOf = (column) => getPlayerProfileStatRank(player.navn, column, rankRows);
+    const formRank = rankOf('kjemi');
+    const formHorizonValue = formComponents.total > 0
+        ? `Form ${formComponents.total}/100${formRank ? ` · ${formRank}. plass` : ''}`
+        : '—';
+    const seasonHorizonValue = totalRank > 0
+        ? `${totalRank}. plass${totalScore !== '-' ? ` · ${totalScore}` : ''}`
+        : '—';
 
     const formToneClass = formTone === 'green' ? 'is-green' : formTone === 'red' ? 'is-red' : formTone === 'amber' ? 'is-amber' : 'is-muted';
 
@@ -904,8 +911,8 @@ window.renderPlayerProfilePage = function(playerId) {
                     <h1 class="player-profile-page-name">${escapeRosterHtml(player.navn)}${captainMark}</h1>
                     <p class="player-profile-page-subtitle">${escapeRosterHtml(posLabel)} · ${escapeRosterHtml(player.spillerLag || window.getPrimaryTeamName())}</p>
                     <div class="player-profile-page-form-row">
-                        <span class="player-profile-form-chip ${formToneClass}" title="${escapeRosterHtml(formComparison)}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}">
-                            Form ${escapeRosterHtml(form)}/100
+                        <span class="player-profile-form-chip ${formToneClass}" title="Form (nå): ${escapeRosterHtml(formComparison)}${teamMedian > 0 ? ` (${teamMedian} median)` : ''}">
+                            Form (nå) ${escapeRosterHtml(form)}/100
                         </span>
                         <span class="player-profile-form-note">${escapeRosterHtml(formComparison)}${teamMedian > 0 ? ` · median ${teamMedian}` : ''}</span>
                     </div>
@@ -951,29 +958,47 @@ window.renderPlayerProfilePage = function(playerId) {
             <div class="player-profile-panel-header">
                 <div class="min-w-0">
                     <h2 class="player-profile-panel-title">Sesong i tall</h2>
-                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · kamp, oppmøte og disiplin</p>
+                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Beste sesong = Total Score · Beste nå = Form</p>
                 </div>
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>
+            <div class="player-profile-horizon-strip" aria-label="Sesong og nå">
+                <div class="player-profile-horizon-item is-season">
+                    <span class="player-profile-horizon-label">Beste sesong</span>
+                    <span class="player-profile-horizon-value">${escapeRosterHtml(seasonHorizonValue)}</span>
+                </div>
+                <div class="player-profile-horizon-item is-now">
+                    <span class="player-profile-horizon-label">Beste nå</span>
+                    <span class="player-profile-horizon-value">${escapeRosterHtml(formHorizonValue)}</span>
+                </div>
+            </div>
             <div class="player-profile-stat-grid">
-                ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? String(totalRank) : '-')}
+                ${buildPlayerProfileStatChipHtml('Plassering (sesong)', totalRank > 0 ? String(totalRank) : '-', {
+                    title: 'Rangert etter Total Score for sesongen'
+                })}
                 ${buildPlayerProfileStatChipHtml('Kamper', kamper, { rank: rankOf('kamper') })}
                 ${buildPlayerProfileStatChipHtml('Mål', mal, { rank: rankOf('mal') })}
                 ${buildPlayerProfileStatChipHtml('Assist', assist, { rank: rankOf('assist') })}
                 ${buildPlayerProfileStatChipHtml('Gule kort', gule, { rank: rankOf('gule') })}
                 ${buildPlayerProfileStatChipHtml('Røde kort', rode, { rank: rankOf('rode') })}
-                ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-', { rank: rankOf('kjemi') })}
+                ${buildPlayerProfileStatChipHtml('Form (nå)', formComponents.total > 0 ? `${formComponents.total}/100` : '-', {
+                    title: 'Form akkurat nå — siste kamper, ikke hele sesongen',
+                    rank: rankOf('kjemi')
+                })}
                 ${buildPlayerProfileStatChipHtml('Børs', snittBors, { rank: rankOf('snittBors') })}
                 ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, { rank: rankOf('kampbonus') })}
-                ${buildPlayerProfileStatChipHtml('Total score', totalScore, { rank: rankOf('totalScore') })}
+                ${buildPlayerProfileStatChipHtml('Total score (sesong)', totalScore, {
+                    title: 'Sesonghelhet: 50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin',
+                    rank: rankOf('totalScore')
+                })}
                 ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, { rank: rankOf('oppmotePct') })}
                 ${buildPlayerProfileStatChipHtml('Banens beste', bb, { rank: rankOf('bb') })}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
-                    title: 'Total spilletid / snitt per kamp med registrert spilletid',
+                    title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
                     rank: rankOf('minutesTotal')
                 })}
                 ${buildPlayerProfileStatChipHtml('Minuttandel', minuttandel, {
-                    title: 'Spilte minutter / mulige minutter (kamper i troppen med spilletid × kamplengde)',
+                    title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
                     rank: rankOf('minutesSharePct')
                 })}
             </div>

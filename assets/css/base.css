@@ -6329,6 +6329,47 @@
             gap: 0.55rem;
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }
+        .player-profile-horizon-strip {
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-bottom: 0.75rem;
+        }
+        .player-profile-horizon-item {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 0;
+            padding: 0.7rem 0.75rem;
+        }
+        .player-profile-horizon-item.is-season {
+            border-color: rgba(245, 197, 66, 0.28);
+        }
+        .player-profile-horizon-item.is-now {
+            border-color: rgba(16, 185, 129, 0.28);
+        }
+        .player-profile-horizon-label {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .player-profile-horizon-value {
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        @media (max-width: 640px) {
+            .player-profile-horizon-strip {
+                grid-template-columns: 1fr;
+            }
+        }
         .player-profile-stat-chip {
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -7243,6 +7284,28 @@
         .stats-board-card .stats-player-list {
             min-width: 0;
             max-width: 100%;
+        }
+        .stats-board-card .stats-best-player-card {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .stats-board-card .stats-best-player-card.is-season {
+            border-color: rgba(245, 197, 66, 0.28);
+        }
+        .stats-board-card .stats-best-player-card.is-now {
+            border-color: rgba(16, 185, 129, 0.28);
+        }
+        .stats-board-card button.stats-best-player-card.is-clickable:hover {
+            background: rgba(245, 197, 66, 0.12);
+        }
+        .stats-board-card .stats-best-player-eyebrow {
+            color: rgba(255, 255, 255, 0.55);
+        }
+        .stats-board-card .stats-best-player-name {
+            color: #ffffff;
+        }
+        .stats-board-card .stats-best-player-meta {
+            color: rgba(255, 255, 255, 0.72);
         }
         .stats-board-card .team-score-diagram-scroll {
             max-width: 100%;
@@ -9198,6 +9261,71 @@
             gap: 0.45rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             width: 100%;
+        }
+        .stats-best-player-horizons {
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-bottom: 0.85rem;
+            width: 100%;
+        }
+        .stats-best-player-card {
+            align-items: flex-start;
+            background: rgba(11, 43, 76, 0.04);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+            padding: 0.75rem 0.85rem;
+            text-align: left;
+        }
+        .stats-best-player-card.is-season {
+            border-color: rgba(245, 197, 66, 0.4);
+        }
+        .stats-best-player-card.is-now {
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        button.stats-best-player-card.is-clickable {
+            appearance: none;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+            width: 100%;
+        }
+        button.stats-best-player-card.is-clickable:hover {
+            background: rgba(245, 197, 66, 0.1);
+            transform: translateY(-1px);
+        }
+        .stats-best-player-eyebrow {
+            color: rgba(11, 43, 76, 0.55);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .stats-best-player-name {
+            color: #0b2b4c;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .stats-best-player-meta {
+            color: rgba(11, 43, 76, 0.72);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        @media (max-width: 640px) {
+            .stats-best-player-horizons {
+                grid-template-columns: 1fr;
+            }
         }
         .stats-spillere-summary-card {
             min-width: 0;

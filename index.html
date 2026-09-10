@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260910-profile-stat-ranks-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260910-season-now-horizons-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -353,7 +353,7 @@
                     </div>
 
                     <footer class="match-detail-footer stats-board-bottomline relative z-10">
-                        <p>Form, oppmøte og kampdata samlet på ett sted.</p>
+                        <p>Beste sesong (Total Score) og Beste nå (Form) — spilletid er forklaring.</p>
                         <span class="roster-bottomline-title">Statistikk</span>
                     </footer>
                 </section>
@@ -1161,18 +1161,18 @@
             
             <div class="p-6 space-y-6 text-sm">
                 <p class="text-base text-slate-300">
-                    <strong class="text-white">Form (0–100)</strong> viser hvordan spilleren har vært <strong class="text-white">i det siste</strong> — ikke hele sesongen.
-                    Den bygger på tre deler: kampbidrag, oppmøte og disiplin.
+                    <strong class="text-white">Form (0–100)</strong> er <strong class="text-white">Beste nå</strong> — hvordan spilleren har vært <strong class="text-white">i det siste</strong>.
+                    Den er noe annet enn <strong class="text-white">Total Score</strong>, som er <strong class="text-white">Beste sesong</strong>.
                 </p>
 
                 <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
                     <strong class="block text-emerald-400 mb-2">Kort sagt</strong>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
-                        <li><strong class="text-white">Kampbidrag</strong> inntil 70 poeng — siste 5 kamper, nyeste teller mest</li>
-                        <li><strong class="text-white">Oppmøte</strong> inntil 20 poeng — siste 8 aktiviteter</li>
-                        <li><strong class="text-white">Disiplin</strong> inntil 10 poeng — kan trekkes for karantener og røde kort</li>
+                        <li><strong class="text-white">Beste sesong</strong> = Total Score (kampbidrag, børs, oppmøte, disiplin)</li>
+                        <li><strong class="text-white">Beste nå</strong> = Form (kampbidrag inntil 70 · oppmøte 20 · disiplin 10)</li>
+                        <li><strong class="text-white">Spilletid / minuttandel</strong> er forklarende statistikk — ikke del av Beste sesong eller Beste nå</li>
                     </ul>
-                    <p class="mt-3 text-slate-400 text-[12px]">Uten minst én registrert kamp blir Form grå (0). Form er noe annet enn Total score på spillerkortet.</p>
+                    <p class="mt-3 text-slate-400 text-[12px]">Form bygger på siste 5 kamper (nyeste teller mest), siste 8 aktiviteter for oppmøte, og disiplin. Uten minst én registrert kamp blir Form grå (0).</p>
                 </div>
 
                 <div>
@@ -1353,10 +1353,10 @@
     <script src="assets/js/domain/samspill.js?v=20260821-451-samspill-v1"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
-    <script src="assets/js/pages/players.js?v=20260910-profile-stat-ranks-v3"></script>
+    <script src="assets/js/pages/players.js?v=20260910-season-now-horizons-v1"></script>
     <script src="assets/js/pages/matches.js?v=20260910-most-minutes-popup-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
-    <script src="assets/js/pages/statistics.js?v=20260910-info-btn-unify-v1"></script>
+    <script src="assets/js/pages/statistics.js?v=20260910-season-now-horizons-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260910-minutes-source-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260909-oppmote-range-v1"></script>
