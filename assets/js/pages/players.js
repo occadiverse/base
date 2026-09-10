@@ -832,10 +832,8 @@ window.renderPlayerProfilePage = function(playerId) {
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
-    const guleSerie = stats ? String(stats.guleSerie || 0) : '0';
-    const guleCup = stats ? String(stats.guleCup || 0) : '0';
-    const rodeSerie = stats ? String(stats.rodeSerie || 0) : '0';
-    const rodeCup = stats ? String(stats.rodeCup || 0) : '0';
+    const gule = stats ? String((stats.guleSerie || 0) + (stats.guleCup || 0)) : '0';
+    const rode = stats ? String((stats.rodeSerie || 0) + (stats.rodeCup || 0)) : '0';
     const bb = stats ? String(stats.bb || 0) : '0';
     const totalScore = stats && stats.totalScore > 0 ? String(stats.totalScore) : '-';
 
@@ -922,23 +920,21 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>
             <div class="player-profile-stat-grid">
+                ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? `#${totalRank}` : '-')}
+                ${buildPlayerProfileStatChipHtml('Kamper', kamper)}
+                ${buildPlayerProfileStatChipHtml('Mål', mal)}
+                ${buildPlayerProfileStatChipHtml('Assist', assist)}
+                ${buildPlayerProfileStatChipHtml('Gule kort', gule)}
+                ${buildPlayerProfileStatChipHtml('Røde kort', rode)}
                 ${buildPlayerProfileStatChipHtml('Form', formComponents.total > 0 ? `${formComponents.total}/100` : '-')}
                 ${buildPlayerProfileStatChipHtml('Børs', snittBors)}
                 ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag)}
                 ${buildPlayerProfileStatChipHtml('Total score', totalScore)}
-                ${buildPlayerProfileStatChipHtml('Kamper', kamper)}
-                ${buildPlayerProfileStatChipHtml('Mål', mal)}
-                ${buildPlayerProfileStatChipHtml('Assist', assist)}
                 ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote)}
                 ${buildPlayerProfileStatChipHtml('Banens beste', bb)}
-                ${buildPlayerProfileStatChipHtml('Gule (serie)', guleSerie)}
-                ${buildPlayerProfileStatChipHtml('Gule (cup)', guleCup)}
-                ${buildPlayerProfileStatChipHtml('Røde (serie)', rodeSerie)}
-                ${buildPlayerProfileStatChipHtml('Røde (cup)', rodeCup)}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
                     title: 'Total spilletid / snitt per kamp med registrert spilletid'
                 })}
-                ${buildPlayerProfileStatChipHtml('Plassering', totalRank > 0 ? `#${totalRank}` : '-')}
             </div>
         </section>
 
