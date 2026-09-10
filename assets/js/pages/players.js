@@ -883,12 +883,12 @@ window.renderPlayerProfilePage = function(playerId) {
 
     const rankOf = (column) => getPlayerProfileStatRank(player.navn, column, rankRows);
     const formRank = rankOf('kjemi');
+    const seasonHorizonValue = totalScore !== '-'
+        ? `${totalScore}${totalRank > 0 ? ` · ${totalRank}. plass` : ''}`
+        : (totalRank > 0 ? `${totalRank}. plass` : '—');
     const formHorizonValue = formComponents.total > 0
-        ? `Form ${formComponents.total}/100${formRank ? ` · ${formRank}. plass` : ''}`
-        : '—';
-    const seasonHorizonValue = totalRank > 0
-        ? `${totalRank}. plass${totalScore !== '-' ? ` · ${totalScore}` : ''}`
-        : '—';
+        ? `${formComponents.total}${formRank ? ` · ${formRank}. plass` : ''}`
+        : (formRank ? `${formRank}. plass` : '—');
 
     const formToneClass = formTone === 'green' ? 'is-green' : formTone === 'red' ? 'is-red' : formTone === 'amber' ? 'is-amber' : 'is-muted';
 
@@ -981,16 +981,8 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileStatChipHtml('Assist', assist, { rank: rankOf('assist') })}
                 ${buildPlayerProfileStatChipHtml('Gule kort', gule, { rank: rankOf('gule') })}
                 ${buildPlayerProfileStatChipHtml('Røde kort', rode, { rank: rankOf('rode') })}
-                ${buildPlayerProfileStatChipHtml('Form (nå)', formComponents.total > 0 ? `${formComponents.total}/100` : '-', {
-                    title: 'Form akkurat nå — siste kamper, ikke hele sesongen',
-                    rank: rankOf('kjemi')
-                })}
                 ${buildPlayerProfileStatChipHtml('Børs', snittBors, { rank: rankOf('snittBors') })}
                 ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, { rank: rankOf('kampbonus') })}
-                ${buildPlayerProfileStatChipHtml('Total score (sesong)', totalScore, {
-                    title: 'Sesonghelhet: 50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin',
-                    rank: rankOf('totalScore')
-                })}
                 ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, { rank: rankOf('oppmotePct') })}
                 ${buildPlayerProfileStatChipHtml('Banens beste', bb, { rank: rankOf('bb') })}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
