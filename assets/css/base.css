@@ -9464,6 +9464,19 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 0.75rem;
             padding: 0.5rem 0.55rem;
+            text-align: left;
+            width: 100%;
+        }
+        button.stats-kamp-summary-fact.is-clickable {
+            cursor: pointer;
+            transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+        }
+        button.stats-kamp-summary-fact.is-clickable:hover,
+        button.stats-kamp-summary-fact.is-clickable:focus-visible {
+            background: rgba(245, 197, 66, 0.12);
+            border-color: rgba(245, 197, 66, 0.34);
+            outline: none;
+            transform: translateY(-1px);
         }
         .stats-kamp-summary-fact span {
             color: rgba(255, 255, 255, 0.55);
@@ -9479,6 +9492,22 @@
             font-size: 0.82rem;
             font-weight: 950;
             word-break: break-word;
+        }
+        .match-summary-players-list {
+            color: #ffffff;
+            display: grid;
+            gap: 0.4rem;
+            list-style: none;
+            margin: 0;
+            padding: 0 0.15rem 0.35rem;
+        }
+        .match-summary-players-list li {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.7rem;
+            font-size: 0.88rem;
+            font-weight: 800;
+            padding: 0.55rem 0.7rem;
         }
         .stats-kamp-summary-grid {
             display: grid;

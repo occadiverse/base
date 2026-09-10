@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260910-match-summary-panel-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260910-most-minutes-popup-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -698,6 +698,21 @@
         </div>
     </div>
 
+    <div id="matchSummaryPlayersModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4" onclick="if (event.target === this) window.closeMatchSummaryMostMinutesPopup()">
+        <div class="bsk-modal-card w-full max-w-sm relative space-y-3" role="dialog" aria-modal="true" aria-labelledby="matchSummaryPlayersTitle">
+            <div class="bsk-modal-header">
+                <h3 id="matchSummaryPlayersTitle" class="bsk-modal-title">
+                    <i class="fa-solid fa-stopwatch text-bsk-yellow"></i>
+                    Mest spilletid
+                </h3>
+                <button type="button" onclick="window.closeMatchSummaryMostMinutesPopup()" class="bsk-btn bsk-btn-icon bsk-btn-secondary bsk-modal-close" title="Lukk" aria-label="Lukk">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <ul id="matchSummaryPlayersList" class="match-summary-players-list"></ul>
+        </div>
+    </div>
+
     <div id="matchModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="bsk-modal-card w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
             <div class="bsk-modal-header">
@@ -1331,7 +1346,7 @@
     </div>
 
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
-    <script src="assets/js/components/modals.js?v=20260908-live-setpiece-preview-v1"></script>
+    <script src="assets/js/components/modals.js?v=20260910-most-minutes-popup-v1"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20260908-live-playing-time-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20260820-spiller-year-v1"></script>
@@ -1339,9 +1354,9 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20260910-minuttandel-v1"></script>
-    <script src="assets/js/pages/matches.js?v=20260910-match-summary-panel-v1"></script>
+    <script src="assets/js/pages/matches.js?v=20260910-most-minutes-popup-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
-    <script src="assets/js/pages/statistics.js?v=20260910-match-summary-panel-v1"></script>
+    <script src="assets/js/pages/statistics.js?v=20260910-production-no-mins-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260910-minutes-source-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260909-oppmote-range-v1"></script>

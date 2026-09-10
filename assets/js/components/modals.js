@@ -316,7 +316,7 @@ document.getElementById('confirmNoBtn').onclick = function() {
 };
 
 window.onclick = function(event) {
-    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'autofill-info-modal', 'live-setpiece-preview-modal', 'activityModal', 'tacticalPlayerModal'];
+    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'autofill-info-modal', 'live-setpiece-preview-modal', 'activityModal', 'tacticalPlayerModal', 'matchSummaryPlayersModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
@@ -330,6 +330,9 @@ window.onclick = function(event) {
             if (modalId === 'dashboardAlertModal') window.closeDashboardAlertModal();
             if (modalId === 'activityModal') window.closeActivityModal();
             if (modalId === 'tacticalPlayerModal') window.closePlayerSelect();
+            if (modalId === 'matchSummaryPlayersModal' && typeof window.closeMatchSummaryMostMinutesPopup === 'function') {
+                window.closeMatchSummaryMostMinutesPopup();
+            }
             if (modalId === 'kjemi-info-modal') {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');

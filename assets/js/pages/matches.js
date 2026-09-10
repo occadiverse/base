@@ -25,7 +25,7 @@ function bindMatchListEvents() {
             const action = actionEl.dataset.matchAction;
             const matchId = actionEl.dataset.matchId;
 
-            if (action === 'edit' || action === 'alert' || action === 'attendance' || action === 'tactics') {
+            if (action === 'edit' || action === 'alert' || action === 'attendance' || action === 'tactics' || action === 'most-minutes-list') {
                 event.stopPropagation();
             }
 
@@ -40,6 +40,13 @@ function bindMatchListEvents() {
             if (action === 'toggle-past-year') {
                 event.stopPropagation();
                 togglePastMatchYearGroup(actionEl);
+                return;
+            }
+
+            if (action === 'most-minutes-list') {
+                if (typeof window.showMatchSummaryMostMinutesPopup === 'function') {
+                    window.showMatchSummaryMostMinutesPopup(actionEl);
+                }
                 return;
             }
 
@@ -5005,6 +5012,40 @@ function restorePortalMainScroll(scrollTop) {
         host.scrollTop = scrollTop;
     });
 }
+
+window.showMatchSummaryMostMinutesPopup = function(triggerEl) {
+    const modal = document.getElementById('matchSummaryPlayersModal');
+    const titleEl = document.getElementById('matchSummaryPlayersTitle');
+    const listEl = document.getElementById('matchSummaryPlayersList');
+    if (!modal || !titleEl || !listEl) return;
+
+    let names = [];
+    try {
+        names = JSON.parse(decodeURIComponent(triggerEl?.dataset?.names || '%5B%5D'));
+    } catch (error) {
+        names = [];
+    }
+    if (!Array.isArray(names)) names = [];
+
+    const minutes = Math.max(0, Math.floor(Number(triggerEl?.dataset?.minutes) || 0));
+    titleEl.textContent = minutes > 0
+        ? `Mest spilletid · ${minutes}'`
+        : 'Mest spilletid';
+
+    listEl.innerHTML = names.length
+        ? names.map(name => `<li>${escapeMatchHtml(name)}</li>`).join('')
+        : '<li>Ingen spillere</li>';
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.closeMatchSummaryMostMinutesPopup = function() {
+    const modal = document.getElementById('matchSummaryPlayersModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+};
 
 window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
     if (!match) return '';

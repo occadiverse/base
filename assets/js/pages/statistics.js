@@ -3606,6 +3606,31 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
         };
 
+        window.isMatchSummaryKeeperPlayer = function(match, playerObj) {
+            if (!playerObj) return false;
+            const pos = String(playerObj.pos1 || '').trim().toLowerCase();
+            if (pos === 'keeper' || pos.includes('keeper')) return true;
+
+            const gkRefs = [
+                match?.lineupRefs?.GK,
+                match?.lineup?.GK,
+                typeof window.liveLineup === 'object' ? window.liveLineup?.GK : null
+            ].filter(Boolean);
+
+            return gkRefs.some(ref => {
+                const gkPlayer = typeof ref === 'object'
+                    ? ref
+                    : (typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(ref) : ref);
+                if (!gkPlayer) return false;
+                if (typeof window.playerRefMatches === 'function') {
+                    return window.playerRefMatches(gkPlayer, playerObj) || window.playerRefMatches(ref, playerObj);
+                }
+                const a = playerObj.id || playerObj.navn;
+                const b = gkPlayer.id || gkPlayer.navn || gkPlayer;
+                return a && b && String(a) === String(b);
+            });
+        };
+
         window.buildMatchSummaryStatsFromMatch = function(match) {
             if (!match) {
                 return {
@@ -3667,6 +3692,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
                     ? window.calculatePlayerMatchPoints(match, playerObj, true)
                     : { total: 0, onPitch: true };
+                const isKeeper = window.isMatchSummaryKeeperPlayer(match, playerObj);
 
                 return {
                     id: playerObj.id || '',
@@ -3678,6 +3704,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     red,
                     minutes,
                     isBbInMatch,
+                    isKeeper,
                     onPitch: pointsDetails.onPitch !== false,
                     points: pointsDetails.total || 0
                 };
@@ -3731,10 +3758,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const withMinutes = rows
                 .filter(s => s.minutes != null && s.minutes > 0)
                 .sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, 'nb'));
+            const outfieldMinutes = withMinutes.filter(s => !s.isKeeper);
             const full = withMinutes.filter(s => s.minutes >= 80);
             const rotation = withMinutes.filter(s => s.minutes >= 30 && s.minutes < 80);
             const shortSubs = withMinutes.filter(s => s.minutes < 30);
-            const mostMinutes = withMinutes[0] || null;
+            const maxMinutes = outfieldMinutes.length
+                ? Math.max(...outfieldMinutes.map(s => Number(s.minutes) || 0))
+                : 0;
+            const mostMinutesPlayers = maxMinutes > 0
+                ? outfieldMinutes.filter(s => s.minutes === maxMinutes)
+                : [];
             const bb = rows.find(s => s.isBbInMatch) || null;
             const scorers = rows
                 .filter(s => (Number(s.goals) || 0) > 0)
@@ -3747,12 +3780,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'nb'))
                 .slice(0, 3);
 
-            const listNames = (rows, valueKey) => rows.map(row => {
+            const listNames = (listRows, valueKey) => listRows.map(row => {
                 const value = Number(row[valueKey]) || 0;
-                const mins = row.minutes != null && row.minutes > 0 ? ` · ${row.minutes}'` : '';
-                return valueKey === 'minutes'
-                    ? `${row.name} ${row.minutes}'`
-                    : `${row.name} (${value}${mins})`;
+                return `${row.name} (${value})`;
             }).join(', ');
 
             const storyParts = [];
@@ -3851,10 +3881,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <span>Banens beste</span>
                             <strong>${bb ? escapeStatisticsHtml(bb.name) : '–'}</strong>
                         </div>
+                        ${mostMinutesPlayers.length ? `
+                        <button
+                            type="button"
+                            class="stats-kamp-summary-fact is-clickable"
+                            data-match-action="most-minutes-list"
+                            data-minutes="${maxMinutes}"
+                            data-names="${encodeURIComponent(JSON.stringify(mostMinutesPlayers.map(s => s.name)))}"
+                            title="Vis spillere med mest spilletid"
+                            aria-label="Vis spillere med mest spilletid"
+                        >
+                            <span>Mest spilletid</span>
+                            <strong>${mostMinutesPlayers.length === 1
+                                ? escapeStatisticsHtml(`${mostMinutesPlayers[0].name} ${maxMinutes}'`)
+                                : escapeStatisticsHtml(`${mostMinutesPlayers.length} spillere ${maxMinutes}'`)}</strong>
+                        </button>
+                        ` : `
                         <div class="stats-kamp-summary-fact">
                             <span>Mest spilletid</span>
-                            <strong>${mostMinutes ? escapeStatisticsHtml(`${mostMinutes.name} ${mostMinutes.minutes}'`) : '–'}</strong>
+                            <strong>–</strong>
                         </div>
+                        `}
                     </div>
                     <div class="stats-kamp-summary-grid">
                         ${block('Produksjon', [
