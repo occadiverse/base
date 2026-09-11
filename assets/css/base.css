@@ -7509,8 +7509,14 @@
         .stats-board-card .team-score-diagram-initials {
             fill: rgba(255, 255, 255, 0.82);
         }
-        .stats-board-card .team-score-diagram-point circle {
+        .stats-board-card .team-score-diagram-point.is-overlap-group .team-score-diagram-initials.is-group-count {
+            fill: #f5c542;
+        }
+        .stats-board-card .team-score-diagram-point circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring) {
             stroke: rgba(245, 197, 66, 0.76);
+        }
+        .stats-board-card .team-score-diagram-overlap-ring {
+            stroke: #f5c542;
         }
         .stats-board-card .stats-form-jersey {
             background: rgba(7, 31, 56, 0.52);
@@ -8825,17 +8831,30 @@
             cursor: pointer;
             outline: none;
         }
-        .team-score-diagram-point circle {
+        .team-score-diagram-hit-area {
+            pointer-events: all;
+        }
+        .team-score-diagram-point circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring) {
             transition: opacity 150ms ease, stroke-width 150ms ease, transform 150ms ease;
             transform-box: fill-box;
             transform-origin: center;
         }
-        .team-score-diagram-point:hover circle,
-        .team-score-diagram-point:focus circle,
-        .team-score-diagram-point.is-active circle {
+        .team-score-diagram-point:hover circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring),
+        .team-score-diagram-point:focus circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring),
+        .team-score-diagram-point.is-active circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring) {
             opacity: 1;
             stroke-width: 2.5;
             transform: scale(1.18);
+        }
+        .team-score-diagram-overlap-ring {
+            pointer-events: none;
+            stroke: #f5c542;
+            stroke-dasharray: 3 2;
+            stroke-width: 1.5;
+        }
+        .team-score-diagram-point.is-overlap-group .team-score-diagram-initials.is-group-count {
+            fill: #f5c542;
+            font-size: 11px;
         }
         .team-score-diagram-tooltip {
             opacity: 0;
@@ -8866,6 +8885,8 @@
             font-weight: 800;
         }
         .team-score-diagram-tooltip-value {
+            font-family: Inter, sans-serif;
+            font-size: 11px;
             font-weight: 950;
         }
         .team-score-diagram-tooltip-value.is-season {

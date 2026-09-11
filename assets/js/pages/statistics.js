@@ -2556,11 +2556,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ${isTotal ? `
                         <li><strong>Sesong:</strong> Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
                         <li>Boblen viser Total Score (beste sesong) — kampbidrag, børs, oppmøte og disiplin. Spilletid inngår ikke.</li>
-                        <li>Kilde: spillerstatistikken. Begge akser bruker tall som allerede finnes på spillerfanen.</li>
+                        <li>Trykk på en boble for navn og score. Gul ring / tall betyr flere spillere på samme sted — da listes alle.</li>
                     ` : `
                         <li><strong>Nå:</strong> Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
                         <li>Boblen viser nylig score vs egen Total Score. Grønn boble er over egen sesongscore, rød boble er under.</li>
-                        <li>Form (Beste nå) er den separate 0–100-scoren basert på siste kamper — ikke det samme som Total Score.</li>
+                        <li>Trykk på en boble for alle navn hvis flere ligger oppå hverandre. Form (Beste nå) er egen 0–100-score.</li>
                     `}
                 </ul>
             `;
@@ -2733,6 +2733,39 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
         };
 
+        window.groupStatsDiagramOverlapPoints = function(points) {
+            const items = Array.isArray(points) ? points : [];
+            const parent = items.map((_, index) => index);
+            const find = (index) => {
+                if (parent[index] === index) return index;
+                parent[index] = find(parent[index]);
+                return parent[index];
+            };
+            const unite = (a, b) => {
+                const rootA = find(a);
+                const rootB = find(b);
+                if (rootA !== rootB) parent[rootB] = rootA;
+            };
+
+            for (let i = 0; i < items.length; i += 1) {
+                for (let j = i + 1; j < items.length; j += 1) {
+                    const dx = items[i].pointX - items[j].pointX;
+                    const dy = items[i].pointY - items[j].pointY;
+                    const dist = Math.hypot(dx, dy);
+                    const limit = Math.max(items[i].radius, items[j].radius) + 6;
+                    if (dist <= limit) unite(i, j);
+                }
+            }
+
+            const groups = new Map();
+            items.forEach((item, index) => {
+                const root = find(index);
+                if (!groups.has(root)) groups.set(root, []);
+                groups.get(root).push(item);
+            });
+            return Array.from(groups.values());
+        };
+
         window.renderTeamScoreDiagramHtml = function() {
             const mode = window.statsScoreDiagramMode === 'five' ? 'five' : 'total';
             const isTotal = mode === 'total';
@@ -2764,36 +2797,80 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const gridY = isCompact ? [4, 5, 6, 7] : [4, 4.5, 5, 5.5, 6, 6.5, 7];
             const escapeHtml = window.escapeModalHtml || (value => String(value || ''));
 
-            const pointsHtml = rows.map(row => {
+            const prepared = rows.map(row => {
                 const radius = 4 + ((row.score - 20) / 65) * 3;
-                const fill = isTotal
-                    ? '#0b2b4c'
-                    : row.score >= row.totalScore ? '#00c853' : '#ff1744';
-                const stroke = '#ffffff';
-                const strokeWidth = 1.5;
                 const pointX = x(row.x);
                 const pointY = y(row.y);
-                const tooltipWidth = isCompact ? 142 : 160;
-                const tooltipHeight = 52;
-                const tooltipX = Math.max(8, Math.min(width - tooltipWidth - 8, pointX - (tooltipWidth / 2)));
-                const tooltipY = Math.max(8, pointY - radius - tooltipHeight - (isCompact ? 14 : 12));
                 const recentDelta = row.score - (row.totalScore || 0);
                 const recentDeltaLabel = `${recentDelta >= 0 ? '+' : '-'}${Math.abs(recentDelta).toFixed(1)}`;
-                const tooltipValueClass = isTotal
-                    ? 'is-season'
-                    : recentDelta >= 0 ? 'is-up' : 'is-down';
+                return {
+                    ...row,
+                    radius,
+                    pointX,
+                    pointY,
+                    recentDelta,
+                    recentDeltaLabel,
+                    displayValue: isTotal ? row.score.toFixed(1) : recentDeltaLabel,
+                    tooltipValueClass: isTotal
+                        ? 'is-season'
+                        : recentDelta >= 0 ? 'is-up' : 'is-down'
+                };
+            });
+
+            const overlapGroups = window.groupStatsDiagramOverlapPoints(prepared);
+            const pointsHtml = overlapGroups.map(group => {
+                const members = [...group].sort((a, b) =>
+                    (Number(b.score) || 0) - (Number(a.score) || 0) || String(a.name || '').localeCompare(String(b.name || ''), 'no')
+                );
+                const lead = members[0];
+                const isGroup = members.length > 1;
+                const pointX = members.reduce((sum, m) => sum + m.pointX, 0) / members.length;
+                const pointY = members.reduce((sum, m) => sum + m.pointY, 0) / members.length;
+                const radius = Math.max(...members.map(m => m.radius));
+                const hitRadius = Math.max(radius + (isGroup ? 10 : 8), isGroup ? 16 : 14);
+                const fill = isTotal
+                    ? '#0b2b4c'
+                    : lead.score >= lead.totalScore ? '#00c853' : '#ff1744';
+                const stroke = '#ffffff';
+                const strokeWidth = 1.5;
+                const rowHeight = 18;
+                const tooltipPadY = 14;
+                const tooltipWidth = isCompact ? 178 : 210;
+                const tooltipHeight = tooltipPadY + (members.length * rowHeight) + (isGroup ? 16 : 4);
+                const tooltipX = Math.max(8, Math.min(width - tooltipWidth - 8, pointX - (tooltipWidth / 2)));
+                const tooltipY = Math.max(8, pointY - hitRadius - tooltipHeight - (isCompact ? 10 : 8));
+                const labelText = isGroup
+                    ? String(members.length)
+                    : window.getStatsDiagramInitials(lead.name);
+                const ariaNames = members.map(m =>
+                    `${m.name} ${isTotal ? m.displayValue : m.recentDeltaLabel}`
+                ).join(', ');
+                const ariaLabel = isGroup
+                    ? `${members.length} spillere: ${ariaNames}`
+                    : (isTotal
+                        ? `${lead.name}. Sesong ${lead.displayValue}`
+                        : `${lead.name}. Nå ${lead.recentDeltaLabel}`);
+                const tooltipRows = members.map((member, index) => {
+                    const rowY = tooltipPadY + 4 + (index * rowHeight);
+                    return `
+                        <text x="12" y="${rowY}" class="team-score-diagram-tooltip-name">${escapeHtml(member.name)}</text>
+                        <text x="${tooltipWidth - 12}" y="${rowY}" text-anchor="end" class="team-score-diagram-tooltip-value ${member.tooltipValueClass}">${escapeHtml(member.displayValue)}</text>
+                    `;
+                }).join('');
+                const groupHint = isGroup
+                    ? `<text x="12" y="${tooltipHeight - 8}" class="team-score-diagram-tooltip-meta">${members.length} spillere på samme sted</text>`
+                    : '';
 
                 return `
-                    <g class="team-score-diagram-point" tabindex="0" aria-label="${escapeHtml(isTotal ? `${row.name}. Sesong ${row.score.toFixed(1)}` : `${row.name}. Nå ${recentDeltaLabel}`)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
-                        <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials">${escapeHtml(window.getStatsDiagramInitials(row.name))}</text>
+                    <g class="team-score-diagram-point${isGroup ? ' is-overlap-group' : ''}" tabindex="0" aria-label="${escapeHtml(ariaLabel)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
+                        <circle class="team-score-diagram-hit-area" cx="${pointX}" cy="${pointY}" r="${hitRadius}" fill="transparent" stroke="none"></circle>
+                        <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials${isGroup ? ' is-group-count' : ''}">${escapeHtml(labelText)}</text>
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
+                        ${isGroup ? `<circle cx="${pointX}" cy="${pointY}" r="${radius + 3.5}" class="team-score-diagram-overlap-ring" fill="none"></circle>` : ''}
                         <g class="team-score-diagram-tooltip" transform="translate(${tooltipX} ${tooltipY})">
                             <rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
-                            <text x="12" y="19" class="team-score-diagram-tooltip-name">${escapeHtml(row.name)}</text>
-                            <text x="12" y="38" class="team-score-diagram-tooltip-meta">
-                                <tspan>${isTotal ? 'Sesong' : 'Nå vs sesong'}</tspan>
-                                <tspan class="team-score-diagram-tooltip-value ${tooltipValueClass}" dx="6">${isTotal ? row.score.toFixed(1) : recentDeltaLabel}</tspan>
-                            </text>
+                            ${tooltipRows}
+                            ${groupHint}
                         </g>
                     </g>
                 `;
