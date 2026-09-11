@@ -150,46 +150,54 @@ function bindMatchStatsEvents() {
 
 const matchRatingGuide = {
     1: {
-        label: 'Katastrofalt',
-        description: 'Grove feil som førte til baklengs, tidlig rødt kort eller total mangel på innsats'
+        label: 'Katastrofe',
+        description: 'Ødela mer enn hen bidro',
+        points: -24
     },
     2: {
-        label: 'Svært svakt',
-        description: 'Involvert i baklengsmål, mange feilpasninger og fullstendig utspilt'
+        label: 'Svært svak',
+        description: 'Store feil, lite positivt',
+        points: -18
     },
     3: {
-        label: 'Svakt',
-        description: 'Kom aldri inn i kampen. Tapte de fleste dueller og slurvet mye'
+        label: 'Dårlig kamp',
+        description: 'Under nivå, mer minus enn pluss',
+        points: -12
     },
     4: {
-        label: 'Skuffende',
-        description: 'Slet med tempoet og posisjoneringen. Presterte merkbart under sitt vanlige nivå'
+        label: 'Under pari',
+        description: 'Ikke bra nok, men ikke helt borte',
+        points: -6
     },
     5: {
-        label: 'Under par',
-        description: 'Prøvde, men fikk det ikke helt til å stemme. Litt for mange feilvalg i dag'
+        label: 'Som forventet',
+        description: 'Nøytral. Gjorde jobben — verken pluss eller minus fra børsen',
+        points: 0
     },
     6: {
-        label: 'Godkjent',
-        tooltip: 'Godkjent. Gjorde jobben sin, stabil',
-        description: 'Stabil og godkjent. Gjorde det som forventes i posisjonen, uten store feil'
+        label: 'Solid pluss',
+        description: 'Noen gode aksjoner, over forventet',
+        points: 6
     },
     7: {
-        label: 'God kamp',
-        description: 'God kamp! Flere viktige involveringer, skapte sjanser eller holdt tett bakover'
+        label: 'Sterk kamp',
+        description: 'Tydelig bra, merket for laget',
+        points: 12
     },
     8: {
-        label: 'Banens beste-kandidat',
-        tooltip: 'Dominerende i banespillet og leverte avgjørende målpoeng/scoringer/redninger',
-        description: 'Dominerende i banespillet og leverte avgjørende målpoeng/scoringer/redninger'
+        label: 'Matchvinner',
+        description: 'Blant de beste — kampen ble bedre med hen',
+        points: 18
     },
     9: {
-        label: 'Særdeles god',
-        description: 'Helt outstanding. Hevet lagkameratene, gjorde knapt feil og herjet med motstanderen'
+        label: 'Eksepsjonelt',
+        description: 'Nesten alt satt, avgjorde retningen',
+        points: 24
     },
     10: {
-        label: 'Perfekt matchvinner',
-        description: 'Perfekt og historisk! Avgjorde kampen på egen hånd (f.eks. hat-trick eller total defensiv mur)'
+        label: 'Enestående',
+        description: 'Sesongnivå — den kampen man husker',
+        points: 30
     }
 };
 
@@ -197,21 +205,29 @@ function getMatchRatingGuideEntry(value) {
     return matchRatingGuide[Number(value)] || null;
 }
 
+function formatMatchRatingPointsLabel(points) {
+    const value = Number(points) || 0;
+    if (value > 0) return `+${value}`;
+    return String(value);
+}
+
 function formatMatchRatingHint(value) {
     const entry = getMatchRatingGuideEntry(value);
     if (!entry) return 'Ingen børs satt ennå';
 
-    return `${Number(value)}: ${entry.description}`;
+    return `${Number(value)} ${entry.label}: ${entry.description} (${formatMatchRatingPointsLabel(entry.points)} poeng)`;
 }
 
 function buildMatchRatingTooltipHtml(selectedRating) {
     return `
         <div class="match-rating-tooltip" role="tooltip">
             <div class="match-rating-tooltip-title">Spillerbørs</div>
+            <p class="match-rating-tooltip-lead">5 = nøytral (0 poeng). Hvert trinn over/under gir ±6 kamppoeng.</p>
             <div class="match-rating-tooltip-list">
-                ${[1,2,3,4,5,6,7,8,9,10].map(value => {
+                ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => {
                     const entry = getMatchRatingGuideEntry(value);
-                    const tooltipText = entry.tooltip || `${entry.label}. ${entry.description}`;
+                    const pointsLabel = formatMatchRatingPointsLabel(entry.points);
+                    const tooltipText = `${entry.label}. ${entry.description} (${pointsLabel} poeng)`;
                     return `
                         <button
                             type="button"
@@ -222,8 +238,8 @@ function buildMatchRatingTooltipHtml(selectedRating) {
                         >
                             <span class="match-rating-tooltip-score">${value}</span>
                             <span class="match-rating-tooltip-copy">
-                                <strong>${escapeMatchHtml(entry.label)}</strong>
-                                <span>${escapeMatchHtml(tooltipText)}</span>
+                                <strong>${escapeMatchHtml(entry.label)} <span class="match-rating-tooltip-points">${escapeMatchHtml(pointsLabel)}</span></strong>
+                                <span>${escapeMatchHtml(entry.description)}</span>
                             </span>
                         </button>
                     `;
