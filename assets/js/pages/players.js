@@ -958,17 +958,17 @@ window.renderPlayerProfilePage = function(playerId) {
             <div class="player-profile-panel-header">
                 <div class="min-w-0">
                     <h2 class="player-profile-panel-title">Sesong i tall</h2>
-                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Beste sesong = Total Score · Beste nå = Form</p>
+                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Total score = sesong · Form = nå</p>
                 </div>
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>
             <div class="player-profile-horizon-strip" aria-label="Sesong og nå">
                 <div class="player-profile-horizon-item is-season">
-                    <span class="player-profile-horizon-label">Beste sesong</span>
+                    <span class="player-profile-horizon-label">Total score - sesong</span>
                     <span class="player-profile-horizon-value">${escapeRosterHtml(seasonHorizonValue)}</span>
                 </div>
                 <div class="player-profile-horizon-item is-now">
-                    <span class="player-profile-horizon-label">Beste nå</span>
+                    <span class="player-profile-horizon-label">Form - nå</span>
                     <span class="player-profile-horizon-value">${escapeRosterHtml(formHorizonValue)}</span>
                 </div>
             </div>
