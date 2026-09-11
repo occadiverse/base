@@ -15740,7 +15740,7 @@
             display: grid;
             gap: 0.65rem 0.7rem;
             grid-template-columns: minmax(0, 1fr) auto auto;
-            padding: 0.55rem 0.7rem;
+            padding: 0.65rem 0.75rem;
             transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
             width: 100%;
         }
@@ -15760,7 +15760,7 @@
         .tactical-bench-player-main {
             align-items: center;
             display: flex;
-            gap: 0.55rem;
+            gap: 0.7rem;
             min-width: 0;
         }
         .tactical-bench-player-copy {
@@ -16015,10 +16015,11 @@
                     "main scores"
                     "buttons buttons";
                 grid-template-columns: minmax(0, 1fr) auto;
-                padding: 0.7rem 0.75rem;
+                padding: 0.75rem 0.8rem;
             }
             .tactical-bench-player-main {
                 grid-area: main;
+                gap: 0.75rem;
             }
             .tactical-bench-scores {
                 align-items: center;
@@ -16064,21 +16065,31 @@
         }
         .tactical-bench-avatar {
             align-items: center;
+            aspect-ratio: 3 / 4;
             background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 0.55rem;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.65rem;
             color: rgba(255, 255, 255, 0.7);
             display: inline-flex;
             flex-shrink: 0;
-            height: 1.85rem;
+            font-size: 1.15rem;
+            height: 3.35rem;
             justify-content: center;
             overflow: hidden;
-            width: 1.85rem;
+            width: 2.5rem;
         }
         .tactical-bench-avatar img {
             height: 100%;
             object-fit: cover;
+            object-position: center top;
             width: 100%;
+        }
+        @media (max-width: 767px) {
+            .tactical-bench-avatar {
+                font-size: 1.35rem;
+                height: 3.85rem;
+                width: 2.9rem;
+            }
         }
         #tactical-bench-list .text-slate-400,
         #tactical-bench-list .text-slate-700 {
