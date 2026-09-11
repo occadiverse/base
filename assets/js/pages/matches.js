@@ -211,6 +211,13 @@ function formatMatchRatingPointsLabel(points) {
     return String(value);
 }
 
+function formatMatchRatingHint(value) {
+    const entry = getMatchRatingGuideEntry(value);
+    if (!entry) return 'Ingen børs satt ennå';
+
+    return entry.description;
+}
+
 function buildMatchRatingTooltipHtml(selectedRating) {
     return `
         <div class="match-rating-tooltip" role="tooltip">
@@ -6136,7 +6143,15 @@ window.updateMatchRatingHint = function(select) {
     if (!select) return;
 
     const row = select.closest('.match-stats-player-row');
+    const hint = row ? row.querySelector('[data-rating-current-hint]') : null;
     const rating = Number(select.value) || 0;
+    const hintText = formatMatchRatingHint(rating);
+
+    if (hint) {
+        hint.textContent = hintText;
+        hint.classList.toggle('is-empty', rating === 0);
+    }
+
     const tooltipRows = row ? row.querySelectorAll('.match-rating-tooltip-row') : [];
     tooltipRows.forEach(tooltipRow => {
         tooltipRow.classList.toggle(
@@ -6294,6 +6309,7 @@ window.renderPlayerRowForm = function(match) {
             : false;
         const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
+        const ratingHint = formatMatchRatingHint(prevRating);
 
         const div = document.createElement('div');
         div.className = "match-stats-player-row";
@@ -6305,6 +6321,7 @@ window.renderPlayerRowForm = function(match) {
                         <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
                         ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
                     </div>
+                    <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
                 </div>
             </div>
             <div class="match-stats-controls">
