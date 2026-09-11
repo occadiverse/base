@@ -227,20 +227,19 @@ function buildMatchRatingTooltipHtml(selectedRating) {
                 ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => {
                     const entry = getMatchRatingGuideEntry(value);
                     const pointsLabel = formatMatchRatingPointsLabel(entry.points);
-                    const tooltipText = `${entry.label}. ${entry.description}`;
                     return `
                         <button
                             type="button"
                             class="match-rating-tooltip-row ${Number(selectedRating) === value ? 'is-selected' : ''}"
                             data-match-stat-action="rating-guide-select"
                             data-rating="${value}"
-                            title="${escapeMatchHtml(tooltipText)}"
                         >
                             <span class="match-rating-tooltip-score">${value}</span>
                             <span class="match-rating-tooltip-copy">
-                                <strong>${escapeMatchHtml(entry.label)} <span class="match-rating-tooltip-points">${escapeMatchHtml(pointsLabel)}</span></strong>
+                                <strong>${escapeMatchHtml(entry.label)}</strong>
                                 <span>${escapeMatchHtml(entry.description)}</span>
                             </span>
+                            <span class="match-rating-tooltip-points">${escapeMatchHtml(pointsLabel)}</span>
                         </button>
                     `;
                 }).join('')}

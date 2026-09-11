@@ -15364,11 +15364,12 @@
             right: auto;
             text-align: left;
             transform: translateX(-50%);
-            width: min(22rem, calc(100vw - 2rem));
+            width: min(24rem, calc(100vw - 2rem));
             z-index: 80;
         }
         .match-rating-field:hover .match-rating-tooltip,
-        .match-rating-field:focus-within .match-rating-tooltip {
+        .match-rating-field:focus-within .match-rating-tooltip,
+        .match-rating-field.is-guide-open .match-rating-tooltip {
             display: block;
         }
         .match-rating-tooltip::after {
@@ -15389,12 +15390,6 @@
             line-height: 1.35;
             margin: 0 0 0.45rem;
         }
-        .match-rating-tooltip-points {
-            color: #f5c542;
-            font-weight: 900;
-            margin-left: 0.25rem;
-            white-space: nowrap;
-        }
         .match-rating-tooltip-list {
             display: grid;
             gap: 0.18rem;
@@ -15410,7 +15405,7 @@
             color: inherit;
             display: grid;
             gap: 0.45rem;
-            grid-template-columns: 1.55rem minmax(0, 1fr);
+            grid-template-columns: 1.55rem minmax(0, 1fr) auto;
             padding: 0.38rem 0.45rem;
             text-align: left;
             width: 100%;
@@ -15450,10 +15445,22 @@
             font-weight: 700;
             line-height: 1.25;
         }
+        .match-rating-tooltip-points {
+            color: #f5c542;
+            font-size: 0.72rem;
+            font-weight: 950;
+            line-height: 1.35;
+            padding-top: 0.1rem;
+            white-space: nowrap;
+        }
         @media (min-width: 768px) {
-            .match-rating-field:hover .match-rating-tooltip,
-            .match-rating-field:focus-within .match-rating-tooltip {
-                display: none;
+            .match-rating-tooltip {
+                bottom: calc(100% + 0.45rem);
+                left: auto;
+                position: absolute;
+                right: 0;
+                transform: none;
+                width: 22rem;
             }
         }
         .portal-field-strong {
