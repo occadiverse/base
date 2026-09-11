@@ -161,31 +161,31 @@ const matchRatingGuide = {
     },
     3: {
         label: 'Dårlig kamp',
-        description: 'Under nivå, mer minus enn pluss',
+        description: 'Under nivå for posisjonen, mer minus enn pluss',
         points: -12
     },
     4: {
         label: 'Under pari',
-        description: 'Ikke bra nok, men ikke helt borte',
+        description: 'Leverte ikke det posisjonen krever, men ikke helt borte',
         points: -6
     },
     5: {
         label: 'Som forventet',
-        description: 'Nøytral. Gjorde jobben — verken pluss eller minus fra børsen',
+        description: 'Nøytral. Gjorde jobben posisjonen krever — verken pluss eller minus fra børsen',
         points: 0
     },
     6: {
         label: 'Solid pluss',
-        description: 'Noen gode aksjoner, over forventet',
+        description: 'Noen gode aksjoner utover det posisjonen krever',
         points: 6
     },
     7: {
         label: 'Sterk kamp',
-        description: 'Tydelig bra, merket for laget',
+        description: 'Tydelig over posisjonens krav, merket for laget',
         points: 12
     },
     8: {
-        label: 'Matchvinner',
+        label: 'Fremragende',
         description: 'Blant de beste — kampen ble bedre med hen',
         points: 18
     },
@@ -222,7 +222,7 @@ function buildMatchRatingTooltipHtml(selectedRating) {
     return `
         <div class="match-rating-tooltip" role="tooltip">
             <div class="match-rating-tooltip-title">Spillerbørs</div>
-            <p class="match-rating-tooltip-lead">5 = nøytral. Hvert trinn over/under gir ±6 kamppoeng.</p>
+            <p class="match-rating-tooltip-lead">Gjelder posisjonens oppgaver, ikke forventninger til personen. 5 = nøytral. Hvert trinn over/under gir ±6 kamppoeng.</p>
             <div class="match-rating-tooltip-list">
                 ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => {
                     const entry = getMatchRatingGuideEntry(value);
