@@ -215,19 +215,19 @@ function formatMatchRatingHint(value) {
     const entry = getMatchRatingGuideEntry(value);
     if (!entry) return 'Ingen børs satt ennå';
 
-    return `${Number(value)} ${entry.label}: ${entry.description} (${formatMatchRatingPointsLabel(entry.points)} poeng)`;
+    return `${Number(value)} ${entry.label}: ${entry.description}`;
 }
 
 function buildMatchRatingTooltipHtml(selectedRating) {
     return `
         <div class="match-rating-tooltip" role="tooltip">
             <div class="match-rating-tooltip-title">Spillerbørs</div>
-            <p class="match-rating-tooltip-lead">5 = nøytral (0 poeng). Hvert trinn over/under gir ±6 kamppoeng.</p>
+            <p class="match-rating-tooltip-lead">5 = nøytral. Hvert trinn over/under gir ±6 kamppoeng.</p>
             <div class="match-rating-tooltip-list">
                 ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => {
                     const entry = getMatchRatingGuideEntry(value);
                     const pointsLabel = formatMatchRatingPointsLabel(entry.points);
-                    const tooltipText = `${entry.label}. ${entry.description} (${pointsLabel} poeng)`;
+                    const tooltipText = `${entry.label}. ${entry.description}`;
                     return `
                         <button
                             type="button"
