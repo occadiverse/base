@@ -15738,8 +15738,8 @@
             border-radius: 0.85rem;
             box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
             display: grid;
-            gap: 0.65rem 0.7rem;
-            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 0.65rem 0.75rem;
+            grid-template-columns: minmax(0, 1fr) auto;
             padding: 0.65rem 0.75rem;
             transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
             width: 100%;
@@ -15751,6 +15751,17 @@
         .tactical-bench-player.has-plan {
             background: rgba(245, 197, 66, 0.1);
             border-color: rgba(245, 197, 66, 0.28);
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .tactical-bench-player.has-plan .tactical-bench-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            justify-content: stretch;
+            width: 100%;
+        }
+        .tactical-bench-player.has-plan .tactical-bench-buttons .tactical-bench-btn.bsk-btn {
+            justify-content: center;
+            width: 100%;
         }
         .tactical-bench-player.is-pending-sub {
             background: rgba(245, 197, 66, 0.16);
@@ -15760,13 +15771,64 @@
         .tactical-bench-player-main {
             align-items: center;
             display: flex;
-            gap: 0.7rem;
+            gap: 0.75rem;
             min-width: 0;
+        }
+        .tactical-bench-swap-board {
+            align-items: center;
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            min-width: 0;
+            width: 100%;
+        }
+        .tactical-bench-swap-board.is-single {
+            display: flex;
+            justify-content: flex-start;
+        }
+        .tactical-bench-swap-board.is-single-out {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+        .tactical-bench-side {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            min-width: 0;
+        }
+        .tactical-bench-side.is-in,
+        .tactical-bench-side.is-out {
+            align-items: center;
+        }
+        .tactical-bench-side.is-spacer {
+            min-width: 0;
+            width: 0;
+        }
+        .tactical-bench-swap-mid {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            justify-content: center;
+            min-width: 4.75rem;
+            text-align: center;
+        }
+        .tactical-bench-swap-meta {
+            align-items: baseline;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.35rem;
+            justify-content: center;
+            line-height: 1;
+        }
+        .tactical-bench-swap-meta.is-out-time .tactical-bench-plan-minute,
+        .tactical-bench-swap-meta.is-out-time .tactical-bench-plan-pos {
+            color: #fecaca;
         }
         .tactical-bench-player-copy {
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
+            gap: 0.22rem;
             min-width: 0;
         }
         .tactical-bench-player-name-row {
@@ -15777,24 +15839,101 @@
             min-width: 0;
         }
         .tactical-bench-player-name {
-            color: #ffffff;
-            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.7rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.15;
             max-width: 100%;
             overflow: hidden;
+            text-align: center;
             text-overflow: ellipsis;
             white-space: nowrap;
+            width: 100%;
+        }
+        .tactical-bench-side.is-in .tactical-bench-player-name,
+        .tactical-bench-side.is-out .tactical-bench-player-name {
+            text-align: center;
+            width: 100%;
         }
         .tactical-bench-player-name.is-suspended {
             color: #fecaca;
+        }
+        .tactical-bench-player-name.is-out {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .tactical-bench-player.was-subbed-out {
+            border-color: rgba(248, 113, 113, 0.28);
         }
         .tactical-bench-status-row {
             align-items: center;
             display: flex;
             flex-wrap: wrap;
             gap: 0.22rem;
-            margin-top: 0.12rem;
+            justify-content: center;
+            margin-top: 0;
+        }
+        .tactical-bench-plan-minute {
+            color: #ffe08a;
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+            line-height: 1;
+        }
+        .tactical-bench-plan-minute.is-empty {
+            color: rgba(255, 224, 138, 0.45);
+        }
+        .tactical-bench-plan-pos {
+            color: #ffe08a;
+            font-size: 1.05rem;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .tactical-bench-duty-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+            justify-content: center;
+            margin-top: 0.05rem;
+            max-width: 6.5rem;
+        }
+        .tactical-bench-duty-chip {
+            appearance: none;
+            background: #f5c542;
+            border: 1px solid rgba(15, 23, 42, 0.45);
+            border-radius: 999px;
+            box-sizing: border-box;
+            color: #123f73;
+            cursor: default;
+            display: inline-flex;
+            font-size: 0.68rem;
+            font-weight: 900;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            min-height: 1.35rem;
+            min-width: 1.85rem;
+            padding: 0.28rem 0.2rem;
+            text-align: center;
+            width: 1.85rem;
+        }
+        button.tactical-bench-duty-chip {
+            cursor: pointer;
+        }
+        button.tactical-bench-duty-chip:hover {
+            filter: brightness(1.08);
+        }
+        button.tactical-bench-duty-chip:focus-visible {
+            outline: 2px solid rgba(245, 197, 66, 0.85);
+            outline-offset: 2px;
+        }
+        .tactical-bench-duty-chip.is-offc {
+            background: #86efac;
+            color: #14532d;
+        }
+        .tactical-bench-duty-chip.is-defc {
+            background: #fda4af;
+            color: #881337;
         }
         .tactical-bench-buttons {
             align-items: center;
@@ -15988,6 +16127,10 @@
             background: #f97316;
             color: #fff;
         }
+        .tactical-bench-swap-mid .tactical-bench-pending {
+            margin-top: 0.1rem;
+            text-align: center;
+        }
         .tactical-bench-pending {
             color: #f5c542;
             font-size: 0.56rem;
@@ -15995,48 +16138,19 @@
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
-        .tactical-bench-scores {
-            align-items: center;
-            display: flex;
-            gap: 0.45rem;
-            justify-content: flex-end;
-            min-width: 4.75rem;
-        }
-        .tactical-bench-score-sep {
-            background: rgba(255, 255, 255, 0.22);
-            height: 0.75rem;
-            width: 1px;
-        }
         @media (max-width: 767px) {
             .tactical-bench-player {
                 align-items: start;
-                gap: 0.55rem;
+                gap: 0.6rem;
                 grid-template-areas:
-                    "main scores"
-                    "buttons buttons";
-                grid-template-columns: minmax(0, 1fr) auto;
+                    "main"
+                    "buttons";
+                grid-template-columns: minmax(0, 1fr);
                 padding: 0.75rem 0.8rem;
             }
             .tactical-bench-player-main {
                 grid-area: main;
                 gap: 0.75rem;
-            }
-            .tactical-bench-scores {
-                align-items: center;
-                flex-direction: row;
-                gap: 0.35rem;
-                grid-area: scores;
-                justify-content: flex-end;
-                min-width: 0;
-                padding-top: 0.15rem;
-            }
-            .tactical-bench-score-sep {
-                display: block;
-                height: 0.7rem;
-            }
-            .tactical-bench-scores .font-black {
-                font-size: 0.7rem;
-                line-height: 1.15;
             }
             .tactical-bench-buttons {
                 display: grid;
@@ -16048,19 +16162,33 @@
             }
             .tactical-bench-buttons .tactical-bench-btn.bsk-btn {
                 justify-content: center;
-                min-height: 2.15rem;
+                min-height: 2.25rem;
                 width: 100%;
             }
             .tactical-bench-player-name {
-                font-size: 0.8rem;
+                font-size: 0.72rem;
                 white-space: normal;
             }
             .tactical-bench-player-copy {
                 gap: 0.28rem;
             }
-            .tactical-bench-inherit-badges,
+            .tactical-bench-swap-board {
+                gap: 0.45rem;
+            }
             .tactical-bench-status-row {
                 gap: 0.28rem;
+            }
+            .tactical-bench-plan-minute {
+                font-size: 1.2rem;
+            }
+            .tactical-bench-plan-pos {
+                font-size: 1.1rem;
+            }
+            .tactical-bench-duty-chip {
+                font-size: 0.74rem;
+                min-height: 1.45rem;
+                min-width: 2rem;
+                width: 2rem;
             }
         }
         .tactical-bench-avatar {
@@ -16068,15 +16196,15 @@
             aspect-ratio: 3 / 4;
             background: rgba(255, 255, 255, 0.12);
             border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 0.65rem;
+            border-radius: 0.7rem;
             color: rgba(255, 255, 255, 0.7);
             display: inline-flex;
             flex-shrink: 0;
-            font-size: 1.15rem;
-            height: 3.35rem;
+            font-size: 1.35rem;
+            height: 4.1rem;
             justify-content: center;
             overflow: hidden;
-            width: 2.5rem;
+            width: 3.05rem;
         }
         .tactical-bench-avatar img {
             height: 100%;
@@ -16086,9 +16214,9 @@
         }
         @media (max-width: 767px) {
             .tactical-bench-avatar {
-                font-size: 1.35rem;
-                height: 3.85rem;
-                width: 2.9rem;
+                font-size: 1.5rem;
+                height: 4.6rem;
+                width: 3.45rem;
             }
         }
         #tactical-bench-list .text-slate-400,
