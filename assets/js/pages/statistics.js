@@ -1646,10 +1646,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.matchHasMinutesTracking = function(match) {
             if (!match) return false;
-            if (match.minutesSource) return true;
-            if (Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) > 0) return true;
+            if (match.minutesSource === 'spillerbors') return true;
+            // Live-minutter teller i stats først når kampen er låst.
+            if (match.minutesSource === 'live') return Boolean(match.liveLocked);
+            if (match.liveLocked && Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) > 0) {
+                return true;
+            }
             const map = match.minutesPlayed;
             return Boolean(map && typeof map === 'object' && Object.keys(map).length > 0);
+        };
+
+        window.getPlayerMatchMinutesForStats = function(match, player) {
+            if (!match || !player || !window.matchHasMinutesTracking(match)) return 0;
+            return Math.max(
+                0,
+                Math.floor(Number(window.getPlayerRefMapValue(match.minutesPlayed, player, 0)) || 0)
+            );
         };
 
         window.getMatchDurationForMinutesShare = function(match) {
@@ -1706,10 +1718,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                         ratingCount++;
                                     }
                                 }
-                                const minutes = Math.max(
-                                    0,
-                                    Math.floor(Number(window.getPlayerRefMapValue(e.minutesPlayed, p, 0)) || 0)
-                                );
+                                const minutes = typeof window.getPlayerMatchMinutesForStats === 'function'
+                                    ? window.getPlayerMatchMinutesForStats(e, p)
+                                    : Math.max(
+                                        0,
+                                        Math.floor(Number(window.getPlayerRefMapValue(e.minutesPlayed, p, 0)) || 0)
+                                    );
                                 if (minutes > 0) {
                                     minutesTotal += minutes;
                                     minutesMatches += 1;
@@ -3811,7 +3825,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const assists = Number(window.getPlayerRefMapValue(match.assists, playerObj, 0)) || 0;
                 const yellow = window.playerRefListIncludes(match.guleKort, playerObj) ? 1 : 0;
                 const red = window.playerRefListIncludes(match.rodeKort, playerObj) ? 1 : 0;
-                const minutesRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+                const minutesRaw = window.matchHasMinutesTracking(match)
+                    ? window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null)
+                    : null;
                 const minutes = minutesRaw === null || minutesRaw === undefined || minutesRaw === ''
                     ? null
                     : Math.max(0, Math.floor(Number(minutesRaw) || 0));
@@ -4142,7 +4158,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const assists = Number(window.getPlayerRefMapValue(match.assists, playerObj, 0)) || 0;
                 const yellow = window.playerRefListIncludes(match.guleKort, playerObj) ? 1 : 0;
                 const red = window.playerRefListIncludes(match.rodeKort, playerObj) ? 1 : 0;
-                const minutesRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
+                const minutesRaw = window.matchHasMinutesTracking(match)
+                    ? window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null)
+                    : null;
                 const minutes = minutesRaw === null || minutesRaw === undefined || minutesRaw === ''
                     ? null
                     : Math.max(0, Math.floor(Number(minutesRaw) || 0));

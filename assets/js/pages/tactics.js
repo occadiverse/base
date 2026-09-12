@@ -141,7 +141,8 @@
                 if (minute === 90 && typeof window.persistLivePlayingTime === 'function') {
                     setTimeout(() => {
                         if (typeof window.isLiveSessionLocked === 'function' && window.isLiveSessionLocked()) return;
-                        window.persistLivePlayingTime({ durationMinutes: 90 });
+                        // Kun bytter/fremdrift — spilletid til stats skrives ved «Lagre og Lås».
+                        window.persistLivePlayingTime({ durationMinutes: 90, commitMinutes: false });
                     }, 0);
                 }
                 return milestoneMs;
@@ -399,7 +400,7 @@
                 ? window.tacticalAppliedLiveSubs.length
                 : 0;
             const message = subCount > 0
-                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• ${subCount} bytte(r) fjernes lokalt, XI/roller tilbake til kampplan\n\nAllerede lagret spilletid på kampen beholdes til du trykker «Lagre og Lås».`
+                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• ${subCount} bytte(r) fjernes lokalt, XI/roller tilbake til kampplan\n\nSpilletid i stats oppdateres først når du trykker «Lagre og Lås».`
                 : 'Start Live på nytt? Klokken settes til 00:00 og tavlen tilbake til kampplanen.';
             if (!confirm(message)) {
                 return;
@@ -521,7 +522,7 @@
             }
 
             window.clearTacticalPendingSub();
-            const saved = await window.persistLivePlayingTime({ skipLockCheck: true });
+            const saved = await window.persistLivePlayingTime({ skipLockCheck: true, commitMinutes: true });
             if (!saved) {
                 setLivePlayingTimeStatus('Kunne ikke låse Live (lagring feilet)', 'error');
                 return false;
@@ -873,12 +874,16 @@
                 ? Math.max(0, Math.floor(Number(options.durationMinutes) || 0))
                 : Math.max(clockMinute, lastSubMinute);
 
+            // Underveis: lagre bytter for gjenoppretting. Spilletid til stats først ved lås.
             match.liveSubstitutions = liveSubstitutions;
-            match.liveDurationMinutes = duration;
-            // Spillerbørs-lagrede minutter er fasit; Live oppdaterer kun hvis ikke bekreftet der.
-            if (match.minutesSource !== 'spillerbors') {
-                match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
-                match.minutesSource = 'live';
+            const commitMinutes = options.commitMinutes === true;
+            if (commitMinutes) {
+                match.liveDurationMinutes = duration;
+                // Spillerbørs-lagrede minutter er fasit; Live oppdaterer kun hvis ikke bekreftet der.
+                if (match.minutesSource !== 'spillerbors') {
+                    match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
+                    match.minutesSource = 'live';
+                }
             }
 
             if (typeof window.saveMatchToDatabase !== 'function') {
@@ -1540,7 +1545,7 @@
 
             refreshTacticalLiveBoard();
             if (typeof window.persistLivePlayingTime === 'function') {
-                window.persistLivePlayingTime().catch(() => {});
+                window.persistLivePlayingTime({ commitMinutes: false }).catch(() => {});
             }
             return true;
         };
