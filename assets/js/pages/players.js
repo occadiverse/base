@@ -541,8 +541,12 @@ function renderPlayerModalProfile(player) {
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
-    const gule = stats ? String((stats.guleSerie || 0) + (stats.guleCup || 0)) : '0';
-    const rode = stats ? String((stats.rodeSerie || 0) + (stats.rodeCup || 0)) : '0';
+    const gule = stats
+        ? formatPlayerProfileCardsSplitLabel(stats.guleSerie, stats.guleCup)
+        : '0/0';
+    const rode = stats
+        ? formatPlayerProfileCardsSplitLabel(stats.rodeSerie, stats.rodeCup)
+        : '0/0';
     const bb = stats ? String(stats.bb || 0) : '0';
     const hasMatchData = stats && (stats.kamper > 0 || stats.attendedMatches > 0);
 
@@ -664,6 +668,12 @@ function formatPlayerProfileMinutesLabel(stats) {
 function formatPlayerProfileMinutesShareLabel(stats) {
     if (!(Number(stats?.minutesPossible) > 0) || stats?.minutesSharePct == null) return '-';
     return `${Math.round(Number(stats.minutesSharePct) || 0)}%`;
+}
+
+function formatPlayerProfileCardsSplitLabel(serieCount, cupCount) {
+    const serie = Math.max(0, Math.floor(Number(serieCount) || 0));
+    const cup = Math.max(0, Math.floor(Number(cupCount) || 0));
+    return `${serie}/${cup}`;
 }
 
 function getPlayerProfileStatRows(player, yearFilter = 'alle') {
@@ -865,8 +875,12 @@ window.renderPlayerProfilePage = function(playerId) {
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
-    const gule = stats ? String((stats.guleSerie || 0) + (stats.guleCup || 0)) : '0';
-    const rode = stats ? String((stats.rodeSerie || 0) + (stats.rodeCup || 0)) : '0';
+    const gule = stats
+        ? formatPlayerProfileCardsSplitLabel(stats.guleSerie, stats.guleCup)
+        : '0/0';
+    const rode = stats
+        ? formatPlayerProfileCardsSplitLabel(stats.rodeSerie, stats.rodeCup)
+        : '0/0';
     const bb = stats ? String(stats.bb || 0) : '0';
     const totalScore = stats && stats.totalScore > 0 ? String(stats.totalScore) : '-';
 
@@ -979,8 +993,14 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileStatChipHtml('Kamper', kamper, { rank: rankOf('kamper') })}
                 ${buildPlayerProfileStatChipHtml('Mål', mal, { rank: rankOf('mal') })}
                 ${buildPlayerProfileStatChipHtml('Assist', assist, { rank: rankOf('assist') })}
-                ${buildPlayerProfileStatChipHtml('Gule kort', gule, { rank: rankOf('gule') })}
-                ${buildPlayerProfileStatChipHtml('Røde kort', rode, { rank: rankOf('rode') })}
+                ${buildPlayerProfileStatChipHtml('Gule kort', gule, {
+                    title: 'Serie / Cup',
+                    rank: rankOf('gule')
+                })}
+                ${buildPlayerProfileStatChipHtml('Røde kort', rode, {
+                    title: 'Serie / Cup',
+                    rank: rankOf('rode')
+                })}
                 ${buildPlayerProfileStatChipHtml('Børs', snittBors, { rank: rankOf('snittBors') })}
                 ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, { rank: rankOf('kampbonus') })}
                 ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, { rank: rankOf('oppmotePct') })}
