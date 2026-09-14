@@ -4395,6 +4395,9 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
         const yellow = window.playerRefListIncludes(m.guleKort, playerObj);
         const red = window.playerRefListIncludes(m.rodeKort, playerObj);
         const bb = window.motmMatchesPlayer(m.motm, playerObj);
+        const startStatus = typeof window.getPlayerMatchStartStatus === 'function'
+            ? window.getPlayerMatchStartStatus(m, playerObj)
+            : '';
 
         history.push({
             matchId: m.id,
@@ -4405,6 +4408,7 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
             rating: window.getPlayerRefMapValue(m.ratings, playerObj, '-') || '-',
             points: ptsDetails.total,
             onPitch: ptsDetails.onPitch !== false,
+            startStatus,
             goals,
             assists,
             yellow,
@@ -4542,23 +4546,31 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         const goals = Number(entry.goals) || 0;
         const assists = Number(entry.assists) || 0;
         const maText = (goals > 0 || assists > 0) ? `${goals}/${assists}` : '–';
+        const satEntireBench = entry.onPitch === false;
+        const startStatus = entry.startStatus === 'S' || entry.startStatus === 'B'
+            ? entry.startStatus
+            : (satEntireBench ? 'B' : 'S');
+        const sbTitle = startStatus === 'S'
+            ? 'Startet kampen'
+            : 'Startet kampen på benken';
         const cardBits = [];
         if (entry.yellow) cardBits.push('<span class="stats-kampdata-card-dot is-yellow" title="Gult kort"></span>');
         if (entry.red) cardBits.push('<span class="stats-kampdata-card-dot is-red" title="Rødt kort"></span>');
         if (entry.bb) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste">★</span>');
         const cardsHtml = cardBits.length ? cardBits.join('') : '–';
-        const benchNote = entry.onPitch === false
+        const benchNote = satEntireBench
             ? '<span class="stats-form-history-bench">Benk</span>'
             : '';
 
         return `
-            <tr class="stats-form-history-row${entry.onPitch === false ? ' is-bench' : ''}">
+            <tr class="stats-form-history-row${satEntireBench ? ' is-bench' : ''}">
                 <td class="stats-form-history-date">${window.formatStatsShortDate(entry.date)}</td>
                 <td class="stats-form-history-opponent">
                     <span class="stats-form-history-opponent-name">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</span>
                     ${benchNote}
                 </td>
                 <td class="stats-form-history-rating ${ratingClass}">${ratingText}</td>
+                <td class="stats-form-history-sb${startStatus === 'B' ? ' is-bench' : ' is-start'}" title="${escapeStatisticsHtml(sbTitle)}">${startStatus}</td>
                 <td class="stats-form-history-ma">${maText}</td>
                 <td class="stats-form-history-cards">${cardsHtml}</td>
                 <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
@@ -4573,6 +4585,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                     <th>Dato</th>
                     <th>Motstander</th>
                     <th>Børs</th>
+                    <th title="Start / Benk ved avspark">S/B</th>
                     <th>M/A</th>
                     <th>Kort</th>
                     <th>Poeng</th>

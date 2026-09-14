@@ -42,6 +42,59 @@ window.isPlayerOnPitch = function(match, playerRef) {
     return true;
 };
 
+window.isPlayerInMatchStartingXi = function(match, playerRef) {
+    if (!match || !playerRef) return false;
+
+    const playerObj = typeof window.findPlayerByRef === 'function'
+        ? (window.findPlayerByRef(playerRef) || (typeof playerRef === 'object' ? playerRef : { navn: playerRef }))
+        : (typeof playerRef === 'object' ? playerRef : { navn: playerRef });
+
+    if (match.lineupRefs && typeof match.lineupRefs === 'object') {
+        const refs = Object.values(match.lineupRefs).filter(Boolean);
+        if (refs.length > 0) {
+            return refs.some(ref => window.playerRefMatches(ref, playerObj));
+        }
+    }
+
+    if (match.lineup && typeof match.lineup === 'object') {
+        const players = Object.values(match.lineup).filter(Boolean);
+        if (players.length > 0) {
+            return players.some(player => {
+                if (typeof player === 'string') return window.playerRefMatches(player, playerObj);
+                return window.playerRefMatches(player.id || player.navn, playerObj);
+            });
+        }
+    }
+
+    return false;
+};
+
+window.matchHasStartingXi = function(match) {
+    if (!match) return false;
+    if (match.lineupRefs && typeof match.lineupRefs === 'object'
+        && Object.values(match.lineupRefs).some(Boolean)) {
+        return true;
+    }
+    if (match.lineup && typeof match.lineup === 'object'
+        && Object.values(match.lineup).some(Boolean)) {
+        return true;
+    }
+    return false;
+};
+
+/** 'S' = startellever, 'B' = startet på benken. Tom streng hvis ukjent. */
+window.getPlayerMatchStartStatus = function(match, playerRef) {
+    if (!match || !playerRef) return '';
+    if (window.matchHasStartingXi(match)) {
+        return window.isPlayerInMatchStartingXi(match, playerRef) ? 'S' : 'B';
+    }
+    // Uten lagret 11er: bruk pitch-status som grovt signal.
+    if (typeof window.isPlayerOnPitch === 'function') {
+        return window.isPlayerOnPitch(match, playerRef) ? 'S' : 'B';
+    }
+    return '';
+};
+
 window.isPlayerBenchOnly = function(match, playerRef) {
     if (!match || !playerRef) return false;
     if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === true) return true;

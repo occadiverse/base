@@ -17159,6 +17159,18 @@
             text-align: center;
             white-space: nowrap;
         }
+        .stats-form-history-sb {
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .stats-form-history-sb.is-start {
+            color: #0f766e;
+        }
+        .stats-form-history-sb.is-bench {
+            color: #94a3b8;
+        }
         .stats-form-history-cards {
             text-align: center;
             white-space: nowrap;
