@@ -352,7 +352,9 @@ function bindPlayerRosterEvents() {
 }
 
 function getRosterPlayerPhotoUrl(player) {
-    return player?.photoUrl || player?.bildeUrl || player?.avatarUrl || player?.imageUrl || player?.photo || '';
+    return typeof window.getPlayerProfilePhotoUrl === 'function'
+        ? window.getPlayerProfilePhotoUrl(player)
+        : (player?.photoUrl || player?.bildeUrl || player?.avatarUrl || player?.imageUrl || player?.photo || '');
 }
 
 function buildRosterPlayerAvatarHtml(player) {

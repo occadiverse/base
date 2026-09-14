@@ -599,3 +599,17 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
         }
     }
 };
+
+// Lokale profilbilder (assets/img/players) når spilleren mangler photoUrl i databasen.
+window.PLAYER_LOCAL_PROFILE_PHOTOS = {
+    'Vetle Hegbom': 'assets/img/players/vetle-hegbom-3x4.jpg'
+};
+
+window.getPlayerProfilePhotoUrl = function(player) {
+    if (!player) return '';
+    const explicit = player.photoUrl || player.bildeUrl || player.avatarUrl || player.imageUrl || player.photo || '';
+    if (explicit) return explicit;
+    const byName = window.PLAYER_LOCAL_PROFILE_PHOTOS;
+    if (!byName) return '';
+    return byName[player.navn] || byName[String(player.navn || '').trim()] || '';
+};
