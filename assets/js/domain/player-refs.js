@@ -464,6 +464,25 @@ window.normalizeMatchPlayerRefs = function(match) {
     if (match.benchOnly) normalized.benchOnly = window.normalizePlayerRefMap(match.benchOnly);
     if (match.benchSubstitutionPlan) normalized.benchSubstitutionPlan = window.normalizePlayerRefMap(match.benchSubstitutionPlan);
     if (match.minutesPlayed) normalized.minutesPlayed = window.normalizePlayerRefMap(match.minutesPlayed);
+    if (match.positionMinutes && typeof match.positionMinutes === 'object') {
+        const normalizedPositions = {};
+        Object.entries(match.positionMinutes).forEach(([ref, posMap]) => {
+            const player = window.findPlayerByRef(ref);
+            const key = player?.id || ref;
+            if (!posMap || typeof posMap !== 'object' || Array.isArray(posMap)) {
+                normalizedPositions[key] = {};
+                return;
+            }
+            const cleaned = {};
+            Object.entries(posMap).forEach(([posId, mins]) => {
+                const posKey = String(posId || '').trim();
+                if (!posKey) return;
+                cleaned[posKey] = Math.max(0, Math.floor(Number(mins) || 0));
+            });
+            normalizedPositions[key] = cleaned;
+        });
+        normalized.positionMinutes = normalizedPositions;
+    }
     if (match.guleKort) normalized.guleKort = window.normalizePlayerRefList(match.guleKort);
     if (match.rodeKort) normalized.rodeKort = window.normalizePlayerRefList(match.rodeKort);
 
@@ -472,10 +491,31 @@ window.normalizeMatchPlayerRefs = function(match) {
             if (!sub || typeof sub !== 'object') return sub;
             const outPlayer = window.findPlayerByRef(sub.outId);
             const inPlayer = window.findPlayerByRef(sub.inId);
+            const fillPlayer = sub.fillId ? window.findPlayerByRef(sub.fillId) : null;
+            const posId = sub.posId || '';
             return {
                 ...sub,
+                posId,
+                inPosId: sub.inPosId || posId,
+                fillFromPos: sub.fillFromPos || '',
+                fillId: fillPlayer?.id || sub.fillId || '',
                 outId: outPlayer?.id || sub.outId || '',
                 inId: inPlayer?.id || sub.inId || ''
+            };
+        });
+    }
+
+    if (Array.isArray(match.liveLineupMoves)) {
+        normalized.liveLineupMoves = match.liveLineupMoves.map((move) => {
+            if (!move || typeof move !== 'object') return move;
+            const playerA = window.findPlayerByRef(move.aId);
+            const playerB = window.findPlayerByRef(move.bId);
+            return {
+                ...move,
+                aPos: move.aPos || '',
+                bPos: move.bPos || '',
+                aId: playerA?.id || move.aId || '',
+                bId: playerB?.id || move.bId || ''
             };
         });
     }
@@ -550,6 +590,16 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
             updated[field] = newMap;
         });
 
+        if (entity.positionMinutes && typeof entity.positionMinutes === 'object') {
+            const newMap = {};
+            Object.entries(entity.positionMinutes).forEach(([key, value]) => {
+                const newKey = remapKey(key);
+                if (newKey !== key) changed = true;
+                newMap[newKey] = value;
+            });
+            updated.positionMinutes = newMap;
+        }
+
         ['guleKort', 'rodeKort'].forEach((field) => {
             if (!Array.isArray(entity[field])) return;
             updated[field] = entity[field].map((ref) => {
@@ -564,8 +614,19 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
                 if (!sub || typeof sub !== 'object') return sub;
                 const outId = remapKey(sub.outId);
                 const inId = remapKey(sub.inId);
-                if (outId !== sub.outId || inId !== sub.inId) changed = true;
-                return { ...sub, outId, inId };
+                const fillId = sub.fillId ? remapKey(sub.fillId) : sub.fillId;
+                if (outId !== sub.outId || inId !== sub.inId || fillId !== sub.fillId) changed = true;
+                return { ...sub, outId, inId, fillId };
+            });
+        }
+
+        if (Array.isArray(entity.liveLineupMoves)) {
+            updated.liveLineupMoves = entity.liveLineupMoves.map((move) => {
+                if (!move || typeof move !== 'object') return move;
+                const aId = remapKey(move.aId);
+                const bId = remapKey(move.bId);
+                if (aId !== move.aId || bId !== move.bId) changed = true;
+                return { ...move, aId, bId };
             });
         }
 

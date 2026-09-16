@@ -13499,6 +13499,28 @@
             padding: 0.18rem 0.4rem;
             text-transform: uppercase;
         }
+        .match-stats-player-positions {
+            align-items: center;
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+        }
+        .match-stats-player-pos {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 0.4rem;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            padding: 0.18rem 0.36rem;
+            text-transform: uppercase;
+        }
+        .match-stat-field-pos .match-stat-select {
+            min-width: 4.6rem;
+            max-width: 6.5rem;
+        }
         .match-stats-controls,
         .match-stats-pitch-controls,
         .match-stats-card-group {
@@ -15955,11 +15977,27 @@
             cursor: default;
             pointer-events: auto;
         }
-        #full-pitch-container.is-live-board.is-sub-targeting .player-node {
+        #full-pitch-container.is-live-board.is-sub-targeting .player-node,
+        #full-pitch-container.is-live-board.is-swap-targeting .player-node {
             cursor: pointer;
         }
         #full-pitch-container.is-live-board.is-sub-targeting .player-node.is-filled {
             box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.85);
+        }
+        #full-pitch-container.is-live-board .player-node.is-sub-out {
+            box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.95);
+        }
+        #full-pitch-container.is-live-board .player-node.is-sub-in-pos {
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.95);
+        }
+        #full-pitch-container.is-live-board.is-sub-phase-fill .player-node.is-filled:not(.is-sub-out):not(.is-sub-in-pos) {
+            box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.9);
+        }
+        #full-pitch-container.is-live-board .player-node.is-swap-source {
+            box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.95);
+        }
+        #full-pitch-container.is-live-board.is-swap-targeting .player-node.is-swap-target {
+            box-shadow: 0 0 0 2px rgba(196, 181, 253, 0.85);
         }
         .tactical-lineup-status-badge.is-live {
             background: rgba(14, 165, 233, 0.12);
@@ -16056,9 +16094,19 @@
             justify-content: center;
             line-height: 1;
         }
+        .tactical-bench-sub-times {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
         .tactical-bench-swap-meta.is-out-time .tactical-bench-plan-minute,
         .tactical-bench-swap-meta.is-out-time .tactical-bench-plan-pos {
             color: #fecaca;
+        }
+        .tactical-bench-swap-meta.is-in-time .tactical-bench-plan-minute,
+        .tactical-bench-swap-meta.is-in-time .tactical-bench-plan-pos {
+            color: #bbf7d0;
         }
         .tactical-bench-player-copy {
             display: flex;
@@ -17061,7 +17109,7 @@
         #full-pitch-container.is-live-board .player-node.is-lineup-readonly {
             pointer-events: auto;
         }
-        #full-pitch-container.is-live-board:not(.is-sub-targeting) .player-node:hover {
+        #full-pitch-container.is-live-board:not(.is-sub-targeting):not(.is-swap-targeting) .player-node:hover {
             transform: translate(-50%, -50%);
         }
         .bsk-btn.is-disabled,

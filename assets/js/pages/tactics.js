@@ -83,8 +83,12 @@
         window.liveLineup = window.liveLineup || {};
         window.liveRoles = window.liveRoles || {};
         window.tacticalPendingSubIn = null;
+        window.tacticalPendingSubOutPos = null;
+        window.tacticalPendingSubInPos = null;
+        window.tacticalPendingSwapPos = null;
         window.tacticalLiveDirty = false;
         window.tacticalAppliedLiveSubs = window.tacticalAppliedLiveSubs || [];
+        window.tacticalAppliedLiveMoves = window.tacticalAppliedLiveMoves || [];
         window.tacticalSamspillLinesVisible = window.tacticalSamspillLinesVisible !== false;
 
         const LIVE_MATCH_CLOCK_STORAGE_PREFIX = 'occa.liveMatchClock.';
@@ -752,15 +756,87 @@
         }
 
         function serializeLiveSubstitutions(subs) {
-            return (Array.isArray(subs) ? subs : []).map((sub) => ({
-                minute: String(sub?.minute ?? ''),
-                posId: sub?.posId || '',
-                outId: sub?.outId || '',
-                inId: sub?.inId || '',
-                outRoles: Array.isArray(sub?.outRoles) ? [...sub.outRoles] : [],
-                outOffc: Array.isArray(sub?.outOffc) ? [...sub.outOffc] : [],
-                outDefc: Array.isArray(sub?.outDefc) ? [...sub.outDefc] : []
+            return (Array.isArray(subs) ? subs : []).map((sub) => {
+                const posId = sub?.posId || '';
+                const inPosId = sub?.inPosId || posId;
+                return {
+                    minute: String(sub?.minute ?? ''),
+                    posId,
+                    inPosId,
+                    fillId: sub?.fillId || '',
+                    fillFromPos: sub?.fillFromPos || '',
+                    outId: sub?.outId || '',
+                    inId: sub?.inId || '',
+                    outRoles: Array.isArray(sub?.outRoles) ? [...sub.outRoles] : [],
+                    outOffc: Array.isArray(sub?.outOffc) ? [...sub.outOffc] : [],
+                    outDefc: Array.isArray(sub?.outDefc) ? [...sub.outDefc] : []
+                };
+            });
+        }
+
+        function serializeLiveLineupMoves(moves) {
+            return (Array.isArray(moves) ? moves : []).map((move) => ({
+                minute: String(move?.minute ?? ''),
+                aPos: move?.aPos || '',
+                bPos: move?.bPos || '',
+                aId: move?.aId || '',
+                bId: move?.bId || ''
             }));
+        }
+
+        function clearLiveLineupPos(posId) {
+            if (!posId || !window.liveLineup) return;
+            window.liveLineup[posId] = null;
+        }
+
+        function applyLiveSubToLineupState(sub) {
+            if (!sub?.posId || !sub?.inId) return;
+            const inPlayer = typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(sub.inId)
+                : null;
+            if (!inPlayer) return;
+
+            const outPosId = sub.posId;
+            const inPosId = sub.inPosId || outPosId;
+
+            (sub.outRoles || []).forEach((slot) => {
+                window.liveRoles[slot] = getTacticalLivePlayerRef(inPlayer);
+            });
+
+            if (inPosId === outPosId) {
+                window.liveLineup[outPosId] = inPlayer;
+                return;
+            }
+
+            const fillFromPos = sub.fillFromPos || '';
+            const fillPlayer = (fillFromPos && window.liveLineup?.[fillFromPos])
+                || (sub.fillId && typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(sub.fillId)
+                    : null);
+
+            clearLiveLineupPos(outPosId);
+            if (fillPlayer && fillFromPos) {
+                window.liveLineup[outPosId] = fillPlayer;
+                clearLiveLineupPos(fillFromPos);
+                if (fillFromPos !== inPosId) {
+                    const displaced = window.liveLineup?.[inPosId] || null;
+                    window.liveLineup[fillFromPos] = displaced;
+                    clearLiveLineupPos(inPosId);
+                }
+            } else {
+                clearLiveLineupPos(inPosId);
+            }
+            window.liveLineup[inPosId] = inPlayer;
+        }
+
+        function applyLiveMoveToLineupState(move) {
+            const aPos = move?.aPos;
+            const bPos = move?.bPos;
+            if (!aPos || !bPos || aPos === bPos) return;
+            const playerA = window.liveLineup?.[aPos] || null;
+            const playerB = window.liveLineup?.[bPos] || null;
+            window.liveLineup[aPos] = playerB;
+            window.liveLineup[bPos] = playerA;
         }
 
         function computeMinutesPlayed(match, substitutions, durationMinutes) {
@@ -826,6 +902,139 @@
 
         window.computeLiveMinutesPlayed = computeMinutesPlayed;
 
+        function resolvePlayerKeyFromRef(ref) {
+            if (!ref) return '';
+            const player = typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(ref)
+                : null;
+            return getLivePlayingTimeStorageKey(player || ref);
+        }
+
+        function computeLivePositionMinutes(match, durationMinutes) {
+            const duration = Math.max(0, Math.floor(Number(durationMinutes) || 0));
+            const board = {};
+            const open = new Map();
+            const totals = new Map();
+
+            const ensureTotals = (key) => {
+                if (!totals.has(key)) totals.set(key, new Map());
+                return totals.get(key);
+            };
+
+            const closeStint = (key, atMinute) => {
+                const state = open.get(key);
+                if (!state) return;
+                const mins = Math.max(0, atMinute - state.since);
+                if (mins > 0 && state.posId) {
+                    const map = ensureTotals(key);
+                    map.set(state.posId, (map.get(state.posId) || 0) + mins);
+                }
+                open.delete(key);
+            };
+
+            const leavePos = (posId, atMinute) => {
+                const key = board[posId];
+                if (!key) return null;
+                delete board[posId];
+                closeStint(key, atMinute);
+                return key;
+            };
+
+            const occupyPos = (key, posId, atMinute) => {
+                if (!key || !posId) return;
+                if (board[posId] && board[posId] !== key) {
+                    leavePos(posId, atMinute);
+                }
+                closeStint(key, atMinute);
+                board[posId] = key;
+                open.set(key, { posId, since: atMinute });
+            };
+
+            TACTICAL_POSITIONS.forEach((posId) => {
+                const player = getKickoffLineupPlayer(match, posId);
+                if (!player) return;
+                occupyPos(getLivePlayingTimeStorageKey(player), posId, 0);
+            });
+
+            const events = [];
+            serializeLiveSubstitutions(match?.liveSubstitutions).forEach((sub) => {
+                events.push({
+                    type: 'sub',
+                    minute: parseLiveSubMinuteValue(sub.minute),
+                    sub
+                });
+            });
+            serializeLiveLineupMoves(match?.liveLineupMoves).forEach((move) => {
+                events.push({
+                    type: 'move',
+                    minute: parseLiveSubMinuteValue(move.minute),
+                    move
+                });
+            });
+            events.sort((a, b) => a.minute - b.minute || (a.type === 'sub' ? -1 : 1));
+
+            events.forEach((event) => {
+                const minute = Math.min(event.minute, duration);
+                if (event.type === 'sub') {
+                    const sub = event.sub;
+                    const outPosId = sub.posId;
+                    const inPosId = sub.inPosId || outPosId;
+                    const inKey = resolvePlayerKeyFromRef(sub.inId);
+                    leavePos(outPosId, minute);
+
+                    if (inPosId === outPosId) {
+                        occupyPos(inKey, outPosId, minute);
+                        return;
+                    }
+
+                    const fillFromPos = sub.fillFromPos || '';
+                    const fillKey = resolvePlayerKeyFromRef(sub.fillId) || (fillFromPos ? board[fillFromPos] : '');
+                    if (fillFromPos && fillKey) {
+                        if (board[fillFromPos] === fillKey) delete board[fillFromPos];
+                        closeStint(fillKey, minute);
+                        occupyPos(fillKey, outPosId, minute);
+                        if (fillFromPos !== inPosId) {
+                            const displacedKey = board[inPosId] || null;
+                            if (displacedKey) {
+                                delete board[inPosId];
+                                closeStint(displacedKey, minute);
+                                occupyPos(displacedKey, fillFromPos, minute);
+                            }
+                        }
+                    } else {
+                        leavePos(inPosId, minute);
+                    }
+                    occupyPos(inKey, inPosId, minute);
+                    return;
+                }
+
+                const move = event.move;
+                const aPos = move.aPos;
+                const bPos = move.bPos;
+                if (!aPos || !bPos || aPos === bPos) return;
+                const aKey = board[aPos] || resolvePlayerKeyFromRef(move.aId);
+                const bKey = board[bPos] || resolvePlayerKeyFromRef(move.bId);
+                leavePos(aPos, minute);
+                leavePos(bPos, minute);
+                if (bKey) occupyPos(bKey, aPos, minute);
+                if (aKey) occupyPos(aKey, bPos, minute);
+            });
+
+            open.forEach((_, key) => closeStint(key, duration));
+
+            const result = {};
+            totals.forEach((posMap, key) => {
+                const row = {};
+                posMap.forEach((mins, posId) => {
+                    if (mins > 0) row[posId] = mins;
+                });
+                if (Object.keys(row).length) result[key] = row;
+            });
+            return result;
+        }
+
+        window.computeLivePositionMinutes = computeLivePositionMinutes;
+
         function setLivePlayingTimeStatus(message, tone = '') {
             const statusEl = document.getElementById('tactical-live-playing-time-status');
             if (!statusEl) return;
@@ -838,22 +1047,15 @@
 
         function hydrateLiveSubstitutionsFromMatch(match) {
             const saved = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : [];
+            const savedMoves = Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves : [];
             window.tacticalAppliedLiveSubs = serializeLiveSubstitutions(saved);
+            window.tacticalAppliedLiveMoves = serializeLiveLineupMoves(savedMoves);
 
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
 
-            window.tacticalAppliedLiveSubs.forEach((sub) => {
-                const inPlayer = typeof window.findPlayerByRef === 'function'
-                    ? window.findPlayerByRef(sub.inId)
-                    : null;
-                if (!inPlayer || !sub.posId) return;
-
-                (sub.outRoles || []).forEach((slot) => {
-                    window.liveRoles[slot] = getTacticalLivePlayerRef(inPlayer);
-                });
-                window.liveLineup[sub.posId] = inPlayer;
-            });
+            window.tacticalAppliedLiveSubs.forEach((sub) => applyLiveSubToLineupState(sub));
+            window.tacticalAppliedLiveMoves.forEach((move) => applyLiveMoveToLineupState(move));
             syncLiveLineupToTactical();
         }
 
@@ -868,20 +1070,24 @@
 
             const clockMinute = Math.floor(getLiveMatchClockElapsedMs() / 60000);
             const liveSubstitutions = serializeLiveSubstitutions(window.tacticalAppliedLiveSubs || []);
+            const liveLineupMoves = serializeLiveLineupMoves(window.tacticalAppliedLiveMoves || []);
             const lastSubMinute = liveSubstitutions.reduce(
                 (max, sub) => Math.max(max, parseLiveSubMinuteValue(sub.minute)),
                 0
             );
+            const lastMoveMinute = liveLineupMoves.reduce(
+                (max, move) => Math.max(max, parseLiveSubMinuteValue(move.minute)),
+                0
+            );
             const duration = options.durationMinutes != null && options.durationMinutes !== ''
                 ? Math.max(0, Math.floor(Number(options.durationMinutes) || 0))
-                : Math.max(clockMinute, lastSubMinute);
+                : Math.max(clockMinute, lastSubMinute, lastMoveMinute);
 
-            // Underveis: lagre bytter for gjenoppretting. Spilletid til stats først ved lås.
             match.liveSubstitutions = liveSubstitutions;
+            match.liveLineupMoves = liveLineupMoves;
             const commitMinutes = options.commitMinutes === true;
             if (commitMinutes) {
                 match.liveDurationMinutes = duration;
-                // Spillerbørs-lagrede minutter er fasit; Live oppdaterer kun hvis ikke bekreftet der.
                 if (match.minutesSource !== 'spillerbors') {
                     match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
                     match.minutesSource = 'live';
@@ -1066,11 +1272,23 @@
             const editable = window.isTacticalLineupEditable();
             const liveMatch = window.isTacticalLiveMatchMode();
             const liveLocked = liveMatch && window.isLiveSessionLocked();
+            const pendingIn = Boolean(window.tacticalPendingSubIn);
+            const pendingOutPos = window.tacticalPendingSubOutPos || null;
+            const pendingInPos = window.tacticalPendingSubInPos || null;
+            const pendingSwapPos = window.tacticalPendingSwapPos || null;
+            const subPhase = pendingIn
+                ? (pendingInPos ? 'fill' : (pendingOutPos ? 'in' : 'out'))
+                : '';
+
             if (pitch) {
                 pitch.classList.toggle('is-lineup-readonly', !editable && !liveMatch);
                 pitch.classList.toggle('is-live-board', liveMatch);
                 pitch.classList.toggle('is-live-locked', liveLocked);
-                pitch.classList.toggle('is-sub-targeting', liveMatch && !liveLocked && Boolean(window.tacticalPendingSubIn));
+                pitch.classList.toggle('is-sub-targeting', liveMatch && !liveLocked && pendingIn);
+                pitch.classList.toggle('is-sub-phase-out', liveMatch && !liveLocked && subPhase === 'out');
+                pitch.classList.toggle('is-sub-phase-in', liveMatch && !liveLocked && subPhase === 'in');
+                pitch.classList.toggle('is-sub-phase-fill', liveMatch && !liveLocked && subPhase === 'fill');
+                pitch.classList.toggle('is-swap-targeting', liveMatch && !liveLocked && !pendingIn && Boolean(pendingSwapPos));
             }
 
             ['tactical-autofill-btn', 'tactical-clear-btn'].forEach(id => {
@@ -1081,8 +1299,14 @@
             });
 
             document.querySelectorAll('.player-node').forEach(node => {
+                const posId = node.dataset.pos || '';
+                const filled = Boolean(window.liveLineup?.[posId]);
                 node.classList.toggle('is-lineup-readonly', !editable && !liveMatch);
-                node.classList.toggle('is-sub-target', liveMatch && !liveLocked && Boolean(window.tacticalPendingSubIn));
+                node.classList.toggle('is-sub-target', liveMatch && !liveLocked && pendingIn && filled);
+                node.classList.toggle('is-sub-out', liveMatch && !liveLocked && pendingOutPos === posId);
+                node.classList.toggle('is-sub-in-pos', liveMatch && !liveLocked && pendingInPos === posId);
+                node.classList.toggle('is-swap-source', liveMatch && !liveLocked && pendingSwapPos === posId);
+                node.classList.toggle('is-swap-target', liveMatch && !liveLocked && Boolean(pendingSwapPos) && !pendingIn && filled && pendingSwapPos !== posId);
             });
             syncLiveLockUi();
         };
@@ -1404,9 +1628,11 @@
                 setLivePlayingTimeStatus('Live er låst', 'error');
                 return;
             }
-            window.tacticalPendingSubIn = null;
+            window.clearTacticalPendingSub();
+            window.tacticalPendingSwapPos = null;
             window.tacticalLiveDirty = false;
             window.tacticalAppliedLiveSubs = [];
+            window.tacticalAppliedLiveMoves = [];
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
             setLivePlayingTimeStatus('');
@@ -1423,8 +1649,10 @@
             const benchCard = document.getElementById('tactical-bench-card');
             const subPanel = document.getElementById('tactical-live-sub-panel');
             
-            window.tacticalPendingSubIn = null;
+            window.clearTacticalPendingSub();
+            window.tacticalPendingSwapPos = null;
             window.tacticalAppliedLiveSubs = [];
+            window.tacticalAppliedLiveMoves = [];
             window.tacticalLiveDirty = false;
             setLivePlayingTimeStatus('');
 
@@ -1471,9 +1699,39 @@
 
         window.clearTacticalPendingSub = function() {
             window.tacticalPendingSubIn = null;
+            window.tacticalPendingSubOutPos = null;
+            window.tacticalPendingSubInPos = null;
+            setLivePlayingTimeStatus('');
             window.applyTacticalLineupReadOnlyState();
             if (typeof window.renderBench === 'function') window.renderBench();
         };
+
+        function getLivePosBadgeLabel(posId) {
+            if (typeof window.getMatchGamePlanPositionBadgeLabel === 'function') {
+                return window.getMatchGamePlanPositionBadgeLabel(posId) || posId;
+            }
+            return posId || '';
+        }
+
+        function updateLiveSubStatusMessage() {
+            if (!window.tacticalPendingSubIn) {
+                if (window.tacticalPendingSwapPos) {
+                    setLivePlayingTimeStatus('Velg spiller å bytte plass med', 'pending');
+                }
+                return;
+            }
+            const name = window.tacticalPendingSubIn.navn || 'Innbytter';
+            if (!window.tacticalPendingSubOutPos) {
+                setLivePlayingTimeStatus(`${name}: velg hvem som går ut`, 'pending');
+                return;
+            }
+            if (!window.tacticalPendingSubInPos) {
+                setLivePlayingTimeStatus(`${name}: velg hvor hen skal spille`, 'pending');
+                return;
+            }
+            const hole = getLivePosBadgeLabel(window.tacticalPendingSubOutPos);
+            setLivePlayingTimeStatus(`${name}: velg hvem som går til ${hole}`, 'pending');
+        }
 
         window.beginTacticalLiveSub = function(playerId) {
             if (!window.isTacticalLiveMatchMode()) return;
@@ -1488,33 +1746,54 @@
 
             if (window.tacticalPendingSubIn?.id === player.id) {
                 window.clearTacticalPendingSub();
+                setLivePlayingTimeStatus('');
                 return;
             }
 
+            window.tacticalPendingSwapPos = null;
             window.tacticalPendingSubIn = player;
+            window.tacticalPendingSubOutPos = null;
+            window.tacticalPendingSubInPos = null;
+            updateLiveSubStatusMessage();
             window.applyTacticalLineupReadOnlyState();
             if (typeof window.renderBench === 'function') window.renderBench();
         };
 
-        window.applyLiveSubstitution = function(posId, inPlayer, options = {}) {
-            if (!window.isTacticalLiveMatchMode() || !posId || !inPlayer) return false;
+        window.applyLiveSubstitution = function(outPosId, inPlayer, options = {}) {
+            if (!window.isTacticalLiveMatchMode() || !outPosId || !inPlayer) return false;
             if (window.isLiveSessionLocked()) {
                 setLivePlayingTimeStatus('Live er låst', 'error');
                 return false;
             }
 
-            const outPlayer = window.liveLineup?.[posId] || null;
+            const outPlayer = window.liveLineup?.[outPosId] || null;
             if (!outPlayer) {
-                alert(`Ingen spiller på ${posId} å bytte ut.`);
+                alert(`Ingen spiller på ${outPosId} å bytte ut.`);
                 return false;
             }
 
-            const alreadyOnPitch = Object.entries(window.liveLineup || {}).some(([pos, player]) => (
-                pos !== posId && player && (player.id === inPlayer.id || player.navn === inPlayer.navn)
+            const inPosId = options.inPosId || outPosId;
+            const alreadyOnPitch = Object.entries(window.liveLineup || {}).some(([, player]) => (
+                player && (player.id === inPlayer.id || player.navn === inPlayer.navn)
             ));
             if (alreadyOnPitch) {
                 alert(`${inPlayer.navn} er allerede på banen.`);
                 return false;
+            }
+
+            let fillFromPos = '';
+            let fillPlayer = null;
+            if (inPosId !== outPosId) {
+                fillFromPos = options.fillFromPos || '';
+                fillPlayer = fillFromPos ? (window.liveLineup?.[fillFromPos] || null) : null;
+                if (!fillFromPos || !fillPlayer) {
+                    alert('Velg hvem som fyller plassen som blir ledig.');
+                    return false;
+                }
+                if (fillFromPos === outPosId) {
+                    alert('Velg en annen spiller til å fylle hullet.');
+                    return false;
+                }
             }
 
             const inheritedRoles = getRolesForPlayer(outPlayer);
@@ -1528,23 +1807,66 @@
                 window.liveRoles[slot] = inRef;
             });
 
-            window.liveLineup[posId] = inPlayer;
+            const subRecord = {
+                minute: subMinute,
+                posId: outPosId,
+                inPosId,
+                fillId: fillPlayer ? getTacticalLivePlayerRef(fillPlayer) : '',
+                fillFromPos: fillFromPos || '',
+                outId: getTacticalLivePlayerRef(outPlayer),
+                inId: inRef,
+                outRoles: [...inheritedRoles],
+                outOffc: [...inheritedOffc],
+                outDefc: [...inheritedDefc]
+            };
+
+            applyLiveSubToLineupState(subRecord);
             syncLiveLineupToTactical();
             window.tacticalLiveDirty = true;
             window.tacticalAppliedLiveSubs = [
                 ...(window.tacticalAppliedLiveSubs || []),
-                {
-                    minute: subMinute,
-                    posId,
-                    outId: getTacticalLivePlayerRef(outPlayer),
-                    inId: inRef,
-                    outRoles: [...inheritedRoles],
-                    outOffc: [...inheritedOffc],
-                    outDefc: [...inheritedDefc]
-                }
+                subRecord
             ];
-            window.tacticalPendingSubIn = null;
+            window.clearTacticalPendingSub();
+            window.tacticalPendingSwapPos = null;
+            setLivePlayingTimeStatus('');
 
+            refreshTacticalLiveBoard();
+            if (typeof window.persistLivePlayingTime === 'function') {
+                window.persistLivePlayingTime({ commitMinutes: false }).catch(() => {});
+            }
+            return true;
+        };
+
+        window.applyLiveLineupSwap = function(aPos, bPos, options = {}) {
+            if (!window.isTacticalLiveMatchMode() || !aPos || !bPos || aPos === bPos) return false;
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return false;
+            }
+            const playerA = window.liveLineup?.[aPos] || null;
+            const playerB = window.liveLineup?.[bPos] || null;
+            if (!playerA || !playerB) {
+                alert('Begge posisjonene må ha spillere for å bytte plass.');
+                return false;
+            }
+
+            const move = {
+                minute: resolveLiveSubMinute(options.minute),
+                aPos,
+                bPos,
+                aId: getTacticalLivePlayerRef(playerA),
+                bId: getTacticalLivePlayerRef(playerB)
+            };
+            applyLiveMoveToLineupState(move);
+            syncLiveLineupToTactical();
+            window.tacticalLiveDirty = true;
+            window.tacticalAppliedLiveMoves = [
+                ...(window.tacticalAppliedLiveMoves || []),
+                move
+            ];
+            window.tacticalPendingSwapPos = null;
+            setLivePlayingTimeStatus('');
             refreshTacticalLiveBoard();
             if (typeof window.persistLivePlayingTime === 'function') {
                 window.persistLivePlayingTime({ commitMinutes: false }).catch(() => {});
@@ -1560,7 +1882,10 @@
                 : null;
             if (!player || !posId) return;
             const assignment = getBenchAssignmentFromMatch(match, playerRef);
-            window.applyLiveSubstitution(posId, player, { minute: assignment.minute || '' });
+            window.applyLiveSubstitution(posId, player, {
+                minute: assignment.minute || '',
+                inPosId: posId
+            });
         };
 
         window.renderBench = function() {
@@ -1671,13 +1996,25 @@
                 const dutyChipsHtml = buildResponsibilityChipsHtml(inheritPreview);
 
                 const appliedOutSub = findLatestAppliedLiveSubForPlayer(p, 'out');
+                const appliedInSub = findLatestAppliedLiveSubForPlayer(p, 'in');
                 const outMinuteRaw = appliedOutSub?.minute
                     ? String(appliedOutSub.minute).trim().replace(/'$/, '')
                     : '';
+                const inMinuteRaw = appliedInSub?.minute
+                    ? String(appliedInSub.minute).trim().replace(/'$/, '')
+                    : '';
                 const outTimeHtml = outMinuteRaw
-                    ? `<div class="tactical-bench-swap-meta is-out-time" title="Byttet ut ${escapeTacticalHtml(outMinuteRaw)}'">
-                            <span class="tactical-bench-plan-minute">UT</span>
-                            <span class="tactical-bench-plan-pos">${escapeTacticalHtml(outMinuteRaw)}'</span>
+                    ? `<div class="tactical-bench-sub-times">
+                            <div class="tactical-bench-swap-meta is-out-time" title="Byttet ut ${escapeTacticalHtml(outMinuteRaw)}'">
+                                <span class="tactical-bench-plan-minute">UT</span>
+                                <span class="tactical-bench-plan-pos">${escapeTacticalHtml(outMinuteRaw)}'</span>
+                            </div>
+                            ${inMinuteRaw
+                                ? `<div class="tactical-bench-swap-meta is-in-time" title="Byttet inn ${escapeTacticalHtml(inMinuteRaw)}'">
+                                        <span class="tactical-bench-plan-minute">INN</span>
+                                        <span class="tactical-bench-plan-pos">${escapeTacticalHtml(inMinuteRaw)}'</span>
+                                   </div>`
+                                : ''}
                        </div>`
                     : '';
 
@@ -1800,6 +2137,8 @@
                         if (liveLocked) return;
                         if (isPending) {
                             window.clearTacticalPendingSub();
+                            window.tacticalPendingSwapPos = null;
+                            window.applyTacticalLineupReadOnlyState();
                             return;
                         }
                         if (!confirmSuspended()) return;
@@ -1890,9 +2229,71 @@
                     setLivePlayingTimeStatus('Live er låst', 'error');
                     return;
                 }
+
                 if (window.tacticalPendingSubIn) {
-                    window.applyLiveSubstitution(posId, window.tacticalPendingSubIn);
+                    const inPlayer = window.tacticalPendingSubIn;
+                    const occupied = Boolean(window.liveLineup?.[posId]);
+
+                    if (!window.tacticalPendingSubOutPos) {
+                        if (!occupied) {
+                            alert(`Ingen spiller på ${posId} å bytte ut.`);
+                            return;
+                        }
+                        window.tacticalPendingSubOutPos = posId;
+                        updateLiveSubStatusMessage();
+                        window.applyTacticalLineupReadOnlyState();
+                        return;
+                    }
+
+                    if (!window.tacticalPendingSubInPos) {
+                        if (posId === window.tacticalPendingSubOutPos) {
+                            window.applyLiveSubstitution(window.tacticalPendingSubOutPos, inPlayer, {
+                                inPosId: posId
+                            });
+                            return;
+                        }
+                        if (!occupied) {
+                            alert('Velg en posisjon med spiller.');
+                            return;
+                        }
+                        window.tacticalPendingSubInPos = posId;
+                        updateLiveSubStatusMessage();
+                        window.applyTacticalLineupReadOnlyState();
+                        return;
+                    }
+
+                    if (posId === window.tacticalPendingSubOutPos) {
+                        alert('Velg en spiller som skal fylle den ledige plassen.');
+                        return;
+                    }
+                    if (!occupied) {
+                        alert('Velg en spiller på banen som fyller hullet.');
+                        return;
+                    }
+                    window.applyLiveSubstitution(window.tacticalPendingSubOutPos, inPlayer, {
+                        inPosId: window.tacticalPendingSubInPos,
+                        fillFromPos: posId
+                    });
+                    return;
                 }
+
+                if (!window.liveLineup?.[posId]) return;
+
+                if (window.tacticalPendingSwapPos === posId) {
+                    window.tacticalPendingSwapPos = null;
+                    setLivePlayingTimeStatus('');
+                    window.applyTacticalLineupReadOnlyState();
+                    return;
+                }
+
+                if (window.tacticalPendingSwapPos) {
+                    window.applyLiveLineupSwap(window.tacticalPendingSwapPos, posId);
+                    return;
+                }
+
+                window.tacticalPendingSwapPos = posId;
+                updateLiveSubStatusMessage();
+                window.applyTacticalLineupReadOnlyState();
                 return;
             }
 

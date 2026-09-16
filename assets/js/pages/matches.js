@@ -6039,28 +6039,193 @@ function getPlayerMatchLineupPositionId(match, player) {
     return '';
 }
 
+function parseMatchLiveSubMinute(value) {
+    return Math.floor(Number(String(value ?? '').trim().replace(/'$/, '')) || 0);
+}
+
+function getMatchStoredPositionMinutesMap(match, player) {
+    if (!match?.positionMinutes || !player) return null;
+    const raw = window.getPlayerRefMapValue?.(match.positionMinutes, player, null);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    const cleaned = {};
+    Object.entries(raw).forEach(([posId, mins]) => {
+        const key = String(posId || '').trim();
+        if (!key) return;
+        cleaned[key] = Math.max(0, Math.floor(Number(mins) || 0));
+    });
+    return Object.keys(cleaned).length ? cleaned : null;
+}
+
+function resolveMatchLiveDurationForPositions(match) {
+    const stored = Math.max(0, Math.floor(Number(match?.liveDurationMinutes) || 0));
+    if (stored > 0) return stored;
+    if (typeof window.resolveMatchLiveDurationMinutes === 'function') {
+        const resolved = Math.max(0, Math.floor(Number(window.resolveMatchLiveDurationMinutes(match)) || 0));
+        if (resolved > 0) return resolved;
+    }
+    const moveMax = (Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves : []).reduce(
+        (max, move) => Math.max(max, parseMatchLiveSubMinute(move?.minute)),
+        0
+    );
+    return moveMax;
+}
+
+function getMatchPlayerPositionMinutesMap(match, player) {
+    if (!match || !player) return {};
+
+    const stored = getMatchStoredPositionMinutesMap(match, player);
+    if (stored) return stored;
+
+    if (typeof window.computeLivePositionMinutes !== 'function') return {};
+    const duration = resolveMatchLiveDurationForPositions(match);
+    if (duration <= 0) return {};
+    const all = window.computeLivePositionMinutes(match, duration) || {};
+    const key = typeof window.getPlayerStorageKey === 'function'
+        ? window.getPlayerStorageKey(player)
+        : (player.id || player.navn || '');
+    const byKey = all[key];
+    if (byKey && typeof byKey === 'object') return byKey;
+    if (player.id && all[player.id]) return all[player.id];
+    if (player.navn && all[player.navn]) return all[player.navn];
+    return {};
+}
+
+function getPlayerMatchPlayedPositionIds(match, player) {
+    if (!match || !player) return [];
+
+    const positionMinutes = getMatchPlayerPositionMinutesMap(match, player);
+    const entries = Object.entries(positionMinutes);
+    if (entries.length) {
+        return entries
+            .sort((a, b) => Number(b[1]) - Number(a[1]) || compareMatchGamePlanPositions(a[0], b[0]))
+            .map(([posId]) => posId);
+    }
+
+    const positions = [];
+    const seen = new Set();
+    const add = (posId) => {
+        const key = String(posId || '').trim();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        positions.push(key);
+    };
+
+    add(getPlayerMatchLineupPositionId(match, player));
+
+    const subs = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions : [];
+    subs
+        .slice()
+        .sort((a, b) => parseMatchLiveSubMinute(a?.minute) - parseMatchLiveSubMinute(b?.minute))
+        .forEach((sub) => {
+            if (!(sub?.inId && window.playerRefMatches(sub.inId, player))) return;
+            add(sub.inPosId || sub.posId);
+        });
+
+    const moves = Array.isArray(match.liveLineupMoves) ? match.liveLineupMoves : [];
+    moves.forEach((move) => {
+        if (move?.aId && window.playerRefMatches(move.aId, player) && move.bPos) add(move.bPos);
+        if (move?.bId && window.playerRefMatches(move.bId, player) && move.aPos) add(move.aPos);
+    });
+
+    return positions;
+}
+
 function getPlayerMatchPlayedPositionId(match, player) {
-    if (!match || !player) return '';
+    const positionMinutes = getMatchPlayerPositionMinutesMap(match, player);
+    const best = Object.entries(positionMinutes)
+        .filter(([, mins]) => Number(mins) > 0)
+        .sort((a, b) => Number(b[1]) - Number(a[1]) || compareMatchGamePlanPositions(a[0], b[0]))[0];
+    if (best?.[0]) return best[0];
 
     const startPosId = getPlayerMatchLineupPositionId(match, player);
     if (startPosId) return startPosId;
+    const positions = getPlayerMatchPlayedPositionIds(match, player);
+    return positions.length ? positions[0] : '';
+}
 
-    const subs = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions : [];
-    let subPosId = '';
-    subs
-        .slice()
-        .sort((a, b) => {
-            const minuteA = Math.floor(Number(String(a?.minute ?? '').replace(/'$/, '')) || 0);
-            const minuteB = Math.floor(Number(String(b?.minute ?? '').replace(/'$/, '')) || 0);
-            return minuteA - minuteB;
-        })
-        .forEach((sub) => {
-            if (sub?.inId && window.playerRefMatches(sub.inId, player) && sub.posId) {
-                subPosId = sub.posId;
-            }
-        });
+function buildMatchStatsPositionSelectHtml(player, selectedPosId, options = {}) {
+    const playerAttr = escapeMatchHtml(player?.navn || '');
+    const playerIdAttr = escapeMatchHtml(player?.id || '');
+    const fieldClass = options.fieldClass || 'player-position-input';
+    const label = options.label || 'Pos';
+    const aria = options.ariaLabel || `Posisjon for ${playerAttr}`;
+    const selected = String(selectedPosId || '').trim();
+    const positionOptions = matchGamePlanPositionSortOrder.map((posId) => {
+        const badge = getMatchGamePlanPositionBadgeLabel(posId);
+        const name = getMatchGamePlanPositionLabel(posId);
+        return `<option value="${escapeMatchHtml(posId)}" ${selected === posId ? 'selected' : ''}>${escapeMatchHtml(badge)} · ${escapeMatchHtml(name)}</option>`;
+    }).join('');
 
-    return subPosId;
+    return `
+        <div class="match-stat-field match-stat-field-pos">
+            <span class="match-stat-label">${escapeMatchHtml(label)}</span>
+            <select
+                class="${escapeMatchHtml(fieldClass)} portal-field portal-field-sm match-stat-select"
+                data-player-id="${playerIdAttr}"
+                data-player="${playerAttr}"
+                aria-label="${escapeMatchHtml(aria)}"
+                title="Kampposisjon – brukes i stats når Live ikke kan endres"
+            >
+                <option value="">—</option>
+                ${positionOptions}
+            </select>
+        </div>
+    `;
+}
+
+function buildMatchStatsPlayerPositionsHtml(match, player) {
+    const positionMinutes = getMatchPlayerPositionMinutesMap(match, player);
+    const timed = Object.entries(positionMinutes)
+        .filter(([, mins]) => Number(mins) > 0)
+        .sort((a, b) => Number(b[1]) - Number(a[1]) || compareMatchGamePlanPositions(a[0], b[0]));
+
+    if (timed.length) {
+        const title = timed
+            .map(([posId, mins]) => `${getMatchGamePlanPositionLabel(posId)} ${mins}'`)
+            .join(', ');
+        return `
+            <span class="match-stats-player-positions" title="${escapeMatchHtml(title || 'Kampposisjoner')}">
+                ${timed.map(([posId, mins]) => `
+                    <span class="match-stats-player-pos">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(posId))} ${mins}'</span>
+                `).join('')}
+            </span>
+        `;
+    }
+
+    const posIds = getPlayerMatchPlayedPositionIds(match, player);
+    if (!posIds.length) return '';
+
+    const title = posIds
+        .map((posId) => getMatchGamePlanPositionLabel(posId))
+        .filter(Boolean)
+        .join(', ');
+
+    return `
+        <span class="match-stats-player-positions" title="${escapeMatchHtml(title || 'Kampposisjoner')}">
+            ${posIds.map((posId) => `
+                <span class="match-stats-player-pos">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(posId))}</span>
+            `).join('')}
+        </span>
+    `;
+}
+
+function allocateMatchPositionMinutes(posIds, totalMinutes) {
+    const positions = [...new Set((posIds || []).map((pos) => String(pos || '').trim()).filter(Boolean))];
+    const total = Math.max(0, Math.floor(Number(totalMinutes) || 0));
+    if (!positions.length || total <= 0) return {};
+    if (positions.length === 1) return { [positions[0]]: total };
+
+    const base = Math.floor(total / positions.length);
+    let remainder = total - (base * positions.length);
+    const result = {};
+    positions.forEach((posId, index) => {
+        const extra = remainder > 0 ? 1 : 0;
+        if (remainder > 0) remainder -= 1;
+        const mins = base + extra;
+        if (mins > 0) result[posId] = mins;
+        else if (index === 0) result[posId] = total;
+    });
+    return result;
 }
 
 function buildPlayerPositionMatchStats(player) {
@@ -6717,6 +6882,9 @@ window.renderPlayerRowForm = function(match) {
             ? window.isPlayerBenchOnly(match, player)
             : false;
         const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
+        const posIds = getPlayerMatchPlayedPositionIds(match, playerObj);
+        const primaryPosId = posIds[0] || '';
+        const secondaryPosId = posIds[1] && posIds[1] !== primaryPosId ? posIds[1] : '';
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
         const ratingHint = formatMatchRatingHint(prevRating);
 
@@ -6728,6 +6896,7 @@ window.renderPlayerRowForm = function(match) {
                 <div class="match-stats-player-info">
                     <div class="match-stats-player-name-row">
                         <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
+                        ${buildMatchStatsPlayerPositionsHtml(match, playerObj)}
                         ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
                     </div>
                     <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
@@ -6753,6 +6922,16 @@ window.renderPlayerRowForm = function(match) {
                         title="Hentes fra Live, kan justeres. Lagres i Spillerbørs som gjeldende spilletid."
                     >
                 </div>
+                ${buildMatchStatsPositionSelectHtml(playerObj, primaryPosId, {
+                    fieldClass: 'player-position-input',
+                    label: 'Pos',
+                    ariaLabel: `Hovedposisjon for ${player}`
+                })}
+                ${buildMatchStatsPositionSelectHtml(playerObj, secondaryPosId, {
+                    fieldClass: 'player-position-secondary-input',
+                    label: 'Pos2',
+                    ariaLabel: `Ekstra posisjon for ${player}`
+                })}
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
                     <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
@@ -6850,6 +7029,7 @@ window.savePlayerMatchStats = async function() {
     const assists = {};
     const ratings = {};
     const minutesPlayed = {};
+    const positionMinutes = {};
     const guleKort = [];
     const rodeKort = [];
     const benchOnly = {};
@@ -6867,6 +7047,28 @@ window.savePlayerMatchStats = async function() {
         if (raw === '') return;
         const val = Math.max(0, Math.min(120, Math.floor(Number(raw) || 0)));
         if (val > 0) minutesPlayed[playerKey] = val;
+    });
+
+    document.querySelectorAll('.player-position-input').forEach((select) => {
+        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(select));
+        if (!playerKey || benchOnly[playerKey] === true) return;
+        const row = select.closest('.match-stats-player-row');
+        const secondary = row?.querySelector('.player-position-secondary-input');
+        const primaryPos = String(select.value || '').trim();
+        const secondaryPos = String(secondary?.value || '').trim();
+        const posIds = [primaryPos, secondaryPos].filter(Boolean);
+        const totalMins = minutesPlayed[playerKey]
+            || Math.max(0, Math.floor(Number(row?.querySelector('.player-minutes-input')?.value) || 0));
+        const allocated = allocateMatchPositionMinutes(posIds, totalMins);
+        if (Object.keys(allocated).length) {
+            positionMinutes[playerKey] = allocated;
+        } else if (posIds.length) {
+            const marked = {};
+            posIds.forEach((posId) => {
+                marked[posId] = 0;
+            });
+            positionMinutes[playerKey] = marked;
+        }
     });
 
     document.querySelectorAll('.player-goals-input').forEach(input => {
@@ -6904,6 +7106,8 @@ window.savePlayerMatchStats = async function() {
     match.ratings = ratings;
     match.minutesPlayed = minutesPlayed;
     match.minutesSource = 'spillerbors';
+    match.positionMinutes = positionMinutes;
+    match.positionMinutesSource = 'spillerbors';
     match.guleKort = guleKort;
     match.rodeKort = rodeKort;
     match.benchOnly = benchOnly;
