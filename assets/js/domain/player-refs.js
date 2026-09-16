@@ -483,6 +483,26 @@ window.normalizeMatchPlayerRefs = function(match) {
         });
         normalized.positionMinutes = normalizedPositions;
     }
+    if (match.positionAssignments && typeof match.positionAssignments === 'object') {
+        const normalizedAssignments = {};
+        Object.entries(match.positionAssignments).forEach(([ref, assignment]) => {
+            const player = window.findPlayerByRef(ref);
+            const key = player?.id || ref;
+            if (!assignment || typeof assignment !== 'object' || Array.isArray(assignment)) {
+                normalizedAssignments[key] = { primary: '', secondary: '', secondaryFrom: '' };
+                return;
+            }
+            const secondaryFromRaw = assignment.secondaryFrom ?? assignment.pos2From ?? '';
+            normalizedAssignments[key] = {
+                primary: String(assignment.primary || assignment.pos1 || '').trim(),
+                secondary: String(assignment.secondary || assignment.pos2 || '').trim(),
+                secondaryFrom: String(secondaryFromRaw).trim() === ''
+                    ? ''
+                    : String(Math.max(0, Math.min(120, Math.floor(Number(secondaryFromRaw) || 0))))
+            };
+        });
+        normalized.positionAssignments = normalizedAssignments;
+    }
     if (match.guleKort) normalized.guleKort = window.normalizePlayerRefList(match.guleKort);
     if (match.rodeKort) normalized.rodeKort = window.normalizePlayerRefList(match.rodeKort);
 
@@ -598,6 +618,16 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
                 newMap[newKey] = value;
             });
             updated.positionMinutes = newMap;
+        }
+
+        if (entity.positionAssignments && typeof entity.positionAssignments === 'object') {
+            const newMap = {};
+            Object.entries(entity.positionAssignments).forEach(([key, value]) => {
+                const newKey = remapKey(key);
+                if (newKey !== key) changed = true;
+                newMap[newKey] = value;
+            });
+            updated.positionAssignments = newMap;
         }
 
         ['guleKort', 'rodeKort'].forEach((field) => {

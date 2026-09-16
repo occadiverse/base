@@ -13521,6 +13521,11 @@
             min-width: 4.6rem;
             max-width: 6.5rem;
         }
+        .match-stat-field-pos2-from .match-stat-select,
+        .match-stat-field-pos2-from .player-position-secondary-from-input {
+            min-width: 3.4rem;
+            max-width: 4.2rem;
+        }
         .match-stats-controls,
         .match-stats-pitch-controls,
         .match-stats-card-group {

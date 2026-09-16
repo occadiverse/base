@@ -130,7 +130,7 @@ function bindMatchStatsEvents() {
         if (event.target.matches('#match-stats-opponent-goals, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
             window.updateMatchStatsResultBar();
         }
-        if (event.target.matches('.player-minutes-input')) {
+        if (event.target.matches('.player-minutes-input, .player-position-secondary-from-input')) {
             const raw = String(event.target.value || '').trim();
             event.target.classList.toggle('is-empty', raw === '');
         }
@@ -6209,11 +6209,33 @@ function buildMatchStatsPlayerPositionsHtml(match, player) {
     `;
 }
 
-function allocateMatchPositionMinutes(posIds, totalMinutes) {
+function allocateMatchPositionMinutes(posIds, totalMinutes, options = {}) {
     const positions = [...new Set((posIds || []).map((pos) => String(pos || '').trim()).filter(Boolean))];
     const total = Math.max(0, Math.floor(Number(totalMinutes) || 0));
     if (!positions.length || total <= 0) return {};
     if (positions.length === 1) return { [positions[0]]: total };
+
+    const switchMinuteRaw = options.secondaryFrom;
+    const hasSwitch = switchMinuteRaw !== null
+        && switchMinuteRaw !== undefined
+        && String(switchMinuteRaw).trim() !== '';
+    if (hasSwitch && positions.length >= 2) {
+        const matchEnd = Math.max(
+            total,
+            Math.max(0, Math.floor(Number(options.matchEndMinute) || 0)),
+            Math.max(0, Math.floor(Number(switchMinuteRaw) || 0))
+        );
+        const onFrom = Math.max(0, matchEnd - total);
+        const switchAt = Math.max(0, Math.floor(Number(switchMinuteRaw) || 0));
+        const clampedSwitch = Math.min(Math.max(switchAt, onFrom), matchEnd);
+        const primaryMins = Math.max(0, clampedSwitch - onFrom);
+        const secondaryMins = Math.max(0, total - primaryMins);
+        const result = {};
+        if (primaryMins > 0) result[positions[0]] = primaryMins;
+        if (secondaryMins > 0) result[positions[1]] = secondaryMins;
+        if (!Object.keys(result).length) result[positions[0]] = total;
+        return result;
+    }
 
     const base = Math.floor(total / positions.length);
     let remainder = total - (base * positions.length);
@@ -6226,6 +6248,47 @@ function allocateMatchPositionMinutes(posIds, totalMinutes) {
         else if (index === 0) result[posId] = total;
     });
     return result;
+}
+
+function getMatchPlayerPositionAssignment(match, player) {
+    if (!match?.positionAssignments || !player) return null;
+    const raw = window.getPlayerRefMapValue?.(match.positionAssignments, player, null);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    const primary = String(raw.primary || raw.pos1 || '').trim();
+    const secondary = String(raw.secondary || raw.pos2 || '').trim();
+    const secondaryFromRaw = raw.secondaryFrom ?? raw.pos2From ?? '';
+    const secondaryFrom = String(secondaryFromRaw).trim() === ''
+        ? ''
+        : String(Math.max(0, Math.min(120, Math.floor(Number(secondaryFromRaw) || 0))));
+    if (!primary && !secondary) return null;
+    return { primary, secondary, secondaryFrom };
+}
+
+function buildMatchStatsPos2FromHtml(player, secondaryFrom) {
+    const playerAttr = escapeMatchHtml(player?.navn || '');
+    const playerIdAttr = escapeMatchHtml(player?.id || '');
+    const value = secondaryFrom === null || secondaryFrom === undefined || secondaryFrom === ''
+        ? ''
+        : String(secondaryFrom);
+    return `
+        <div class="match-stat-field match-stat-field-pos2-from">
+            <span class="match-stat-label">Pos2 fra</span>
+            <input
+                type="number"
+                inputmode="numeric"
+                min="0"
+                max="120"
+                step="1"
+                class="player-position-secondary-from-input portal-field portal-field-sm match-stat-select match-stat-minutes-input${value === '' ? ' is-empty' : ''}"
+                data-player-id="${playerIdAttr}"
+                data-player="${playerAttr}"
+                value="${escapeMatchHtml(value)}"
+                placeholder="—"
+                aria-label="Kampminutt når Pos2 starter for ${playerAttr}"
+                title="Kampminutt når spilleren bytter til Pos2 (f.eks. 62)"
+            >
+        </div>
+    `;
 }
 
 function buildPlayerPositionMatchStats(player) {
@@ -6882,9 +6945,12 @@ window.renderPlayerRowForm = function(match) {
             ? window.isPlayerBenchOnly(match, player)
             : false;
         const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
+        const assignment = getMatchPlayerPositionAssignment(match, playerObj);
         const posIds = getPlayerMatchPlayedPositionIds(match, playerObj);
-        const primaryPosId = posIds[0] || '';
-        const secondaryPosId = posIds[1] && posIds[1] !== primaryPosId ? posIds[1] : '';
+        const primaryPosId = assignment?.primary || posIds[0] || '';
+        const secondaryPosId = assignment?.secondary
+            || (posIds[1] && posIds[1] !== primaryPosId ? posIds[1] : '');
+        const secondaryFrom = assignment?.secondaryFrom || '';
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
         const ratingHint = formatMatchRatingHint(prevRating);
 
@@ -6932,6 +6998,7 @@ window.renderPlayerRowForm = function(match) {
                     label: 'Pos2',
                     ariaLabel: `Ekstra posisjon for ${player}`
                 })}
+                ${buildMatchStatsPos2FromHtml(playerObj, secondaryFrom)}
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
                     <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
@@ -7030,6 +7097,7 @@ window.savePlayerMatchStats = async function() {
     const ratings = {};
     const minutesPlayed = {};
     const positionMinutes = {};
+    const positionAssignments = {};
     const guleKort = [];
     const rodeKort = [];
     const benchOnly = {};
@@ -7049,17 +7117,31 @@ window.savePlayerMatchStats = async function() {
         if (val > 0) minutesPlayed[playerKey] = val;
     });
 
+    const matchEndMinute = Math.max(
+        resolveMatchLiveDurationForPositions(match),
+        Object.values(minutesPlayed).reduce((max, mins) => Math.max(max, Number(mins) || 0), 0),
+        90
+    );
+
     document.querySelectorAll('.player-position-input').forEach((select) => {
         const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(select));
         if (!playerKey || benchOnly[playerKey] === true) return;
         const row = select.closest('.match-stats-player-row');
         const secondary = row?.querySelector('.player-position-secondary-input');
+        const secondaryFromInput = row?.querySelector('.player-position-secondary-from-input');
         const primaryPos = String(select.value || '').trim();
         const secondaryPos = String(secondary?.value || '').trim();
+        const secondaryFromRaw = String(secondaryFromInput?.value || '').trim();
+        const secondaryFrom = secondaryFromRaw === ''
+            ? ''
+            : String(Math.max(0, Math.min(120, Math.floor(Number(secondaryFromRaw) || 0))));
         const posIds = [primaryPos, secondaryPos].filter(Boolean);
         const totalMins = minutesPlayed[playerKey]
             || Math.max(0, Math.floor(Number(row?.querySelector('.player-minutes-input')?.value) || 0));
-        const allocated = allocateMatchPositionMinutes(posIds, totalMins);
+        const allocated = allocateMatchPositionMinutes(posIds, totalMins, {
+            secondaryFrom: secondaryPos ? secondaryFrom : '',
+            matchEndMinute
+        });
         if (Object.keys(allocated).length) {
             positionMinutes[playerKey] = allocated;
         } else if (posIds.length) {
@@ -7068,6 +7150,13 @@ window.savePlayerMatchStats = async function() {
                 marked[posId] = 0;
             });
             positionMinutes[playerKey] = marked;
+        }
+        if (primaryPos || secondaryPos) {
+            positionAssignments[playerKey] = {
+                primary: primaryPos,
+                secondary: secondaryPos,
+                secondaryFrom: secondaryPos ? secondaryFrom : ''
+            };
         }
     });
 
@@ -7108,6 +7197,7 @@ window.savePlayerMatchStats = async function() {
     match.minutesSource = 'spillerbors';
     match.positionMinutes = positionMinutes;
     match.positionMinutesSource = 'spillerbors';
+    match.positionAssignments = positionAssignments;
     match.guleKort = guleKort;
     match.rodeKort = rodeKort;
     match.benchOnly = benchOnly;
