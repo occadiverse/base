@@ -12536,6 +12536,22 @@
             font-weight: 800;
             margin-top: 0.08rem;
         }
+        .match-game-plan-player-copy .match-game-plan-player-meta {
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 800;
+            margin-top: 0.08rem;
+        }
+        .match-game-plan-player-copy .match-game-plan-player-pos-table-wrap,
+        .match-game-plan-player-copy .match-game-plan-player-pos-table,
+        .match-game-plan-player-copy .match-game-plan-player-pos-table th,
+        .match-game-plan-player-copy .match-game-plan-player-pos-table td,
+        .match-game-plan-player-copy .match-game-plan-player-pos-table span {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            margin-top: 0;
+        }
         .match-game-plan-player-tag {
             background: #f1f5f9;
             border: 1px solid rgba(148, 163, 184, 0.35);
@@ -12964,6 +12980,103 @@
         .match-game-plan-select-modal .match-game-plan-player-option:hover {
             box-shadow: none;
             transform: none;
+        }
+        .match-game-plan-player-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .match-game-plan-player-section + .match-game-plan-player-section {
+            margin-top: 0.55rem;
+            padding-top: 0.7rem;
+            border-top: 1px solid rgba(245, 197, 66, 0.16);
+        }
+        .match-game-plan-player-section-title {
+            align-items: center;
+            color: rgba(248, 250, 252, 0.72);
+            display: flex;
+            font-size: 0.68rem;
+            font-weight: 800;
+            gap: 0.45rem;
+            letter-spacing: 0.05em;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .match-game-plan-player-section-title span {
+            background: rgba(245, 197, 66, 0.14);
+            border-radius: 999px;
+            color: #f5c542;
+            font-size: 0.62rem;
+            font-weight: 900;
+            padding: 0.12rem 0.42rem;
+        }
+        .match-game-plan-player-section-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .match-game-plan-player-option-main {
+            align-items: center;
+            display: flex;
+            gap: 0.7rem;
+            min-width: 0;
+            width: 100%;
+        }
+        .match-game-plan-pos-pick-table-wrap {
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 0.9rem;
+            overflow-x: auto;
+        }
+        .match-game-plan-pos-pick-table {
+            border-collapse: collapse;
+            min-width: 100%;
+            width: 100%;
+        }
+        .match-game-plan-pos-pick-table th,
+        .match-game-plan-pos-pick-table td {
+            font-size: 0.74rem;
+            padding: 0.45rem 0.4rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .match-game-plan-pos-pick-table th {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(248, 250, 252, 0.72);
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .match-game-plan-pos-pick-table td {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .match-game-plan-pos-pick-table th:first-child,
+        .match-game-plan-pos-pick-table td:first-child {
+            text-align: center;
+            width: 2.8rem;
+        }
+        .match-game-plan-pos-pick-row {
+            cursor: pointer;
+            transition: background 100ms ease;
+        }
+        .match-game-plan-pos-pick-row:hover,
+        .match-game-plan-pos-pick-row:focus-visible {
+            background: rgba(245, 197, 66, 0.1);
+            outline: none;
+        }
+        .match-game-plan-pos-pick-player {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            padding-left: 0.35rem !important;
+            padding-right: 0.35rem !important;
+        }
+        .match-game-plan-pos-pick-player .match-game-plan-player-avatar {
+            flex: 0 0 auto;
+            height: 2rem;
+            width: 2rem;
         }
         .match-game-plan-player-option.is-unavailable,
         .match-game-plan-select-modal .match-game-plan-player-option.is-unavailable {

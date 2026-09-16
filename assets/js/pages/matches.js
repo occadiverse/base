@@ -5741,57 +5741,181 @@ function buildMatchGamePlanPositionOptionsHtml(match, posId) {
         .join('');
 }
 
+function formatMatchGamePlanXp(goals, assists, matches) {
+    const matchCount = Math.max(0, Math.floor(Number(matches) || 0));
+    if (matchCount <= 0) return '—';
+    const totalMa = Math.max(0, Math.floor(Number(goals) || 0))
+        + Math.max(0, Math.floor(Number(assists) || 0));
+    if (totalMa <= 0) return '0.0';
+    return (Math.round((totalMa / matchCount) * 10) / 10).toFixed(1);
+}
+
+function getPlayerPositionStatForPos(player, posId) {
+    if (!player || !posId) return null;
+    return buildPlayerPositionMatchStats(player).find(row => row.posId === posId) || null;
+}
+
+function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced) {
+    if (!experienced.length) return '';
+
+    const bodyRows = experienced.map(({ player, posStat, seasonStat }) => {
+        const snittBidrag = Math.round((posStat.points / posStat.matches) * 10) / 10;
+        const maText = (posStat.goals > 0 || posStat.assists > 0)
+            ? `${posStat.goals}/${posStat.assists}`
+            : '—';
+        const formValue = computeMatchGamePlanPositionForm(posStat.entries);
+        const seasonValue = computeMatchGamePlanPositionSeason(posStat, seasonStat);
+        const formText = formValue > 0 ? String(formValue) : '—';
+        const seasonText = seasonValue > 0
+            ? (Math.round(seasonValue * 10) / 10).toFixed(1)
+            : '—';
+        const xpText = formatMatchGamePlanXp(posStat.goals, posStat.assists, posStat.matches);
+        const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+        const onclick = existingPosId
+            ? `window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')`
+            : `window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')`;
+        const title = existingPosId
+            ? `${player.navn} · Bytt hit fra ${getMatchGamePlanPositionBadgeLabel(existingPosId)}`
+            : player.navn;
+
+        return `
+            <tr
+                class="match-game-plan-pos-pick-row"
+                role="button"
+                tabindex="0"
+                title="${escapeMatchHtml(title)}"
+                onclick="${onclick}"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick};}"
+            >
+                <td class="match-game-plan-pos-pick-player">
+                    ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
+                </td>
+                <td>${posStat.matches}</td>
+                <td>${snittBidrag}</td>
+                <td>${escapeMatchHtml(maText)}</td>
+                <td>${escapeMatchHtml(xpText)}</td>
+                <td>${escapeMatchHtml(formText)}</td>
+                <td>${escapeMatchHtml(seasonText)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div class="match-game-plan-insight-table-wrap match-game-plan-pos-pick-table-wrap">
+            <table class="match-game-plan-insight-table match-game-plan-pos-pick-table">
+                <thead>
+                    <tr>
+                        <th aria-label="Spiller"></th>
+                        <th title="Antall kamper">K</th>
+                        <th title="Snitt kampbidrag">Bidrag</th>
+                        <th title="Mål / Assist">M/A</th>
+                        <th title="Mål+assist per kamp">XP</th>
+                        <th title="Form fra snitt på posisjonen (siste 5)">Form</th>
+                        <th title="Sesongscore fra snitt på posisjonen">Sesong</th>
+                    </tr>
+                </thead>
+                <tbody>${bodyRows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+function buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player) {
+    const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+    const score = getMatchGamePlanPositionScore(player, posId);
+    const trailingHtml = existingPosId
+        ? `<span class="match-game-plan-player-tag is-pitch">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(existingPosId))}</span>`
+        : buildMatchGamePlanFitTagHtml(score);
+    const onclick = existingPosId
+        ? `window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')`
+        : `window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')`;
+    const titleAttr = existingPosId
+        ? ` title="Bytt hit fra ${escapeMatchHtml(existingPosId)}"`
+        : '';
+    const meta = existingPosId ? 'Bytt hit' : '';
+
+    return `
+        <button
+            type="button"
+            class="match-game-plan-player-option"
+            onclick="${onclick}"${titleAttr}
+        >
+            <span class="match-game-plan-player-option-main">
+                ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
+                <span class="match-game-plan-player-copy">
+                    <strong>${escapeMatchHtml(player.navn)}</strong>
+                    ${meta ? `<span class="match-game-plan-player-meta">${escapeMatchHtml(meta)}</span>` : ''}
+                </span>
+                ${trailingHtml}
+            </span>
+        </button>
+    `;
+}
+
 function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
-    const players = getMatchGamePlanSelectablePlayers(match).sort((a, b) =>
+    const players = getMatchGamePlanSelectablePlayers(match)
+        .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer));
+
+    if (!players.length) return '';
+
+    const experienced = [];
+    const others = [];
+
+    players.forEach((player) => {
+        const posStat = getPlayerPositionStatForPos(player, posId);
+        if (posStat?.matches > 0) {
+            experienced.push({
+                player,
+                posStat,
+                seasonStat: getMatchGamePlanPlayerSeasonStat(player),
+                snittBidrag: posStat.points / posStat.matches
+            });
+        } else {
+            others.push(player);
+        }
+    });
+
+    experienced.sort((a, b) => (
+        b.posStat.matches - a.posStat.matches
+        || b.snittBidrag - a.snittBidrag
+        || String(a.player.navn || '').localeCompare(String(b.player.navn || ''), 'nb', { sensitivity: 'base' })
+    ));
+    others.sort((a, b) =>
         String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' })
     );
 
-    return players
-        .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer))
-        .map(player => {
-            const score = getMatchGamePlanPositionScore(player, posId);
-            const jersey = player.drakt || player.draktnummer || '';
-            const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
-            const isOnPitchElsewhere = Boolean(existingPosId);
-            const metaParts = [player.pos1, jersey ? `#${jersey}` : ''].filter(Boolean);
-            const meta = metaParts.join(' · ') || 'Ukjent posisjon';
+    const posCode = getMatchGamePlanPositionBadgeLabel(posId);
+    const sections = [];
 
-            if (isOnPitchElsewhere) {
-                return `
-                    <button
-                        type="button"
-                        class="match-game-plan-player-option"
-                        onclick="window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')"
-                        title="Bytt hit fra ${escapeMatchHtml(existingPosId)}"
-                    >
-                        <span class="match-game-plan-player-status-dot is-on-pitch" title="På banen"></span>
-                        ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
-                        <span class="match-game-plan-player-copy">
-                            <strong>${escapeMatchHtml(player.navn)}</strong>
-                            <span>${escapeMatchHtml(meta)} · Bytt hit</span>
-                        </span>
-                        <span class="match-game-plan-player-tag is-pitch">${escapeMatchHtml(existingPosId)}</span>
-                    </button>
-                `;
-            }
+    if (experienced.length) {
+        sections.push(`
+            <div class="match-game-plan-player-section">
+                <p class="match-game-plan-player-section-title">
+                    Har spilt ${escapeMatchHtml(posCode)}
+                    <span>${experienced.length}</span>
+                </p>
+                ${buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced)}
+            </div>
+        `);
+    }
 
-            return `
-                <button
-                    type="button"
-                    class="match-game-plan-player-option"
-                    onclick="window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')"
-                >
-                    <span class="match-game-plan-player-status-dot is-off-pitch" title="Ledig"></span>
-                    ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
-                    <span class="match-game-plan-player-copy">
-                        <strong>${escapeMatchHtml(player.navn)}</strong>
-                        <span>${escapeMatchHtml(meta)}</span>
-                    </span>
-                    ${buildMatchGamePlanFitTagHtml(score)}
-                </button>
-            `;
-        })
-        .join('');
+    if (others.length) {
+        sections.push(`
+            <div class="match-game-plan-player-section">
+                <p class="match-game-plan-player-section-title">
+                    Øvrige i troppen
+                    <span>${others.length}</span>
+                </p>
+                <div class="match-game-plan-player-section-list">
+                    ${others.map(player =>
+                        buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player)
+                    ).join('')}
+                </div>
+            </div>
+        `);
+    }
+
+    return sections.join('');
 }
 
 function removeMatchGamePlanClearPlayerButton(modal) {
@@ -6062,6 +6186,7 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
             const seasonText = seasonValue > 0
                 ? (Math.round(seasonValue * 10) / 10).toFixed(1)
                 : '—';
+            const xpText = formatMatchGamePlanXp(row.goals, row.assists, row.matches);
             return `
                 <tr>
                     <td class="match-game-plan-insight-pos">
@@ -6070,7 +6195,7 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
                     <td>${row.matches}</td>
                     <td>${pointsText}</td>
                     <td>${maText}</td>
-                    <td>${row.bb > 0 ? row.bb : '—'}</td>
+                    <td>${escapeMatchHtml(xpText)}</td>
                     <td>${escapeMatchHtml(formText)}</td>
                     <td>${escapeMatchHtml(seasonText)}</td>
                 </tr>
@@ -6111,7 +6236,7 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
                             <th title="Antall kamper">K</th>
                             <th title="Snitt kampbidrag">Bidrag</th>
                             <th title="Mål / Assist">M/A</th>
-                            <th title="Banens beste">BB</th>
+                            <th title="Mål+assist per kamp">XP</th>
                             <th title="Form fra snitt på posisjonen (siste 5)">Form</th>
                             <th title="Sesongscore fra snitt på posisjonen">Sesong</th>
                         </tr>
