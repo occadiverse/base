@@ -5868,7 +5868,8 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
                 player,
                 posStat,
                 seasonStat: getMatchGamePlanPlayerSeasonStat(player),
-                snittBidrag: posStat.points / posStat.matches
+                snittBidrag: posStat.points / posStat.matches,
+                xp: (posStat.goals + posStat.assists) / posStat.matches
             });
         } else {
             others.push(player);
@@ -5876,8 +5877,8 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
     });
 
     experienced.sort((a, b) => (
-        b.posStat.matches - a.posStat.matches
-        || b.snittBidrag - a.snittBidrag
+        b.snittBidrag - a.snittBidrag
+        || b.xp - a.xp
         || String(a.player.navn || '').localeCompare(String(b.player.navn || ''), 'nb', { sensitivity: 'base' })
     ));
     others.sort((a, b) =>
