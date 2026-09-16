@@ -5755,11 +5755,14 @@ function getPlayerPositionStatForPos(player, posId) {
     return buildPlayerPositionMatchStats(player).find(row => row.posId === posId) || null;
 }
 
-function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced) {
+function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced, selectedPlayer = null) {
     if (!experienced.length) return '';
 
     const bodyRows = experienced.map(({ player, posStat, seasonStat }) => {
-        const snittBidrag = Math.round((posStat.points / posStat.matches) * 10) / 10;
+        const isSelected = matchGamePlanSamePlayer(player, selectedPlayer);
+        const snittBidrag = posStat.matches > 0
+            ? (Math.round((posStat.points / posStat.matches) * 10) / 10)
+            : 0;
         const maText = (posStat.goals > 0 || posStat.assists > 0)
             ? `${posStat.goals}/${posStat.assists}`
             : '—';
@@ -5771,16 +5774,20 @@ function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced
             : '—';
         const xpText = formatMatchGamePlanXp(posStat.goals, posStat.assists, posStat.matches);
         const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
-        const onclick = existingPosId
-            ? `window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')`
-            : `window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')`;
-        const title = existingPosId
-            ? `${player.navn} · Bytt hit fra ${getMatchGamePlanPositionBadgeLabel(existingPosId)}`
-            : player.navn;
+        const onclick = isSelected || existingPosId === posId
+            ? `window.closePlayerSelect()`
+            : (existingPosId
+                ? `window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')`
+                : `window.chooseMatchGamePlanPlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(posId)}', '${escapeMatchJsString(player.id)}')`);
+        const title = isSelected
+            ? `${player.navn} · Valgt nå`
+            : (existingPosId
+                ? `${player.navn} · Bytt hit fra ${getMatchGamePlanPositionBadgeLabel(existingPosId)}`
+                : player.navn);
 
         return `
             <tr
-                class="match-game-plan-pos-pick-row"
+                class="match-game-plan-pos-pick-row${isSelected ? ' is-selected' : ''}"
                 role="button"
                 tabindex="0"
                 title="${escapeMatchHtml(title)}"
@@ -5790,8 +5797,8 @@ function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced
                 <td class="match-game-plan-pos-pick-player">
                     ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
                 </td>
-                <td>${posStat.matches}</td>
-                <td>${snittBidrag}</td>
+                <td>${posStat.matches || '—'}</td>
+                <td>${posStat.matches > 0 ? snittBidrag : '—'}</td>
                 <td>${escapeMatchHtml(maText)}</td>
                 <td>${escapeMatchHtml(xpText)}</td>
                 <td>${escapeMatchHtml(formText)}</td>
@@ -5853,28 +5860,51 @@ function buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player) {
 }
 
 function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
-    const players = getMatchGamePlanSelectablePlayers(match)
-        .filter(player => !matchGamePlanSamePlayer(player, selectedPlayer));
+    const players = getMatchGamePlanSelectablePlayers(match);
 
-    if (!players.length) return '';
+    if (!players.length && !selectedPlayer) return '';
 
     const experienced = [];
     const others = [];
+    const seenKeys = new Set();
+
+    const pushExperienced = (player, posStat) => {
+        const key = player?.id || player?.navn || '';
+        if (!key || seenKeys.has(`exp:${key}`)) return;
+        seenKeys.add(`exp:${key}`);
+        const safeStat = posStat || {
+            posId,
+            matches: 0,
+            points: 0,
+            goals: 0,
+            assists: 0,
+            bb: 0,
+            ratingsSum: 0,
+            ratingsCount: 0,
+            entries: []
+        };
+        experienced.push({
+            player,
+            posStat: safeStat,
+            seasonStat: getMatchGamePlanPlayerSeasonStat(player),
+            snittBidrag: safeStat.matches > 0 ? safeStat.points / safeStat.matches : 0,
+            xp: safeStat.matches > 0 ? (safeStat.goals + safeStat.assists) / safeStat.matches : 0
+        });
+    };
 
     players.forEach((player) => {
         const posStat = getPlayerPositionStatForPos(player, posId);
         if (posStat?.matches > 0) {
-            experienced.push({
-                player,
-                posStat,
-                seasonStat: getMatchGamePlanPlayerSeasonStat(player),
-                snittBidrag: posStat.points / posStat.matches,
-                xp: (posStat.goals + posStat.assists) / posStat.matches
-            });
-        } else {
+            pushExperienced(player, posStat);
+        } else if (!matchGamePlanSamePlayer(player, selectedPlayer)) {
             others.push(player);
         }
     });
+
+    // Valgt spiller skal alltid ligge i «Har spilt» for sammenligning.
+    if (selectedPlayer) {
+        pushExperienced(selectedPlayer, getPlayerPositionStatForPos(selectedPlayer, posId));
+    }
 
     experienced.sort((a, b) => (
         b.snittBidrag - a.snittBidrag
@@ -5895,7 +5925,7 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
                     Har spilt ${escapeMatchHtml(posCode)}
                     <span>${experienced.length}</span>
                 </p>
-                ${buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced)}
+                ${buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced, selectedPlayer)}
             </div>
         `);
     }

@@ -13066,6 +13066,13 @@
             background: rgba(245, 197, 66, 0.1);
             outline: none;
         }
+        .match-game-plan-pos-pick-row.is-selected {
+            background: rgba(245, 197, 66, 0.16);
+        }
+        .match-game-plan-pos-pick-row.is-selected:hover,
+        .match-game-plan-pos-pick-row.is-selected:focus-visible {
+            background: rgba(245, 197, 66, 0.2);
+        }
         .match-game-plan-pos-pick-player {
             align-items: center;
             display: flex;
