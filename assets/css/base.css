@@ -13415,6 +13415,63 @@
         .match-stats-list {
             display: grid;
         }
+        .match-subs-log {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.85rem;
+            display: grid;
+            gap: 0.55rem;
+            margin: 0 0 0.85rem;
+            padding: 0.75rem 0.85rem;
+        }
+        .match-subs-log-heading {
+            align-items: center;
+            color: rgba(255, 255, 255, 0.78);
+            display: flex;
+            font-size: 0.72rem;
+            font-weight: 900;
+            gap: 0.45rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .match-subs-log-count {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0;
+            padding: 0.12rem 0.42rem;
+            text-transform: none;
+        }
+        .match-subs-log-list {
+            display: grid;
+            gap: 0.35rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .match-subs-log-item {
+            align-items: baseline;
+            color: rgba(255, 255, 255, 0.78);
+            display: grid;
+            font-size: 0.74rem;
+            font-weight: 650;
+            gap: 0.55rem;
+            grid-template-columns: 2.4rem minmax(0, 1fr);
+            line-height: 1.35;
+        }
+        .match-subs-log-minute {
+            color: #fde68a;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+        }
+        .match-subs-log-text {
+            min-width: 0;
+        }
+        .match-subs-log-item.is-move .match-subs-log-text {
+            color: rgba(196, 181, 253, 0.92);
+        }
         .match-stats-player-row {
             align-items: flex-start;
             display: flex;
@@ -13520,11 +13577,6 @@
         .match-stat-field-pos .match-stat-select {
             min-width: 4.6rem;
             max-width: 6.5rem;
-        }
-        .match-stat-field-pos2-from .match-stat-select,
-        .match-stat-field-pos2-from .player-position-secondary-from-input {
-            min-width: 3.4rem;
-            max-width: 4.2rem;
         }
         .match-stats-controls,
         .match-stats-pitch-controls,

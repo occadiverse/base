@@ -130,7 +130,7 @@ function bindMatchStatsEvents() {
         if (event.target.matches('#match-stats-opponent-goals, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
             window.updateMatchStatsResultBar();
         }
-        if (event.target.matches('.player-minutes-input, .player-position-secondary-from-input')) {
+        if (event.target.matches('.player-minutes-input')) {
             const raw = String(event.target.value || '').trim();
             event.target.classList.toggle('is-empty', raw === '');
         }
@@ -5288,6 +5288,7 @@ window.showMatchDetails = function(id) {
                 <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min hentes fra Live og kan justeres; det du lagrer her blir gjeldende spilletid.</p>
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
+                    ${buildMatchLiveSubsLogHtml(match)}
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
                 </div>
@@ -6043,6 +6044,102 @@ function parseMatchLiveSubMinute(value) {
     return Math.floor(Number(String(value ?? '').trim().replace(/'$/, '')) || 0);
 }
 
+function getMatchLiveSubPlayerLabel(ref) {
+    if (!ref) return 'Ukjent';
+    const player = typeof window.findPlayerByRef === 'function'
+        ? window.findPlayerByRef(ref)
+        : null;
+    const name = String(player?.navn || (typeof window.getPlayerNameFromRef === 'function'
+        ? window.getPlayerNameFromRef(ref)
+        : ref) || '').trim();
+    if (!name) return 'Ukjent';
+    const parts = name.split(/\s+/).filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : name;
+}
+
+function buildMatchLiveSubsLogHtml(match) {
+    const subs = Array.isArray(match?.liveSubstitutions) ? [...match.liveSubstitutions] : [];
+    const moves = Array.isArray(match?.liveLineupMoves) ? [...match.liveLineupMoves] : [];
+    if (!subs.length && !moves.length) return '';
+
+    const events = [];
+    subs.forEach((sub, index) => {
+        events.push({
+            type: 'sub',
+            minute: parseMatchLiveSubMinute(sub?.minute),
+            order: index,
+            sub
+        });
+    });
+    moves.forEach((move, index) => {
+        events.push({
+            type: 'move',
+            minute: parseMatchLiveSubMinute(move?.minute),
+            order: 1000 + index,
+            move
+        });
+    });
+    events.sort((a, b) => a.minute - b.minute || a.order - b.order);
+
+    const rows = events.map((event) => {
+        const minuteLabel = `${event.minute}'`;
+        if (event.type === 'move') {
+            const move = event.move || {};
+            const aName = getMatchLiveSubPlayerLabel(move.aId);
+            const bName = getMatchLiveSubPlayerLabel(move.bId);
+            const aPos = getMatchGamePlanPositionBadgeLabel(move.aPos || '');
+            const bPos = getMatchGamePlanPositionBadgeLabel(move.bPos || '');
+            return `
+                <li class="match-subs-log-item is-move">
+                    <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                    <span class="match-subs-log-text">
+                        Rokering: ${escapeMatchHtml(aName)} (${escapeMatchHtml(aPos)}) ↔ ${escapeMatchHtml(bName)} (${escapeMatchHtml(bPos)})
+                    </span>
+                </li>
+            `;
+        }
+
+        const sub = event.sub || {};
+        const outName = getMatchLiveSubPlayerLabel(sub.outId);
+        const inName = getMatchLiveSubPlayerLabel(sub.inId);
+        const outPos = getMatchGamePlanPositionBadgeLabel(sub.posId || '');
+        const inPosId = sub.inPosId || sub.posId || '';
+        const inPos = getMatchGamePlanPositionBadgeLabel(inPosId);
+        const reshuffle = Boolean(sub.inPosId && sub.posId && sub.inPosId !== sub.posId);
+        const fillName = sub.fillId ? getMatchLiveSubPlayerLabel(sub.fillId) : '';
+        const fillFrom = sub.fillFromPos
+            ? getMatchGamePlanPositionBadgeLabel(sub.fillFromPos)
+            : '';
+        const fillBit = reshuffle && fillName
+            ? ` · ${escapeMatchHtml(fillName)} til ${escapeMatchHtml(outPos)}${fillFrom ? ` (fra ${escapeMatchHtml(fillFrom)})` : ''}`
+            : '';
+        const inBit = reshuffle
+            ? `${escapeMatchHtml(inName)} inn på ${escapeMatchHtml(inPos)}`
+            : `${escapeMatchHtml(inName)} inn`;
+
+        return `
+            <li class="match-subs-log-item">
+                <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                <span class="match-subs-log-text">
+                    ${escapeMatchHtml(outName)} ut (${escapeMatchHtml(outPos)}) → ${inBit}${fillBit}
+                </span>
+            </li>
+        `;
+    }).join('');
+
+    return `
+        <div class="match-subs-log" aria-label="Bytter fra Live">
+            <div class="match-subs-log-heading">
+                <span>Bytter</span>
+                <span class="match-subs-log-count">${events.length}</span>
+            </div>
+            <ul class="match-subs-log-list">
+                ${rows}
+            </ul>
+        </div>
+    `;
+}
+
 function getMatchStoredPositionMinutesMap(match, player) {
     if (!match?.positionMinutes || !player) return null;
     const raw = window.getPlayerRefMapValue?.(match.positionMinutes, player, null);
@@ -6143,6 +6240,44 @@ function getPlayerMatchPlayedPositionId(match, player) {
     return positions.length ? positions[0] : '';
 }
 
+function getMatchPlayerSubInPositionId(match, player) {
+    if (!match || !player) return '';
+    const subs = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions : [];
+    let subPosId = '';
+    subs
+        .slice()
+        .sort((a, b) => parseMatchLiveSubMinute(a?.minute) - parseMatchLiveSubMinute(b?.minute))
+        .forEach((sub) => {
+            if (!(sub?.inId && window.playerRefMatches(sub.inId, player))) return;
+            subPosId = String(sub.inPosId || sub.posId || '').trim();
+        });
+    return subPosId;
+}
+
+function getMatchPlayerPositionAssignment(match, player) {
+    if (!match?.positionAssignments || !player) return null;
+    const raw = window.getPlayerRefMapValue?.(match.positionAssignments, player, null);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    const primary = String(raw.primary || raw.pos1 || '').trim();
+    if (!primary) return null;
+    return {
+        primary,
+        secondary: '',
+        secondaryFrom: ''
+    };
+}
+
+function getMatchPlayerSpillerborsPosId(match, player) {
+    if (!match || !player) return '';
+    const assignment = getMatchPlayerPositionAssignment(match, player);
+    if (assignment?.primary) return assignment.primary;
+
+    const subInPosId = getMatchPlayerSubInPositionId(match, player);
+    if (subInPosId) return subInPosId;
+
+    return getPlayerMatchLineupPositionId(match, player) || '';
+}
+
 function buildMatchStatsPositionSelectHtml(player, selectedPosId, options = {}) {
     const playerAttr = escapeMatchHtml(player?.navn || '');
     const playerIdAttr = escapeMatchHtml(player?.id || '');
@@ -6152,8 +6287,7 @@ function buildMatchStatsPositionSelectHtml(player, selectedPosId, options = {}) 
     const selected = String(selectedPosId || '').trim();
     const positionOptions = matchGamePlanPositionSortOrder.map((posId) => {
         const badge = getMatchGamePlanPositionBadgeLabel(posId);
-        const name = getMatchGamePlanPositionLabel(posId);
-        return `<option value="${escapeMatchHtml(posId)}" ${selected === posId ? 'selected' : ''}>${escapeMatchHtml(badge)} · ${escapeMatchHtml(name)}</option>`;
+        return `<option value="${escapeMatchHtml(posId)}" ${selected === posId ? 'selected' : ''}>${escapeMatchHtml(badge)}</option>`;
     }).join('');
 
     return `
@@ -6164,129 +6298,11 @@ function buildMatchStatsPositionSelectHtml(player, selectedPosId, options = {}) 
                 data-player-id="${playerIdAttr}"
                 data-player="${playerAttr}"
                 aria-label="${escapeMatchHtml(aria)}"
-                title="Kampposisjon – brukes i stats når Live ikke kan endres"
+                title="Posisjon spilleren ble byttet inn til (eller startposisjon). Kan justeres."
             >
                 <option value="">—</option>
                 ${positionOptions}
             </select>
-        </div>
-    `;
-}
-
-function buildMatchStatsPlayerPositionsHtml(match, player) {
-    const positionMinutes = getMatchPlayerPositionMinutesMap(match, player);
-    const timed = Object.entries(positionMinutes)
-        .filter(([, mins]) => Number(mins) > 0)
-        .sort((a, b) => Number(b[1]) - Number(a[1]) || compareMatchGamePlanPositions(a[0], b[0]));
-
-    if (timed.length) {
-        const title = timed
-            .map(([posId, mins]) => `${getMatchGamePlanPositionLabel(posId)} ${mins}'`)
-            .join(', ');
-        return `
-            <span class="match-stats-player-positions" title="${escapeMatchHtml(title || 'Kampposisjoner')}">
-                ${timed.map(([posId, mins]) => `
-                    <span class="match-stats-player-pos">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(posId))} ${mins}'</span>
-                `).join('')}
-            </span>
-        `;
-    }
-
-    const posIds = getPlayerMatchPlayedPositionIds(match, player);
-    if (!posIds.length) return '';
-
-    const title = posIds
-        .map((posId) => getMatchGamePlanPositionLabel(posId))
-        .filter(Boolean)
-        .join(', ');
-
-    return `
-        <span class="match-stats-player-positions" title="${escapeMatchHtml(title || 'Kampposisjoner')}">
-            ${posIds.map((posId) => `
-                <span class="match-stats-player-pos">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(posId))}</span>
-            `).join('')}
-        </span>
-    `;
-}
-
-function allocateMatchPositionMinutes(posIds, totalMinutes, options = {}) {
-    const positions = [...new Set((posIds || []).map((pos) => String(pos || '').trim()).filter(Boolean))];
-    const total = Math.max(0, Math.floor(Number(totalMinutes) || 0));
-    if (!positions.length || total <= 0) return {};
-    if (positions.length === 1) return { [positions[0]]: total };
-
-    const switchMinuteRaw = options.secondaryFrom;
-    const hasSwitch = switchMinuteRaw !== null
-        && switchMinuteRaw !== undefined
-        && String(switchMinuteRaw).trim() !== '';
-    if (hasSwitch && positions.length >= 2) {
-        const matchEnd = Math.max(
-            total,
-            Math.max(0, Math.floor(Number(options.matchEndMinute) || 0)),
-            Math.max(0, Math.floor(Number(switchMinuteRaw) || 0))
-        );
-        const onFrom = Math.max(0, matchEnd - total);
-        const switchAt = Math.max(0, Math.floor(Number(switchMinuteRaw) || 0));
-        const clampedSwitch = Math.min(Math.max(switchAt, onFrom), matchEnd);
-        const primaryMins = Math.max(0, clampedSwitch - onFrom);
-        const secondaryMins = Math.max(0, total - primaryMins);
-        const result = {};
-        if (primaryMins > 0) result[positions[0]] = primaryMins;
-        if (secondaryMins > 0) result[positions[1]] = secondaryMins;
-        if (!Object.keys(result).length) result[positions[0]] = total;
-        return result;
-    }
-
-    const base = Math.floor(total / positions.length);
-    let remainder = total - (base * positions.length);
-    const result = {};
-    positions.forEach((posId, index) => {
-        const extra = remainder > 0 ? 1 : 0;
-        if (remainder > 0) remainder -= 1;
-        const mins = base + extra;
-        if (mins > 0) result[posId] = mins;
-        else if (index === 0) result[posId] = total;
-    });
-    return result;
-}
-
-function getMatchPlayerPositionAssignment(match, player) {
-    if (!match?.positionAssignments || !player) return null;
-    const raw = window.getPlayerRefMapValue?.(match.positionAssignments, player, null);
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-    const primary = String(raw.primary || raw.pos1 || '').trim();
-    const secondary = String(raw.secondary || raw.pos2 || '').trim();
-    const secondaryFromRaw = raw.secondaryFrom ?? raw.pos2From ?? '';
-    const secondaryFrom = String(secondaryFromRaw).trim() === ''
-        ? ''
-        : String(Math.max(0, Math.min(120, Math.floor(Number(secondaryFromRaw) || 0))));
-    if (!primary && !secondary) return null;
-    return { primary, secondary, secondaryFrom };
-}
-
-function buildMatchStatsPos2FromHtml(player, secondaryFrom) {
-    const playerAttr = escapeMatchHtml(player?.navn || '');
-    const playerIdAttr = escapeMatchHtml(player?.id || '');
-    const value = secondaryFrom === null || secondaryFrom === undefined || secondaryFrom === ''
-        ? ''
-        : String(secondaryFrom);
-    return `
-        <div class="match-stat-field match-stat-field-pos2-from">
-            <span class="match-stat-label">Pos2 fra</span>
-            <input
-                type="number"
-                inputmode="numeric"
-                min="0"
-                max="120"
-                step="1"
-                class="player-position-secondary-from-input portal-field portal-field-sm match-stat-select match-stat-minutes-input${value === '' ? ' is-empty' : ''}"
-                data-player-id="${playerIdAttr}"
-                data-player="${playerAttr}"
-                value="${escapeMatchHtml(value)}"
-                placeholder="—"
-                aria-label="Kampminutt når Pos2 starter for ${playerAttr}"
-                title="Kampminutt når spilleren bytter til Pos2 (f.eks. 62)"
-            >
         </div>
     `;
 }
@@ -6945,12 +6961,7 @@ window.renderPlayerRowForm = function(match) {
             ? window.isPlayerBenchOnly(match, player)
             : false;
         const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
-        const assignment = getMatchPlayerPositionAssignment(match, playerObj);
-        const posIds = getPlayerMatchPlayedPositionIds(match, playerObj);
-        const primaryPosId = assignment?.primary || posIds[0] || '';
-        const secondaryPosId = assignment?.secondary
-            || (posIds[1] && posIds[1] !== primaryPosId ? posIds[1] : '');
-        const secondaryFrom = assignment?.secondaryFrom || '';
+        const primaryPosId = getMatchPlayerSpillerborsPosId(match, playerObj);
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
         const ratingHint = formatMatchRatingHint(prevRating);
 
@@ -6962,7 +6973,6 @@ window.renderPlayerRowForm = function(match) {
                 <div class="match-stats-player-info">
                     <div class="match-stats-player-name-row">
                         <span class="match-stats-player-name">${escapeMatchHtml(player)}</span>
-                        ${buildMatchStatsPlayerPositionsHtml(match, playerObj)}
                         ${isBenchOnly ? '<span class="match-stats-bench-badge" title="Benkspiller – kun oppmøtepoeng">Benk</span>' : ''}
                     </div>
                     <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
@@ -6985,20 +6995,14 @@ window.renderPlayerRowForm = function(match) {
                         value="${minutesPlayed === null ? '' : minutesPlayed}"
                         placeholder="—"
                         aria-label="Spilletid i minutter for ${playerAttr}"
-                        title="Hentes fra Live, kan justeres. Lagres i Spillerbørs som gjeldende spilletid."
+                        title="Total spilletid. Hentes fra Live, kan justeres."
                     >
                 </div>
                 ${buildMatchStatsPositionSelectHtml(playerObj, primaryPosId, {
                     fieldClass: 'player-position-input',
                     label: 'Pos',
-                    ariaLabel: `Hovedposisjon for ${player}`
+                    ariaLabel: `Innbytte-/startposisjon for ${player}`
                 })}
-                ${buildMatchStatsPositionSelectHtml(playerObj, secondaryPosId, {
-                    fieldClass: 'player-position-secondary-input',
-                    label: 'Pos2',
-                    ariaLabel: `Ekstra posisjon for ${player}`
-                })}
-                ${buildMatchStatsPos2FromHtml(playerObj, secondaryFrom)}
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
                     <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
@@ -7117,46 +7121,24 @@ window.savePlayerMatchStats = async function() {
         if (val > 0) minutesPlayed[playerKey] = val;
     });
 
-    const matchEndMinute = Math.max(
-        resolveMatchLiveDurationForPositions(match),
-        Object.values(minutesPlayed).reduce((max, mins) => Math.max(max, Number(mins) || 0), 0),
-        90
-    );
-
     document.querySelectorAll('.player-position-input').forEach((select) => {
         const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(select));
         if (!playerKey || benchOnly[playerKey] === true) return;
         const row = select.closest('.match-stats-player-row');
-        const secondary = row?.querySelector('.player-position-secondary-input');
-        const secondaryFromInput = row?.querySelector('.player-position-secondary-from-input');
         const primaryPos = String(select.value || '').trim();
-        const secondaryPos = String(secondary?.value || '').trim();
-        const secondaryFromRaw = String(secondaryFromInput?.value || '').trim();
-        const secondaryFrom = secondaryFromRaw === ''
-            ? ''
-            : String(Math.max(0, Math.min(120, Math.floor(Number(secondaryFromRaw) || 0))));
-        const posIds = [primaryPos, secondaryPos].filter(Boolean);
         const totalMins = minutesPlayed[playerKey]
             || Math.max(0, Math.floor(Number(row?.querySelector('.player-minutes-input')?.value) || 0));
-        const allocated = allocateMatchPositionMinutes(posIds, totalMins, {
-            secondaryFrom: secondaryPos ? secondaryFrom : '',
-            matchEndMinute
-        });
-        if (Object.keys(allocated).length) {
-            positionMinutes[playerKey] = allocated;
-        } else if (posIds.length) {
-            const marked = {};
-            posIds.forEach((posId) => {
-                marked[posId] = 0;
-            });
-            positionMinutes[playerKey] = marked;
-        }
-        if (primaryPos || secondaryPos) {
+        if (primaryPos) {
             positionAssignments[playerKey] = {
                 primary: primaryPos,
-                secondary: secondaryPos,
-                secondaryFrom: secondaryPos ? secondaryFrom : ''
+                secondary: '',
+                secondaryFrom: ''
             };
+            if (totalMins > 0) {
+                positionMinutes[playerKey] = { [primaryPos]: totalMins };
+            } else {
+                positionMinutes[playerKey] = { [primaryPos]: 0 };
+            }
         }
     });
 
