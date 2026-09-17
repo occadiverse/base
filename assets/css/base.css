@@ -16044,20 +16044,66 @@
         #full-pitch-container.is-live-board .player-node.is-sub-out {
             box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.95);
         }
-        #full-pitch-container.is-live-board .player-node.is-sub-in-pos {
-            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.95);
-        }
-        #full-pitch-container.is-live-board .player-node.is-sub-hole {
-            box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.95);
-        }
-        #full-pitch-container.is-live-board.is-sub-phase-fill .player-node.is-filled:not(.is-sub-out):not(.is-sub-in-pos):not(.is-sub-hole) {
-            box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.9);
-        }
         #full-pitch-container.is-live-board .player-node.is-swap-source {
             box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.95);
         }
         #full-pitch-container.is-live-board.is-swap-targeting .player-node.is-swap-target {
             box-shadow: 0 0 0 2px rgba(196, 181, 253, 0.85);
+        }
+        .tactical-live-event-bar,
+        .tactical-live-event-dialog {
+            display: grid;
+            gap: 0.7rem;
+            padding: 0.85rem 0.9rem;
+            border-radius: 14px;
+            background: rgba(8, 28, 58, 0.72);
+            border: 1px solid rgba(255, 244, 196, 0.16);
+            color: rgba(255, 248, 225, 0.95);
+        }
+        .tactical-live-event-copy {
+            margin: 0;
+            font-size: 0.78rem;
+            font-weight: 650;
+            line-height: 1.35;
+        }
+        .tactical-live-event-summary {
+            margin: 0;
+            padding-left: 1.05rem;
+            display: grid;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            line-height: 1.35;
+            color: rgba(255, 248, 225, 0.9);
+        }
+        .tactical-live-event-summary .is-muted {
+            color: rgba(255, 248, 225, 0.62);
+            list-style: none;
+            margin-left: -1.05rem;
+        }
+        .tactical-live-event-minute {
+            display: grid;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .tactical-live-event-minute input {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 244, 196, 0.22);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff8e1;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 0.55rem 0.7rem;
+        }
+        .tactical-live-event-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+        .tactical-live-event-actions .tactical-bench-btn {
+            min-width: 5.5rem;
         }
         .tactical-lineup-status-badge.is-live {
             background: rgba(14, 165, 233, 0.12);
