@@ -16047,7 +16047,10 @@
         #full-pitch-container.is-live-board .player-node.is-sub-in-pos {
             box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.95);
         }
-        #full-pitch-container.is-live-board.is-sub-phase-fill .player-node.is-filled:not(.is-sub-out):not(.is-sub-in-pos) {
+        #full-pitch-container.is-live-board .player-node.is-sub-hole {
+            box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.95);
+        }
+        #full-pitch-container.is-live-board.is-sub-phase-fill .player-node.is-filled:not(.is-sub-out):not(.is-sub-in-pos):not(.is-sub-hole) {
             box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.9);
         }
         #full-pitch-container.is-live-board .player-node.is-swap-source {

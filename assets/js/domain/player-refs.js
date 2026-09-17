@@ -513,12 +513,24 @@ window.normalizeMatchPlayerRefs = function(match) {
             const inPlayer = window.findPlayerByRef(sub.inId);
             const fillPlayer = sub.fillId ? window.findPlayerByRef(sub.fillId) : null;
             const posId = sub.posId || '';
+            const fillChain = Array.isArray(sub.fillChain)
+                ? sub.fillChain.map((step) => {
+                    if (!step || typeof step !== 'object') return step;
+                    const mover = step.playerId ? window.findPlayerByRef(step.playerId) : null;
+                    return {
+                        fromPos: step.fromPos || '',
+                        toPos: step.toPos || '',
+                        playerId: mover?.id || step.playerId || ''
+                    };
+                })
+                : [];
             return {
                 ...sub,
                 posId,
                 inPosId: sub.inPosId || posId,
                 fillFromPos: sub.fillFromPos || '',
                 fillId: fillPlayer?.id || sub.fillId || '',
+                fillChain,
                 outId: outPlayer?.id || sub.outId || '',
                 inId: inPlayer?.id || sub.inId || ''
             };
@@ -645,8 +657,17 @@ window.remapPlayerRefsAfterRename = async function(playerId, oldName) {
                 const outId = remapKey(sub.outId);
                 const inId = remapKey(sub.inId);
                 const fillId = sub.fillId ? remapKey(sub.fillId) : sub.fillId;
+                let fillChain = sub.fillChain;
+                if (Array.isArray(sub.fillChain)) {
+                    fillChain = sub.fillChain.map((step) => {
+                        if (!step || typeof step !== 'object') return step;
+                        const playerId = step.playerId ? remapKey(step.playerId) : step.playerId;
+                        if (playerId !== step.playerId) changed = true;
+                        return { ...step, playerId };
+                    });
+                }
                 if (outId !== sub.outId || inId !== sub.inId || fillId !== sub.fillId) changed = true;
-                return { ...sub, outId, inId, fillId };
+                return { ...sub, outId, inId, fillId, fillChain };
             });
         }
 

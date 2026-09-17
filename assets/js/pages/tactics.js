@@ -85,6 +85,8 @@
         window.tacticalPendingSubIn = null;
         window.tacticalPendingSubOutPos = null;
         window.tacticalPendingSubInPos = null;
+        window.tacticalPendingSubHolePos = null;
+        window.tacticalPendingFillChain = [];
         window.tacticalPendingSwapPos = null;
         window.tacticalLiveDirty = false;
         window.tacticalAppliedLiveSubs = window.tacticalAppliedLiveSubs || [];
@@ -759,12 +761,15 @@
             return (Array.isArray(subs) ? subs : []).map((sub) => {
                 const posId = sub?.posId || '';
                 const inPosId = sub?.inPosId || posId;
+                const fillChain = normalizeLiveSubFillChain(sub, posId, inPosId);
+                const firstFill = fillChain[0] || null;
                 return {
                     minute: String(sub?.minute ?? ''),
                     posId,
                     inPosId,
-                    fillId: sub?.fillId || '',
-                    fillFromPos: sub?.fillFromPos || '',
+                    fillId: firstFill?.playerId || sub?.fillId || '',
+                    fillFromPos: firstFill?.fromPos || sub?.fillFromPos || '',
+                    fillChain,
                     outId: sub?.outId || '',
                     inId: sub?.inId || '',
                     outRoles: Array.isArray(sub?.outRoles) ? [...sub.outRoles] : [],
@@ -772,6 +777,26 @@
                     outDefc: Array.isArray(sub?.outDefc) ? [...sub.outDefc] : []
                 };
             });
+        }
+
+        function normalizeLiveSubFillChain(sub, posId = '', inPosId = '') {
+            const outPos = posId || sub?.posId || '';
+            const targetPos = inPosId || sub?.inPosId || outPos;
+            if (Array.isArray(sub?.fillChain) && sub.fillChain.length) {
+                return sub.fillChain.map((step) => ({
+                    fromPos: step?.fromPos || '',
+                    toPos: step?.toPos || '',
+                    playerId: step?.playerId || step?.fillId || ''
+                })).filter((step) => step.fromPos && step.toPos);
+            }
+            if (targetPos !== outPos && sub?.fillFromPos) {
+                return [{
+                    fromPos: sub.fillFromPos,
+                    toPos: outPos,
+                    playerId: sub.fillId || ''
+                }];
+            }
+            return [];
         }
 
         function serializeLiveLineupMoves(moves) {
@@ -808,13 +833,30 @@
                 return;
             }
 
+            const fillChain = normalizeLiveSubFillChain(sub, outPosId, inPosId);
+            clearLiveLineupPos(outPosId);
+
+            if (fillChain.length) {
+                fillChain.forEach((step) => {
+                    const mover = (step.fromPos && window.liveLineup?.[step.fromPos])
+                        || (step.playerId && typeof window.findPlayerByRef === 'function'
+                            ? window.findPlayerByRef(step.playerId)
+                            : null);
+                    if (!mover || !step.toPos) return;
+                    window.liveLineup[step.toPos] = mover;
+                    clearLiveLineupPos(step.fromPos);
+                });
+                window.liveLineup[inPosId] = inPlayer;
+                return;
+            }
+
+            // Legacy single-fill with possible auto-displace
             const fillFromPos = sub.fillFromPos || '';
             const fillPlayer = (fillFromPos && window.liveLineup?.[fillFromPos])
                 || (sub.fillId && typeof window.findPlayerByRef === 'function'
                     ? window.findPlayerByRef(sub.fillId)
                     : null);
 
-            clearLiveLineupPos(outPosId);
             if (fillPlayer && fillFromPos) {
                 window.liveLineup[outPosId] = fillPlayer;
                 clearLiveLineupPos(fillFromPos);
@@ -984,6 +1026,20 @@
 
                     if (inPosId === outPosId) {
                         occupyPos(inKey, outPosId, minute);
+                        return;
+                    }
+
+                    const fillChain = normalizeLiveSubFillChain(sub, outPosId, inPosId);
+                    if (fillChain.length) {
+                        fillChain.forEach((step) => {
+                            const fillKey = (step.fromPos ? board[step.fromPos] : '')
+                                || resolvePlayerKeyFromRef(step.playerId);
+                            if (!fillKey || !step.toPos) return;
+                            if (board[step.fromPos] === fillKey) delete board[step.fromPos];
+                            closeStint(fillKey, minute);
+                            occupyPos(fillKey, step.toPos, minute);
+                        });
+                        occupyPos(inKey, inPosId, minute);
                         return;
                     }
 
@@ -1275,7 +1331,9 @@
             const pendingIn = Boolean(window.tacticalPendingSubIn);
             const pendingOutPos = window.tacticalPendingSubOutPos || null;
             const pendingInPos = window.tacticalPendingSubInPos || null;
+            const pendingHolePos = window.tacticalPendingSubHolePos || null;
             const pendingSwapPos = window.tacticalPendingSwapPos || null;
+            const vacated = getPendingSubVacatedPosSet();
             const subPhase = pendingIn
                 ? (pendingInPos ? 'fill' : (pendingOutPos ? 'in' : 'out'))
                 : '';
@@ -1300,11 +1358,12 @@
 
             document.querySelectorAll('.player-node').forEach(node => {
                 const posId = node.dataset.pos || '';
-                const filled = Boolean(window.liveLineup?.[posId]);
+                const filled = Boolean(window.liveLineup?.[posId]) && !vacated.has(posId);
                 node.classList.toggle('is-lineup-readonly', !editable && !liveMatch);
                 node.classList.toggle('is-sub-target', liveMatch && !liveLocked && pendingIn && filled);
                 node.classList.toggle('is-sub-out', liveMatch && !liveLocked && pendingOutPos === posId);
                 node.classList.toggle('is-sub-in-pos', liveMatch && !liveLocked && pendingInPos === posId);
+                node.classList.toggle('is-sub-hole', liveMatch && !liveLocked && pendingHolePos === posId);
                 node.classList.toggle('is-swap-source', liveMatch && !liveLocked && pendingSwapPos === posId);
                 node.classList.toggle('is-swap-target', liveMatch && !liveLocked && Boolean(pendingSwapPos) && !pendingIn && filled && pendingSwapPos !== posId);
             });
@@ -1701,10 +1760,21 @@
             window.tacticalPendingSubIn = null;
             window.tacticalPendingSubOutPos = null;
             window.tacticalPendingSubInPos = null;
+            window.tacticalPendingSubHolePos = null;
+            window.tacticalPendingFillChain = [];
             setLivePlayingTimeStatus('');
             window.applyTacticalLineupReadOnlyState();
             if (typeof window.renderBench === 'function') window.renderBench();
         };
+
+        function getPendingSubVacatedPosSet() {
+            const vacated = new Set();
+            if (window.tacticalPendingSubOutPos) vacated.add(window.tacticalPendingSubOutPos);
+            (window.tacticalPendingFillChain || []).forEach((step) => {
+                if (step?.fromPos) vacated.add(step.fromPos);
+            });
+            return vacated;
+        }
 
         function getLivePosBadgeLabel(posId) {
             if (typeof window.getMatchGamePlanPositionBadgeLabel === 'function') {
@@ -1729,7 +1799,7 @@
                 setLivePlayingTimeStatus(`${name}: velg hvor hen skal spille`, 'pending');
                 return;
             }
-            const hole = getLivePosBadgeLabel(window.tacticalPendingSubOutPos);
+            const hole = getLivePosBadgeLabel(window.tacticalPendingSubHolePos || window.tacticalPendingSubOutPos);
             setLivePlayingTimeStatus(`${name}: velg hvem som går til ${hole}`, 'pending');
         }
 
@@ -1754,6 +1824,8 @@
             window.tacticalPendingSubIn = player;
             window.tacticalPendingSubOutPos = null;
             window.tacticalPendingSubInPos = null;
+            window.tacticalPendingSubHolePos = null;
+            window.tacticalPendingFillChain = [];
             updateLiveSubStatusMessage();
             window.applyTacticalLineupReadOnlyState();
             if (typeof window.renderBench === 'function') window.renderBench();
@@ -1781,17 +1853,34 @@
                 return false;
             }
 
-            let fillFromPos = '';
-            let fillPlayer = null;
+            let fillChain = Array.isArray(options.fillChain)
+                ? options.fillChain.map((step) => ({
+                    fromPos: step?.fromPos || '',
+                    toPos: step?.toPos || '',
+                    playerId: step?.playerId || ''
+                })).filter((step) => step.fromPos && step.toPos)
+                : [];
+
             if (inPosId !== outPosId) {
-                fillFromPos = options.fillFromPos || '';
-                fillPlayer = fillFromPos ? (window.liveLineup?.[fillFromPos] || null) : null;
-                if (!fillFromPos || !fillPlayer) {
+                if (!fillChain.length && options.fillFromPos) {
+                    const fillPlayer = window.liveLineup?.[options.fillFromPos] || null;
+                    if (!fillPlayer) {
+                        alert('Velg hvem som fyller plassen som blir ledig.');
+                        return false;
+                    }
+                    fillChain = [{
+                        fromPos: options.fillFromPos,
+                        toPos: outPosId,
+                        playerId: getTacticalLivePlayerRef(fillPlayer)
+                    }];
+                }
+                if (!fillChain.length) {
                     alert('Velg hvem som fyller plassen som blir ledig.');
                     return false;
                 }
-                if (fillFromPos === outPosId) {
-                    alert('Velg en annen spiller til å fylle hullet.');
+                const lastStep = fillChain[fillChain.length - 1];
+                if (lastStep.fromPos !== inPosId) {
+                    alert('Rokeringen må ende med at innbytterens posisjon blir ledig.');
                     return false;
                 }
             }
@@ -1802,6 +1891,7 @@
             const inheritedDefc = getSetPieceSlotsForPlayer(match, 'defcAssignments', outPlayer);
             const inRef = getTacticalLivePlayerRef(inPlayer);
             const subMinute = resolveLiveSubMinute(options.minute);
+            const firstFill = fillChain[0] || null;
 
             inheritedRoles.forEach(slot => {
                 window.liveRoles[slot] = inRef;
@@ -1811,8 +1901,9 @@
                 minute: subMinute,
                 posId: outPosId,
                 inPosId,
-                fillId: fillPlayer ? getTacticalLivePlayerRef(fillPlayer) : '',
-                fillFromPos: fillFromPos || '',
+                fillId: firstFill?.playerId || '',
+                fillFromPos: firstFill?.fromPos || '',
+                fillChain,
                 outId: getTacticalLivePlayerRef(outPlayer),
                 inId: inRef,
                 outRoles: [...inheritedRoles],
@@ -2232,7 +2323,8 @@
 
                 if (window.tacticalPendingSubIn) {
                     const inPlayer = window.tacticalPendingSubIn;
-                    const occupied = Boolean(window.liveLineup?.[posId]);
+                    const vacated = getPendingSubVacatedPosSet();
+                    const occupied = Boolean(window.liveLineup?.[posId]) && !vacated.has(posId);
 
                     if (!window.tacticalPendingSubOutPos) {
                         if (!occupied) {
@@ -2240,6 +2332,8 @@
                             return;
                         }
                         window.tacticalPendingSubOutPos = posId;
+                        window.tacticalPendingSubHolePos = null;
+                        window.tacticalPendingFillChain = [];
                         updateLiveSubStatusMessage();
                         window.applyTacticalLineupReadOnlyState();
                         return;
@@ -2257,12 +2351,15 @@
                             return;
                         }
                         window.tacticalPendingSubInPos = posId;
+                        window.tacticalPendingSubHolePos = window.tacticalPendingSubOutPos;
+                        window.tacticalPendingFillChain = [];
                         updateLiveSubStatusMessage();
                         window.applyTacticalLineupReadOnlyState();
                         return;
                     }
 
-                    if (posId === window.tacticalPendingSubOutPos) {
+                    const holePos = window.tacticalPendingSubHolePos || window.tacticalPendingSubOutPos;
+                    if (posId === holePos || vacated.has(posId)) {
                         alert('Velg en spiller som skal fylle den ledige plassen.');
                         return;
                     }
@@ -2270,10 +2367,29 @@
                         alert('Velg en spiller på banen som fyller hullet.');
                         return;
                     }
-                    window.applyLiveSubstitution(window.tacticalPendingSubOutPos, inPlayer, {
-                        inPosId: window.tacticalPendingSubInPos,
-                        fillFromPos: posId
-                    });
+
+                    const fillPlayer = window.liveLineup[posId];
+                    const nextChain = [
+                        ...(window.tacticalPendingFillChain || []),
+                        {
+                            fromPos: posId,
+                            toPos: holePos,
+                            playerId: getTacticalLivePlayerRef(fillPlayer)
+                        }
+                    ];
+                    window.tacticalPendingFillChain = nextChain;
+                    window.tacticalPendingSubHolePos = posId;
+
+                    if (posId === window.tacticalPendingSubInPos) {
+                        window.applyLiveSubstitution(window.tacticalPendingSubOutPos, inPlayer, {
+                            inPosId: window.tacticalPendingSubInPos,
+                            fillChain: nextChain
+                        });
+                        return;
+                    }
+
+                    updateLiveSubStatusMessage();
+                    window.applyTacticalLineupReadOnlyState();
                     return;
                 }
 

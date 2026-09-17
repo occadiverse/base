@@ -6106,13 +6106,20 @@ function buildMatchLiveSubsLogHtml(match) {
         const inPosId = sub.inPosId || sub.posId || '';
         const inPos = getMatchGamePlanPositionBadgeLabel(inPosId);
         const reshuffle = Boolean(sub.inPosId && sub.posId && sub.inPosId !== sub.posId);
-        const fillName = sub.fillId ? getMatchLiveSubPlayerLabel(sub.fillId) : '';
-        const fillFrom = sub.fillFromPos
-            ? getMatchGamePlanPositionBadgeLabel(sub.fillFromPos)
+        const fillChain = Array.isArray(sub.fillChain) && sub.fillChain.length
+            ? sub.fillChain
+            : (sub.fillFromPos
+                ? [{ fromPos: sub.fillFromPos, toPos: sub.posId, playerId: sub.fillId || '' }]
+                : []);
+        const chainBit = reshuffle && fillChain.length
+            ? fillChain.map((step) => {
+                const mover = getMatchLiveSubPlayerLabel(step.playerId);
+                const fromPos = getMatchGamePlanPositionBadgeLabel(step.fromPos || '');
+                const toPos = getMatchGamePlanPositionBadgeLabel(step.toPos || '');
+                return `${escapeMatchHtml(mover)} ${escapeMatchHtml(fromPos)}→${escapeMatchHtml(toPos)}`;
+            }).join(' · ')
             : '';
-        const fillBit = reshuffle && fillName
-            ? ` · ${escapeMatchHtml(fillName)} til ${escapeMatchHtml(outPos)}${fillFrom ? ` (fra ${escapeMatchHtml(fillFrom)})` : ''}`
-            : '';
+        const fillBit = chainBit ? ` · ${chainBit}` : '';
         const inBit = reshuffle
             ? `${escapeMatchHtml(inName)} inn på ${escapeMatchHtml(inPos)}`
             : `${escapeMatchHtml(inName)} inn`;
