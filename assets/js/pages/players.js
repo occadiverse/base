@@ -543,6 +543,11 @@ function renderPlayerModalProfile(player) {
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
+    const expectedMalpoeng = stats && stats.expectedMalpoeng != null && (Number(stats.kamper) || 0) > 0
+        ? (typeof window.formatExpectedMalpoengDisplay === 'function'
+            ? window.formatExpectedMalpoengDisplay(stats)
+            : `${Number(stats.expectedMalpoeng).toFixed(1)} / ${Number(stats.kamper) || 0}`)
+        : '-';
     const gule = stats
         ? formatPlayerProfileCardsSplitLabel(stats.guleSerie, stats.guleCup)
         : '0/0';
@@ -592,6 +597,7 @@ function renderPlayerModalProfile(player) {
                     ${buildPlayerProfileMetricHtml('Kamper', kamper)}
                     ${buildPlayerProfileMetricHtml('Mål', mal)}
                     ${buildPlayerProfileMetricHtml('Assist', assist)}
+                    ${buildPlayerProfileMetricHtml('Expected målpoeng', expectedMalpoeng)}
                     ${buildPlayerProfileMetricHtml('Oppmøte', oppmote)}
                     ${buildPlayerProfileMetricHtml('Form', form)}
                     ${buildPlayerProfileMetricHtml('Kampbidrag', kampbidrag)}
@@ -688,9 +694,12 @@ function getPlayerProfileStatRows(player, yearFilter = 'alle') {
 
 function getPlayerProfileStatRank(playerName, column, statsData) {
     if (!playerName || !column || !Array.isArray(statsData) || !statsData.length) return null;
-    const relevant = typeof window.playerStatsRelevantForSort === 'function'
+    let relevant = typeof window.playerStatsRelevantForSort === 'function'
         ? statsData.filter(stat => window.playerStatsRelevantForSort(stat, column))
         : statsData.slice();
+    if (column === 'expectedMalpoeng' && typeof window.playerMeetsExpectedMalpoengThreshold === 'function') {
+        relevant = relevant.filter(stat => window.playerMeetsExpectedMalpoengThreshold(stat));
+    }
     const playerStat = relevant.find(stat => stat.navn === playerName);
     if (!playerStat) return null;
 
@@ -706,9 +715,12 @@ function buildPlayerProfileStatChipHtml(label, value, options = {}) {
     const rankHtml = rank > 0
         ? `<span class="player-profile-stat-chip-rank"> (${rank})</span>`
         : '';
+    const glyphHtml = options.glyph
+        ? `<span class="player-profile-stat-chip-glyph stats-sort-glyph stats-sort-glyph-${escapeRosterHtml(options.glyph)}" aria-hidden="true"></span>`
+        : '';
     return `
         <div class="player-profile-stat-chip${toneClass}"${titleAttr}>
-            <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}${rankHtml}</span>
+            <span class="player-profile-stat-chip-value">${glyphHtml}${escapeRosterHtml(value)}${rankHtml}</span>
             <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
         </div>
     `;
@@ -877,6 +889,11 @@ window.renderPlayerProfilePage = function(playerId) {
     const kamper = stats ? String(stats.kamper) : '0';
     const mal = stats ? String(stats.mal) : '0';
     const assist = stats ? String(stats.assist) : '0';
+    const expectedMalpoeng = stats && stats.expectedMalpoeng != null && (Number(stats.kamper) || 0) > 0
+        ? (typeof window.formatExpectedMalpoengDisplay === 'function'
+            ? window.formatExpectedMalpoengDisplay(stats)
+            : `${Number(stats.expectedMalpoeng).toFixed(1)} / ${Number(stats.kamper) || 0}`)
+        : '-';
     const gule = stats
         ? formatPlayerProfileCardsSplitLabel(stats.guleSerie, stats.guleCup)
         : '0/0';
@@ -995,6 +1012,11 @@ window.renderPlayerProfilePage = function(playerId) {
                 ${buildPlayerProfileStatChipHtml('Kamper', kamper, { rank: rankOf('kamper') })}
                 ${buildPlayerProfileStatChipHtml('Mål', mal, { rank: rankOf('mal') })}
                 ${buildPlayerProfileStatChipHtml('Assist', assist, { rank: rankOf('assist') })}
+                ${buildPlayerProfileStatChipHtml('Expected målpoeng', expectedMalpoeng, {
+                    glyph: 'xp',
+                    title: 'Mål + assist per kamp på banen (vist som snitt / kamper). Hovedlisten krever minst 30 % kamper.',
+                    rank: rankOf('expectedMalpoeng')
+                })}
                 ${buildPlayerProfileStatChipHtml('Gule kort', gule, {
                     title: 'Serie / Cup',
                     rank: rankOf('gule')

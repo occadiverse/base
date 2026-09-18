@@ -1750,6 +1750,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const minutesSharePct = minutesPossible > 0
                         ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
                         : null;
+                    const teamKampCount = teamEvents.filter(e => e.type === 'Kamp').length;
+                    const kampSharePct = teamKampCount > 0
+                        ? Math.round((kamper / teamKampCount) * 1000) / 10
+                        : 0;
+                    const expectedMalpoeng = kamper > 0
+                        ? Math.round(((mal + assist) / kamper) * 10) / 10
+                        : null;
 
                     return {
                         navn: p.navn,
@@ -1758,8 +1765,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
                         kamper,
                         attendedMatches,
+                        teamKampCount,
+                        kampSharePct,
                         mal,
                         assist,
+                        expectedMalpoeng,
                         kampbonus: attendedMatches > 0 ? totalMatchPoints / attendedMatches : 0,
                         guleSerie,
                         rodeSerie,
@@ -1832,6 +1842,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'rodeSerie': return ((Number(stat.rode) || 0) || (Number(stat.rodeSerie) || 0) + (Number(stat.rodeCup) || 0)) > 0;
                 case 'mal': return stat.mal > 0;
                 case 'assist': return stat.assist > 0;
+                case 'expectedMalpoeng': return (Number(stat.kamper) || 0) > 0
+                    && stat.expectedMalpoeng != null
+                    && Number(stat.expectedMalpoeng) > 0;
                 case 'bb': return stat.bb > 0;
                 case 'kamper': return stat.kamper > 0;
                 case 'kampbonus': return stat.attendedMatches > 0;
@@ -1853,6 +1866,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 totalScore: 'total score',
                 mal: 'mål',
                 assist: 'assist',
+                expectedMalpoeng: 'expected målpoeng',
                 bb: 'banens beste',
                 kamper: 'kamper',
                 kampbonus: 'kampbidrag',
@@ -1945,8 +1959,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (column === 'minutesTotal') return numeric > 0 ? `${Math.round(numeric)}'` : '-';
             if (column === 'kjemi') return String(Math.round(numeric));
             if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') return numeric > 0 ? numeric.toFixed(1) : '-';
+            if (column === 'expectedMalpoeng') {
+                if (!Number.isFinite(numeric) || numeric <= 0) return '-';
+                return numeric.toFixed(1);
+            }
             if (numeric > 0 || column === 'kamper') return String(Math.round(numeric));
             return '-';
+        };
+
+        window.formatExpectedMalpoengDisplay = function(stat) {
+            if (!stat || !(Number(stat.kamper) > 0) || stat.expectedMalpoeng == null) return '-';
+            const value = Number(stat.expectedMalpoeng);
+            if (!Number.isFinite(value) || value <= 0) return '-';
+            return `${value.toFixed(1)} / ${Number(stat.kamper) || 0}`;
+        };
+
+        window.playerMeetsExpectedMalpoengThreshold = function(stat) {
+            return (Number(stat?.kampSharePct) || 0) >= 30;
         };
 
         window.formatStatsMedianDelta = function(column, playerValue, median) {
@@ -1961,7 +1990,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const rounded = (column === 'oppmotePct' || column === 'minutesSharePct')
                 ? Math.round(delta)
-                : (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore')
+                : (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore' || column === 'expectedMalpoeng')
                     ? Math.round(delta * 10) / 10
                     : Math.round(delta);
             const suffix = (column === 'oppmotePct' || column === 'minutesSharePct') ? '%' : '';
@@ -1973,7 +2002,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.getStatsPlayerRank = function(playerName, column, statsData) {
-            const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, column));
+            let relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, column));
+            if (column === 'expectedMalpoeng' && typeof window.playerMeetsExpectedMalpoengThreshold === 'function') {
+                relevantStats = relevantStats.filter(stat => window.playerMeetsExpectedMalpoengThreshold(stat));
+            }
             const useActiveSort = column === currentStatSortCol;
 
             relevantStats.sort((a, b) => (
@@ -2055,7 +2087,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsSpillereSummaryCardsHtml = function(statsData) {
             const rows = Array.isArray(statsData) ? statsData : [];
             const pickLeader = (column) => {
-                const relevant = rows.filter(stat => window.playerStatsRelevantForSort(stat, column));
+                const relevant = rows.filter(stat => {
+                    if (!window.playerStatsRelevantForSort(stat, column)) return false;
+                    if (column === 'expectedMalpoeng' && typeof window.playerMeetsExpectedMalpoengThreshold === 'function') {
+                        return window.playerMeetsExpectedMalpoengThreshold(stat);
+                    }
+                    return true;
+                });
                 if (!relevant.length) return null;
                 const bestValue = Math.max(...relevant.map(stat => Number(stat[column]) || 0));
                 return relevant.find(stat => (Number(stat[column]) || 0) === bestValue) || null;
@@ -3218,17 +3256,34 @@ window.getFormScoreBorderClass = function(score, teamName) {
             let statsData = window.buildPlayerStatsData({ applyYearFilter: true });
             statsData = statsData.filter(stat => window.playerStatsRelevantForSort(stat, currentStatSortCol));
 
-            statsData.sort((a, b) => {
-                if (currentStatSortCol === 'navn') {
-                    return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
-                }
-                return currentStatSortDesc ? b[currentStatSortCol] - a[currentStatSortCol] : a[currentStatSortCol] - b[currentStatSortCol];
-            });
+            const sortRows = (rows) => {
+                rows.sort((a, b) => {
+                    if (currentStatSortCol === 'navn') {
+                        return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
+                    }
+                    return currentStatSortDesc
+                        ? b[currentStatSortCol] - a[currentStatSortCol]
+                        : a[currentStatSortCol] - b[currentStatSortCol];
+                });
+                return rows;
+            };
+
+            const isExpectedSort = currentStatSortCol === 'expectedMalpoeng';
+            let qualified = statsData;
+            let belowThreshold = [];
+            if (isExpectedSort) {
+                qualified = sortRows(statsData.filter(stat => window.playerMeetsExpectedMalpoengThreshold(stat)));
+                belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsExpectedMalpoengThreshold(stat)));
+            } else {
+                sortRows(statsData);
+                qualified = statsData;
+            }
 
             const sortOption = window.getStatsSortOption(currentStatSortCol);
             const sortLabel = sortOption?.label || 'Stat';
+            const totalPlayers = qualified.length + belowThreshold.length;
 
-            if (!statsData.length) {
+            if (!totalPlayers) {
                 list.innerHTML = `
                     <div class="training-data-rank-block">
                         <h5>${escapeStatisticsHtml(sortLabel)}</h5>
@@ -3242,29 +3297,53 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const visibleLimit = 10;
             const isExpanded = window._statsPlayerListExpanded === true;
-            const hasOverflow = statsData.length > visibleLimit;
+            const hasOverflow = totalPlayers > visibleLimit;
 
-            const rowsHtml = statsData.map((stat, index) => {
+            const renderPlayerRow = (stat, rankIndex, overflow) => {
                 const sortValue = window.formatStatsSortValue(stat, currentStatSortCol);
                 const safeNameHtml = escapeStatisticsHtml(stat.navn);
                 const playerIdAttr = escapeStatisticsHtml(getStatsPlayerIdForName(stat.navn));
-
                 return `
-                    <li class="${index >= visibleLimit ? 'is-overflow' : ''}">
-                        <button type="button" class="training-data-rank-row" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" aria-label="${safeNameHtml}, plass ${index + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
-                            <span class="training-data-rank-index">${index + 1}.</span>
+                    <li class="${overflow ? 'is-overflow' : ''}">
+                        <button type="button" class="training-data-rank-row" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" aria-label="${safeNameHtml}, plass ${rankIndex + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
+                            <span class="training-data-rank-index">${rankIndex + 1}.</span>
                             <span class="training-data-rank-name">${safeNameHtml}</span>
                             <strong>${escapeStatisticsHtml(sortValue)}</strong>
                         </button>
                     </li>
                 `;
+            };
+
+            let visiblePlayerCount = 0;
+            const qualifiedHtml = qualified.map((stat, index) => {
+                const overflow = visiblePlayerCount >= visibleLimit;
+                visiblePlayerCount += 1;
+                return renderPlayerRow(stat, index, overflow);
             }).join('');
+
+            let belowHtml = '';
+            if (belowThreshold.length) {
+                const sepOverflow = visiblePlayerCount >= visibleLimit;
+                belowHtml = `
+                    <li class="training-data-rank-separator${sepOverflow ? ' is-overflow' : ''}" role="presentation">
+                        <span class="training-data-rank-separator-line" aria-hidden="true"></span>
+                        <span class="training-data-rank-separator-label">Under 30 % kamper</span>
+                        <span class="training-data-rank-separator-line" aria-hidden="true"></span>
+                    </li>
+                    ${belowThreshold.map((stat, index) => {
+                        const overflow = visiblePlayerCount >= visibleLimit;
+                        visiblePlayerCount += 1;
+                        return renderPlayerRow(stat, index, overflow);
+                    }).join('')}
+                `;
+            }
 
             list.innerHTML = `
                 <div class="training-data-rank-block">
                     <h5>${escapeStatisticsHtml(sortLabel)}</h5>
                     <ul class="training-data-rank-list ${isExpanded ? 'is-expanded' : ''}">
-                        ${rowsHtml}
+                        ${qualifiedHtml}
+                        ${belowHtml}
                     </ul>
                     ${hasOverflow ? `
                         <button
@@ -3273,7 +3352,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             data-stat-action="toggle-player-list"
                             aria-expanded="${isExpanded ? 'true' : 'false'}"
                         >
-                            ${isExpanded ? 'Vis færre' : `Vis alle (${statsData.length})`}
+                            ${isExpanded ? 'Vis færre' : `Vis alle (${totalPlayers})`}
                         </button>
                     ` : ''}
                 </div>
@@ -3361,6 +3440,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
+            { id: 'expectedMalpoeng', label: 'Expected målpoeng', glyph: 'xp' },
             { id: 'gule', label: 'Gule kort', glyph: 'g' },
             { id: 'rode', label: 'Røde kort', glyph: 'r' },
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
@@ -3389,10 +3469,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const total = Math.round(Number(stat.minutesTotal) || 0);
                     return total > 0 ? `${total}'` : '-';
                 }
-                if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors') {
-                    const value = Number(stat[column]) || 0;
+                if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors' || column === 'expectedMalpoeng') {
+                    if (column === 'expectedMalpoeng') {
+                        return typeof window.formatExpectedMalpoengDisplay === 'function'
+                            ? window.formatExpectedMalpoengDisplay(stat)
+                            : '-';
+                    }
+                    const value = Number(stat[column]);
                     if (column === 'kampbonus' && !(stat.attendedMatches > 0)) return '-';
-                    return value > 0 ? value.toFixed(1) : '-';
+                    if (!Number.isFinite(value) || value <= 0) return '-';
+                    return value.toFixed(1);
                 }
                 if (column === 'kjemi') return String(stat.kjemi || 0);
                 const value = stat[column];
@@ -3408,6 +3494,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (column === 'kjemi') return String(Math.round(numeric));
             if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') {
                 return numeric > 0 ? numeric.toFixed(1) : '-';
+            }
+            if (column === 'expectedMalpoeng') {
+                return Number.isFinite(numeric) && numeric > 0 ? numeric.toFixed(1) : '-';
             }
             if (numeric > 0 || column === 'kamper') return String(Math.round(numeric));
             return '-';

@@ -3434,6 +3434,30 @@
         .training-data-rank-list li + li {
             border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
+        .training-data-rank-list li.training-data-rank-separator {
+            display: flex;
+            gap: 0.55rem;
+            grid-template-columns: none;
+            padding: 0.55rem 0.1rem 0.35rem;
+        }
+        .training-data-rank-list li.training-data-rank-separator + li,
+        .training-data-rank-list li + li.training-data-rank-separator {
+            border-top: none;
+        }
+        .training-data-rank-separator-line {
+            background: rgba(255, 255, 255, 0.18);
+            flex: 1 1 auto;
+            height: 1px;
+        }
+        .training-data-rank-separator-label {
+            color: rgba(255, 255, 255, 0.55);
+            flex: 0 0 auto;
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
         .training-data-rank-list li:has(.training-data-rank-row) {
             display: block;
             padding: 0;
@@ -10181,6 +10205,9 @@
             transition: color 150ms ease;
             width: 1em;
         }
+        .stats-sort-btn .stats-sort-glyph-xp {
+            width: 1.55em;
+        }
         .stats-sort-glyph {
             font-family: inherit;
             font-weight: 950;
@@ -10191,6 +10218,16 @@
         }
         .stats-sort-glyph-r::before {
             content: "R";
+        }
+        .stats-sort-glyph-xp::before {
+            content: "XP";
+            letter-spacing: -0.06em;
+        }
+        .player-profile-stat-chip-glyph {
+            display: inline-block;
+            margin-right: 0.28em;
+            vertical-align: 0.05em;
+            color: #64748b;
         }
         .stats-sort-filter .roster-status-btn.stats-sort-btn:not(.is-active) .fa-solid,
         .stats-sort-filter .roster-status-btn.stats-sort-btn:not(.is-active) .stats-sort-glyph {
@@ -10372,6 +10409,9 @@
             line-height: 1;
             opacity: 0.9;
             width: 0.9em;
+        }
+        .stats-meta-part .stats-sort-glyph-xp {
+            width: 1.4em;
         }
         .stats-meta-text {
             line-height: 1.2;
