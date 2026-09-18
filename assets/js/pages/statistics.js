@@ -1632,7 +1632,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                 stat.disiplinScore = disciplineScore;
                 // Total Score = beste sesong-helhet. Form = beste nå.
-                // Spilletid/minuttandel er forklarende stats og inngår ikke her.
+                // Spilletidstillegg (+0/+1/+2) ligger i kampbidrag. Minuttandel er egen forklarende stat.
                 stat.totalScore = Math.round((
                     (kampbidragScore * 0.50) +
                     (borsScore * 0.25) +
@@ -2569,7 +2569,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <ul class="training-session-groups-info-list">
                     ${isTotal ? `
                         <li><strong>Sesong:</strong> Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
-                        <li>Boblen viser Total Score (beste sesong) — kampbidrag, børs, oppmøte og disiplin. Spilletid inngår ikke.</li>
+                        <li>Boblen viser Total Score (beste sesong) — kampbidrag (inkl. spilletidstillegg), børs, oppmøte og disiplin.</li>
                         <li>Trykk på en boble for navn og score. Gul ring / tall betyr flere spillere på samme sted — da listes alle.</li>
                     ` : `
                         <li><strong>Nå:</strong> Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
@@ -4167,7 +4167,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const isBbInMatch = window.motmMatchesPlayer(match.motm, playerObj);
                 const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
                     ? window.calculatePlayerMatchPoints(match, playerObj, true)
-                    : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0, onPitch: true };
+                    : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0, minutesBonus: 0, onPitch: true };
 
                 return {
                     id: playerObj.id || '',
@@ -4181,7 +4181,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     isBbInMatch,
                     onPitch: pointsDetails.onPitch !== false,
                     points: pointsDetails.total || 0,
-                    breakdown: `${pointsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
+                    breakdown: `${pointsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | Min: ${(pointsDetails.minutesBonus || 0) > 0 ? '+' + pointsDetails.minutesBonus : (pointsDetails.minutesBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
                 };
             });
 
@@ -4418,10 +4418,11 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
                 base: ptsDetails.base,
                 resultBonus: ptsDetails.resultBonus,
                 ratingBonus: ptsDetails.ratingBonus,
+                minutesBonus: ptsDetails.minutesBonus || 0,
                 bbBonus: ptsDetails.bbBonus,
                 onPitch: ptsDetails.onPitch !== false
             },
-            breakdown: `${ptsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus}`
+            breakdown: `${ptsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${ptsDetails.base} | Res/Mål: ${ptsDetails.resultBonus > 0 ? '+' + ptsDetails.resultBonus : ptsDetails.resultBonus} | Børs: ${ptsDetails.ratingBonus > 0 ? '+' + ptsDetails.ratingBonus : ptsDetails.ratingBonus} | Min: ${(ptsDetails.minutesBonus || 0) > 0 ? '+' + ptsDetails.minutesBonus : (ptsDetails.minutesBonus || 0)}`
         });
     });
     
@@ -4487,6 +4488,7 @@ window.renderPlayerPointBreakdownHtml = function(details) {
         { label: 'Grunnpoeng', value: details.base, tone: 'neutral' },
         { label: 'Resultat / mål', value: details.resultBonus, tone: details.resultBonus >= 0 ? 'positive' : 'negative' },
         { label: 'Spillerbørs', value: details.ratingBonus, tone: details.ratingBonus >= 0 ? 'positive' : 'negative' },
+        { label: 'Spilletid', value: details.minutesBonus || 0, tone: (details.minutesBonus || 0) > 0 ? 'positive' : 'neutral' },
         { label: 'Banens beste', value: details.bbBonus, tone: details.bbBonus > 0 ? 'accent' : 'neutral' }
     ];
 
@@ -4500,7 +4502,7 @@ window.renderPlayerPointBreakdownHtml = function(details) {
             `).join('')}
             <div class="stats-point-chip is-total">
                 <span class="stats-point-chip-label">Totalt</span>
-                <span class="stats-point-chip-value">${details.base + details.resultBonus + details.ratingBonus + details.bbBonus}</span>
+                <span class="stats-point-chip-value">${details.base + details.resultBonus + details.ratingBonus + (details.minutesBonus || 0) + details.bbBonus}</span>
             </div>
         </div>
         ${details.onPitch === false ? '<p class="stats-match-history-note">Spilleren satt på benken og fikk kun oppmøtepoeng — ikke kampbidrag.</p>' : ''}

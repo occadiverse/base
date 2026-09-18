@@ -5285,7 +5285,7 @@ window.showMatchDetails = function(id) {
                 </button>
             </div>
             <div class="match-collapsible-content">
-                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min hentes fra Live og kan justeres; det du lagrer her blir gjeldende spilletid.</p>
+                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min hentes fra Live og kan justeres; det du lagrer her blir gjeldende spilletid (0–30: +0, 31–60: +1, 61+: +2 kamppoeng).</p>
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
                     ${buildMatchLiveSubsLogHtml(match)}

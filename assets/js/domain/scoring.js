@@ -243,6 +243,24 @@ window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
     return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
 };
 
+window.getPlayerMatchMinutesForScoring = function(match, playerRef) {
+    if (!match || !playerRef) return null;
+    if (typeof window.getPlayerRefMapValue !== 'function') return null;
+    const raw = window.getPlayerRefMapValue(match.minutesPlayed, playerRef, null);
+    if (raw === null || raw === undefined || raw === '') return null;
+    const minutes = Math.floor(Number(raw));
+    return Number.isFinite(minutes) ? Math.max(0, minutes) : null;
+};
+
+/** Spilletidstillegg: 0–30 → +0, 31–60 → +1, 61+ → +2. Uten minutter → +0. */
+window.getPlayerMinutesBonusPoints = function(minutes) {
+    if (minutes === null || minutes === undefined || minutes === '') return 0;
+    const value = Math.floor(Number(minutes));
+    if (!Number.isFinite(value) || value <= 30) return 0;
+    if (value <= 60) return 1;
+    return 2;
+};
+
 window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false) {
     const onPitch = typeof window.isPlayerOnPitch === 'function'
         ? window.isPlayerOnPitch(m, playerRef)
@@ -252,6 +270,7 @@ window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false
     let resultBonus = 0;
     let ratingBonus = 0;
     let bbBonus = 0;
+    let minutesBonus = 0;
 
     if (onPitch) {
         if (m.result && m.result.includes('-')) {
@@ -277,12 +296,15 @@ window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false
         if (rating > 0) ratingBonus = (rating - 5) * 6;
 
         if (window.motmMatchesPlayer(m.motm, playerRef)) bbBonus = 1;
+
+        const minutes = window.getPlayerMatchMinutesForScoring(m, playerRef);
+        minutesBonus = window.getPlayerMinutesBonusPoints(minutes);
     }
 
-    const total = base + resultBonus + ratingBonus + bbBonus;
+    const total = base + resultBonus + ratingBonus + bbBonus + minutesBonus;
 
     if (returnDetails) {
-        return { total, base, resultBonus, ratingBonus, bbBonus, onPitch };
+        return { total, base, resultBonus, ratingBonus, bbBonus, minutesBonus, onPitch };
     }
 
     return total;
