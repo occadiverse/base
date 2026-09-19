@@ -394,7 +394,7 @@
             window.renderLiveMatchClock();
         };
 
-        window.resetLiveMatchClock = function() {
+        window.resetLiveMatchClock = async function() {
             if (!getTacticalMatchSelectValue()) return;
             if (window.isLiveSessionLocked()) {
                 setLivePlayingTimeStatus('Live er låst', 'error');
@@ -403,8 +403,14 @@
             const subCount = Array.isArray(window.tacticalAppliedLiveSubs)
                 ? window.tacticalAppliedLiveSubs.length
                 : 0;
-            const message = subCount > 0
-                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• ${subCount} bytte(r) fjernes lokalt, XI/roller tilbake til kampplan\n\nSpilletid i stats endres først når du lagrer Spillerbørs.`
+            const match = getSelectedTacticalMatch();
+            const savedSubCount = (
+                (Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions.length : 0)
+                + (Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves.length : 0)
+            );
+            const totalSubs = Math.max(subCount, savedSubCount);
+            const message = totalSubs > 0
+                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• Tavle tilbake til kampplan\n• ${totalSubs} bytte(r) slettes (også i Bytter og Spilletid)\n\nTotale minutter i Spillerbørs beholdes.`
                 : 'Start Live på nytt? Klokken settes til 00:00 og tavlen tilbake til kampplanen.';
             if (!confirm(message)) {
                 return;
@@ -420,7 +426,7 @@
             persistLiveMatchClockState();
 
             if (typeof window.resetTacticalLiveBoard === 'function') {
-                window.resetTacticalLiveBoard();
+                await window.resetTacticalLiveBoard({ clearSavedSubs: true });
             } else {
                 window.renderLiveMatchClock();
             }
@@ -1114,6 +1120,25 @@
             syncLiveLineupToTactical();
         }
 
+        /** Synk Live-brett/benk fra bytteloggen (Bytter-kortet er fasit). */
+        window.applyMatchSubsLogToLiveBoard = function(match) {
+            if (!match || !window.isTacticalLiveMatchMode()) return false;
+            const selected = getSelectedTacticalMatch();
+            if (!selected || selected.id !== match.id) return false;
+
+            if (typeof window.clearTacticalPendingSub === 'function') {
+                window.clearTacticalPendingSub({ restore: false });
+            }
+            hydrateLiveSubstitutionsFromMatch(match);
+            setLivePlayingTimeStatus('');
+            if (typeof window.renderBench === 'function') window.renderBench();
+            refreshTacticalLiveBoard();
+            syncLiveLockUi();
+            window.applyTacticalLineupReadOnlyState();
+            refreshTacticalLiveSubsLog();
+            return true;
+        };
+
         window.persistLivePlayingTime = async function(options = {}) {
             const match = getSelectedTacticalMatch();
             if (!match || !window.isTacticalLiveMatchMode()) return false;
@@ -1707,6 +1732,69 @@
             window.syncTacticalSandboxButton();
         };
 
+        function refreshTacticalLiveSubsLog() {
+            const card = document.getElementById('tactical-live-subs-card');
+            const host = document.getElementById('tactical-live-subs-log');
+            const badge = document.getElementById('tactical-live-subs-count');
+            if (!card || !host) return;
+
+            if (!window.isTacticalLiveMatchMode()) {
+                card.classList.add('hidden');
+                host.innerHTML = '';
+                if (badge) badge.hidden = true;
+                return;
+            }
+
+            const match = getSelectedTacticalMatch();
+            card.classList.remove('hidden');
+            if (!match) {
+                host.innerHTML = '<p class="tactical-live-panel-hint">Velg kamp for å se bytter.</p>';
+                if (badge) badge.hidden = true;
+                return;
+            }
+
+            // Vis Live-state (synket med kamp etter bytte/reset).
+            const displayMatch = {
+                ...match,
+                liveSubstitutions: Array.isArray(window.tacticalAppliedLiveSubs)
+                    ? window.tacticalAppliedLiveSubs
+                    : (match.liveSubstitutions || []),
+                liveLineupMoves: Array.isArray(window.tacticalAppliedLiveMoves)
+                    ? window.tacticalAppliedLiveMoves
+                    : (match.liveLineupMoves || [])
+            };
+
+            const count = typeof window.getMatchLiveSubsLogEventCount === 'function'
+                ? window.getMatchLiveSubsLogEventCount(displayMatch)
+                : ((displayMatch.liveSubstitutions?.length || 0) + (displayMatch.liveLineupMoves?.length || 0));
+
+            if (badge) {
+                if (count > 0) {
+                    badge.hidden = false;
+                    badge.textContent = String(count);
+                } else {
+                    badge.hidden = true;
+                }
+            }
+
+            const logHtml = typeof window.buildMatchLiveSubsLogHtml === 'function'
+                ? window.buildMatchLiveSubsLogHtml(displayMatch)
+                : '';
+            host.innerHTML = logHtml || `
+                <p class="tactical-live-panel-hint">Ingen bytter ennå. Bytt fra benken, eller rediger i Bytter og Spilletid.</p>
+            `;
+
+            host.querySelectorAll('[data-match-stat-action="sub-log-edit"]').forEach((btn) => {
+                btn.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof window.openMatchSubsLogEditor !== 'function') return;
+                    // Åpne mot lagret/kamp-fasit (samme arrays etter persist/hydrate).
+                    window.openMatchSubsLogEditor(btn.dataset.kind, Number(btn.dataset.index), match.id);
+                });
+            });
+        }
+
         function refreshTacticalLiveBoard() {
             TACTICAL_POSITIONS.forEach(pos => {
                 window.renderNodeVisually(window.tacticalLineup[pos], pos);
@@ -1717,9 +1805,10 @@
             window.updateTacticalLineupControls();
             window.applyTacticalLineupReadOnlyState();
             if (typeof window.syncLiveMatchClockBar === 'function') window.syncLiveMatchClockBar();
+            refreshTacticalLiveSubsLog();
         }
 
-        window.resetTacticalLiveBoard = function() {
+        window.resetTacticalLiveBoard = async function(options = {}) {
             const match = getSelectedTacticalMatch();
             if (!match) return;
             if (window.isLiveSessionLocked(match)) {
@@ -1733,6 +1822,39 @@
             window.tacticalAppliedLiveMoves = [];
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
+
+            if (options.clearSavedSubs) {
+                match.liveSubstitutions = [];
+                match.liveLineupMoves = [];
+                // Totale Spillerbørs-minutter beholdes; posisjonsfordeling nullstilles.
+                if (typeof computeLivePositionMinutes === 'function') {
+                    const duration = Math.max(
+                        Math.floor(Number(match.liveDurationMinutes) || 0),
+                        90
+                    );
+                    match.positionMinutes = computeLivePositionMinutes(match, duration);
+                    match.positionMinutesSource = 'live';
+                }
+                if (match.minutesSource !== 'spillerbors' && typeof computeMinutesPlayed === 'function') {
+                    match.minutesPlayed = computeMinutesPlayed(match, [], Math.max(
+                        Math.floor(Number(match.liveDurationMinutes) || 0),
+                        90
+                    ));
+                    match.minutesSource = 'live';
+                }
+                if (typeof window.saveMatchToDatabase === 'function') {
+                    try {
+                        await window.saveMatchToDatabase(match);
+                    } catch (error) {
+                        console.error('Kunne ikke nullstille bytter:', error);
+                        setLivePlayingTimeStatus('Kunne ikke slette bytter', 'error');
+                    }
+                }
+                if (typeof window.refreshMatchLiveSubsLogUi === 'function') {
+                    window.refreshMatchLiveSubsLogUi(match);
+                }
+            }
+
             setLivePlayingTimeStatus('');
             const panel = document.getElementById('tactical-live-sub-panel');
             if (panel) {
@@ -1865,14 +1987,13 @@
                 return;
             }
 
-            // Bytte redigeres i byttelogg-modal — skjul Live-panelet mens dialogen er åpen.
-            if (event.editorOpen) {
+            // Bytte: hint ligger på benkekortet — ikke ekstra boks over klokken.
+            if (event.editorOpen || event.inPlayer) {
                 hideLiveEventPanel();
                 return;
             }
 
             panel.classList.remove('hidden');
-            const inName = event.inPlayer?.navn || 'Innbytter';
             const canFinish = Boolean(event.moves?.length);
             const finishTitle = 'Fullfør rokering';
 
@@ -1903,15 +2024,6 @@
                         <div class="tactical-live-event-actions">
                             <button type="button" class="bsk-btn bsk-btn-primary tactical-bench-btn" data-live-event="confirm">Bekreft</button>
                             <button type="button" class="bsk-btn bsk-btn-secondary tactical-bench-btn" data-live-event="back">Tilbake</button>
-                        </div>
-                    </div>
-                `;
-            } else if (event.inPlayer) {
-                panel.innerHTML = `
-                    <div class="tactical-live-event-bar">
-                        <p class="tactical-live-event-copy"><strong>${escapeTacticalHtml(inName)}</strong> — velg hvem som går ut</p>
-                        <div class="tactical-live-event-actions">
-                            <button type="button" class="bsk-btn bsk-btn-secondary tactical-bench-btn" data-live-event="abort">Avbryt</button>
                         </div>
                     </div>
                 `;
@@ -2022,17 +2134,13 @@
                 }
                 return;
             }
-            if (event.editorOpen) {
-                setLivePlayingTimeStatus('Fullfør byttet i dialogen', 'pending');
+            if (event.editorOpen || event.inPlayer) {
+                // Hint ligger på benkekortet — ikke på kampklokken.
+                setLivePlayingTimeStatus('');
                 return;
             }
             if (event.dialogOpen) {
                 setLivePlayingTimeStatus('Bekreft rokering med kampminutt', 'pending');
-                return;
-            }
-            if (event.inPlayer) {
-                const name = event.inPlayer.navn || 'Innbytter';
-                setLivePlayingTimeStatus(`${name}: velg hvem som går ut`, 'pending');
                 return;
             }
             if (window.tacticalPendingSwapPos) {

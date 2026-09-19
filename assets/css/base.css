@@ -17560,6 +17560,30 @@
             line-height: 1.4;
             margin: 0;
         }
+        .tactical-live-subs-log .match-subs-log {
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+        }
+        .tactical-live-subs-log .match-subs-log-item {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.92);
+        }
+        .tactical-live-subs-log .match-subs-log-item:hover,
+        .tactical-live-subs-log .match-subs-log-item:focus-visible {
+            background: rgba(245, 197, 66, 0.14);
+            border-color: rgba(245, 197, 66, 0.35);
+        }
+        .tactical-live-subs-log .match-subs-log-minute {
+            color: #f5c542;
+        }
+        .tactical-live-subs-log .match-subs-log-hint {
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 0.55rem;
+        }
         .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             border-color: rgba(245, 197, 66, 0.22);

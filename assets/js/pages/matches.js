@@ -5307,6 +5307,13 @@ window.showMatchDetails = function(id) {
                 <div class="match-subs-panel-body" id="kampdetaljer-bytter">
                     ${buildMatchSubsPanelBodyHtml(match)}
                 </div>
+                <div class="match-stats-footer match-subs-footer">
+                    <p class="match-inline-status match-subs-save-state" data-subs-save-state aria-live="polite" hidden></p>
+                    <button type="button" onclick="window.saveMatchSubsPanel()" class="match-bench-action-btn match-stats-save-btn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Lagre</span>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -6270,10 +6277,13 @@ function buildMatchLiveSubsLogHtml(match) {
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
-            <p class="match-subs-log-hint">Trykk en rad for å redigere. Lagrede endringer overstyrer Live.</p>
+            <p class="match-subs-log-hint">Trykk en rad for å redigere. Lagre oppdaterer Live-byttene.</p>
         </div>
     `;
 }
+
+window.buildMatchLiveSubsLogHtml = buildMatchLiveSubsLogHtml;
+window.getMatchLiveSubsLogEventCount = getMatchLiveSubsLogEventCount;
 
 function getMatchSubsPlayingTimeRows(match) {
     const participantRefs = typeof window.getMatchParticipantRefs === 'function'
@@ -6367,7 +6377,7 @@ function buildMatchSubsPanelBodyHtml(match) {
         ${subsHtml || `
             <div class="match-subs-log-empty">
                 <p>Ingen bytter registrert ennå.</p>
-                <p class="match-subs-log-hint">Live-bytter vises her. Endringer du lagrer her overstyrer Live.</p>
+                <p class="match-subs-log-hint">Live-bytter vises her. Lagre synker Live til denne loggen.</p>
             </div>
         `}
         ${buildMatchSubsPlayingTimeHtml(match)}
@@ -6744,6 +6754,7 @@ function refreshMatchLiveSubsLogUi(match) {
         );
     }
 }
+window.refreshMatchLiveSubsLogUi = refreshMatchLiveSubsLogUi;
 
 window.closeMatchSubsLogEditor = function() {
     const state = window._matchSubsLogEditState;
@@ -6798,8 +6809,13 @@ window.openMatchSubsLogCreateFromLive = function(payload = {}) {
     return renderMatchSubsLogSubEditorBody(match, entry, { titleText: 'Nytt bytte' });
 };
 
-window.openMatchSubsLogEditor = function(kind, index) {
-    const match = (window.activeMatches || []).find(m => m.id === (window.activeDetailsId || activeDetailsId));
+window.openMatchSubsLogEditor = function(kind, index, matchIdOverride) {
+    const matchId = matchIdOverride
+        || window.activeDetailsId
+        || (typeof activeDetailsId !== 'undefined' ? activeDetailsId : null)
+        || document.getElementById('tactical-match-select')?.value
+        || null;
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
     if (!match) return;
     const idx = Math.floor(Number(index));
     if (!Number.isFinite(idx) || idx < 0) return;
@@ -6880,7 +6896,32 @@ async function persistMatchSubsLogChange(match) {
     }
 
     await window.saveMatchToDatabase(match);
+
+    // Live er en live-versjon av bytteloggen — synk brettet når fasiten endres.
+    if (typeof window.applyMatchSubsLogToLiveBoard === 'function') {
+        return Boolean(window.applyMatchSubsLogToLiveBoard(match));
+    }
+    return false;
 }
+
+window.saveMatchSubsPanel = async function() {
+    const match = (window.activeMatches || []).find(m => m.id === (window.activeDetailsId || activeDetailsId));
+    if (!match) return;
+
+    try {
+        const liveSynced = await persistMatchSubsLogChange(match);
+        refreshMatchLiveSubsLogUi(match);
+        setMatchDetailFeedback(
+            '[data-subs-save-state]',
+            liveSynced ? 'Bytter lagret · Live oppdatert' : 'Bytter lagret',
+            'success',
+            4000
+        );
+    } catch (error) {
+        console.error('Kunne ikke lagre bytter:', error);
+        setMatchDetailFeedback('[data-subs-save-state]', 'Kunne ikke lagre', 'error', 5000);
+    }
+};
 
 window.saveMatchSubsLogEntry = async function() {
     const state = window._matchSubsLogEditState;
@@ -6908,7 +6949,7 @@ window.saveMatchSubsLogEntry = async function() {
             state.saved = true;
             window.closeMatchSubsLogEditor();
             refreshMatchLiveSubsLogUi(match);
-            setMatchDetailFeedback('[data-stats-save-state]', 'Bytte lagret', 'success', 4000);
+            setMatchDetailFeedback('[data-subs-save-state]', 'Bytte lagret · Live oppdatert', 'success', 4000);
         } catch (error) {
             console.error('Kunne ikke lagre Live-bytte:', error);
             alert('Kunne ikke lagre byttet.');
@@ -6948,10 +6989,15 @@ window.saveMatchSubsLogEntry = async function() {
     }
 
     try {
-        await persistMatchSubsLogChange(match);
+        const liveSynced = await persistMatchSubsLogChange(match);
         window.closeMatchSubsLogEditor();
         refreshMatchLiveSubsLogUi(match);
-        setMatchDetailFeedback('[data-stats-save-state]', 'Bytte lagret', 'success', 4000);
+        setMatchDetailFeedback(
+            '[data-subs-save-state]',
+            liveSynced ? 'Bytte lagret · Live oppdatert' : 'Bytte lagret',
+            'success',
+            4000
+        );
     } catch (error) {
         console.error('Kunne ikke lagre bytte:', error);
         alert('Kunne ikke lagre byttet.');
@@ -6980,10 +7026,15 @@ window.deleteMatchSubsLogEntry = async function() {
     }
 
     try {
-        await persistMatchSubsLogChange(match);
+        const liveSynced = await persistMatchSubsLogChange(match);
         window.closeMatchSubsLogEditor();
         refreshMatchLiveSubsLogUi(match);
-        setMatchDetailFeedback('[data-stats-save-state]', 'Bytte slettet', 'success', 4000);
+        setMatchDetailFeedback(
+            '[data-subs-save-state]',
+            liveSynced ? 'Bytte slettet · Live oppdatert' : 'Bytte slettet',
+            'success',
+            4000
+        );
     } catch (error) {
         console.error('Kunne ikke slette bytte:', error);
         alert('Kunne ikke slette byttet.');
