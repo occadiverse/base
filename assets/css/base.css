@@ -14067,6 +14067,12 @@
             margin-top: 0.75rem;
             min-height: 2.85rem;
         }
+        .match-stats-footer-actions {
+            align-items: center;
+            display: flex;
+            flex: 0 0 auto;
+            gap: 0.5rem;
+        }
         .match-stats-save-state {
             flex: 1 1 auto;
             min-width: 0;
@@ -14075,14 +14081,26 @@
         .match-coach-notes-save-state {
             margin: 0 0 0.65rem;
         }
-        .match-stats-save-btn {
+        .match-stats-save-btn,
+        .match-stats-reset-btn {
             gap: 0.45rem;
             min-width: 5.5rem;
             padding: 0.65rem 0.85rem;
             white-space: nowrap;
             width: auto;
         }
-        .match-stats-save-btn span {
+        .match-stats-reset-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.88);
+        }
+        .match-stats-reset-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.35);
+            color: #ffffff;
+        }
+        .match-stats-save-btn span,
+        .match-stats-reset-btn span {
             display: inline;
             white-space: nowrap;
         }

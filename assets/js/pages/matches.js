@@ -5335,10 +5335,16 @@ window.showMatchDetails = function(id) {
                 </div>
                 <div class="match-stats-footer">
                     <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
-                    <button onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        <span>Lagre</span>
-                    </button>
+                    <div class="match-stats-footer-actions">
+                        <button type="button" onclick="window.resetPlayerMatchStats()" class="match-bench-action-btn match-stats-reset-btn" title="Tøm Spillerbørs slik at Min kan fylles fra Live/Bytter på nytt">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Nullstill</span>
+                        </button>
+                        <button type="button" onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Lagre</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -8002,6 +8008,109 @@ window.toggleCard = function(btn, type) {
             btn.classList.remove('bg-red-500', 'border-red-600', 'text-white', 'shadow-inner', 'scale-95');
         }
     }
+};
+
+window.resetPlayerMatchStats = async function() {
+    const match = (window.activeMatches || []).find(m => m.id === activeDetailsId);
+    if (!match) return;
+
+    if (!confirm(
+        'Nullstill Spillerbørs for denne kampen?\n\n'
+        + 'Dette sletter:\n'
+        + '• Kampresultat (inkl. straffespark)\n'
+        + '• Min, mål, assist, børs, kort, BB og «Kun oppmøte»\n\n'
+        + 'Min kan fylles på nytt fra Live/Bytter.\n\n'
+        + 'Vil du fortsette?'
+    )) {
+        return;
+    }
+
+    match.scorers = {};
+    match.assists = {};
+    match.ratings = {};
+    match.minutesPlayed = {};
+    match.positionMinutes = {};
+    match.positionAssignments = {};
+    match.guleKort = [];
+    match.rodeKort = [];
+    match.benchOnly = {};
+    match.motm = null;
+    match.result = '';
+    delete match.penaltyResult;
+    delete match.minutesSource;
+    delete match.positionMinutesSource;
+
+    const hasLiveEvents = (
+        (Array.isArray(match.liveSubstitutions) && match.liveSubstitutions.length > 0)
+        || (Array.isArray(match.liveLineupMoves) && match.liveLineupMoves.length > 0)
+        || Boolean(match.liveLocked)
+        || Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) > 0
+    );
+
+    if (hasLiveEvents) {
+        const duration = Math.max(
+            resolveMatchLiveDurationForPositions(match),
+            Math.floor(Number(match.liveDurationMinutes) || 0),
+            90
+        );
+        match.liveDurationMinutes = duration;
+        if (typeof window.computeLiveMinutesPlayed === 'function') {
+            match.minutesPlayed = window.computeLiveMinutesPlayed(
+                match,
+                match.liveSubstitutions,
+                duration
+            ) || {};
+            match.minutesSource = 'live';
+        }
+        if (typeof window.computeLivePositionMinutes === 'function') {
+            match.positionMinutes = window.computeLivePositionMinutes(match, duration) || {};
+            match.positionMinutesSource = 'live';
+        }
+    }
+
+    const resetBtn = document.querySelector('.match-stats-reset-btn');
+    const resetLabel = resetBtn?.querySelector('span');
+    if (resetBtn) resetBtn.disabled = true;
+    if (resetLabel) resetLabel.textContent = 'Nullstiller...';
+    setMatchDetailFeedback('[data-stats-save-state]', 'Nullstiller spillerbørs...', 'pending');
+
+    try {
+        await window.saveMatchToDatabase(match);
+    } catch (error) {
+        console.error(error);
+        setMatchDetailFeedback('[data-stats-save-state]', error.message || 'Nullstilling feilet', 'error');
+        if (resetBtn) resetBtn.disabled = false;
+        if (resetLabel) resetLabel.textContent = 'Nullstill';
+        return;
+    }
+
+    if (typeof window.renderPlayerRowForm === 'function') {
+        window.renderPlayerRowForm(match);
+    }
+
+    const resultBar = document.querySelector('#kampdetaljer-info .match-stats-result-bar');
+    if (resultBar && typeof buildMatchStatsResultBarHtml === 'function') {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildMatchStatsResultBarHtml(match);
+        const nextBar = wrapper.firstElementChild;
+        if (nextBar) resultBar.replaceWith(nextBar);
+    } else if (typeof window.updateMatchStatsResultBar === 'function') {
+        window.updateMatchStatsResultBar();
+    }
+
+    syncMatchDetailCardResult(match);
+    if (typeof window.refreshMatchLiveSubsLogUi === 'function') {
+        window.refreshMatchLiveSubsLogUi(match);
+    }
+
+    setMatchDetailFeedback(
+        '[data-stats-save-state]',
+        hasLiveEvents ? 'Spillerbørs nullstilt · Min fra Live' : 'Spillerbørs nullstilt',
+        'success',
+        5000
+    );
+    if (resetBtn) resetBtn.disabled = false;
+    if (resetLabel) resetLabel.textContent = 'Nullstill';
 };
 
 window.savePlayerMatchStats = async function() {
