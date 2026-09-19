@@ -1646,14 +1646,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.matchHasMinutesTracking = function(match) {
             if (!match) return false;
-            if (match.minutesSource === 'spillerbors') return true;
-            // Live-minutter teller i stats først når kampen er låst.
-            if (match.minutesSource === 'live') return Boolean(match.liveLocked);
-            if (match.liveLocked && Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) > 0) {
-                return true;
-            }
-            const map = match.minutesPlayed;
-            return Boolean(map && typeof map === 'object' && Object.keys(map).length > 0);
+            // Spillerbørs er fasit for total spilletid i sesongstat.
+            // Live/Bytter forhåndsutfyller Min, men teller ikke før Spillerbørs er lagret.
+            return match.minutesSource === 'spillerbors';
         };
 
         window.getPlayerMatchMinutesForStats = function(match, player) {

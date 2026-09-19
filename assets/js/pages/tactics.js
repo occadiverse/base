@@ -404,7 +404,7 @@
                 ? window.tacticalAppliedLiveSubs.length
                 : 0;
             const message = subCount > 0
-                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• ${subCount} bytte(r) fjernes lokalt, XI/roller tilbake til kampplan\n\nSpilletid i stats oppdateres først når du trykker «Lagre og Lås».`
+                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• ${subCount} bytte(r) fjernes lokalt, XI/roller tilbake til kampplan\n\nSpilletid i stats endres først når du lagrer Spillerbørs.`
                 : 'Start Live på nytt? Klokken settes til 00:00 og tavlen tilbake til kampplanen.';
             if (!confirm(message)) {
                 return;
@@ -485,7 +485,7 @@
                 lockBtn.setAttribute('aria-pressed', locked ? 'true' : 'false');
                 lockBtn.title = locked
                     ? 'Live er låst – trykk for å låse opp'
-                    : 'Lagre spilletid og lås Live mot endringer';
+                    : 'Lås Live-bytter. Spilletid i stats bekreftes i Spillerbørs.';
             }
             if (toggleBtn) toggleBtn.disabled = locked;
             if (resetBtn) resetBtn.disabled = locked;
@@ -503,7 +503,7 @@
             if (!match || !window.isTacticalLiveMatchMode()) return false;
 
             if (match.liveLocked) {
-                if (!confirm('Lås opp Live? Da kan bytter og spilletid endres og overskrives.')) {
+                if (!confirm('Lås opp Live? Da kan bytter endres igjen. Totale minutter i stats endres først når du lagrer Spillerbørs.')) {
                     return false;
                 }
                 match.liveLocked = false;
