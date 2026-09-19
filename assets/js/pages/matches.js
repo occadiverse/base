@@ -91,62 +91,75 @@ function bindMatchListEvents() {
 
 function bindMatchStatsEvents() {
     const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
-    if (!panel || panel.dataset.matchStatEventsBound === 'true') return;
-    panel.dataset.matchStatEventsBound = 'true';
+    if (panel && panel.dataset.matchStatEventsBound !== 'true') {
+        panel.dataset.matchStatEventsBound = 'true';
 
-    panel.addEventListener('click', (event) => {
-        const actionEl = event.target.closest('[data-match-stat-action]');
-        if (!actionEl) return;
+        panel.addEventListener('click', (event) => {
+            const actionEl = event.target.closest('[data-match-stat-action]');
+            if (!actionEl) return;
 
-        const action = actionEl.dataset.matchStatAction;
-        if (action === 'bench-toggle') {
-            window.toggleBenchOnly(actionEl);
-            window.updateMatchStatsResultBar();
-        } else if (action === 'yellow-card') {
-            window.toggleCard(actionEl, 'yellow');
-        } else if (action === 'red-card') {
-            window.toggleCard(actionEl, 'red');
-        } else if (action === 'motm-toggle') {
-            window.toggleMotm(actionEl);
-        } else if (action === 'rating-guide-select') {
-            const rating = Number(actionEl.dataset.rating);
-            if (!Number.isNaN(rating)) window.selectMatchRatingFromGuide(actionEl, rating);
-        } else if (action === 'sub-log-edit') {
-            window.openMatchSubsLogEditor(actionEl.dataset.kind, Number(actionEl.dataset.index));
-        }
-    });
+            const action = actionEl.dataset.matchStatAction;
+            if (action === 'bench-toggle') {
+                window.toggleBenchOnly(actionEl);
+                window.updateMatchStatsResultBar();
+            } else if (action === 'yellow-card') {
+                window.toggleCard(actionEl, 'yellow');
+            } else if (action === 'red-card') {
+                window.toggleCard(actionEl, 'red');
+            } else if (action === 'motm-toggle') {
+                window.toggleMotm(actionEl);
+            } else if (action === 'rating-guide-select') {
+                const rating = Number(actionEl.dataset.rating);
+                if (!Number.isNaN(rating)) window.selectMatchRatingFromGuide(actionEl, rating);
+            }
+        });
 
-    panel.addEventListener('change', (event) => {
-        if (event.target.matches('.player-goals-input, #match-stats-opponent-goals, #match-stats-penalties-enabled, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
-            window.updateMatchStatsResultBar();
-        }
-        if (event.target.matches('#match-stats-penalties-enabled')) {
-            window.toggleMatchStatsPenaltyFields();
-        }
+        panel.addEventListener('change', (event) => {
+            if (event.target.matches('.player-goals-input, #match-stats-opponent-goals, #match-stats-penalties-enabled, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
+                window.updateMatchStatsResultBar();
+            }
+            if (event.target.matches('#match-stats-penalties-enabled')) {
+                window.toggleMatchStatsPenaltyFields();
+            }
 
-        const select = event.target.closest('[data-match-stat-action="rating-select"]');
-        if (select) window.updateMatchRatingHint(select);
-    });
+            const select = event.target.closest('[data-match-stat-action="rating-select"]');
+            if (select) window.updateMatchRatingHint(select);
+        });
 
-    panel.addEventListener('input', (event) => {
-        if (event.target.matches('#match-stats-opponent-goals, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
-            window.updateMatchStatsResultBar();
-        }
-        if (event.target.matches('.player-minutes-input')) {
-            const raw = String(event.target.value || '').trim();
-            event.target.classList.toggle('is-empty', raw === '');
-        }
-    });
+        panel.addEventListener('input', (event) => {
+            if (event.target.matches('#match-stats-opponent-goals, #match-stats-penalty-bsk, #match-stats-penalty-opponent')) {
+                window.updateMatchStatsResultBar();
+            }
+            if (event.target.matches('.player-minutes-input')) {
+                const raw = String(event.target.value || '').trim();
+                event.target.classList.toggle('is-empty', raw === '');
+            }
+        });
 
-    panel.addEventListener('focusin', (event) => {
-        const select = event.target.closest('[data-match-stat-action="rating-select"]');
-        if (select) window.updateMatchRatingHint(select);
-    });
+        panel.addEventListener('focusin', (event) => {
+            const select = event.target.closest('[data-match-stat-action="rating-select"]');
+            if (select) window.updateMatchRatingHint(select);
+        });
 
-    panel.addEventListener('mouseover', (event) => {
-        if (event.target.matches('[data-match-stat-action="rating-select"]')) {
-            window.updateMatchRatingHint(event.target);
-        }
+        panel.addEventListener('mouseover', (event) => {
+            if (event.target.matches('[data-match-stat-action="rating-select"]')) {
+                window.updateMatchRatingHint(event.target);
+            }
+        });
+    }
+
+    bindMatchSubsPanelEvents();
+}
+
+function bindMatchSubsPanelEvents() {
+    const root = document.getElementById('kampdetaljer-info');
+    if (!root || root.dataset.matchSubsEventsBound === 'true') return;
+    root.dataset.matchSubsEventsBound = 'true';
+
+    root.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-match-stat-action="sub-log-edit"]');
+        if (!actionEl || !root.contains(actionEl)) return;
+        window.openMatchSubsLogEditor(actionEl.dataset.kind, Number(actionEl.dataset.index));
     });
 }
 
@@ -5144,6 +5157,7 @@ window.showMatchDetails = function(id) {
         : (window.pendingMatchDetailsOpenPanel || window.activeMatchDetailsOpenPanel || '');
     const exclusiveOpen = openPanel === 'kampplan'
         || openPanel === 'trenernotater'
+        || openPanel === 'bytter'
         || openPanel === 'spillerbors'
         || openPanel === 'motstanderinfo'
         || openPanel === 'kampoppsummering';
@@ -5154,6 +5168,7 @@ window.showMatchDetails = function(id) {
     const isLineupPanelOpen = !exclusiveOpen && pairState.oppstilling === true;
     const isGamePlanOpen = openPanel === 'kampplan';
     const isCoachNotesOpen = openPanel === 'trenernotater';
+    const isSubsPanelOpen = openPanel === 'bytter';
     const isStatsOpen = openPanel === 'spillerbors';
     const isOpponentInfoOpen = openPanel === 'motstanderinfo';
     const isMatchFinished = Boolean(match.result && String(match.result).includes('-'));
@@ -5163,6 +5178,7 @@ window.showMatchDetails = function(id) {
         : '';
     const opponentRecord = getOpponentHistoryRecord(getOpponentRecordMatches(match));
     const opponentInfoBadgeLabel = String(opponentRecord.wins + opponentRecord.draws + opponentRecord.losses);
+    const liveSubsEventCount = getMatchLiveSubsLogEventCount(match);
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadPanelHtml = `
@@ -5277,6 +5293,23 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
+        <section class="match-subs-panel match-collapsible-panel ${isSubsPanelOpen ? '' : 'is-collapsed'}" data-match-panel="bytter">
+            <div class="match-bench-action-row match-bench-topline match-subs-topline" onclick="window.onMatchPanelToplineClick(event)">
+                <div class="match-bench-heading">
+                    <h3>Bytter og Spilletid</h3>
+                    ${liveSubsEventCount > 0 ? `<span class="match-detail-section-badge" aria-label="${liveSubsEventCount} bytter">${liveSubsEventCount}</span>` : ''}
+                </div>
+                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}" aria-label="${isSubsPanelOpen ? 'Skjul bytter og spilletid' : 'Vis bytter og spilletid'}" data-show-label="Vis bytter og spilletid" data-hide-label="Skjul bytter og spilletid">
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="match-subs-panel-body" id="kampdetaljer-bytter">
+                    ${buildMatchSubsPanelBodyHtml(match)}
+                </div>
+            </div>
+        </section>
+
         <section class="match-stats-panel match-collapsible-panel ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
             <div class="match-bench-action-row match-bench-topline match-stats-topline" onclick="window.onMatchPanelToplineClick(event)">
                 <div class="match-bench-heading">
@@ -5290,7 +5323,6 @@ window.showMatchDetails = function(id) {
                 <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min hentes fra Live og kan justeres; det du lagrer her blir gjeldende spilletid (0–30: +0, 31–60: +1, 61+: +2 kamppoeng).</p>
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
-                    ${buildMatchLiveSubsLogHtml(match)}
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
                 </div>
@@ -6143,6 +6175,12 @@ function buildMatchSubsLogSubBoardHtml(outRef, inRef, minute, {
     `;
 }
 
+function getMatchLiveSubsLogEventCount(match) {
+    const subs = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions.length : 0;
+    const moves = Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves.length : 0;
+    return subs + moves;
+}
+
 function buildMatchLiveSubsLogHtml(match) {
     const subs = Array.isArray(match?.liveSubstitutions) ? [...match.liveSubstitutions] : [];
     const moves = Array.isArray(match?.liveLineupMoves) ? [...match.liveLineupMoves] : [];
@@ -6229,15 +6267,110 @@ function buildMatchLiveSubsLogHtml(match) {
 
     return `
         <div class="match-subs-log" aria-label="Bytter fra Live">
-            <div class="match-subs-log-heading">
-                <span>Bytter</span>
-                <span class="match-subs-log-count">${events.length}</span>
-            </div>
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
             <p class="match-subs-log-hint">Trykk en rad for å redigere eller slette.</p>
         </div>
+    `;
+}
+
+function getMatchSubsPlayingTimeRows(match) {
+    const participantRefs = typeof window.getMatchParticipantRefs === 'function'
+        ? window.getMatchParticipantRefs(match)
+        : (typeof window.getAttendingPlayerRefs === 'function'
+            ? window.getAttendingPlayerRefs(match?.attendance)
+            : []);
+    const rows = [];
+    const seen = new Set();
+
+    const pushPlayer = (playerOrRef) => {
+        const player = typeof window.findPlayerByRef === 'function'
+            ? (window.findPlayerByRef(playerOrRef) || (typeof playerOrRef === 'object' ? playerOrRef : null))
+            : (typeof playerOrRef === 'object' ? playerOrRef : null);
+        const key = getMatchSubsLogPlayerStorageKey(player || playerOrRef);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        const minutes = typeof window.getMatchPlayerMinutesForSpillerbors === 'function'
+            ? window.getMatchPlayerMinutesForSpillerbors(match, player || playerOrRef)
+            : null;
+        if (!minutes || minutes <= 0) return;
+        const name = player?.navn
+            || getMatchLiveSubPlayerLabel(player || playerOrRef)
+            || key;
+        const positionMinutes = player
+            ? getMatchPlayerPositionMinutesMap(match, player)
+            : {};
+        const positions = Object.entries(positionMinutes)
+            .map(([posId, mins]) => ({
+                posId,
+                label: getMatchGamePlanPositionBadgeLabel(posId) || posId,
+                minutes: Math.max(0, Math.floor(Number(mins) || 0))
+            }))
+            .filter((entry) => entry.minutes > 0)
+            .sort((a, b) => b.minutes - a.minutes || compareMatchGamePlanPositions(a.posId, b.posId));
+        rows.push({
+            key,
+            name,
+            minutes,
+            positions,
+            positionsLabel: positions.length > 1
+                ? positions.map((entry) => `${entry.label} ${entry.minutes}'`).join('/')
+                : ''
+        });
+    };
+
+    (Array.isArray(participantRefs) ? participantRefs : []).forEach(pushPlayer);
+
+    const liveMap = typeof window.getMatchLiveMinutesPlayedMap === 'function'
+        ? window.getMatchLiveMinutesPlayedMap(match)
+        : (match?.minutesPlayed || {});
+    Object.keys(liveMap || {}).forEach((ref) => pushPlayer(ref));
+    if (match?.minutesPlayed && typeof match.minutesPlayed === 'object') {
+        Object.keys(match.minutesPlayed).forEach((ref) => pushPlayer(ref));
+    }
+
+    return rows.sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, 'nb'));
+}
+
+function buildMatchSubsPlayingTimeHtml(match) {
+    const rows = getMatchSubsPlayingTimeRows(match);
+    if (!rows.length) {
+        return `
+            <div class="match-subs-playing-time" aria-label="Spilletid">
+                <div class="match-subs-playing-time-heading">Spilletid</div>
+                <p class="match-subs-log-hint">Ingen spilletid registrert ennå.</p>
+            </div>
+        `;
+    }
+    return `
+        <div class="match-subs-playing-time" aria-label="Spilletid">
+            <div class="match-subs-playing-time-heading">Spilletid</div>
+            <ul class="match-subs-playing-time-list">
+                ${rows.map((row) => `
+                    <li class="match-subs-playing-time-row${row.positionsLabel ? ' has-positions' : ''}">
+                        <span class="match-subs-playing-time-name">${escapeMatchHtml(row.name)}</span>
+                        ${row.positionsLabel
+                            ? `<span class="match-subs-playing-time-positions">${escapeMatchHtml(row.positionsLabel)}</span>`
+                            : '<span class="match-subs-playing-time-positions" aria-hidden="true"></span>'}
+                        <span class="match-subs-playing-time-mins">${escapeMatchHtml(String(row.minutes))}'</span>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+}
+
+function buildMatchSubsPanelBodyHtml(match) {
+    const subsHtml = buildMatchLiveSubsLogHtml(match);
+    return `
+        ${subsHtml || `
+            <div class="match-subs-log-empty">
+                <p>Ingen bytter registrert ennå.</p>
+                <p class="match-subs-log-hint">Bytter fra Live vises her. Trykk en rad for å redigere.</p>
+            </div>
+        `}
+        ${buildMatchSubsPlayingTimeHtml(match)}
     `;
 }
 
@@ -6506,23 +6639,26 @@ function collectMatchSubsLogFillChainFromForm() {
 }
 
 function refreshMatchLiveSubsLogUi(match) {
-    const body = document.querySelector('#kampdetaljer-info .match-stats-body');
+    const body = document.getElementById('kampdetaljer-bytter');
     if (!body) return;
-    const existing = body.querySelector('.match-subs-log');
-    const html = buildMatchLiveSubsLogHtml(match).trim();
-    if (!html) {
-        existing?.remove();
-        return;
-    }
-    const wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    const next = wrap.firstElementChild;
-    if (!next) return;
-    if (existing) existing.replaceWith(next);
-    else {
-        const list = body.querySelector('#kampdetaljer-spillerbors');
-        if (list) body.insertBefore(next, list);
-        else body.appendChild(next);
+    body.innerHTML = buildMatchSubsPanelBodyHtml(match);
+    const panel = body.closest('[data-match-panel="bytter"]');
+    const badge = panel?.querySelector('.match-detail-section-badge');
+    const count = getMatchLiveSubsLogEventCount(match);
+    if (badge) {
+        if (count > 0) {
+            badge.hidden = false;
+            badge.textContent = String(count);
+            badge.setAttribute('aria-label', `${count} bytter`);
+        } else {
+            badge.hidden = true;
+        }
+    } else if (count > 0) {
+        const heading = panel?.querySelector('.match-bench-heading');
+        heading?.insertAdjacentHTML(
+            'beforeend',
+            `<span class="match-detail-section-badge" aria-label="${count} bytter">${count}</span>`
+        );
     }
 }
 
@@ -7275,6 +7411,7 @@ function getMatchDetailsPanelId(panel) {
     if (panel.dataset.matchPanel) return panel.dataset.matchPanel;
     if (panel.classList.contains('match-game-plan-panel')) return 'kampplan';
     if (panel.classList.contains('match-coach-notes-panel')) return 'trenernotater';
+    if (panel.classList.contains('match-subs-panel')) return 'bytter';
     if (panel.classList.contains('match-stats-panel')) return 'spillerbors';
     if (panel.classList.contains('match-opponent-info-panel')) return 'motstanderinfo';
     if (panel.classList.contains('match-summary-panel')) return 'kampoppsummering';

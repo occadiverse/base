@@ -2756,6 +2756,7 @@
         .match-detail-page .match-game-plan-panel,
         .match-detail-page .match-coach-notes-panel,
         .match-detail-page .match-summary-panel,
+        .match-detail-page .match-subs-panel,
         .match-detail-page .match-stats-panel,
         .match-detail-page .match-opponent-info-panel,
         .training-session-page .match-game-plan-panel {
@@ -2768,6 +2769,7 @@
             justify-content: space-between;
         }
         .match-bench-panel .match-detail-section-badge,
+        .match-subs-panel .match-detail-section-badge,
         .match-opponent-info-panel .match-detail-section-badge,
         .training-session-attendance-panel .match-detail-section-badge,
         .training-session-season-attendance-panel .match-detail-section-badge,
@@ -13191,9 +13193,98 @@
             overflow: visible;
             padding: 0.9rem;
         }
+        .match-subs-panel {
+            background:
+                radial-gradient(circle at 92% 0%, rgba(245, 197, 66, 0.13), transparent 28%),
+                linear-gradient(180deg, #102f54 0%, #0b223e 100%);
+            border: 1px solid rgba(245, 197, 66, 0.14);
+            border-radius: 1.25rem;
+            box-shadow: 0 14px 32px rgba(11, 43, 76, 0.16);
+            color: #ffffff;
+            overflow: visible;
+            padding: 0.9rem;
+        }
         .match-stats-topline,
+        .match-subs-topline,
         .match-opponent-info-topline {
             margin-bottom: 0.75rem;
+        }
+        .match-subs-panel-body {
+            display: grid;
+            gap: 0.65rem;
+        }
+        .match-subs-log-empty {
+            color: rgba(255, 255, 255, 0.62);
+            display: grid;
+            gap: 0.35rem;
+            font-size: 0.82rem;
+            font-weight: 650;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0.35rem 0.15rem 0.15rem;
+        }
+        .match-subs-log-empty p {
+            margin: 0;
+        }
+        .match-subs-playing-time {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            gap: 0.45rem;
+            margin-top: 0.35rem;
+            padding-top: 0.75rem;
+        }
+        .match-subs-playing-time-heading {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .match-subs-playing-time-list {
+            display: grid;
+            gap: 0.28rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .match-subs-playing-time-row {
+            align-items: baseline;
+            color: rgba(255, 255, 255, 0.82);
+            display: grid;
+            font-size: 0.78rem;
+            font-weight: 650;
+            gap: 0.55rem 0.75rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            line-height: 1.35;
+            padding: 0.18rem 0.1rem;
+        }
+        .match-subs-playing-time-row.has-positions {
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto;
+        }
+        .match-subs-playing-time-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-subs-playing-time-positions {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.7rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            min-width: 0;
+            overflow: hidden;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-subs-playing-time-row:not(.has-positions) .match-subs-playing-time-positions {
+            display: none;
+        }
+        .match-subs-playing-time-mins {
+            color: #fde68a;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
         }
         .match-opponent-info-panel {
             background:
@@ -13456,13 +13547,13 @@
             display: grid;
         }
         .match-subs-log {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.85rem;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
             display: grid;
             gap: 0.55rem;
-            margin: 0 0 0.85rem;
-            padding: 0.75rem 0.85rem;
+            margin: 0;
+            padding: 0;
         }
         .match-subs-log-heading {
             align-items: center;
@@ -15070,6 +15161,7 @@
             .match-bench-panel,
             .match-game-plan-panel,
             .match-coach-notes-panel,
+            .match-subs-panel,
             .match-stats-panel,
             .match-opponent-info-panel {
                 padding: 0.75rem;
