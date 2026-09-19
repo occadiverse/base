@@ -13261,6 +13261,9 @@
         .match-subs-playing-time-row.has-positions {
             grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto;
         }
+        .match-subs-playing-time-row.has-positions.has-diff {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) 2.4rem auto;
+        }
         .match-subs-playing-time-name {
             min-width: 0;
             overflow: hidden;
@@ -13278,8 +13281,22 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .match-subs-playing-time-row:not(.has-positions) .match-subs-playing-time-positions {
+        .match-subs-playing-time-row:not(.has-positions) .match-subs-playing-time-positions,
+        .match-subs-playing-time-row:not(.has-diff) .match-subs-playing-time-diff {
             display: none;
+        }
+        .match-subs-playing-time-diff {
+            font-size: 0.7rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .match-subs-playing-time-diff.is-over {
+            color: #86efac;
+        }
+        .match-subs-playing-time-diff.is-under {
+            color: #fca5a5;
         }
         .match-subs-playing-time-mins {
             color: #fde68a;

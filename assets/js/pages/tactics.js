@@ -1018,7 +1018,22 @@
                     move
                 });
             });
-            events.sort((a, b) => a.minute - b.minute || (a.type === 'sub' ? -1 : 1));
+            // Same minute: keep input order (stable). Only prefer subs before moves.
+            // A non-antisymmetric "sub => -1" comparator reordered same-minute subs and
+            // broke fill-chains (e.g. Olav wrongly credited DM when Adrian should fill).
+            events.sort((a, b) => {
+                if (a.minute !== b.minute) return a.minute - b.minute;
+                if (a.type === b.type) return 0;
+                return a.type === 'sub' ? -1 : 1;
+            });
+
+            const leavePlayerWherever = (key, atMinute) => {
+                if (!key) return;
+                Object.keys(board).forEach((posId) => {
+                    if (board[posId] === key) leavePos(posId, atMinute);
+                });
+                closeStint(key, atMinute);
+            };
 
             events.forEach((event) => {
                 const minute = Math.min(event.minute, duration);
@@ -1027,7 +1042,10 @@
                     const outPosId = sub.posId;
                     const inPosId = sub.inPosId || outPosId;
                     const inKey = resolvePlayerKeyFromRef(sub.inId);
+                    const outKey = resolvePlayerKeyFromRef(sub.outId);
                     leavePos(outPosId, minute);
+                    // If out-player was moved by an earlier same-minute fill, still take them off.
+                    leavePlayerWherever(outKey, minute);
 
                     if (inPosId === outPosId) {
                         occupyPos(inKey, outPosId, minute);
@@ -1040,8 +1058,7 @@
                             const fillKey = (step.fromPos ? board[step.fromPos] : '')
                                 || resolvePlayerKeyFromRef(step.playerId);
                             if (!fillKey || !step.toPos) return;
-                            if (board[step.fromPos] === fillKey) delete board[step.fromPos];
-                            closeStint(fillKey, minute);
+                            leavePlayerWherever(fillKey, minute);
                             occupyPos(fillKey, step.toPos, minute);
                         });
                         occupyPos(inKey, inPosId, minute);
@@ -1166,19 +1183,32 @@
             match.liveSubstitutions = liveSubstitutions;
             match.liveLineupMoves = liveLineupMoves;
             const commitMinutes = options.commitMinutes === true;
-            if (commitMinutes) {
-                match.liveDurationMinutes = duration;
-                // Spillerbørs er fasit for totale minutter når den er lagret.
-                if (match.minutesSource !== 'spillerbors') {
-                    match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
-                    match.minutesSource = 'live';
+            const posDuration = Math.max(duration, Math.floor(Number(match.liveDurationMinutes) || 0), 90);
+
+            // Hold spilletid synket med bytteloggen (med mindre Spillerbørs er fasit).
+            if (match.minutesSource !== 'spillerbors') {
+                if (commitMinutes) {
+                    match.liveDurationMinutes = duration;
+                } else {
+                    match.liveDurationMinutes = Math.max(
+                        Math.floor(Number(match.liveDurationMinutes) || 0),
+                        posDuration
+                    );
                 }
+                match.minutesPlayed = computeMinutesPlayed(
+                    match,
+                    liveSubstitutions,
+                    commitMinutes ? Math.max(duration, 90) : posDuration
+                );
+                match.minutesSource = 'live';
                 if (typeof computeLivePositionMinutes === 'function') {
-                    match.positionMinutes = computeLivePositionMinutes(match, duration);
+                    match.positionMinutes = computeLivePositionMinutes(
+                        match,
+                        commitMinutes ? Math.max(duration, 90) : posDuration
+                    );
                     match.positionMinutesSource = 'live';
                 }
             } else if (typeof computeLivePositionMinutes === 'function') {
-                const posDuration = Math.max(duration, Math.floor(Number(match.liveDurationMinutes) || 0), 90);
                 match.positionMinutes = computeLivePositionMinutes(match, posDuration);
                 match.positionMinutesSource = 'live';
             }

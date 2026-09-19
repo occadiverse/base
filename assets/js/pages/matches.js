@@ -6307,17 +6307,15 @@ function getMatchSubsPlayingTimeRows(match) {
         const key = getMatchSubsLogPlayerStorageKey(player || playerOrRef);
         if (!key || seen.has(key)) return;
         seen.add(key);
-        const minutes = typeof window.getMatchPlayerMinutesForSpillerbors === 'function'
-            ? window.getMatchPlayerMinutesForSpillerbors(match, player || playerOrRef)
-            : null;
+        const minutes = getMatchSubsPanelPlayerMinutes(match, player || playerOrRef);
         if (!minutes || minutes <= 0) return;
         const name = player?.navn
             || getMatchLiveSubPlayerLabel(player || playerOrRef)
             || key;
         const positionMinutes = player
             ? getMatchPlayerPositionMinutesMap(match, player)
-            : {};
-        const positions = Object.entries(positionMinutes)
+            : getMatchPlayerPositionMinutesMap(match, playerOrRef);
+        const positions = Object.entries(positionMinutes || {})
             .map(([posId, mins]) => ({
                 posId,
                 label: getMatchGamePlanPositionBadgeLabel(posId) || posId,
@@ -6325,22 +6323,38 @@ function getMatchSubsPlayingTimeRows(match) {
             }))
             .filter((entry) => entry.minutes > 0)
             .sort((a, b) => b.minutes - a.minutes || compareMatchGamePlanPositions(a.posId, b.posId));
+        const positionsSum = positions.reduce((sum, entry) => sum + entry.minutes, 0);
+        const diff = positions.length ? (positionsSum - minutes) : 0;
         rows.push({
             key,
             name,
             minutes,
             positions,
+            positionsSum,
+            diff,
             positionsLabel: positions.length > 1
                 ? positions.map((entry) => `${entry.label} ${entry.minutes}'`).join('/')
-                : ''
+                : (positions.length === 1
+                    ? `${positions[0].label} ${positions[0].minutes}'`
+                    : '')
         });
     };
 
     (Array.isArray(participantRefs) ? participantRefs : []).forEach(pushPlayer);
 
+    (Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : []).forEach((sub) => {
+        pushPlayer(sub?.outId);
+        pushPlayer(sub?.inId);
+        getMatchSubsLogFillChainSteps(sub).forEach((step) => pushPlayer(step.playerId));
+    });
+    (Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves : []).forEach((move) => {
+        pushPlayer(move?.aId);
+        pushPlayer(move?.bId);
+    });
+
     const liveMap = typeof window.getMatchLiveMinutesPlayedMap === 'function'
         ? window.getMatchLiveMinutesPlayedMap(match)
-        : (match?.minutesPlayed || {});
+        : {};
     Object.keys(liveMap || {}).forEach((ref) => pushPlayer(ref));
     if (match?.minutesPlayed && typeof match.minutesPlayed === 'object') {
         Object.keys(match.minutesPlayed).forEach((ref) => pushPlayer(ref));
@@ -6363,15 +6377,30 @@ function buildMatchSubsPlayingTimeHtml(match) {
         <div class="match-subs-playing-time" aria-label="Spilletid">
             <div class="match-subs-playing-time-heading">Spilletid</div>
             <ul class="match-subs-playing-time-list">
-                ${rows.map((row) => `
-                    <li class="match-subs-playing-time-row${row.positionsLabel ? ' has-positions' : ''}">
+                ${rows.map((row) => {
+                    const hasPositions = Boolean(row.positionsLabel);
+                    const hasDiff = hasPositions && row.diff !== 0;
+                    const diffTone = row.diff > 0 ? 'is-over' : (row.diff < 0 ? 'is-under' : '');
+                    const diffLabel = row.diff > 0
+                        ? `+${row.diff}`
+                        : (row.diff < 0 ? String(row.diff) : '');
+                    const diffAria = hasDiff
+                        ? (row.diff > 0
+                            ? `Bytter ${row.diff} min mer enn total`
+                            : `Bytter ${Math.abs(row.diff)} min mindre enn total`)
+                        : '';
+                    return `
+                    <li class="match-subs-playing-time-row${hasPositions ? ' has-positions' : ''}${hasDiff ? ' has-diff' : ''}">
                         <span class="match-subs-playing-time-name">${escapeMatchHtml(row.name)}</span>
-                        ${row.positionsLabel
+                        ${hasPositions
                             ? `<span class="match-subs-playing-time-positions">${escapeMatchHtml(row.positionsLabel)}</span>`
                             : '<span class="match-subs-playing-time-positions" aria-hidden="true"></span>'}
+                        ${hasDiff
+                            ? `<span class="match-subs-playing-time-diff ${diffTone}" title="${escapeMatchHtml(diffAria)}" aria-label="${escapeMatchHtml(diffAria)}">${escapeMatchHtml(diffLabel)}</span>`
+                            : '<span class="match-subs-playing-time-diff" aria-hidden="true"></span>'}
                         <span class="match-subs-playing-time-mins">${escapeMatchHtml(String(row.minutes))}'</span>
-                    </li>
-                `).join('')}
+                    </li>`;
+                }).join('')}
             </ul>
         </div>
     `;
@@ -7131,12 +7160,12 @@ function getMatchPlayerPositionMinutesMap(match, player) {
     const stored = getMatchStoredPositionMinutesMap(match, player);
     const live = getMatchLiveComputedPositionMinutesMap(match, player);
     const liveCount = countPositivePositionEntries(live);
-    const storedCount = countPositivePositionEntries(stored);
 
-    // Live-bytter/rokering gir mer treffsikre posisjonsminutter enn Spillerbørs (som ofte lagrer bare én pos).
-    if (liveCount > storedCount) return live;
+    // Byttelogg-replay er fasit for posisjoner når den gir data (unngå stale lagret feil,
+    // f.eks. feil DM-minutter etter ustabil same-minute sort).
+    if (liveCount > 0) return live;
     if (stored) return stored;
-    return live;
+    return {};
 }
 
 function getPlayerMatchPlayedPositionIds(match, player) {
@@ -7795,11 +7824,30 @@ window.resolveMatchLiveDurationMinutes = function(match) {
 
 window.getMatchLiveMinutesPlayedMap = function(match) {
     if (!match || typeof window.computeLiveMinutesPlayed !== 'function') return {};
-    const duration = window.resolveMatchLiveDurationMinutes(match);
+    const duration = Math.max(
+        resolveMatchLiveDurationForPositions(match),
+        window.resolveMatchLiveDurationMinutes(match),
+        Math.floor(Number(match.liveDurationMinutes) || 0),
+        90
+    );
     const subs = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions : [];
-    if (duration <= 0 && !subs.length) return {};
-    return window.computeLiveMinutesPlayed(match, subs, duration > 0 ? duration : 90) || {};
+    return window.computeLiveMinutesPlayed(match, subs, duration) || {};
 };
+
+/** Spilletid i Bytter-panelet: følg bytteloggen, med mindre Spillerbørs er fasit. */
+function getMatchSubsPanelPlayerMinutes(match, playerObj) {
+    if (!match || !playerObj) return null;
+    if (match.minutesSource === 'spillerbors') {
+        return typeof window.getMatchPlayerMinutesForSpillerbors === 'function'
+            ? window.getMatchPlayerMinutesForSpillerbors(match, playerObj)
+            : null;
+    }
+    const liveMap = window.getMatchLiveMinutesPlayedMap(match);
+    const liveRaw = window.getPlayerRefMapValue(liveMap, playerObj, null);
+    if (liveRaw === null || liveRaw === undefined || liveRaw === '') return null;
+    const live = Math.max(0, Math.floor(Number(liveRaw) || 0));
+    return live > 0 ? live : null;
+}
 
 window.getMatchPlayerMinutesForSpillerbors = function(match, playerObj) {
     if (!match || !playerObj) return null;
