@@ -7288,34 +7288,59 @@ function getMatchPlayerSpillerborsPosId(match, player) {
     return getPlayerMatchLineupPositionId(match, player) || '';
 }
 
-function buildPlayerPositionMatchStats(player) {
+function buildPlayerPositionMatchStats(player, options = {}) {
     const byPos = new Map();
     if (!player) return [];
+
+    const yearFilter = options.yearFilter;
+    const yearNum = yearFilter != null && yearFilter !== '' && yearFilter !== 'alle'
+        ? Number(yearFilter)
+        : null;
 
     (window.activeMatches || []).forEach((match) => {
         if (!match || match.matchGroup !== player.spillerLag) return;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
         if (!window.isPlayerAttending?.(match.attendance, player)) return;
-
-        const posId = getPlayerMatchPlayedPositionId(match, player);
-        if (!posId) return;
-
-        if (!byPos.has(posId)) {
-            byPos.set(posId, {
-                posId,
-                label: getMatchGamePlanPositionLabel(posId),
-                matches: 0,
-                points: 0,
-                goals: 0,
-                assists: 0,
-                bb: 0,
-                ratingsSum: 0,
-                ratingsCount: 0,
-                entries: []
-            });
+        if (yearNum != null && Number.isFinite(yearNum)) {
+            const matchYear = match?.date ? new Date(match.date).getFullYear() : NaN;
+            if (matchYear !== yearNum) return;
         }
 
-        const row = byPos.get(posId);
+        const primaryPosId = getPlayerMatchPlayedPositionId(match, player);
+        if (!primaryPosId) return;
+
+        const posMinutesMap = getMatchPlayerPositionMinutesMap(match, player);
+        const hasPosMinutes = countPositivePositionEntries(posMinutesMap) > 0;
+        const totalMinutesRaw = typeof window.getMatchPlayerMinutesForSpillerbors === 'function'
+            ? window.getMatchPlayerMinutesForSpillerbors(match, player)
+            : window.getPlayerRefMapValue?.(match.minutesPlayed, player, null);
+        const totalMinutes = Math.max(0, Math.floor(Number(totalMinutesRaw) || 0));
+
+        const ensureRow = (posId) => {
+            if (!byPos.has(posId)) {
+                byPos.set(posId, {
+                    posId,
+                    label: getMatchGamePlanPositionLabel(posId),
+                    matches: 0,
+                    points: 0,
+                    goals: 0,
+                    assists: 0,
+                    bb: 0,
+                    minutes: 0,
+                    ratingsSum: 0,
+                    ratingsCount: 0,
+                    entries: []
+                });
+            }
+            return byPos.get(posId);
+        };
+
+        const row = ensureRow(primaryPosId);
+        const primaryMinutes = hasPosMinutes
+            ? Math.max(0, Math.floor(Number(posMinutesMap[primaryPosId]) || 0))
+            : totalMinutes;
+        if (primaryMinutes > 0) row.minutes += primaryMinutes;
+
         const points = typeof window.calculatePlayerMatchPoints === 'function'
             ? (Number(window.calculatePlayerMatchPoints(match, player)) || 0)
             : 0;
@@ -7341,22 +7366,26 @@ function buildPlayerPositionMatchStats(player) {
     return [...byPos.values()].sort((a, b) => (
         b.matches - a.matches
         || b.points - a.points
+        || b.minutes - a.minutes
         || compareMatchGamePlanPositions(a.posId, b.posId)
     ));
 }
 
-function getMatchGamePlanPlayerSeasonStat(player) {
+function getMatchGamePlanPlayerSeasonStat(player, yearFilter) {
     if (!player?.navn || typeof window.buildPlayerStatsData !== 'function') {
         return { totalScore: 0, form: 0, oppmotePct: 0, disiplinScore: 0, bestKampbonus: 0, formParts: { oppm: 0, dis: 0, recentRedCardPenalty: 0 } };
     }
-    const year = new Date().getFullYear();
-    const rows = window.buildPlayerStatsData({
-        applyYearFilter: true,
-        yearFilter: year
-    });
+    const year = yearFilter != null && yearFilter !== '' && yearFilter !== 'alle'
+        ? Number(yearFilter)
+        : new Date().getFullYear();
+    const rows = window.buildPlayerStatsData(
+        Number.isFinite(year)
+            ? { applyYearFilter: true, yearFilter: year }
+            : {}
+    );
     const row = (rows || []).find(stat => stat.navn === player.navn);
     const formParts = typeof window.getPlayerFormComponents === 'function'
-        ? window.getPlayerFormComponents(player.navn, { yearFilter: year })
+        ? window.getPlayerFormComponents(player.navn, Number.isFinite(year) ? { yearFilter: year } : {})
         : { total: 0, oppm: 0, dis: 0, recentRedCardPenalty: 0 };
     const bestKampbonus = (rows || []).reduce((max, stat) => {
         if (!stat || !stat.attendedMatches) return max;
@@ -7411,6 +7440,13 @@ function computeMatchGamePlanPositionSeason(row, seasonStat) {
         (borsScore * 0.33)
     ) * 10) / 10;
 }
+
+window.buildPlayerPositionMatchStats = buildPlayerPositionMatchStats;
+window.getMatchGamePlanPlayerSeasonStat = getMatchGamePlanPlayerSeasonStat;
+window.computeMatchGamePlanPositionForm = computeMatchGamePlanPositionForm;
+window.computeMatchGamePlanPositionSeason = computeMatchGamePlanPositionSeason;
+window.formatMatchGamePlanXp = formatMatchGamePlanXp;
+window.getMatchGamePlanPositionBadgeLabel = getMatchGamePlanPositionBadgeLabel;
 
 function formatMatchGamePlanPosPreference(value) {
     const text = String(value || '').trim();

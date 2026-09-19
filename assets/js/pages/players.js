@@ -498,6 +498,110 @@ function getPlayerProfileStats(player, yearFilter = 'alle') {
     return window.buildPlayerStatsData(options).find(stat => stat.navn === player.navn) || null;
 }
 
+function buildPlayerProfilePositionStatsHtml(player, yearFilter = 'alle') {
+    if (!player || typeof window.buildPlayerPositionMatchStats !== 'function') {
+        return `
+            <p class="player-profile-empty">Ingen posisjonsdata tilgjengelig.</p>
+        `;
+    }
+
+    const seasonStat = typeof window.getMatchGamePlanPlayerSeasonStat === 'function'
+        ? window.getMatchGamePlanPlayerSeasonStat(player, yearFilter)
+        : null;
+    const rows = (window.buildPlayerPositionMatchStats(player, { yearFilter }) || [])
+        .map((row) => {
+            const formValue = typeof window.computeMatchGamePlanPositionForm === 'function'
+                ? window.computeMatchGamePlanPositionForm(row.entries)
+                : 0;
+            const seasonValue = typeof window.computeMatchGamePlanPositionSeason === 'function'
+                ? window.computeMatchGamePlanPositionSeason(row, seasonStat)
+                : 0;
+            return {
+                ...row,
+                formValue,
+                seasonValue
+            };
+        })
+        .sort((a, b) => (
+            b.seasonValue - a.seasonValue
+            || b.matches - a.matches
+            || b.minutes - a.minutes
+            || a.label.localeCompare(b.label, 'nb')
+        ));
+
+    if (!rows.length) {
+        return `
+            <p class="player-profile-empty">Ingen registrerte kampposisjoner ennå.</p>
+        `;
+    }
+
+    const bodyRows = rows.map((row) => {
+        const snittBidrag = row.matches > 0
+            ? (Math.round((row.points / row.matches) * 10) / 10)
+            : 0;
+        const maText = (row.goals > 0 || row.assists > 0)
+            ? `${row.goals}/${row.assists}`
+            : '—';
+        const xpText = typeof window.formatMatchGamePlanXp === 'function'
+            ? window.formatMatchGamePlanXp(row.goals, row.assists, row.matches)
+            : '—';
+        const formText = row.formValue > 0 ? String(row.formValue) : '—';
+        const seasonText = row.seasonValue > 0
+            ? (Math.round(row.seasonValue * 10) / 10).toFixed(1)
+            : '—';
+        const minutesPerMatch = row.matches > 0 && row.minutes > 0
+            ? Math.round((row.minutes / row.matches) * 10) / 10
+            : null;
+        const minutesText = minutesPerMatch != null
+            ? (Number.isInteger(minutesPerMatch) ? String(minutesPerMatch) : minutesPerMatch.toFixed(1))
+            : '—';
+        const borsText = row.ratingsCount > 0
+            ? (Math.round((row.ratingsSum / row.ratingsCount) * 10) / 10).toFixed(1)
+            : '—';
+        const posCode = typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
+            ? window.getMatchGamePlanPositionBadgeLabel(row.posId)
+            : row.posId;
+        const posTitle = row.label || row.posId;
+
+        return `
+            <tr>
+                <td class="player-profile-position-pos" title="${escapeRosterHtml(posTitle)}">
+                    <span class="player-profile-position-code">${escapeRosterHtml(posCode)}</span>
+                </td>
+                <td>${row.matches || '—'}</td>
+                <td>${row.matches > 0 ? snittBidrag : '—'}</td>
+                <td>${escapeRosterHtml(maText)}</td>
+                <td>${escapeRosterHtml(xpText)}</td>
+                <td>${escapeRosterHtml(formText)}</td>
+                <td>${escapeRosterHtml(seasonText)}</td>
+                <td title="${row.minutes > 0 && row.matches > 0 ? `${row.minutes}' totalt / ${row.matches} kamper` : ''}">${escapeRosterHtml(minutesText)}</td>
+                <td>${escapeRosterHtml(borsText)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div class="player-profile-position-table-wrap">
+            <table class="player-profile-position-table" aria-label="Posisjonsstatistikk">
+                <thead>
+                    <tr>
+                        <th scope="col">Pos</th>
+                        <th scope="col" title="Antall kamper som hovedposisjon">K</th>
+                        <th scope="col" title="Snitt kampbidrag">Bidrag</th>
+                        <th scope="col" title="Mål / Assist">M/A</th>
+                        <th scope="col" title="Mål+assist per kamp">XP</th>
+                        <th scope="col" title="Form fra snitt på posisjonen (siste 5)">Form</th>
+                        <th scope="col" title="Sesongscore fra snitt på posisjonen">Sesong</th>
+                        <th scope="col" title="Snitt spilleminutter per kamp på posisjonen">Min/90</th>
+                        <th scope="col" title="Snittbørs på posisjonen">Børs</th>
+                    </tr>
+                </thead>
+                <tbody>${bodyRows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
 function buildPlayerProfileMetricHtml(label, value) {
     return `
         <div class="player-profile-metric">
@@ -1038,6 +1142,16 @@ window.renderPlayerProfilePage = function(playerId) {
                     rank: rankOf('minutesSharePct')
                 })}
             </div>
+        </section>
+
+        <section class="match-detail-card player-profile-panel relative">
+            <div class="player-profile-panel-header">
+                <div class="min-w-0">
+                    <h2 class="player-profile-panel-title">Posisjon</h2>
+                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Sortert etter sesongscore på posisjonen</p>
+                </div>
+            </div>
+            ${buildPlayerProfilePositionStatsHtml(player, yearFilter)}
         </section>
 
         <section class="match-detail-card player-profile-panel relative">
