@@ -6315,14 +6315,27 @@ function getMatchSubsPlayingTimeRows(match) {
         const positionMinutes = player
             ? getMatchPlayerPositionMinutesMap(match, player)
             : getMatchPlayerPositionMinutesMap(match, playerOrRef);
-        const positions = Object.entries(positionMinutes || {})
-            .map(([posId, mins]) => ({
-                posId,
-                label: getMatchGamePlanPositionBadgeLabel(posId) || posId,
-                minutes: Math.max(0, Math.floor(Number(mins) || 0))
+        const stints = (player
+            ? getMatchLiveComputedPositionStints(match, player)
+            : getMatchLiveComputedPositionStints(match, playerOrRef))
+            .map((stint) => ({
+                posId: stint.posId,
+                label: getMatchGamePlanPositionBadgeLabel(stint.posId) || stint.posId,
+                minutes: Math.max(0, Math.floor(Number(stint.minutes) || 0)),
+                from: stint.from,
+                to: stint.to
             }))
-            .filter((entry) => entry.minutes > 0)
-            .sort((a, b) => b.minutes - a.minutes || compareMatchGamePlanPositions(a.posId, b.posId));
+            .filter((entry) => entry.minutes > 0);
+        const positions = stints.length
+            ? stints
+            : Object.entries(positionMinutes || {})
+                .map(([posId, mins]) => ({
+                    posId,
+                    label: getMatchGamePlanPositionBadgeLabel(posId) || posId,
+                    minutes: Math.max(0, Math.floor(Number(mins) || 0))
+                }))
+                .filter((entry) => entry.minutes > 0)
+                .sort((a, b) => b.minutes - a.minutes || compareMatchGamePlanPositions(a.posId, b.posId));
         const positionsSum = positions.reduce((sum, entry) => sum + entry.minutes, 0);
         const diff = positions.length ? (positionsSum - minutes) : 0;
         rows.push({
@@ -6332,11 +6345,9 @@ function getMatchSubsPlayingTimeRows(match) {
             positions,
             positionsSum,
             diff,
-            positionsLabel: positions.length > 1
+            positionsLabel: positions.length
                 ? positions.map((entry) => `${entry.label} ${entry.minutes}'`).join('/')
-                : (positions.length === 1
-                    ? `${positions[0].label} ${positions[0].minutes}'`
-                    : '')
+                : ''
         });
     };
 
@@ -7152,6 +7163,23 @@ function scaleMatchPositionMinutesMap(posMap, totalMinutes) {
         allocated += next;
     });
     return scaled;
+}
+
+function getMatchLiveComputedPositionStints(match, player) {
+    if (!match || !player || typeof window.computeLivePositionStints !== 'function') return [];
+    const duration = Math.max(
+        resolveMatchLiveDurationForPositions(match),
+        Math.floor(Number(match.liveDurationMinutes) || 0),
+        90
+    );
+    const all = window.computeLivePositionStints(match, duration) || {};
+    const key = typeof window.getPlayerStorageKey === 'function'
+        ? window.getPlayerStorageKey(player)
+        : (player.id || player.navn || '');
+    if (key && Array.isArray(all[key])) return all[key];
+    if (player.id && Array.isArray(all[player.id])) return all[player.id];
+    if (player.navn && Array.isArray(all[player.navn])) return all[player.navn];
+    return [];
 }
 
 function getMatchPlayerPositionMinutesMap(match, player) {

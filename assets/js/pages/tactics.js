@@ -957,15 +957,21 @@
             return getLivePlayingTimeStorageKey(player || ref);
         }
 
-        function computeLivePositionMinutes(match, durationMinutes) {
+        function replayLivePositionTimeline(match, durationMinutes) {
             const duration = Math.max(0, Math.floor(Number(durationMinutes) || 0));
             const board = {};
             const open = new Map();
             const totals = new Map();
+            const stints = new Map();
 
             const ensureTotals = (key) => {
                 if (!totals.has(key)) totals.set(key, new Map());
                 return totals.get(key);
+            };
+
+            const ensureStints = (key) => {
+                if (!stints.has(key)) stints.set(key, []);
+                return stints.get(key);
             };
 
             const closeStint = (key, atMinute) => {
@@ -975,6 +981,12 @@
                 if (mins > 0 && state.posId) {
                     const map = ensureTotals(key);
                     map.set(state.posId, (map.get(state.posId) || 0) + mins);
+                    ensureStints(key).push({
+                        posId: state.posId,
+                        minutes: mins,
+                        from: state.since,
+                        to: atMinute
+                    });
                 }
                 open.delete(key);
             };
@@ -1099,7 +1111,11 @@
             });
 
             open.forEach((_, key) => closeStint(key, duration));
+            return { totals, stints };
+        }
 
+        function computeLivePositionMinutes(match, durationMinutes) {
+            const { totals } = replayLivePositionTimeline(match, durationMinutes);
             const result = {};
             totals.forEach((posMap, key) => {
                 const row = {};
@@ -1111,7 +1127,25 @@
             return result;
         }
 
+        function computeLivePositionStints(match, durationMinutes) {
+            const { stints } = replayLivePositionTimeline(match, durationMinutes);
+            const result = {};
+            stints.forEach((list, key) => {
+                const rows = (Array.isArray(list) ? list : [])
+                    .filter((stint) => stint?.posId && Math.max(0, Math.floor(Number(stint.minutes) || 0)) > 0)
+                    .map((stint) => ({
+                        posId: stint.posId,
+                        minutes: Math.max(0, Math.floor(Number(stint.minutes) || 0)),
+                        from: Math.max(0, Math.floor(Number(stint.from) || 0)),
+                        to: Math.max(0, Math.floor(Number(stint.to) || 0))
+                    }));
+                if (rows.length) result[key] = rows;
+            });
+            return result;
+        }
+
         window.computeLivePositionMinutes = computeLivePositionMinutes;
+        window.computeLivePositionStints = computeLivePositionStints;
 
         function setLivePlayingTimeStatus(message, tone = '') {
             const statusEl = document.getElementById('tactical-live-playing-time-status');
