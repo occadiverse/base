@@ -5320,7 +5320,7 @@ window.showMatchDetails = function(id) {
                 </button>
             </div>
             <div class="match-collapsible-content">
-                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min hentes fra Live og kan justeres; det du lagrer her blir gjeldende spilletid (0–30: +0, 31–60: +1, 61+: +2 kamppoeng).</p>
+                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min fylles fra Live/Bytter og er den endelige fasiten for total spilletid når du lagrer her (0–30: +0, 31–60: +1, 61+: +2 kamppoeng). Bytteloggen redigeres i «Bytter og Spilletid».</p>
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
@@ -6270,7 +6270,7 @@ function buildMatchLiveSubsLogHtml(match) {
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
-            <p class="match-subs-log-hint">Trykk en rad for å redigere eller slette.</p>
+            <p class="match-subs-log-hint">Trykk en rad for å redigere. Lagrede endringer overstyrer Live.</p>
         </div>
     `;
 }
@@ -6367,7 +6367,7 @@ function buildMatchSubsPanelBodyHtml(match) {
         ${subsHtml || `
             <div class="match-subs-log-empty">
                 <p>Ingen bytter registrert ennå.</p>
-                <p class="match-subs-log-hint">Bytter fra Live vises her. Trykk en rad for å redigere.</p>
+                <p class="match-subs-log-hint">Live-bytter vises her. Endringer du lagrer her overstyrer Live.</p>
             </div>
         `}
         ${buildMatchSubsPlayingTimeHtml(match)}
@@ -6461,15 +6461,21 @@ function applyMatchSubsLogMoveToPosMap(lineup, move) {
 }
 
 function getMatchSubsLogLineupBeforeCurrentEdit(match) {
-    const lineup = cloneMatchSubsLogPosMap(getMatchGamePlanLineup(match));
     const edit = window._matchSubsLogEditState || {};
+
+    // Live «nytt bytte»: bruk aktuelt live-brett (byttet er ikke lagret ennå).
+    if (edit.mode === 'create-live' && window.liveLineup && typeof window.liveLineup === 'object') {
+        return cloneMatchSubsLogPosMap(window.liveLineup);
+    }
+
+    const lineup = cloneMatchSubsLogPosMap(getMatchGamePlanLineup(match));
     const editMinute = parseMatchLiveSubMinute(
         document.getElementById('match-subs-log-edit-minute')?.value
     );
 
     const events = [];
     (Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : []).forEach((sub, index) => {
-        if (edit.kind === 'sub' && edit.index === index) return;
+        if (edit.kind === 'sub' && edit.mode !== 'create-live' && edit.index === index) return;
         events.push({
             minute: parseMatchLiveSubMinute(sub?.minute),
             order: index,
@@ -6501,6 +6507,83 @@ function getMatchSubsLogLineupBeforeCurrentEdit(match) {
         });
 
     return lineup;
+}
+
+function syncMatchSubsLogDeleteBtnVisibility() {
+    const deleteBtn = document.getElementById('matchSubsLogEditDeleteBtn');
+    if (!deleteBtn) return;
+    const hide = window._matchSubsLogEditState?.mode === 'create-live';
+    deleteBtn.hidden = hide;
+    deleteBtn.setAttribute('aria-hidden', hide ? 'true' : 'false');
+}
+
+function renderMatchSubsLogSubEditorBody(match, entry, { titleText = 'Rediger bytte' } = {}) {
+    const modal = document.getElementById('matchSubsLogEditModal');
+    const body = document.getElementById('matchSubsLogEditBody');
+    const title = document.querySelector('#matchSubsLogEditTitle span');
+    if (!modal || !body) return false;
+
+    if (title) title.textContent = titleText;
+    const minute = parseMatchLiveSubMinute(entry.minute);
+    const outPos = entry.posId || '';
+    const inPos = entry.inPosId || entry.posId || '';
+    const fillSteps = getMatchSubsLogFillChainSteps(entry);
+    body.innerHTML = `
+        <div class="match-subs-log-edit-lead">
+            ${buildMatchSubsLogSubBoardHtml(entry.outId, entry.inId, minute, {
+                editableMinute: true,
+                editablePositions: true,
+                outPos,
+                inPos
+            })}
+        </div>
+        <div id="match-subs-log-fill-wrap" class="match-subs-log-fill-wrap" hidden>
+            <div id="match-subs-log-fill-chain" class="match-subs-log-fill-chain" aria-label="Rokering"></div>
+        </div>
+    `;
+    bindMatchSubsLogFillEditor(match, fillSteps);
+    syncMatchSubsLogDeleteBtnVisibility();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    const minuteInput = document.getElementById('match-subs-log-edit-minute');
+    if (minuteInput) {
+        minuteInput.focus();
+        minuteInput.select();
+    }
+    return true;
+}
+
+function buildMatchSubsLogSubRecordFromForm(base = {}) {
+    const minuteRaw = document.getElementById('match-subs-log-edit-minute')?.value;
+    const minute = String(Math.max(0, Math.min(130, Math.floor(Number(minuteRaw) || 0))));
+    const posId = String(document.getElementById('match-subs-log-edit-out-pos')?.value || base.posId || '').trim();
+    const inPosId = String(document.getElementById('match-subs-log-edit-in-pos')?.value || posId).trim();
+    let fillChain = [];
+    if (posId && inPosId && posId !== inPosId) {
+        fillChain = collectMatchSubsLogFillChainFromForm();
+        if (!fillChain.length) {
+            alert('Velg hvor spilleren på inn-posisjonen skal flyttes, steg for steg til ut-posisjonen er fylt.');
+            return null;
+        }
+        if (fillChain[0].toPos !== posId) {
+            alert(`Rokeringen må ende med at noen fyller ut-posisjonen (${posId}).`);
+            return null;
+        }
+        if (fillChain[fillChain.length - 1].fromPos !== inPosId) {
+            alert(`Rokeringen må starte med spilleren på inn-posisjonen (${inPosId}).`);
+            return null;
+        }
+    }
+    const firstFill = fillChain[0] || null;
+    return {
+        ...base,
+        minute,
+        posId,
+        inPosId,
+        fillId: firstFill?.playerId || '',
+        fillFromPos: firstFill?.fromPos || '',
+        fillChain
+    };
 }
 
 function getMatchSubsLogFillChainSteps(sub) {
@@ -6663,12 +6746,56 @@ function refreshMatchLiveSubsLogUi(match) {
 }
 
 window.closeMatchSubsLogEditor = function() {
+    const state = window._matchSubsLogEditState;
+    const wasCreateLive = state?.mode === 'create-live' && !state?.saved;
     const modal = document.getElementById('matchSubsLogEditModal');
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
     window._matchSubsLogEditState = null;
+    syncMatchSubsLogDeleteBtnVisibility();
+    if (wasCreateLive && typeof window.cancelLiveSubFromEditor === 'function') {
+        window.cancelLiveSubFromEditor();
+    }
+};
+
+window.openMatchSubsLogCreateFromLive = function(payload = {}) {
+    const matchId = payload.matchId;
+    const match = (window.activeMatches || []).find((m) => m.id === matchId);
+    if (!match) return false;
+
+    const outId = payload.outId || '';
+    const inId = payload.inId || '';
+    const posId = String(payload.posId || '').trim();
+    const inPosId = String(payload.inPosId || posId).trim();
+    if (!outId || !inId || !posId) return false;
+
+    const existingCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
+    const entry = {
+        minute: payload.minute != null && payload.minute !== '' ? String(payload.minute) : '0',
+        posId,
+        inPosId,
+        outId,
+        inId,
+        fillId: '',
+        fillFromPos: '',
+        fillChain: [],
+        outRoles: Array.isArray(payload.outRoles) ? [...payload.outRoles] : [],
+        outOffc: Array.isArray(payload.outOffc) ? [...payload.outOffc] : [],
+        outDefc: Array.isArray(payload.outDefc) ? [...payload.outDefc] : []
+    };
+
+    window._matchSubsLogEditState = {
+        mode: 'create-live',
+        kind: 'sub',
+        index: existingCount,
+        matchId: match.id,
+        saved: false,
+        draft: entry
+    };
+
+    return renderMatchSubsLogSubEditorBody(match, entry, { titleText: 'Nytt bytte' });
 };
 
 window.openMatchSubsLogEditor = function(kind, index) {
@@ -6685,7 +6812,7 @@ window.openMatchSubsLogEditor = function(kind, index) {
     }
     if (!entry) return;
 
-    window._matchSubsLogEditState = { kind, index: idx, matchId: match.id };
+    window._matchSubsLogEditState = { mode: 'edit', kind, index: idx, matchId: match.id };
 
     const modal = document.getElementById('matchSubsLogEditModal');
     const body = document.getElementById('matchSubsLogEditBody');
@@ -6714,56 +6841,44 @@ window.openMatchSubsLogEditor = function(kind, index) {
                 </label>
             </div>
         `;
-    } else {
-        if (title) title.textContent = 'Rediger bytte';
-        const outPos = entry.posId || '';
-        const inPos = entry.inPosId || entry.posId || '';
-        const fillSteps = getMatchSubsLogFillChainSteps(entry);
-        body.innerHTML = `
-            <div class="match-subs-log-edit-lead">
-                ${buildMatchSubsLogSubBoardHtml(entry.outId, entry.inId, minute, {
-                    editableMinute: true,
-                    editablePositions: true,
-                    outPos,
-                    inPos
-                })}
-            </div>
-            <div id="match-subs-log-fill-wrap" class="match-subs-log-fill-wrap" hidden>
-                <div id="match-subs-log-fill-chain" class="match-subs-log-fill-chain" aria-label="Rokering"></div>
-            </div>
-        `;
-        bindMatchSubsLogFillEditor(match, fillSteps);
+        syncMatchSubsLogDeleteBtnVisibility();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        const minuteInput = document.getElementById('match-subs-log-edit-minute');
+        if (minuteInput) {
+            minuteInput.focus();
+            minuteInput.select();
+        }
+        return;
     }
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    const minuteInput = document.getElementById('match-subs-log-edit-minute');
-    if (minuteInput) {
-        minuteInput.focus();
-        minuteInput.select();
-    }
+    renderMatchSubsLogSubEditorBody(match, entry, { titleText: 'Rediger bytte' });
 };
 
 async function persistMatchSubsLogChange(match) {
     if (typeof window.saveMatchToDatabase !== 'function') {
         throw new Error('Kan ikke lagre');
     }
+    const duration = Math.max(
+        resolveMatchLiveDurationForPositions(match),
+        Math.floor(Number(match.liveDurationMinutes) || 0),
+        90
+    );
+    match.liveDurationMinutes = duration;
+
+    // Bytter-kortet er fasit for bytteloggen. Totale minutter styres av Spillerbørs
+    // når den er lagret — ellers synk fra Live-bytter.
     if (match.minutesSource !== 'spillerbors' && typeof window.computeLiveMinutesPlayed === 'function') {
-        const duration = Math.max(
-            resolveMatchLiveDurationForPositions(match),
-            Math.floor(Number(match.liveDurationMinutes) || 0),
-            90
-        );
-        match.liveDurationMinutes = duration;
         match.minutesPlayed = window.computeLiveMinutesPlayed(match, match.liveSubstitutions, duration);
         match.minutesSource = 'live';
-        if (match.positionMinutesSource !== 'spillerbors') {
-            if (typeof window.computeLivePositionMinutes === 'function') {
-                match.positionMinutes = window.computeLivePositionMinutes(match, duration);
-            }
-            match.positionMinutesSource = 'live';
-        }
     }
+
+    // Posisjonsfordeling følger alltid bytteloggen (Live/Bytter-kortet).
+    if (typeof window.computeLivePositionMinutes === 'function') {
+        match.positionMinutes = window.computeLivePositionMinutes(match, duration);
+        match.positionMinutesSource = 'live';
+    }
+
     await window.saveMatchToDatabase(match);
 }
 
@@ -6773,43 +6888,45 @@ window.saveMatchSubsLogEntry = async function() {
     const match = (window.activeMatches || []).find(m => m.id === state.matchId);
     if (!match) return;
 
-    const minuteRaw = document.getElementById('match-subs-log-edit-minute')?.value;
-    const minute = String(Math.max(0, Math.min(130, Math.floor(Number(minuteRaw) || 0))));
+    if (state.mode === 'create-live' && state.kind === 'sub') {
+        const draft = state.draft || {};
+        const subRecord = buildMatchSubsLogSubRecordFromForm({
+            outId: draft.outId,
+            inId: draft.inId,
+            outRoles: Array.isArray(draft.outRoles) ? [...draft.outRoles] : [],
+            outOffc: Array.isArray(draft.outOffc) ? [...draft.outOffc] : [],
+            outDefc: Array.isArray(draft.outDefc) ? [...draft.outDefc] : []
+        });
+        if (!subRecord) return;
+
+        try {
+            if (typeof window.commitLiveSubFromEditor !== 'function') {
+                throw new Error('Live-commit mangler');
+            }
+            const ok = await window.commitLiveSubFromEditor(subRecord);
+            if (!ok) return;
+            state.saved = true;
+            window.closeMatchSubsLogEditor();
+            refreshMatchLiveSubsLogUi(match);
+            setMatchDetailFeedback('[data-stats-save-state]', 'Bytte lagret', 'success', 4000);
+        } catch (error) {
+            console.error('Kunne ikke lagre Live-bytte:', error);
+            alert('Kunne ikke lagre byttet.');
+        }
+        return;
+    }
 
     if (state.kind === 'sub') {
         const list = Array.isArray(match.liveSubstitutions) ? [...match.liveSubstitutions] : [];
         const entry = list[state.index];
         if (!entry) return;
-        const posId = String(document.getElementById('match-subs-log-edit-out-pos')?.value || entry.posId || '').trim();
-        const inPosId = String(document.getElementById('match-subs-log-edit-in-pos')?.value || posId).trim();
-        let fillChain = [];
-        if (posId && inPosId && posId !== inPosId) {
-            fillChain = collectMatchSubsLogFillChainFromForm();
-            if (!fillChain.length) {
-                alert('Velg hvor spilleren på inn-posisjonen skal flyttes, steg for steg til ut-posisjonen er fylt.');
-                return;
-            }
-            if (fillChain[0].toPos !== posId) {
-                alert(`Rokeringen må ende med at noen fyller ut-posisjonen (${posId}).`);
-                return;
-            }
-            if (fillChain[fillChain.length - 1].fromPos !== inPosId) {
-                alert(`Rokeringen må starte med spilleren på inn-posisjonen (${inPosId}).`);
-                return;
-            }
-        }
-        const firstFill = fillChain[0] || null;
-        list[state.index] = {
-            ...entry,
-            minute,
-            posId,
-            inPosId,
-            fillId: firstFill?.playerId || '',
-            fillFromPos: firstFill?.fromPos || '',
-            fillChain
-        };
+        const updated = buildMatchSubsLogSubRecordFromForm(entry);
+        if (!updated) return;
+        list[state.index] = updated;
         match.liveSubstitutions = list;
     } else if (state.kind === 'move') {
+        const minuteRaw = document.getElementById('match-subs-log-edit-minute')?.value;
+        const minute = String(Math.max(0, Math.min(130, Math.floor(Number(minuteRaw) || 0))));
         const list = Array.isArray(match.liveLineupMoves) ? [...match.liveLineupMoves] : [];
         const entry = list[state.index];
         if (!entry) return;
@@ -6843,7 +6960,7 @@ window.saveMatchSubsLogEntry = async function() {
 
 window.deleteMatchSubsLogEntry = async function() {
     const state = window._matchSubsLogEditState;
-    if (!state) return;
+    if (!state || state.mode === 'create-live') return;
     const match = (window.activeMatches || []).find(m => m.id === state.matchId);
     if (!match) return;
     if (!confirm('Slette denne raden fra bytteloggen?')) return;
@@ -6900,24 +7017,69 @@ function resolveMatchLiveDurationForPositions(match) {
     return moveMax;
 }
 
-function getMatchPlayerPositionMinutesMap(match, player) {
-    if (!match || !player) return {};
-
-    const stored = getMatchStoredPositionMinutesMap(match, player);
-    if (stored) return stored;
-
-    if (typeof window.computeLivePositionMinutes !== 'function') return {};
-    const duration = resolveMatchLiveDurationForPositions(match);
-    if (duration <= 0) return {};
+function getMatchLiveComputedPositionMinutesMap(match, player) {
+    if (!match || !player || typeof window.computeLivePositionMinutes !== 'function') return {};
+    const duration = Math.max(
+        resolveMatchLiveDurationForPositions(match),
+        Math.floor(Number(match.liveDurationMinutes) || 0),
+        90
+    );
     const all = window.computeLivePositionMinutes(match, duration) || {};
     const key = typeof window.getPlayerStorageKey === 'function'
         ? window.getPlayerStorageKey(player)
         : (player.id || player.navn || '');
-    const byKey = all[key];
-    if (byKey && typeof byKey === 'object') return byKey;
-    if (player.id && all[player.id]) return all[player.id];
-    if (player.navn && all[player.navn]) return all[player.navn];
+    const byKey = key && all[key] && typeof all[key] === 'object' ? all[key] : null;
+    if (byKey) return byKey;
+    if (player.id && all[player.id] && typeof all[player.id] === 'object') return all[player.id];
+    if (player.navn && all[player.navn] && typeof all[player.navn] === 'object') return all[player.navn];
     return {};
+}
+
+function countPositivePositionEntries(posMap) {
+    if (!posMap || typeof posMap !== 'object') return 0;
+    return Object.values(posMap).filter((mins) => Math.max(0, Math.floor(Number(mins) || 0)) > 0).length;
+}
+
+function scaleMatchPositionMinutesMap(posMap, totalMinutes) {
+    const cleaned = {};
+    Object.entries(posMap || {}).forEach(([posId, mins]) => {
+        const key = String(posId || '').trim();
+        const value = Math.max(0, Math.floor(Number(mins) || 0));
+        if (!key || value <= 0) return;
+        cleaned[key] = value;
+    });
+    const keys = Object.keys(cleaned);
+    if (!keys.length) return {};
+    const target = Math.max(0, Math.floor(Number(totalMinutes) || 0));
+    if (target <= 0) return cleaned;
+    const sum = keys.reduce((acc, key) => acc + cleaned[key], 0);
+    if (sum <= 0 || sum === target) return cleaned;
+    let allocated = 0;
+    const scaled = {};
+    keys.forEach((key, index) => {
+        if (index === keys.length - 1) {
+            scaled[key] = Math.max(0, target - allocated);
+            return;
+        }
+        const next = Math.max(0, Math.round((cleaned[key] / sum) * target));
+        scaled[key] = next;
+        allocated += next;
+    });
+    return scaled;
+}
+
+function getMatchPlayerPositionMinutesMap(match, player) {
+    if (!match || !player) return {};
+
+    const stored = getMatchStoredPositionMinutesMap(match, player);
+    const live = getMatchLiveComputedPositionMinutesMap(match, player);
+    const liveCount = countPositivePositionEntries(live);
+    const storedCount = countPositivePositionEntries(stored);
+
+    // Live-bytter/rokering gir mer treffsikre posisjonsminutter enn Spillerbørs (som ofte lagrer bare én pos).
+    if (liveCount > storedCount) return live;
+    if (stored) return stored;
+    return live;
 }
 
 function getPlayerMatchPlayedPositionIds(match, player) {
@@ -7620,7 +7782,7 @@ window.getMatchPlayerMinutesForSpillerbors = function(match, playerObj) {
         return stored > 0 ? stored : null;
     }
 
-    // Etter Spillerbørs-lagring er minutesPlayed fasit (også tomme felt).
+    // Etter Spillerbørs-lagring er minutesPlayed fasit for total spilletid (også tomme felt).
     if (match.minutesSource === 'spillerbors') return null;
 
     const liveMap = window.getMatchLiveMinutesPlayedMap(match);
@@ -7695,7 +7857,6 @@ window.renderPlayerRowForm = function(match) {
             ? window.isPlayerBenchOnly(match, player)
             : false;
         const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
-        const primaryPosId = getMatchPlayerSpillerborsPosId(match, playerObj);
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
         const ratingHint = formatMatchRatingHint(prevRating);
 
@@ -7729,14 +7890,9 @@ window.renderPlayerRowForm = function(match) {
                         value="${minutesPlayed === null ? '' : minutesPlayed}"
                         placeholder="—"
                         aria-label="Spilletid i minutter for ${playerAttr}"
-                        title="Total spilletid. Hentes fra Live, kan justeres."
+                        title="Total spilletid. Forhåndsutfylt fra Live/Bytter — det du lagrer her er fasit."
                     >
                 </div>
-                ${buildMatchStatsPositionSelectHtml(playerObj, primaryPosId, {
-                    fieldClass: 'player-position-input',
-                    label: 'Pos',
-                    ariaLabel: `Innbytte-/startposisjon for ${player}`
-                })}
                 <div class="match-stat-field">
                     <span class="match-stat-label">Mål</span>
                     <select class="player-goals-input portal-field portal-field-sm match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
@@ -7847,32 +8003,44 @@ window.savePlayerMatchStats = async function() {
     });
 
     document.querySelectorAll('.player-minutes-input').forEach(input => {
-        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(input));
+        const playerRef = window.getPlayerRefFromElement(input);
+        const playerKey = window.getPlayerStorageKey(playerRef);
         if (!playerKey || benchOnly[playerKey] === true) return;
         const raw = String(input.value || '').trim();
         if (raw === '') return;
         const val = Math.max(0, Math.min(120, Math.floor(Number(raw) || 0)));
         if (val > 0) minutesPlayed[playerKey] = val;
-    });
 
-    document.querySelectorAll('.player-position-input').forEach((select) => {
-        const playerKey = window.getPlayerStorageKey(window.getPlayerRefFromElement(select));
-        if (!playerKey || benchOnly[playerKey] === true) return;
-        const row = select.closest('.match-stats-player-row');
-        const primaryPos = String(select.value || '').trim();
-        const totalMins = minutesPlayed[playerKey]
-            || Math.max(0, Math.floor(Number(row?.querySelector('.player-minutes-input')?.value) || 0));
+        const player = typeof window.findPlayerByRef === 'function'
+            ? window.findPlayerByRef(playerRef)
+            : null;
+        const livePosMap = player
+            ? getMatchLiveComputedPositionMinutesMap(match, player)
+            : {};
+        if (countPositivePositionEntries(livePosMap) > 0) {
+            positionMinutes[playerKey] = scaleMatchPositionMinutesMap(livePosMap, val);
+            const primaryPos = Object.entries(positionMinutes[playerKey])
+                .sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || '';
+            if (primaryPos) {
+                positionAssignments[playerKey] = {
+                    primary: primaryPos,
+                    secondary: '',
+                    secondaryFrom: ''
+                };
+            }
+            return;
+        }
+
+        const primaryPos = player
+            ? getMatchPlayerSpillerborsPosId(match, player)
+            : '';
         if (primaryPos) {
             positionAssignments[playerKey] = {
                 primary: primaryPos,
                 secondary: '',
                 secondaryFrom: ''
             };
-            if (totalMins > 0) {
-                positionMinutes[playerKey] = { [primaryPos]: totalMins };
-            } else {
-                positionMinutes[playerKey] = { [primaryPos]: 0 };
-            }
+            positionMinutes[playerKey] = { [primaryPos]: val };
         }
     });
 

@@ -1143,10 +1143,19 @@
             const commitMinutes = options.commitMinutes === true;
             if (commitMinutes) {
                 match.liveDurationMinutes = duration;
+                // Spillerbørs er fasit for totale minutter når den er lagret.
                 if (match.minutesSource !== 'spillerbors') {
                     match.minutesPlayed = computeMinutesPlayed(match, liveSubstitutions, duration);
                     match.minutesSource = 'live';
                 }
+                if (typeof computeLivePositionMinutes === 'function') {
+                    match.positionMinutes = computeLivePositionMinutes(match, duration);
+                    match.positionMinutesSource = 'live';
+                }
+            } else if (typeof computeLivePositionMinutes === 'function') {
+                const posDuration = Math.max(duration, Math.floor(Number(match.liveDurationMinutes) || 0), 90);
+                match.positionMinutes = computeLivePositionMinutes(match, posDuration);
+                match.positionMinutesSource = 'live';
             }
 
             if (typeof window.saveMatchToDatabase !== 'function') {
@@ -1328,10 +1337,9 @@
             const liveMatch = window.isTacticalLiveMatchMode();
             const liveLocked = liveMatch && window.isLiveSessionLocked();
             const event = window.tacticalLiveEvent;
-            const pickingOut = Boolean(event?.inPlayer && !event.sub);
+            const pickingOut = Boolean(event?.inPlayer && !event?.editorOpen);
             const eventActive = Boolean(
-                event?.sub
-                || (event && !event.inPlayer)
+                (event && !event.inPlayer)
                 || (event?.moves?.length)
             );
             const pendingOutPos = window.tacticalPendingSubOutPos || null;
@@ -1812,7 +1820,7 @@
         }
 
         function liveEventHasStagedChanges(event = window.tacticalLiveEvent) {
-            return Boolean(event?.sub || (event?.moves && event.moves.length));
+            return Boolean(event?.moves && event.moves.length);
         }
 
         function ensureLiveEventForRokering() {
@@ -1824,6 +1832,7 @@
                 sub: null,
                 moves: [],
                 dialogOpen: false,
+                editorOpen: false,
                 planMinute: ''
             };
             return window.tacticalLiveEvent;
@@ -1839,16 +1848,8 @@
                 return `${escapeTacticalHtml(aName)} (${escapeTacticalHtml(aPos)}) ↔ ${escapeTacticalHtml(bName)} (${escapeTacticalHtml(bPos)})`;
             });
             const items = [];
-            if (event.sub) {
-                const outName = getLiveEventPlayerLabel(event.sub.outId);
-                const inName = getLiveEventPlayerLabel(event.sub.inId);
-                const outPos = getLivePosBadgeLabel(event.sub.posId);
-                items.push(`<li><strong>Bytte:</strong> ${escapeTacticalHtml(outName)} ut (${escapeTacticalHtml(outPos)}) → ${escapeTacticalHtml(inName)} inn</li>`);
-            }
             if (moveBits.length) {
                 items.push(`<li><strong>Rokering:</strong> ${moveBits.join(' · ')}</li>`);
-            } else if (event.sub) {
-                items.push('<li class="is-muted">Ingen rokering ennå — trykk to spillere på banen for å bytte plass.</li>');
             } else {
                 items.push('<li class="is-muted">Trykk to spillere på banen for å bytte plass.</li>');
             }
@@ -1864,10 +1865,16 @@
                 return;
             }
 
+            // Bytte redigeres i byttelogg-modal — skjul Live-panelet mens dialogen er åpen.
+            if (event.editorOpen) {
+                hideLiveEventPanel();
+                return;
+            }
+
             panel.classList.remove('hidden');
             const inName = event.inPlayer?.navn || 'Innbytter';
-            const canFinish = liveEventHasStagedChanges(event);
-            const finishTitle = event.sub ? 'Fullfør bytte' : 'Fullfør rokering';
+            const canFinish = Boolean(event.moves?.length);
+            const finishTitle = 'Fullfør rokering';
 
             if (event.dialogOpen && canFinish) {
                 const defaultMinute = event.planMinute !== undefined && event.planMinute !== ''
@@ -1899,7 +1906,7 @@
                         </div>
                     </div>
                 `;
-            } else if (event.inPlayer && !event.sub) {
+            } else if (event.inPlayer) {
                 panel.innerHTML = `
                     <div class="tactical-live-event-bar">
                         <p class="tactical-live-event-copy"><strong>${escapeTacticalHtml(inName)}</strong> — velg hvem som går ut</p>
@@ -1909,12 +1916,9 @@
                     </div>
                 `;
             } else if (canFinish) {
-                const lead = event.sub
-                    ? 'Bytte klart — rokér ved behov, deretter Ferdig'
-                    : 'Rokering klar — fortsett eller trykk Ferdig';
                 panel.innerHTML = `
                     <div class="tactical-live-event-bar">
-                        <p class="tactical-live-event-copy">${escapeTacticalHtml(lead)}</p>
+                        <p class="tactical-live-event-copy">Rokering klar — fortsett eller trykk Ferdig</p>
                         ${buildLiveEventSummaryHtml(event)}
                         <div class="tactical-live-event-actions">
                             <button type="button" class="bsk-btn bsk-btn-primary tactical-bench-btn" data-live-event="finish">Ferdig</button>
@@ -1976,6 +1980,23 @@
                 syncLiveLineupToTactical();
             }
 
+            // Lukk create-live-modal uten å trigge cancel-hook på nytt.
+            const editState = window._matchSubsLogEditState;
+            if (editState?.mode === 'create-live') {
+                editState.saved = true;
+                const modal = document.getElementById('matchSubsLogEditModal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                window._matchSubsLogEditState = null;
+                const deleteBtn = document.getElementById('matchSubsLogEditDeleteBtn');
+                if (deleteBtn) {
+                    deleteBtn.hidden = false;
+                    deleteBtn.setAttribute('aria-hidden', 'false');
+                }
+            }
+
             window.tacticalLiveEvent = null;
             window.tacticalPendingSubIn = null;
             window.tacticalPendingSubOutPos = null;
@@ -2001,14 +2022,15 @@
                 }
                 return;
             }
-            if (event.dialogOpen) {
-                setLivePlayingTimeStatus(
-                    event.sub ? 'Bekreft bytte med kampminutt' : 'Bekreft rokering med kampminutt',
-                    'pending'
-                );
+            if (event.editorOpen) {
+                setLivePlayingTimeStatus('Fullfør byttet i dialogen', 'pending');
                 return;
             }
-            if (event.inPlayer && !event.sub) {
+            if (event.dialogOpen) {
+                setLivePlayingTimeStatus('Bekreft rokering med kampminutt', 'pending');
+                return;
+            }
+            if (event.inPlayer) {
                 const name = event.inPlayer.navn || 'Innbytter';
                 setLivePlayingTimeStatus(`${name}: velg hvem som går ut`, 'pending');
                 return;
@@ -2018,16 +2040,6 @@
                 return;
             }
             const moveCount = event.moves?.length || 0;
-            if (event.sub) {
-                const name = event.inPlayer?.navn || 'Innbytter';
-                setLivePlayingTimeStatus(
-                    moveCount
-                        ? `${name} inn — ${moveCount} rokering(er). Trykk Ferdig.`
-                        : `${name} inn — rokér ved behov, deretter Ferdig`,
-                    'pending'
-                );
-                return;
-            }
             if (moveCount) {
                 setLivePlayingTimeStatus(`${moveCount} rokering(er). Trykk Ferdig.`, 'pending');
                 return;
@@ -2061,6 +2073,7 @@
                 sub: null,
                 moves: [],
                 dialogOpen: false,
+                editorOpen: false,
                 planMinute: ''
             };
             window.tacticalPendingSubIn = player;
@@ -2072,12 +2085,16 @@
             refreshTacticalLiveBoard();
         };
 
-        function stageLiveEventSub(outPosId) {
+        function openLiveSubEditorForOut(outPosId) {
             const event = window.tacticalLiveEvent;
             const inPlayer = event?.inPlayer;
             if (!event || !inPlayer || !outPosId) return false;
             if (window.isLiveSessionLocked()) {
                 setLivePlayingTimeStatus('Live er låst', 'error');
+                return false;
+            }
+            if (typeof window.openMatchSubsLogCreateFromLive !== 'function') {
+                alert('Bytte-dialog er ikke tilgjengelig.');
                 return false;
             }
 
@@ -2095,41 +2112,44 @@
                 return false;
             }
 
-            const inheritedRoles = getRolesForPlayer(outPlayer);
             const match = getSelectedTacticalMatch();
+            if (!match?.id) return false;
+
+            const inheritedRoles = getRolesForPlayer(outPlayer);
             const inheritedOffc = getSetPieceSlotsForPlayer(match, 'offcAssignments', outPlayer);
             const inheritedDefc = getSetPieceSlotsForPlayer(match, 'defcAssignments', outPlayer);
-            const inRef = getTacticalLivePlayerRef(inPlayer);
+            const defaultMinute = event.planMinute !== undefined && event.planMinute !== ''
+                ? String(event.planMinute).trim().replace(/'$/, '')
+                : resolveLiveSubMinute();
 
-            inheritedRoles.forEach((slot) => {
-                window.liveRoles[slot] = inRef;
-            });
-
-            const subRecord = {
-                minute: '',
-                posId: outPosId,
-                inPosId: outPosId,
-                fillId: '',
-                fillFromPos: '',
-                fillChain: [],
-                outId: getTacticalLivePlayerRef(outPlayer),
-                inId: inRef,
-                outRoles: [...inheritedRoles],
-                outOffc: [...inheritedOffc],
-                outDefc: [...inheritedDefc]
-            };
-
-            applyLiveSubToLineupState(subRecord);
-            syncLiveLineupToTactical();
-            window.tacticalLiveDirty = true;
-            event.sub = subRecord;
+            event.editorOpen = true;
+            event.sub = null;
             event.moves = [];
-            event.dialogOpen = false;
             window.tacticalPendingSubOutPos = outPosId;
             window.tacticalPendingSwapPos = null;
             updateLiveSubStatusMessage();
             renderLiveEventPanel();
-            refreshTacticalLiveBoard();
+            window.applyTacticalLineupReadOnlyState();
+
+            const opened = window.openMatchSubsLogCreateFromLive({
+                matchId: match.id,
+                outId: getTacticalLivePlayerRef(outPlayer),
+                inId: getTacticalLivePlayerRef(inPlayer),
+                posId: outPosId,
+                inPosId: outPosId,
+                minute: defaultMinute,
+                outRoles: [...inheritedRoles],
+                outOffc: [...inheritedOffc],
+                outDefc: [...inheritedDefc]
+            });
+            if (!opened) {
+                event.editorOpen = false;
+                window.tacticalPendingSubOutPos = null;
+                updateLiveSubStatusMessage();
+                renderLiveEventPanel();
+                window.applyTacticalLineupReadOnlyState();
+                return false;
+            }
             return true;
         }
 
@@ -2139,6 +2159,8 @@
                 setLivePlayingTimeStatus('Live er låst', 'error');
                 return false;
             }
+            // Ikke tillat pitch-rokering midt i et bytte — fill-kjede håndteres i dialogen.
+            if (window.tacticalLiveEvent?.inPlayer) return false;
 
             const event = ensureLiveEventForRokering();
             const playerA = window.liveLineup?.[aPos] || null;
@@ -2184,17 +2206,10 @@
             }
 
             const minute = resolveLiveSubMinute(minuteValue);
-            if (event.sub) event.sub.minute = minute;
             (event.moves || []).forEach((move) => {
                 move.minute = minute;
             });
 
-            if (event.sub) {
-                window.tacticalAppliedLiveSubs = [
-                    ...(window.tacticalAppliedLiveSubs || []),
-                    event.sub
-                ];
-            }
             if (event.moves?.length) {
                 window.tacticalAppliedLiveMoves = [
                     ...(window.tacticalAppliedLiveMoves || []),
@@ -2218,6 +2233,57 @@
             return true;
         };
 
+        window.commitLiveSubFromEditor = async function(subRecord) {
+            if (!subRecord || window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return false;
+            }
+
+            const serialized = serializeLiveSubstitutions([subRecord])[0];
+            if (!serialized) return false;
+
+            (serialized.outRoles || []).forEach((slot) => {
+                if (!slot) return;
+                window.liveRoles[slot] = serialized.inId;
+            });
+
+            applyLiveSubToLineupState(serialized);
+            syncLiveLineupToTactical();
+            window.tacticalLiveDirty = true;
+            window.tacticalAppliedLiveSubs = [
+                ...(window.tacticalAppliedLiveSubs || []),
+                serialized
+            ];
+
+            window.tacticalLiveEvent = null;
+            window.tacticalPendingSubIn = null;
+            window.tacticalPendingSubOutPos = null;
+            window.tacticalPendingSwapPos = null;
+            hideLiveEventPanel();
+            setLivePlayingTimeStatus('');
+            window.applyTacticalLineupReadOnlyState();
+            if (typeof window.renderBench === 'function') window.renderBench();
+            refreshTacticalLiveBoard();
+
+            if (typeof window.persistLivePlayingTime === 'function') {
+                try {
+                    await window.persistLivePlayingTime({ commitMinutes: false });
+                } catch (error) {
+                    console.error('Kunne ikke lagre Live-bytte:', error);
+                    setLivePlayingTimeStatus('Kunne ikke lagre bytte', 'error');
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        window.cancelLiveSubFromEditor = function() {
+            const event = window.tacticalLiveEvent;
+            if (!event?.editorOpen && !event?.inPlayer) return;
+            window.clearTacticalPendingSub({ restore: false });
+            refreshTacticalLiveBoard();
+        };
+
         window.applyLiveSubstitution = function(outPosId, inPlayer, options = {}) {
             if (!window.isTacticalLiveMatchMode() || !outPosId || !inPlayer) return false;
             if (window.isLiveSessionLocked()) {
@@ -2229,7 +2295,7 @@
             const sameIn = Boolean(event?.inPlayer && (
                 event.inPlayer.id === inPlayer.id || event.inPlayer.navn === inPlayer.navn
             ));
-            if (!event || !sameIn || event.sub) {
+            if (!event || !sameIn || event.editorOpen) {
                 window.clearTacticalPendingSub({ restore: true });
                 window.tacticalPendingSwapPos = null;
                 window.tacticalLiveEvent = {
@@ -2239,6 +2305,7 @@
                     sub: null,
                     moves: [],
                     dialogOpen: false,
+                    editorOpen: false,
                     planMinute: ''
                 };
                 window.tacticalPendingSubIn = inPlayer;
@@ -2247,7 +2314,7 @@
             if (window.tacticalLiveEvent && options.minute != null && options.minute !== '') {
                 window.tacticalLiveEvent.planMinute = String(options.minute).trim().replace(/'$/, '');
             }
-            return stageLiveEventSub(outPosId);
+            return openLiveSubEditorForOut(outPosId);
         };
 
         window.applyLiveLineupSwap = function(aPos, bPos) {
@@ -2368,9 +2435,9 @@
                     window.tacticalLiveEvent.inPlayer.id === p.id
                     || window.tacticalLiveEvent.inPlayer.navn === p.navn
                 ));
-                const pendingHint = !window.tacticalLiveEvent?.sub
-                    ? 'Velg hvem som går ut'
-                    : (window.tacticalLiveEvent?.dialogOpen ? 'Bekreft bytte' : 'Rokér / Ferdig');
+                const pendingHint = window.tacticalLiveEvent?.editorOpen
+                    ? 'Fullfør i dialogen'
+                    : 'Velg hvem som går ut';
                 const photoUrl = getTacticalLivePlayerPhotoUrl(p);
                 const inLastName = getTacticalLivePlayerLastName(p);
                 const canApplyPlanned = Boolean(assignment?.position && window.liveLineup?.[assignment.position]);
@@ -2617,14 +2684,16 @@
                     return;
                 }
 
-                if (window.tacticalLiveEvent?.inPlayer && !window.tacticalLiveEvent.sub) {
+                if (window.tacticalLiveEvent?.inPlayer && !window.tacticalLiveEvent.editorOpen) {
                     if (!window.liveLineup?.[posId]) {
                         alert(`Ingen spiller på ${posId} å bytte ut.`);
                         return;
                     }
-                    stageLiveEventSub(posId);
+                    openLiveSubEditorForOut(posId);
                     return;
                 }
+
+                if (window.tacticalLiveEvent?.editorOpen) return;
 
                 if (!window.liveLineup?.[posId]) return;
 
