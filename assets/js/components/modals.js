@@ -316,7 +316,7 @@ document.getElementById('confirmNoBtn').onclick = function() {
 };
 
 window.onclick = function(event) {
-    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'autofill-info-modal', 'live-setpiece-preview-modal', 'activityModal', 'tacticalPlayerModal', 'matchSummaryPlayersModal'];
+    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'autofill-info-modal', 'live-setpiece-preview-modal', 'activityModal', 'tacticalPlayerModal', 'matchSummaryPlayersModal', 'matchSubsLogEditModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
@@ -327,6 +327,7 @@ window.onclick = function(event) {
             if (modalId === 'attendanceModal') window.closeAttendanceModal();
             if (modalId === 'confirmModal') window.closeConfirmModal();
             if (modalId === 'sessionInjuryModal') window.closeSessionInjuryModal();
+            if (modalId === 'matchSubsLogEditModal') window.closeMatchSubsLogEditor();
             if (modalId === 'dashboardAlertModal') window.closeDashboardAlertModal();
             if (modalId === 'activityModal') window.closeActivityModal();
             if (modalId === 'tacticalPlayerModal') window.closePlayerSelect();

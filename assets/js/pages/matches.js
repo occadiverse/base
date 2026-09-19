@@ -111,6 +111,8 @@ function bindMatchStatsEvents() {
         } else if (action === 'rating-guide-select') {
             const rating = Number(actionEl.dataset.rating);
             if (!Number.isNaN(rating)) window.selectMatchRatingFromGuide(actionEl, rating);
+        } else if (action === 'sub-log-edit') {
+            window.openMatchSubsLogEditor(actionEl.dataset.kind, Number(actionEl.dataset.index));
         }
     });
 
@@ -6057,6 +6059,90 @@ function getMatchLiveSubPlayerLabel(ref) {
     return parts.length > 1 ? parts[parts.length - 1] : name;
 }
 
+function getMatchLiveSubPlayer(ref) {
+    if (!ref) return null;
+    return typeof window.findPlayerByRef === 'function'
+        ? window.findPlayerByRef(ref)
+        : null;
+}
+
+function buildMatchSubsLogPlayerCardHtml(ref) {
+    const player = getMatchLiveSubPlayer(ref);
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
+    const lastName = player
+        ? getMatchGamePlanPlayerLastName(player)
+        : getMatchLiveSubPlayerLabel(ref);
+    return `
+        <div class="match-game-plan-lineup-card match-bench-player is-filled match-subs-log-board-card" aria-hidden="true">
+            <span class="match-game-plan-lineup-visual">
+                <span class="match-game-plan-lineup-photo-area">
+                    <span class="match-game-plan-lineup-photo match-bench-photo">
+                        ${photoUrl
+                            ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
+                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                    </span>
+                </span>
+                <strong>${escapeMatchHtml(lastName)}</strong>
+            </span>
+        </div>
+    `;
+}
+
+function buildMatchSubsLogSubBoardHtml(outRef, inRef, minute, {
+    editableMinute = false,
+    outPos = '',
+    inPos = '',
+    editablePositions = false
+} = {}) {
+    const minuteValue = parseMatchLiveSubMinute(minute);
+    const minuteLabel = `${minuteValue}'`;
+    const outName = getMatchLiveSubPlayerLabel(outRef);
+    const inName = getMatchLiveSubPlayerLabel(inRef);
+    const minuteHtml = editableMinute
+        ? `<input
+                type="number"
+                min="0"
+                max="130"
+                step="1"
+                id="match-subs-log-edit-minute"
+                class="match-subs-log-board-minute is-editable"
+                value="${minuteValue}"
+                aria-label="Kampminutt"
+                inputmode="numeric"
+            >`
+        : `<span class="match-subs-log-board-minute">${escapeMatchHtml(minuteLabel)}</span>`;
+    const outPosHtml = editablePositions
+        ? `<select id="match-subs-log-edit-out-pos" class="match-subs-log-board-pos" aria-label="Ut-posisjon">${getMatchSubsLogPositionOptionsHtml(outPos)}</select>`
+        : '';
+    const inPosHtml = editablePositions
+        ? `<select id="match-subs-log-edit-in-pos" class="match-subs-log-board-pos" aria-label="Inn-posisjon">${getMatchSubsLogPositionOptionsHtml(inPos)}</select>`
+        : '';
+    return `
+        <div class="match-subs-log-board${editablePositions ? ' has-positions' : ''}" aria-label="${escapeMatchHtml(outName)} ut, ${escapeMatchHtml(inName)} inn, ${escapeMatchHtml(minuteLabel)}">
+            <div class="match-subs-log-board-player is-out">
+                ${buildMatchSubsLogPlayerCardHtml(outRef)}
+            </div>
+            <span class="match-subs-log-board-marker is-out" title="Ut" aria-hidden="true">
+                <i class="fa-solid fa-caret-up"></i>
+            </span>
+            ${minuteHtml}
+            <span class="match-subs-log-board-marker is-in" title="Inn" aria-hidden="true">
+                <i class="fa-solid fa-caret-down"></i>
+            </span>
+            <div class="match-subs-log-board-player is-in">
+                ${buildMatchSubsLogPlayerCardHtml(inRef)}
+            </div>
+            ${editablePositions ? `
+                <div class="match-subs-log-board-pos-slot is-out">${outPosHtml}</div>
+                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
+                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
+                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
+                <div class="match-subs-log-board-pos-slot is-in">${inPosHtml}</div>
+            ` : ''}
+        </div>
+    `;
+}
+
 function buildMatchLiveSubsLogHtml(match) {
     const subs = Array.isArray(match?.liveSubstitutions) ? [...match.liveSubstitutions] : [];
     const moves = Array.isArray(match?.liveLineupMoves) ? [...match.liveLineupMoves] : [];
@@ -6068,6 +6154,7 @@ function buildMatchLiveSubsLogHtml(match) {
             type: 'sub',
             minute: parseMatchLiveSubMinute(sub?.minute),
             order: index,
+            index,
             sub
         });
     });
@@ -6076,6 +6163,7 @@ function buildMatchLiveSubsLogHtml(match) {
             type: 'move',
             minute: parseMatchLiveSubMinute(move?.minute),
             order: 1000 + index,
+            index,
             move
         });
     });
@@ -6083,6 +6171,7 @@ function buildMatchLiveSubsLogHtml(match) {
 
     const rows = events.map((event) => {
         const minuteLabel = `${event.minute}'`;
+        const editAttrs = `type="button" class="match-subs-log-item${event.type === 'move' ? ' is-move' : ''}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="Rediger eller slett"`;
         if (event.type === 'move') {
             const move = event.move || {};
             const aName = getMatchLiveSubPlayerLabel(move.aId);
@@ -6090,11 +6179,13 @@ function buildMatchLiveSubsLogHtml(match) {
             const aPos = getMatchGamePlanPositionBadgeLabel(move.aPos || '');
             const bPos = getMatchGamePlanPositionBadgeLabel(move.bPos || '');
             return `
-                <li class="match-subs-log-item is-move">
-                    <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
-                    <span class="match-subs-log-text">
-                        Rokering: ${escapeMatchHtml(aName)} (${escapeMatchHtml(aPos)}) ↔ ${escapeMatchHtml(bName)} (${escapeMatchHtml(bPos)})
-                    </span>
+                <li>
+                    <button ${editAttrs}>
+                        <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                        <span class="match-subs-log-text">
+                            Rokering: ${escapeMatchHtml(aName)} (${escapeMatchHtml(aPos)}) ↔ ${escapeMatchHtml(bName)} (${escapeMatchHtml(bPos)})
+                        </span>
+                    </button>
                 </li>
             `;
         }
@@ -6125,11 +6216,13 @@ function buildMatchLiveSubsLogHtml(match) {
             : `${escapeMatchHtml(inName)} inn`;
 
         return `
-            <li class="match-subs-log-item">
-                <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
-                <span class="match-subs-log-text">
-                    ${escapeMatchHtml(outName)} ut (${escapeMatchHtml(outPos)}) → ${inBit}${fillBit}
-                </span>
+            <li>
+                <button ${editAttrs}>
+                    <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                    <span class="match-subs-log-text">
+                        ${escapeMatchHtml(outName)} ut (${escapeMatchHtml(outPos)}) → ${inBit}${fillBit}
+                    </span>
+                </button>
             </li>
         `;
     }).join('');
@@ -6143,9 +6236,506 @@ function buildMatchLiveSubsLogHtml(match) {
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
+            <p class="match-subs-log-hint">Trykk en rad for å redigere eller slette.</p>
         </div>
     `;
 }
+
+function getMatchSubsLogPositionOptionsHtml(selectedPosId, { includeEmpty = false } = {}) {
+    const options = [];
+    if (includeEmpty) {
+        options.push(`<option value=""${selectedPosId ? '' : ' selected'}>Velg</option>`);
+    }
+    matchGamePlanStarterPositionIds.forEach((posId) => {
+        const label = getMatchGamePlanPositionBadgeLabel(posId) || posId;
+        const selected = posId === selectedPosId ? ' selected' : '';
+        options.push(`<option value="${escapeMatchHtml(posId)}"${selected}>${escapeMatchHtml(label)}</option>`);
+    });
+    return options.join('');
+}
+
+function getMatchSubsLogPlayerStorageKey(playerOrRef) {
+    if (!playerOrRef) return '';
+    if (typeof window.getPlayerStorageKey === 'function') {
+        return window.getPlayerStorageKey(playerOrRef) || '';
+    }
+    if (typeof playerOrRef === 'string') return playerOrRef;
+    return String(playerOrRef.id || playerOrRef.navn || '');
+}
+
+function cloneMatchSubsLogPosMap(lineup) {
+    const next = {};
+    Object.entries(lineup || {}).forEach(([posId, player]) => {
+        next[posId] = player || null;
+    });
+    return next;
+}
+
+function applyMatchSubsLogSubToPosMap(lineup, sub) {
+    if (!sub || !lineup) return lineup;
+    const outPos = String(sub.posId || '').trim();
+    const inPos = String(sub.inPosId || sub.posId || '').trim();
+    const inPlayer = typeof window.findPlayerByRef === 'function'
+        ? window.findPlayerByRef(sub.inId)
+        : null;
+    if (!outPos || !inPlayer) return lineup;
+
+    if (inPos === outPos) {
+        lineup[outPos] = inPlayer;
+        return lineup;
+    }
+
+    const fillSteps = getMatchSubsLogFillChainSteps(sub);
+    lineup[outPos] = null;
+    fillSteps.forEach((step) => {
+        const fromPos = String(step.fromPos || '').trim();
+        const toPos = String(step.toPos || '').trim();
+        if (!fromPos || !toPos) return;
+        const mover = lineup[fromPos]
+            || (step.playerId && typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(step.playerId)
+                : null);
+        if (!mover) return;
+        lineup[toPos] = mover;
+        lineup[fromPos] = null;
+    });
+    lineup[inPos] = inPlayer;
+    return lineup;
+}
+
+function matchSubsLogPlayerMatchesRef(player, ref) {
+    if (!player || !ref) return false;
+    if (typeof window.playerRefMatches === 'function') {
+        return window.playerRefMatches(ref, player);
+    }
+    const key = getMatchSubsLogPlayerStorageKey(player);
+    return Boolean(key && String(ref) === key);
+}
+
+function applyMatchSubsLogMoveToPosMap(lineup, move) {
+    const aPos = String(move?.aPos || '').trim();
+    const bPos = String(move?.bPos || '').trim();
+    if (!aPos || !bPos || aPos === bPos) return lineup;
+    const playerA = lineup[aPos] || null;
+    const playerB = lineup[bPos] || null;
+    // Hopp over korrupte/rokeringer som ikke matcher hvem som faktisk står på posisjonene
+    // (samme kilde som lagoppstillingen brukeren ser).
+    if (move?.aId && !matchSubsLogPlayerMatchesRef(playerA, move.aId)) return lineup;
+    if (move?.bId && !matchSubsLogPlayerMatchesRef(playerB, move.bId)) return lineup;
+    lineup[aPos] = playerB;
+    lineup[bPos] = playerA;
+    return lineup;
+}
+
+function getMatchSubsLogLineupBeforeCurrentEdit(match) {
+    const lineup = cloneMatchSubsLogPosMap(getMatchGamePlanLineup(match));
+    const edit = window._matchSubsLogEditState || {};
+    const editMinute = parseMatchLiveSubMinute(
+        document.getElementById('match-subs-log-edit-minute')?.value
+    );
+
+    const events = [];
+    (Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : []).forEach((sub, index) => {
+        if (edit.kind === 'sub' && edit.index === index) return;
+        events.push({
+            minute: parseMatchLiveSubMinute(sub?.minute),
+            order: index,
+            type: 'sub',
+            sub
+        });
+    });
+    (Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves : []).forEach((move, index) => {
+        if (edit.kind === 'move' && edit.index === index) return;
+        events.push({
+            minute: parseMatchLiveSubMinute(move?.minute),
+            order: 1000 + index,
+            type: 'move',
+            move
+        });
+    });
+    events
+        .filter((event) => {
+            if (event.minute < editMinute) return true;
+            if (event.minute > editMinute) return false;
+            if (edit.kind === 'sub' && event.type === 'sub') return event.order < edit.index;
+            if (edit.kind === 'move' && event.type === 'move') return (event.order - 1000) < edit.index;
+            return event.type === 'sub';
+        })
+        .sort((a, b) => (a.minute - b.minute) || (a.order - b.order))
+        .forEach((event) => {
+            if (event.type === 'sub') applyMatchSubsLogSubToPosMap(lineup, event.sub);
+            else applyMatchSubsLogMoveToPosMap(lineup, event.move);
+        });
+
+    return lineup;
+}
+
+function getMatchSubsLogFillChainSteps(sub) {
+    if (Array.isArray(sub?.fillChain) && sub.fillChain.length) {
+        return sub.fillChain.map((step) => ({
+            fromPos: step?.fromPos || '',
+            toPos: step?.toPos || '',
+            playerId: step?.playerId || step?.fillId || ''
+        })).filter((step) => step.fromPos || step.toPos || step.playerId);
+    }
+    if (sub?.fillFromPos) {
+        return [{
+            fromPos: sub.fillFromPos,
+            toPos: sub.posId || '',
+            playerId: sub.fillId || ''
+        }];
+    }
+    return [];
+}
+
+function buildMatchSubsLogVisualChainLinks(match, outPos, inPos, chosenToPositions = []) {
+    const hole = String(outPos || '').trim();
+    const start = String(inPos || '').trim();
+    if (!hole || !start || hole === start) return [];
+
+    const lineup = getMatchSubsLogLineupBeforeCurrentEdit(match);
+    lineup[hole] = null;
+
+    const links = [];
+    const seenPlayers = new Set();
+    let fromPos = start;
+    let guard = 0;
+    while (fromPos && fromPos !== hole && guard < 11) {
+        guard += 1;
+        const player = lineup[fromPos] || null;
+        if (!player) break;
+        const playerId = getMatchSubsLogPlayerStorageKey(player);
+        if (!playerId || seenPlayers.has(playerId)) break;
+        seenPlayers.add(playerId);
+
+        const toPos = String(chosenToPositions[links.length] || '').trim();
+        links.push({ playerId, fromPos, toPos });
+        lineup[fromPos] = null;
+        if (!toPos || toPos === hole) break;
+        fromPos = toPos;
+    }
+    return links;
+}
+
+function getMatchSubsLogChosenToPositionsFromDom() {
+    const host = document.getElementById('match-subs-log-fill-chain');
+    if (!host) return [];
+    return [...host.querySelectorAll('[data-fill-to-pos]')].map((select) => String(select.value || '').trim());
+}
+
+function buildMatchSubsLogChainNodeHtml(link, outPos, showArrowAfter) {
+    const options = [];
+    options.push(`<option value=""${link.toPos ? '' : ' selected'}>Velg</option>`);
+    matchGamePlanStarterPositionIds.forEach((posId) => {
+        if (posId === link.fromPos) return;
+        const label = getMatchGamePlanPositionBadgeLabel(posId) || posId;
+        const selected = posId === link.toPos ? ' selected' : '';
+        options.push(`<option value="${escapeMatchHtml(posId)}"${selected}>${escapeMatchHtml(label)}</option>`);
+    });
+    return `
+        <div class="match-subs-log-chain-node" data-fill-step data-from-pos="${escapeMatchHtml(link.fromPos)}" data-player-id="${escapeMatchHtml(link.playerId)}">
+            ${buildMatchSubsLogPlayerCardHtml(link.playerId)}
+            <select class="match-subs-log-board-pos" data-fill-to-pos aria-label="Flytt til posisjon">
+                ${options.join('')}
+            </select>
+        </div>
+        ${showArrowAfter ? `
+            <span class="match-subs-log-chain-arrow" aria-hidden="true">
+                <i class="fa-solid fa-caret-right"></i>
+            </span>
+        ` : ''}
+    `;
+}
+
+function renderMatchSubsLogFillChain(match, chosenToPositions = null) {
+    const wrap = document.getElementById('match-subs-log-fill-wrap');
+    const host = document.getElementById('match-subs-log-fill-chain');
+    if (!wrap || !host) return;
+
+    const outPos = String(document.getElementById('match-subs-log-edit-out-pos')?.value || '').trim();
+    const inPos = String(document.getElementById('match-subs-log-edit-in-pos')?.value || '').trim();
+    const needsFill = Boolean(outPos && inPos && outPos !== inPos);
+    wrap.hidden = !needsFill;
+    if (!needsFill) {
+        host.innerHTML = '';
+        return;
+    }
+
+    const chosen = Array.isArray(chosenToPositions)
+        ? chosenToPositions
+        : getMatchSubsLogChosenToPositionsFromDom();
+    const links = buildMatchSubsLogVisualChainLinks(match, outPos, inPos, chosen);
+    host.innerHTML = links.map((link, index) => {
+        const showArrow = Boolean(link.toPos && link.toPos !== outPos && links[index + 1]);
+        return buildMatchSubsLogChainNodeHtml(link, outPos, showArrow);
+    }).join('');
+}
+
+function bindMatchSubsLogFillEditor(match, initialSteps = []) {
+    const wrap = document.getElementById('match-subs-log-fill-wrap');
+    const host = document.getElementById('match-subs-log-fill-chain');
+    if (!wrap || !host) return;
+
+    const initialChosen = (Array.isArray(initialSteps) ? [...initialSteps] : [])
+        .reverse()
+        .map((step) => String(step?.toPos || '').trim());
+
+    const refresh = (chosen = null) => {
+        renderMatchSubsLogFillChain(match, chosen);
+    };
+
+    document.getElementById('match-subs-log-edit-out-pos')?.addEventListener('change', () => refresh([]));
+    document.getElementById('match-subs-log-edit-in-pos')?.addEventListener('change', () => refresh([]));
+    host.addEventListener('change', (event) => {
+        if (!event.target.closest('[data-fill-to-pos]')) return;
+        refresh();
+    });
+
+    refresh(initialChosen);
+}
+
+function collectMatchSubsLogFillChainFromForm() {
+    const wrap = document.getElementById('match-subs-log-fill-wrap');
+    if (!wrap || wrap.hidden) return [];
+    const visual = [...wrap.querySelectorAll('[data-fill-step]')].map((node) => ({
+        playerId: String(node.dataset.playerId || '').trim(),
+        fromPos: String(node.dataset.fromPos || '').trim(),
+        toPos: String(node.querySelector('[data-fill-to-pos]')?.value || '').trim()
+    })).filter((step) => step.playerId && step.fromPos && step.toPos);
+    return visual.reverse();
+}
+
+function refreshMatchLiveSubsLogUi(match) {
+    const body = document.querySelector('#kampdetaljer-info .match-stats-body');
+    if (!body) return;
+    const existing = body.querySelector('.match-subs-log');
+    const html = buildMatchLiveSubsLogHtml(match).trim();
+    if (!html) {
+        existing?.remove();
+        return;
+    }
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    const next = wrap.firstElementChild;
+    if (!next) return;
+    if (existing) existing.replaceWith(next);
+    else {
+        const list = body.querySelector('#kampdetaljer-spillerbors');
+        if (list) body.insertBefore(next, list);
+        else body.appendChild(next);
+    }
+}
+
+window.closeMatchSubsLogEditor = function() {
+    const modal = document.getElementById('matchSubsLogEditModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    window._matchSubsLogEditState = null;
+};
+
+window.openMatchSubsLogEditor = function(kind, index) {
+    const match = (window.activeMatches || []).find(m => m.id === (window.activeDetailsId || activeDetailsId));
+    if (!match) return;
+    const idx = Math.floor(Number(index));
+    if (!Number.isFinite(idx) || idx < 0) return;
+
+    let entry = null;
+    if (kind === 'sub') {
+        entry = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions[idx] : null;
+    } else if (kind === 'move') {
+        entry = Array.isArray(match.liveLineupMoves) ? match.liveLineupMoves[idx] : null;
+    }
+    if (!entry) return;
+
+    window._matchSubsLogEditState = { kind, index: idx, matchId: match.id };
+
+    const modal = document.getElementById('matchSubsLogEditModal');
+    const body = document.getElementById('matchSubsLogEditBody');
+    const title = document.querySelector('#matchSubsLogEditTitle span');
+    if (!modal || !body) return;
+
+    const minute = parseMatchLiveSubMinute(entry.minute);
+    if (kind === 'move') {
+        if (title) title.textContent = 'Rediger rokering';
+        body.innerHTML = `
+            <p class="match-subs-log-edit-lead">
+                ${escapeMatchHtml(getMatchLiveSubPlayerLabel(entry.aId))} ↔ ${escapeMatchHtml(getMatchLiveSubPlayerLabel(entry.bId))}
+            </p>
+            <label class="match-subs-log-edit-field">
+                <span>Kampminutt</span>
+                <input type="number" min="0" max="130" step="1" id="match-subs-log-edit-minute" value="${minute}">
+            </label>
+            <div class="match-subs-log-edit-row">
+                <label class="match-subs-log-edit-field">
+                    <span>Posisjon A</span>
+                    <select id="match-subs-log-edit-a-pos">${getMatchSubsLogPositionOptionsHtml(entry.aPos || '')}</select>
+                </label>
+                <label class="match-subs-log-edit-field">
+                    <span>Posisjon B</span>
+                    <select id="match-subs-log-edit-b-pos">${getMatchSubsLogPositionOptionsHtml(entry.bPos || '')}</select>
+                </label>
+            </div>
+        `;
+    } else {
+        if (title) title.textContent = 'Rediger bytte';
+        const outPos = entry.posId || '';
+        const inPos = entry.inPosId || entry.posId || '';
+        const fillSteps = getMatchSubsLogFillChainSteps(entry);
+        body.innerHTML = `
+            <div class="match-subs-log-edit-lead">
+                ${buildMatchSubsLogSubBoardHtml(entry.outId, entry.inId, minute, {
+                    editableMinute: true,
+                    editablePositions: true,
+                    outPos,
+                    inPos
+                })}
+            </div>
+            <div id="match-subs-log-fill-wrap" class="match-subs-log-fill-wrap" hidden>
+                <div id="match-subs-log-fill-chain" class="match-subs-log-fill-chain" aria-label="Rokering"></div>
+            </div>
+        `;
+        bindMatchSubsLogFillEditor(match, fillSteps);
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    const minuteInput = document.getElementById('match-subs-log-edit-minute');
+    if (minuteInput) {
+        minuteInput.focus();
+        minuteInput.select();
+    }
+};
+
+async function persistMatchSubsLogChange(match) {
+    if (typeof window.saveMatchToDatabase !== 'function') {
+        throw new Error('Kan ikke lagre');
+    }
+    if (match.minutesSource !== 'spillerbors' && typeof window.computeLiveMinutesPlayed === 'function') {
+        const duration = Math.max(
+            resolveMatchLiveDurationForPositions(match),
+            Math.floor(Number(match.liveDurationMinutes) || 0),
+            90
+        );
+        match.liveDurationMinutes = duration;
+        match.minutesPlayed = window.computeLiveMinutesPlayed(match, match.liveSubstitutions, duration);
+        match.minutesSource = 'live';
+        if (match.positionMinutesSource !== 'spillerbors') {
+            if (typeof window.computeLivePositionMinutes === 'function') {
+                match.positionMinutes = window.computeLivePositionMinutes(match, duration);
+            }
+            match.positionMinutesSource = 'live';
+        }
+    }
+    await window.saveMatchToDatabase(match);
+}
+
+window.saveMatchSubsLogEntry = async function() {
+    const state = window._matchSubsLogEditState;
+    if (!state) return;
+    const match = (window.activeMatches || []).find(m => m.id === state.matchId);
+    if (!match) return;
+
+    const minuteRaw = document.getElementById('match-subs-log-edit-minute')?.value;
+    const minute = String(Math.max(0, Math.min(130, Math.floor(Number(minuteRaw) || 0))));
+
+    if (state.kind === 'sub') {
+        const list = Array.isArray(match.liveSubstitutions) ? [...match.liveSubstitutions] : [];
+        const entry = list[state.index];
+        if (!entry) return;
+        const posId = String(document.getElementById('match-subs-log-edit-out-pos')?.value || entry.posId || '').trim();
+        const inPosId = String(document.getElementById('match-subs-log-edit-in-pos')?.value || posId).trim();
+        let fillChain = [];
+        if (posId && inPosId && posId !== inPosId) {
+            fillChain = collectMatchSubsLogFillChainFromForm();
+            if (!fillChain.length) {
+                alert('Velg hvor spilleren på inn-posisjonen skal flyttes, steg for steg til ut-posisjonen er fylt.');
+                return;
+            }
+            if (fillChain[0].toPos !== posId) {
+                alert(`Rokeringen må ende med at noen fyller ut-posisjonen (${posId}).`);
+                return;
+            }
+            if (fillChain[fillChain.length - 1].fromPos !== inPosId) {
+                alert(`Rokeringen må starte med spilleren på inn-posisjonen (${inPosId}).`);
+                return;
+            }
+        }
+        const firstFill = fillChain[0] || null;
+        list[state.index] = {
+            ...entry,
+            minute,
+            posId,
+            inPosId,
+            fillId: firstFill?.playerId || '',
+            fillFromPos: firstFill?.fromPos || '',
+            fillChain
+        };
+        match.liveSubstitutions = list;
+    } else if (state.kind === 'move') {
+        const list = Array.isArray(match.liveLineupMoves) ? [...match.liveLineupMoves] : [];
+        const entry = list[state.index];
+        if (!entry) return;
+        const aPos = String(document.getElementById('match-subs-log-edit-a-pos')?.value || entry.aPos || '').trim();
+        const bPos = String(document.getElementById('match-subs-log-edit-b-pos')?.value || entry.bPos || '').trim();
+        if (!aPos || !bPos || aPos === bPos) {
+            alert('Velg to ulike posisjoner for rokeringen.');
+            return;
+        }
+        list[state.index] = {
+            ...entry,
+            minute,
+            aPos,
+            bPos
+        };
+        match.liveLineupMoves = list;
+    } else {
+        return;
+    }
+
+    try {
+        await persistMatchSubsLogChange(match);
+        window.closeMatchSubsLogEditor();
+        refreshMatchLiveSubsLogUi(match);
+        setMatchDetailFeedback('[data-stats-save-state]', 'Bytte lagret', 'success', 4000);
+    } catch (error) {
+        console.error('Kunne ikke lagre bytte:', error);
+        alert('Kunne ikke lagre byttet.');
+    }
+};
+
+window.deleteMatchSubsLogEntry = async function() {
+    const state = window._matchSubsLogEditState;
+    if (!state) return;
+    const match = (window.activeMatches || []).find(m => m.id === state.matchId);
+    if (!match) return;
+    if (!confirm('Slette denne raden fra bytteloggen?')) return;
+
+    if (state.kind === 'sub') {
+        const list = Array.isArray(match.liveSubstitutions) ? [...match.liveSubstitutions] : [];
+        if (!list[state.index]) return;
+        list.splice(state.index, 1);
+        match.liveSubstitutions = list;
+    } else if (state.kind === 'move') {
+        const list = Array.isArray(match.liveLineupMoves) ? [...match.liveLineupMoves] : [];
+        if (!list[state.index]) return;
+        list.splice(state.index, 1);
+        match.liveLineupMoves = list;
+    } else {
+        return;
+    }
+
+    try {
+        await persistMatchSubsLogChange(match);
+        window.closeMatchSubsLogEditor();
+        refreshMatchLiveSubsLogUi(match);
+        setMatchDetailFeedback('[data-stats-save-state]', 'Bytte slettet', 'success', 4000);
+    } catch (error) {
+        console.error('Kunne ikke slette bytte:', error);
+        alert('Kunne ikke slette byttet.');
+    }
+};
 
 function getMatchStoredPositionMinutesMap(match, player) {
     if (!match?.positionMinutes || !player) return null;

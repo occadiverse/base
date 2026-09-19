@@ -13493,13 +13493,27 @@
         }
         .match-subs-log-item {
             align-items: baseline;
+            background: transparent;
+            border: 0;
+            border-radius: 0.55rem;
             color: rgba(255, 255, 255, 0.78);
+            cursor: pointer;
             display: grid;
+            font: inherit;
             font-size: 0.74rem;
             font-weight: 650;
             gap: 0.55rem;
             grid-template-columns: 2.4rem minmax(0, 1fr);
             line-height: 1.35;
+            margin: 0;
+            padding: 0.28rem 0.35rem;
+            text-align: left;
+            width: 100%;
+        }
+        .match-subs-log-item:hover,
+        .match-subs-log-item:focus-visible {
+            background: rgba(255, 255, 255, 0.08);
+            outline: none;
         }
         .match-subs-log-minute {
             color: #fde68a;
@@ -13511,6 +13525,280 @@
         }
         .match-subs-log-item.is-move .match-subs-log-text {
             color: rgba(196, 181, 253, 0.92);
+        }
+        .match-subs-log-board {
+            align-items: center;
+            display: grid;
+            gap: 0.45rem 0.55rem;
+            grid-template-columns: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+            justify-items: center;
+            width: 100%;
+        }
+        .match-subs-log-board.has-positions {
+            grid-template-rows: auto auto;
+        }
+        .match-subs-log-board-player {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            min-width: 0;
+        }
+        .match-subs-log-board-player.is-out,
+        .match-subs-log-board-pos-slot.is-out {
+            justify-self: end;
+        }
+        .match-subs-log-board-player.is-in,
+        .match-subs-log-board-pos-slot.is-in {
+            justify-self: start;
+        }
+        .match-subs-log-board-pos-slot {
+            display: flex;
+            justify-content: center;
+            width: 4.6rem;
+        }
+        .match-subs-log-board-pos-gap {
+            display: block;
+        }
+        .match-subs-log-board-card.match-game-plan-lineup-card {
+            --lineup-card-radius: 0.64rem;
+            --squad-card-width: 4.6rem;
+            --lineup-pitch-card-width: var(--squad-card-width);
+            --lineup-pitch-card-height: calc(var(--squad-card-width) * 1.42);
+            flex: 0 0 auto;
+            height: var(--lineup-pitch-card-height);
+            max-height: var(--lineup-pitch-card-height);
+            min-height: var(--lineup-pitch-card-height);
+            pointer-events: none;
+            position: relative;
+            transform: none;
+            width: var(--squad-card-width);
+            z-index: 1;
+        }
+        .match-subs-log-board-card .match-game-plan-lineup-visual {
+            border-radius: inherit;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        .match-subs-log-board-card .match-game-plan-lineup-photo-area {
+            aspect-ratio: auto;
+            flex: 1 1 0;
+            height: auto;
+            min-height: 0;
+            position: relative;
+            width: 100%;
+        }
+        .match-subs-log-board-card .match-game-plan-lineup-photo {
+            border-radius: var(--lineup-card-radius) var(--lineup-card-radius) 0.16rem 0.16rem;
+            height: 100%;
+            width: 100%;
+        }
+        .match-subs-log-board-card .match-game-plan-lineup-visual strong {
+            border-radius: 0 0 calc(var(--lineup-card-radius) - 1px) calc(var(--lineup-card-radius) - 1px);
+            flex: 0 0 auto;
+            font-size: 0.58rem;
+            line-height: 1.25;
+            overflow: hidden;
+            padding: 0.12rem 0.08rem 0.1rem;
+            width: 100%;
+        }
+        .match-subs-log-board-player.is-out .match-subs-log-board-card {
+            border-color: rgba(248, 113, 113, 0.78);
+            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.24), 0 0 0 2px rgba(248, 113, 113, 0.28);
+        }
+        .match-subs-log-board-player.is-in .match-subs-log-board-card {
+            border-color: rgba(74, 222, 128, 0.78);
+            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.24), 0 0 0 2px rgba(74, 222, 128, 0.28);
+        }
+        .match-subs-log-board-pos {
+            appearance: none;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.42);
+            border-radius: 0.55rem;
+            box-sizing: border-box;
+            color: #fde68a;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.92rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            min-width: 3.1rem;
+            padding: 0.28rem 1.35rem 0.28rem 0.45rem;
+            text-align: center;
+            text-align-last: center;
+            width: 4.6rem;
+            background-image:
+                linear-gradient(45deg, transparent 50%, #fde68a 50%),
+                linear-gradient(135deg, #fde68a 50%, transparent 50%);
+            background-position:
+                calc(100% - 0.72rem) calc(50% - 0.1rem),
+                calc(100% - 0.42rem) calc(50% - 0.1rem);
+            background-repeat: no-repeat;
+            background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+        }
+        .match-subs-log-board-pos:focus {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.72);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+            outline: none;
+        }
+        .match-subs-log-board-pos option {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        .match-subs-log-board-marker {
+            align-items: center;
+            display: inline-flex;
+            font-size: 1.25rem;
+            justify-content: center;
+            line-height: 1;
+        }
+        .match-subs-log-board-marker.is-out {
+            color: #f87171;
+        }
+        .match-subs-log-board-marker.is-in {
+            color: #4ade80;
+        }
+        .match-subs-log-board-minute {
+            color: #fde68a;
+            font-size: 0.92rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            letter-spacing: 0.01em;
+            min-width: 2.1rem;
+            text-align: center;
+        }
+        .match-subs-log-board-minute.is-editable {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.42);
+            border-radius: 0.55rem;
+            box-sizing: border-box;
+            color: #fde68a;
+            cursor: text;
+            font: inherit;
+            font-size: 1rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            min-width: 3.1rem;
+            padding: 0.28rem 0.2rem;
+            text-align: center;
+            width: 3.1rem;
+        }
+        .match-subs-log-board-minute.is-editable::-webkit-outer-spin-button,
+        .match-subs-log-board-minute.is-editable::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .match-subs-log-board-minute.is-editable:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.72);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+            outline: none;
+        }
+        .match-subs-log-edit-lead .match-subs-log-board {
+            margin: 0.15rem 0 0.25rem;
+        }
+        .match-subs-log-hint {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.66rem;
+            font-weight: 650;
+            margin: 0;
+        }
+        .match-subs-log-edit-card .match-subs-log-edit-body {
+            display: grid;
+            gap: 0.75rem;
+        }
+        .match-subs-log-edit-lead {
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .match-subs-log-edit-field {
+            color: rgba(245, 197, 66, 0.88);
+            display: grid;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .match-subs-log-edit-field input,
+        .match-subs-log-edit-field select {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.65rem;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 0.55rem 0.7rem;
+            text-transform: none;
+            width: 100%;
+        }
+        .match-subs-log-edit-field input:focus,
+        .match-subs-log-edit-field select:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(245, 197, 66, 0.42);
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+            outline: none;
+        }
+        .match-subs-log-edit-field select option {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        .match-subs-log-edit-row {
+            display: grid;
+            gap: 0.65rem;
+            grid-template-columns: 1fr 1fr;
+        }
+        .match-subs-log-fill-wrap {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            display: grid;
+            gap: 0.65rem;
+            padding: 0.15rem 0 0;
+        }
+        .match-subs-log-fill-wrap[hidden] {
+            display: none !important;
+        }
+        .match-subs-log-fill-chain {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem 0.65rem;
+            justify-content: center;
+            width: 100%;
+        }
+        .match-subs-log-chain-node {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            justify-content: center;
+        }
+        .match-subs-log-chain-arrow {
+            align-items: center;
+            color: #4ade80;
+            display: inline-flex;
+            font-size: 1.35rem;
+            justify-content: center;
+            line-height: 1;
+            margin-top: -1.6rem;
+        }
+        .match-subs-log-edit-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .match-subs-log-edit-footer .bsk-btn-danger {
+            margin-right: auto;
         }
         .match-stats-player-row {
             align-items: flex-start;

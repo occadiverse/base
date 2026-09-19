@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260918-xp-list-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260919-subs-chain-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -698,6 +698,35 @@
         </div>
     </div>
 
+    <div id="matchSubsLogEditModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4" onclick="if (event.target === this) window.closeMatchSubsLogEditor()">
+        <div class="bsk-modal-card match-subs-log-edit-card w-full max-w-lg relative space-y-4" role="dialog" aria-modal="true" aria-labelledby="matchSubsLogEditTitle">
+            <div class="bsk-modal-header">
+                <h3 id="matchSubsLogEditTitle" class="bsk-modal-title">
+                    <i class="fa-solid fa-right-left text-bsk-yellow"></i>
+                    <span>Rediger bytte</span>
+                </h3>
+                <button type="button" onclick="window.closeMatchSubsLogEditor()" class="bsk-btn bsk-btn-icon bsk-btn-secondary bsk-modal-close" title="Lukk" aria-label="Lukk">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="matchSubsLogEditBody" class="match-subs-log-edit-body space-y-3"></div>
+            <div class="bsk-modal-footer match-subs-log-edit-footer">
+                <button type="button" id="matchSubsLogEditDeleteBtn" class="bsk-btn bsk-btn-danger bsk-modal-action-btn" onclick="window.deleteMatchSubsLogEntry()">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>Slett</span>
+                </button>
+                <button type="button" class="bsk-btn bsk-btn-secondary bsk-modal-action-btn" onclick="window.closeMatchSubsLogEditor()">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Avbryt</span>
+                </button>
+                <button type="button" class="bsk-btn bsk-btn-primary bsk-modal-action-btn" onclick="window.saveMatchSubsLogEntry()">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Lagre</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="matchSummaryPlayersModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4" onclick="if (event.target === this) window.closeMatchSummaryMostMinutesPopup()">
         <div class="bsk-modal-card w-full max-w-sm relative space-y-3" role="dialog" aria-modal="true" aria-labelledby="matchSummaryPlayersTitle">
             <div class="bsk-modal-header">
@@ -1368,7 +1397,7 @@
     </div>
 
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
-    <script src="assets/js/components/modals.js?v=20260910-most-minutes-popup-v1"></script>
+    <script src="assets/js/components/modals.js?v=20260919-subs-edit-v1"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20260917-sub-chain-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20260918-minutes-bonus-v1"></script>
@@ -1376,7 +1405,7 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20260918-xp-list-v1"></script>
-    <script src="assets/js/pages/matches.js?v=20260918-minutes-bonus-v1"></script>
+    <script src="assets/js/pages/matches.js?v=20260919-subs-chain-v2"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260918-xp-list-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260919-plan-clock-v1"></script>
