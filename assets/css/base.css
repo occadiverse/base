@@ -9635,10 +9635,10 @@
             margin: 0.28rem 0 0;
         }
         .stats-kamp-summary-story {
-            color: rgba(255, 255, 255, 0.82);
-            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.88rem;
             font-weight: 650;
-            line-height: 1.45;
+            line-height: 1.5;
             margin: 0;
         }
         .stats-kamp-summary-facts {
@@ -9715,9 +9715,27 @@
             line-height: 1.4;
             margin: 0;
         }
+        .stats-kamp-summary-block p + p {
+            margin-top: 0.35rem;
+        }
         .stats-kamp-summary-note-label {
             color: rgba(255, 255, 255, 0.55);
             font-weight: 800;
+        }
+        .stats-kamp-summary-usage-line {
+            color: rgba(255, 255, 255, 0.88) !important;
+            font-weight: 800 !important;
+        }
+        .stats-kamp-summary-usage-detail {
+            color: rgba(255, 255, 255, 0.62) !important;
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+        }
+        .stats-kamp-summary-notes {
+            grid-column: 1 / -1;
+        }
+        .stats-kamp-summary-pitch {
+            grid-column: 1 / -1;
         }
         .stats-kamp-summary-usage {
             display: grid;
@@ -9730,7 +9748,7 @@
             align-items: baseline;
             display: grid;
             gap: 0.45rem;
-            grid-template-columns: minmax(7.5rem, 0.9fr) minmax(0, 1.4fr);
+            grid-template-columns: minmax(5.5rem, 0.75fr) minmax(0, 1.55fr);
         }
         .stats-kamp-summary-usage span {
             color: rgba(255, 255, 255, 0.55);
@@ -9764,6 +9782,12 @@
             }
             .stats-kamp-summary-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .stats-kamp-summary-pitch {
+                grid-column: 1 / -1;
+            }
+            .stats-kamp-summary-notes {
+                grid-column: 1 / -1;
             }
         }
         .stats-kampdata-snapshot {

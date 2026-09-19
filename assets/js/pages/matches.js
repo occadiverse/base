@@ -1671,6 +1671,7 @@ function getMatchGamePlanFormation(match) {
     if (formation === '4-4-2') return '4-2-4';
     return matchGamePlanFormations[formation] ? formation : '4-2-4';
 }
+window.getMatchGamePlanFormation = getMatchGamePlanFormation;
 
 function getMatchGamePlanDraftFormation(match) {
     const formation = getMatchGamePlanDraft(match).formation || getMatchGamePlanFormation(match);
