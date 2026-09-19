@@ -7173,35 +7173,6 @@ function getMatchPlayerSpillerborsPosId(match, player) {
     return getPlayerMatchLineupPositionId(match, player) || '';
 }
 
-function buildMatchStatsPositionSelectHtml(player, selectedPosId, options = {}) {
-    const playerAttr = escapeMatchHtml(player?.navn || '');
-    const playerIdAttr = escapeMatchHtml(player?.id || '');
-    const fieldClass = options.fieldClass || 'player-position-input';
-    const label = options.label || 'Pos';
-    const aria = options.ariaLabel || `Posisjon for ${playerAttr}`;
-    const selected = String(selectedPosId || '').trim();
-    const positionOptions = matchGamePlanPositionSortOrder.map((posId) => {
-        const badge = getMatchGamePlanPositionBadgeLabel(posId);
-        return `<option value="${escapeMatchHtml(posId)}" ${selected === posId ? 'selected' : ''}>${escapeMatchHtml(badge)}</option>`;
-    }).join('');
-
-    return `
-        <div class="match-stat-field match-stat-field-pos">
-            <span class="match-stat-label">${escapeMatchHtml(label)}</span>
-            <select
-                class="${escapeMatchHtml(fieldClass)} portal-field portal-field-sm match-stat-select"
-                data-player-id="${playerIdAttr}"
-                data-player="${playerAttr}"
-                aria-label="${escapeMatchHtml(aria)}"
-                title="Posisjon spilleren ble byttet inn til (eller startposisjon). Kan justeres."
-            >
-                <option value="">—</option>
-                ${positionOptions}
-            </select>
-        </div>
-    `;
-}
-
 function buildPlayerPositionMatchStats(player) {
     const byPos = new Map();
     if (!player) return [];
