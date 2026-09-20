@@ -7454,11 +7454,33 @@ function formatMatchGamePlanPosPreference(value) {
     return text;
 }
 
+function getMatchGamePlanSnittBidrag(row) {
+    const matches = Number(row?.matches) || 0;
+    if (matches <= 0) return 0;
+    return (Number(row.points) || 0) / matches;
+}
+
+function getMatchGamePlanXpValue(row) {
+    const matches = Number(row?.matches) || 0;
+    if (matches <= 0) return 0;
+    return ((Number(row.goals) || 0) + (Number(row.assists) || 0)) / matches;
+}
+
+function compareMatchGamePlanPositionRowsByBidrag(a, b) {
+    return (
+        getMatchGamePlanSnittBidrag(b) - getMatchGamePlanSnittBidrag(a)
+        || getMatchGamePlanXpValue(b) - getMatchGamePlanXpValue(a)
+        || (Number(b.matches) || 0) - (Number(a.matches) || 0)
+        || compareMatchGamePlanPositions(a.posId, b.posId)
+    );
+}
+
 function buildMatchGamePlanPlayerInsightHtml(player, match) {
     const pos1 = formatMatchGamePlanPosPreference(player?.pos1);
     const pos2 = formatMatchGamePlanPosPreference(player?.pos2);
     const season = getMatchGamePlanPlayerSeasonStat(player);
-    const positionRows = buildPlayerPositionMatchStats(player);
+    const positionRows = [...(buildPlayerPositionMatchStats(player) || [])]
+        .sort(compareMatchGamePlanPositionRowsByBidrag);
     const currentPosId = match ? getMatchGamePlanPlayerPitchPosId(match, player) : '';
     const currentPosLabel = currentPosId
         ? getMatchGamePlanPositionLabel(currentPosId)
@@ -7526,7 +7548,7 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
                         <tr>
                             <th>Pos</th>
                             <th title="Antall kamper">K</th>
-                            <th title="Snitt kampbidrag">Bidrag</th>
+                            <th title="Snitt kampbidrag" aria-sort="descending">Bidrag</th>
                             <th title="Mål / Assist">M/A</th>
                             <th title="Mål+assist per kamp">XP</th>
                             <th title="Form fra snitt på posisjonen (siste 5)">Form</th>
