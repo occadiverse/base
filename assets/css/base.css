@@ -13031,6 +13031,65 @@
             margin: 0;
             text-align: center;
         }
+        .match-game-plan-insight-trainings {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .match-game-plan-insight-trainings-label {
+            color: rgba(248, 250, 252, 0.62);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .match-game-plan-insight-trainings-empty {
+            color: rgba(248, 250, 252, 0.55);
+            font-size: 0.72rem;
+            font-weight: 650;
+            margin: 0;
+        }
+        .match-game-plan-insight-trainings-row {
+            display: flex;
+            gap: 0.28rem;
+        }
+        .match-game-plan-insight-training {
+            align-items: center;
+            border-radius: 0.55rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.08rem;
+            justify-content: center;
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 0.32rem 0.12rem 0.28rem;
+        }
+        .match-game-plan-insight-training.is-attended {
+            background: rgba(52, 211, 153, 0.16);
+            border: 1px solid rgba(52, 211, 153, 0.38);
+        }
+        .match-game-plan-insight-training.is-missed {
+            background: rgba(248, 113, 113, 0.12);
+            border: 1px solid rgba(248, 113, 113, 0.32);
+        }
+        .match-game-plan-insight-training-date {
+            color: rgba(248, 250, 252, 0.72);
+            font-size: 0.52rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            line-height: 1;
+        }
+        .match-game-plan-insight-training-mark {
+            font-size: 0.78rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .match-game-plan-insight-training.is-attended .match-game-plan-insight-training-mark {
+            color: #6ee7b7;
+        }
+        .match-game-plan-insight-training.is-missed .match-game-plan-insight-training-mark {
+            color: #fca5a5;
+        }
         .match-game-plan-select-actions {
             background:
                 linear-gradient(180deg, rgba(16, 47, 84, 0.98) 0%, rgba(16, 47, 84, 0.92) 72%, rgba(16, 47, 84, 0) 100%);

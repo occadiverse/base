@@ -7560,6 +7560,64 @@ function compareMatchGamePlanPositionRowsByBidrag(a, b) {
     );
 }
 
+function getMatchGamePlanPlayerRecentTrainings(player, limit = 8) {
+    const teamName = player?.spillerLag || '';
+    if (!player || !teamName) return [];
+
+    return (window.activeEvents || [])
+        .filter((event) => {
+            if (!event || event.team !== teamName) return false;
+            if (event.type !== 'Trening') return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
+            if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, event)) return false;
+            if (typeof window.hasRegisteredAttendance === 'function' && !window.hasRegisteredAttendance(event.attendance)) return false;
+            return true;
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, limit)
+        .map((event) => {
+            const attended = Boolean(window.isPlayerAttending?.(event.attendance, player));
+            const dateLabel = typeof window.formatStatsShortDate === 'function'
+                ? window.formatStatsShortDate(event.date)
+                : (event.date || '–');
+            return {
+                id: event.id,
+                dateLabel,
+                attended,
+                title: event.title || 'Trening'
+            };
+        });
+}
+
+function buildMatchGamePlanInsightTrainingRowHtml(player) {
+    const rows = getMatchGamePlanPlayerRecentTrainings(player, 8);
+    if (!rows.length) {
+        return `
+            <div class="match-game-plan-insight-trainings">
+                <span class="match-game-plan-insight-trainings-label">Trening</span>
+                <p class="match-game-plan-insight-trainings-empty">Ingen treningsoppmøte registrert ennå.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="match-game-plan-insight-trainings">
+            <span class="match-game-plan-insight-trainings-label">Trening</span>
+            <div class="match-game-plan-insight-trainings-row" aria-label="Oppmøte på de 8 siste treningene">
+                ${rows.map((row) => `
+                    <span
+                        class="match-game-plan-insight-training ${row.attended ? 'is-attended' : 'is-missed'}"
+                        title="${escapeMatchHtml(`${row.dateLabel} · ${row.title} · ${row.attended ? 'Møtt' : 'Ikke møtt'}`)}"
+                    >
+                        <span class="match-game-plan-insight-training-date">${escapeMatchHtml(row.dateLabel)}</span>
+                        <span class="match-game-plan-insight-training-mark">${row.attended ? 'M' : '–'}</span>
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function buildMatchGamePlanPlayerInsightHtml(player, match) {
     const pos1 = formatMatchGamePlanPosPreference(player?.pos1);
     const pos2 = formatMatchGamePlanPosPreference(player?.pos2);
@@ -7643,6 +7701,8 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
                     <tbody>${tableBody}</tbody>
                 </table>
             </div>
+
+            ${buildMatchGamePlanInsightTrainingRowHtml(player)}
 
             <p class="match-game-plan-insight-hint">
                 Plasser spilleren ved å trykke en ledig plass på banen.
