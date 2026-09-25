@@ -89,7 +89,14 @@
         window.tacticalLiveDirty = false;
         window.tacticalAppliedLiveSubs = window.tacticalAppliedLiveSubs || [];
         window.tacticalAppliedLiveMoves = window.tacticalAppliedLiveMoves || [];
+        window.tacticalAppliedLiveRoleChanges = window.tacticalAppliedLiveRoleChanges || [];
+        window.liveSlotRoles = window.liveSlotRoles || {};
         window.tacticalSamspillLinesVisible = window.tacticalSamspillLinesVisible !== false;
+
+        const TACTICAL_SLOT_ROLE_OPTIONS = TACTICAL_POSITIONS.map((id) => ({
+            id,
+            label: id === 'VMS' ? 'VS' : (id === 'HMS' ? 'HS' : id)
+        }));
 
         const LIVE_MATCH_CLOCK_STORAGE_PREFIX = 'occa.liveMatchClock.';
         const LIVE_MATCH_CLOCK_WARMUP_MINUTES = 10;
@@ -407,6 +414,8 @@
             const savedSubCount = (
                 (Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions.length : 0)
                 + (Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves.length : 0)
+                + (Array.isArray(match?.liveRoleChanges) ? match.liveRoleChanges.length : 0)
+                + (Array.isArray(window.tacticalAppliedLiveRoleChanges) ? window.tacticalAppliedLiveRoleChanges.length : 0)
             );
             const totalSubs = Math.max(subCount, savedSubCount);
             const message = totalSubs > 0
@@ -814,6 +823,42 @@
             }));
         }
 
+        function serializeLiveRoleChanges(changes) {
+            return (Array.isArray(changes) ? changes : []).map((change) => ({
+                minute: String(change?.minute ?? ''),
+                slotId: String(change?.slotId || '').trim(),
+                fromRole: String(change?.fromRole || change?.slotId || '').trim(),
+                toRole: String(change?.toRole || '').trim(),
+                playerId: change?.playerId || ''
+            })).filter((change) => change.slotId && change.toRole && change.fromRole !== change.toRole);
+        }
+
+        function cloneLiveSlotRoles(roles) {
+            return { ...(roles || {}) };
+        }
+
+        function getLiveSlotRole(slotId, extras) {
+            const key = String(slotId || '').trim();
+            if (!key) return '';
+            const overlay = extras && typeof extras === 'object' ? extras : window.liveSlotRoles;
+            const mapped = overlay && overlay[key] ? String(overlay[key]).trim() : '';
+            return mapped || key;
+        }
+
+        function applyLiveRoleChangeToState(change) {
+            const slotId = String(change?.slotId || '').trim();
+            const toRole = String(change?.toRole || '').trim();
+            if (!slotId || !toRole) return;
+            window.liveSlotRoles = window.liveSlotRoles || {};
+            if (toRole === slotId) delete window.liveSlotRoles[slotId];
+            else window.liveSlotRoles[slotId] = toRole;
+        }
+
+        function hydrateLiveSlotRolesFromChanges(changes) {
+            window.liveSlotRoles = {};
+            serializeLiveRoleChanges(changes).forEach((change) => applyLiveRoleChangeToState(change));
+        }
+
         function clearLiveLineupPos(posId) {
             if (!posId || !window.liveLineup) return;
             window.liveLineup[posId] = null;
@@ -999,6 +1044,8 @@
                 return key;
             };
 
+            const slotRoles = {};
+
             const occupyPos = (key, posId, atMinute) => {
                 if (!key || !posId) return;
                 if (board[posId] && board[posId] !== key) {
@@ -1006,7 +1053,8 @@
                 }
                 closeStint(key, atMinute);
                 board[posId] = key;
-                open.set(key, { posId, since: atMinute });
+                const roleId = slotRoles[posId] || posId;
+                open.set(key, { posId: roleId, slotId: posId, since: atMinute });
             };
 
             TACTICAL_POSITIONS.forEach((posId) => {
@@ -1030,13 +1078,18 @@
                     move
                 });
             });
-            // Same minute: keep input order (stable). Only prefer subs before moves.
-            // A non-antisymmetric "sub => -1" comparator reordered same-minute subs and
-            // broke fill-chains (e.g. Olav wrongly credited DM when Adrian should fill).
+            serializeLiveRoleChanges(match?.liveRoleChanges).forEach((change) => {
+                events.push({
+                    type: 'role',
+                    minute: parseLiveSubMinuteValue(change.minute),
+                    change
+                });
+            });
+            // Same minute: sub, then role change, then rokering. Stable within type.
+            const liveEventTypeOrder = { sub: 0, role: 1, move: 2 };
             events.sort((a, b) => {
                 if (a.minute !== b.minute) return a.minute - b.minute;
-                if (a.type === b.type) return 0;
-                return a.type === 'sub' ? -1 : 1;
+                return (liveEventTypeOrder[a.type] ?? 9) - (liveEventTypeOrder[b.type] ?? 9);
             });
 
             const leavePlayerWherever = (key, atMinute) => {
@@ -1095,6 +1148,22 @@
                         leavePos(inPosId, minute);
                     }
                     occupyPos(inKey, inPosId, minute);
+                    return;
+                }
+
+                if (event.type === 'role') {
+                    const change = event.change || {};
+                    const slotId = String(change.slotId || '').trim();
+                    const toRole = String(change.toRole || '').trim();
+                    if (!slotId || !toRole) return;
+                    const key = board[slotId];
+                    if (key) closeStint(key, minute);
+                    if (toRole === slotId) delete slotRoles[slotId];
+                    else slotRoles[slotId] = toRole;
+                    if (key) {
+                        board[slotId] = key;
+                        open.set(key, { posId: toRole, slotId, since: minute });
+                    }
                     return;
                 }
 
@@ -1160,14 +1229,17 @@
         function hydrateLiveSubstitutionsFromMatch(match) {
             const saved = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : [];
             const savedMoves = Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves : [];
+            const savedRoleChanges = Array.isArray(match?.liveRoleChanges) ? match.liveRoleChanges : [];
             window.tacticalAppliedLiveSubs = serializeLiveSubstitutions(saved);
             window.tacticalAppliedLiveMoves = serializeLiveLineupMoves(savedMoves);
+            window.tacticalAppliedLiveRoleChanges = serializeLiveRoleChanges(savedRoleChanges);
 
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
 
             window.tacticalAppliedLiveSubs.forEach((sub) => applyLiveSubToLineupState(sub));
             window.tacticalAppliedLiveMoves.forEach((move) => applyLiveMoveToLineupState(move));
+            hydrateLiveSlotRolesFromChanges(window.tacticalAppliedLiveRoleChanges);
             syncLiveLineupToTactical();
         }
 
@@ -1202,6 +1274,7 @@
             const clockMinute = Math.floor(getLiveMatchClockElapsedMs() / 60000);
             const liveSubstitutions = serializeLiveSubstitutions(window.tacticalAppliedLiveSubs || []);
             const liveLineupMoves = serializeLiveLineupMoves(window.tacticalAppliedLiveMoves || []);
+            const liveRoleChanges = serializeLiveRoleChanges(window.tacticalAppliedLiveRoleChanges || []);
             const lastSubMinute = liveSubstitutions.reduce(
                 (max, sub) => Math.max(max, parseLiveSubMinuteValue(sub.minute)),
                 0
@@ -1210,12 +1283,17 @@
                 (max, move) => Math.max(max, parseLiveSubMinuteValue(move.minute)),
                 0
             );
+            const lastRoleMinute = liveRoleChanges.reduce(
+                (max, change) => Math.max(max, parseLiveSubMinuteValue(change.minute)),
+                0
+            );
             const duration = options.durationMinutes != null && options.durationMinutes !== ''
                 ? Math.max(0, Math.floor(Number(options.durationMinutes) || 0))
-                : Math.max(clockMinute, lastSubMinute, lastMoveMinute);
+                : Math.max(clockMinute, lastSubMinute, lastMoveMinute, lastRoleMinute);
 
             match.liveSubstitutions = liveSubstitutions;
             match.liveLineupMoves = liveLineupMoves;
+            match.liveRoleChanges = liveRoleChanges;
             const commitMinutes = options.commitMinutes === true;
             const posDuration = Math.max(duration, Math.floor(Number(match.liveDurationMinutes) || 0), 90);
 
@@ -1430,6 +1508,7 @@
             const eventActive = Boolean(
                 (event && !event.inPlayer)
                 || (event?.moves?.length)
+                || (event?.roleChanges?.length)
             );
             const pendingOutPos = window.tacticalPendingSubOutPos || null;
             const pendingSwapPos = window.tacticalPendingSwapPos || null;
@@ -1825,7 +1904,10 @@
                     : (match.liveSubstitutions || []),
                 liveLineupMoves: Array.isArray(window.tacticalAppliedLiveMoves)
                     ? window.tacticalAppliedLiveMoves
-                    : (match.liveLineupMoves || [])
+                    : (match.liveLineupMoves || []),
+                liveRoleChanges: Array.isArray(window.tacticalAppliedLiveRoleChanges)
+                    ? window.tacticalAppliedLiveRoleChanges
+                    : (match.liveRoleChanges || [])
             };
 
             const count = typeof window.getMatchLiveSubsLogEventCount === 'function'
@@ -1884,12 +1966,15 @@
             window.tacticalLiveDirty = false;
             window.tacticalAppliedLiveSubs = [];
             window.tacticalAppliedLiveMoves = [];
+            window.tacticalAppliedLiveRoleChanges = [];
+            window.liveSlotRoles = {};
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
 
             if (options.clearSavedSubs) {
                 match.liveSubstitutions = [];
                 match.liveLineupMoves = [];
+                match.liveRoleChanges = [];
                 // Totale Spillerbørs-minutter beholdes; posisjonsfordeling nullstilles.
                 if (typeof computeLivePositionMinutes === 'function') {
                     const duration = Math.max(
@@ -1937,6 +2022,8 @@
             window.tacticalPendingSwapPos = null;
             window.tacticalAppliedLiveSubs = [];
             window.tacticalAppliedLiveMoves = [];
+            window.tacticalAppliedLiveRoleChanges = [];
+            window.liveSlotRoles = {};
             window.tacticalLiveDirty = false;
             setLivePlayingTimeStatus('');
 
@@ -2006,21 +2093,32 @@
         }
 
         function liveEventHasStagedChanges(event = window.tacticalLiveEvent) {
-            return Boolean(event?.moves && event.moves.length);
+            return Boolean(
+                (event?.moves && event.moves.length)
+                || (event?.roleChanges && event.roleChanges.length)
+            );
         }
 
-        function ensureLiveEventForRokering() {
-            if (window.tacticalLiveEvent) return window.tacticalLiveEvent;
-            window.tacticalLiveEvent = {
+        function createEmptyLiveEvent() {
+            return {
                 snapshotLineup: cloneLiveLineupMap(window.liveLineup),
                 snapshotRoles: { ...(window.liveRoles || {}) },
+                snapshotSlotRoles: cloneLiveSlotRoles(window.liveSlotRoles),
                 inPlayer: null,
                 sub: null,
                 moves: [],
+                roleChanges: [],
+                rolePickerOpen: false,
+                rolePickerSlot: '',
                 dialogOpen: false,
                 editorOpen: false,
                 planMinute: ''
             };
+        }
+
+        function ensureLiveEventForRokering() {
+            if (window.tacticalLiveEvent) return window.tacticalLiveEvent;
+            window.tacticalLiveEvent = createEmptyLiveEvent();
             return window.tacticalLiveEvent;
         }
 
@@ -2033,11 +2131,21 @@
                 const bPos = getLivePosBadgeLabel(move.bPos);
                 return `${escapeTacticalHtml(aName)} (${escapeTacticalHtml(aPos)}) ↔ ${escapeTacticalHtml(bName)} (${escapeTacticalHtml(bPos)})`;
             });
+            const roleBits = (event.roleChanges || []).map((change) => {
+                const playerName = getLiveEventPlayerLabel(change.playerId || window.liveLineup?.[change.slotId]);
+                const fromPos = getLivePosBadgeLabel(change.fromRole || change.slotId);
+                const toPos = getLivePosBadgeLabel(change.toRole);
+                return `${escapeTacticalHtml(fromPos)} → ${escapeTacticalHtml(toPos)}${playerName ? ` (${escapeTacticalHtml(playerName)})` : ''}`;
+            });
             const items = [];
             if (moveBits.length) {
                 items.push(`<li><strong>Rokering:</strong> ${moveBits.join(' · ')}</li>`);
-            } else {
-                items.push('<li class="is-muted">Trykk to spillere på banen for å bytte plass.</li>');
+            }
+            if (roleBits.length) {
+                items.push(`<li><strong>Gjør om:</strong> ${roleBits.join(' · ')}</li>`);
+            }
+            if (!items.length) {
+                items.push('<li class="is-muted">Trykk to spillere på banen for å bytte plass, eller Gjør om til.</li>');
             }
             return `<ul class="tactical-live-event-summary">${items.join('')}</ul>`;
         }
@@ -2058,10 +2166,40 @@
             }
 
             panel.classList.remove('hidden');
-            const canFinish = Boolean(event.moves?.length);
-            const finishTitle = 'Fullfør rokering';
+            const canFinish = liveEventHasStagedChanges(event);
+            const roleCount = event.roleChanges?.length || 0;
+            const moveCount = event.moves?.length || 0;
+            const finishTitle = roleCount && !moveCount
+                ? 'Fullfør gjør om'
+                : (moveCount && !roleCount ? 'Fullfør rokering' : 'Fullfør');
+            const pickerSlot = event.rolePickerSlot || window.tacticalPendingSwapPos || '';
+            const pickerRole = getLiveSlotRole(pickerSlot);
+            const pickerLabel = getLivePosBadgeLabel(pickerRole || pickerSlot);
 
-            if (event.dialogOpen && canFinish) {
+            if (event.rolePickerOpen && pickerSlot) {
+                const chips = TACTICAL_SLOT_ROLE_OPTIONS.map((opt) => {
+                    const active = opt.id === pickerRole;
+                    return `
+                        <button
+                            type="button"
+                            class="bsk-btn bsk-btn-chip tactical-live-role-chip${active ? ' is-active' : ''}"
+                            data-live-event="pick-role"
+                            data-role-id="${escapeTacticalHtml(opt.id)}"
+                            ${active ? 'disabled' : ''}
+                        >${escapeTacticalHtml(opt.label)}</button>
+                    `;
+                }).join('');
+                panel.innerHTML = `
+                    <div class="tactical-live-event-bar">
+                        <p class="tactical-live-event-copy">Gjør om ${escapeTacticalHtml(pickerLabel)} til</p>
+                        <div class="tactical-live-role-grid" role="group" aria-label="Velg ny posisjon">${chips}</div>
+                        <div class="tactical-live-event-actions">
+                            <button type="button" class="bsk-btn bsk-btn-secondary tactical-bench-btn" data-live-event="role-back">Tilbake</button>
+                            <button type="button" class="bsk-btn bsk-btn-secondary tactical-bench-btn" data-live-event="abort">Avbryt</button>
+                        </div>
+                    </div>
+                `;
+            } else if (event.dialogOpen && canFinish) {
                 const defaultMinute = event.planMinute !== undefined && event.planMinute !== ''
                     ? String(event.planMinute).trim().replace(/'$/, '')
                     : resolveLiveSubMinute();
@@ -2094,7 +2232,7 @@
             } else if (canFinish) {
                 panel.innerHTML = `
                     <div class="tactical-live-event-bar">
-                        <p class="tactical-live-event-copy">Rokering klar — fortsett eller trykk Ferdig</p>
+                        <p class="tactical-live-event-copy">${roleCount ? 'Gjør om klar — trykk Ferdig' : 'Rokering klar — fortsett eller trykk Ferdig'}</p>
                         ${buildLiveEventSummaryHtml(event)}
                         <div class="tactical-live-event-actions">
                             <button type="button" class="bsk-btn bsk-btn-primary tactical-bench-btn" data-live-event="finish">Ferdig</button>
@@ -2105,8 +2243,9 @@
             } else {
                 panel.innerHTML = `
                     <div class="tactical-live-event-bar">
-                        <p class="tactical-live-event-copy">Rokering — velg to spillere på banen</p>
+                        <p class="tactical-live-event-copy">Rokering — velg to spillere, eller gjør om plassen</p>
                         <div class="tactical-live-event-actions">
+                            <button type="button" class="bsk-btn bsk-btn-primary tactical-bench-btn" data-live-event="role-open">Gjør om til</button>
                             <button type="button" class="bsk-btn bsk-btn-secondary tactical-bench-btn" data-live-event="abort">Avbryt</button>
                         </div>
                     </div>
@@ -2131,6 +2270,22 @@
                         renderLiveEventPanel();
                         return;
                     }
+                    if (action === 'role-open') {
+                        window.openLiveRolePicker();
+                        return;
+                    }
+                    if (action === 'role-back') {
+                        if (window.tacticalLiveEvent) {
+                            window.tacticalLiveEvent.rolePickerOpen = false;
+                        }
+                        updateLiveSubStatusMessage();
+                        renderLiveEventPanel();
+                        return;
+                    }
+                    if (action === 'pick-role') {
+                        window.stageLiveRoleChange(btn.getAttribute('data-role-id'));
+                        return;
+                    }
                     if (action === 'confirm') {
                         const input = document.getElementById('tactical-live-event-minute-input');
                         window.commitLiveEvent(input?.value);
@@ -2153,6 +2308,7 @@
             if (shouldRestore) {
                 window.liveLineup = cloneLiveLineupMap(event.snapshotLineup);
                 window.liveRoles = { ...(event.snapshotRoles || {}) };
+                window.liveSlotRoles = cloneLiveSlotRoles(event.snapshotSlotRoles);
                 syncLiveLineupToTactical();
             }
 
@@ -2204,14 +2360,28 @@
                 return;
             }
             if (event.dialogOpen) {
-                setLivePlayingTimeStatus('Bekreft rokering med kampminutt', 'pending');
+                setLivePlayingTimeStatus(
+                    (event.roleChanges?.length && !event.moves?.length)
+                        ? 'Bekreft gjør om med kampminutt'
+                        : 'Bekreft rokering med kampminutt',
+                    'pending'
+                );
+                return;
+            }
+            if (event.rolePickerOpen) {
+                setLivePlayingTimeStatus('Velg ny posisjon', 'pending');
                 return;
             }
             if (window.tacticalPendingSwapPos) {
-                setLivePlayingTimeStatus('Velg spiller å bytte plass med', 'pending');
+                setLivePlayingTimeStatus('Velg spiller å bytte plass med, eller Gjør om til', 'pending');
                 return;
             }
             const moveCount = event.moves?.length || 0;
+            const roleCount = event.roleChanges?.length || 0;
+            if (roleCount && !moveCount) {
+                setLivePlayingTimeStatus(`${roleCount} gjør om. Trykk Ferdig.`, 'pending');
+                return;
+            }
             if (moveCount) {
                 setLivePlayingTimeStatus(`${moveCount} rokering(er). Trykk Ferdig.`, 'pending');
                 return;
@@ -2238,16 +2408,8 @@
 
             window.clearTacticalPendingSub({ restore: true });
             window.tacticalPendingSwapPos = null;
-            window.tacticalLiveEvent = {
-                snapshotLineup: cloneLiveLineupMap(window.liveLineup),
-                snapshotRoles: { ...(window.liveRoles || {}) },
-                inPlayer: player,
-                sub: null,
-                moves: [],
-                dialogOpen: false,
-                editorOpen: false,
-                planMinute: ''
-            };
+            window.tacticalLiveEvent = createEmptyLiveEvent();
+            window.tacticalLiveEvent.inPlayer = player;
             window.tacticalPendingSubIn = player;
             window.tacticalPendingSubOutPos = null;
             updateLiveSubStatusMessage();
@@ -2361,6 +2523,61 @@
             return true;
         }
 
+        window.openLiveRolePicker = function() {
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return false;
+            }
+            const event = ensureLiveEventForRokering();
+            if (event.inPlayer || event.editorOpen) return false;
+            const slotId = window.tacticalPendingSwapPos || event.rolePickerSlot || '';
+            if (!slotId || !window.liveLineup?.[slotId]) {
+                alert('Velg en spiller på banen først.');
+                return false;
+            }
+            event.rolePickerOpen = true;
+            event.rolePickerSlot = slotId;
+            event.dialogOpen = false;
+            updateLiveSubStatusMessage();
+            renderLiveEventPanel();
+            refreshTacticalLiveBoard();
+            return true;
+        };
+
+        window.stageLiveRoleChange = function(toRoleId) {
+            if (window.isLiveSessionLocked()) {
+                setLivePlayingTimeStatus('Live er låst', 'error');
+                return false;
+            }
+            const event = ensureLiveEventForRokering();
+            const slotId = event.rolePickerSlot || window.tacticalPendingSwapPos || '';
+            const toRole = String(toRoleId || '').trim();
+            if (!slotId || !toRole || !TACTICAL_POSITIONS.includes(toRole)) return false;
+            if (!window.liveLineup?.[slotId]) {
+                alert('Plassen må ha en spiller.');
+                return false;
+            }
+            const fromRole = getLiveSlotRole(slotId);
+            if (fromRole === toRole) return false;
+
+            applyLiveRoleChangeToState({ slotId, toRole });
+            event.roleChanges = [...(event.roleChanges || []), {
+                minute: '',
+                slotId,
+                fromRole,
+                toRole,
+                playerId: getTacticalLivePlayerRef(window.liveLineup[slotId])
+            }];
+            event.rolePickerOpen = false;
+            event.rolePickerSlot = '';
+            window.tacticalPendingSwapPos = null;
+            window.tacticalLiveDirty = true;
+            updateLiveSubStatusMessage();
+            renderLiveEventPanel();
+            refreshTacticalLiveBoard();
+            return true;
+        };
+
         window.openLiveEventFinishDialog = function() {
             const event = window.tacticalLiveEvent;
             if (!liveEventHasStagedChanges(event)) return;
@@ -2381,11 +2598,20 @@
             (event.moves || []).forEach((move) => {
                 move.minute = minute;
             });
+            (event.roleChanges || []).forEach((change) => {
+                change.minute = minute;
+            });
 
             if (event.moves?.length) {
                 window.tacticalAppliedLiveMoves = [
                     ...(window.tacticalAppliedLiveMoves || []),
                     ...event.moves
+                ];
+            }
+            if (event.roleChanges?.length) {
+                window.tacticalAppliedLiveRoleChanges = [
+                    ...(window.tacticalAppliedLiveRoleChanges || []),
+                    ...event.roleChanges
                 ];
             }
 
@@ -2470,16 +2696,8 @@
             if (!event || !sameIn || event.editorOpen) {
                 window.clearTacticalPendingSub({ restore: true });
                 window.tacticalPendingSwapPos = null;
-                window.tacticalLiveEvent = {
-                    snapshotLineup: cloneLiveLineupMap(window.liveLineup),
-                    snapshotRoles: { ...(window.liveRoles || {}) },
-                    inPlayer,
-                    sub: null,
-                    moves: [],
-                    dialogOpen: false,
-                    editorOpen: false,
-                    planMinute: ''
-                };
+                window.tacticalLiveEvent = createEmptyLiveEvent();
+                window.tacticalLiveEvent.inPlayer = inPlayer;
                 window.tacticalPendingSubIn = inPlayer;
                 window.tacticalPendingSubOutPos = null;
             }
@@ -2789,7 +3007,12 @@
                 'border-slate-300', 'w-10', 'h-10', 'rounded-full'
             );
 
-            const posBadge = getTacticalLivePosBadge(posId);
+            const displayRole = window.isTacticalLiveMatchMode()
+                ? getLiveSlotRole(posId)
+                : posId;
+            const posBadge = getTacticalLivePosBadge(displayRole);
+            const roleChanged = window.isTacticalLiveMatchMode() && displayRole !== posId;
+            node.classList.toggle('is-slot-role-changed', roleChanged);
 
             if (playerObj === null || playerObj === undefined) {
                 node.classList.add('is-empty');
@@ -2866,6 +3089,7 @@
                 }
 
                 if (window.tacticalLiveEvent?.editorOpen) return;
+                if (window.tacticalLiveEvent?.rolePickerOpen) return;
 
                 if (!window.liveLineup?.[posId]) return;
 

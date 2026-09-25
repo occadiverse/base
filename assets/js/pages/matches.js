@@ -6192,13 +6192,15 @@ function buildMatchSubsLogSubBoardHtml(outRef, inRef, minute, {
 function getMatchLiveSubsLogEventCount(match) {
     const subs = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions.length : 0;
     const moves = Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves.length : 0;
-    return subs + moves;
+    const roles = Array.isArray(match?.liveRoleChanges) ? match.liveRoleChanges.length : 0;
+    return subs + moves + roles;
 }
 
 function buildMatchLiveSubsLogHtml(match) {
     const subs = Array.isArray(match?.liveSubstitutions) ? [...match.liveSubstitutions] : [];
     const moves = Array.isArray(match?.liveLineupMoves) ? [...match.liveLineupMoves] : [];
-    if (!subs.length && !moves.length) return '';
+    const roles = Array.isArray(match?.liveRoleChanges) ? [...match.liveRoleChanges] : [];
+    if (!subs.length && !moves.length && !roles.length) return '';
 
     const events = [];
     subs.forEach((sub, index) => {
@@ -6219,11 +6221,20 @@ function buildMatchLiveSubsLogHtml(match) {
             move
         });
     });
+    roles.forEach((change, index) => {
+        events.push({
+            type: 'role',
+            minute: parseMatchLiveSubMinute(change?.minute),
+            order: 2000 + index,
+            index,
+            change
+        });
+    });
     events.sort((a, b) => a.minute - b.minute || a.order - b.order);
 
     const rows = events.map((event) => {
         const minuteLabel = `${event.minute}'`;
-        const editAttrs = `type="button" class="match-subs-log-item${event.type === 'move' ? ' is-move' : ''}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="Rediger eller slett"`;
+        const editAttrs = `type="button" class="match-subs-log-item${event.type === 'move' ? ' is-move' : ''}${event.type === 'role' ? ' is-role' : ''}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="Rediger eller slett"`;
         if (event.type === 'move') {
             const move = event.move || {};
             const aName = getMatchLiveSubPlayerLabel(move.aId);
@@ -6236,6 +6247,24 @@ function buildMatchLiveSubsLogHtml(match) {
                         <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
                         <span class="match-subs-log-text">
                             Rokering: ${escapeMatchHtml(aName)} (${escapeMatchHtml(aPos)}) ↔ ${escapeMatchHtml(bName)} (${escapeMatchHtml(bPos)})
+                        </span>
+                    </button>
+                </li>
+            `;
+        }
+
+        if (event.type === 'role') {
+            const change = event.change || {};
+            const playerName = getMatchLiveSubPlayerLabel(change.playerId);
+            const fromPos = getMatchGamePlanPositionBadgeLabel(change.fromRole || change.slotId || '');
+            const toPos = getMatchGamePlanPositionBadgeLabel(change.toRole || '');
+            const playerBit = playerName && playerName !== '—' ? ` (${escapeMatchHtml(playerName)})` : '';
+            return `
+                <li>
+                    <button ${editAttrs}>
+                        <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                        <span class="match-subs-log-text">
+                            ${escapeMatchHtml(fromPos)} → ${escapeMatchHtml(toPos)}${playerBit}
                         </span>
                     </button>
                 </li>
@@ -6362,6 +6391,9 @@ function getMatchSubsPlayingTimeRows(match) {
     (Array.isArray(match?.liveLineupMoves) ? match.liveLineupMoves : []).forEach((move) => {
         pushPlayer(move?.aId);
         pushPlayer(move?.bId);
+    });
+    (Array.isArray(match?.liveRoleChanges) ? match.liveRoleChanges : []).forEach((change) => {
+        pushPlayer(change?.playerId);
     });
 
     const liveMap = typeof window.getMatchLiveMinutesPlayedMap === 'function'
@@ -6872,6 +6904,8 @@ window.openMatchSubsLogEditor = function(kind, index, matchIdOverride) {
         entry = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions[idx] : null;
     } else if (kind === 'move') {
         entry = Array.isArray(match.liveLineupMoves) ? match.liveLineupMoves[idx] : null;
+    } else if (kind === 'role') {
+        entry = Array.isArray(match.liveRoleChanges) ? match.liveRoleChanges[idx] : null;
     }
     if (!entry) return;
 
@@ -6883,6 +6917,31 @@ window.openMatchSubsLogEditor = function(kind, index, matchIdOverride) {
     if (!modal || !body) return;
 
     const minute = parseMatchLiveSubMinute(entry.minute);
+    if (kind === 'role') {
+        if (title) title.textContent = 'Rediger gjør om';
+        body.innerHTML = `
+            <p class="match-subs-log-edit-lead">
+                ${escapeMatchHtml(getMatchLiveSubPlayerLabel(entry.playerId))} · ${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(entry.fromRole || entry.slotId || ''))} → ${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(entry.toRole || ''))}
+            </p>
+            <label class="match-subs-log-edit-field">
+                <span>Kampminutt</span>
+                <input type="number" min="0" max="130" step="1" id="match-subs-log-edit-minute" value="${minute}">
+            </label>
+            <label class="match-subs-log-edit-field">
+                <span>Ny posisjon</span>
+                <select id="match-subs-log-edit-to-role">${getMatchSubsLogPositionOptionsHtml(entry.toRole || '')}</select>
+            </label>
+        `;
+        syncMatchSubsLogDeleteBtnVisibility();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        const minuteInput = document.getElementById('match-subs-log-edit-minute');
+        if (minuteInput) {
+            minuteInput.focus();
+            minuteInput.select();
+        }
+        return;
+    }
     if (kind === 'move') {
         if (title) title.textContent = 'Rediger rokering';
         body.innerHTML = `
@@ -7031,6 +7090,23 @@ window.saveMatchSubsLogEntry = async function() {
             bPos
         };
         match.liveLineupMoves = list;
+    } else if (state.kind === 'role') {
+        const minuteRaw = document.getElementById('match-subs-log-edit-minute')?.value;
+        const minute = String(Math.max(0, Math.min(130, Math.floor(Number(minuteRaw) || 0))));
+        const list = Array.isArray(match.liveRoleChanges) ? [...match.liveRoleChanges] : [];
+        const entry = list[state.index];
+        if (!entry) return;
+        const toRole = String(document.getElementById('match-subs-log-edit-to-role')?.value || entry.toRole || '').trim();
+        if (!toRole) {
+            alert('Velg ny posisjon.');
+            return;
+        }
+        list[state.index] = {
+            ...entry,
+            minute,
+            toRole
+        };
+        match.liveRoleChanges = list;
     } else {
         return;
     }
@@ -7068,6 +7144,11 @@ window.deleteMatchSubsLogEntry = async function() {
         if (!list[state.index]) return;
         list.splice(state.index, 1);
         match.liveLineupMoves = list;
+    } else if (state.kind === 'role') {
+        const list = Array.isArray(match.liveRoleChanges) ? [...match.liveRoleChanges] : [];
+        if (!list[state.index]) return;
+        list.splice(state.index, 1);
+        match.liveRoleChanges = list;
     } else {
         return;
     }
@@ -7112,7 +7193,11 @@ function resolveMatchLiveDurationForPositions(match) {
         (max, move) => Math.max(max, parseMatchLiveSubMinute(move?.minute)),
         0
     );
-    return moveMax;
+    const roleMax = (Array.isArray(match?.liveRoleChanges) ? match.liveRoleChanges : []).reduce(
+        (max, change) => Math.max(max, parseMatchLiveSubMinute(change?.minute)),
+        0
+    );
+    return Math.max(moveMax, roleMax);
 }
 
 function getMatchLiveComputedPositionMinutesMap(match, player) {

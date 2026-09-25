@@ -16650,6 +16650,23 @@
         .tactical-live-event-actions .tactical-bench-btn {
             min-width: 5.5rem;
         }
+        .tactical-live-role-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .tactical-live-role-chip.bsk-btn-chip {
+            min-width: 2.6rem;
+            padding: 0.28rem 0.55rem;
+        }
+        .tactical-live-role-chip.bsk-btn-chip.is-active,
+        .tactical-live-role-chip.bsk-btn-chip:disabled {
+            opacity: 0.55;
+        }
+        #full-pitch-container .player-node.is-slot-role-changed .tactical-live-card-pos {
+            background: rgba(245, 197, 66, 0.95);
+            color: #0b2b4c;
+        }
         .tactical-lineup-status-badge.is-live {
             background: rgba(14, 165, 233, 0.12);
             border: 1px solid rgba(14, 165, 233, 0.28);
