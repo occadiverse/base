@@ -17736,13 +17736,13 @@
                 gap: 1.25rem;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .live-pitch-board,
-            .live-side-board {
+            .live-pitch-board {
                 min-height: min(52rem, calc(100vh - 7rem));
             }
             .live-side-board {
-                max-height: min(52rem, calc(100vh - 7rem));
-                overflow-y: auto;
+                height: auto;
+                max-height: none;
+                min-height: 0;
             }
             .tactical-live-toolbar {
                 justify-content: flex-start;

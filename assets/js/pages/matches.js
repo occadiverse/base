@@ -7327,7 +7327,6 @@ function buildPlayerPositionMatchStats(player, options = {}) {
                     assists: 0,
                     bb: 0,
                     minutes: 0,
-                    minutesPossible: 0,
                     ratingsSum: 0,
                     ratingsCount: 0,
                     entries: []
@@ -7341,11 +7340,6 @@ function buildPlayerPositionMatchStats(player, options = {}) {
             ? Math.max(0, Math.floor(Number(posMinutesMap[primaryPosId]) || 0))
             : totalMinutes;
         if (primaryMinutes > 0) row.minutes += primaryMinutes;
-        row.minutesPossible += Math.max(
-            resolveMatchLiveDurationForPositions(match),
-            Math.floor(Number(match.liveDurationMinutes) || 0),
-            90
-        );
 
         const points = typeof window.calculatePlayerMatchPoints === 'function'
             ? (Number(window.calculatePlayerMatchPoints(match, player)) || 0)

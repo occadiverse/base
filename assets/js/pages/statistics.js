@@ -1826,6 +1826,51 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return (Number(row?.matches) || 0) >= 2 || (Number(row?.minutes) || 0) >= 90;
         };
 
+        window.getPlayerPositionSpillerborsMinutes = function(player, positionId, yearFilter) {
+            let minutesTotal = 0;
+            let minutesMatches = 0;
+            let minutesPossible = 0;
+            const yearNum = yearFilter != null && yearFilter !== '' && yearFilter !== 'alle'
+                ? Number(yearFilter)
+                : null;
+
+            (window.activeMatches || []).forEach((match) => {
+                if (!match || !player || match.matchGroup !== player.spillerLag) return;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
+                if (!window.isPlayerAttending?.(match.attendance, player)) return;
+                if (yearNum != null && Number.isFinite(yearNum)) {
+                    const matchYear = match?.date ? new Date(match.date).getFullYear() : NaN;
+                    if (matchYear !== yearNum) return;
+                }
+                if (typeof window.getPlayerMatchPlayedPositionId === 'function'
+                    && window.getPlayerMatchPlayedPositionId(match, player) !== positionId) {
+                    return;
+                }
+                if (!window.matchHasMinutesTracking?.(match)) return;
+
+                const minutes = typeof window.getPlayerMatchMinutesForStats === 'function'
+                    ? window.getPlayerMatchMinutesForStats(match, player)
+                    : 0;
+                if (minutes > 0) {
+                    minutesTotal += minutes;
+                    minutesMatches += 1;
+                }
+                minutesPossible += typeof window.getMatchDurationForMinutesShare === 'function'
+                    ? window.getMatchDurationForMinutesShare(match)
+                    : 90;
+            });
+
+            return {
+                minutesTotal,
+                minutesMatches,
+                minutesPossible,
+                minutesAvg: minutesMatches > 0 ? minutesTotal / minutesMatches : 0,
+                minutesSharePct: minutesPossible > 0
+                    ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
+                    : null
+            };
+        };
+
         window.buildPlayerPositionFilterStatsData = function(options = {}) {
             const yearFilter = options.yearFilter !== undefined
                 ? options.yearFilter
@@ -1847,11 +1892,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!row || !window.playerMeetsPositionStatsThreshold(row)) return null;
 
                 const kamper = Number(row.matches) || 0;
-                const minutesTotal = Number(row.minutes) || 0;
-                const minutesPossible = Number(row.minutesPossible) || 0;
-                const minutesSharePct = minutesPossible > 0
-                    ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
-                    : null;
+                const minuteStats = typeof window.getPlayerPositionSpillerborsMinutes === 'function'
+                    ? window.getPlayerPositionSpillerborsMinutes(player, positionId, yearFilter)
+                    : {
+                        minutesTotal: 0,
+                        minutesMatches: 0,
+                        minutesPossible: 0,
+                        minutesAvg: 0,
+                        minutesSharePct: null
+                    };
                 const seasonStat = typeof window.getMatchGamePlanPlayerSeasonStat === 'function'
                     ? window.getMatchGamePlanPlayerSeasonStat(player, yearFilter)
                     : null;
@@ -1875,11 +1924,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     kjemi,
                     snittBors: row.ratingsCount > 0 ? row.ratingsSum / row.ratingsCount : 0,
                     bb: Number(row.bb) || 0,
-                    minutesTotal,
-                    minutesMatches: kamper,
-                    minutesAvg: kamper > 0 ? minutesTotal / kamper : 0,
-                    minutesPossible,
-                    minutesSharePct,
+                    minutesTotal: Number(minuteStats.minutesTotal) || 0,
+                    minutesMatches: Number(minuteStats.minutesMatches) || 0,
+                    minutesAvg: Number(minuteStats.minutesAvg) || 0,
+                    minutesPossible: Number(minuteStats.minutesPossible) || 0,
+                    minutesSharePct: minuteStats.minutesSharePct,
                     totalScore
                 };
             }).filter(Boolean);
