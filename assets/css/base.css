@@ -6917,6 +6917,20 @@
             gap: 0.4rem;
             margin-top: 0.55rem;
         }
+        .stats-board-card .stats-spiller-position-filter {
+            flex-wrap: nowrap;
+            margin-top: 0.35rem;
+            max-width: 100%;
+            overflow-x: auto;
+            padding-bottom: 0.1rem;
+            scrollbar-width: none;
+        }
+        .stats-board-card .stats-spiller-position-filter::-webkit-scrollbar {
+            display: none;
+        }
+        .stats-board-card .stats-spiller-position-filter .stats-kamp-year-btn {
+            flex: 0 0 auto;
+        }
         .stats-board-card .stats-kamp-collapsible-panel {
             margin-top: 0;
         }

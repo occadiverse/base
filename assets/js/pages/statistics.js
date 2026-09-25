@@ -118,6 +118,13 @@ function bindStatisticsEvents() {
             if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
             return;
         }
+        if (action === 'set-spiller-position') {
+            const positionId = actionEl.dataset.positionId;
+            if (positionId && typeof window.setStatsSpillerPositionFilter === 'function') {
+                window.setStatsSpillerPositionFilter(positionId);
+            }
+            return;
+        }
         if (action === 'set-oppmote-range') {
             const range = actionEl.dataset.range;
             if (range && typeof window.setStatsOppmoteRangeFilter === 'function') {
@@ -1788,6 +1795,131 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.applyPlayerTotalScores(statsData);
         };
 
+        window.STATS_SPILLER_POSITION_OPTIONS = [
+            { id: 'alle', label: 'Alle' },
+            { id: 'GK', label: 'GK' },
+            { id: 'VMS', label: 'VS' },
+            { id: 'HMS', label: 'HS' },
+            { id: 'VB', label: 'VB' },
+            { id: 'HB', label: 'HB' },
+            { id: 'DM', label: 'DM' },
+            { id: 'OM', label: 'OM' },
+            { id: 'PM', label: 'PM' },
+            { id: 'VK', label: 'VK' },
+            { id: 'HK', label: 'HK' },
+            { id: 'SP', label: 'SP' }
+        ];
+
+        window.getStatsSpillerPositionFilter = function() {
+            const ids = (window.STATS_SPILLER_POSITION_OPTIONS || []).map((opt) => opt.id);
+            const raw = String(window.statsSpillerPositionFilter || 'alle').trim();
+            return ids.includes(raw) ? raw : 'alle';
+        };
+
+        window.getStatsSpillerPositionFilterOption = function() {
+            const id = window.getStatsSpillerPositionFilter();
+            return (window.STATS_SPILLER_POSITION_OPTIONS || []).find((opt) => opt.id === id)
+                || { id: 'alle', label: 'Alle' };
+        };
+
+        window.playerMeetsPositionStatsThreshold = function(row) {
+            return (Number(row?.matches) || 0) >= 2 || (Number(row?.minutes) || 0) >= 90;
+        };
+
+        window.buildPlayerPositionFilterStatsData = function(options = {}) {
+            const yearFilter = options.yearFilter !== undefined
+                ? options.yearFilter
+                : (typeof window.getStatsSpillerYearFilter === 'function'
+                    ? window.getStatsSpillerYearFilter()
+                    : 'alle');
+            const overall = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
+                : [];
+            const positionId = window.getStatsSpillerPositionFilter();
+            if (!positionId || positionId === 'alle') return overall;
+            if (typeof window.buildPlayerPositionMatchStats !== 'function') return [];
+
+            return overall.map((stat) => {
+                const player = (window.activePlayers || []).find((item) => item.navn === stat.navn);
+                if (!player) return null;
+                const row = (window.buildPlayerPositionMatchStats(player, { yearFilter }) || [])
+                    .find((entry) => entry.posId === positionId);
+                if (!row || !window.playerMeetsPositionStatsThreshold(row)) return null;
+
+                const kamper = Number(row.matches) || 0;
+                const minutesTotal = Number(row.minutes) || 0;
+                const minutesPossible = Number(row.minutesPossible) || 0;
+                const minutesSharePct = minutesPossible > 0
+                    ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
+                    : null;
+                const seasonStat = typeof window.getMatchGamePlanPlayerSeasonStat === 'function'
+                    ? window.getMatchGamePlanPlayerSeasonStat(player, yearFilter)
+                    : null;
+                const kjemi = typeof window.computeMatchGamePlanPositionForm === 'function'
+                    ? window.computeMatchGamePlanPositionForm(row.entries)
+                    : 0;
+                const totalScore = typeof window.computeMatchGamePlanPositionSeason === 'function'
+                    ? window.computeMatchGamePlanPositionSeason(row, seasonStat)
+                    : 0;
+
+                return {
+                    ...stat,
+                    kamper,
+                    attendedMatches: kamper,
+                    mal: Number(row.goals) || 0,
+                    assist: Number(row.assists) || 0,
+                    expectedMalpoeng: kamper > 0
+                        ? Math.round((((Number(row.goals) || 0) + (Number(row.assists) || 0)) / kamper) * 10) / 10
+                        : null,
+                    kampbonus: kamper > 0 ? (Number(row.points) || 0) / kamper : 0,
+                    kjemi,
+                    snittBors: row.ratingsCount > 0 ? row.ratingsSum / row.ratingsCount : 0,
+                    bb: Number(row.bb) || 0,
+                    minutesTotal,
+                    minutesMatches: kamper,
+                    minutesAvg: kamper > 0 ? minutesTotal / kamper : 0,
+                    minutesPossible,
+                    minutesSharePct,
+                    totalScore
+                };
+            }).filter(Boolean);
+        };
+
+        window.getStatsSpillerListData = function() {
+            return typeof window.buildPlayerPositionFilterStatsData === 'function'
+                ? window.buildPlayerPositionFilterStatsData({ applyYearFilter: true })
+                : (typeof window.buildPlayerStatsData === 'function'
+                    ? window.buildPlayerStatsData({ applyYearFilter: true })
+                    : []);
+        };
+
+        window.renderStatsSpillerPositionFilterHtml = function() {
+            const active = window.getStatsSpillerPositionFilter();
+            return `
+                <div class="stats-kamp-year-filter stats-spiller-position-filter" role="tablist" aria-label="Filtrer spillerstats etter posisjon">
+                    ${(window.STATS_SPILLER_POSITION_OPTIONS || []).map((opt) => `
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="${active === opt.id ? 'true' : 'false'}"
+                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${active === opt.id ? 'is-active' : ''}"
+                            data-stat-action="set-spiller-position"
+                            data-position-id="${escapeStatisticsHtml(opt.id)}"
+                        >${escapeStatisticsHtml(opt.label)}</button>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        window.setStatsSpillerPositionFilter = function(positionId) {
+            const ids = (window.STATS_SPILLER_POSITION_OPTIONS || []).map((opt) => opt.id);
+            window.statsSpillerPositionFilter = ids.includes(positionId) ? positionId : 'alle';
+            window._statsPlayerListExpanded = false;
+            if (typeof window.renderSpillereView === 'function') {
+                window.renderSpillereView();
+            }
+        };
+
         window.renderStatsTeamFormPillsHtml = function(teamName) {
             const formGuide = window.getTeamFormGuide(teamName);
             if (!formGuide.length) return '';
@@ -2095,6 +2227,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             };
             const seasonLeader = pickLeader('totalScore');
             const nowLeader = pickLeader('kjemi');
+            const positionOption = typeof window.getStatsSpillerPositionFilterOption === 'function'
+                ? window.getStatsSpillerPositionFilterOption()
+                : { id: 'alle', label: 'Alle' };
+            const positionSuffix = positionOption.id && positionOption.id !== 'alle'
+                ? ` · ${positionOption.label}`
+                : '';
 
             const card = (horizon, title, leader, column) => {
                 if (!leader) {
@@ -2129,8 +2267,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             return `
                 <div class="stats-best-player-horizons">
-                    ${card('is-season', 'Beste sesong', seasonLeader, 'totalScore')}
-                    ${card('is-now', 'Beste nå', nowLeader, 'kjemi')}
+                    ${card('is-season', `Beste sesong${positionSuffix}`, seasonLeader, 'totalScore')}
+                    ${card('is-now', `Beste nå${positionSuffix}`, nowLeader, 'kjemi')}
                 </div>
             `;
         };
@@ -3112,9 +3250,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return;
             }
 
-            const statsData = typeof window.buildPlayerStatsData === 'function'
-                ? window.buildPlayerStatsData({ applyYearFilter: true })
-                : [];
+            const statsData = typeof window.getStatsSpillerListData === 'function'
+                ? window.getStatsSpillerListData()
+                : (typeof window.buildPlayerStatsData === 'function'
+                    ? window.buildPlayerStatsData({ applyYearFilter: true })
+                    : []);
             summary.innerHTML = window.renderStatsSpillereSummaryCardsHtml(statsData);
 
             const diagramWrap = document.getElementById('team-score-diagram-wrap');
@@ -3248,7 +3388,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const list = document.getElementById('stats-player-list');
             if (!list) return;
 
-            let statsData = window.buildPlayerStatsData({ applyYearFilter: true });
+            let statsData = typeof window.getStatsSpillerListData === 'function'
+                ? window.getStatsSpillerListData()
+                : window.buildPlayerStatsData({ applyYearFilter: true });
             statsData = statsData.filter(stat => window.playerStatsRelevantForSort(stat, currentStatSortCol));
 
             const sortRows = (rows) => {
@@ -3279,11 +3421,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const totalPlayers = qualified.length + belowThreshold.length;
 
             if (!totalPlayers) {
+                const positionOption = typeof window.getStatsSpillerPositionFilterOption === 'function'
+                    ? window.getStatsSpillerPositionFilterOption()
+                    : { id: 'alle' };
+                const emptyMessage = positionOption.id && positionOption.id !== 'alle'
+                    ? `Ingen spillere med minst to kamper eller 90 minutter som ${positionOption.label}.`
+                    : window.getStatsSortEmptyMessage(currentStatSortCol);
                 list.innerHTML = `
                     <div class="training-data-rank-block">
                         <h5>${escapeStatisticsHtml(sortLabel)}</h5>
                         <div class="training-data-empty">
-                            <p>${escapeStatsHtml(window.getStatsSortEmptyMessage(currentStatSortCol))}</p>
+                            <p>${escapeStatsHtml(emptyMessage)}</p>
                         </div>
                     </div>
                 `;
@@ -3574,6 +3722,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 hideLabel: 'Skjul spillerstats',
                 content: `
                     ${yearFilterHtml}
+                    ${typeof window.renderStatsSpillerPositionFilterHtml === 'function'
+                        ? window.renderStatsSpillerPositionFilterHtml()
+                        : ''}
                     <div class="stats-spillere-layout">
                         <div id="stats-player-list" class="stats-player-list"></div>
                         <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
