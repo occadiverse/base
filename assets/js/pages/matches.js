@@ -1186,10 +1186,10 @@ const matchGamePlanFormations = {
             VMS: { top: '71%', left: '26%', label: 'Venstre stopper' },
             MS: { top: '71%', left: '50%', label: 'Midtstopper' },
             HMS: { top: '71%', left: '74%', label: 'Høyre stopper' },
-            VB: { top: '50%', left: '12%', label: 'Venstre bekk' },
+            VK: { top: '38%', left: '12%', label: 'Venstre kant' },
             OM: { top: '50%', left: '36%', label: 'Off midtbane' },
             DM: { top: '50%', left: '64%', label: 'Def midtbane' },
-            HB: { top: '50%', left: '88%', label: 'Høyre bekk' },
+            HK: { top: '38%', left: '88%', label: 'Høyre kant' },
             PM: { top: '29%', left: '50%', label: 'Playmaker' },
             SP: { top: '10%', left: '36%', label: 'Spiss' },
             SP2: { top: '10%', left: '64%', label: 'Spiss' }
@@ -1516,18 +1516,47 @@ function refreshMatchGamePlanLineupAfterChange(match, affectedPosIds = []) {
     });
 }
 
+const matchGamePlanFormationSlotAliases = {
+    '3-4-1-2': { VB: 'VK', HB: 'HK' }
+};
+
+function remapMatchGamePlanSlotIdForFormation(posId, formationId) {
+    const aliases = matchGamePlanFormationSlotAliases[formationId] || {};
+    const id = String(posId || '').trim();
+    return aliases[id] || id;
+}
+
+function remapMatchGamePlanLineupSlotsForFormation(lineup, formationId, options = {}) {
+    const aliases = matchGamePlanFormationSlotAliases[formationId];
+    if (!aliases || !lineup || typeof lineup !== 'object') return lineup || {};
+    const overwrite = Boolean(options.overwrite);
+    const next = { ...lineup };
+    Object.entries(aliases).forEach(([fromId, toId]) => {
+        if (!toId || fromId === toId) return;
+        if (next[fromId] && (overwrite || !next[toId])) next[toId] = next[fromId];
+        delete next[fromId];
+    });
+    return next;
+}
+
 function getMatchGamePlanLineup(match) {
+    let resolvedLineup;
     if (match?.lineupRefs && typeof match.lineupRefs === 'object') {
-        const resolvedLineup = {};
+        resolvedLineup = {};
         Object.entries(match.lineupRefs).forEach(([posId, ref]) => {
             resolvedLineup[posId] = ref && typeof window.findPlayerByRef === 'function'
                 ? window.findPlayerByRef(ref)
                 : null;
         });
-        return resolvedLineup;
+    } else {
+        resolvedLineup = match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
     }
 
-    return match && typeof match.lineup === 'object' && match.lineup ? match.lineup : {};
+    return remapMatchGamePlanLineupSlotsForFormation(
+        resolvedLineup,
+        getMatchGamePlanFormation(match),
+        { overwrite: true }
+    );
 }
 
 function getMatchGamePlanLineupRefs(lineup) {
@@ -1563,9 +1592,10 @@ function getMatchGamePlanDraft(match) {
 }
 
 function pruneMatchGamePlanDraftLineupForFormation(draft, formationId) {
+    const remapped = remapMatchGamePlanLineupSlotsForFormation(draft.lineup, formationId);
     const validPosIds = new Set(getMatchGamePlanFormationPositionIds(formationId));
     draft.lineup = Object.fromEntries(
-        Object.entries(draft.lineup || {}).filter(([posId]) => validPosIds.has(posId))
+        Object.entries(remapped || {}).filter(([posId]) => validPosIds.has(posId))
     );
 }
 
@@ -1578,9 +1608,15 @@ function resetMatchGamePlanDraft(match) {
     };
 }
 
+function getMatchGamePlanFormationPositions(formationId) {
+    const formation = matchGamePlanFormations[formationId];
+    return formation && formation.positions ? formation.positions : {};
+}
+
 function getMatchGamePlanFormationPositionIds(formationId) {
-    const formation = matchGamePlanFormations[formationId] || matchGamePlanFormations['4-2-4'];
-    return Object.keys(formation.positions || {});
+    const positions = getMatchGamePlanFormationPositions(formationId);
+    if (Object.keys(positions).length) return Object.keys(positions);
+    return Object.keys((matchGamePlanFormations['4-2-4'] || {}).positions || {});
 }
 
 function getMatchGamePlanKnownPositionIds() {
@@ -2791,11 +2827,11 @@ const matchGamePlanSamspillZonePositionsByFormation = {
     },
     '3-4-1-2': {
         forsvar: ['GK', 'VMS', 'MS', 'HMS'],
-        midtbane: ['VB', 'OM', 'DM', 'HB', 'PM'],
-        angrep: ['SP', 'SP2', 'PM'],
-        venstre: ['VMS', 'VB', 'OM', 'SP'],
+        midtbane: ['VK', 'OM', 'DM', 'HK', 'PM'],
+        angrep: ['SP', 'SP2', 'PM', 'VK', 'HK'],
+        venstre: ['VMS', 'VK', 'OM', 'SP', 'PM'],
         sentral: ['GK', 'VMS', 'MS', 'HMS', 'OM', 'DM', 'PM', 'SP', 'SP2'],
-        hoyre: ['HMS', 'HB', 'DM', 'SP2']
+        hoyre: ['HMS', 'HK', 'DM', 'SP2', 'PM']
     }
 };
 
@@ -6515,13 +6551,19 @@ function buildMatchSubsPanelBodyHtml(match) {
     `;
 }
 
-function getMatchSubsLogPositionOptionsHtml(selectedPosId, { includeEmpty = false } = {}) {
+function getMatchSubsLogPositionOptionsHtml(selectedPosId, { includeEmpty = false, allRoles = false } = {}) {
     const options = [];
     if (includeEmpty) {
         options.push(`<option value=""${selectedPosId ? '' : ' selected'}>Velg</option>`);
     }
-    getMatchGamePlanKnownPositionIds().forEach((posId) => {
-        const label = getMatchGamePlanPositionBadgeLabel(posId) || posId;
+    const match = getMatchSubsLogEditorMatch();
+    const formationId = match ? getMatchGamePlanFormation(match) : '';
+    let ids = allRoles || !match
+        ? getMatchGamePlanKnownPositionIds()
+        : [...getMatchGamePlanFormationPositionIds(formationId)];
+    if (selectedPosId && !ids.includes(selectedPosId)) ids.push(selectedPosId);
+    ids.forEach((posId) => {
+        const label = getMatchGamePlanPositionBadgeLabel(posId, allRoles ? '' : formationId) || posId;
         const selected = posId === selectedPosId ? ' selected' : '';
         options.push(`<option value="${escapeMatchHtml(posId)}"${selected}>${escapeMatchHtml(label)}</option>`);
     });
@@ -6545,10 +6587,51 @@ function cloneMatchSubsLogPosMap(lineup) {
     return next;
 }
 
-function applyMatchSubsLogSubToPosMap(lineup, sub) {
+function getMatchSubsLogEditorMatch() {
+    const matchId = window._matchSubsLogEditState?.matchId || window.activeDetailsId;
+    return (window.activeMatches || []).find((item) => item.id === matchId) || null;
+}
+
+window.resolveLiveSubPositionsForFormation = function(match, sub, lineup) {
+    const formationId = match
+        ? (typeof getMatchGamePlanFormation === 'function' ? getMatchGamePlanFormation(match) : (match.formation || ''))
+        : '';
+    const mappedLineup = remapMatchGamePlanLineupSlotsForFormation(lineup || {}, formationId, { overwrite: true });
+    const validIds = new Set(
+        (formationId && typeof window.getMatchGamePlanFormationPositionIds === 'function')
+            ? window.getMatchGamePlanFormationPositionIds(formationId)
+            : Object.keys(mappedLineup || {})
+    );
+    const matchesRef = (player, ref) => {
+        if (!player || !ref) return false;
+        if (typeof window.playerRefMatches === 'function') return window.playerRefMatches(ref, player);
+        return getMatchSubsLogPlayerStorageKey(player) === String(ref);
+    };
+    const findValidSlot = (ref) => {
+        if (!ref || !mappedLineup) return '';
+        return Object.keys(mappedLineup).find((posId) => (
+            validIds.has(posId)
+            && mappedLineup[posId]
+            && matchesRef(mappedLineup[posId], ref)
+        )) || '';
+    };
+
+    let posId = remapMatchGamePlanSlotIdForFormation(sub?.posId, formationId);
+    let inPosId = remapMatchGamePlanSlotIdForFormation(sub?.inPosId || posId, formationId);
+    if (posId && !validIds.has(posId)) {
+        posId = findValidSlot(sub?.outId) || posId;
+    }
+    if (inPosId && !validIds.has(inPosId)) {
+        inPosId = validIds.has(posId) ? posId : inPosId;
+    }
+    return { posId, inPosId };
+};
+
+function applyMatchSubsLogSubToPosMap(lineup, sub, match = getMatchSubsLogEditorMatch()) {
     if (!sub || !lineup) return lineup;
-    const outPos = String(sub.posId || '').trim();
-    const inPos = String(sub.inPosId || sub.posId || '').trim();
+    const resolved = window.resolveLiveSubPositionsForFormation(match, sub, lineup);
+    const outPos = String(resolved.posId || sub.posId || '').trim();
+    const inPos = String(resolved.inPosId || sub.inPosId || outPos).trim();
     const inPlayer = typeof window.findPlayerByRef === 'function'
         ? window.findPlayerByRef(sub.inId)
         : null;
@@ -6643,7 +6726,7 @@ function getMatchSubsLogLineupBeforeCurrentEdit(match) {
         })
         .sort((a, b) => (a.minute - b.minute) || (a.order - b.order))
         .forEach((event) => {
-            if (event.type === 'sub') applyMatchSubsLogSubToPosMap(lineup, event.sub);
+            if (event.type === 'sub') applyMatchSubsLogSubToPosMap(lineup, event.sub, match);
             else applyMatchSubsLogMoveToPosMap(lineup, event.move);
         });
 
@@ -6981,7 +7064,7 @@ window.openMatchSubsLogEditor = function(kind, index, matchIdOverride) {
             </label>
             <label class="match-subs-log-edit-field">
                 <span>Ny posisjon</span>
-                <select id="match-subs-log-edit-to-role">${getMatchSubsLogPositionOptionsHtml(entry.toRole || '')}</select>
+                <select id="match-subs-log-edit-to-role">${getMatchSubsLogPositionOptionsHtml(entry.toRole || '', { allRoles: true })}</select>
             </label>
         `;
         syncMatchSubsLogDeleteBtnVisibility();
@@ -7589,6 +7672,9 @@ window.computeMatchGamePlanPositionSeason = computeMatchGamePlanPositionSeason;
 window.formatMatchGamePlanXp = formatMatchGamePlanXp;
 window.getMatchGamePlanPositionBadgeLabel = getMatchGamePlanPositionBadgeLabel;
 window.getMatchGamePlanFormationPositionIds = getMatchGamePlanFormationPositionIds;
+window.getMatchGamePlanFormationPositions = getMatchGamePlanFormationPositions;
+window.remapMatchGamePlanSlotIdForFormation = remapMatchGamePlanSlotIdForFormation;
+window.remapMatchGamePlanLineupSlotsForFormation = remapMatchGamePlanLineupSlotsForFormation;
 
 function formatMatchGamePlanPosPreference(value) {
     const text = String(value || '').trim();

@@ -17,7 +17,7 @@
         'GK|VMS': 0.7, 'GK|HMS': 0.7, 'GK|MS': 0.7,
         'DM|GK': 0.55,
         'GK|SP': 0.3,
-        'PM|SP2': 1.0, 'SP|SP2': 1.0,
+        'PM|SP2': 1.0, 'SP|SP2': 1.0, 'DM|SP2': 1.0, 'HK|SP2': 1.0,
         'HK|VK': 0.3,
         'HB|VK': 0.35, 'HK|VB': 0.35, 'HB|VB': 0.5,
         'GK|VK': 0.35, 'GK|HK': 0.35,
@@ -144,13 +144,14 @@
         '3-4-1-2': [
             ['GK', 'VMS'], ['GK', 'MS'], ['GK', 'HMS'],
             ['VMS', 'MS'], ['MS', 'HMS'],
-            ['VMS', 'VB'], ['HMS', 'HB'],
+            ['VMS', 'VK'], ['HMS', 'HK'],
             ['VMS', 'OM'], ['MS', 'OM'], ['MS', 'DM'], ['HMS', 'DM'],
-            ['VB', 'OM'], ['HB', 'DM'],
+            ['VK', 'OM'], ['HK', 'DM'],
             ['OM', 'DM'],
             ['OM', 'PM'], ['DM', 'PM'],
             ['PM', 'SP'], ['PM', 'SP2'],
             ['OM', 'SP'], ['DM', 'SP2'],
+            ['VK', 'SP'], ['HK', 'SP2'],
             ['SP', 'SP2']
         ]
     };
@@ -921,19 +922,19 @@
                 {
                     id: 'midtbane',
                     label: 'Midtbane',
-                    pairs: [['VB', 'OM'], ['OM', 'DM'], ['DM', 'HB'], ['OM', 'PM'], ['DM', 'PM']]
+                    pairs: [['VK', 'OM'], ['OM', 'DM'], ['DM', 'HK'], ['OM', 'PM'], ['DM', 'PM']]
                 },
                 {
                     id: 'angrep',
                     label: 'Angrep',
-                    pairs: [['PM', 'SP'], ['PM', 'SP2'], ['SP', 'SP2']]
+                    pairs: [['PM', 'SP'], ['PM', 'SP2'], ['SP', 'SP2'], ['VK', 'SP'], ['HK', 'SP2'], ['DM', 'SP2']]
                 }
             ],
             corridors: [
                 {
                     id: 'venstre',
                     label: 'Venstre',
-                    pairs: [['VMS', 'VB'], ['VB', 'OM'], ['OM', 'SP'], ['OM', 'PM']]
+                    pairs: [['VMS', 'VK'], ['VK', 'OM'], ['VK', 'SP'], ['OM', 'SP'], ['OM', 'PM']]
                 },
                 {
                     id: 'sentral',
@@ -943,7 +944,7 @@
                 {
                     id: 'hoyre',
                     label: 'Høyre',
-                    pairs: [['HMS', 'HB'], ['HB', 'DM'], ['DM', 'SP2'], ['DM', 'PM']]
+                    pairs: [['HMS', 'HK'], ['HK', 'DM'], ['HK', 'SP2'], ['DM', 'SP2'], ['DM', 'PM']]
                 }
             ]
         }

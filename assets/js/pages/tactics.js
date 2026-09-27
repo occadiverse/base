@@ -56,50 +56,6 @@
             }
         };
 
-        const TACTICAL_FORMATION_PHASES = {
-            '3-4-1-2': {
-                fase1: {
-                    GK: { top: '93%', left: '50%' },
-                    VMS: { top: '90%', left: '28%' },
-                    MS: { top: '92%', left: '50%' },
-                    HMS: { top: '90%', left: '72%' },
-                    VB: { top: '78%', left: '12%' },
-                    OM: { top: '76%', left: '36%' },
-                    DM: { top: '76%', left: '64%' },
-                    HB: { top: '78%', left: '88%' },
-                    PM: { top: '58%', left: '50%' },
-                    SP: { top: '48%', left: '36%' },
-                    SP2: { top: '48%', left: '64%' }
-                },
-                fase2: {
-                    GK: { top: '88%', left: '50%' },
-                    VMS: { top: '70%', left: '28%' },
-                    MS: { top: '72%', left: '50%' },
-                    HMS: { top: '70%', left: '72%' },
-                    VB: { top: '54%', left: '12%' },
-                    OM: { top: '52%', left: '36%' },
-                    DM: { top: '52%', left: '64%' },
-                    HB: { top: '54%', left: '88%' },
-                    PM: { top: '34%', left: '50%' },
-                    SP: { top: '20%', left: '36%' },
-                    SP2: { top: '20%', left: '64%' }
-                },
-                fase3: {
-                    GK: { top: '86%', left: '50%' },
-                    VMS: { top: '54%', left: '26%' },
-                    MS: { top: '56%', left: '50%' },
-                    HMS: { top: '54%', left: '74%' },
-                    VB: { top: '36%', left: '12%' },
-                    OM: { top: '32%', left: '34%' },
-                    DM: { top: '32%', left: '66%' },
-                    HB: { top: '36%', left: '88%' },
-                    PM: { top: '20%', left: '50%' },
-                    SP: { top: '12%', left: '36%' },
-                    SP2: { top: '12%', left: '64%' }
-                }
-            }
-        };
-
         function getSelectedMatchFormationId() {
             const match = typeof getSelectedTacticalMatch === 'function' ? getSelectedTacticalMatch() : null;
             if (match && typeof window.getMatchGamePlanFormation === 'function') {
@@ -109,9 +65,46 @@
             return '4-2-4';
         }
 
+        function getMatchGamePlanLiveCoords(formationId) {
+            if (!formationId || typeof window.getMatchGamePlanFormationPositions !== 'function') return null;
+            const positions = window.getMatchGamePlanFormationPositions(formationId);
+            if (!positions || typeof positions !== 'object') return null;
+            const coords = {};
+            Object.entries(positions).forEach(([posId, value]) => {
+                if (!value || value.top == null || value.left == null) return;
+                coords[posId] = { top: value.top, left: value.left };
+            });
+            return Object.keys(coords).length ? coords : null;
+        }
+
+        const TACTICAL_FORMATION_PHASES = {
+            '3-4-1-2': {
+                // F1: same shape as Lagoppstilling, back three on the 16-meter line.
+                fase1: {
+                    GK: { top: '93%', left: '50%' },
+                    VMS: { top: '91%', left: '26%' },
+                    MS: { top: '76%', left: '50%' },
+                    HMS: { top: '91%', left: '74%' },
+                    VK: { top: '72%', left: '12%' },
+                    OM: { top: '64%', left: '36%' },
+                    DM: { top: '64%', left: '64%' },
+                    HK: { top: '72%', left: '88%' },
+                    PM: { top: '47%', left: '50%' },
+                    SP: { top: '32%', left: '36%' },
+                    SP2: { top: '32%', left: '64%' }
+                }
+            }
+        };
+
         function getLivePhaseCoords(phaseId) {
             const formationId = getSelectedMatchFormationId();
-            return TACTICAL_FORMATION_PHASES[formationId]?.[phaseId] || tacticalPhases[phaseId];
+            if (getTacticalMatchSelectValue() && formationId && formationId !== '4-2-4') {
+                const phaseCoords = TACTICAL_FORMATION_PHASES[formationId]?.[phaseId];
+                if (phaseCoords) return phaseCoords;
+                const fromPlan = getMatchGamePlanLiveCoords(formationId);
+                if (fromPlan) return fromPlan;
+            }
+            return tacticalPhases[phaseId] || tacticalPhases.fase1;
         }
 
         function syncLiveFormationNodes() {
@@ -666,6 +659,9 @@
         }
 
         function getTacticalLivePosBadge(posId) {
+            if (typeof window.getMatchGamePlanPositionBadgeLabel === 'function') {
+                return window.getMatchGamePlanPositionBadgeLabel(posId, getSelectedMatchFormationId()) || posId;
+            }
             if (posId === 'VMS') return 'VS';
             if (posId === 'HMS') return 'HS';
             return posId;
@@ -704,6 +700,21 @@
                     ? window.findPlayerByRef(savedLineup[pos])
                     : savedLineup[pos];
                 window.liveLineup[pos] = refPlayer || savedPlayer || null;
+            });
+            const formationId = typeof window.getMatchGamePlanFormation === 'function'
+                ? window.getMatchGamePlanFormation(match)
+                : (match?.formation || '');
+            if (typeof window.remapMatchGamePlanLineupSlotsForFormation === 'function') {
+                window.liveLineup = window.remapMatchGamePlanLineupSlotsForFormation(
+                    window.liveLineup,
+                    formationId,
+                    { overwrite: true }
+                );
+            }
+            TACTICAL_POSITIONS.forEach((pos) => {
+                if (!Object.prototype.hasOwnProperty.call(window.liveLineup, pos)) {
+                    window.liveLineup[pos] = null;
+                }
             });
             syncLiveLineupToTactical();
         }
@@ -943,8 +954,11 @@
                 : null;
             if (!inPlayer) return;
 
-            const outPosId = sub.posId;
-            const inPosId = sub.inPosId || outPosId;
+            const resolved = typeof window.resolveLiveSubPositionsForFormation === 'function'
+                ? window.resolveLiveSubPositionsForFormation(getSelectedTacticalMatch(), sub, window.liveLineup)
+                : null;
+            const outPosId = resolved?.posId || sub.posId;
+            const inPosId = resolved?.inPosId || sub.inPosId || outPosId;
 
             (sub.outRoles || []).forEach((slot) => {
                 window.liveRoles[slot] = getTacticalLivePlayerRef(inPlayer);
@@ -952,6 +966,10 @@
 
             if (inPosId === outPosId) {
                 window.liveLineup[outPosId] = inPlayer;
+                const rawPosId = String(sub.posId || '').trim();
+                if (rawPosId && rawPosId !== outPosId) clearLiveLineupPos(rawPosId);
+                const rawInPosId = String(sub.inPosId || '').trim();
+                if (rawInPosId && rawInPosId !== outPosId) clearLiveLineupPos(rawInPosId);
                 return;
             }
 
@@ -1129,8 +1147,18 @@
                 open.set(key, { posId: roleId, slotId: posId, since: atMinute });
             };
 
+            const kickoffLineup = {};
             TACTICAL_POSITIONS.forEach((posId) => {
-                const player = getKickoffLineupPlayer(match, posId);
+                kickoffLineup[posId] = getKickoffLineupPlayer(match, posId);
+            });
+            const formationId = typeof window.getMatchGamePlanFormation === 'function'
+                ? window.getMatchGamePlanFormation(match)
+                : (match?.formation || '');
+            const mappedKickoff = typeof window.remapMatchGamePlanLineupSlotsForFormation === 'function'
+                ? window.remapMatchGamePlanLineupSlotsForFormation(kickoffLineup, formationId, { overwrite: true })
+                : kickoffLineup;
+            TACTICAL_POSITIONS.forEach((posId) => {
+                const player = mappedKickoff[posId];
                 if (!player) return;
                 occupyPos(getLivePlayingTimeStorageKey(player), posId, 0);
             });
@@ -1176,8 +1204,17 @@
                 const minute = Math.min(event.minute, duration);
                 if (event.type === 'sub') {
                     const sub = event.sub;
-                    const outPosId = sub.posId;
-                    const inPosId = sub.inPosId || outPosId;
+                    const boardLineup = {};
+                    Object.entries(board).forEach(([posId, key]) => {
+                        boardLineup[posId] = typeof window.findPlayerByRef === 'function'
+                            ? window.findPlayerByRef(key)
+                            : { id: key };
+                    });
+                    const resolved = typeof window.resolveLiveSubPositionsForFormation === 'function'
+                        ? window.resolveLiveSubPositionsForFormation(match, sub, boardLineup)
+                        : null;
+                    const outPosId = resolved?.posId || sub.posId;
+                    const inPosId = resolved?.inPosId || sub.inPosId || outPosId;
                     const inKey = resolvePlayerKeyFromRef(sub.inId);
                     const outKey = resolvePlayerKeyFromRef(sub.outId);
                     leavePos(outPosId, minute);
@@ -1676,11 +1713,12 @@
                 return;
             }
             const formationId = getSelectedMatchFormationId();
-            const connections = (
+            const formationConnections = (
                 typeof window.hasMatchGamePlanSamspillConnections === 'function'
                 && window.hasMatchGamePlanSamspillConnections(formationId)
                 && typeof window.getMatchGamePlanSamspillConnections === 'function'
-            )
+            );
+            const connections = formationConnections
                 ? window.getMatchGamePlanSamspillConnections(formationId)
                 : (typeof window.getTacticalSamspillConnections === 'function'
                     ? window.getTacticalSamspillConnections(
@@ -1757,7 +1795,7 @@
                     if (a.focused !== b.focused) return a.focused ? 1 : -1;
                     return b.relevance - a.relevance;
                 })
-                .slice(0, focusPos ? pairResults.length : 22);
+                .slice(0, (focusPos || formationConnections) ? pairResults.length : 22);
             const labelPositions = typeof window.getSamspillScoreLabelPositions === 'function'
                 ? window.getSamspillScoreLabelPositions(drawnPairs.map(entry => entry.coords))
                 : [];
@@ -2123,6 +2161,9 @@
                 window.updateTacticalLineupControls();
                 window.applyTacticalLineupReadOnlyState();
                 window.syncTacticalSandboxButton();
+                if (typeof window.setTacticalPhase === 'function') {
+                    window.setTacticalPhase(typeof currentTacticalPhase !== 'undefined' ? currentTacticalPhase : 'fase1');
+                }
                 return;
             }
             
@@ -2135,6 +2176,9 @@
 
             hydrateLiveSubstitutionsFromMatch(match);
             setLivePlayingTimeStatus('');
+            if (typeof window.setTacticalPhase === 'function') {
+                window.setTacticalPhase(typeof currentTacticalPhase !== 'undefined' ? currentTacticalPhase : 'fase1');
+            }
             refreshTacticalLiveBoard();
             syncLiveLockUi();
             window.syncTacticalSandboxButton();
