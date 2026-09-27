@@ -1799,6 +1799,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'alle', label: 'Alle' },
             { id: 'GK', label: 'GK' },
             { id: 'VMS', label: 'VS' },
+            { id: 'MS', label: 'MS' },
             { id: 'HMS', label: 'HS' },
             { id: 'VB', label: 'VB' },
             { id: 'HB', label: 'HB' },
@@ -4171,6 +4172,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         function getStatsSummaryPosLabel(posId) {
             if (posId === 'VMS') return 'VS';
             if (posId === 'HMS') return 'HS';
+            if (posId === 'SP2') return 'SP';
             return String(posId || '').trim();
         }
 

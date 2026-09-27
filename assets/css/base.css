@@ -16634,6 +16634,9 @@
         .tactical-live-ghost.is-fading {
             opacity: 0;
         }
+        #full-pitch-container .player-node.is-formation-hidden {
+            display: none !important;
+        }
         #full-pitch-container.is-live-board .player-node {
             cursor: default;
             pointer-events: auto;

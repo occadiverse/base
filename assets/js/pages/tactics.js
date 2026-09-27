@@ -56,7 +56,79 @@
             }
         };
 
-        const TACTICAL_POSITIONS = ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'];
+        const TACTICAL_FORMATION_PHASES = {
+            '3-4-1-2': {
+                fase1: {
+                    GK: { top: '93%', left: '50%' },
+                    VMS: { top: '90%', left: '28%' },
+                    MS: { top: '92%', left: '50%' },
+                    HMS: { top: '90%', left: '72%' },
+                    VB: { top: '78%', left: '12%' },
+                    OM: { top: '76%', left: '36%' },
+                    DM: { top: '76%', left: '64%' },
+                    HB: { top: '78%', left: '88%' },
+                    PM: { top: '58%', left: '50%' },
+                    SP: { top: '48%', left: '36%' },
+                    SP2: { top: '48%', left: '64%' }
+                },
+                fase2: {
+                    GK: { top: '88%', left: '50%' },
+                    VMS: { top: '70%', left: '28%' },
+                    MS: { top: '72%', left: '50%' },
+                    HMS: { top: '70%', left: '72%' },
+                    VB: { top: '54%', left: '12%' },
+                    OM: { top: '52%', left: '36%' },
+                    DM: { top: '52%', left: '64%' },
+                    HB: { top: '54%', left: '88%' },
+                    PM: { top: '34%', left: '50%' },
+                    SP: { top: '20%', left: '36%' },
+                    SP2: { top: '20%', left: '64%' }
+                },
+                fase3: {
+                    GK: { top: '86%', left: '50%' },
+                    VMS: { top: '54%', left: '26%' },
+                    MS: { top: '56%', left: '50%' },
+                    HMS: { top: '54%', left: '74%' },
+                    VB: { top: '36%', left: '12%' },
+                    OM: { top: '32%', left: '34%' },
+                    DM: { top: '32%', left: '66%' },
+                    HB: { top: '36%', left: '88%' },
+                    PM: { top: '20%', left: '50%' },
+                    SP: { top: '12%', left: '36%' },
+                    SP2: { top: '12%', left: '64%' }
+                }
+            }
+        };
+
+        function getSelectedMatchFormationId() {
+            const match = typeof getSelectedTacticalMatch === 'function' ? getSelectedTacticalMatch() : null;
+            if (match && typeof window.getMatchGamePlanFormation === 'function') {
+                const formationId = window.getMatchGamePlanFormation(match);
+                if (formationId) return formationId;
+            }
+            return '4-2-4';
+        }
+
+        function getLivePhaseCoords(phaseId) {
+            const formationId = getSelectedMatchFormationId();
+            return TACTICAL_FORMATION_PHASES[formationId]?.[phaseId] || tacticalPhases[phaseId];
+        }
+
+        function syncLiveFormationNodes() {
+            const formationId = getSelectedMatchFormationId();
+            const valid = new Set(
+                typeof window.getMatchGamePlanFormationPositionIds === 'function'
+                    ? window.getMatchGamePlanFormationPositionIds(formationId)
+                    : TACTICAL_POSITIONS
+            );
+            TACTICAL_POSITIONS.forEach((pos) => {
+                const node = document.getElementById('node-' + pos);
+                if (!node) return;
+                node.classList.toggle('is-formation-hidden', !valid.has(pos));
+            });
+        }
+
+        const TACTICAL_POSITIONS = ['GK', 'VMS', 'MS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP', 'SP2'];
         const TACTICAL_LIVE_ROLE_SLOTS = ['K', 'K2', 'Cv', 'Ch', 'F', 'F2', 'S', 'S2'];
         const TACTICAL_LIVE_ROLE_LABELS = {
             K: 'Kaptein',
@@ -95,7 +167,7 @@
 
         const TACTICAL_SLOT_ROLE_OPTIONS = TACTICAL_POSITIONS.map((id) => ({
             id,
-            label: id === 'VMS' ? 'VS' : (id === 'HMS' ? 'HS' : id)
+            label: id === 'VMS' ? 'VS' : (id === 'HMS' ? 'HS' : (id === 'SP2' ? 'SH' : id))
         }));
 
         const LIVE_MATCH_CLOCK_STORAGE_PREFIX = 'occa.liveMatchClock.';
@@ -1236,6 +1308,7 @@
 
             loadTacticalLineupFromMatch(match);
             loadLiveRolesFromMatch(match);
+            syncLiveFormationNodes();
 
             window.tacticalAppliedLiveSubs.forEach((sub) => applyLiveSubToLineupState(sub));
             window.tacticalAppliedLiveMoves.forEach((move) => applyLiveMoveToLineupState(move));
@@ -1602,13 +1675,20 @@
                 syncTacticalSamspillToggleUi();
                 return;
             }
-            const connections = typeof window.getTacticalSamspillConnections === 'function'
-                ? window.getTacticalSamspillConnections(
-                    typeof window.getActiveTacticalSamspillPhase === 'function'
-                        ? window.getActiveTacticalSamspillPhase()
-                        : undefined
-                )
-                : [];
+            const formationId = getSelectedMatchFormationId();
+            const connections = (
+                typeof window.hasMatchGamePlanSamspillConnections === 'function'
+                && window.hasMatchGamePlanSamspillConnections(formationId)
+                && typeof window.getMatchGamePlanSamspillConnections === 'function'
+            )
+                ? window.getMatchGamePlanSamspillConnections(formationId)
+                : (typeof window.getTacticalSamspillConnections === 'function'
+                    ? window.getTacticalSamspillConnections(
+                        typeof window.getActiveTacticalSamspillPhase === 'function'
+                            ? window.getActiveTacticalSamspillPhase()
+                            : undefined
+                    )
+                    : []);
             const focusPos = typeof currentSelectPos !== 'undefined' ? currentSelectPos : null;
             const chemOptions = typeof window.getTacticalChemistryFilter === 'function'
                 ? window.getTacticalChemistryFilter()
@@ -1661,6 +1741,7 @@
                 const node1 = document.getElementById('node-' + pair[0]);
                 const node2 = document.getElementById('node-' + pair[1]);
                 if (!node1 || !node2 || !node1.style.top || !node2.style.top) return null;
+                if (node1.classList.contains('is-formation-hidden') || node2.classList.contains('is-formation-hidden')) return null;
 
                 return {
                     pair,
@@ -1751,8 +1832,9 @@
                 if (labelLayer) labelLayer.innerHTML = '';
             }
 
-            const coords = tacticalPhases[phaseId] || {};
-            const prevCoords = tacticalPhases[previousPhase] || coords;
+            const coords = getLivePhaseCoords(phaseId) || {};
+            const prevCoords = getLivePhaseCoords(previousPhase) || coords;
+            syncLiveFormationNodes();
 
             for (const [nodeId, pos] of Object.entries(coords)) {
                 const node = document.getElementById('node-' + nodeId);
@@ -1942,6 +2024,7 @@
         }
 
         function refreshTacticalLiveBoard() {
+            syncLiveFormationNodes();
             TACTICAL_POSITIONS.forEach(pos => {
                 window.renderNodeVisually(window.tacticalLineup[pos], pos);
             });
@@ -2341,7 +2424,10 @@
 
         function getLivePosBadgeLabel(posId) {
             if (typeof window.getMatchGamePlanPositionBadgeLabel === 'function') {
-                return window.getMatchGamePlanPositionBadgeLabel(posId) || posId;
+                const formationId = typeof getSelectedMatchFormationId === 'function'
+                    ? getSelectedMatchFormationId()
+                    : '';
+                return window.getMatchGamePlanPositionBadgeLabel(posId, formationId) || posId;
             }
             return posId || '';
         }
@@ -3322,16 +3408,26 @@
             const priorityOrder = [
                 { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false },
                 { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true },
+                { id: 'MS',  pos: ['Venstre stopper', 'Høyre stopper'], foot: null, requireFoot: false },
                 { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true },
                 { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false },
                 { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false },
                 { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false },
                 { id: 'SP',  pos: ['Spiss'], foot: null, requireFoot: false },
+                { id: 'SP2', pos: ['Spiss'], foot: null, requireFoot: false },
                 { id: 'VB',  pos: ['Venstre bekk'], foot: null, requireFoot: true },
                 { id: 'HB',  pos: ['Høyre bekk'], foot: null, requireFoot: true },
                 { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: null, requireFoot: false },
                 { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: null, requireFoot: false }
-            ];
+            ].filter((req) => {
+                if (typeof window.getMatchGamePlanFormationPositionIds !== 'function') return true;
+                const formationId = currentMatch
+                    ? (typeof window.getMatchGamePlanFormation === 'function'
+                        ? window.getMatchGamePlanFormation(currentMatch)
+                        : '4-2-4')
+                    : '4-2-4';
+                return window.getMatchGamePlanFormationPositionIds(formationId).includes(req.id);
+            });
 
             const getKampbonus = (pObj) => (
                 typeof window.getPlayerKampbidragSnitt === 'function'

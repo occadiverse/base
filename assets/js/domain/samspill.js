@@ -2,6 +2,7 @@
     const POSITION_PAIR_RELEVANCE = {
         'VB|VK': 1.0, 'HB|HK': 1.0,
         'HMS|VMS': 1.0,
+        'MS|VMS': 1.0, 'HMS|MS': 1.0,
         'VB|VMS': 0.95, 'HB|HMS': 0.95,
         'DM|VMS': 0.95, 'DM|HMS': 0.95,
         'DM|OM': 1.0, 'DM|PM': 1.0,
@@ -13,9 +14,10 @@
         'DM|VB': 0.85, 'DM|HB': 0.95,
         'OM|VMS': 0.95, 'HMS|PM': 0.75,
         'DM|VK': 0.7, 'DM|HK': 0.7,
-        'GK|VMS': 0.7, 'GK|HMS': 0.7,
+        'GK|VMS': 0.7, 'GK|HMS': 0.7, 'GK|MS': 0.7,
         'DM|GK': 0.55,
         'GK|SP': 0.3,
+        'PM|SP2': 1.0, 'SP|SP2': 1.0,
         'HK|VK': 0.3,
         'HB|VK': 0.35, 'HK|VB': 0.35, 'HB|VB': 0.5,
         'GK|VK': 0.35, 'GK|HK': 0.35,
@@ -138,6 +140,18 @@
             // Mot spiss
             ['OM', 'SP'], ['DM', 'SP'], ['PM', 'SP'],
             ['VK', 'SP'], ['HK', 'SP']
+        ],
+        '3-4-1-2': [
+            ['GK', 'VMS'], ['GK', 'MS'], ['GK', 'HMS'],
+            ['VMS', 'MS'], ['MS', 'HMS'],
+            ['VMS', 'VB'], ['HMS', 'HB'],
+            ['VMS', 'OM'], ['MS', 'OM'], ['MS', 'DM'], ['HMS', 'DM'],
+            ['VB', 'OM'], ['HB', 'DM'],
+            ['OM', 'DM'],
+            ['OM', 'PM'], ['DM', 'PM'],
+            ['PM', 'SP'], ['PM', 'SP2'],
+            ['OM', 'SP'], ['DM', 'SP2'],
+            ['SP', 'SP2']
         ]
     };
 
@@ -894,6 +908,42 @@
                     id: 'hoyre',
                     label: 'Høyre',
                     pairs: [['HMS', 'HB'], ['HB', 'HK'], ['HB', 'PM'], ['PM', 'HK']]
+                }
+            ]
+        },
+        '3-4-1-2': {
+            rows: [
+                {
+                    id: 'forsvar',
+                    label: 'Forsvar',
+                    pairs: [['GK', 'VMS'], ['GK', 'MS'], ['GK', 'HMS'], ['VMS', 'MS'], ['MS', 'HMS']]
+                },
+                {
+                    id: 'midtbane',
+                    label: 'Midtbane',
+                    pairs: [['VB', 'OM'], ['OM', 'DM'], ['DM', 'HB'], ['OM', 'PM'], ['DM', 'PM']]
+                },
+                {
+                    id: 'angrep',
+                    label: 'Angrep',
+                    pairs: [['PM', 'SP'], ['PM', 'SP2'], ['SP', 'SP2']]
+                }
+            ],
+            corridors: [
+                {
+                    id: 'venstre',
+                    label: 'Venstre',
+                    pairs: [['VMS', 'VB'], ['VB', 'OM'], ['OM', 'SP'], ['OM', 'PM']]
+                },
+                {
+                    id: 'sentral',
+                    label: 'Sentral',
+                    pairs: [['GK', 'VMS'], ['GK', 'MS'], ['GK', 'HMS'], ['VMS', 'MS'], ['MS', 'HMS'], ['OM', 'DM'], ['OM', 'PM'], ['DM', 'PM'], ['PM', 'SP'], ['PM', 'SP2']]
+                },
+                {
+                    id: 'hoyre',
+                    label: 'Høyre',
+                    pairs: [['HMS', 'HB'], ['HB', 'DM'], ['DM', 'SP2'], ['DM', 'PM']]
                 }
             ]
         }
