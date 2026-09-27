@@ -2144,6 +2144,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return '-';
         };
 
+        window.formatMinutesTotalDisplay = function(stat) {
+            const total = Math.round(Number(stat?.minutesTotal) || 0);
+            if (total <= 0) return '-';
+            const avg = Math.round(Number(stat.minutesAvg) || 0);
+            return `${total}' / ${avg}'`;
+        };
+
         window.formatExpectedMalpoengDisplay = function(stat) {
             if (!stat || !(Number(stat.kamper) > 0) || stat.expectedMalpoeng == null) return '-';
             const value = Number(stat.expectedMalpoeng);
@@ -2247,7 +2254,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const iconHtml = window.renderStatsSortIconHtml(option, 'stats-sort-context-icon');
             const value = leader[column];
             const median = window.getStatsSortMedian(column, statsData, leader.spillerLag || '');
-            const mainText = window.formatStatsSortValue(column, value);
+            const mainText = window.formatStatsSortValue(leader, column);
             const delta = window.formatStatsMedianDelta(column, value, median);
 
             return `
@@ -2295,8 +2302,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     `;
                 }
                 const valueText = column === 'kjemi'
-                    ? `${window.formatStatsSortValue(column, leader[column])}/100`
-                    : window.formatStatsSortValue(column, leader[column]);
+                    ? `${window.formatStatsSortValue(leader, column)}/100`
+                    : window.formatStatsSortValue(leader, column);
                 const playerId = typeof getStatsPlayerIdForName === 'function'
                     ? getStatsPlayerIdForName(leader.navn)
                     : '';
@@ -3639,7 +3646,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
-            { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch' },
+            { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch', title: 'Total / snitt per kamp' },
             { id: 'minutesSharePct', label: 'Minuttandel', icon: 'fa-chart-pie' }
         ];
 
@@ -3659,8 +3666,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return `${Math.round(Number(stat.minutesSharePct) || 0)}%`;
                 }
                 if (column === 'minutesTotal') {
-                    const total = Math.round(Number(stat.minutesTotal) || 0);
-                    return total > 0 ? `${total}'` : '-';
+                    return typeof window.formatMinutesTotalDisplay === 'function'
+                        ? window.formatMinutesTotalDisplay(stat)
+                        : '-';
                 }
                 if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors' || column === 'expectedMalpoeng') {
                     if (column === 'expectedMalpoeng') {
@@ -3719,7 +3727,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     class="bsk-btn bsk-btn-chip roster-status-btn stats-sort-btn ${activeCol === opt.id ? 'is-active' : ''}"
                     data-sort-col="${opt.id}"
                     aria-label="${opt.label}"
-                    title="${opt.label}"
+                    title="${opt.title || opt.label}"
                 >
                     ${opt.glyph
                         ? `<i class="stats-sort-glyph stats-sort-glyph-${opt.glyph}" aria-hidden="true"></i>`
