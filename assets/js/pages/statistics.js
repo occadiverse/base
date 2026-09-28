@@ -5039,7 +5039,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
     }).join('');
 
     return `
-        <table class="stats-form-history-table">
+        <table class="stats-form-history-table stats-form-history-table-player">
             <thead>
                 <tr>
                     <th>Dato</th>

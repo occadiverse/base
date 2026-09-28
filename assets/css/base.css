@@ -6602,8 +6602,8 @@
         }
         .player-profile-history-wrap .stats-form-history-table {
             border-radius: 0.85rem;
-            overflow: hidden;
-            width: 100%;
+            min-width: 100%;
+            width: max-content;
         }
         .player-profile-history-wrap {
             overflow-x: auto;
@@ -18142,6 +18142,7 @@
             color: #64748b;
             font-size: 0.72rem;
             font-weight: 900;
+            overflow: hidden;
             white-space: nowrap;
         }
         .stats-form-history-opponent {
@@ -18348,6 +18349,31 @@
             .stats-form-history-table th:last-child,
             .stats-form-history-table td:last-child {
                 padding-right: 0.45rem;
+            }
+            .stats-form-history-table-player {
+                min-width: 31.5rem;
+                table-layout: fixed;
+                width: max-content;
+            }
+            .stats-form-history-table-player th:first-child,
+            .stats-form-history-table-player td:first-child {
+                overflow: hidden;
+                padding-left: 0.55rem;
+                padding-right: 0.3rem;
+                width: 3.45rem;
+                min-width: 3.45rem;
+            }
+            .stats-form-history-table-player th:nth-child(2),
+            .stats-form-history-table-player td:nth-child(2) {
+                min-width: 6.5rem;
+                width: 7rem;
+            }
+            .stats-form-history-table-player th:nth-child(n+3),
+            .stats-form-history-table-player td:nth-child(n+3) {
+                min-width: 2.35rem;
+                padding-left: 0.12rem;
+                padding-right: 0.12rem;
+                width: 2.45rem;
             }
             .stats-form-history-date,
             .stats-form-history-result {
