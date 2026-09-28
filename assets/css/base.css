@@ -5800,6 +5800,12 @@
             border-color: rgba(245, 197, 66, 0.42);
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
         }
+        textarea.player-modal-field {
+            line-height: 1.4;
+            min-height: 4.15rem;
+            padding: 0.65rem 0.75rem;
+            resize: vertical;
+        }
         select.player-modal-field {
             background-color: rgba(255, 255, 255, 0.08);
             background-image:
@@ -6010,6 +6016,23 @@
             font-weight: 600;
             line-height: 1.45;
             margin: 0;
+        }
+        .player-profile-moment-text {
+            background: rgba(245, 197, 66, 0.08);
+            border: 1px solid rgba(245, 197, 66, 0.22);
+            border-radius: 0.8rem;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.82rem;
+            font-weight: 650;
+            line-height: 1.45;
+            margin: 0;
+            padding: 0.65rem 0.75rem;
+        }
+        .player-profile-moment-text.is-empty {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
         }
         .player-profile-section-injury .player-profile-injury-text {
             background: rgba(244, 63, 94, 0.12);
@@ -6537,6 +6560,12 @@
         .player-profile-panel .player-profile-injury-text,
         .player-profile-panel .player-profile-empty {
             color: rgba(255, 255, 255, 0.72);
+        }
+        .player-profile-panel .player-profile-moment-text {
+            color: rgba(255, 255, 255, 0.88);
+        }
+        .player-profile-panel .player-profile-moment-text.is-empty {
+            color: rgba(255, 255, 255, 0.5);
         }
         .player-profile-injury-history {
             margin-top: 0.75rem;
@@ -13010,6 +13039,29 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .match-game-plan-insight-moment {
+            background: rgba(245, 197, 66, 0.1);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.65rem 0.75rem;
+        }
+        .match-game-plan-insight-moment-label {
+            color: rgba(248, 250, 252, 0.62);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .match-game-plan-insight-moment-text {
+            color: #ffffff;
+            font-size: 0.84rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0;
         }
         .match-game-plan-insight-table-wrap {
             border: 1px solid rgba(245, 197, 66, 0.18);

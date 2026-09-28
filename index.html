@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260928-spillerbors-intro-v1">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260928-utviklingsmoment-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -1029,6 +1029,20 @@
                         <input type="text" id="playerSkadeNotatInput" placeholder="F.eks. ankelskade, knært" class="player-modal-field">
                     </div>
                 </div>
+
+                <div class="player-modal-section">
+                    <p class="player-modal-section-title">Utviklingsmoment</p>
+                    <div class="player-modal-field-block">
+                        <label class="player-modal-label" for="playerUtviklingsmomentInput">Fokus nå</label>
+                        <textarea
+                            id="playerUtviklingsmomentInput"
+                            class="player-modal-field player-modal-field-moment"
+                            rows="2"
+                            maxlength="160"
+                            placeholder="F.eks. første berøring under press"
+                        ></textarea>
+                    </div>
+                </div>
             </form>
 
             <div class="player-modal-footer relative z-10">
@@ -1417,8 +1431,8 @@
     <script src="assets/js/domain/samspill.js?v=20260927-3412-hk-sh-v2"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
-    <script src="assets/js/pages/players.js?v=20260919-profile-posisjon-v2"></script>
-    <script src="assets/js/pages/matches.js?v=20260928-spillerbors-intro-v1"></script>
+    <script src="assets/js/pages/players.js?v=20260928-utviklingsmoment-v1"></script>
+    <script src="assets/js/pages/matches.js?v=20260928-utviklingsmoment-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260928-kampstats-player-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260927-3412-f1-v13"></script>

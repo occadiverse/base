@@ -202,6 +202,20 @@ function buildPlayerInjuryHistoryEntry(player, tilDato = getTodayDateString()) {
     };
 }
 
+function getPlayerUtviklingsmoment(player) {
+    return String(player?.utviklingsmoment || '').trim();
+}
+
+function buildPlayerUtviklingsmomentSectionHtml(player) {
+    const moment = getPlayerUtviklingsmoment(player);
+    return `
+        <div class="player-profile-section">
+            <p class="player-profile-section-title">Utviklingsmoment</p>
+            <p class="player-profile-moment-text${moment ? '' : ' is-empty'}">${escapeRosterHtml(moment || 'Ikke satt')}</p>
+        </div>
+    `;
+}
+
 function finishPlayerInjury(player, tilDato = getTodayDateString()) {
     const historyEntry = buildPlayerInjuryHistoryEntry(player, tilDato);
     const skadeHistorikk = Array.isArray(player.skadeHistorikk) ? [...player.skadeHistorikk] : [];
@@ -694,6 +708,8 @@ function renderPlayerModalProfile(player) {
             </div>
         ` : ''}
 
+        ${buildPlayerUtviklingsmomentSectionHtml(player)}
+
         <div class="player-profile-section">
             <p class="player-profile-section-title">Statistikk</p>
             ${hasMatchData ? `
@@ -1089,6 +1105,8 @@ window.renderPlayerProfilePage = function(playerId) {
                 <p class="player-profile-section-title">Skade</p>
                 ${buildPlayerInjuryHistoryHtml(player, injuryInfo)}
             </div>
+
+            ${buildPlayerUtviklingsmomentSectionHtml(player)}
         </section>
 
         <section class="match-detail-card player-profile-panel relative">
@@ -1294,6 +1312,8 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
             document.getElementById('playerSkadeNotatInput').value = pObj.skadeNotat || '';
             document.getElementById('playerSkadeFraDatoInput').value = pObj.skadeFraDato || '';
             document.getElementById('playerSkadeTilDatoInput').value = pObj.skadeTilDato || '';
+            const momentInput = document.getElementById('playerUtviklingsmomentInput');
+            if (momentInput) momentInput.value = getPlayerUtviklingsmoment(pObj);
             window._playerModalWasInjured = isPlayerCurrentlyInjured(pObj);
             const friskDatoInput = document.getElementById('playerSkadeFriskDatoInput');
             if (friskDatoInput) friskDatoInput.value = getTodayDateString();
@@ -1309,6 +1329,8 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
         document.getElementById('playerSkadeNotatInput').value = '';
         document.getElementById('playerSkadeFraDatoInput').value = '';
         document.getElementById('playerSkadeTilDatoInput').value = '';
+        const momentInput = document.getElementById('playerUtviklingsmomentInput');
+        if (momentInput) momentInput.value = '';
         const friskDatoInput = document.getElementById('playerSkadeFriskDatoInput');
         if (friskDatoInput) friskDatoInput.value = getTodayDateString();
         window.togglePlayerSkadeFields();
@@ -1481,6 +1503,7 @@ window.savePlayer = async function(event) {
     const pos2 = document.getElementById('playerPos2Input').value.trim();
     const fot = document.getElementById('playerFootInput').value.trim();
     const skadeNotat = isSavingInjury ? document.getElementById('playerSkadeNotatInput').value.trim() : '';
+    const utviklingsmoment = (document.getElementById('playerUtviklingsmomentInput')?.value || '').trim().slice(0, 160);
 
     if (!navn) {
         alert('Du må fylle inn spillerens navn.');
@@ -1515,6 +1538,7 @@ window.savePlayer = async function(event) {
         pos1,
         pos2,
         fot,
+        utviklingsmoment,
         skadeStatus: selectedSkadeStatus,
         skadeNotat,
         skadeFraDato: isSavingInjury
@@ -1548,7 +1572,8 @@ window.savePlayer = async function(event) {
             spillerLag: playerTeam,
             pos1,
             pos2,
-            fot
+            fot,
+            utviklingsmoment
         };
     }
 
