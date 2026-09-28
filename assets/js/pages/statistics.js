@@ -1752,7 +1752,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const minutesSharePct = minutesPossible > 0
                         ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
                         : null;
-                    const teamKampCount = teamEvents.filter(e => e.type === 'Kamp').length;
+                    const teamKampCount = allEvents.filter(e => {
+                        if (e.team !== p.spillerLag || e.type !== 'Kamp') return false;
+                        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
+                        if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return false;
+                        return true;
+                    }).length;
                     const kampSharePct = teamKampCount > 0
                         ? Math.round((kamper / teamKampCount) * 1000) / 10
                         : 0;
@@ -1824,7 +1829,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.playerMeetsPositionStatsThreshold = function(row) {
-            return (Number(row?.matches) || 0) >= 2 || (Number(row?.minutes) || 0) >= 90;
+            return (Number(row?.matches) || 0) >= 1;
         };
 
         window.getPlayerPositionSpillerborsMinutes = function(player, positionId, yearFilter) {
@@ -1916,6 +1921,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ...stat,
                     kamper,
                     attendedMatches: kamper,
+                    kampSharePct: Number(stat.teamKampCount) > 0
+                        ? Math.round((kamper / Number(stat.teamKampCount)) * 1000) / 10
+                        : 0,
                     mal: Number(row.goals) || 0,
                     assist: Number(row.assists) || 0,
                     expectedMalpoeng: kamper > 0
@@ -2158,8 +2166,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return `${value.toFixed(1)} / ${Number(stat.kamper) || 0}`;
         };
 
-        window.playerMeetsExpectedMalpoengThreshold = function(stat) {
+        window.playerMeetsKampShareThreshold = function(stat) {
             return (Number(stat?.kampSharePct) || 0) >= 30;
+        };
+
+        window.playerMeetsExpectedMalpoengThreshold = function(stat) {
+            return window.playerMeetsKampShareThreshold(stat);
         };
 
         window.formatStatsMedianDelta = function(column, playerValue, median) {
@@ -2187,8 +2199,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.getStatsPlayerRank = function(playerName, column, statsData) {
             let relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, column));
-            if (column === 'expectedMalpoeng' && typeof window.playerMeetsExpectedMalpoengThreshold === 'function') {
-                relevantStats = relevantStats.filter(stat => window.playerMeetsExpectedMalpoengThreshold(stat));
+            if (typeof window.playerMeetsKampShareThreshold === 'function') {
+                relevantStats = relevantStats.filter(stat => window.playerMeetsKampShareThreshold(stat));
             }
             const useActiveSort = column === currentStatSortCol;
 
@@ -2203,7 +2215,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.getStatsSortedLeader = function(sortCol, statsData) {
-            const relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, sortCol));
+            const relevantStats = statsData.filter(stat => {
+                if (!window.playerStatsRelevantForSort(stat, sortCol)) return false;
+                if (typeof window.playerMeetsKampShareThreshold === 'function' && !window.playerMeetsKampShareThreshold(stat)) {
+                    return false;
+                }
+                return true;
+            });
             relevantStats.sort((a, b) => (
                 currentStatSortDesc
                     ? b[sortCol] - a[sortCol]
@@ -2215,7 +2233,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.getStatsSortMedian = function(column, statsData, teamName) {
             const pool = statsData.filter(stat => {
                 if (teamName && stat.spillerLag !== teamName) return false;
-                return window.playerStatsRelevantForSort(stat, column);
+                if (!window.playerStatsRelevantForSort(stat, column)) return false;
+                if (typeof window.playerMeetsKampShareThreshold === 'function' && !window.playerMeetsKampShareThreshold(stat)) {
+                    return false;
+                }
+                return true;
             });
 
             if (column === 'kjemi' && typeof window.getTeamFormMedian === 'function') {
@@ -2273,8 +2295,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const pickLeader = (column) => {
                 const relevant = rows.filter(stat => {
                     if (!window.playerStatsRelevantForSort(stat, column)) return false;
-                    if (column === 'expectedMalpoeng' && typeof window.playerMeetsExpectedMalpoengThreshold === 'function') {
-                        return window.playerMeetsExpectedMalpoengThreshold(stat);
+                    if (typeof window.playerMeetsKampShareThreshold === 'function') {
+                        return window.playerMeetsKampShareThreshold(stat);
                     }
                     return true;
                 });
@@ -3462,12 +3484,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return rows;
             };
 
-            const isExpectedSort = currentStatSortCol === 'expectedMalpoeng';
             let qualified = statsData;
             let belowThreshold = [];
-            if (isExpectedSort) {
-                qualified = sortRows(statsData.filter(stat => window.playerMeetsExpectedMalpoengThreshold(stat)));
-                belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsExpectedMalpoengThreshold(stat)));
+            if (typeof window.playerMeetsKampShareThreshold === 'function') {
+                qualified = sortRows(statsData.filter(stat => window.playerMeetsKampShareThreshold(stat)));
+                belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsKampShareThreshold(stat)));
             } else {
                 sortRows(statsData);
                 qualified = statsData;
@@ -3482,7 +3503,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? window.getStatsSpillerPositionFilterOption()
                     : { id: 'alle' };
                 const emptyMessage = positionOption.id && positionOption.id !== 'alle'
-                    ? `Ingen spillere med minst to kamper eller 90 minutter som ${positionOption.label}.`
+                    ? `Ingen spillere med kamper som ${positionOption.label}.`
                     : window.getStatsSortEmptyMessage(currentStatSortCol);
                 list.innerHTML = `
                     <div class="training-data-rank-block">
