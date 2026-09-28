@@ -4605,6 +4605,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 .map(ref => window.findPlayerByRef(ref) || { id: ref, navn: window.getPlayerNameFromRef(ref) });
 
             const playersToRender = [...sortedPlayers, ...fallbackPlayers];
+            const formationId = typeof window.getMatchGamePlanFormation === 'function'
+                ? window.getMatchGamePlanFormation(match)
+                : (match.formation || '');
+            const matchDuration = typeof window.getMatchDurationForMinutesShare === 'function'
+                ? window.getMatchDurationForMinutesShare(match)
+                : (Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) || 90);
+            const stintsByKey = typeof window.computeLivePositionStints === 'function'
+                ? (window.computeLivePositionStints(match, matchDuration) || {})
+                : {};
+            const posBadge = (posId) => {
+                const id = String(posId || '').trim();
+                if (!id) return '';
+                return typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
+                    ? window.getMatchGamePlanPositionBadgeLabel(id, formationId)
+                    : id;
+            };
 
             const stats = playersToRender.map(playerObj => {
                 const playerRef = playerObj.id || playerObj.navn;
@@ -4623,6 +4639,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
                     ? window.calculatePlayerMatchPoints(match, playerObj, true)
                     : { total: 0, base: 0, resultBonus: 0, ratingBonus: 0, bbBonus: 0, minutesBonus: 0, onPitch: true };
+                const onPitch = pointsDetails.onPitch !== false;
+                const posIds = onPitch && typeof window.getPlayerMatchPlayedPositionIds === 'function'
+                    ? (window.getPlayerMatchPlayedPositionIds(match, playerObj) || [])
+                    : [];
+                const posId = posIds[0] || '';
+                const startStatus = typeof window.getPlayerMatchStartStatus === 'function'
+                    ? window.getPlayerMatchStartStatus(match, playerObj)
+                    : '';
+                const stints = stintsByKey[playerObj.id] || stintsByKey[playerRef] || [];
+                const posPath = stints.length >= 2
+                    ? stints.map((stint) => `${posBadge(stint.posId)} ${Math.max(0, Math.floor(Number(stint.minutes) || 0))}'`).join(' · ')
+                    : '';
+                const signed = (value) => {
+                    const numeric = Number(value) || 0;
+                    return numeric > 0 ? `+${numeric}` : String(numeric);
+                };
 
                 return {
                     id: playerObj.id || '',
@@ -4634,9 +4666,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     red,
                     minutes,
                     isBbInMatch,
-                    onPitch: pointsDetails.onPitch !== false,
+                    onPitch,
+                    posCode: posBadge(posId),
+                    startStatus,
+                    posPath,
                     points: pointsDetails.total || 0,
-                    breakdown: `${pointsDetails.onPitch === false ? 'Benk' : 'Spilt'}: ${pointsDetails.base || 0} | Res/Mål: ${(pointsDetails.resultBonus || 0) > 0 ? '+' + pointsDetails.resultBonus : (pointsDetails.resultBonus || 0)} | Børs: ${(pointsDetails.ratingBonus || 0) > 0 ? '+' + pointsDetails.ratingBonus : (pointsDetails.ratingBonus || 0)} | Min: ${(pointsDetails.minutesBonus || 0) > 0 ? '+' + pointsDetails.minutesBonus : (pointsDetails.minutesBonus || 0)} | BB: ${(pointsDetails.bbBonus || 0) > 0 ? '+' + pointsDetails.bbBonus : '-'}`
+                    breakdown: `${onPitch ? 'Spilt' : 'Benk'}: ${pointsDetails.base || 0} | Res/Mål: ${signed(pointsDetails.resultBonus)} | Børs: ${signed(pointsDetails.ratingBonus)} | Min: ${signed(pointsDetails.minutesBonus)}${(Number(pointsDetails.bbBonus) || 0) > 0 ? ` | BB: +${pointsDetails.bbBonus}` : ''}`
                 };
             });
 
@@ -4674,6 +4709,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const roleHtml = s.onPitch === false
                     ? '<span class="stats-kampdata-role is-bench">Benk</span>'
                     : '';
+                const pathHtml = s.posPath
+                    ? `<span class="stats-kampdata-pos-path">${escapeStatisticsHtml(s.posPath)}</span>`
+                    : '';
+                const posHtml = s.posCode
+                    ? `<span class="stats-kampdata-pos-code">${escapeStatisticsHtml(s.posCode)}</span>`
+                    : '–';
+                const startStatus = s.startStatus === 'S' || s.startStatus === 'B'
+                    ? s.startStatus
+                    : (s.onPitch === false ? 'B' : 'S');
+                const sbTitle = startStatus === 'S' ? 'Startet kampen' : 'Startet kampen på benken';
 
                 return `
                     <tr
@@ -4684,12 +4729,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         role="button"
                         tabindex="0"
                         title="${escapeStatisticsHtml(s.breakdown)}"
-                        aria-label="${safeName}, børs ${ratingText}, ${s.points} poeng"
+                        aria-label="${safeName}${s.posCode ? `, ${s.posCode}` : ''}, ${startStatus === 'S' ? 'start' : 'benk'}, børs ${ratingText}, ${s.points} poeng"
                     >
                         <td class="stats-kampdata-col-player">
                             <span class="stats-kampdata-player-name">${safeName}</span>
                             ${roleHtml}
+                            ${pathHtml}
                         </td>
+                        <td class="stats-kampdata-col-pos stats-kampdata-pc">${posHtml}</td>
+                        <td class="stats-kampdata-col-sb stats-kampdata-pc${startStatus === 'B' ? ' is-bench' : ' is-start'}" title="${escapeStatisticsHtml(sbTitle)}">${startStatus}</td>
                         <td class="stats-kampdata-col-min">${minutesText}</td>
                         <td class="stats-kampdata-col-rating ${ratingClass}">${ratingText}</td>
                         <td class="stats-kampdata-col-ma">${maText}</td>
@@ -4746,6 +4794,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <thead>
                                     <tr>
                                         <th>Spiller</th>
+                                        <th class="stats-kampdata-pc" title="Hovedposisjon i kampen">Pos</th>
+                                        <th class="stats-kampdata-pc" title="Start / Benk ved avspark">S/B</th>
                                         <th>MIN</th>
                                         <th>Børs</th>
                                         <th>M/A</th>

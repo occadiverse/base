@@ -9912,7 +9912,7 @@
         .stats-kampdata-table {
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 26rem;
+            min-width: 34rem;
             table-layout: fixed;
             width: 100%;
         }
@@ -9938,6 +9938,12 @@
         .stats-kampdata-table td:not(:first-child) {
             text-align: right;
             width: 3.4rem;
+        }
+        .stats-kampdata-table th.stats-kampdata-pc,
+        .stats-kampdata-table td.stats-kampdata-col-pos,
+        .stats-kampdata-table td.stats-kampdata-col-sb {
+            text-align: center;
+            width: 3.1rem;
         }
         .stats-kampdata-table th:last-child,
         .stats-kampdata-table td:last-child {
@@ -9970,6 +9976,42 @@
         }
         .stats-kampdata-col-player {
             min-width: 0;
+        }
+        .stats-kampdata-col-pos,
+        .stats-kampdata-col-sb {
+            text-align: center;
+            white-space: nowrap;
+        }
+        .stats-kampdata-col-sb.is-start {
+            color: #0f766e;
+            font-weight: 900;
+        }
+        .stats-kampdata-col-sb.is-bench {
+            color: #94a3b8;
+            font-weight: 900;
+        }
+        .stats-kampdata-pos-code {
+            background: rgba(18, 63, 115, 0.08);
+            border-radius: 0.35rem;
+            color: #123f73;
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            min-width: 1.7rem;
+            padding: 0.12rem 0.32rem;
+            text-align: center;
+        }
+        .stats-kampdata-pos-path {
+            color: #64748b;
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            margin-top: 0.12rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .stats-kampdata-col-min {
             font-variant-numeric: tabular-nums;
@@ -10059,6 +10101,14 @@
         @media (max-width: 640px) {
             .stats-kampdata-snapshot {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 720px) {
+            .stats-kampdata-pc {
+                display: none !important;
+            }
+            .stats-kampdata-table {
+                min-width: 26rem;
             }
         }
         .stats-kampdata-layout {
