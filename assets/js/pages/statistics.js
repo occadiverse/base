@@ -2592,6 +2592,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             matches.forEach(match => {
                 let matchRatingSum = 0;
                 let matchRatingCount = 0;
+                let matchPointsSum = 0;
+                let matchPointsCount = 0;
 
                 teamPlayers.forEach(player => {
                     if (!window.isPlayerAttending(match.attendance, player)) return;
@@ -2599,6 +2601,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     if (Number.isFinite(rating) && rating > 0) {
                         matchRatingSum += rating;
                         matchRatingCount += 1;
+                    }
+                    if (typeof window.calculatePlayerMatchPoints === 'function') {
+                        const details = window.calculatePlayerMatchPoints(match, player, true);
+                        if (details && details.onPitch === false) return;
+                        matchPointsSum += Number(details?.total) || 0;
+                        matchPointsCount += 1;
                     }
                 });
 
@@ -2612,6 +2620,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     else form = 'U';
                 }
 
+                const storedFormation = String(match.formation || match.lineupFormation || '').trim();
+                const formation = storedFormation
+                    ? (typeof window.getMatchGamePlanFormation === 'function'
+                        ? window.getMatchGamePlanFormation(match)
+                        : storedFormation)
+                    : '';
+
                 matchHistory.push({
                     matchId: match.id,
                     date: match.date,
@@ -2623,7 +2638,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     form,
                     rating: matchRatingCount > 0
                         ? Math.round((matchRatingSum / matchRatingCount) * 10) / 10
-                        : '-'
+                        : '-',
+                    avgPoints: matchPointsCount > 0
+                        ? Math.round((matchPointsSum / matchPointsCount) * 10) / 10
+                        : '-',
+                    yellowCards: Array.isArray(match.guleKort) ? match.guleKort.length : 0,
+                    redCards: Array.isArray(match.rodeKort) ? match.rodeKort.length : 0,
+                    formation
                 });
             });
 
@@ -5072,6 +5093,24 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
         const formHtml = entry.form
             ? `<span class="stats-form-history-result-pill ${formTone}">${escapeStatisticsHtml(entry.form)}</span>`
             : '–';
+        const yellowCount = Number(entry.yellowCards) || 0;
+        const redCount = Number(entry.redCards) || 0;
+        const yellowHtml = yellowCount > 0
+            ? `<span class="stats-form-history-card-count" title="${yellowCount} gule kort"><span class="stats-kampdata-card-dot is-yellow" aria-hidden="true"></span>${yellowCount}</span>`
+            : '';
+        const redHtml = redCount > 0
+            ? `<span class="stats-form-history-card-count" title="${redCount} røde kort"><span class="stats-kampdata-card-dot is-red" aria-hidden="true"></span>${redCount}</span>`
+            : '';
+        const cardsHtml = (yellowHtml || redHtml) ? `${yellowHtml}${redHtml}` : '–';
+        const avgPoints = Number(entry.avgPoints);
+        const pointsText = Number.isFinite(avgPoints) ? String(avgPoints) : '–';
+        const pointsClass = Number.isFinite(avgPoints) && typeof window.getPlayerPointsToneClass === 'function'
+            ? window.getPlayerPointsToneClass(avgPoints)
+            : '';
+        const formation = String(entry.formation || '').trim();
+        const formationHtml = formation
+            ? `<span class="stats-form-history-formation-code">${escapeStatisticsHtml(formation)}</span>`
+            : '–';
         const matchId = entry.matchId ? String(entry.matchId) : '';
         const rowAttrs = matchId
             ? ` class="stats-form-history-row is-clickable" data-stat-action="open-kampstats" data-match-id="${escapeStatisticsHtml(matchId)}" role="button" tabindex="0" title="Vis kampstats" aria-label="Vis kampstats for ${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}"`
@@ -5086,12 +5125,15 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
                 <td class="stats-form-history-result">${escapeStatisticsHtml(window.formatStatsMatchResult(entry.result))}</td>
                 <td class="stats-form-history-form">${formHtml}</td>
                 <td class="stats-form-history-rating">${ratingText}</td>
+                <td class="stats-form-history-cards stats-form-history-pc">${cardsHtml}</td>
+                <td class="stats-form-history-points stats-form-history-pc ${pointsClass}">${pointsText}</td>
+                <td class="stats-form-history-formation stats-form-history-pc">${formationHtml}</td>
             </tr>
         `;
     }).join('');
 
     return `
-        <table class="stats-form-history-table">
+        <table class="stats-form-history-table stats-form-history-table-team">
             <thead>
                 <tr>
                     <th>Dato</th>
@@ -5099,6 +5141,9 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
                     <th>Resultat</th>
                     <th>Form</th>
                     <th>Børs</th>
+                    <th class="stats-form-history-pc" title="Gule og røde kort">Kort</th>
+                    <th class="stats-form-history-pc" title="Snitt kampbidrag">Poeng</th>
+                    <th class="stats-form-history-pc">Formasjon</th>
                 </tr>
             </thead>
             <tbody>${bodyRows}</tbody>

@@ -3330,7 +3330,7 @@
             background: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 0.85rem;
-            overflow: hidden;
+            overflow-x: auto;
         }
         .stats-board-card .stats-team-match-history .stats-form-history-empty {
             color: #64748b;
@@ -18063,6 +18063,9 @@
             table-layout: fixed;
             width: 100%;
         }
+        .stats-form-history-table-team {
+            min-width: 48rem;
+        }
         .stats-form-history-table thead {
             background: linear-gradient(90deg, #0b2b4c 0%, #123f73 58%, #1f5d9e 100%);
         }
@@ -18091,6 +18094,18 @@
             padding-right: 0.28rem;
             text-align: center;
             width: 3.2rem;
+        }
+        .stats-form-history-table.stats-form-history-table-team th:nth-child(6),
+        .stats-form-history-table.stats-form-history-table-team td:nth-child(6) {
+            width: 4.6rem;
+        }
+        .stats-form-history-table.stats-form-history-table-team th:nth-child(7),
+        .stats-form-history-table.stats-form-history-table-team td:nth-child(7) {
+            width: 3.8rem;
+        }
+        .stats-form-history-table.stats-form-history-table-team th:nth-child(8),
+        .stats-form-history-table.stats-form-history-table-team td:nth-child(8) {
+            width: 6.4rem;
         }
         .stats-form-history-table th:nth-child(3),
         .stats-form-history-table td:nth-child(3) {
@@ -18217,6 +18232,28 @@
             padding: 0.12rem 0.32rem;
             text-align: center;
         }
+        .stats-form-history-card-count {
+            align-items: center;
+            display: inline-flex;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            gap: 0.18rem;
+            margin: 0 0.12rem;
+        }
+        .stats-form-history-formation {
+            white-space: nowrap;
+        }
+        .stats-form-history-formation-code {
+            background: rgba(18, 63, 115, 0.08);
+            border-radius: 0.35rem;
+            color: #123f73;
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            padding: 0.12rem 0.38rem;
+            white-space: nowrap;
+        }
         .stats-form-history-sb {
             font-weight: 900;
             letter-spacing: 0.02em;
@@ -18318,9 +18355,15 @@
             text-align: center;
         }
         @media (max-width: 720px) {
+            .stats-form-history-pc {
+                display: none !important;
+            }
             .stats-form-history-table {
                 min-width: 0;
                 width: 100%;
+            }
+            .stats-form-history-table-team {
+                min-width: 0;
             }
             .stats-form-history-table th {
                 font-size: 0.52rem;
