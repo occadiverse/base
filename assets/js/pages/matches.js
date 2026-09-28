@@ -5416,7 +5416,6 @@ window.showMatchDetails = function(id) {
                 </button>
             </div>
             <div class="match-collapsible-content">
-                <p class="match-stats-intro">Oppmøte registreres før kamp via «Oppdater» i kamptroppen. «Kun oppmøte» under markerer benkspillere som kun får oppmøtepoeng — ikke mål, assist eller børs. Min fylles fra Live/Bytter og er den endelige fasiten for total spilletid når du lagrer her (0–30: +0, 31–60: +1, 61+: +2 kamppoeng). Bytteloggen redigeres i «Bytter og Spilletid».</p>
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
