@@ -9757,7 +9757,7 @@
             outline: none;
             transform: translateY(-1px);
         }
-        .stats-kamp-summary-fact span {
+        .stats-kamp-summary-fact > span {
             color: rgba(255, 255, 255, 0.55);
             display: block;
             font-size: 0.58rem;
@@ -9771,6 +9771,77 @@
             font-size: 0.82rem;
             font-weight: 950;
             word-break: break-word;
+        }
+        .stats-kamp-summary-card-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.22rem;
+        }
+        .stats-kamp-summary-cards {
+            display: grid;
+            gap: 0.38rem;
+        }
+        .stats-kamp-summary-card-row {
+            align-items: start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            color: inherit;
+            cursor: pointer;
+            display: grid;
+            font-family: inherit;
+            gap: 0.55rem;
+            grid-template-columns: minmax(6.4rem, 7.6rem) minmax(0, 1fr);
+            padding: 0.52rem 0.68rem;
+            text-align: left;
+            width: 100%;
+        }
+        .stats-kamp-summary-card-row:hover,
+        .stats-kamp-summary-card-row:focus-visible {
+            background: rgba(245, 197, 66, 0.12);
+            border-color: rgba(245, 197, 66, 0.34);
+            outline: none;
+        }
+        .stats-kamp-summary-card-row > span {
+            color: rgba(245, 197, 66, 0.9);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            line-height: 1.25;
+            padding-top: 0.12rem;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-card-row strong {
+            align-items: baseline;
+            color: #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            font-weight: 800;
+            gap: 0.22rem 0.4rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .stats-kamp-summary-card-row.is-empty strong {
+            color: rgba(255, 255, 255, 0.42);
+            font-weight: 650;
+        }
+        .stats-kamp-summary-card-sep {
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 700;
+        }
+        .stats-kamp-summary-card-row .stats-kamp-summary-card-stack {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        .stats-kamp-summary-card-bit {
+            align-items: center;
+            color: #ffffff;
+            display: inline-flex;
+            font-size: 0.76rem;
+            font-weight: 900;
+            gap: 0.32rem;
+            line-height: 1.2;
         }
         .match-summary-players-list {
             color: #ffffff;
@@ -9870,7 +9941,7 @@
         }
         @media (min-width: 720px) {
             .stats-kamp-summary-facts {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(7.2rem, 1fr));
             }
             .stats-kamp-summary-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));

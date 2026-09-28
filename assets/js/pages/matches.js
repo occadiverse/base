@@ -50,6 +50,15 @@ function bindMatchListEvents() {
                 return;
             }
 
+            if (action === 'open-summary-card') {
+                event.stopPropagation();
+                event.preventDefault();
+                if (typeof window.openMatchDetailsPanelFromSummary === 'function') {
+                    window.openMatchDetailsPanelFromSummary(actionEl.dataset.summaryCard, matchId);
+                }
+                return;
+            }
+
             if (!matchId) return;
 
             if (action === 'open-details') {
@@ -70,11 +79,17 @@ function bindMatchListEvents() {
         container.addEventListener('keydown', (event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
 
-            const actionEl = event.target.closest('[data-match-action="open-details"], [data-match-action="go-back"]');
+            const actionEl = event.target.closest('[data-match-action="open-details"], [data-match-action="go-back"], [data-match-action="open-summary-card"]');
             if (!actionEl) return;
 
             event.preventDefault();
             const action = actionEl.dataset.matchAction;
+            if (action === 'open-summary-card') {
+                if (typeof window.openMatchDetailsPanelFromSummary === 'function') {
+                    window.openMatchDetailsPanelFromSummary(actionEl.dataset.summaryCard, actionEl.dataset.matchId);
+                }
+                return;
+            }
             if (action === 'go-back') {
                 if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) {
                     return;
@@ -625,6 +640,8 @@ function getOpponentHistoryRecord(matches) {
         return record;
     }, { wins: 0, draws: 0, losses: 0, unknown: 0, goalsFor: 0, goalsAgainst: 0 });
 }
+window.getOpponentRecordMatches = getOpponentRecordMatches;
+window.getOpponentHistoryRecord = getOpponentHistoryRecord;
 
 function buildMatchOpponentHistoryRowHtml(match, currentMatchId) {
     const data = getMatchFixturePresentation(match);
@@ -1690,6 +1707,7 @@ function getMatchGamePlanDraftLineupPlayerCount(match) {
     const lineup = getMatchGamePlanDraftLineup(match);
     return getMatchGamePlanDraftPositionIds(match).filter(posId => lineup[posId]).length;
 }
+window.getMatchGamePlanDraftLineupPlayerCount = getMatchGamePlanDraftLineupPlayerCount;
 
 function syncMatchGamePlanSamspillHint(match) {
     const hint = document.querySelector('[data-samspill-hint]');
@@ -3764,6 +3782,7 @@ function getMatchGamePlanNotesText(match) {
     if (typeof match?.notes?.kampplan === 'string') return match.notes.kampplan;
     return '';
 }
+window.getMatchGamePlanNotesText = getMatchGamePlanNotesText;
 
 function normalizeKampplanTemplate(raw, fallbackId = '') {
     const title = String(raw?.title || '').trim();
@@ -3806,6 +3825,7 @@ function getMatchGamePlanSelectedTemplateTitle(match) {
     const selected = getMatchGamePlanTemplateById(getMatchGamePlanSelectedTemplateId(match));
     return selected?.title || '';
 }
+window.getMatchGamePlanSelectedTemplateTitle = getMatchGamePlanSelectedTemplateTitle;
 
 function buildMatchGamePlanTemplateOptionsHtml(selectedId = '') {
     const templates = getMatchGamePlanTemplateLibrary();
@@ -6282,6 +6302,7 @@ function getMatchLiveSubsLogEventCount(match) {
     const roles = Array.isArray(match?.liveRoleChanges) ? match.liveRoleChanges.length : 0;
     return subs + moves + roles;
 }
+window.getMatchLiveSubsLogEventCount = getMatchLiveSubsLogEventCount;
 
 function buildMatchLiveSubsLogHtml(match) {
     const subs = Array.isArray(match?.liveSubstitutions) ? [...match.liveSubstitutions] : [];
@@ -8129,6 +8150,43 @@ window.toggleMatchPanel = function(btn) {
 };
 
 window.toggleMatchBenchPanel = window.toggleMatchPanel;
+
+window.openMatchDetailsPanelFromSummary = function(cardId, matchId) {
+    const id = String(cardId || '').trim();
+    if (!id) return;
+
+    if (id === 'hero') {
+        const hero = document.querySelector('#kampdetaljer-info .match-detail-card');
+        if (hero && typeof hero.scrollIntoView === 'function') {
+            hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        return;
+    }
+
+    if (id === 'kampstats') {
+        if (!matchId) return;
+        window.pendingKampstatMatchId = matchId;
+        window.statsLagSection = 'kampdata';
+        if (typeof window.switchTab === 'function') window.switchTab('statistikk');
+        if (typeof window.setStatsLagSection === 'function') window.setStatsLagSection('kampdata');
+        if (typeof window.openKampstatsForMatch === 'function') {
+            window.openKampstatsForMatch(matchId);
+        }
+        return;
+    }
+
+    const panel = document.querySelector(`#kampdetaljer-info [data-match-panel="${id}"]`);
+    const toggle = panel?.querySelector('.match-panel-toggle-btn');
+    if (!toggle) return;
+    if (panel.classList.contains('is-collapsed')) {
+        window.toggleMatchPanel(toggle);
+    }
+    requestAnimationFrame(() => {
+        if (typeof panel.scrollIntoView === 'function') {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+};
 
 window.updateMatchRatingHint = function(select) {
     if (!select) return;

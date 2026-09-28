@@ -4219,11 +4219,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return parts[0] || String(fullName || '').trim();
         }
 
-        function getStatsSummaryPosLabel(posId) {
-            if (posId === 'VMS') return 'VS';
-            if (posId === 'HMS') return 'HS';
-            if (posId === 'SP2') return 'SP';
-            return String(posId || '').trim();
+        function getStatsSummaryShortName(fullName, allNames = []) {
+            const first = getStatsSummaryFirstName(fullName);
+            const clash = (Array.isArray(allNames) ? allNames : [])
+                .filter(name => getStatsSummaryFirstName(name) === first)
+                .length > 1;
+            if (!clash) return first;
+            const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+            if (parts.length >= 2) return `${parts[0]} ${parts[parts.length - 1]}`;
+            return first;
+        }
+
+        function formatStatsSummaryCountedNames(rows, valueKey, allNames = [], limit = 0) {
+            const items = (Array.isArray(rows) ? rows : []).map((row) => {
+                const name = getStatsSummaryShortName(row.name, allNames);
+                const value = Number(row[valueKey]) || 0;
+                return value > 1 ? `${name} ${value}` : name;
+            });
+            if (limit > 0 && items.length > limit) {
+                return `${items.slice(0, limit).join(', ')} +${items.length - limit}`;
+            }
+            return items.join(', ');
         }
 
         function getStatsSummaryFirstSentence(text, maxLen = 140) {
@@ -4237,160 +4253,51 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return sentence;
         }
 
-        function formatStatsSummaryNameList(names, limit = 4) {
-            const list = (Array.isArray(names) ? names : []).filter(Boolean);
-            if (!list.length) return '';
-            const short = list.map(getStatsSummaryFirstName);
-            if (short.length <= limit) return short.join(', ');
-            return `${short.slice(0, limit).join(', ')} +${short.length - limit}`;
+        function joinStatsSummaryBits(bits) {
+            return (Array.isArray(bits) ? bits : []).map(bit => String(bit || '').trim()).filter(Boolean).join(' · ');
         }
 
-        function buildStatsMatchSummaryStoryText(match, context = {}) {
-            const opponent = match?.opponent || 'Motstander';
-            const resultLabel = context.resultLabel || '–';
-            const form = context.form || '';
-            const formWord = form === 'S' ? 'Seier' : (form === 'T' ? 'Tap' : (form === 'U' ? 'Uavgjort' : ''));
-            const parts = [];
-            if (formWord) {
-                parts.push(`${formWord} ${resultLabel} mot ${opponent}.`);
-            } else {
-                parts.push(`Kamp mot ${opponent}${resultLabel && resultLabel !== '–' ? ` (${resultLabel})` : ''}.`);
+        function countStatsSummaryLineupPlayers(match) {
+            if (typeof window.getMatchGamePlanDraftLineupPlayerCount === 'function') {
+                return window.getMatchGamePlanDraftLineupPlayerCount(match);
             }
-
-            const notesPositive = String(match?.notes?.positive || '').trim();
-            const notesChallenge = String(match?.notes?.challenge || '').trim();
-            const positiveLine = getStatsSummaryFirstSentence(notesPositive);
-            const challengeLine = getStatsSummaryFirstSentence(notesChallenge);
-            if (form === 'S' && positiveLine) parts.push(positiveLine);
-            else if (form === 'T' && challengeLine) parts.push(challengeLine);
-            else if (positiveLine) parts.push(positiveLine);
-            else if (challengeLine) parts.push(challengeLine);
-
-            return parts.join(' ');
+            const lineup = match?.lineupRefs && typeof match.lineupRefs === 'object'
+                ? match.lineupRefs
+                : (match?.lineup || {});
+            return Object.values(lineup).filter(Boolean).length;
         }
 
-        function buildStatsMatchPitchStoryHtml(match, rows) {
-            const subs = Array.isArray(match?.liveSubstitutions) ? match.liveSubstitutions : [];
-            if (!subs.length && !(Array.isArray(rows) && rows.length)) return '';
-
-            const lines = [];
-            const byMinute = new Map();
-            subs.forEach((sub) => {
-                const minute = Math.max(0, Math.floor(Number(String(sub?.minute ?? '').trim().replace(/'$/, '')) || 0));
-                if (!byMinute.has(minute)) byMinute.set(minute, []);
-                byMinute.get(minute).push(sub);
-            });
-            const clusters = [...byMinute.entries()]
-                .map(([minute, list]) => ({ minute, list }))
-                .sort((a, b) => b.list.length - a.list.length || a.minute - b.minute);
-            const isTacticalSub = (sub) => {
-                const fillChain = Array.isArray(sub?.fillChain) ? sub.fillChain : [];
-                const outPos = String(sub?.posId || '').trim();
-                const inPos = String(sub?.inPosId || outPos).trim();
-                return fillChain.length > 0 || (outPos && inPos && outPos !== inPos) || Boolean(sub?.fillFromPos);
-            };
-            const multiCluster = clusters.find((entry) => entry.list.length >= 2) || null;
-            const tacticalClusters = clusters
-                .filter((entry) => entry.list.some(isTacticalSub))
-                .sort((a, b) => b.minute - a.minute);
-            const mainCluster = multiCluster
-                || tacticalClusters.find((entry) => entry.minute >= 45)
-                || tacticalClusters[0]
-                || null;
-            if (mainCluster) {
-                const inNames = mainCluster.list
-                    .map((sub) => {
-                        const player = typeof window.findPlayerByRef === 'function'
-                            ? window.findPlayerByRef(sub?.inId)
-                            : null;
-                        return player?.navn || window.getPlayerNameFromRef?.(sub?.inId) || '';
-                    })
-                    .filter(Boolean);
-                const label = mainCluster.list.length >= 2
-                    ? `${mainCluster.minute}': ${mainCluster.list.length} bytter`
-                    : `${mainCluster.minute}': bytte`;
-                lines.push(inNames.length
-                    ? `<li><span>Vendepunkt</span><strong>${escapeStatisticsHtml(label)} · inn ${escapeStatisticsHtml(formatStatsSummaryNameList(inNames, 3))}</strong></li>`
-                    : `<li><span>Vendepunkt</span><strong>${escapeStatisticsHtml(label)}</strong></li>`);
-            }
-
-            const duration = Math.max(
-                typeof window.getMatchDurationForMinutesShare === 'function'
-                    ? window.getMatchDurationForMinutesShare(match)
-                    : 0,
-                Math.floor(Number(match?.liveDurationMinutes) || 0),
-                90
-            );
-            const stintsByKey = typeof window.computeLivePositionStints === 'function'
-                ? (window.computeLivePositionStints(match, duration) || {})
-                : {};
-            const roleMovers = [];
-            (Array.isArray(rows) ? rows : []).forEach((row) => {
-                const key = row?.id || '';
-                const stints = key && Array.isArray(stintsByKey[key]) ? stintsByKey[key] : [];
-                if (stints.length < 2) return;
-                const path = stints
-                    .map((stint) => `${getStatsSummaryPosLabel(stint.posId)} ${Math.max(0, Math.floor(Number(stint.minutes) || 0))}'`)
-                    .join('/');
-                roleMovers.push({
-                    name: row.name,
-                    path,
-                    stintCount: stints.length,
-                    minutes: Math.max(0, Math.floor(Number(row.minutes) || 0))
-                });
-            });
-            roleMovers
-                .sort((a, b) => b.stintCount - a.stintCount || b.minutes - a.minutes || a.name.localeCompare(b.name, 'nb'))
-                .slice(0, 3)
-                .forEach((mover) => {
-                    lines.push(`<li><span>${escapeStatisticsHtml(getStatsSummaryFirstName(mover.name))}</span><strong>${escapeStatisticsHtml(mover.path)}</strong></li>`);
-                });
-
-            const withMinutes = (Array.isArray(rows) ? rows : [])
-                .filter((row) => row.minutes != null && row.minutes > 0 && !row.isKeeper);
-            const full = withMinutes.filter((row) => row.minutes >= 80);
-            if (full.length) {
-                lines.push(`<li><span>Struktur</span><strong>${escapeStatisticsHtml(formatStatsSummaryNameList(full.map((row) => row.name), 5))} (${full.length} på 80'+)</strong></li>`);
-            }
-
-            if (!lines.length) return '';
+        function buildStatsSummaryCardRowHtml({ id, label, value = '', htmlValue = '', empty = false, matchId = '' }) {
+            const text = String(value || '').trim();
+            const inner = htmlValue || escapeStatisticsHtml(text || (empty ? 'Ikke fylt' : '–'));
             return `
-                <div class="stats-kamp-summary-block stats-kamp-summary-pitch">
-                    <h4>På banen</h4>
-                    <ul class="stats-kamp-summary-usage">${lines.join('')}</ul>
-                </div>
+                <button
+                    type="button"
+                    class="stats-kamp-summary-card-row${empty ? ' is-empty' : ''}"
+                    data-match-action="open-summary-card"
+                    data-summary-card="${escapeStatisticsHtml(id)}"
+                    data-match-id="${escapeStatisticsHtml(matchId)}"
+                >
+                    <span>${escapeStatisticsHtml(label)}</span>
+                    <strong>${inner}</strong>
+                </button>
             `;
         }
 
         window.buildKampstatsMatchSummaryHtml = function(match, stats, context = {}) {
             if (!match) return '';
             const rows = Array.isArray(stats) ? stats : [];
-
-            const opponent = match.opponent || 'Motstander';
-            const matchType = context.matchType || match.matchType || match.type || 'Kamp';
-            const resultLabel = typeof window.formatStatsMatchResult === 'function'
-                ? window.formatStatsMatchResult(context.matchResult || match.result)
-                : (context.matchResult || match.result || '–');
-            const form = context.form || '';
+            const allNames = rows.map(row => row.name);
+            const matchId = String(match.id || '');
             const avgRating = Number(context.avgRating) || 0;
-            const totalYellow = Number(context.totalYellow) || 0;
-            const totalRed = Number(context.totalRed) || 0;
-            const goalsFor = context.goalsFor;
-            const goalsAgainst = context.goalsAgainst;
-            const duration = typeof window.getMatchDurationForMinutesShare === 'function'
-                ? window.getMatchDurationForMinutesShare(match)
-                : (Math.max(0, Math.floor(Number(match.liveDurationMinutes) || 0)) || 90);
-            const subCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
-            const formation = typeof window.getMatchGamePlanFormation === 'function'
-                ? window.getMatchGamePlanFormation(match)
-                : (match.formation || match.lineupFormation || '');
 
-            const withMinutes = rows
-                .filter(s => s.minutes != null && s.minutes > 0)
-                .sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, 'nb'));
-            const full = withMinutes.filter(s => s.minutes >= 80);
-            const rotation = withMinutes.filter(s => s.minutes >= 30 && s.minutes < 80);
-            const shortSubs = withMinutes.filter(s => s.minutes < 30);
+            const storedFormation = String(match.formation || match.lineupFormation || '').trim();
+            const formation = storedFormation
+                ? (typeof window.getMatchGamePlanFormation === 'function'
+                    ? window.getMatchGamePlanFormation(match)
+                    : storedFormation)
+                : '';
+
             const bb = rows.find(s => s.isBbInMatch) || null;
             const scorers = rows
                 .filter(s => (Number(s.goals) || 0) > 0)
@@ -4398,67 +4305,154 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const assisters = rows
                 .filter(s => (Number(s.assists) || 0) > 0)
                 .sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name, 'nb'));
-            const topRatings = [...rows]
+            const topRating = [...rows]
                 .filter(s => (Number(s.rating) || 0) > 0)
-                .sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name, 'nb'))
-                .slice(0, 3);
+                .sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name, 'nb'))[0] || null;
+            const yellowRows = rows.filter(s => (Number(s.yellow) || 0) > 0);
+            const redRows = rows.filter(s => (Number(s.red) || 0) > 0);
+            const pitchPointRows = rows.filter(s => s.onPitch !== false);
+            const avgPoints = pitchPointRows.length
+                ? Math.round((pitchPointRows.reduce((sum, s) => sum + (Number(s.points) || 0), 0) / pitchPointRows.length) * 10) / 10
+                : null;
 
-            const listNames = (listRows, valueKey) => listRows.map(row => {
-                const value = Number(row[valueKey]) || 0;
-                return `${row.name} (${value})`;
-            }).join(', ');
+            const cardBit = (tone, word, namesText) => `
+                <span class="stats-kamp-summary-card-bit is-${tone}">
+                    <span class="stats-kampdata-card-dot is-${tone}" aria-hidden="true"></span>
+                    ${escapeStatisticsHtml(word)}${namesText ? ` ${escapeStatisticsHtml(namesText)}` : ''}
+                </span>
+            `;
+            const kortBits = [];
+            if (yellowRows.length) {
+                const names = yellowRows.length <= 3
+                    ? formatStatsSummaryCountedNames(yellowRows, 'yellow', allNames)
+                    : String(yellowRows.length);
+                kortBits.push(cardBit('yellow', 'Gult', names));
+            }
+            if (redRows.length) {
+                const names = redRows.length <= 3
+                    ? formatStatsSummaryCountedNames(redRows, 'red', allNames)
+                    : String(redRows.length);
+                kortBits.push(cardBit('red', 'Rødt', names));
+            }
+            const kortHtml = kortBits.length
+                ? `<span class="stats-kamp-summary-card-stack">${kortBits.join('')}</span>`
+                : '';
 
-            const storyText = buildStatsMatchSummaryStoryText(match, { form, resultLabel });
+            const resultLabel = typeof window.formatMatchResultForDisplay === 'function'
+                ? window.formatMatchResultForDisplay(match)
+                : (match.result || '');
+            const venue = typeof window.getMatchVenue === 'function' ? window.getMatchVenue(match) : '';
+            const pitch = String(match.pitch || '').trim();
+            const durationLabel = match.duration || '90 min';
+            const matchType = match.matchType || match.type || 'Kamp';
+            const heroText = joinStatsSummaryBits([
+                context.embedInPanel ? '' : resultLabel,
+                matchType,
+                venue,
+                pitch,
+                durationLabel
+            ]);
 
-            const metaBits = [
-                escapeStatisticsHtml(matchType),
-                `${duration}'`
+            const presence = typeof window.getAttendancePresenceStats === 'function'
+                ? window.getAttendancePresenceStats(match)
+                : { presentCount: 0, squadSize: 0, isRegistered: false };
+            const kamptroppText = presence.isRegistered
+                ? (typeof window.formatAttendancePresenceLabel === 'function'
+                    ? window.formatAttendancePresenceLabel(match)
+                    : `${presence.presentCount}/${presence.squadSize || presence.presentCount} møtt opp`)
+                : '';
+
+            const lineupCount = countStatsSummaryLineupPlayers(match);
+            const lineupText = joinStatsSummaryBits([
+                formation,
+                lineupCount > 0 ? `${lineupCount} satt` : ''
+            ]);
+
+            const kampplanNotes = typeof window.getMatchGamePlanNotesText === 'function'
+                ? window.getMatchGamePlanNotesText(match)
+                : (typeof match.kampplanNotes === 'string'
+                    ? match.kampplanNotes
+                    : (typeof match.notes?.kampplan === 'string' ? match.notes.kampplan : ''));
+            const kampplanTemplate = typeof window.getMatchGamePlanSelectedTemplateTitle === 'function'
+                ? window.getMatchGamePlanSelectedTemplateTitle(match)
+                : '';
+            const kampplanText = getStatsSummaryFirstSentence(kampplanNotes, 110) || kampplanTemplate;
+
+            const notesPositive = getStatsSummaryFirstSentence(match?.notes?.positive, 90);
+            const notesChallenge = getStatsSummaryFirstSentence(match?.notes?.challenge, 90);
+            const coachText = notesPositive && notesChallenge
+                ? joinStatsSummaryBits([notesPositive, notesChallenge])
+                : (notesPositive || notesChallenge);
+
+            const subCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
+            const withMinutes = rows.filter(s => s.minutes != null && (Number(s.minutes) || 0) > 0).length;
+            const minutesTracked = typeof window.matchHasMinutesTracking === 'function'
+                ? window.matchHasMinutesTracking(match)
+                : withMinutes > 0;
+            const bytterText = joinStatsSummaryBits([
+                subCount > 0 ? `${subCount} ${subCount === 1 ? 'bytte' : 'bytter'}` : '',
+                minutesTracked
+                    ? (withMinutes > 0 ? `${withMinutes} med minutter` : 'Spilletid ikke fylt')
+                    : ''
+            ]);
+
+            const borsHero = bb
+                ? `BB ${getStatsSummaryShortName(bb.name, allNames)}`
+                : (topRating
+                    ? `Høyest ${getStatsSummaryShortName(topRating.name, allNames)} ${topRating.rating}`
+                    : '');
+            const borsText = joinStatsSummaryBits([
+                avgRating > 0 ? `Snitt ${avgRating.toFixed(1)}` : '',
+                borsHero
+            ]);
+
+            let opponentText = '';
+            if (typeof window.getOpponentRecordMatches === 'function' && typeof window.getOpponentHistoryRecord === 'function') {
+                const record = window.getOpponentHistoryRecord(window.getOpponentRecordMatches(match));
+                const played = (record.wins || 0) + (record.draws || 0) + (record.losses || 0);
+                if (played > 0) {
+                    opponentText = joinStatsSummaryBits([
+                        `${record.wins}S–${record.draws}U–${record.losses}T`,
+                        `${record.goalsFor}–${record.goalsAgainst}`
+                    ]);
+                }
+            }
+
+            const kampstatsBits = [];
+            if (scorers.length) {
+                kampstatsBits.push(`Mål ${formatStatsSummaryCountedNames(scorers, 'goals', allNames, 3)}`);
+            }
+            if (assisters.length) {
+                kampstatsBits.push(`Assist ${formatStatsSummaryCountedNames(assisters, 'assists', allNames, 3)}`);
+            }
+            if (avgPoints != null) kampstatsBits.push(`Poeng ${avgPoints}`);
+            const kampstatsText = kampstatsBits.join(' · ');
+            const kampstatsHtml = [kampstatsText ? escapeStatisticsHtml(kampstatsText) : '', kortHtml]
+                .filter(Boolean)
+                .join('<span class="stats-kamp-summary-card-sep"> · </span>');
+
+            const opponent = match.opponent || 'Motstander';
+            const headerResult = typeof window.formatStatsMatchResult === 'function'
+                ? window.formatStatsMatchResult(context.matchResult || match.result)
+                : (context.matchResult || match.result || '–');
+
+            const cards = [
+                { id: 'hero', label: 'Herokort', value: heroText, empty: !heroText },
+                { id: 'kamptropp', label: 'Kamptropp', value: kamptroppText, empty: !kamptroppText },
+                { id: 'oppstilling', label: 'Lagoppstilling', value: lineupText, empty: !lineupText },
+                { id: 'kampplan', label: 'Kampplan', value: kampplanText, empty: !kampplanText },
+                { id: 'trenernotater', label: 'Trenernotater', value: coachText, empty: !coachText },
+                { id: 'bytter', label: 'Bytter og spilletid', value: bytterText, empty: !bytterText },
+                { id: 'spillerbors', label: 'Spillerbørs', value: borsText, empty: !borsText },
+                { id: 'motstanderinfo', label: 'Motstanderinfo', value: opponentText, empty: !opponentText },
+                {
+                    id: 'kampstats',
+                    label: 'Kampstats',
+                    value: kampstatsText,
+                    htmlValue: kampstatsHtml,
+                    empty: !kampstatsHtml
+                }
             ];
-            if (formation) metaBits.push(escapeStatisticsHtml(formation));
-            if (subCount > 0) metaBits.push(`${subCount} bytte${subCount === 1 ? '' : 'r'}`);
-            if (match.minutesSource === 'spillerbors') metaBits.push('Spilletid bekreftet');
-            else if (window.matchHasMinutesTracking?.(match)) metaBits.push('Spilletid fra Live');
-
-            const block = (title, body, extraClass = '') => {
-                if (!body) return '';
-                return `
-                    <div class="stats-kamp-summary-block${extraClass ? ` ${extraClass}` : ''}">
-                        <h4>${escapeStatisticsHtml(title)}</h4>
-                        <p>${body}</p>
-                    </div>
-                `;
-            };
-
-            const formatPeopleList = (listRows, key) => {
-                if (!listRows.length) return '';
-                return escapeStatisticsHtml(listNames(listRows, key));
-            };
-
-            const scoreLabel = (goalsFor != null && goalsAgainst != null)
-                ? `${goalsFor}–${goalsAgainst}`
-                : (resultLabel && resultLabel !== '–' ? resultLabel : '–');
-
-            const usageHtml = withMinutes.length ? `
-                <div class="stats-kamp-summary-block">
-                    <h4>Bruk</h4>
-                    <p class="stats-kamp-summary-usage-line">${escapeStatisticsHtml(
-                        `${full.length} på 80'+ · ${rotation.length} i rotasjon · ${shortSubs.length} korte`
-                    )}</p>
-                    ${full.length ? `<p class="stats-kamp-summary-usage-detail">${escapeStatisticsHtml(formatStatsSummaryNameList(full.map(s => s.name), 6))}</p>` : ''}
-                </div>
-            ` : block('Bruk', 'Spilletid er ikke registrert for denne kampen ennå.');
-
-            const pitchHtml = buildStatsMatchPitchStoryHtml(match, rows);
-
-            const notesPositive = String(match.notes?.positive || '').trim();
-            const notesChallenge = String(match.notes?.challenge || '').trim();
-            const notesHtml = (notesPositive || notesChallenge) ? `
-                <div class="stats-kamp-summary-block stats-kamp-summary-notes">
-                    <h4>Trenernotat</h4>
-                    ${notesPositive ? `<p><span class="stats-kamp-summary-note-label">Positivt:</span> ${escapeStatisticsHtml(notesPositive)}</p>` : ''}
-                    ${notesChallenge ? `<p><span class="stats-kamp-summary-note-label">Utfordringer:</span> ${escapeStatisticsHtml(notesChallenge)}</p>` : ''}
-                </div>
-            ` : '';
 
             return `
                 <section class="stats-kamp-summary${context.embedInPanel ? ' is-embedded' : ''}" aria-label="Kampoppsummering">
@@ -4468,49 +4462,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <p class="stats-kamp-summary-kicker">Kampoppsummering</p>
                             <h3 class="stats-kamp-summary-title">
                                 BSK – ${escapeStatisticsHtml(opponent)}
-                                <span class="stats-kamp-summary-result">${escapeStatisticsHtml(resultLabel)}</span>
+                                <span class="stats-kamp-summary-result">${escapeStatisticsHtml(headerResult)}</span>
                             </h3>
-                            <p class="stats-kamp-summary-meta">${metaBits.join(' · ')}</p>
                         </div>
-                        ${form ? `<span class="stats-form-history-result-pill ${form === 'S' ? 'is-win' : (form === 'T' ? 'is-loss' : 'is-draw')}">${escapeStatisticsHtml(form)}</span>` : ''}
                     </div>
                     `}
-                    ${context.embedInPanel ? `
-                    <div class="stats-kamp-summary-header is-compact">
-                        <p class="stats-kamp-summary-meta">${metaBits.join(' · ')}</p>
-                        ${form ? `<span class="stats-form-history-result-pill ${form === 'S' ? 'is-win' : (form === 'T' ? 'is-loss' : 'is-draw')}">${escapeStatisticsHtml(form)}</span>` : ''}
-                    </div>
-                    ` : ''}
-                    <p class="stats-kamp-summary-story">${escapeStatisticsHtml(storyText)}</p>
-                    <div class="stats-kamp-summary-facts" aria-label="Nøkkeltall">
-                        <div class="stats-kamp-summary-fact">
-                            <span>Snittbørs</span>
-                            <strong>${avgRating > 0 ? avgRating.toFixed(1) : '–'}</strong>
-                        </div>
-                        <div class="stats-kamp-summary-fact">
-                            <span>Resultat</span>
-                            <strong>${escapeStatisticsHtml(scoreLabel)}</strong>
-                        </div>
-                        <div class="stats-kamp-summary-fact">
-                            <span>Kort</span>
-                            <strong>${totalYellow}/${totalRed}</strong>
-                        </div>
-                        <div class="stats-kamp-summary-fact">
-                            <span>Banens beste</span>
-                            <strong>${bb ? escapeStatisticsHtml(bb.name) : '–'}</strong>
-                        </div>
-                    </div>
-                    <div class="stats-kamp-summary-grid">
-                        ${pitchHtml}
-                        ${usageHtml}
-                        ${block('Produksjon', [
-                            scorers.length ? `Mål: ${formatPeopleList(scorers, 'goals')}` : '',
-                            assisters.length ? `Assist: ${formatPeopleList(assisters, 'assists')}` : ''
-                        ].filter(Boolean).join('<br>') || 'Ingen mål eller assist registrert.')}
-                        ${block('Topp børs', topRatings.length
-                            ? escapeStatisticsHtml(topRatings.map(s => `${s.name} ${s.rating}`).join(', '))
-                            : null)}
-                        ${notesHtml}
+                    <div class="stats-kamp-summary-cards">
+                        ${cards.map(card => buildStatsSummaryCardRowHtml({ ...card, matchId })).join('')}
                     </div>
                 </section>
             `;
