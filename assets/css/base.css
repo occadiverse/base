@@ -6605,6 +6605,10 @@
             overflow: hidden;
             width: 100%;
         }
+        .player-profile-history-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         .player-profile-chart-wrap .stats-chart-empty,
         .player-profile-history-wrap .stats-form-history-empty {
             color: rgba(255, 255, 255, 0.62);
@@ -18195,6 +18199,22 @@
             font-variant-numeric: tabular-nums;
             text-align: center;
             white-space: nowrap;
+        }
+        .stats-form-history-pos {
+            text-align: center;
+            white-space: nowrap;
+        }
+        .stats-form-history-pos-code {
+            background: rgba(18, 63, 115, 0.08);
+            border-radius: 0.35rem;
+            color: #123f73;
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            min-width: 1.7rem;
+            padding: 0.12rem 0.32rem;
+            text-align: center;
         }
         .stats-form-history-sb {
             font-weight: 900;

@@ -4832,6 +4832,21 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
         const startStatus = typeof window.getPlayerMatchStartStatus === 'function'
             ? window.getPlayerMatchStartStatus(m, playerObj)
             : '';
+        const onPitch = ptsDetails.onPitch !== false;
+        const posId = onPitch && typeof window.getPlayerMatchPlayedPositionIds === 'function'
+            ? (window.getPlayerMatchPlayedPositionIds(m, playerObj)[0] || '')
+            : (onPitch && typeof window.getPlayerMatchPlayedPositionId === 'function'
+                ? (window.getPlayerMatchPlayedPositionId(m, playerObj) || '')
+                : '');
+        const formationId = typeof window.getMatchGamePlanFormation === 'function'
+            ? window.getMatchGamePlanFormation(m)
+            : (m.formation || '');
+        const posCode = posId && typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
+            ? window.getMatchGamePlanPositionBadgeLabel(posId, formationId)
+            : posId;
+        const posLabel = posId && typeof window.getMatchGamePlanPositionLabel === 'function'
+            ? window.getMatchGamePlanPositionLabel(posId)
+            : posCode;
 
         history.push({
             matchId: m.id,
@@ -4841,8 +4856,11 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
             result: m.result || 'Ikke spilt',
             rating: window.getPlayerRefMapValue(m.ratings, playerObj, '-') || '-',
             points: ptsDetails.total,
-            onPitch: ptsDetails.onPitch !== false,
+            onPitch,
             startStatus,
+            posId,
+            posCode,
+            posLabel,
             goals,
             assists,
             yellow,
@@ -4997,6 +5015,11 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         const benchNote = satEntireBench
             ? '<span class="stats-form-history-bench">Benk</span>'
             : '';
+        const posCode = String(entry.posCode || '').trim();
+        const posLabel = String(entry.posLabel || posCode).trim();
+        const posHtml = posCode
+            ? `<span class="stats-form-history-pos-code">${escapeStatisticsHtml(posCode)}</span>`
+            : '–';
 
         return `
             <tr class="stats-form-history-row${satEntireBench ? ' is-bench' : ''}">
@@ -5005,6 +5028,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                     <span class="stats-form-history-opponent-name">${escapeStatisticsHtml(window.formatStatsOpponentLabel(entry))}</span>
                     ${benchNote}
                 </td>
+                <td class="stats-form-history-pos" title="${escapeStatisticsHtml(posLabel || 'Hovedposisjon i kampen')}">${posHtml}</td>
                 <td class="stats-form-history-rating ${ratingClass}">${ratingText}</td>
                 <td class="stats-form-history-sb${startStatus === 'B' ? ' is-bench' : ' is-start'}" title="${escapeStatisticsHtml(sbTitle)}">${startStatus}</td>
                 <td class="stats-form-history-ma">${maText}</td>
@@ -5020,6 +5044,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                 <tr>
                     <th>Dato</th>
                     <th>Motstander</th>
+                    <th title="Hovedposisjon i kampen">Pos</th>
                     <th>Børs</th>
                     <th title="Start / Benk ved avspark">S/B</th>
                     <th>M/A</th>
