@@ -1823,15 +1823,20 @@ function getMatchGamePlanPositionBadgeLabel(posId, formationId) {
     return posId;
 }
 
-function getMatchGamePlanPlayerInjuryInfo(player) {
+function getMatchGamePlanPlayerInjuryInfo(player, match) {
     if (!player || typeof window.getPlayerInjuryInfo !== 'function') {
         return { isInjured: false, type: 'frisk', label: '', shortLabel: '' };
     }
-    return window.getPlayerInjuryInfo(player);
+    const livePlayer = (typeof window.findPlayerByRef === 'function'
+        ? window.findPlayerByRef(player)
+        : null) || player;
+    return window.getPlayerInjuryInfo(livePlayer, match?.date);
 }
 
 function buildMatchGamePlanPosBadgeHtml(positionLabel, player, options = {}) {
-    const injuryInfo = getMatchGamePlanPlayerInjuryInfo(player);
+    const injuryInfo = player
+        ? getMatchGamePlanPlayerInjuryInfo(player, options.match)
+        : { isInjured: false, type: 'frisk', label: '', shortLabel: '' };
     const isInjured = Boolean(injuryInfo.isInjured);
     const label = String(positionLabel || '').trim();
     const showPositionWhenInjured = Boolean(options.showPositionWhenInjured);
@@ -1966,7 +1971,7 @@ function buildMatchBenchPlayerHtml(match, player) {
     const pitchCode = isOnPitch
         ? getMatchGamePlanPositionBadgeLabel(pitchPosId, getMatchGamePlanDraftFormation(match))
         : '';
-    const injuryInfo = getMatchGamePlanPlayerInjuryInfo(player);
+    const injuryInfo = getMatchGamePlanPlayerInjuryInfo(player, match);
     const isInjured = Boolean(injuryInfo.isInjured);
     const injuryNote = isInjured
         ? (injuryInfo.shortLabel || injuryInfo.label || 'Skadet')
@@ -1975,7 +1980,7 @@ function buildMatchBenchPlayerHtml(match, player) {
         ? `${lastName}, på banen som ${pitchCode}${isInjured ? `, ${injuryNote}` : ''}. Bytt posisjon eller spiller.`
         : `${lastName}${isInjured ? `, ${injuryNote}` : ''}. Plasser på banen.`;
     const badgeHtml = (isOnPitch || isInjured)
-        ? buildMatchGamePlanPosBadgeHtml(pitchCode, player, { showPositionWhenInjured: isOnPitch })
+        ? buildMatchGamePlanPosBadgeHtml(pitchCode, player, { showPositionWhenInjured: isOnPitch, match })
         : '';
     const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, player);
 
@@ -2733,10 +2738,10 @@ function buildMatchGamePlanStarterCardNodeHtml(match, posId, coords) {
     const positionBadge = getMatchGamePlanPositionBadgeLabel(posId, getMatchGamePlanDraftFormation(match));
     const photoUrl = selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : '';
     const cardLabel = selectedPlayer ? getMatchGamePlanPlayerLastName(selectedPlayer) : '';
-    const selectedInjuryInfo = getMatchGamePlanPlayerInjuryInfo(selectedPlayer);
+    const selectedInjuryInfo = getMatchGamePlanPlayerInjuryInfo(selectedPlayer, match);
     const isInjured = Boolean(selectedInjuryInfo.isInjured);
     const badgeHtml = selectedPlayer
-        ? buildMatchGamePlanPosBadgeHtml(positionBadge, selectedPlayer, { showPositionWhenInjured: true })
+        ? buildMatchGamePlanPosBadgeHtml(positionBadge, selectedPlayer, { showPositionWhenInjured: true, match })
         : buildMatchGamePlanPosBadgeHtml(positionBadge);
     const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, selectedPlayer);
 

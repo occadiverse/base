@@ -105,23 +105,83 @@ window.isPlayerBenchOnly = function(match, playerRef) {
     return false;
 };
 
-window.getPlayerInjuryInfo = function(player) {
-    if (!player || !player.skadeStatus || player.skadeStatus === 'frisk') {
+function getInjuryDateKey(value) {
+    const raw = String(value || '').trim();
+    return /^\d{4}-\d{2}-\d{2}/.test(raw) ? raw.slice(0, 10) : '';
+}
+
+function getLocalInjuryDateKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function buildPlayerInjuryInfoFromStatus(status, note, tilDato) {
+    if (!status || status === 'frisk') {
         return { isInjured: false, type: 'frisk', label: '', shortLabel: '' };
     }
 
-    if (player.skadeStatus === 'dag-til-dag') {
-        const note = player.skadeNotat ? `: ${player.skadeNotat}` : '';
-        return { isInjured: true, type: 'dag-til-dag', label: `Dag-til-dag${note}`, shortLabel: 'D-T-D' };
+    if (status === 'dag-til-dag') {
+        const noteBit = note ? `: ${note}` : '';
+        return { isInjured: true, type: 'dag-til-dag', label: `Dag-til-dag${noteBit}`, shortLabel: 'D-T-D' };
     }
 
-    if (player.skadeStatus === 'langvarig') {
-        const til = player.skadeTilDato ? ` (til ${player.skadeTilDato})` : '';
-        const note = player.skadeNotat ? `: ${player.skadeNotat}` : '';
-        return { isInjured: true, type: 'langvarig', label: `Langvarig skade${til}${note}`, shortLabel: 'SKADET' };
+    if (status === 'langvarig') {
+        const til = tilDato ? ` (til ${tilDato})` : '';
+        const noteBit = note ? `: ${note}` : '';
+        return { isInjured: true, type: 'langvarig', label: `Langvarig skade${til}${noteBit}`, shortLabel: 'SKADET' };
     }
 
     return { isInjured: false, type: 'frisk', label: '', shortLabel: '' };
+}
+
+function resolveHistoricalInjuryStatus(entry) {
+    const status = entry?.skadeStatus;
+    if (status === 'langvarig' || status === 'dag-til-dag') return status;
+    const type = String(entry?.skadeType || '').toLowerCase();
+    if (type.includes('d-t-d') || type.includes('dag-til-dag')) return 'dag-til-dag';
+    if (status && status !== 'frisk') return 'langvarig';
+    if (type.includes('skadet') || type.includes('langvarig')) return 'langvarig';
+    return '';
+}
+
+window.getPlayerInjuryInfo = function(player, asOfDate) {
+    const healthy = { isInjured: false, type: 'frisk', label: '', shortLabel: '' };
+    if (!player) return healthy;
+
+    const asOf = getInjuryDateKey(asOfDate);
+    if (!asOf) {
+        return buildPlayerInjuryInfoFromStatus(player.skadeStatus, player.skadeNotat, player.skadeTilDato);
+    }
+
+    const today = getLocalInjuryDateKey();
+    const currentStatus = player.skadeStatus && player.skadeStatus !== 'frisk' ? player.skadeStatus : '';
+    if (currentStatus) {
+        const from = getInjuryDateKey(player.skadeFraDato);
+        const applies = from ? asOf >= from : asOf >= today;
+        if (applies) {
+            return buildPlayerInjuryInfoFromStatus(currentStatus, player.skadeNotat, player.skadeTilDato);
+        }
+    }
+
+    const covering = (Array.isArray(player.skadeHistorikk) ? player.skadeHistorikk : [])
+        .filter((entry) => {
+            const from = getInjuryDateKey(entry?.fraDato);
+            const to = getInjuryDateKey(entry?.tilDato);
+            if (!from || !to) return false;
+            if (from === to) return asOf === from;
+            return asOf >= from && asOf < to;
+        })
+        .sort((a, b) => getInjuryDateKey(b.fraDato).localeCompare(getInjuryDateKey(a.fraDato)))[0];
+
+    if (covering) {
+        const status = resolveHistoricalInjuryStatus(covering) || 'langvarig';
+        return buildPlayerInjuryInfoFromStatus(
+            status,
+            covering.skadeNotat,
+            covering.forventetTilDato || covering.tilDato
+        );
+    }
+
+    return healthy;
 };
 
 window.getSerieYellowDisciplineHint = function(serieYellowCount) {
