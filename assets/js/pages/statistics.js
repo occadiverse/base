@@ -4257,14 +4257,114 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return (Array.isArray(bits) ? bits : []).map(bit => String(bit || '').trim()).filter(Boolean).join(' · ');
         }
 
-        function countStatsSummaryLineupPlayers(match) {
-            if (typeof window.getMatchGamePlanDraftLineupPlayerCount === 'function') {
-                return window.getMatchGamePlanDraftLineupPlayerCount(match);
-            }
-            const lineup = match?.lineupRefs && typeof match.lineupRefs === 'object'
-                ? match.lineupRefs
-                : (match?.lineup || {});
-            return Object.values(lineup).filter(Boolean).length;
+        function getStatsSummaryOutcomeLabel(match) {
+            const score = typeof window.getMatchOutcomeScore === 'function'
+                ? window.getMatchOutcomeScore(match)
+                : null;
+            if (!score) return '';
+            if (score.bsk > score.opponent) return 'Seier';
+            if (score.bsk === score.opponent) return 'Uavgjort';
+            return 'Tap';
+        }
+
+        function getStatsSummarySquadPlayers(match) {
+            const refs = typeof window.getMatchParticipantRefs === 'function'
+                ? window.getMatchParticipantRefs(match)
+                : (typeof window.getAttendingPlayerRefs === 'function'
+                    ? window.getAttendingPlayerRefs(match?.attendance)
+                    : []);
+            const seen = new Set();
+            const players = [];
+            refs.forEach((ref) => {
+                const player = typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(ref)
+                    : null;
+                if (!player || player.isGuest) return;
+                const key = player.id || player.navn;
+                if (!key || seen.has(key)) return;
+                seen.add(key);
+                players.push(player);
+            });
+            return players;
+        }
+
+        function formatStatsSummaryPositionMix(players) {
+            const counts = { K: 0, F: 0, M: 0, A: 0 };
+            (Array.isArray(players) ? players : []).forEach((player) => {
+                const category = typeof window.getPositionCategoryFromPos1 === 'function'
+                    ? (window.getPositionCategoryFromPos1(player?.pos1) || 'M')
+                    : 'M';
+                if (Object.prototype.hasOwnProperty.call(counts, category)) counts[category] += 1;
+            });
+            return ['K', 'F', 'M', 'A'].map(letter => `${counts[letter]}${letter}`).join(' - ');
+        }
+
+        function formatStatsSummaryOpponentRecord(record) {
+            const wins = Number(record?.wins) || 0;
+            const draws = Number(record?.draws) || 0;
+            const losses = Number(record?.losses) || 0;
+            const seier = wins === 1 ? '1 seier' : `${wins} seire`;
+            return `${seier} ${draws} uavgjort ${losses} tap`;
+        }
+
+        function getStatsSummarySeasonGoalTotal(playerHint, match) {
+            const player = (playerHint?.id && typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(playerHint.id)
+                : null)
+                || (playerHint?.name && typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(playerHint.name)
+                    : null)
+                || { id: playerHint?.id || '', navn: playerHint?.name || '' };
+            const year = typeof window.getMatchStatsYear === 'function'
+                ? window.getMatchStatsYear(match)
+                : (match?.date ? new Date(match.date).getFullYear() : null);
+            return (window.activeMatches || []).reduce((sum, item) => {
+                if (!item?.result || !String(item.result).includes('-')) return sum;
+                if (match?.matchGroup && item.matchGroup && item.matchGroup !== match.matchGroup) return sum;
+                if (year && typeof window.activityBelongsToStatsYear === 'function'
+                    && !window.activityBelongsToStatsYear(item, year)) {
+                    return sum;
+                }
+                return sum + (Number(window.getPlayerRefMapValue?.(item.scorers, player, 0)) || 0);
+            }, 0);
+        }
+
+        function formatStatsSummaryGoalList(scorers, match) {
+            return (Array.isArray(scorers) ? scorers : []).map((row) => {
+                const matchGoals = Number(row.goals) || 0;
+                const total = getStatsSummarySeasonGoalTotal(row, match);
+                const name = String(row.name || '').trim();
+                return `${matchGoals} ${name} (${total})`;
+            }).join(', ');
+        }
+
+        function formatStatsSummaryPlaytimeBits(rows) {
+            const counts = {
+                bench: 0,
+                '0-20': 0,
+                '21-45': 0,
+                '46-75': 0,
+                '76-90': 0
+            };
+            (Array.isArray(rows) ? rows : []).forEach((row) => {
+                if (row.onPitch === false) {
+                    counts.bench += 1;
+                    return;
+                }
+                if (row.minutes == null) return;
+                const minutes = Math.max(0, Math.floor(Number(row.minutes) || 0));
+                if (minutes <= 20) counts['0-20'] += 1;
+                else if (minutes <= 45) counts['21-45'] += 1;
+                else if (minutes <= 75) counts['46-75'] += 1;
+                else counts['76-90'] += 1;
+            });
+            return [
+                `Benk ${counts.bench}`,
+                `0-20 ${counts['0-20']}`,
+                `21-45 ${counts['21-45']}`,
+                `46-75 ${counts['46-75']}`,
+                `76-90 ${counts['76-90']}`
+            ];
         }
 
         function buildStatsSummaryCardRowHtml({ id, label, value = '', htmlValue = '', empty = false, matchId = '' }) {
@@ -4345,8 +4445,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const pitch = String(match.pitch || '').trim();
             const durationLabel = match.duration || '90 min';
             const matchType = match.matchType || match.type || 'Kamp';
+            const outcomeLabel = getStatsSummaryOutcomeLabel(match);
             const heroText = joinStatsSummaryBits([
-                context.embedInPanel ? '' : resultLabel,
+                outcomeLabel,
+                resultLabel,
                 matchType,
                 venue,
                 pitch,
@@ -4356,17 +4458,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const presence = typeof window.getAttendancePresenceStats === 'function'
                 ? window.getAttendancePresenceStats(match)
                 : { presentCount: 0, squadSize: 0, isRegistered: false };
-            const kamptroppText = presence.isRegistered
-                ? (typeof window.formatAttendancePresenceLabel === 'function'
-                    ? window.formatAttendancePresenceLabel(match)
-                    : `${presence.presentCount}/${presence.squadSize || presence.presentCount} møtt opp`)
+            const squadPlayers = getStatsSummarySquadPlayers(match);
+            const troppCount = presence.isRegistered
+                ? presence.presentCount
+                : squadPlayers.length;
+            const recruitCount = squadPlayers.filter(player => player.status === 'Rekrutt').length;
+            const recruitText = recruitCount > 0
+                ? `${recruitCount} ${recruitCount === 1 ? 'rekrutt' : 'rekrutter'}`
+                : '';
+            const positionMix = troppCount > 0 || squadPlayers.length > 0
+                ? formatStatsSummaryPositionMix(squadPlayers)
+                : '';
+            const kamptroppText = troppCount > 0 || recruitText || positionMix
+                ? joinStatsSummaryBits([
+                    troppCount > 0 ? String(troppCount) : '',
+                    recruitText,
+                    positionMix
+                ])
                 : '';
 
-            const lineupCount = countStatsSummaryLineupPlayers(match);
-            const lineupText = joinStatsSummaryBits([
-                formation,
-                lineupCount > 0 ? `${lineupCount} satt` : ''
-            ]);
+            const lineupText = formation;
 
             const kampplanNotes = typeof window.getMatchGamePlanNotesText === 'function'
                 ? window.getMatchGamePlanNotesText(match)
@@ -4385,15 +4496,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : (notesPositive || notesChallenge);
 
             const subCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
-            const withMinutes = rows.filter(s => s.minutes != null && (Number(s.minutes) || 0) > 0).length;
             const minutesTracked = typeof window.matchHasMinutesTracking === 'function'
                 ? window.matchHasMinutesTracking(match)
-                : withMinutes > 0;
+                : rows.some(s => s.minutes != null);
             const bytterText = joinStatsSummaryBits([
                 subCount > 0 ? `${subCount} ${subCount === 1 ? 'bytte' : 'bytter'}` : '',
-                minutesTracked
-                    ? (withMinutes > 0 ? `${withMinutes} med minutter` : 'Spilletid ikke fylt')
-                    : ''
+                ...(minutesTracked ? formatStatsSummaryPlaytimeBits(rows) : [])
             ]);
 
             const borsHero = bb
@@ -4411,16 +4519,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const record = window.getOpponentHistoryRecord(window.getOpponentRecordMatches(match));
                 const played = (record.wins || 0) + (record.draws || 0) + (record.losses || 0);
                 if (played > 0) {
-                    opponentText = joinStatsSummaryBits([
-                        `${record.wins}S–${record.draws}U–${record.losses}T`,
-                        `${record.goalsFor}–${record.goalsAgainst}`
-                    ]);
+                    opponentText = formatStatsSummaryOpponentRecord(record);
                 }
             }
 
             const kampstatsBits = [];
             if (scorers.length) {
-                kampstatsBits.push(`Mål ${formatStatsSummaryCountedNames(scorers, 'goals', allNames, 3)}`);
+                kampstatsBits.push(`Mål: ${formatStatsSummaryGoalList(scorers, match)}`);
             }
             if (assisters.length) {
                 kampstatsBits.push(`Assist ${formatStatsSummaryCountedNames(assisters, 'assists', allNames, 3)}`);
