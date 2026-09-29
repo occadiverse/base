@@ -834,20 +834,37 @@ function getPlayerProfileStatRank(playerName, column, statsData) {
     return betterCount + 1;
 }
 
+function getPlayerProfileStatChipVisual(column) {
+    const option = typeof window.getStatsSortOption === 'function'
+        ? window.getStatsSortOption(column)
+        : null;
+    if (!option) return {};
+    return {
+        icon: option.icon || '',
+        glyph: option.glyph || ''
+    };
+}
+
 function buildPlayerProfileStatChipHtml(label, value, options = {}) {
     const toneClass = options.tone ? ` is-${options.tone}` : '';
     const titleAttr = options.title ? ` title="${escapeRosterHtml(options.title)}"` : '';
     const rank = Number(options.rank) || 0;
     const rankHtml = rank > 0
-        ? `<span class="player-profile-stat-chip-rank"> (${rank})</span>`
+        ? `<span class="player-profile-stat-chip-rank">(${rank})</span>`
         : '';
-    const glyphHtml = options.glyph
-        ? `<span class="player-profile-stat-chip-glyph stats-sort-glyph stats-sort-glyph-${escapeRosterHtml(options.glyph)}" aria-hidden="true"></span>`
-        : '';
+    let glyphHtml = '';
+    if (options.glyph) {
+        glyphHtml = `<span class="player-profile-stat-chip-glyph stats-sort-glyph stats-sort-glyph-${escapeRosterHtml(options.glyph)}" aria-hidden="true"></span>`;
+    } else if (options.icon) {
+        glyphHtml = `<span class="player-profile-stat-chip-glyph" aria-hidden="true"><i class="fa-solid ${escapeRosterHtml(options.icon)}"></i></span>`;
+    }
     return `
         <div class="player-profile-stat-chip${toneClass}"${titleAttr}>
-            <span class="player-profile-stat-chip-value">${glyphHtml}${escapeRosterHtml(value)}${rankHtml}</span>
-            <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
+            ${glyphHtml}
+            <span class="player-profile-stat-chip-body">
+                <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
+                <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}${rankHtml}</span>
+            </span>
         </div>
     `;
 }
@@ -1129,48 +1146,78 @@ window.renderPlayerProfilePage = function(playerId) {
             </div>
             <div class="player-profile-horizon-strip" aria-label="Sesong og nå">
                 <div class="player-profile-horizon-item is-season">
-                    <span class="player-profile-horizon-label">Total score - sesong</span>
-                    <span class="player-profile-horizon-value">${escapeRosterHtml(seasonHorizonValue)}</span>
+                    <i class="fa-solid fa-ranking-star player-profile-horizon-icon" aria-hidden="true"></i>
+                    <span class="player-profile-horizon-body">
+                        <span class="player-profile-horizon-label">Total score - sesong</span>
+                        <span class="player-profile-horizon-value">${escapeRosterHtml(seasonHorizonValue)}</span>
+                    </span>
                 </div>
                 <div class="player-profile-horizon-item is-now">
-                    <span class="player-profile-horizon-label">Form - nå</span>
-                    <span class="player-profile-horizon-value">${escapeRosterHtml(formHorizonValue)}</span>
+                    <i class="fa-solid fa-heart-pulse player-profile-horizon-icon" aria-hidden="true"></i>
+                    <span class="player-profile-horizon-body">
+                        <span class="player-profile-horizon-label">Form - nå</span>
+                        <span class="player-profile-horizon-value">${escapeRosterHtml(formHorizonValue)}</span>
+                    </span>
                 </div>
             </div>
             <div class="player-profile-stat-grid">
                 ${buildPlayerProfileStatChipHtml('Plassering (sesong)', totalRank > 0 ? String(totalRank) : '-', {
-                    title: 'Rangert etter Total Score for sesongen'
+                    title: 'Rangert etter Total Score for sesongen',
+                    ...getPlayerProfileStatChipVisual('totalScore')
                 })}
-                ${buildPlayerProfileStatChipHtml('Kamper', kamper, { rank: rankOf('kamper') })}
-                ${buildPlayerProfileStatChipHtml('Mål', mal, { rank: rankOf('mal') })}
-                ${buildPlayerProfileStatChipHtml('Assist', assist, { rank: rankOf('assist') })}
+                ${buildPlayerProfileStatChipHtml('Kamper', kamper, {
+                    rank: rankOf('kamper'),
+                    ...getPlayerProfileStatChipVisual('kamper')
+                })}
+                ${buildPlayerProfileStatChipHtml('Mål', mal, {
+                    rank: rankOf('mal'),
+                    ...getPlayerProfileStatChipVisual('mal')
+                })}
+                ${buildPlayerProfileStatChipHtml('Assist', assist, {
+                    rank: rankOf('assist'),
+                    ...getPlayerProfileStatChipVisual('assist')
+                })}
                 ${buildPlayerProfileStatChipHtml('Expected målpoeng', expectedMalpoeng, {
-                    glyph: 'xp',
                     title: 'Mål + assist per kamp på banen (vist som snitt / kamper). Hovedlisten krever minst 30 % kamper.',
-                    rank: rankOf('expectedMalpoeng')
+                    rank: rankOf('expectedMalpoeng'),
+                    ...getPlayerProfileStatChipVisual('expectedMalpoeng')
                 })}
                 ${buildPlayerProfileStatChipHtml('Gule kort', gule, {
                     title: 'Serie / Cup',
-                    rank: rankOf('gule')
+                    rank: rankOf('gule'),
+                    ...getPlayerProfileStatChipVisual('gule')
                 })}
                 ${buildPlayerProfileStatChipHtml('Røde kort', rode, {
                     title: 'Serie / Cup',
-                    rank: rankOf('rode')
+                    rank: rankOf('rode'),
+                    ...getPlayerProfileStatChipVisual('rode')
                 })}
-                ${buildPlayerProfileStatChipHtml('Børs', snittBors, { rank: rankOf('snittBors') })}
-                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, { rank: rankOf('kampbonus') })}
+                ${buildPlayerProfileStatChipHtml('Børs', snittBors, {
+                    rank: rankOf('snittBors'),
+                    ...getPlayerProfileStatChipVisual('snittBors')
+                })}
+                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, {
+                    rank: rankOf('kampbonus'),
+                    ...getPlayerProfileStatChipVisual('kampbonus')
+                })}
                 ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, {
                     title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte',
-                    rank: rankOf('oppmotePct')
+                    rank: rankOf('oppmotePct'),
+                    ...getPlayerProfileStatChipVisual('oppmotePct')
                 })}
-                ${buildPlayerProfileStatChipHtml('Banens beste', bb, { rank: rankOf('bb') })}
+                ${buildPlayerProfileStatChipHtml('Banens beste', bb, {
+                    rank: rankOf('bb'),
+                    ...getPlayerProfileStatChipVisual('bb')
+                })}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
                     title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
-                    rank: rankOf('minutesTotal')
+                    rank: rankOf('minutesTotal'),
+                    ...getPlayerProfileStatChipVisual('minutesTotal')
                 })}
                 ${buildPlayerProfileStatChipHtml('Minuttandel', minuttandel, {
                     title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
-                    rank: rankOf('minutesSharePct')
+                    rank: rankOf('minutesSharePct'),
+                    ...getPlayerProfileStatChipVisual('minutesSharePct')
                 })}
             </div>
         </section>

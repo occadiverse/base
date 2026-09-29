@@ -6378,12 +6378,13 @@
             margin-bottom: 0.75rem;
         }
         .player-profile-horizon-item {
+            align-items: center;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.9rem;
             display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
+            flex-direction: row;
+            gap: 0.65rem;
             min-width: 0;
             padding: 0.7rem 0.75rem;
         }
@@ -6392,6 +6393,20 @@
         }
         .player-profile-horizon-item.is-now {
             border-color: rgba(16, 185, 129, 0.28);
+        }
+        .player-profile-horizon-icon {
+            color: #f5c542;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+            line-height: 1;
+            text-align: center;
+            width: 1.4rem;
+        }
+        .player-profile-horizon-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 0;
         }
         .player-profile-horizon-label {
             color: rgba(255, 255, 255, 0.55);
@@ -6465,33 +6480,44 @@
             text-align: center;
         }
         .player-profile-stat-chip {
+            align-items: center;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.9rem;
             display: flex;
+            flex-direction: row;
+            gap: 0.55rem;
+            min-height: 3.7rem;
+            min-width: 0;
+            padding: 0.65rem 0.7rem;
+        }
+        .player-profile-stat-chip-body {
+            display: flex;
             flex-direction: column;
-            gap: 0.2rem;
-            min-height: 4.1rem;
-            padding: 0.7rem 0.65rem 0.65rem;
+            gap: 0.12rem;
+            min-width: 0;
         }
         .player-profile-stat-chip-value {
             color: #ffffff;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 950;
             letter-spacing: -0.03em;
-            line-height: 1;
+            line-height: 1.15;
         }
         .player-profile-stat-chip-rank {
             color: rgba(255, 255, 255, 0.48);
+            display: inline-block;
             font-size: 0.72em;
             font-weight: 800;
             letter-spacing: -0.02em;
+            margin-left: 0.55em;
         }
         .player-profile-stat-chip-label {
             color: rgba(255, 255, 255, 0.55);
             font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.04em;
+            line-height: 1.2;
             text-transform: uppercase;
         }
         .player-profile-chart-wrap,
@@ -7157,6 +7183,7 @@
         .stats-board-card .stats-team-season-grid .stats-team-season-chip,
         .stats-team-season-grid .stats-team-season-chip {
             align-items: center;
+            flex-direction: column;
             justify-content: center;
             text-align: center;
         }
@@ -10463,10 +10490,18 @@
             letter-spacing: -0.06em;
         }
         .player-profile-stat-chip-glyph {
-            display: inline-block;
-            margin-right: 0.28em;
-            vertical-align: 0.05em;
-            color: #64748b;
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            flex-shrink: 0;
+            font-size: 1.3rem;
+            justify-content: center;
+            line-height: 1;
+            min-width: 1.4rem;
+        }
+        .player-profile-stat-chip-glyph .fa-solid {
+            color: #f5c542;
+            font-size: 1.3rem;
         }
         .stats-sort-filter .roster-status-btn.stats-sort-btn:not(.is-active) .fa-solid,
         .stats-sort-filter .roster-status-btn.stats-sort-btn:not(.is-active) .stats-sort-glyph {
