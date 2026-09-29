@@ -4230,18 +4230,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return first;
         }
 
-        function formatStatsSummaryCountedNames(rows, valueKey, allNames = [], limit = 0) {
-            const items = (Array.isArray(rows) ? rows : []).map((row) => {
-                const name = getStatsSummaryShortName(row.name, allNames);
-                const value = Number(row[valueKey]) || 0;
-                return value > 1 ? `${name} ${value}` : name;
-            });
-            if (limit > 0 && items.length > limit) {
-                return `${items.slice(0, limit).join(', ')} +${items.length - limit}`;
-            }
-            return items.join(', ');
-        }
-
         function getStatsSummaryFirstSentence(text, maxLen = 140) {
             const raw = String(text || '').trim().replace(/\s+/g, ' ');
             if (!raw) return '';
@@ -4314,7 +4302,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ]);
         }
 
-        function getStatsSummarySeasonGoalTotal(playerHint, match) {
+        function getStatsSummarySeasonMapTotal(playerHint, match, mapKey) {
             const player = (playerHint?.id && typeof window.findPlayerByRef === 'function'
                 ? window.findPlayerByRef(playerHint.id)
                 : null)
@@ -4332,16 +4320,24 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     && !window.activityBelongsToStatsYear(item, year)) {
                     return sum;
                 }
-                return sum + (Number(window.getPlayerRefMapValue?.(item.scorers, player, 0)) || 0);
+                return sum + (Number(window.getPlayerRefMapValue?.(item[mapKey], player, 0)) || 0);
             }, 0);
         }
 
-        function formatStatsSummaryGoalList(scorers, match) {
-            return (Array.isArray(scorers) ? scorers : []).map((row) => {
-                const matchGoals = Number(row.goals) || 0;
-                const total = getStatsSummarySeasonGoalTotal(row, match);
+        function formatStatsSummaryMatchStatList(rows, match, valueKey, mapKey) {
+            return (Array.isArray(rows) ? rows : []).map((row) => {
+                const matchValue = Number(row[valueKey]) || 0;
+                const total = getStatsSummarySeasonMapTotal(row, match, mapKey);
                 const name = String(row.name || '').trim();
-                return `${matchGoals} ${name} (${total})`;
+                return `${matchValue} ${name} (${total})`;
+            }).join(', ');
+        }
+
+        function formatStatsSummaryCardNames(rows, valueKey) {
+            return (Array.isArray(rows) ? rows : []).map((row) => {
+                const name = String(row.name || '').trim();
+                const value = Number(row[valueKey]) || 0;
+                return value > 1 ? `${name} ${value}` : name;
             }).join(', ');
         }
 
@@ -4430,16 +4426,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
             const kortBits = [];
             if (yellowRows.length) {
-                const names = yellowRows.length <= 3
-                    ? formatStatsSummaryCountedNames(yellowRows, 'yellow', allNames)
-                    : String(yellowRows.length);
-                kortBits.push(cardBit('yellow', 'Gult', names));
+                kortBits.push(cardBit('yellow', 'Gult', formatStatsSummaryCardNames(yellowRows, 'yellow')));
             }
             if (redRows.length) {
-                const names = redRows.length <= 3
-                    ? formatStatsSummaryCountedNames(redRows, 'red', allNames)
-                    : String(redRows.length);
-                kortBits.push(cardBit('red', 'Rødt', names));
+                kortBits.push(cardBit('red', 'Rødt', formatStatsSummaryCardNames(redRows, 'red')));
             }
             const kortHtml = kortBits.length
                 ? `<span class="stats-kamp-summary-card-stack">${kortBits.join('')}</span>`
@@ -4532,10 +4522,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const kampstatsBits = [];
             if (scorers.length) {
-                kampstatsBits.push(`Mål: ${formatStatsSummaryGoalList(scorers, match)}`);
+                kampstatsBits.push(`Mål: ${formatStatsSummaryMatchStatList(scorers, match, 'goals', 'scorers')}`);
             }
             if (assisters.length) {
-                kampstatsBits.push(`Assist ${formatStatsSummaryCountedNames(assisters, 'assists', allNames, 3)}`);
+                kampstatsBits.push(`Assists: ${formatStatsSummaryMatchStatList(assisters, match, 'assists', 'assists')}`);
             }
             if (avgPoints != null) kampstatsBits.push(`Poeng ${avgPoints}`);
             const kampstatsText = kampstatsBits.join(' · ');
