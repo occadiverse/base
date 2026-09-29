@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20260929-profile-stat-icons-v4">
+    <link rel="stylesheet" href="assets/css/base.css?v=20260929-sandbox-formation-chip-v1">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -379,7 +379,7 @@
                             </div>
                         </div>
 
-                        <div class="tactical-live-toolbar relative z-10">
+                        <div class="tactical-live-toolbar relative z-40">
                             <label class="match-list-lag-filter tactical-match-select-wrap" for="tacticalMatchSelect">
                                 <i class="fa-solid fa-futbol" aria-hidden="true"></i>
                                 <select
@@ -413,6 +413,7 @@
                                 </button>
                                 <div id="tactical-sandbox-tools" class="contents">
                                     <div class="w-px h-6 bg-white/20 mx-1 rounded"></div>
+                                    <div id="tactical-sandbox-formation" class="tactical-sandbox-formation"></div>
                                     <button type="button" id="tactical-autofill-btn" onclick="autoFillTeam()" title="Autofullfør ellever" class="bsk-btn bsk-btn-icon bsk-btn-warning">
                                         <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
                                     </button>
@@ -423,7 +424,7 @@
                                         type="button"
                                         id="tactical-autofill-info-btn"
                                         onclick="window.openAutofillInfoModal()"
-                                        class="training-session-groups-info-btn"
+                                        class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-secondary training-session-groups-info-btn"
                                         title="Slik fungerer autofyll"
                                         aria-label="Slik fungerer autofyll"
                                     >
@@ -1432,10 +1433,10 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20260929-profile-stat-icons-v3"></script>
-    <script src="assets/js/pages/matches.js?v=20260929-tropp-badge-v1"></script>
+    <script src="assets/js/pages/matches.js?v=20260929-sandbox-formation-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20260929-oppmote-sort-v1"></script>
-    <script src="assets/js/pages/tactics.js?v=20260927-3412-f1-v13"></script>
+    <script src="assets/js/pages/tactics.js?v=20260929-sandbox-formation-chip-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20260909-oppmote-range-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260908-local-hydrate-v1"></script>

@@ -62,7 +62,9 @@
                 const formationId = window.getMatchGamePlanFormation(match);
                 if (formationId) return formationId;
             }
-            return '4-2-4';
+            return typeof window.getTacticalSandboxFormation === 'function'
+                ? window.getTacticalSandboxFormation()
+                : '4-2-4';
         }
 
         function getMatchGamePlanLiveCoords(formationId) {
@@ -98,7 +100,7 @@
 
         function getLivePhaseCoords(phaseId) {
             const formationId = getSelectedMatchFormationId();
-            if (getTacticalMatchSelectValue() && formationId && formationId !== '4-2-4') {
+            if (formationId && formationId !== '4-2-4') {
                 const phaseCoords = TACTICAL_FORMATION_PHASES[formationId]?.[phaseId];
                 if (phaseCoords) return phaseCoords;
                 const fromPlan = getMatchGamePlanLiveCoords(formationId);
@@ -157,6 +159,7 @@
         window.tacticalAppliedLiveRoleChanges = window.tacticalAppliedLiveRoleChanges || [];
         window.liveSlotRoles = window.liveSlotRoles || {};
         window.tacticalSamspillLinesVisible = window.tacticalSamspillLinesVisible !== false;
+        window.tacticalSandboxFormation = window.tacticalSandboxFormation || '4-2-4';
 
         const TACTICAL_SLOT_ROLE_OPTIONS = TACTICAL_POSITIONS.map((id) => ({
             id,
@@ -1567,6 +1570,92 @@
             };
         }
 
+        window.getTacticalSandboxFormation = function() {
+            const raw = String(window.tacticalSandboxFormation || '4-2-4').trim();
+            const ids = typeof window.getMatchGamePlanFormationIds === 'function'
+                ? window.getMatchGamePlanFormationIds()
+                : ['4-2-4', '4-3-3', '4-2-3-1', '4-5-1', '3-4-1-2'];
+            if (raw === '4-4-2') return '4-2-4';
+            return ids.includes(raw) ? raw : '4-2-4';
+        };
+
+        function renderTacticalSandboxFormationPicker() {
+            const host = document.getElementById('tactical-sandbox-formation');
+            if (!host) return;
+            const formationId = window.getTacticalSandboxFormation();
+            const formationIds = typeof window.getMatchGamePlanFormationIds === 'function'
+                ? window.getMatchGamePlanFormationIds()
+                : ['4-2-4', '4-3-3', '4-2-3-1', '4-5-1', '3-4-1-2'];
+            const sandboxId = window.MATCH_PLAYER_SELECT_SANDBOX_ID || '__sandbox__';
+            host.innerHTML = `
+                <div class="match-game-plan-formation-menu" data-formation-menu data-match-id="${escapeTacticalHtml(sandboxId)}">
+                    <button
+                        type="button"
+                        class="bsk-btn bsk-btn-chip match-filter-btn match-game-plan-formation-trigger"
+                        data-formation-action="toggle"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Velg formasjon, valgt ${escapeTacticalHtml(formationId)}"
+                    >
+                        <span class="match-game-plan-formation-trigger-value">${escapeTacticalHtml(formationId)}</span>
+                        <i class="fa-solid fa-chevron-down match-game-plan-formation-trigger-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="match-game-plan-formation-dropdown" role="listbox" aria-label="Formasjoner" hidden data-formation-menu-panel>
+                        ${formationIds.map(id => `
+                            <button
+                                type="button"
+                                class="match-game-plan-formation-option ${id === formationId ? 'is-active' : ''}"
+                                role="option"
+                                aria-selected="${id === formationId ? 'true' : 'false'}"
+                                data-formation-action="select"
+                                data-formation-id="${escapeTacticalHtml(id)}"
+                            >${escapeTacticalHtml(id)}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.setTacticalSandboxFormation = function(formationId) {
+            if (!window.isTacticalLineupEditable()) return;
+            const ids = typeof window.getMatchGamePlanFormationIds === 'function'
+                ? window.getMatchGamePlanFormationIds()
+                : ['4-2-4', '4-3-3', '4-2-3-1', '4-5-1', '3-4-1-2'];
+            if (!ids.includes(formationId)) return;
+
+            window.tacticalSandboxFormation = formationId;
+            let next = { ...(window.tacticalLineup || window.liveLineup || {}) };
+            if (typeof window.remapMatchGamePlanLineupSlotsForFormation === 'function') {
+                next = window.remapMatchGamePlanLineupSlotsForFormation(next, formationId, { overwrite: true }) || {};
+            }
+            const valid = new Set(
+                typeof window.getMatchGamePlanFormationPositionIds === 'function'
+                    ? window.getMatchGamePlanFormationPositionIds(formationId)
+                    : TACTICAL_POSITIONS
+            );
+            const pruned = {};
+            Object.entries(next).forEach(([posId, player]) => {
+                if (valid.has(posId)) pruned[posId] = player;
+            });
+            TACTICAL_POSITIONS.forEach((posId) => {
+                if (valid.has(posId) && !Object.prototype.hasOwnProperty.call(pruned, posId)) {
+                    pruned[posId] = null;
+                }
+            });
+            window.tacticalLineup = pruned;
+            window.liveLineup = { ...pruned };
+            TACTICAL_POSITIONS.forEach((posId) => {
+                window.renderNodeVisually(window.tacticalLineup[posId] || null, posId);
+            });
+            renderTacticalSandboxFormationPicker();
+            if (typeof window.closePlayerSelect === 'function') window.closePlayerSelect();
+            if (typeof window.setTacticalPhase === 'function') {
+                window.setTacticalPhase(typeof currentTacticalPhase !== 'undefined' ? currentTacticalPhase : 'fase1');
+            }
+            if (typeof window.updateTacticalBoardStats === 'function') window.updateTacticalBoardStats();
+            clearTacticalMatchLiveUi();
+        };
+
         window.isTacticalLineupEditable = function() {
             return !getTacticalMatchSelectValue();
         };
@@ -1579,6 +1668,12 @@
             const matchId = getTacticalMatchSelectValue();
             if (sandboxTools) {
                 sandboxTools.classList.toggle('hidden', Boolean(matchId));
+            }
+            if (!matchId) {
+                renderTacticalSandboxFormationPicker();
+                if (typeof window.ensureMatchGamePlanFormationMenuEventsBound === 'function') {
+                    window.ensureMatchGamePlanFormationMenuEventsBound();
+                }
             }
             if (!matchId) {
                 container.classList.add('hidden');
@@ -2061,6 +2156,20 @@
             });
         }
 
+        function clearTacticalMatchLiveUi() {
+            const benchCard = document.getElementById('tactical-bench-card');
+            const benchList = document.getElementById('tactical-bench-list');
+            const subPanel = document.getElementById('tactical-live-sub-panel');
+            if (benchCard) benchCard.classList.add('hidden');
+            if (benchList) benchList.innerHTML = '';
+            if (subPanel) {
+                subPanel.classList.add('hidden');
+                subPanel.innerHTML = '';
+            }
+            refreshTacticalLiveSubsLog();
+            if (typeof window.syncLiveMatchClockBar === 'function') window.syncLiveMatchClockBar();
+        }
+
         function refreshTacticalLiveBoard() {
             syncLiveFormationNodes();
             TACTICAL_POSITIONS.forEach(pos => {
@@ -2149,11 +2258,7 @@
             setLivePlayingTimeStatus('');
 
             if (!matchId) {
-                if (benchCard) benchCard.classList.add('hidden');
-                if (subPanel) {
-                    subPanel.classList.add('hidden');
-                    subPanel.innerHTML = '';
-                }
+                clearTacticalMatchLiveUi();
                 window.liveLineup = {};
                 window.liveRoles = {};
                 window.tacticalLineupIsEditing = true;
@@ -3202,6 +3307,19 @@
             window.closePlayerSelect();
         };
 
+        window.applyTacticalSandboxLineup = function(nextLineup, affectedPosIds) {
+            window.tacticalLineup = { ...(nextLineup || {}) };
+            window.liveLineup = { ...(nextLineup || {}) };
+            const posIds = new Set(affectedPosIds || []);
+            Object.keys(window.tacticalLineup).forEach(posId => posIds.add(posId));
+            posIds.forEach(posId => {
+                window.renderNodeVisually(window.tacticalLineup[posId] || null, posId);
+            });
+            window.drawChemistryLines();
+            window.updateTacticalBoardStats();
+            window.closePlayerSelect();
+        };
+
         window.openPlayerSelect = function(posId) {
             if (window.isTacticalLiveMatchMode()) {
                 if (window.isLiveSessionLocked()) {
@@ -3253,115 +3371,12 @@
 
             currentSelectPos = posId;
             window.drawChemistryLines();
-            const modal = document.getElementById('tacticalPlayerModal');
-            modal.classList.remove('match-game-plan-select-modal');
-            modal.querySelector('[data-match-game-plan-clear-player]')?.remove();
-            const title = modal.querySelector('h3');
-            if (title) title.innerHTML = '<i class="fa-solid fa-shirt text-bsk-yellow"></i> Velg spiller';
-            const list = document.getElementById('tactical-player-list');
-            document.getElementById('tactical-pos-label').innerText = `Velger for: ${posId}`;
-            list.innerHTML = '';
-
-            const matchId = getTacticalMatchSelectValue() || null;
-            const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-            const hasAttendance = currentMatch && window.hasRegisteredAttendance(currentMatch.attendance);
-
-            const suspData = (typeof window.getDisciplineStatusForTeam === 'function' && currentMatch)
-                ? window.getDisciplineStatusForTeam(currentMatch.matchGroup, currentMatch.date)
-                : {};
-
-            const sortedPlayers = [...(window.activePlayers || [])]
-                .filter(p => p.status !== 'Passiv')
-                .filter(p => !currentMatch || typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, currentMatch))
-                .sort((a,b) => {
-                    if (hasAttendance) {
-                        const valA = window.isPlayerAttending(currentMatch.attendance, a) ? 2 : 0;
-                        const valB = window.isPlayerAttending(currentMatch.attendance, b) ? 2 : 0;
-                        if (valA !== valB) return valB - valA;
-                    }
-                    return a.navn.localeCompare(b.navn);
-                });
-
-            sortedPlayers.forEach(p => {
-                const isPlaying = Object.values(window.tacticalLineup).some(player => player && player.id === p.id);
-                let attStatusHtml = '', opacityClass = isPlaying ? 'opacity-40 bg-slate-50' : 'hover:bg-bsk-blue/5 border border-transparent hover:border-bsk-blue/20', needsAttendanceConfirm = false;
-
-                const pSusp = window.getDisciplineStatusForPlayer(suspData, p);
-
-                if (pSusp.isSuspended) {
-                    attStatusHtml += `<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black ml-2 animate-pulse shadow-sm" title="${escapeTacticalHtml(pSusp.reason)}">🚫 KARANTENE</span>`;
-                    opacityClass = 'opacity-60 bg-rose-50 border border-rose-200';
-                } else if (pSusp.isAtRisk) {
-                    attStatusHtml += `<span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="Faresone: ${escapeTacticalHtml(pSusp.yellows)} gule i serie. Karantene ved ${escapeTacticalHtml(pSusp.nextKaranteneAt || 4)}.">⚠️ FARESONE</span>`;
-                }
-
-                const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
-                if (injuryInfo.isInjured) {
-                    const injuryClass = injuryInfo.type === 'langvarig'
-                        ? 'bg-rose-600 text-white'
-                        : 'bg-orange-500 text-white';
-                    attStatusHtml += `<span class="text-[9px] ${injuryClass} px-1.5 py-0.5 rounded font-black ml-2 shadow-sm" title="${escapeTacticalHtml(injuryInfo.label)}">🩹 ${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
-                }
-
-                if (currentMatch && hasAttendance) {
-                    if (window.isPlayerAttending(currentMatch.attendance, p) && !pSusp.isSuspended) {
-                        attStatusHtml += '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold ml-2">✅ MED</span>';
-                    } else if (!pSusp.isSuspended && !isPlaying) {
-                        opacityClass = 'opacity-50 bg-slate-50';
-                        needsAttendanceConfirm = true;
-                    }
-                }
-
-                const playerChem = window.calculatePlayerPerformanceChemistry(p.navn);
-                const chemColor = typeof window.getFormScoreTextClass === 'function'
-                    ? window.getFormScoreTextClass(playerChem, p.spillerLag)
-                    : 'text-slate-400';
-
-                const kampbonus = typeof window.getPlayerKampbidragSnitt === 'function'
-                    ? window.getPlayerKampbidragSnitt(p)
-                    : 0;
-                let bonusColor = 'text-slate-400';
-                if (kampbonus > 15) bonusColor = 'text-emerald-500';
-                else if (kampbonus >= 10) bonusColor = 'text-amber-500';
-                else if (kampbonus > 0) bonusColor = 'text-rose-500';
-                const bonusTekst = kampbonus > 0 ? kampbonus : '-';
-
-                const div = document.createElement('div');
-                div.className = `p-3 rounded-xl flex justify-between items-center cursor-pointer transition mb-1 ${opacityClass}`;
-                div.onclick = () => {
-                    if (pSusp.isSuspended && !confirm(`ADVARSEL! ${p.navn} har karantene (${pSusp.reason}). Vil du sette ham på banen likevel?`)) return;
-                    else if (!pSusp.isSuspended && needsAttendanceConfirm && !confirm(`${p.navn} er ikke registrert med oppmøte. Vil du sette ham på banen likevel?`)) return;
-                    if (!isPlaying) window.choosePlayer(p, posId); else alert(`${p.navn} er allerede plassert!`);
-                };
-                
-                div.innerHTML = `
-                    <div class="flex-1 min-w-0 pr-2">
-                        <div class="flex items-center flex-wrap gap-y-1">
-                            <p class="font-bold text-slate-800 text-sm truncate mr-1">${escapeTacticalHtml(p.navn)}</p>
-                            ${attStatusHtml}
-                        </div>
-                        <p class="text-[10px] text-slate-500 font-medium">${escapeTacticalHtml(p.pos1 || 'Ukjent pos')}${p.draktnummer ? ` | #${escapeTacticalHtml(p.draktnummer)}` : ''}</p>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0 mr-3">
-                        <span class="font-black text-xs ${bonusColor}" title="Kampbidrag">${bonusTekst}</span>
-                        <div class="w-px h-3 bg-slate-300"></div>
-                        <span class="font-black text-xs ${chemColor}" title="Form">${playerChem}/100</span>
-                    </div>
-                    <div class="shrink-0">
-                        ${isPlaying ? '<span class="text-[9px] bg-slate-200 text-slate-500 px-2 py-1 rounded font-bold">OPPTATT</span>' : '<i class="fa-solid fa-plus text-bsk-blue bg-bsk-yellow p-1.5 rounded-lg shadow-sm"></i>'}
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-
-            if (window.tacticalLineup[posId]) {
-                const clearDiv = document.createElement('div');
-                clearDiv.className = "p-3 mt-2 bg-rose-50 border border-rose-100 text-rose-600 font-bold text-xs text-center cursor-pointer hover:bg-rose-100 transition rounded-xl flex justify-center items-center gap-2";
-                clearDiv.onclick = () => window.choosePlayer(null, posId); 
-                clearDiv.innerHTML = `<i class="fa-solid fa-user-minus"></i> Fjern spiller fra ${escapeTacticalHtml(posId)}`;
-                list.appendChild(clearDiv);
+            if (typeof window.openMatchGamePlanPlayerSelect === 'function') {
+                window.openMatchGamePlanPlayerSelect(
+                    window.MATCH_PLAYER_SELECT_SANDBOX_ID || '__sandbox__',
+                    posId
+                );
             }
-            modal.classList.remove('hidden'); modal.classList.add('flex');
         };
 
         window.closePlayerSelect = function() {
@@ -3379,7 +3394,8 @@
             if (!window.isTacticalLineupEditable()) return;
             window.tacticalLineup = {};
             window.liveLineup = {};
-            ['GK', 'VMS', 'HMS', 'VB', 'HB', 'DM', 'OM', 'PM', 'VK', 'HK', 'SP'].forEach(pos => window.choosePlayer(null, pos));
+            TACTICAL_POSITIONS.forEach(pos => window.renderNodeVisually(null, pos));
+            window.drawChemistryLines();
             window.updateTacticalBoardStats();
         };
 
@@ -3465,11 +3481,7 @@
                 { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: null, requireFoot: false }
             ].filter((req) => {
                 if (typeof window.getMatchGamePlanFormationPositionIds !== 'function') return true;
-                const formationId = currentMatch
-                    ? (typeof window.getMatchGamePlanFormation === 'function'
-                        ? window.getMatchGamePlanFormation(currentMatch)
-                        : '4-2-4')
-                    : '4-2-4';
+                const formationId = getSelectedMatchFormationId();
                 return window.getMatchGamePlanFormationPositionIds(formationId).includes(req.id);
             });
 

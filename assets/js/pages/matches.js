@@ -1435,8 +1435,55 @@ function buildMatchGamePlanPlayerOptionAvatarHtml(player) {
     return `<span class="match-game-plan-player-avatar"><span>${escapeMatchHtml(fallbackText)}</span></span>`;
 }
 
+const MATCH_PLAYER_SELECT_SANDBOX_ID = '__sandbox__';
+window.MATCH_PLAYER_SELECT_SANDBOX_ID = MATCH_PLAYER_SELECT_SANDBOX_ID;
+
+function isMatchPlayerSelectSandbox(matchOrId) {
+    const id = typeof matchOrId === 'string' ? matchOrId : matchOrId?.id;
+    return id === MATCH_PLAYER_SELECT_SANDBOX_ID;
+}
+
+function getMatchPlayerSelectMatch(matchId) {
+    if (matchId === MATCH_PLAYER_SELECT_SANDBOX_ID) {
+        return {
+            id: MATCH_PLAYER_SELECT_SANDBOX_ID,
+            matchGroup: typeof window.getPrimaryTeamName === 'function'
+                ? (window.getPrimaryTeamName() || '')
+                : '',
+            formation: '4-2-4'
+        };
+    }
+    return (window.activeMatches || []).find(item => item.id === matchId) || null;
+}
+
+function getMatchPlayerSelectFormation(match) {
+    if (isMatchPlayerSelectSandbox(match)) {
+        if (typeof window.getTacticalSandboxFormation === 'function') {
+            return window.getTacticalSandboxFormation();
+        }
+        return '4-2-4';
+    }
+    return getMatchGamePlanDraftFormation(match);
+}
+
+function getMatchPlayerSelectLineup(match) {
+    if (isMatchPlayerSelectSandbox(match)) {
+        return { ...(window.tacticalLineup || window.liveLineup || {}) };
+    }
+    return getMatchGamePlanDraftLineup(match);
+}
+
+function getMatchPlayerSelectPlayers(match) {
+    if (isMatchPlayerSelectSandbox(match)) {
+        return [...(window.activePlayers || [])]
+            .filter(player => player.status !== 'Passiv')
+            .sort((a, b) => String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' }));
+    }
+    return getMatchGamePlanSelectablePlayers(match);
+}
+
 function getMatchGamePlanDraftFormationPositions(match) {
-    const formation = matchGamePlanFormations[getMatchGamePlanDraftFormation(match)] || matchGamePlanFormations['4-2-4'];
+    const formation = matchGamePlanFormations[getMatchPlayerSelectFormation(match)] || matchGamePlanFormations['4-2-4'];
     return formation.positions || {};
 }
 
@@ -1893,7 +1940,7 @@ function getMatchDetailAttendingPlayers(match) {
 }
 
 function getMatchGamePlanPlayerPitchPosId(match, player) {
-    const lineup = getMatchGamePlanDraftLineup(match);
+    const lineup = getMatchPlayerSelectLineup(match);
     const entry = Object.entries(lineup).find(([, lineupPlayer]) => matchGamePlanSamePlayer(lineupPlayer, player));
     return entry ? entry[0] : '';
 }
@@ -2596,6 +2643,7 @@ function ensureMatchGamePlanFormationMenuEventsBound() {
         if (event.key === 'Escape') closeMatchGamePlanLineupDropdownMenus();
     });
 }
+window.ensureMatchGamePlanFormationMenuEventsBound = ensureMatchGamePlanFormationMenuEventsBound;
 
 function buildMatchGamePlanFormationPickerHtml(match) {
     const activeFormation = getMatchGamePlanDraftFormation(match);
@@ -5536,12 +5584,27 @@ window.renderMatchGamePlanStarterNode = function(match, posId) {
 };
 
 window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '') {
-    const match = (window.activeMatches || []).find(item => item.id === matchId);
-    if (!match) return;
-
     const selectedPlayer = playerId
         ? (window.activePlayers || []).find(player => player.id === playerId)
         : null;
+
+    if (isMatchPlayerSelectSandbox(matchId)) {
+        const previousLineup = getMatchPlayerSelectLineup({ id: MATCH_PLAYER_SELECT_SANDBOX_ID });
+        const nextLineup = assignMatchGamePlanDraftLineupPlayer(previousLineup, posId, selectedPlayer);
+        const affectedPosIds = [
+            posId,
+            ...getMatchGamePlanDraftLineupPosIdsForPlayer(previousLineup, selectedPlayer),
+            ...getMatchGamePlanDraftLineupPosIdsForPlayer(nextLineup, selectedPlayer)
+        ];
+        if (typeof window.applyTacticalSandboxLineup === 'function') {
+            window.applyTacticalSandboxLineup(nextLineup, affectedPosIds);
+        }
+        closeMatchGamePlanPlayerSelectModal();
+        return;
+    }
+
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (!match) return;
 
     const draft = getMatchGamePlanDraft(match);
     const previousLineup = getMatchGamePlanDraftLineup(match);
@@ -5557,8 +5620,16 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
 };
 
 window.setMatchGamePlanFormation = async function(matchId, formationId) {
+    if (!matchGamePlanFormations[formationId]) return;
+    if (isMatchPlayerSelectSandbox(matchId)) {
+        if (typeof window.setTacticalSandboxFormation === 'function') {
+            window.setTacticalSandboxFormation(formationId);
+        }
+        return;
+    }
+
     const match = (window.activeMatches || []).find(item => item.id === matchId);
-    if (!match || !matchGamePlanFormations[formationId]) return;
+    if (!match) return;
 
     const draft = getMatchGamePlanDraft(match);
     draft.formation = formationId;
@@ -5819,8 +5890,25 @@ window.saveMatchGamePlanBenchPlan = async function(matchId) {
 };
 
 window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPosId) {
+    if (!fromPosId || fromPosId === toPosId) return;
+
+    if (isMatchPlayerSelectSandbox(matchId)) {
+        const lineup = { ...getMatchPlayerSelectLineup({ id: MATCH_PLAYER_SELECT_SANDBOX_ID }) };
+        const movingPlayer = lineup[fromPosId] || null;
+        const targetPlayer = lineup[toPosId] || null;
+        if (!movingPlayer) return;
+
+        lineup[toPosId] = movingPlayer;
+        lineup[fromPosId] = targetPlayer || null;
+        if (typeof window.applyTacticalSandboxLineup === 'function') {
+            window.applyTacticalSandboxLineup(lineup, [fromPosId, toPosId]);
+        }
+        closeMatchGamePlanPlayerSelectModal();
+        return;
+    }
+
     const match = (window.activeMatches || []).find(item => item.id === matchId);
-    if (!match || fromPosId === toPosId) return;
+    if (!match) return;
 
     const draft = getMatchGamePlanDraft(match);
     const lineup = { ...getMatchGamePlanDraftLineup(match) };
@@ -5862,7 +5950,7 @@ function buildMatchGamePlanSelectActionsHtml(matchId, posId, mode) {
 }
 
 function buildMatchGamePlanPositionOptionsHtml(match, posId) {
-    const lineup = getMatchGamePlanDraftLineup(match);
+    const lineup = getMatchPlayerSelectLineup(match);
     const currentPlayer = lineup[posId];
     if (!currentPlayer) return '';
     const positions = getMatchGamePlanDraftFormationPositions(match);
@@ -5942,7 +6030,7 @@ function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced
         const title = isSelected
             ? `${player.navn} · Valgt nå`
             : (existingPosId
-                ? `${player.navn} · Bytt hit fra ${getMatchGamePlanPositionBadgeLabel(existingPosId, getMatchGamePlanDraftFormation(match))}`
+                ? `${player.navn} · Bytt hit fra ${getMatchGamePlanPositionBadgeLabel(existingPosId, getMatchPlayerSelectFormation(match))}`
                 : player.navn);
 
         return `
@@ -5991,7 +6079,7 @@ function buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player) {
     const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
     const score = getMatchGamePlanPositionScore(player, posId);
     const trailingHtml = existingPosId
-        ? `<span class="match-game-plan-player-tag is-pitch">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(existingPosId, getMatchGamePlanDraftFormation(match)))}</span>`
+        ? `<span class="match-game-plan-player-tag is-pitch">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(existingPosId, getMatchPlayerSelectFormation(match)))}</span>`
         : buildMatchGamePlanFitTagHtml(score);
     const onclick = existingPosId
         ? `window.moveMatchGamePlanPlayerPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(existingPosId)}', '${escapeMatchJsString(posId)}')`
@@ -6020,7 +6108,7 @@ function buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player) {
 }
 
 function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
-    const players = getMatchGamePlanSelectablePlayers(match);
+    const players = getMatchPlayerSelectPlayers(match);
 
     if (!players.length && !selectedPlayer) return '';
 
@@ -6075,7 +6163,7 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
         String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' })
     );
 
-    const posCode = getMatchGamePlanPositionBadgeLabel(posId, getMatchGamePlanDraftFormation(match));
+    const posCode = getMatchGamePlanPositionBadgeLabel(posId, getMatchPlayerSelectFormation(match));
     const sections = [];
 
     if (experienced.length) {
@@ -6133,14 +6221,14 @@ function renderMatchGamePlanClearPlayerButton(modal, matchId, posId) {
 }
 
 window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
-    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    const match = getMatchPlayerSelectMatch(matchId);
     const modal = document.getElementById('tacticalPlayerModal');
     const list = document.getElementById('tactical-player-list');
     const label = document.getElementById('tactical-pos-label');
     const title = modal?.querySelector('h3');
     if (!match || !modal || !list) return;
 
-    const lineup = getMatchGamePlanDraftLineup(match);
+    const lineup = getMatchPlayerSelectLineup(match);
     const selectedPlayer = lineup[posId] || null;
     const currentMode = mode || 'player';
 
@@ -6168,7 +6256,9 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
         <div class="match-game-plan-player-empty">
             ${currentMode === 'position'
                 ? 'Ingen posisjoner å bytte til.'
-                : 'Registrer oppmøte for å se hvem som møtte opp.'}
+                : (isMatchPlayerSelectSandbox(match)
+                    ? 'Ingen spillere å velge.'
+                    : 'Registrer oppmøte for å se hvem som møtte opp.')}
         </div>
     `;
 
@@ -7700,6 +7790,9 @@ window.getPlayerMatchPlayedPositionId = getPlayerMatchPlayedPositionId;
 window.getPlayerMatchPlayedPositionIds = getPlayerMatchPlayedPositionIds;
 window.getMatchGamePlanFormationPositionIds = getMatchGamePlanFormationPositionIds;
 window.getMatchGamePlanFormationPositions = getMatchGamePlanFormationPositions;
+window.getMatchGamePlanFormationIds = function() {
+    return Object.keys(matchGamePlanFormations);
+};
 window.remapMatchGamePlanSlotIdForFormation = remapMatchGamePlanSlotIdForFormation;
 window.remapMatchGamePlanLineupSlotsForFormation = remapMatchGamePlanLineupSlotsForFormation;
 
