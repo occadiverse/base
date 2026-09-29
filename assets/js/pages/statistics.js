@@ -3531,6 +3531,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderPlayerStatsList = function() {
             const list = document.getElementById('stats-player-list');
             if (!list) return;
+            currentStatSortDesc = true;
 
             let statsData = typeof window.getStatsSpillerListData === 'function'
                 ? window.getStatsSpillerListData()
@@ -4976,8 +4977,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.sortStatsTable = function(column) {
-            if (currentStatSortCol === column) currentStatSortDesc = !currentStatSortDesc;
-            else { currentStatSortCol = column; currentStatSortDesc = true; }
+            currentStatSortCol = column;
+            currentStatSortDesc = true;
 
             window.updateStatsSortButtons();
             window.renderPlayerStatsList();
