@@ -4303,8 +4303,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const wins = Number(record?.wins) || 0;
             const draws = Number(record?.draws) || 0;
             const losses = Number(record?.losses) || 0;
+            const goalsFor = Number(record?.goalsFor) || 0;
+            const goalsAgainst = Number(record?.goalsAgainst) || 0;
+            const diff = goalsFor - goalsAgainst;
+            const signedDiff = diff > 0 ? `+${diff}` : String(diff);
             const seier = wins === 1 ? '1 seier' : `${wins} seire`;
-            return `${seier} ${draws} uavgjort ${losses} tap`;
+            return joinStatsSummaryBits([
+                `${seier} ${draws} uavgjort ${losses} tap`,
+                `målforskjell ${signedDiff}`
+            ]);
         }
 
         function getStatsSummarySeasonGoalTotal(playerHint, match) {
@@ -4505,7 +4512,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ]);
 
             const borsHero = bb
-                ? `BB ${getStatsSummaryShortName(bb.name, allNames)}`
+                ? `BB ${String(bb.name || '').trim()}`
                 : (topRating
                     ? `Høyest ${getStatsSummaryShortName(topRating.name, allNames)} ${topRating.rating}`
                     : '');
