@@ -7852,13 +7852,6 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
                 ` : ''}
             </div>
 
-            ${String(player?.utviklingsmoment || '').trim() ? `
-                <div class="match-game-plan-insight-moment">
-                    <span class="match-game-plan-insight-moment-label">Utviklingsmoment</span>
-                    <p class="match-game-plan-insight-moment-text">${escapeMatchHtml(String(player.utviklingsmoment).trim())}</p>
-                </div>
-            ` : ''}
-
             <div class="match-game-plan-insight-table-wrap">
                 <table class="match-game-plan-insight-table">
                     <thead>
@@ -7878,9 +7871,12 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
 
             ${buildMatchGamePlanInsightTrainingRowHtml(player)}
 
-            <p class="match-game-plan-insight-hint">
-                Plasser spilleren ved å trykke en ledig plass på banen.
-            </p>
+            ${String(player?.utviklingsmoment || '').trim() ? `
+                <div class="match-game-plan-insight-moment">
+                    <span class="match-game-plan-insight-moment-label">Utviklingsmoment</span>
+                    <p class="match-game-plan-insight-moment-text">${escapeMatchHtml(String(player.utviklingsmoment).trim())}</p>
+                </div>
+            ` : ''}
         </div>
     `;
 }

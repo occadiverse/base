@@ -13193,14 +13193,6 @@
             padding: 0.9rem 0.6rem !important;
             text-align: center !important;
         }
-        .match-game-plan-insight-hint {
-            color: rgba(248, 250, 252, 0.62);
-            font-size: 0.72rem;
-            font-weight: 650;
-            line-height: 1.35;
-            margin: 0;
-            text-align: center;
-        }
         .match-game-plan-insight-trainings {
             display: flex;
             flex-direction: column;
