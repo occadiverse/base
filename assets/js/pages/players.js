@@ -817,8 +817,10 @@ function getPlayerProfileStatRank(playerName, column, statsData) {
     let relevant = typeof window.playerStatsRelevantForSort === 'function'
         ? statsData.filter(stat => window.playerStatsRelevantForSort(stat, column))
         : statsData.slice();
-    if (column === 'expectedMalpoeng' && typeof window.playerMeetsExpectedMalpoengThreshold === 'function') {
-        relevant = relevant.filter(stat => window.playerMeetsExpectedMalpoengThreshold(stat));
+    if (typeof window.statsSortUsesKampShareThreshold === 'function'
+        && window.statsSortUsesKampShareThreshold(column)
+        && typeof window.playerMeetsKampShareThreshold === 'function') {
+        relevant = relevant.filter(stat => window.playerMeetsKampShareThreshold(stat));
     }
     const playerStat = relevant.find(stat => stat.navn === playerName);
     if (!playerStat) return null;

@@ -2170,6 +2170,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return (Number(stat?.kampSharePct) || 0) >= 30;
         };
 
+        window.statsSortUsesKampShareThreshold = function(column) {
+            return column === 'totalScore'
+                || column === 'kampbonus'
+                || column === 'kjemi'
+                || column === 'snittBors'
+                || column === 'expectedMalpoeng'
+                || column === 'minutesSharePct';
+        };
+
+        window.playerQualifiesForStatsSort = function(stat, column) {
+            if (typeof window.statsSortUsesKampShareThreshold === 'function'
+                && !window.statsSortUsesKampShareThreshold(column)) {
+                return true;
+            }
+            return typeof window.playerMeetsKampShareThreshold === 'function'
+                ? window.playerMeetsKampShareThreshold(stat)
+                : true;
+        };
+
         window.playerMeetsExpectedMalpoengThreshold = function(stat) {
             return window.playerMeetsKampShareThreshold(stat);
         };
@@ -2199,8 +2218,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.getStatsPlayerRank = function(playerName, column, statsData) {
             let relevantStats = statsData.filter(stat => window.playerStatsRelevantForSort(stat, column));
-            if (typeof window.playerMeetsKampShareThreshold === 'function') {
-                relevantStats = relevantStats.filter(stat => window.playerMeetsKampShareThreshold(stat));
+            if (typeof window.playerQualifiesForStatsSort === 'function') {
+                relevantStats = relevantStats.filter(stat => window.playerQualifiesForStatsSort(stat, column));
             }
             const useActiveSort = column === currentStatSortCol;
 
@@ -2217,7 +2236,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.getStatsSortedLeader = function(sortCol, statsData) {
             const relevantStats = statsData.filter(stat => {
                 if (!window.playerStatsRelevantForSort(stat, sortCol)) return false;
-                if (typeof window.playerMeetsKampShareThreshold === 'function' && !window.playerMeetsKampShareThreshold(stat)) {
+                if (typeof window.playerQualifiesForStatsSort === 'function' && !window.playerQualifiesForStatsSort(stat, sortCol)) {
                     return false;
                 }
                 return true;
@@ -2234,7 +2253,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const pool = statsData.filter(stat => {
                 if (teamName && stat.spillerLag !== teamName) return false;
                 if (!window.playerStatsRelevantForSort(stat, column)) return false;
-                if (typeof window.playerMeetsKampShareThreshold === 'function' && !window.playerMeetsKampShareThreshold(stat)) {
+                if (typeof window.playerQualifiesForStatsSort === 'function' && !window.playerQualifiesForStatsSort(stat, column)) {
                     return false;
                 }
                 return true;
@@ -2295,8 +2314,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const pickLeader = (column) => {
                 const relevant = rows.filter(stat => {
                     if (!window.playerStatsRelevantForSort(stat, column)) return false;
-                    if (typeof window.playerMeetsKampShareThreshold === 'function') {
-                        return window.playerMeetsKampShareThreshold(stat);
+                    if (typeof window.playerQualifiesForStatsSort === 'function') {
+                        return window.playerQualifiesForStatsSort(stat, column);
                     }
                     return true;
                 });
@@ -3507,7 +3526,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             let qualified = statsData;
             let belowThreshold = [];
-            if (typeof window.playerMeetsKampShareThreshold === 'function') {
+            if (typeof window.statsSortUsesKampShareThreshold === 'function'
+                && window.statsSortUsesKampShareThreshold(currentStatSortCol)
+                && typeof window.playerMeetsKampShareThreshold === 'function') {
                 qualified = sortRows(statsData.filter(stat => window.playerMeetsKampShareThreshold(stat)));
                 belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsKampShareThreshold(stat)));
             } else {
