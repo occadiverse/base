@@ -5251,9 +5251,10 @@ window.showMatchDetails = function(id) {
     const presenceStats = typeof window.getAttendancePresenceStats === 'function'
         ? window.getAttendancePresenceStats(match)
         : { presentCount: attendingRefs.length, squadSize: 0, isRegistered: false };
-    const squadBadgeLabel = presenceStats.isRegistered && presenceStats.squadSize > 0
-        ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
-        : String(presenceStats.isRegistered ? presenceStats.presentCount : attendingRefs.length);
+    const squadBadgeCount = presenceStats.isRegistered
+        ? presenceStats.presentCount
+        : attendingRefs.length;
+    const squadBadgeLabel = String(squadBadgeCount);
     const benchPlayersHtml = buildMatchDetailSquadListHtml(match);
     const pendingAttendanceFeedback = window._pendingAttendanceFeedback;
     const openForAttendanceFeedback = Boolean(
@@ -5292,7 +5293,6 @@ window.showMatchDetails = function(id) {
         : '';
     const opponentRecord = getOpponentHistoryRecord(getOpponentRecordMatches(match));
     const opponentInfoBadgeLabel = String(opponentRecord.wins + opponentRecord.draws + opponentRecord.losses);
-    const liveSubsEventCount = getMatchLiveSubsLogEventCount(match);
     window.pendingMatchDetailsOpenPanel = null;
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadPanelHtml = `
@@ -5301,7 +5301,7 @@ window.showMatchDetails = function(id) {
                 <div class="match-bench-action-row match-bench-topline" onclick="window.onMatchPanelToplineClick(event)">
                     <div class="match-bench-heading">
                         <h3>Kamptropp</h3>
-                        <span class="match-detail-section-badge" aria-label="${presenceStats.presentCount} av ${presenceStats.squadSize || attendingRefs.length} spillere møtt opp">${squadBadgeLabel}</span>
+                        <span class="match-detail-section-badge" aria-label="${squadBadgeCount} ${squadBadgeCount === 1 ? 'spiller' : 'spillere'} møtt opp">${squadBadgeLabel}</span>
                     </div>
                     <button type="button" class="match-panel-toggle-btn" aria-expanded="${isSquadPanelOpen ? 'true' : 'false'}" aria-label="${isSquadPanelOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
                         <i class="fa-solid fa-chevron-up"></i>
@@ -5411,7 +5411,6 @@ window.showMatchDetails = function(id) {
             <div class="match-bench-action-row match-bench-topline match-subs-topline" onclick="window.onMatchPanelToplineClick(event)">
                 <div class="match-bench-heading">
                     <h3>Bytter og Spilletid</h3>
-                    ${liveSubsEventCount > 0 ? `<span class="match-detail-section-badge" aria-label="${liveSubsEventCount} bytter">${liveSubsEventCount}</span>` : ''}
                 </div>
                 <button type="button" class="match-panel-toggle-btn" aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}" aria-label="${isSubsPanelOpen ? 'Skjul bytter og spilletid' : 'Vis bytter og spilletid'}" data-show-label="Vis bytter og spilletid" data-hide-label="Skjul bytter og spilletid">
                     <i class="fa-solid fa-chevron-up"></i>
