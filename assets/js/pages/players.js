@@ -653,7 +653,11 @@ function renderPlayerModalProfile(player) {
     const foot = player.fot ? `${player.fot} fot` : 'Ukjent fot';
     const ageLabel = age != null && birthYear ? `${age} år (${birthYear})` : (birthYear || '-');
     const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
-    const oppmote = stats ? `${stats.oppmotePct}%` : '-';
+    const oppmote = stats
+        ? (typeof window.formatOppmoteDisplay === 'function'
+            ? window.formatOppmoteDisplay(stats)
+            : `${stats.oppmotePct}%`)
+        : '-';
     const form = stats && stats.kjemi > 0 ? `${stats.kjemi}/100` : '-';
     const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus)) : '-';
     const spilletid = formatPlayerProfileMinutesLabel(stats);
@@ -1002,7 +1006,11 @@ window.renderPlayerProfilePage = function(playerId) {
     const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
     const yearLabel = yearFilter === 'alle' ? 'Alle år' : String(yearFilter);
 
-    const oppmote = stats ? `${stats.oppmotePct}%` : '-';
+    const oppmote = stats
+        ? (typeof window.formatOppmoteDisplay === 'function'
+            ? window.formatOppmoteDisplay(stats)
+            : `${stats.oppmotePct}%`)
+        : '-';
     const form = formComponents.total > 0 ? `${formComponents.total}` : '-';
     const kampbidrag = stats && stats.kampbonus > 0 ? String(Math.round(stats.kampbonus * 10) / 10) : '-';
     const snittBors = stats && stats.snittBors > 0 ? (Math.round(Number(stats.snittBors) * 10) / 10).toFixed(1) : '-';
@@ -1151,7 +1159,10 @@ window.renderPlayerProfilePage = function(playerId) {
                 })}
                 ${buildPlayerProfileStatChipHtml('Børs', snittBors, { rank: rankOf('snittBors') })}
                 ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, { rank: rankOf('kampbonus') })}
-                ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, { rank: rankOf('oppmotePct') })}
+                ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, {
+                    title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte',
+                    rank: rankOf('oppmotePct')
+                })}
                 ${buildPlayerProfileStatChipHtml('Banens beste', bb, { rank: rankOf('bb') })}
                 ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
                     title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',

@@ -1701,6 +1701,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     let ratingSum = 0, ratingCount = 0;
                     let minutesTotal = 0, minutesMatches = 0, minutesPossible = 0;
 
+                    let trainingAttended = 0;
+                    let trainingPossible = 0;
+                    (window.activeEvents || []).forEach(e => {
+                        if (e.type !== 'Trening') return;
+                        if ((e.team || e.matchGroup) !== p.spillerLag) return;
+                        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
+                        if (typeof window.hasRegisteredAttendance === 'function'
+                            ? !window.hasRegisteredAttendance(e.attendance)
+                            : !e.attendance) return;
+                        if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, e)) return;
+                        if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return;
+                        trainingPossible += 1;
+                        if (window.isPlayerAttending(e.attendance, p)) trainingAttended += 1;
+                    });
+
                     teamEvents.forEach(e => {
                         if (window.isPlayerAttending(e.attendance, p)) {
                             attended++;
@@ -1769,7 +1784,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         navn: p.navn,
                         pos1: p.pos1 || '',
                         spillerLag: p.spillerLag || '',
-                        oppmotePct: teamEvents.length > 0 ? Math.round((attended / teamEvents.length) * 100) : 0,
+                        oppmotePct: trainingPossible > 0 ? Math.round((trainingAttended / trainingPossible) * 100) : 0,
+                        oppmoteAttended: trainingAttended,
+                        oppmotePossible: trainingPossible,
                         kamper,
                         attendedMatches,
                         teamKampCount,
@@ -2035,7 +2052,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'kampbonus': return stat.attendedMatches > 0;
                 case 'kjemi': return stat.kjemi > 0;
                 case 'snittBors': return stat.snittBors > 0;
-                case 'oppmotePct': return stat.oppmotePct > 0;
+                case 'oppmotePct': return (Number(stat.oppmotePossible) || 0) > 0;
                 case 'minutesTotal': return (Number(stat.minutesTotal) || 0) > 0;
                 case 'minutesSharePct': return (Number(stat.minutesPossible) || 0) > 0 && stat.minutesSharePct != null;
                 default: return true;
@@ -2164,6 +2181,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const value = Number(stat.expectedMalpoeng);
             if (!Number.isFinite(value) || value <= 0) return '-';
             return `${value.toFixed(1)} / ${Number(stat.kamper) || 0}`;
+        };
+
+        window.formatOppmoteDisplay = function(stat) {
+            const possible = Number(stat?.oppmotePossible) || 0;
+            if (possible <= 0) return '-';
+            const pct = Math.round(Number(stat.oppmotePct) || 0);
+            const attended = Number(stat.oppmoteAttended) || 0;
+            return `${pct}% ${attended}/${possible}`;
         };
 
         window.playerMeetsKampShareThreshold = function(stat) {
@@ -3566,12 +3591,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const sortValue = window.formatStatsSortValue(stat, currentStatSortCol);
                 const safeNameHtml = escapeStatisticsHtml(stat.navn);
                 const playerIdAttr = escapeStatisticsHtml(getStatsPlayerIdForName(stat.navn));
+                let valueHtml = escapeStatisticsHtml(sortValue);
+                if (currentStatSortCol === 'oppmotePct' && (Number(stat.oppmotePossible) || 0) > 0) {
+                    const pct = Math.round(Number(stat.oppmotePct) || 0);
+                    const attended = Number(stat.oppmoteAttended) || 0;
+                    const possible = Number(stat.oppmotePossible) || 0;
+                    valueHtml = `${pct}% <span class="training-data-rank-count">${attended}/${possible}</span>`;
+                }
                 return `
                     <li class="${overflow ? 'is-overflow' : ''}">
                         <button type="button" class="training-data-rank-row" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" aria-label="${safeNameHtml}, plass ${rankIndex + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
                             <span class="training-data-rank-index">${rankIndex + 1}.</span>
                             <span class="training-data-rank-name">${safeNameHtml}</span>
-                            <strong>${escapeStatisticsHtml(sortValue)}</strong>
+                            <strong>${valueHtml}</strong>
                         </button>
                     </li>
                 `;
@@ -3707,7 +3739,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'gule', label: 'Gule kort', glyph: 'g' },
             { id: 'rode', label: 'Røde kort', glyph: 'r' },
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
-            { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check' },
+            { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check', title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
             { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch', title: 'Total / snitt per kamp' },
             { id: 'minutesSharePct', label: 'Minuttandel', icon: 'fa-chart-pie' }
@@ -3723,7 +3755,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const stat = statOrColumn;
                 const column = columnOrValue;
                 if (!stat) return '-';
-                if (column === 'oppmotePct') return `${Number(stat.oppmotePct) || 0}%`;
+                if (column === 'oppmotePct') {
+                    return typeof window.formatOppmoteDisplay === 'function'
+                        ? window.formatOppmoteDisplay(stat)
+                        : `${Number(stat.oppmotePct) || 0}%`;
+                }
                 if (column === 'minutesSharePct') {
                     if (!(Number(stat.minutesPossible) > 0) || stat.minutesSharePct == null) return '-';
                     return `${Math.round(Number(stat.minutesSharePct) || 0)}%`;
