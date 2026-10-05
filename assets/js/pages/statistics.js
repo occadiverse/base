@@ -3312,6 +3312,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
 
+            const awardsSlot = document.getElementById('stats-awards-slot');
+            if (awardsSlot) awardsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
+            const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
+            if (spillerstatsSlot) spillerstatsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
+            const utviklingSlot = document.getElementById('stats-utvikling-slot');
+            if (utviklingSlot) utviklingSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
+            const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
+            if (oppfolgingSlot) oppfolgingSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const kampdataSlot = document.getElementById('stats-kampdata-slot');
             if (kampdataSlot) kampdataSlot.classList.toggle('hidden', activeSection !== 'kampdata');
             const kampForKampSlot = document.getElementById('stats-kampforkamp-slot');
@@ -3319,7 +3327,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const kampstatsSlot = document.getElementById('stats-kampstats-slot');
             if (kampstatsSlot) kampstatsSlot.classList.toggle('hidden', activeSection !== 'kampdata');
 
-            if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata');
+            if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata' || !window._statsSelectedPlayer);
         };
 
         window.setStatsLagSection = function(section) {
@@ -3340,6 +3348,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const kampdataSlot = document.getElementById('stats-kampdata-slot');
             const kampstatsSlot = document.getElementById('stats-kampstats-slot');
             const kampForKampSlot = document.getElementById('stats-kampforkamp-slot');
+            const awardsSlot = document.getElementById('stats-awards-slot');
+            const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
+            const utviklingSlot = document.getElementById('stats-utvikling-slot');
+            const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
             const data = window._statsLagData;
             const report = window._statsTeamReportData;
             if (!container) return;
@@ -3349,6 +3361,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (kampdataSlot) kampdataSlot.innerHTML = '';
                 if (kampForKampSlot) kampForKampSlot.innerHTML = '';
                 if (kampstatsSlot) kampstatsSlot.innerHTML = '';
+                if (awardsSlot) awardsSlot.innerHTML = '';
+                if (spillerstatsSlot) spillerstatsSlot.innerHTML = '';
+                if (utviklingSlot) utviklingSlot.innerHTML = '';
+                if (oppfolgingSlot) oppfolgingSlot.innerHTML = '';
                 return;
             }
 
@@ -3361,6 +3377,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
             if (kampstatsSlot && typeof window.renderStatsKampstatsPanelHtml === 'function') {
                 kampstatsSlot.innerHTML = window.renderStatsKampstatsPanelHtml();
+            }
+            if (awardsSlot && typeof window.renderStatsAwardsPanelHtml === 'function') {
+                awardsSlot.innerHTML = window.renderStatsAwardsPanelHtml();
+            }
+            if (spillerstatsSlot && typeof window.renderStatsSpillerstatsPanelHtml === 'function') {
+                spillerstatsSlot.innerHTML = window.renderStatsSpillerstatsPanelHtml();
+                if (typeof window.renderPlayerStatsList === 'function') window.renderPlayerStatsList();
+            }
+            if (utviklingSlot && typeof window.renderStatsUtviklingPanelHtml === 'function') {
+                utviklingSlot.innerHTML = window.renderStatsUtviklingPanelHtml();
+            }
+            if (oppfolgingSlot && typeof window.renderStatsOppfolgingPanelHtml === 'function') {
+                oppfolgingSlot.innerHTML = window.renderStatsOppfolgingPanelHtml();
             }
             if (typeof window.renderMatchStatsView === 'function') {
                 window.renderMatchStatsView();
@@ -3849,12 +3878,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
         };
 
-        window.renderStatsSpillereExtraPanelsHtml = function() {
+        window.renderStatsOppfolgingPanelHtml = function() {
             const followUps = Array.isArray(window._statsFollowUps)
                 ? window._statsFollowUps
                 : [];
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'oppfolging',
+                title: 'Oppfølging',
+                badge: followUps.length,
+                showLabel: 'Vis oppfølging',
+                hideLabel: 'Skjul oppfølging',
+                content: window.renderStatsFollowUpsHtml(followUps)
+            });
+        };
+
+        window.renderStatsUtviklingPanelHtml = function() {
             const diagramInfoOpen = window.statsScoreDiagramExplanationOpen === true;
-            const utviklingPanel = window.renderStatsCollapsiblePanelHtml({
+            return window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerutvikling',
                 title: 'Utvikling',
                 showLabel: 'Vis utvikling',
@@ -3887,31 +3927,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                 `
             });
-            const oppfolgingPanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'oppfolging',
-                title: 'Oppfølging',
-                badge: followUps.length,
-                showLabel: 'Vis oppfølging',
-                hideLabel: 'Skjul oppfølging',
-                content: window.renderStatsFollowUpsHtml(followUps)
-            });
-            return `${utviklingPanel}${oppfolgingPanel}`;
         };
 
         window.renderStatsSpillereSummary = function() {
             const summary = document.getElementById('stats-spillere-summary');
-            if (!summary) return;
-            if (window._statsSelectedPlayer) {
-                summary.innerHTML = '';
-                return;
-            }
-
-            const statsData = typeof window.getStatsSpillerListData === 'function'
-                ? window.getStatsSpillerListData()
-                : (typeof window.buildPlayerStatsData === 'function'
-                    ? window.buildPlayerStatsData({ applyYearFilter: true })
-                    : []);
-            summary.innerHTML = window.renderStatsSpillereSummaryCardsHtml(statsData);
+            if (summary) summary.innerHTML = '';
 
             const diagramWrap = document.getElementById('team-score-diagram-wrap');
             if (diagramWrap && typeof window.renderTeamScoreDiagramHtml === 'function') {
@@ -4363,13 +4383,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             modal.classList.add('flex');
         };
 
-        window.renderSpillereView = function() {
-            window._statsSelectedPlayer = null;
-            const container = document.getElementById('stat-spillere-content');
-            if (!container) return;
-
-            window.statsLagSection = 'spillerdata';
-            window.renderStatsTabHero('spillere');
+        window.renderStatsSpillerstatsPanelHtml = function() {
             const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
                 ? window.getStatsSpillerYearFilter()
                 : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : new Date().getFullYear());
@@ -4384,7 +4398,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     { includeAlle: false }
                 )
                 : '';
-            const spillerstatsPanel = window.renderStatsCollapsiblePanelHtml({
+            return window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerliste',
                 title: 'Spillerstats',
                 badge: yearFilter,
@@ -4411,23 +4425,47 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                 `
             });
-            const extraPanelsHtml = typeof window.renderStatsSpillereExtraPanelsHtml === 'function'
-                ? window.renderStatsSpillereExtraPanelsHtml()
-                : '';
-            const awardsPanelHtml = typeof window.renderStatsAwardsPanelHtml === 'function'
-                ? window.renderStatsAwardsPanelHtml()
-                : '';
+        };
 
-            container.innerHTML = `
-                <div class="team-report-status-stack">
-                    ${awardsPanelHtml}
-                    ${spillerstatsPanel}
-                    ${extraPanelsHtml}
-                </div>
-            `;
+        window.renderSpillereView = function() {
+            window._statsSelectedPlayer = null;
+            const container = document.getElementById('stat-spillere-content');
+            if (!container) return;
+
+            window.statsLagSection = 'spillerdata';
+            window.renderStatsTabHero('spillere');
+            const awardsSlot = document.getElementById('stats-awards-slot');
+            if (awardsSlot) {
+                awardsSlot.innerHTML = typeof window.renderStatsAwardsPanelHtml === 'function'
+                    ? window.renderStatsAwardsPanelHtml()
+                    : '';
+            }
+            const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
+            if (spillerstatsSlot) {
+                spillerstatsSlot.innerHTML = typeof window.renderStatsSpillerstatsPanelHtml === 'function'
+                    ? window.renderStatsSpillerstatsPanelHtml()
+                    : '';
+            }
+            const utviklingSlot = document.getElementById('stats-utvikling-slot');
+            if (utviklingSlot) {
+                utviklingSlot.innerHTML = typeof window.renderStatsUtviklingPanelHtml === 'function'
+                    ? window.renderStatsUtviklingPanelHtml()
+                    : '';
+            }
+            const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
+            if (oppfolgingSlot) {
+                oppfolgingSlot.innerHTML = typeof window.renderStatsOppfolgingPanelHtml === 'function'
+                    ? window.renderStatsOppfolgingPanelHtml()
+                    : '';
+            }
+
+            container.innerHTML = '';
 
             window.renderStatsSpillereSummary();
             window.renderPlayerStatsList();
+            if (typeof window.updateStatsLagSectionVisibility === 'function') {
+                window.updateStatsLagSectionVisibility();
+            }
         };
 
 
