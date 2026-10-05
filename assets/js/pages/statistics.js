@@ -2720,11 +2720,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.renderTeamReportStatusHtml = function(data, report) {
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
-            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
-                ? window.getStatsKampYearFilter()
-                : (typeof window.getStatsKampYearOptions === 'function'
-                    ? (window.getStatsKampYearOptions()[0] || new Date().getFullYear())
-                    : new Date().getFullYear());
             const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
                     <i class="fa-solid ${icon}" aria-hidden="true"></i>
@@ -2733,26 +2728,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ${hint ? `<span class="stats-analysis-chip-hint">${hint}</span>` : ''}
                 </div>
             `;
-            const kampdataPanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'kampdata',
-                title: 'Sesong i tall',
-                badge: String(yearFilter),
-                showLabel: 'Vis sesong i tall',
-                hideLabel: 'Skjul sesong i tall',
-                content: typeof window.buildTeamSeasonStatsGridHtml === 'function'
-                    ? window.buildTeamSeasonStatsGridHtml(data, report)
-                    : ''
-            });
-            const kampForKampPanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'kampforkamp',
-                title: 'Kamp for Kamp',
-                badge: String(yearFilter),
-                showLabel: 'Vis kamp for kamp',
-                hideLabel: 'Skjul kamp for kamp',
-                content: typeof window.buildTeamMatchHistoryHtml === 'function'
-                    ? window.buildTeamMatchHistoryHtml(data)
-                    : ''
-            });
             const oppmoteTeamName = data.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
             const oppmoteRange = typeof window.getStatsOppmoteRangeFilter === 'function'
                 ? window.getStatsOppmoteRangeFilter()
@@ -2802,11 +2777,41 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             return `
                 <div class="team-report-status-stack">
-                    ${kampdataPanel}
-                    ${kampForKampPanel}
                     ${oppmotePanel}
                 </div>
             `;
+        };
+
+        window.renderStatsKampdataPanelHtml = function(data, report) {
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : new Date().getFullYear();
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'kampdata',
+                title: 'Sesong i tall',
+                badge: String(yearFilter),
+                showLabel: 'Vis sesong i tall',
+                hideLabel: 'Skjul sesong i tall',
+                content: typeof window.buildTeamSeasonStatsGridHtml === 'function'
+                    ? window.buildTeamSeasonStatsGridHtml(data, report)
+                    : ''
+            });
+        };
+
+        window.renderStatsKampForKampPanelHtml = function(data) {
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : new Date().getFullYear();
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'kampforkamp',
+                title: 'Kamp for Kamp',
+                badge: String(yearFilter),
+                showLabel: 'Vis kamp for kamp',
+                hideLabel: 'Skjul kamp for kamp',
+                content: typeof window.buildTeamMatchHistoryHtml === 'function'
+                    ? window.buildTeamMatchHistoryHtml(data)
+                    : ''
+            });
         };
 
         window.renderStatsKampstatsPanelHtml = function() {
@@ -3302,15 +3307,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             if (summary) {
-                summary.classList.toggle('hidden', activeSection === 'spillerdata');
-                const kampdataPanel = summary.querySelector('[data-stats-panel="kampdata"]');
-                const kampForKampPanel = summary.querySelector('[data-stats-panel="kampforkamp"]');
+                summary.classList.toggle('hidden', activeSection !== 'treningsdata');
                 const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
-                if (kampdataPanel) kampdataPanel.classList.toggle('hidden', activeSection !== 'kampdata');
-                if (kampForKampPanel) kampForKampPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
 
+            const kampdataSlot = document.getElementById('stats-kampdata-slot');
+            if (kampdataSlot) kampdataSlot.classList.toggle('hidden', activeSection !== 'kampdata');
+            const kampForKampSlot = document.getElementById('stats-kampforkamp-slot');
+            if (kampForKampSlot) kampForKampSlot.classList.toggle('hidden', activeSection !== 'kampdata');
             const kampstatsSlot = document.getElementById('stats-kampstats-slot');
             if (kampstatsSlot) kampstatsSlot.classList.toggle('hidden', activeSection !== 'kampdata');
 
@@ -3332,18 +3337,28 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsLagSummary = function() {
             const container = document.getElementById('stats-lag-summary');
             const navContainer = document.getElementById('stats-lag-section-nav');
+            const kampdataSlot = document.getElementById('stats-kampdata-slot');
             const kampstatsSlot = document.getElementById('stats-kampstats-slot');
+            const kampForKampSlot = document.getElementById('stats-kampforkamp-slot');
             const data = window._statsLagData;
             const report = window._statsTeamReportData;
             if (!container) return;
             if (!data || !report) {
                 container.innerHTML = '';
                 if (navContainer) navContainer.innerHTML = '';
+                if (kampdataSlot) kampdataSlot.innerHTML = '';
+                if (kampForKampSlot) kampForKampSlot.innerHTML = '';
                 if (kampstatsSlot) kampstatsSlot.innerHTML = '';
                 return;
             }
 
             container.innerHTML = window.renderTeamReportStatusHtml(data, report);
+            if (kampdataSlot && typeof window.renderStatsKampdataPanelHtml === 'function') {
+                kampdataSlot.innerHTML = window.renderStatsKampdataPanelHtml(data, report);
+            }
+            if (kampForKampSlot && typeof window.renderStatsKampForKampPanelHtml === 'function') {
+                kampForKampSlot.innerHTML = window.renderStatsKampForKampPanelHtml(data);
+            }
             if (kampstatsSlot && typeof window.renderStatsKampstatsPanelHtml === 'function') {
                 kampstatsSlot.innerHTML = window.renderStatsKampstatsPanelHtml();
             }
