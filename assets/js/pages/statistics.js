@@ -2718,7 +2718,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.renderTeamReportStatusHtml = function(data, report) {
+        window.renderStatsOppmotePanelHtml = function(data) {
+            if (!data) return '';
             const attendanceTone = data.avgAttendance >= 75 ? 'is-win' : data.avgAttendance >= 60 ? 'is-draw' : 'is-loss';
             const summaryItem = (label, valueHtml, tone = '', icon = 'fa-circle', hint = '') => `
                 <div class="stats-analysis-chip ${tone}">
@@ -2774,12 +2775,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `,
                 content: oppmoteContent
             });
-
-            return `
-                <div class="team-report-status-stack">
-                    ${oppmotePanel}
-                </div>
-            `;
+            return oppmotePanel;
         };
 
         window.renderStatsKampdataPanelHtml = function(data, report) {
@@ -3306,11 +3302,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 view.classList.add(`is-section-${activeSection}`);
             }
 
-            if (summary) {
-                summary.classList.toggle('hidden', activeSection !== 'treningsdata');
-                const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
-                if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
-            }
+            if (summary) summary.classList.add('hidden');
 
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) awardsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
@@ -3320,6 +3312,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (utviklingSlot) utviklingSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
             if (oppfolgingSlot) oppfolgingSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
+            const oppmoteSlot = document.getElementById('stats-oppmote-slot');
+            if (oppmoteSlot) oppmoteSlot.classList.toggle('hidden', activeSection !== 'treningsdata');
             const kampdataSlot = document.getElementById('stats-kampdata-slot');
             if (kampdataSlot) kampdataSlot.classList.toggle('hidden', activeSection !== 'kampdata');
             const kampForKampSlot = document.getElementById('stats-kampforkamp-slot');
@@ -3352,6 +3346,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
             const utviklingSlot = document.getElementById('stats-utvikling-slot');
             const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
+            const oppmoteSlot = document.getElementById('stats-oppmote-slot');
             const data = window._statsLagData;
             const report = window._statsTeamReportData;
             if (!container) return;
@@ -3365,10 +3360,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (spillerstatsSlot) spillerstatsSlot.innerHTML = '';
                 if (utviklingSlot) utviklingSlot.innerHTML = '';
                 if (oppfolgingSlot) oppfolgingSlot.innerHTML = '';
+                if (oppmoteSlot) oppmoteSlot.innerHTML = '';
                 return;
             }
 
-            container.innerHTML = window.renderTeamReportStatusHtml(data, report);
+            container.innerHTML = '';
             if (kampdataSlot && typeof window.renderStatsKampdataPanelHtml === 'function') {
                 kampdataSlot.innerHTML = window.renderStatsKampdataPanelHtml(data, report);
             }
@@ -3390,6 +3386,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
             if (oppfolgingSlot && typeof window.renderStatsOppfolgingPanelHtml === 'function') {
                 oppfolgingSlot.innerHTML = window.renderStatsOppfolgingPanelHtml();
+            }
+            if (oppmoteSlot && typeof window.renderStatsOppmotePanelHtml === 'function') {
+                oppmoteSlot.innerHTML = window.renderStatsOppmotePanelHtml(data);
             }
             if (typeof window.renderMatchStatsView === 'function') {
                 window.renderMatchStatsView();
