@@ -2753,15 +2753,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? window.buildTeamMatchHistoryHtml(data)
                     : ''
             });
-            const kampstatsPanel = window.renderStatsCollapsiblePanelHtml({
-                id: 'kampstats',
-                title: 'Kampstats',
-                showLabel: 'Vis kampstats',
-                hideLabel: 'Skjul kampstats',
-                content: `
-                    <div id="stats-lag-kampdata-detail" class="stats-lag-kampdata-detail"></div>
-                `
-            });
             const oppmoteTeamName = data.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
             const oppmoteRange = typeof window.getStatsOppmoteRangeFilter === 'function'
                 ? window.getStatsOppmoteRangeFilter()
@@ -2813,10 +2804,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="team-report-status-stack">
                     ${kampdataPanel}
                     ${kampForKampPanel}
-                    ${kampstatsPanel}
                     ${oppmotePanel}
                 </div>
             `;
+        };
+
+        window.renderStatsKampstatsPanelHtml = function() {
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'kampstats',
+                title: 'Kampstats',
+                showLabel: 'Vis kampstats',
+                hideLabel: 'Skjul kampstats',
+                content: `
+                    <div id="stats-lag-kampdata-detail" class="stats-lag-kampdata-detail"></div>
+                `
+            });
         };
 
         window.syncTeamReportDetailMenuScroll = function() {
@@ -3303,13 +3305,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 summary.classList.toggle('hidden', activeSection === 'spillerdata');
                 const kampdataPanel = summary.querySelector('[data-stats-panel="kampdata"]');
                 const kampForKampPanel = summary.querySelector('[data-stats-panel="kampforkamp"]');
-                const kampstatsPanel = summary.querySelector('[data-stats-panel="kampstats"]');
                 const oppmotePanel = summary.querySelector('[data-stats-panel="oppmote"]');
                 if (kampdataPanel) kampdataPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (kampForKampPanel) kampForKampPanel.classList.toggle('hidden', activeSection !== 'kampdata');
-                if (kampstatsPanel) kampstatsPanel.classList.toggle('hidden', activeSection !== 'kampdata');
                 if (oppmotePanel) oppmotePanel.classList.toggle('hidden', activeSection !== 'treningsdata');
             }
+
+            const kampstatsSlot = document.getElementById('stats-kampstats-slot');
+            if (kampstatsSlot) kampstatsSlot.classList.toggle('hidden', activeSection !== 'kampdata');
 
             if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata');
         };
@@ -3329,16 +3332,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsLagSummary = function() {
             const container = document.getElementById('stats-lag-summary');
             const navContainer = document.getElementById('stats-lag-section-nav');
+            const kampstatsSlot = document.getElementById('stats-kampstats-slot');
             const data = window._statsLagData;
             const report = window._statsTeamReportData;
             if (!container) return;
             if (!data || !report) {
                 container.innerHTML = '';
                 if (navContainer) navContainer.innerHTML = '';
+                if (kampstatsSlot) kampstatsSlot.innerHTML = '';
                 return;
             }
 
             container.innerHTML = window.renderTeamReportStatusHtml(data, report);
+            if (kampstatsSlot && typeof window.renderStatsKampstatsPanelHtml === 'function') {
+                kampstatsSlot.innerHTML = window.renderStatsKampstatsPanelHtml();
+            }
             if (typeof window.renderMatchStatsView === 'function') {
                 window.renderMatchStatsView();
             }

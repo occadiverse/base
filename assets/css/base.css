@@ -3326,13 +3326,13 @@
         .stats-team-match-history {
             margin-top: 0;
         }
-        .stats-board-card .stats-team-match-history .stats-form-history-table-wrap {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-match-history .stats-form-history-table-wrap {
             background: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 0.85rem;
             overflow-x: auto;
         }
-        .stats-board-card .stats-team-match-history .stats-form-history-empty {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-match-history .stats-form-history-empty {
             color: #64748b;
             padding: 1rem;
             text-align: center;
@@ -3356,7 +3356,7 @@
         .stats-team-season-trends .training-data-stat-grid {
             margin-bottom: 0;
         }
-        .stats-board-card .stats-team-season-trend-title {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-season-trend-title {
             color: rgba(255, 255, 255, 0.72);
         }
         .training-data-stat-grid {
@@ -6728,9 +6728,19 @@
         }
 
         .stats-page {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
             margin: 0 auto;
             max-width: 88rem;
             width: 100%;
+        }
+        .stats-kampstats-slot {
+            min-width: 0;
+            width: 100%;
+        }
+        .stats-kampstats-slot .stats-kamp-collapsible-panel {
+            margin-top: 0;
         }
         .stats-board-card {
             background:
@@ -6739,7 +6749,7 @@
                 linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             display: flex;
             flex-direction: column;
-            min-height: min(52rem, calc(100vh - 7rem));
+            min-height: 0;
             overflow: hidden;
             position: relative;
         }
@@ -6805,7 +6815,7 @@
             background:
                 radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.045), transparent 34%),
                 rgba(7, 31, 56, 0.18);
-            flex: 1 1 auto;
+            flex: 0 0 auto;
             padding: 1rem;
         }
         .stats-board-bottomline {
@@ -6823,73 +6833,73 @@
         .stats-board-bottomline p {
             margin: 0;
         }
-        .stats-board-card .stats-panel,
-        .stats-board-card .stats-table-panel,
-        .stats-board-card .stats-metric-card,
-        .stats-board-card .team-report-panel {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-panel,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-panel,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-metric-card,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-panel {
             box-shadow: none;
         }
-        .stats-board-card .stats-chrome {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome {
             align-items: center;
             display: flex;
             gap: 0.65rem;
             justify-content: flex-end;
             width: auto;
         }
-        .stats-board-card .stats-chrome-bar {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar {
             gap: 0.65rem;
         }
-        .stats-board-card .stats-chrome-bar-centered,
-        .stats-board-card .stats-chrome-bar-centered .stats-chrome-actions {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar-centered,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar-centered .stats-chrome-actions {
             justify-content: flex-end;
             width: auto;
         }
-        .stats-board-card .stats-chrome-bar-stacked {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar-stacked {
             align-items: flex-end;
             text-align: right;
         }
-        .stats-board-card .stats-chrome-title {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-title {
             color: #ffffff;
             font-size: 0.95rem;
         }
-        .stats-board-card .stats-chrome-subtitle {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-subtitle {
             color: rgba(255, 255, 255, 0.62);
         }
-        .stats-board-card .stats-chrome-badge {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-badge {
             background: rgba(245, 197, 66, 0.14);
             border-color: rgba(245, 197, 66, 0.24);
             color: #ffffff;
         }
-        .stats-board-card .stats-hero-tabs {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs {
             flex-direction: row;
         }
-        .stats-board-card .stats-chrome-actions .stats-hero-tabs .stats-hero-tablist,
-        .stats-board-card .stats-hero-tabs .stats-hero-tablist {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-actions .stats-hero-tabs .stats-hero-tablist,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs .stats-hero-tablist {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(245, 197, 66, 0.2);
             box-shadow: none;
         }
-        .stats-board-card .stats-hero-tabs .roster-status-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs .roster-status-btn {
             color: rgba(255, 255, 255, 0.72);
         }
-        .stats-board-card .stats-hero-tabs .roster-status-btn:first-child {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs .roster-status-btn:first-child {
             grid-column: auto;
         }
-        .stats-board-card .stats-hero-tabs .roster-status-btn.is-active {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs .roster-status-btn.is-active {
             color: #0b2b4c;
         }
-        .stats-board-card .stats-hero-tabs .stats-chrome-info-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs .stats-chrome-info-btn {
             color: #f5c542;
         }
         /* Info-knapper i stats skal matche gule toggle-knapper i topplinjen */
-        .stats-board-card .training-session-groups-info-btn,
+        :is(.stats-board-card, .stats-kampstats-slot) .training-session-groups-info-btn,
         #view-statistikk .stats-kamp-collapsible-panel .training-session-groups-info-btn {
             background: rgba(245, 197, 66, 0.16);
             border-color: rgba(245, 197, 66, 0.34);
             color: #f5c542;
         }
-        .stats-board-card .training-session-groups-info-btn:hover,
-        .stats-board-card .training-session-groups-info-btn.is-active,
+        :is(.stats-board-card, .stats-kampstats-slot) .training-session-groups-info-btn:hover,
+        :is(.stats-board-card, .stats-kampstats-slot) .training-session-groups-info-btn.is-active,
         #view-statistikk .stats-kamp-collapsible-panel .training-session-groups-info-btn:hover,
         #view-statistikk .stats-kamp-collapsible-panel .training-session-groups-info-btn.is-active {
             background: rgba(245, 197, 66, 0.24);
@@ -6912,41 +6922,41 @@
             border-color: rgba(245, 197, 66, 0.55);
             color: #0b2b4c;
         }
-        .stats-board-card #statsLagFilterWrap {
+        :is(.stats-board-card, .stats-kampstats-slot) #statsLagFilterWrap {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.12);
             box-shadow: none;
             margin: 0;
         }
-        .stats-board-card #statsLagFilterWrap > i:first-child,
-        .stats-board-card #statsLagFilterWrap .match-list-lag-chevron {
+        :is(.stats-board-card, .stats-kampstats-slot) #statsLagFilterWrap > i:first-child,
+        :is(.stats-board-card, .stats-kampstats-slot) #statsLagFilterWrap .match-list-lag-chevron {
             color: #f5c542;
         }
-        .stats-board-card #statsLagFilterWrap .match-list-lag-select {
+        :is(.stats-board-card, .stats-kampstats-slot) #statsLagFilterWrap .match-list-lag-select {
             color: #ffffff;
         }
-        .stats-board-card #statsLagFilterWrap .match-list-lag-select option {
+        :is(.stats-board-card, .stats-kampstats-slot) #statsLagFilterWrap .match-list-lag-select option {
             color: #0b2b4c;
         }
-        .stats-board-card .stats-analysis-overview {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-overview {
             display: grid;
             gap: 0.75rem;
             grid-template-columns: minmax(0, 1fr);
         }
-        .stats-board-card .stats-analysis-group,
-        .stats-board-card .stats-development-group {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-group,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-development-group {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(245, 197, 66, 0.12);
             border-radius: 1rem;
             min-width: 0;
             padding: 0.65rem;
         }
-        .stats-board-card .stats-analysis-group-head,
-        .stats-board-card .stats-development-group-head {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-group-head,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-development-group-head {
             margin-bottom: 0.55rem;
         }
-        .stats-board-card .stats-analysis-group-head > span,
-        .stats-board-card .stats-development-group-head > span {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-group-head > span,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-development-group-head > span {
             color: #f5c542;
             display: block;
             font-size: 0.62rem;
@@ -6955,21 +6965,21 @@
             line-height: 1;
             text-transform: uppercase;
         }
-        .stats-board-card .stats-analysis-group-head p,
-        .stats-board-card .stats-development-group-head p {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-group-head p,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-development-group-head p {
             color: rgba(255, 255, 255, 0.58);
             font-size: 0.7rem;
             font-weight: 750;
             line-height: 1.35;
             margin-top: 0.32rem;
         }
-        .stats-board-card .stats-kamp-year-filter {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-filter {
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
             margin-top: 0.55rem;
         }
-        .stats-board-card .stats-spiller-position-filter {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spiller-position-filter {
             flex-wrap: nowrap;
             margin-top: 0.35rem;
             max-width: 100%;
@@ -6977,92 +6987,92 @@
             padding-bottom: 0.1rem;
             scrollbar-width: none;
         }
-        .stats-board-card .stats-spiller-position-filter::-webkit-scrollbar {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spiller-position-filter::-webkit-scrollbar {
             display: none;
         }
-        .stats-board-card .stats-spiller-position-filter .stats-kamp-year-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spiller-position-filter .stats-kamp-year-btn {
             flex: 0 0 auto;
         }
-        .stats-board-card .stats-kamp-collapsible-panel {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel {
             margin-top: 0;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .match-collapsible-content {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .match-collapsible-content {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
         }
-        .stats-board-card .stats-kamp-collapsible-panel.is-collapsed .match-collapsible-content {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel.is-collapsed .match-collapsible-content {
             display: none;
         }
-        .stats-board-card [data-stats-panel="spillerliste"] .match-collapsible-content {
+        :is(.stats-board-card, .stats-kampstats-slot) [data-stats-panel="spillerliste"] .match-collapsible-content {
             overflow: visible;
         }
-        .stats-board-card .stats-kamp-panel-hint {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-panel-hint {
             color: rgba(255, 255, 255, 0.58);
             font-size: 0.7rem;
             font-weight: 750;
             line-height: 1.35;
             margin: 0;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .stats-kamp-year-filter {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .stats-kamp-year-filter {
             margin-top: 0;
         }
-        .stats-board-card .stats-oppmote-range-filter {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-oppmote-range-filter {
             flex-shrink: 0;
             gap: 0.35rem;
             margin-left: auto;
         }
-        .stats-board-card .stats-oppmote-range-filter .stats-kamp-year-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-oppmote-range-filter .stats-kamp-year-btn {
             height: 1.9rem;
             max-height: 1.9rem;
             min-height: 1.9rem;
             min-width: 0;
             padding: 0.28rem 0.55rem;
         }
-        .stats-board-card .stats-season-filter-row {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-season-filter-row {
             display: grid;
             gap: 0.55rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             margin-top: 0;
         }
-        .stats-board-card .stats-season-filter-row-inline {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-season-filter-row-inline {
             display: contents;
         }
-        .stats-board-card .stats-lag-filters {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-filters {
             align-items: stretch;
             display: grid;
             gap: 0.45rem;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             min-width: 0;
         }
-        .stats-board-card .stats-lag-filters .stats-filter-menu {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-filters .stats-filter-menu {
             min-width: 0;
             width: 100%;
         }
-        .stats-board-card .stats-lag-filters .stats-filter-trigger {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-filters .stats-filter-trigger {
             gap: 0.28rem;
             padding: 0.5rem 0.45rem;
         }
-        .stats-board-card .stats-lag-filters .stats-filter-trigger > i:not(.stats-filter-trigger-chevron) {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-filters .stats-filter-trigger > i:not(.stats-filter-trigger-chevron) {
             color: inherit;
             font-size: 0.68rem;
         }
-        .stats-board-card .stats-lag-filters .stats-filter-trigger-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-filters .stats-filter-trigger-value {
             font-size: 0.66rem;
         }
-        .stats-board-card .stats-lag-filters .stats-lag-section-btn span {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-filters .stats-lag-section-btn span {
             white-space: nowrap;
         }
-        .stats-board-card .stats-filter-menu {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-menu {
             min-width: 0;
             position: relative;
             width: 100%;
             z-index: 6;
         }
-        .stats-board-card .stats-filter-menu.is-open {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-menu.is-open {
             z-index: 24;
         }
-        .stats-board-card .stats-filter-trigger {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-trigger {
             align-items: center;
             appearance: none;
             background:
@@ -7087,36 +7097,36 @@
             transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
             width: 100%;
         }
-        .stats-board-card .stats-filter-trigger:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-trigger:hover {
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
             border-color: rgba(245, 197, 66, 0.42);
             transform: translateY(-1px);
         }
-        .stats-board-card .stats-filter-menu.is-open .stats-filter-trigger {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-menu.is-open .stats-filter-trigger {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
             border-color: rgba(245, 197, 66, 0.9);
             box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
             color: #0b2b4c;
             transform: none;
         }
-        .stats-board-card .stats-filter-trigger-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-trigger-value {
             color: inherit;
             font-size: 0.66rem;
             font-weight: 900;
             letter-spacing: 0.05em;
             white-space: nowrap;
         }
-        .stats-board-card .stats-filter-trigger-chevron {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-trigger-chevron {
             color: #f5c542;
             font-size: 0.58rem;
             transition: transform 140ms ease, color 140ms ease;
         }
-        .stats-board-card .stats-filter-menu.is-open .stats-filter-trigger-chevron {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-menu.is-open .stats-filter-trigger-chevron {
             color: #0b2b4c;
             transform: rotate(180deg);
         }
-        .stats-board-card .stats-filter-dropdown {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-dropdown {
             background:
                 linear-gradient(180deg, rgba(18, 63, 115, 0.98) 0%, rgba(11, 43, 76, 0.98) 100%);
             border: 1px solid rgba(245, 197, 66, 0.28);
@@ -7133,10 +7143,10 @@
             top: 100%;
             z-index: 20;
         }
-        .stats-board-card .stats-filter-dropdown[hidden] {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-dropdown[hidden] {
             display: none;
         }
-        .stats-board-card .stats-filter-option {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-option {
             appearance: none;
             background: transparent;
             border: 1px solid transparent;
@@ -7153,61 +7163,61 @@
             transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
             white-space: nowrap;
         }
-        .stats-board-card .stats-filter-option:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-option:hover {
             background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
         }
-        .stats-board-card .stats-filter-option.is-active {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-option.is-active {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
             border-color: rgba(245, 197, 66, 0.9);
             color: #0b2b4c;
         }
-        .stats-board-card .stats-filter-option.is-active:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-filter-option.is-active:hover {
             background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
             color: #0b2b4c;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .stats-lag-kampdata-detail {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .stats-lag-kampdata-detail {
             min-width: 0;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .team-score-diagram-wrap {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .team-score-diagram-wrap {
             margin: 0;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .stats-followup-list {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .stats-followup-list {
             background: transparent;
             max-height: min(24rem, 55vh);
             overflow-y: auto;
         }
-        .stats-board-card .stats-team-season-grid {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-season-grid {
             margin-top: 0.15rem;
         }
-        .stats-board-card .stats-team-season-grid .stats-team-season-chip,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-season-grid .stats-team-season-chip,
         .stats-team-season-grid .stats-team-season-chip {
             align-items: center;
             flex-direction: column;
             justify-content: center;
             text-align: center;
         }
-        .stats-board-card .stats-team-season-grid .player-profile-stat-chip-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-season-grid .player-profile-stat-chip-label,
         .stats-team-season-grid .player-profile-stat-chip-label {
             order: 0;
         }
-        .stats-board-card .stats-team-season-grid .player-profile-stat-chip-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-team-season-grid .player-profile-stat-chip-value,
         .stats-team-season-grid .player-profile-stat-chip-value {
             order: 1;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .player-profile-stat-chip {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .player-profile-stat-chip {
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .stats-board-card .stats-kamp-collapsible-panel .player-profile-stat-chip-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .player-profile-stat-chip-value {
             color: #ffffff;
         }
-        .stats-board-card .stats-kamp-collapsible-panel .player-profile-stat-chip-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .player-profile-stat-chip-label {
             color: rgba(255, 255, 255, 0.55);
         }
-        .stats-board-card .stats-kamp-year-btn,
-        .stats-board-card .stats-kamp-year-btn.bsk-btn,
-        .stats-board-card .stats-kamp-year-btn.bsk-btn-chip {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn.bsk-btn,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn.bsk-btn-chip {
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
             border: 1px solid rgba(245, 197, 66, 0.28);
@@ -7226,30 +7236,30 @@
             text-transform: none;
             width: auto;
         }
-        .stats-board-card .stats-kamp-year-btn:hover:not(.is-active) {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn:hover:not(.is-active) {
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
             border-color: rgba(245, 197, 66, 0.42);
             color: #ffffff;
             transform: translateY(-1px);
         }
-        .stats-board-card .stats-kamp-year-btn.is-active {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn.is-active {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
             border-color: rgba(245, 197, 66, 0.9);
             box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
             color: #0b2b4c;
         }
-        .stats-board-card .stats-kamp-year-btn.is-active:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn.is-active:hover {
             background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
             border-color: rgba(245, 197, 66, 0.95);
             color: #0b2b4c;
             transform: none;
         }
-        .stats-board-card .stats-kamp-year-btn:focus-visible {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-year-btn:focus-visible {
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35);
             outline: none;
         }
-        .stats-board-card .stats-analysis-strip {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-strip {
             align-items: stretch;
             background: transparent;
             border: 0;
@@ -7259,13 +7269,13 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
             padding: 0;
         }
-        .stats-board-card .stats-analysis-strip-single {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-strip-single {
             grid-template-columns: minmax(0, 1fr);
         }
-        .stats-board-card .stats-lag-section-nav {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-nav {
             min-width: 0;
         }
-        .stats-board-card .stats-lag-section-nav-inner {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-nav-inner {
             background: transparent;
             border: 0;
             border-radius: 0;
@@ -7274,9 +7284,9 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
             padding: 0;
         }
-        .stats-board-card .stats-lag-section-btn,
-        .stats-board-card .stats-lag-section-btn.bsk-btn,
-        .stats-board-card .stats-lag-section-btn.bsk-btn-chip {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn.bsk-btn,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn.bsk-btn-chip {
             align-items: center;
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
@@ -7300,60 +7310,60 @@
             transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease, transform 140ms ease;
             width: 100%;
         }
-        .stats-board-card .stats-lag-section-btn i {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn i {
             color: inherit;
             font-size: 0.68rem;
         }
-        .stats-board-card .stats-lag-section-btn:hover:not(.is-active) {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn:hover:not(.is-active) {
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
             border-color: rgba(245, 197, 66, 0.42);
             color: #ffffff;
             transform: translateY(-1px);
         }
-        .stats-board-card .stats-lag-section-btn.is-active {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn.is-active {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
             border-color: rgba(245, 197, 66, 0.9);
             box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
             color: #0b2b4c;
         }
-        .stats-board-card .stats-lag-section-btn.is-active i {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn.is-active i {
             color: #0b2b4c;
         }
-        .stats-board-card .stats-lag-section-btn.is-active:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn.is-active:hover {
             background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
             border-color: rgba(245, 197, 66, 0.95);
             color: #0b2b4c;
             transform: none;
         }
-        .stats-board-card .stats-lag-section-btn:focus-visible {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-btn:focus-visible {
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35);
             outline: none;
         }
-        .stats-board-card #stat-view-lag {
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
             margin: 0;
         }
-        .stats-board-card #stat-view-lag > * {
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag > * {
             margin-top: 0 !important;
             min-width: 0;
         }
-        .stats-board-card #stats-lag-summary {
+        :is(.stats-board-card, .stats-kampstats-slot) #stats-lag-summary {
             min-width: 0;
         }
-        .stats-board-card #stats-spillere-summary:empty {
+        :is(.stats-board-card, .stats-kampstats-slot) #stats-spillere-summary:empty {
             display: none;
         }
-        .stats-board-card #stats-lag-playerdata.space-y-4 > #stats-spillere-summary:empty + * {
+        :is(.stats-board-card, .stats-kampstats-slot) #stats-lag-playerdata.space-y-4 > #stats-spillere-summary:empty + * {
             margin-top: 0 !important;
         }
-        .stats-board-card #stat-view-lag.is-section-kampdata .stats-analysis-overview,
-        .stats-board-card #stat-view-lag.is-section-treningsdata .stats-analysis-overview {
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag.is-section-kampdata .stats-analysis-overview,
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag.is-section-treningsdata .stats-analysis-overview {
             grid-template-columns: minmax(0, 1fr);
         }
-        .stats-board-card .stats-analysis-chip {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip {
             align-items: center;
             background: rgba(7, 31, 56, 0.42);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -7365,12 +7375,12 @@
             min-width: 0;
             padding: 0.6rem 0.7rem;
         }
-        .stats-board-card .stats-analysis-chip i {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip i {
             color: #f5c542;
             font-size: 0.78rem;
             grid-row: span 2;
         }
-        .stats-board-card .stats-analysis-chip-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip-label {
             color: rgba(255, 255, 255, 0.48);
             font-size: 0.55rem;
             font-weight: 950;
@@ -7378,13 +7388,13 @@
             line-height: 1;
             text-transform: uppercase;
         }
-        .stats-board-card .stats-analysis-chip-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip-value {
             color: #ffffff;
             font-size: 1rem;
             font-weight: 950;
             line-height: 1.05;
         }
-        .stats-board-card .stats-analysis-chip-hint {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip-hint {
             color: rgba(255, 255, 255, 0.5);
             font-size: 0.62rem;
             font-weight: 750;
@@ -7392,76 +7402,76 @@
             line-height: 1.15;
         }
         @media (max-width: 767px) {
-            .stats-board-card .stats-analysis-strip .stats-analysis-chip {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-strip .stats-analysis-chip {
                 padding: 0.5rem 0.48rem;
             }
-            .stats-board-card .stats-analysis-strip .stats-analysis-chip-hint {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-strip .stats-analysis-chip-hint {
                 display: none;
             }
         }
-        .stats-board-card .stats-analysis-chip.is-win i,
-        .stats-board-card .stats-analysis-chip.is-win .is-win,
-        .stats-board-card .stats-analysis-chip.is-win .stats-analysis-chip-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-win i,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-win .is-win,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-win .stats-analysis-chip-value {
             color: var(--bsk-green);
         }
-        .stats-board-card .stats-analysis-chip.is-draw i,
-        .stats-board-card .stats-analysis-chip.is-draw .stats-analysis-chip-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-draw i,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-draw .stats-analysis-chip-value {
             color: #f5c542;
         }
-        .stats-board-card .stats-analysis-chip.is-loss i,
-        .stats-board-card .stats-analysis-chip.is-loss .is-loss,
-        .stats-board-card .stats-analysis-chip.is-loss .stats-analysis-chip-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-loss i,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-loss .is-loss,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-loss .stats-analysis-chip-value {
             color: #fca5a5;
         }
-        .stats-board-card .stats-analysis-chip.is-goals i,
-        .stats-board-card .stats-analysis-chip.is-goals .stats-analysis-chip-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-goals i,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-chip.is-goals .stats-analysis-chip-value {
             color: #bfdbfe;
         }
-        .stats-board-card .team-report-status-stack,
-        .stats-board-card #stat-view-lag,
-        .stats-board-card #stats-lag-playerdata {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-status-stack,
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag,
+        :is(.stats-board-card, .stats-kampstats-slot) #stats-lag-playerdata {
             color: rgba(255, 255, 255, 0.74);
         }
-        .stats-board-card #stats-lag-playerdata,
-        .stats-board-card #stats-spillere-summary,
-        .stats-board-card #stat-spillere-content,
-        .stats-board-card .stats-spillere-layout,
-        .stats-board-card .stats-player-list {
+        :is(.stats-board-card, .stats-kampstats-slot) #stats-lag-playerdata,
+        :is(.stats-board-card, .stats-kampstats-slot) #stats-spillere-summary,
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-spillere-content,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-layout,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-player-list {
             min-width: 0;
             max-width: 100%;
         }
-        .stats-board-card .stats-best-player-card {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-best-player-card {
             background: rgba(255, 255, 255, 0.06);
             border-color: rgba(255, 255, 255, 0.1);
         }
-        .stats-board-card .stats-best-player-card.is-season {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-best-player-card.is-season {
             border-color: rgba(245, 197, 66, 0.28);
         }
-        .stats-board-card .stats-best-player-card.is-now {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-best-player-card.is-now {
             border-color: rgba(16, 185, 129, 0.28);
         }
-        .stats-board-card button.stats-best-player-card.is-clickable:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) button.stats-best-player-card.is-clickable:hover {
             background: rgba(245, 197, 66, 0.12);
         }
-        .stats-board-card .stats-best-player-eyebrow {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-best-player-eyebrow {
             color: rgba(255, 255, 255, 0.55);
         }
-        .stats-board-card .stats-best-player-name {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-best-player-name {
             color: #ffffff;
         }
-        .stats-board-card .stats-best-player-meta {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-best-player-meta {
             color: rgba(255, 255, 255, 0.72);
         }
-        .stats-board-card [data-stats-panel="sesongkaaringer"] .match-print-sheet-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) [data-stats-panel="sesongkaaringer"] .match-print-sheet-btn {
             flex: 0 0 auto;
             margin-left: auto;
         }
-        .stats-board-card .stats-awards-board {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-board {
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
-        .stats-board-card .stats-awards-group-title {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-group-title {
             color: rgba(255, 255, 255, 0.62);
             font-size: 0.68rem;
             font-weight: 900;
@@ -7469,31 +7479,31 @@
             margin: 0 0 0.5rem;
             text-transform: uppercase;
         }
-        .stats-board-card .stats-awards-grid {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-grid {
             display: grid;
             gap: 0.55rem;
             grid-template-columns: 1fr;
         }
         @media (min-width: 640px) {
-            .stats-board-card .stats-awards-grid {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
-        .stats-board-card .stats-awards-card {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-card {
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.9rem;
             min-width: 0;
             padding: 0.75rem 0.8rem;
         }
-        .stats-board-card .stats-awards-card-head {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-card-head {
             align-items: center;
             display: flex;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
             min-width: 0;
         }
-        .stats-board-card .stats-awards-title {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-title {
             color: #ffffff;
             flex: 1 1 auto;
             font-size: 0.78rem;
@@ -7502,25 +7512,25 @@
             margin: 0;
             min-width: 0;
         }
-        .stats-board-card .stats-awards-info-btn.training-session-groups-info-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-info-btn.training-session-groups-info-btn {
             height: 1.55rem;
             margin-left: auto;
             width: 1.55rem;
         }
-        .stats-board-card .stats-awards-info-btn.training-session-groups-info-btn i {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-info-btn.training-session-groups-info-btn i {
             font-size: 0.72rem;
         }
-        .stats-board-card .stats-awards-explain {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-explain {
             color: rgba(255, 255, 255, 0.72);
             font-size: 0.72rem;
             font-weight: 600;
             line-height: 1.4;
             margin: 0 0 0.55rem;
         }
-        .stats-board-card .stats-awards-explain.is-hidden {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-explain.is-hidden {
             display: none;
         }
-        .stats-board-card .stats-awards-icon {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-icon {
             align-items: center;
             color: #f5c542;
             display: inline-flex;
@@ -7529,17 +7539,17 @@
             justify-content: center;
             min-width: 1.25rem;
         }
-        .stats-board-card .stats-awards-icon .fa-solid,
-        .stats-board-card .stats-awards-icon .stats-sort-glyph {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-icon .fa-solid,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-icon .stats-sort-glyph {
             color: #f5c542;
         }
-        .stats-board-card .stats-awards-empty {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-empty {
             color: rgba(255, 255, 255, 0.5);
             font-size: 0.75rem;
             font-weight: 700;
             margin: 0;
         }
-        .stats-board-card .stats-awards-podium {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-podium {
             display: flex;
             flex-direction: column;
             gap: 0.28rem;
@@ -7547,7 +7557,7 @@
             margin: 0;
             padding: 0;
         }
-        .stats-board-card .stats-awards-podium-btn {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-podium-btn {
             align-items: center;
             appearance: none;
             background: transparent;
@@ -7562,18 +7572,18 @@
             text-align: left;
             width: 100%;
         }
-        .stats-board-card .stats-awards-podium-btn:hover .stats-awards-name {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-podium-btn:hover .stats-awards-name {
             color: #f5c542;
         }
-        .stats-board-card .stats-awards-rank {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-rank {
             color: rgba(255, 255, 255, 0.42);
             font-size: 0.68rem;
             font-weight: 900;
         }
-        .stats-board-card .stats-awards-podium-item.is-rank-1 .stats-awards-rank {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-podium-item.is-rank-1 .stats-awards-rank {
             color: #f5c542;
         }
-        .stats-board-card .stats-awards-name {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-name {
             color: #ffffff;
             font-size: 0.78rem;
             font-weight: 800;
@@ -7582,30 +7592,30 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .stats-board-card .stats-awards-podium-item.is-rank-1 .stats-awards-name {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-podium-item.is-rank-1 .stats-awards-name {
             font-weight: 950;
         }
-        .stats-board-card .stats-awards-value {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-awards-value {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.68rem;
             font-weight: 800;
             white-space: nowrap;
         }
-        .stats-board-card .team-score-diagram-scroll {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-scroll {
             max-width: 100%;
         }
-        .stats-board-card .team-score-diagram-svg {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-svg {
             min-width: 0;
             width: 100%;
         }
-        .stats-board-card .stats-panel,
-        .stats-board-card .stats-table-panel,
-        .stats-board-card .stats-metric-card,
-        .stats-board-card .team-report-panel,
-        .stats-board-card .stats-summary-panel,
-        .stats-board-card .team-score-diagram-card,
-        .stats-board-card .team-report-trend-card,
-        .stats-board-card .stats-mini-card {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-panel,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-panel,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-metric-card,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-panel,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-summary-panel,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-card,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-trend-card,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-card {
             background:
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.08), transparent 34%),
                 rgba(255, 255, 255, 0.055);
@@ -7613,256 +7623,256 @@
             box-shadow: none;
             color: rgba(255, 255, 255, 0.74);
         }
-        .stats-board-card .stats-panel-header,
-        .stats-board-card .team-report-header,
-        .stats-board-card #stat-view-lag > #stats-lag-followups .stats-panel-header {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-panel-header,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-header,
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag > #stats-lag-followups .stats-panel-header {
             background: rgba(255, 255, 255, 0.045);
             border-bottom-color: rgba(245, 197, 66, 0.12);
         }
-        .stats-board-card .stats-panel-title,
-        .stats-board-card .team-report-header .stats-panel-title,
-        .stats-board-card #stat-view-lag > #stats-lag-followups .stats-panel-title,
-        .stats-board-card .stats-empty-state h3,
-        .stats-board-card .team-score-diagram-explanation h4 {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-panel-title,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-header .stats-panel-title,
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag > #stats-lag-followups .stats-panel-title,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-empty-state h3,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-explanation h4 {
             color: #ffffff;
         }
-        .stats-board-card .stats-panel-subtitle,
-        .stats-board-card .team-report-header .stats-panel-subtitle,
-        .stats-board-card #stat-view-lag > #stats-lag-followups .stats-panel-subtitle,
-        .stats-board-card .stats-panel-note,
-        .stats-board-card .stats-empty-state p,
-        .stats-board-card .stats-metric-sub {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-panel-subtitle,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-header .stats-panel-subtitle,
+        :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag > #stats-lag-followups .stats-panel-subtitle,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-panel-note,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-empty-state p,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-metric-sub {
             color: rgba(255, 255, 255, 0.58);
         }
-        .stats-board-card .stats-inline-metric,
-        .stats-board-card .team-report-body .stats-form-row.is-light,
-        .stats-board-card .team-report-status-grid .stats-inline-metric,
-        .stats-board-card .stats-spillere-summary-card {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-body .stats-form-row.is-light,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-status-grid .stats-inline-metric,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card {
             background: rgba(7, 31, 56, 0.34);
             border-color: rgba(255, 255, 255, 0.09);
             color: rgba(255, 255, 255, 0.74);
         }
-        .stats-board-card button.stats-inline-metric:hover,
-        .stats-board-card button.stats-spillere-summary-card-clickable:hover,
-        .stats-board-card .stats-top-list-item:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) button.stats-inline-metric:hover,
+        :is(.stats-board-card, .stats-kampstats-slot) button.stats-spillere-summary-card-clickable:hover,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-top-list-item:hover {
             background: rgba(245, 197, 66, 0.1);
             border-color: rgba(245, 197, 66, 0.3);
         }
-        .stats-board-card .stats-inline-metric-label,
-        .stats-board-card .stats-metric-label,
-        .stats-board-card .team-report-metric-card .stats-inline-metric-label,
-        .stats-board-card .team-report-card-label,
-        .stats-board-card .stats-mini-label,
-        .stats-board-card .stats-form-row.is-light .stats-form-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-metric-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-metric-card .stats-inline-metric-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-card-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-form-row.is-light .stats-form-label {
             color: rgba(255, 255, 255, 0.48);
             text-shadow: none;
         }
-        .stats-board-card .stats-inline-metric-value,
-        .stats-board-card .stats-metric-value,
-        .stats-board-card .team-report-metric-card .stats-inline-metric-value,
-        .stats-board-card .stats-mini-value,
-        .stats-board-card .team-report-trend-card strong,
-        .stats-board-card .stats-spillere-summary-card .stats-leader-name,
-        .stats-board-card .stats-spillere-summary-card .stats-spillere-summary-value,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-main,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-icon,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-glyph,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-rank {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-metric-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-metric-card .stats-inline-metric-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-trend-card strong,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-leader-name,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-spillere-summary-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-main,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-icon,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-glyph,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-rank {
             color: #ffffff;
         }
-        .stats-board-card .stats-inline-metric-value.is-win,
-        .stats-board-card .team-report-record .is-win,
-        .stats-board-card .team-report-goals .is-win,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-above {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-value.is-win,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-record .is-win,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-goals .is-win,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-delta.is-above {
             color: var(--bsk-green);
         }
-        .stats-board-card .stats-inline-metric-value.is-draw,
-        .stats-board-card .stats-inline-metric-value.is-accent,
-        .stats-board-card .team-report-record span,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-equal {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-value.is-draw,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-value.is-accent,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-record span,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-delta.is-equal {
             color: #f5c542;
         }
-        .stats-board-card .stats-inline-metric-value.is-loss,
-        .stats-board-card .team-report-record .is-loss,
-        .stats-board-card .team-report-goals .is-loss,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-delta.is-below,
-        .stats-board-card .stats-mini-value.is-loss {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-value.is-loss,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-record .is-loss,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-goals .is-loss,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-delta.is-below,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-value.is-loss {
             color: #fca5a5;
         }
-        .stats-board-card .stats-mini-value.is-win {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-value.is-win {
             color: var(--bsk-green);
         }
-        .stats-board-card .stats-mini-value.is-draw {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-value.is-draw {
             color: #f5c542;
         }
-        .stats-board-card .stats-mini-value.is-goals {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-mini-value.is-goals {
             color: #bfdbfe;
         }
-        .stats-board-card .stats-kampdata-highlight {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kampdata-highlight {
             background: rgba(7, 31, 56, 0.42);
             border-color: rgba(255, 255, 255, 0.08);
             color: rgba(255, 255, 255, 0.76);
         }
-        .stats-board-card button.stats-kampdata-highlight:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) button.stats-kampdata-highlight:hover {
             background: rgba(245, 197, 66, 0.1);
             border-color: rgba(245, 197, 66, 0.3);
         }
-        .stats-board-card .stats-kampdata-highlight-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kampdata-highlight-label {
             color: rgba(255, 255, 255, 0.48);
         }
-        .stats-board-card .stats-kampdata-highlight-value,
-        .stats-board-card .stats-kampdata-player-row .roster-player-name {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kampdata-highlight-value,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kampdata-player-row .roster-player-name {
             color: #ffffff;
         }
-        .stats-board-card .stats-inline-metric-value.is-goals {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-inline-metric-value.is-goals {
             color: #bfdbfe;
         }
-        .stats-board-card .team-report-goal-sep,
-        .stats-board-card .stats-spillere-summary-card .stats-sort-context-rank-sep {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-goal-sep,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-spillere-summary-card .stats-sort-context-rank-sep {
             color: rgba(255, 255, 255, 0.42);
         }
-        .stats-board-card .team-report-trend-card.is-good,
-        .stats-board-card .team-report-trend-card.is-alert {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-trend-card.is-good,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-trend-card.is-alert {
             background: rgba(7, 31, 56, 0.34);
         }
-        .stats-board-card .team-report-list,
-        .stats-board-card .stats-followup-list,
-        .stats-board-card .stats-table-body {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-list,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-followup-list,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-body {
             background: transparent;
         }
-        .stats-board-card .team-report-match-row,
-        .stats-board-card .team-report-attendance-row,
-        .stats-board-card .stats-followup-item,
-        .stats-board-card .stats-top-list-item,
-        .stats-board-card .stats-table-body td {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-match-row,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-attendance-row,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-followup-item,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-top-list-item,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-body td {
             border-color: rgba(255, 255, 255, 0.08);
         }
-        .stats-board-card .team-report-match-row strong,
-        .stats-board-card .team-report-attendance-meta strong,
-        .stats-board-card .team-report-match-points,
-        .stats-board-card .stats-followup-item .font-black {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-match-row strong,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-attendance-meta strong,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-match-points,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-followup-item .font-black {
             color: #ffffff !important;
         }
-        .stats-board-card .team-report-match-row span:not(.dashboard-series-form-pill),
-        .stats-board-card .team-report-attendance-meta span,
-        .stats-board-card .team-report-empty-row,
-        .stats-board-card .stats-followup-item .text-slate-500 {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-match-row span:not(.dashboard-series-form-pill),
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-attendance-meta span,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-report-empty-row,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-followup-item .text-slate-500 {
             color: rgba(255, 255, 255, 0.58);
         }
-        .stats-board-card .stats-table-head {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-head {
             background: rgba(255, 255, 255, 0.05);
             border-bottom-color: rgba(245, 197, 66, 0.12);
             color: rgba(255, 255, 255, 0.58);
         }
-        .stats-board-card .stats-table-head th:hover,
-        .stats-board-card .stats-table-body tr:hover {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-head th:hover,
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-body tr:hover {
             color: #ffffff;
             background: rgba(255, 255, 255, 0.04);
         }
-        .stats-board-card .stats-table-body {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-table-body {
             color: rgba(255, 255, 255, 0.72);
         }
-        .stats-board-card .team-score-diagram-tab {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-tab {
             background: rgba(7, 31, 56, 0.46);
             border-color: rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.72);
         }
-        .stats-board-card .team-score-diagram-tab.is-active {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-tab.is-active {
             background: rgba(245, 197, 66, 0.14);
             border-color: rgba(245, 197, 66, 0.55);
             color: #f5c542;
         }
-        .stats-board-card .team-score-diagram-help {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-help {
             color: #f5c542;
         }
-        .stats-board-card .team-score-diagram-explanation {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-explanation {
             background: rgba(7, 31, 56, 0.36);
             border-color: rgba(245, 197, 66, 0.16);
             color: rgba(255, 255, 255, 0.68);
         }
-        .stats-board-card .team-score-diagram-grid {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-grid {
             stroke: rgba(255, 255, 255, 0.12);
         }
-        .stats-board-card .team-score-diagram-axis {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-axis {
             stroke: rgba(245, 197, 66, 0.72);
         }
-        .stats-board-card .team-score-diagram-axis-label,
-        .stats-board-card .team-score-diagram-tick {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-axis-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-tick {
             fill: rgba(255, 255, 255, 0.68);
         }
-        .stats-board-card .team-score-diagram-initials {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-initials {
             fill: rgba(255, 255, 255, 0.82);
         }
-        .stats-board-card .team-score-diagram-point.is-overlap-group .team-score-diagram-initials.is-group-count {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-point.is-overlap-group .team-score-diagram-initials.is-group-count {
             fill: #f5c542;
         }
-        .stats-board-card .team-score-diagram-point circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring) {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-point circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring) {
             stroke: rgba(245, 197, 66, 0.76);
         }
-        .stats-board-card .team-score-diagram-overlap-ring {
+        :is(.stats-board-card, .stats-kampstats-slot) .team-score-diagram-overlap-ring {
             stroke: #f5c542;
         }
-        .stats-board-card .stats-form-jersey {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-form-jersey {
             background: rgba(7, 31, 56, 0.52);
             border-color: rgba(245, 197, 66, 0.45);
             color: #ffffff;
         }
-        .stats-board-card .stats-form-jersey-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-form-jersey-label {
             color: rgba(255, 255, 255, 0.5);
         }
-        .stats-board-card .stats-form-jersey.is-high {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-form-jersey.is-high {
             border-color: rgba(var(--bsk-green-rgb), 0.78);
             color: var(--bsk-green);
         }
-        .stats-board-card .stats-form-jersey.is-mid {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-form-jersey.is-mid {
             border-color: rgba(245, 197, 66, 0.78);
             color: #f5c542;
         }
-        .stats-board-card .stats-form-jersey.is-low {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-form-jersey.is-low {
             border-color: rgba(252, 165, 165, 0.78);
             color: #fca5a5;
         }
-        .stats-board-card .stats-player-search-row .roster-search-wrap {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-player-search-row .roster-search-wrap {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.12);
             box-shadow: none;
             width: 100%;
         }
-        .stats-board-card .stats-player-search-row .roster-search-wrap i {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-player-search-row .roster-search-wrap i {
             color: #f5c542;
         }
-        .stats-board-card .stats-player-search-row .roster-search-input {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-player-search-row .roster-search-input {
             background: transparent;
             color: #ffffff;
         }
-        .stats-board-card .stats-player-search-row .roster-search-input::placeholder {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-player-search-row .roster-search-input::placeholder {
             color: rgba(255, 255, 255, 0.42);
         }
-        .stats-board-card .border-slate-100,
-        .stats-board-card .border-slate-200 {
+        :is(.stats-board-card, .stats-kampstats-slot) .border-slate-100,
+        :is(.stats-board-card, .stats-kampstats-slot) .border-slate-200 {
             border-color: rgba(255, 255, 255, 0.1) !important;
         }
-        .stats-board-card .match-coach-notes-fields .portal-label,
-        .stats-board-card .portal-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .match-coach-notes-fields .portal-label,
+        :is(.stats-board-card, .stats-kampstats-slot) .portal-label {
             color: rgba(245, 197, 66, 0.82);
         }
-        .stats-board-card .match-coach-notes-fields .portal-field,
-        .stats-board-card textarea.portal-field,
-        .stats-board-card input.portal-field,
-        .stats-board-card select.portal-field {
+        :is(.stats-board-card, .stats-kampstats-slot) .match-coach-notes-fields .portal-field,
+        :is(.stats-board-card, .stats-kampstats-slot) textarea.portal-field,
+        :is(.stats-board-card, .stats-kampstats-slot) input.portal-field,
+        :is(.stats-board-card, .stats-kampstats-slot) select.portal-field {
             background: rgba(7, 31, 56, 0.46);
             border-color: rgba(255, 255, 255, 0.12);
             color: #ffffff;
         }
-        .stats-board-card .match-coach-notes-fields .portal-field::placeholder,
-        .stats-board-card textarea.portal-field::placeholder,
-        .stats-board-card input.portal-field::placeholder {
+        :is(.stats-board-card, .stats-kampstats-slot) .match-coach-notes-fields .portal-field::placeholder,
+        :is(.stats-board-card, .stats-kampstats-slot) textarea.portal-field::placeholder,
+        :is(.stats-board-card, .stats-kampstats-slot) input.portal-field::placeholder {
             color: rgba(255, 255, 255, 0.4);
         }
-        .stats-board-card .match-coach-notes-fields .portal-field:focus,
-        .stats-board-card textarea.portal-field:focus,
-        .stats-board-card input.portal-field:focus,
-        .stats-board-card select.portal-field:focus {
+        :is(.stats-board-card, .stats-kampstats-slot) .match-coach-notes-fields .portal-field:focus,
+        :is(.stats-board-card, .stats-kampstats-slot) textarea.portal-field:focus,
+        :is(.stats-board-card, .stats-kampstats-slot) input.portal-field:focus,
+        :is(.stats-board-card, .stats-kampstats-slot) select.portal-field:focus {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(245, 197, 66, 0.42);
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.14);
@@ -7872,7 +7882,7 @@
                 max-width: none;
             }
             .stats-board-card {
-                min-height: calc(100vh - 7rem);
+                min-height: 0;
             }
             .stats-board-top {
                 align-items: center;
@@ -7895,29 +7905,29 @@
             .stats-board-tabs::-webkit-scrollbar {
                 display: none;
             }
-            .stats-board-card .stats-chrome-bar,
-            .stats-board-card .stats-chrome-actions,
-            .stats-board-card .stats-hero-tabs,
-            .stats-board-card .stats-hero-tabs .stats-hero-tablist {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar,
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-actions,
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs,
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-hero-tabs .stats-hero-tablist {
                 max-width: 100%;
                 min-width: 0;
                 width: auto;
             }
-            .stats-board-card .stats-chrome {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome {
                 min-width: 0;
                 max-width: 100%;
                 width: auto;
             }
-            .stats-board-card .stats-chrome,
-            .stats-board-card .stats-chrome-bar,
-            .stats-board-card .stats-chrome-actions {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome,
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar,
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-actions {
                 justify-content: flex-end;
             }
-            .stats-board-card .stats-chrome-bar-stacked {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-chrome-bar-stacked {
                 align-items: flex-end;
                 text-align: right;
             }
-            .stats-board-card #statsLagFilterWrap {
+            :is(.stats-board-card, .stats-kampstats-slot) #statsLagFilterWrap {
                 justify-content: flex-start;
                 max-width: 100%;
                 min-width: 0;
@@ -7953,42 +7963,42 @@
             }
         }
         @media (min-width: 768px) {
-            .stats-board-card .stats-lag-section-nav-inner {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-lag-section-nav-inner {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
-            .stats-board-card .stats-analysis-strip {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-strip {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
-            .stats-board-card .stats-analysis-overview {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-analysis-overview {
                 grid-template-columns: minmax(0, 3fr) minmax(13rem, 1fr);
             }
         }
         @media (min-width: 1024px) {
-            .stats-board-card #stat-view-lag {
+            :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag {
                 display: flex !important;
                 flex-direction: column;
                 grid-template-areas: none;
                 grid-template-columns: none;
             }
-            .stats-board-card #stats-lag-summary {
+            :is(.stats-board-card, .stats-kampstats-slot) #stats-lag-summary {
                 grid-area: auto;
             }
-            .stats-board-card .stats-kamp-collapsible-panel .stats-followup-list {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .stats-followup-list {
                 max-height: min(44rem, calc(100vh - 18rem));
                 overflow-y: auto;
             }
-            .stats-board-card .stats-development-groups {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-development-groups {
                 display: grid;
                 gap: 0.75rem;
                 grid-template-columns: minmax(0, 1fr);
             }
-            .stats-board-card .stats-development-match-grid {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-development-match-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
-            .stats-board-card .stats-kamp-collapsible-panel .stats-development-match-grid {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-kamp-collapsible-panel .stats-development-match-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
-            .stats-board-card .stats-development-attendance-grid {
+            :is(.stats-board-card, .stats-kampstats-slot) .stats-development-attendance-grid {
                 grid-template-columns: minmax(0, 1fr);
             }
         }
@@ -7996,7 +8006,7 @@
             .stats-board-body {
                 padding: 1.15rem;
             }
-            .stats-board-card #stat-view-lag {
+            :is(.stats-board-card, .stats-kampstats-slot) #stat-view-lag {
                 grid-template-columns: none;
             }
         }
@@ -10349,7 +10359,7 @@
             flex-direction: column;
             gap: 0.75rem;
         }
-        .stats-board-card .stats-kampdata-secondary .stats-mini-label {
+        :is(.stats-board-card, .stats-kampstats-slot) .stats-kampdata-secondary .stats-mini-label {
             color: rgba(255, 255, 255, 0.55);
         }
         .stats-kampdata-notes {
