@@ -3772,15 +3772,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     <h3>${escapeStatisticsHtml(award.title)}</h3>
                                     ${award.explain ? `<p class="stats-awards-print-explain">${escapeStatisticsHtml(award.explain)}</p>` : ''}
                                     ${award.podium.length ? `
-                                        <ol class="match-print-list">
-                                            ${award.podium.map((entry, index) => `
-                                                <li>
-                                                    <span class="match-print-jersey">${index + 1}</span>
-                                                    <span class="match-print-name">${escapeStatisticsHtml(entry.navn)}</span>
-                                                    <span class="match-print-pos">${escapeStatisticsHtml(entry.valueText)}</span>
-                                                </li>
-                                            `).join('')}
-                                        </ol>
+                                        <table class="stats-awards-print-table">
+                                            <tbody>
+                                                ${award.podium.map((entry, index) => `
+                                                    <tr>
+                                                        <td class="stats-awards-print-rank">${index + 1}</td>
+                                                        <td class="stats-awards-print-name">${escapeStatisticsHtml(entry.navn)}</td>
+                                                        <td class="stats-awards-print-value">${escapeStatisticsHtml(entry.valueText)}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
                                     ` : '<p class="match-print-empty">Ingen data</p>'}
                                 </div>
                             `).join('')}

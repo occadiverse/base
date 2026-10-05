@@ -19280,8 +19280,35 @@
                 margin: 0 0 0.28rem;
             }
 
-            .stats-awards-print-item .match-print-list {
-                margin: 0;
+            .stats-awards-print-table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            .stats-awards-print-table td {
+                border-bottom: 0.4pt solid #000000;
+                padding: 0.12rem 0.2rem 0.12rem 0;
+                vertical-align: baseline;
+            }
+
+            .stats-awards-print-table tr:last-child td {
+                border-bottom: 0;
+            }
+
+            .stats-awards-print-rank {
+                font-weight: 700;
+                width: 1.15rem;
+                white-space: nowrap;
+            }
+
+            .stats-awards-print-name {
+                width: auto;
+            }
+
+            .stats-awards-print-value {
+                font-variant-numeric: tabular-nums;
+                text-align: right;
+                white-space: nowrap;
             }
 
             .stats-awards-print-item .match-print-empty {
