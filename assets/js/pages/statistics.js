@@ -113,6 +113,20 @@ function bindStatisticsEvents() {
             }
             return;
         }
+        if (action === 'print-awards') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof window.printStatsAwardsSheet === 'function') window.printStatsAwardsSheet();
+            return;
+        }
+        if (action === 'toggle-award-info') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof window.toggleStatsAwardInfo === 'function') {
+                window.toggleStatsAwardInfo(actionEl.dataset.awardId);
+            }
+            return;
+        }
         if (action === 'set-kamp-year') {
             const year = actionEl.dataset.year;
             if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
@@ -653,7 +667,8 @@ window.checkIndividualChemistry = function() {
                 oppmote: true,
                 spillerutvikling: false,
                 oppfolging: false,
-                spillerliste: true
+                spillerliste: true,
+                sesongkaaringer: true
             };
             window.statsKampPanelState = window.statsKampPanelState || {};
             Object.keys(defaults).forEach(key => {
@@ -3337,6 +3352,478 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.updateStatsLagSectionVisibility();
         };
 
+        window.getStatsAwardPositionGroup = function(pos1) {
+            const pos = String(pos1 || '').toLowerCase();
+            if (pos.includes('keeper')) return 'keeper';
+            if (pos.includes('stopper') || pos.includes('bekk')) return 'forsvar';
+            if (pos.includes('midtbane') || pos.includes('playmaker')) return 'midtbane';
+            if (pos.includes('kant') || pos.includes('spiss')) return 'angrep';
+            return '';
+        };
+
+        window.buildStatsAwardPodium = function(rows, options = {}) {
+            const column = options.column;
+            const ascending = options.ascending === true;
+            const limit = Number.isFinite(options.limit) ? options.limit : 3;
+            const requireRelevant = options.requireRelevant !== false;
+            const requireQualify = options.requireQualify !== false;
+            const qualifyAs = options.qualifyAs || column;
+            const filterFn = typeof options.filterFn === 'function' ? options.filterFn : null;
+            const pool = (Array.isArray(rows) ? rows : []).filter((stat) => {
+                if (!stat) return false;
+                if (filterFn && !filterFn(stat)) return false;
+                if (requireRelevant && typeof window.playerStatsRelevantForSort === 'function'
+                    && !window.playerStatsRelevantForSort(stat, column)) {
+                    return false;
+                }
+                if (requireQualify && typeof window.playerQualifiesForStatsSort === 'function'
+                    && !window.playerQualifiesForStatsSort(stat, qualifyAs)) {
+                    return false;
+                }
+                return true;
+            });
+            pool.sort((a, b) => {
+                if (typeof options.compare === 'function') return options.compare(a, b);
+                const va = Number(a[column]) || 0;
+                const vb = Number(b[column]) || 0;
+                if (va !== vb) return ascending ? va - vb : vb - va;
+                const ka = Number(a.kamper) || 0;
+                const kb = Number(b.kamper) || 0;
+                if (ka !== kb) return kb - ka;
+                return String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' });
+            });
+            return pool.slice(0, limit);
+        };
+
+        window.formatStatsAwardValue = function(stat, column, extra = '') {
+            if (!stat) return '—';
+            if (extra) return extra;
+            if (column === 'oppmotePct' && typeof window.formatOppmoteDisplay === 'function') {
+                return window.formatOppmoteDisplay(stat);
+            }
+            if (column === 'minutesTotal' && typeof window.formatMinutesTotalDisplay === 'function') {
+                return window.formatMinutesTotalDisplay(stat);
+            }
+            if (column === 'expectedMalpoeng' && typeof window.formatExpectedMalpoengDisplay === 'function') {
+                return window.formatExpectedMalpoengDisplay(stat);
+            }
+            if (typeof window.formatStatsSortValue === 'function') {
+                const formatted = window.formatStatsSortValue(stat, column);
+                if (formatted && formatted !== '-') return formatted;
+            }
+            return '—';
+        };
+
+        window.renderStatsAwardIconHtml = function(award) {
+            if (!award) return '';
+            if (award.glyph) {
+                return `<i class="stats-sort-glyph stats-sort-glyph-${escapeStatisticsHtml(award.glyph)}" aria-hidden="true"></i>`;
+            }
+            if (award.icon) {
+                return `<i class="fa-solid ${escapeStatisticsHtml(award.icon)}" aria-hidden="true"></i>`;
+            }
+            const option = award.column && typeof window.getStatsSortOption === 'function'
+                ? window.getStatsSortOption(award.column)
+                : null;
+            if (option && typeof window.renderStatsSortIconHtml === 'function') {
+                return window.renderStatsSortIconHtml(option);
+            }
+            return '';
+        };
+
+        window.getStatsAwardDefinitions = function() {
+            return [
+                {
+                    id: 'hoved',
+                    label: 'Hovedkåringer',
+                    awards: [
+                        {
+                            id: 'player',
+                            title: 'Årets spiller',
+                            column: 'totalScore',
+                            explain: 'Høyest Total Score (beste sesong): kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'kampbidrag',
+                            title: 'Årets kampbidrag',
+                            column: 'kampbonus',
+                            explain: 'Høyest gjennomsnittlig kampbidrag per kamp. Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'bors',
+                            title: 'Årets børs',
+                            column: 'snittBors',
+                            explain: 'Høyest snittkarakter på Spillerbørs gjennom sesongen. Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'mal',
+                            title: 'Årets målscorer',
+                            column: 'mal',
+                            explain: 'Flest scoringer i valgt sesong, serie og cup samlet.'
+                        },
+                        {
+                            id: 'playmaker',
+                            title: 'Årets playmaker',
+                            column: 'assist',
+                            explain: 'Flest assists i valgt sesong, serie og cup samlet.'
+                        },
+                        {
+                            id: 'xp',
+                            title: 'Expected målpoeng',
+                            column: 'expectedMalpoeng',
+                            explain: 'Mål + assist per kamp på banen. Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'bb',
+                            title: 'Banens beste',
+                            column: 'bb',
+                            explain: 'Flest kåringer som banens beste i valgt sesong.'
+                        }
+                    ]
+                },
+                {
+                    id: 'innsats',
+                    label: 'Innsats',
+                    awards: [
+                        {
+                            id: 'jernmann',
+                            title: 'Jernmannen',
+                            column: 'minutesTotal',
+                            explain: 'Flest registrerte spilleminutter i Spillerbørs. Tallet viser total minutter og snitt per kamp.'
+                        },
+                        {
+                            id: 'oppmote',
+                            title: 'Årets oppmøte',
+                            column: 'oppmotePct',
+                            explain: 'Høyest andel møtte treninger, kun økter med registrert oppmøte. Vises som prosent og møtt/mulige.'
+                        }
+                    ]
+                },
+                {
+                    id: 'linjer',
+                    label: 'Årets på linjen',
+                    awards: [
+                        {
+                            id: 'keeper',
+                            title: 'Årets keeper',
+                            column: 'totalScore',
+                            icon: 'fa-mitten',
+                            group: 'keeper',
+                            explain: 'Høyest Total Score blant spillere med keeper som hovedposisjon. Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'forsvar',
+                            title: 'Årets forsvar',
+                            column: 'totalScore',
+                            icon: 'fa-shield-halved',
+                            group: 'forsvar',
+                            explain: 'Høyest Total Score blant stoppere og bekker (hovedposisjon). Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'midtbane',
+                            title: 'Årets midtbane',
+                            column: 'totalScore',
+                            icon: 'fa-diagram-project',
+                            group: 'midtbane',
+                            explain: 'Høyest Total Score blant defensiv/offensiv midtbane og playmaker. Krever minst 30 % av lagets kamper.'
+                        },
+                        {
+                            id: 'angrep',
+                            title: 'Årets angrep',
+                            column: 'totalScore',
+                            icon: 'fa-bullseye',
+                            group: 'angrep',
+                            explain: 'Høyest Total Score blant kanter og spisser (hovedposisjon). Krever minst 30 % av lagets kamper.'
+                        }
+                    ]
+                },
+                {
+                    id: 'fair',
+                    label: 'Fair play',
+                    awards: [
+                        {
+                            id: 'fairplay',
+                            title: 'Fair play',
+                            column: 'gule',
+                            icon: 'fa-scale-balanced',
+                            ascending: true,
+                            requireRelevant: false,
+                            qualifyAs: 'totalScore',
+                            valueFn: (stat) => `${Number(stat.gule) || 0} gule · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Færrest gule kort blant spillere med minst 30 % av lagets kamper. Ved likt vinner den med flest kamper.'
+                        },
+                        {
+                            id: 'gule',
+                            title: 'Årets gule',
+                            column: 'gule',
+                            glyph: 'g',
+                            explain: 'Flest gule kort i valgt sesong, serie og cup samlet.'
+                        }
+                    ]
+                }
+            ];
+        };
+
+        window.buildStatsAwardsModel = function() {
+            const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : new Date().getFullYear();
+            const rows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
+                : [];
+            const teamFilter = typeof window.getStatsTeamFilter === 'function'
+                ? window.getStatsTeamFilter()
+                : 'Alle';
+            const teamName = teamFilter && teamFilter !== 'Alle'
+                ? teamFilter
+                : (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : 'BSK');
+
+            const groups = window.getStatsAwardDefinitions().map((group) => ({
+                id: group.id,
+                label: group.label,
+                awards: group.awards.map((award) => {
+                    const podium = window.buildStatsAwardPodium(rows, {
+                        column: award.column,
+                        ascending: award.ascending === true,
+                        requireRelevant: award.requireRelevant,
+                        requireQualify: award.requireQualify,
+                        qualifyAs: award.qualifyAs,
+                        filterFn: award.group
+                            ? (stat) => window.getStatsAwardPositionGroup(stat.pos1) === award.group
+                            : (award.id === 'fairplay'
+                                ? (stat) => (Number(stat.attendedMatches) || 0) > 0
+                                : null)
+                    });
+                    return {
+                        ...award,
+                        podium: podium.map((stat) => ({
+                            navn: stat.navn,
+                            playerId: typeof getStatsPlayerIdForName === 'function'
+                                ? getStatsPlayerIdForName(stat.navn)
+                                : '',
+                            valueText: typeof award.valueFn === 'function'
+                                ? award.valueFn(stat)
+                                : window.formatStatsAwardValue(stat, award.column)
+                        }))
+                    };
+                })
+            }));
+
+            return { year: yearFilter, teamName, groups };
+        };
+
+        window.renderStatsAwardPodiumHtml = function(award) {
+            const podium = Array.isArray(award?.podium) ? award.podium : [];
+            if (!podium.length) {
+                return `<p class="stats-awards-empty">Ingen data</p>`;
+            }
+            return `
+                <ol class="stats-awards-podium">
+                    ${podium.map((entry, index) => {
+                        const rank = index + 1;
+                        const name = escapeStatisticsHtml(entry.navn || '');
+                        const value = escapeStatisticsHtml(entry.valueText || '—');
+                        const playerId = escapeStatisticsHtml(entry.playerId || '');
+                        return `
+                            <li class="stats-awards-podium-item is-rank-${rank}">
+                                <button
+                                    type="button"
+                                    class="stats-awards-podium-btn"
+                                    data-stat-action="open-player"
+                                    data-player-id="${playerId}"
+                                    data-player-name="${name}"
+                                >
+                                    <span class="stats-awards-rank">${rank}</span>
+                                    <span class="stats-awards-name">${name}</span>
+                                    <span class="stats-awards-value">${value}</span>
+                                </button>
+                            </li>
+                        `;
+                    }).join('')}
+                </ol>
+            `;
+        };
+
+        window.toggleStatsAwardInfo = function(awardId) {
+            const next = window.statsAwardInfoOpen === awardId ? '' : String(awardId || '');
+            window.statsAwardInfoOpen = next;
+            document.querySelectorAll('#view-statistikk .stats-awards-card[data-award-id]').forEach((card) => {
+                const open = card.dataset.awardId === next;
+                card.classList.toggle('is-info-open', open);
+                const btn = card.querySelector('[data-stat-action="toggle-award-info"]');
+                const panel = card.querySelector('[data-award-info]');
+                if (btn) {
+                    btn.classList.toggle('is-active', open);
+                    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                }
+                if (panel) {
+                    panel.classList.toggle('is-hidden', !open);
+                    if (open) panel.removeAttribute('hidden');
+                    else panel.setAttribute('hidden', '');
+                }
+            });
+        };
+
+        window.renderStatsAwardsCardHtml = function(model) {
+            const data = model || window.buildStatsAwardsModel();
+            return `
+                <div class="stats-awards-board">
+                    ${(data.groups || []).map((group) => `
+                        <section class="stats-awards-group" aria-label="${escapeStatisticsHtml(group.label)}">
+                            <h4 class="stats-awards-group-title">${escapeStatisticsHtml(group.label)}</h4>
+                            <div class="stats-awards-grid">
+                                ${(group.awards || []).map((award) => {
+                                    const open = window.statsAwardInfoOpen === award.id;
+                                    const infoId = `stats-award-info-${escapeStatisticsHtml(award.id)}`;
+                                    return `
+                                    <article class="stats-awards-card${open ? ' is-info-open' : ''}" data-award-id="${escapeStatisticsHtml(award.id)}">
+                                        <div class="stats-awards-card-head">
+                                            <span class="stats-awards-icon">${window.renderStatsAwardIconHtml(award)}</span>
+                                            <h5 class="stats-awards-title">${escapeStatisticsHtml(award.title)}</h5>
+                                            ${award.explain ? `
+                                                <button
+                                                    type="button"
+                                                    class="training-session-groups-info-btn stats-awards-info-btn${open ? ' is-active' : ''}"
+                                                    data-stat-action="toggle-award-info"
+                                                    data-award-id="${escapeStatisticsHtml(award.id)}"
+                                                    aria-expanded="${open ? 'true' : 'false'}"
+                                                    aria-controls="${infoId}"
+                                                    title="Forklaring av ${escapeStatisticsHtml(award.title)}"
+                                                    aria-label="Forklaring av ${escapeStatisticsHtml(award.title)}"
+                                                >
+                                                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                        ${award.explain ? `
+                                            <p
+                                                id="${infoId}"
+                                                class="stats-awards-explain${open ? '' : ' is-hidden'}"
+                                                data-award-info
+                                                ${open ? '' : 'hidden'}
+                                            >${escapeStatisticsHtml(award.explain)}</p>
+                                        ` : ''}
+                                        ${window.renderStatsAwardPodiumHtml(award)}
+                                    </article>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </section>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        window.renderStatsAwardsPanelHtml = function() {
+            const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : new Date().getFullYear();
+            const yearOptions = typeof window.getStatsSpillerYearOptions === 'function'
+                ? window.getStatsSpillerYearOptions()
+                : [];
+            const yearFilterHtml = typeof window.renderStatsYearFilterHtml === 'function'
+                ? window.renderStatsYearFilterHtml(
+                    'Filtrer kåringer etter år',
+                    yearOptions,
+                    yearFilter,
+                    { includeAlle: false }
+                )
+                : '';
+            const model = window.buildStatsAwardsModel();
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'sesongkaaringer',
+                title: 'Sesongens kåringer',
+                badge: yearFilter,
+                showLabel: 'Vis kåringer',
+                hideLabel: 'Skjul kåringer',
+                headerActionsHtml: `
+                    <button
+                        type="button"
+                        class="training-session-attendance-add-btn match-print-sheet-btn"
+                        data-stat-action="print-awards"
+                        title="Skriv ut sesongens kåringer"
+                        aria-label="Skriv ut sesongens kåringer"
+                    >
+                        <i class="fa-solid fa-print" aria-hidden="true"></i>
+                        <span>Skriv ut</span>
+                    </button>
+                `,
+                content: `
+                    ${yearFilterHtml}
+                    ${window.renderStatsAwardsCardHtml(model)}
+                `
+            });
+        };
+
+        window.buildStatsAwardsPrintSheetHtml = function(model) {
+            const data = model || window.buildStatsAwardsModel();
+            const yearLabel = data.year === 'alle' ? 'Alle år' : String(data.year);
+            return `
+                <header class="match-print-header">
+                    <h1>Sesongens kåringer</h1>
+                    <p class="match-print-meta">${escapeStatisticsHtml(data.teamName || 'BSK')} · ${escapeStatisticsHtml(yearLabel)}</p>
+                </header>
+                ${(data.groups || []).map((group) => `
+                    <section class="match-print-section stats-awards-print-section">
+                        <h2>${escapeStatisticsHtml(group.label)}</h2>
+                        <div class="stats-awards-print-grid">
+                            ${(group.awards || []).map((award) => `
+                                <div class="stats-awards-print-item">
+                                    <h3>${escapeStatisticsHtml(award.title)}</h3>
+                                    ${award.explain ? `<p class="stats-awards-print-explain">${escapeStatisticsHtml(award.explain)}</p>` : ''}
+                                    ${award.podium.length ? `
+                                        <ol class="match-print-list">
+                                            ${award.podium.map((entry, index) => `
+                                                <li>
+                                                    <span class="match-print-jersey">${index + 1}</span>
+                                                    <span class="match-print-name">${escapeStatisticsHtml(entry.navn)}</span>
+                                                    <span class="match-print-pos">${escapeStatisticsHtml(entry.valueText)}</span>
+                                                </li>
+                                            `).join('')}
+                                        </ol>
+                                    ` : '<p class="match-print-empty">Ingen data</p>'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                `).join('')}
+            `;
+        };
+
+        window.cleanupStatsAwardsPrintSheet = function() {
+            document.documentElement.classList.remove('is-printing-awards-sheet');
+            document.body.classList.remove('is-printing-awards-sheet');
+            document.getElementById('stats-awards-print-sheet')?.remove();
+            if (window._statsAwardsPrintCleanup) {
+                window.removeEventListener('afterprint', window._statsAwardsPrintCleanup);
+                window._statsAwardsPrintCleanup = null;
+            }
+            if (window._statsAwardsPrintCleanupTimer) {
+                clearTimeout(window._statsAwardsPrintCleanupTimer);
+                window._statsAwardsPrintCleanupTimer = null;
+            }
+        };
+
+        window.printStatsAwardsSheet = function() {
+            window.cleanupStatsAwardsPrintSheet();
+            const sheet = document.createElement('div');
+            sheet.id = 'stats-awards-print-sheet';
+            sheet.setAttribute('aria-hidden', 'true');
+            sheet.innerHTML = window.buildStatsAwardsPrintSheetHtml();
+            document.body.appendChild(sheet);
+            document.documentElement.classList.add('is-printing-awards-sheet');
+            document.body.classList.add('is-printing-awards-sheet');
+
+            const cleanup = () => window.cleanupStatsAwardsPrintSheet();
+            window._statsAwardsPrintCleanup = cleanup;
+            window.addEventListener('afterprint', cleanup);
+            window._statsAwardsPrintCleanupTimer = setTimeout(cleanup, 60000);
+
+            requestAnimationFrame(() => {
+                window.print();
+            });
+        };
+
         window.renderStatsSpillereExtraPanelsHtml = function() {
             const followUps = Array.isArray(window._statsFollowUps)
                 ? window._statsFollowUps
@@ -3902,9 +4389,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const extraPanelsHtml = typeof window.renderStatsSpillereExtraPanelsHtml === 'function'
                 ? window.renderStatsSpillereExtraPanelsHtml()
                 : '';
+            const awardsPanelHtml = typeof window.renderStatsAwardsPanelHtml === 'function'
+                ? window.renderStatsAwardsPanelHtml()
+                : '';
 
             container.innerHTML = `
                 <div class="team-report-status-stack">
+                    ${awardsPanelHtml}
                     ${spillerstatsPanel}
                     ${extraPanelsHtml}
                 </div>
