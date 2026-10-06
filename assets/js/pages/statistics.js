@@ -3503,6 +3503,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'kampbidrag',
                             title: 'Årets kampbidrag',
                             column: 'kampbonusTotal',
+                            icon: 'fa-chart-line',
                             explain: 'Høyest samlet kampbidrag gjennom sesongen (sum av alle kamper). Krever minst 30 % av lagets kamper.'
                         },
                         {
