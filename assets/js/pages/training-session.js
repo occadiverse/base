@@ -699,10 +699,15 @@ function getTrainingEventAttendancePct(event, teamPlayers) {
 function buildTrainingAttendanceSeasonStats(teamName, options = {}) {
     const teamPlayers = getTrainingTeamPlayers(teamName);
     const events = getTrainingHistoricalAttendanceEvents(teamName, options);
+    const filterNames = Array.isArray(options.playerNames) ? new Set(options.playerNames) : null;
+    const playersForPct = filterNames
+        ? teamPlayers.filter(player => filterNames.has(player.navn))
+        : teamPlayers;
 
     const pctFor = (list) => {
+        if (!playersForPct.length) return null;
         const values = list
-            .map(event => getTrainingEventAttendancePct(event, teamPlayers))
+            .map(event => getTrainingEventAttendancePct(event, playersForPct))
             .filter(value => value !== null);
         if (!values.length) return null;
         return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
@@ -806,27 +811,77 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
         toggleActionAttr = 'data-training-action',
         toggleAction = 'toggle-attendance-list',
         eventLimit = null,
-        rangeLabel = null
+        rangeLabel = null,
+        ownAttendanceThreshold = null
     } = options;
     const eventOptions = Number.isFinite(Number(eventLimit)) && Number(eventLimit) > 0
         ? { limit: Number(eventLimit) }
         : {};
-    const stats = buildTrainingAttendanceSeasonStats(teamName, eventOptions);
     const ranking = buildTrainingPlayerAttendanceRanking(teamName, eventOptions);
+    const threshold = Number(ownAttendanceThreshold);
+    const useOwnThreshold = Number.isFinite(threshold);
+    const qualified = useOwnThreshold
+        ? ranking.filter(row => Number(row.pct) >= threshold)
+        : ranking;
+    const belowThreshold = useOwnThreshold
+        ? ranking.filter(row => Number(row.pct) < threshold)
+        : [];
+    const totalPlayers = qualified.length + belowThreshold.length;
+    const stats = buildTrainingAttendanceSeasonStats(teamName, {
+        ...eventOptions,
+        ...(useOwnThreshold ? { playerNames: qualified.map(row => row.name) } : {})
+    });
     const visibleLimit = 10;
     const isExpanded = window[listExpandedKey] === true;
-    const hasOverflow = ranking.length > visibleLimit;
+    const hasOverflow = totalPlayers > visibleLimit;
     const trendTone = stats.delta === null
         ? ''
         : (stats.delta > 0 ? 'is-up' : (stats.delta < 0 ? 'is-down' : 'is-flat'));
     const primaryLabel = rangeLabel
         || (eventOptions.limit ? `Siste ${eventOptions.limit}` : 'Sesong');
 
-    if (stats.seasonPct === null && stats.lastFivePct === null) {
+    if (stats.seasonPct === null && stats.lastFivePct === null && !totalPlayers) {
         return `
             <div class="training-data-empty">
                 <p>Ingen oppmøtedata registrert for sesongen ennå.</p>
             </div>
+        `;
+    }
+
+    const renderAttendanceRow = (row, rankIndex, overflow) => {
+        const count = useOwnThreshold && Number(row.possible) > 0
+            ? `${row.attended}/${row.possible}`
+            : String(row.attended);
+        return `
+            <li class="${overflow ? 'is-overflow' : ''}">
+                <span class="training-data-rank-index">${rankIndex + 1}.</span>
+                <span class="training-data-rank-name">${escapeTrainingHtml(row.name)}</span>
+                <strong>${row.pct}% <span class="training-data-rank-count">${count}</span></strong>
+            </li>
+        `;
+    };
+
+    let visiblePlayerCount = 0;
+    const qualifiedHtml = qualified.map((row, index) => {
+        const overflow = visiblePlayerCount >= visibleLimit;
+        visiblePlayerCount += 1;
+        return renderAttendanceRow(row, index, overflow);
+    }).join('');
+
+    let belowHtml = '';
+    if (belowThreshold.length) {
+        const sepOverflow = visiblePlayerCount >= visibleLimit;
+        belowHtml = `
+            <li class="training-data-rank-separator${sepOverflow ? ' is-overflow' : ''}" role="presentation">
+                <span class="training-data-rank-separator-line" aria-hidden="true"></span>
+                <span class="training-data-rank-separator-label">Under ${threshold} % oppmøte</span>
+                <span class="training-data-rank-separator-line" aria-hidden="true"></span>
+            </li>
+            ${belowThreshold.map((row, index) => {
+                const overflow = visiblePlayerCount >= visibleLimit;
+                visiblePlayerCount += 1;
+                return renderAttendanceRow(row, index, overflow);
+            }).join('')}
         `;
     }
 
@@ -846,17 +901,12 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
                     <strong>${escapeTrainingHtml(formatTrainingTrendDelta(stats.delta, ' %'))}</strong>
                 </div>
             </div>
-            ${ranking.length ? `
+            ${totalPlayers ? `
                 <div class="training-data-rank-block">
                     <h5>Oppmøte spillere</h5>
                     <ul class="training-data-rank-list ${isExpanded ? 'is-expanded' : ''}">
-                        ${ranking.map((row, index) => `
-                            <li class="${index >= visibleLimit ? 'is-overflow' : ''}">
-                                <span class="training-data-rank-index">${index + 1}.</span>
-                                <span class="training-data-rank-name">${escapeTrainingHtml(row.name)}</span>
-                                <strong>${row.pct}% <span class="training-data-rank-count">${row.attended}</span></strong>
-                            </li>
-                        `).join('')}
+                        ${qualifiedHtml}
+                        ${belowHtml}
                     </ul>
                     ${hasOverflow ? `
                         <button
@@ -865,7 +915,7 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
                             ${toggleActionAttr}="${toggleAction}"
                             aria-expanded="${isExpanded ? 'true' : 'false'}"
                         >
-                            ${isExpanded ? 'Vis færre' : `Vis alle (${ranking.length})`}
+                            ${isExpanded ? 'Vis færre' : `Vis alle (${totalPlayers})`}
                         </button>
                     ` : ''}
                 </div>

@@ -2744,7 +2744,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     toggleActionAttr: 'data-stat-action',
                     toggleAction: 'toggle-attendance-list',
                     eventLimit: oppmoteIsLast8 ? 8 : null,
-                    rangeLabel: oppmoteIsLast8 ? 'Siste 8' : 'Sesong'
+                    rangeLabel: oppmoteIsLast8 ? 'Siste 8' : 'Sesong',
+                    ownAttendanceThreshold: 30
                 })
                 : `
                     <p class="stats-kamp-panel-hint">Oppmøteregistrering på historiske aktiviteter for valgt lag.</p>
