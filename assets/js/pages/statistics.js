@@ -3556,34 +3556,34 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         {
                             id: 'keeper',
                             title: 'Årets keeper',
-                            column: 'kampbonusTotal',
+                            column: 'kampbonus',
                             icon: 'fa-mitten',
                             group: 'keeper',
-                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant keepere. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant keepere. Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'forsvar',
                             title: 'Årets forsvar',
-                            column: 'kampbonusTotal',
+                            column: 'kampbonus',
                             icon: 'fa-shield-halved',
                             group: 'forsvar',
-                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant stoppere og bekker. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant stoppere og bekker. Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'midtbane',
                             title: 'Årets midtbane',
-                            column: 'kampbonusTotal',
+                            column: 'kampbonus',
                             icon: 'fa-diagram-project',
                             group: 'midtbane',
-                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant defensiv/offensiv midtbane og playmaker. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant defensiv/offensiv midtbane og playmaker. Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'angrep',
                             title: 'Årets angrep',
-                            column: 'kampbonusTotal',
+                            column: 'kampbonus',
                             icon: 'fa-bullseye',
                             group: 'angrep',
-                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant kanter og spisser. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant kanter og spisser. Krever minst 30 % av lagets kamper.'
                         }
                     ]
                 },
