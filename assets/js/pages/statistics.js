@@ -3563,18 +3563,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         {
                             id: 'keeper',
                             title: 'Årets keeper',
-                            column: 'totalScore',
+                            column: 'kampbonusTotal',
                             icon: 'fa-mitten',
                             group: 'keeper',
-                            explain: 'Høyest Total Score blant spillere med keeper som hovedposisjon. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant keepere. Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'forsvar',
                             title: 'Årets forsvar',
-                            column: 'totalScore',
+                            column: 'kampbonusTotal',
                             icon: 'fa-shield-halved',
                             group: 'forsvar',
-                            explain: 'Høyest Total Score blant stoppere og bekker (hovedposisjon). Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant stoppere og bekker. Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'midtbane',
@@ -3587,10 +3587,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         {
                             id: 'angrep',
                             title: 'Årets angrep',
-                            column: 'totalScore',
+                            column: 'kampbonusTotal',
                             icon: 'fa-bullseye',
                             group: 'angrep',
-                            explain: 'Høyest Total Score blant kanter og spisser (hovedposisjon). Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant kanter og spisser. Krever minst 30 % av lagets kamper.'
                         }
                     ]
                 },
