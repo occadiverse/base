@@ -3577,10 +3577,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         {
                             id: 'midtbane',
                             title: 'Årets midtbane',
-                            column: 'totalScore',
+                            column: 'kampbonusTotal',
                             icon: 'fa-diagram-project',
                             group: 'midtbane',
-                            explain: 'Høyest Total Score blant defensiv/offensiv midtbane og playmaker. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest samlet kampbidrag gjennom sesongen blant defensiv/offensiv midtbane og playmaker. Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'angrep',
