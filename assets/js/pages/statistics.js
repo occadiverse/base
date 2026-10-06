@@ -1826,7 +1826,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         minutesMatches,
                         minutesAvg: minutesMatches > 0 ? minutesTotal / minutesMatches : 0,
                         minutesPossible,
-                        minutesSharePct
+                        minutesSharePct,
+                        fodselsaar: p.fodselsaar || ''
                     };
                 });
 
@@ -2073,6 +2074,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'oppmotePct': return (Number(stat.oppmotePossible) || 0) > 0;
                 case 'minutesTotal': return (Number(stat.minutesTotal) || 0) > 0;
                 case 'minutesSharePct': return (Number(stat.minutesPossible) || 0) > 0 && stat.minutesSharePct != null;
+                case 'attendedMatches': return (Number(stat.attendedMatches) || 0) > 0;
                 default: return true;
             }
         };
@@ -3417,6 +3419,43 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return '';
         };
 
+        window.getStatsAwardSeasonYear = function(yearFilter) {
+            const year = parseInt(yearFilter, 10);
+            return Number.isFinite(year) ? year : new Date().getFullYear();
+        };
+
+        window.getStatsAwardPlayerAge = function(stat, yearFilter) {
+            const birth = parseInt(stat?.fodselsaar, 10);
+            if (!Number.isFinite(birth) || birth < 1950) return null;
+            return window.getStatsAwardSeasonYear(yearFilter) - birth;
+        };
+
+        window.getStatsAwardFilterFn = function(award, yearFilter) {
+            const filters = [];
+            if (award?.group) {
+                filters.push((stat) => window.getStatsAwardPositionGroup(stat.pos1) === award.group);
+            }
+            if (Number.isFinite(award?.maxAge)) {
+                filters.push((stat) => {
+                    const age = window.getStatsAwardPlayerAge(stat, yearFilter);
+                    return age != null && age <= award.maxAge;
+                });
+            }
+            if (award?.id === 'fairplay' || award?.id === 'tropp') {
+                filters.push((stat) => (Number(stat.attendedMatches) || 0) > 0);
+            }
+            if (!filters.length) return null;
+            return (stat) => filters.every((fn) => fn(stat));
+        };
+
+        window.formatTroppAttendanceDisplay = function(stat) {
+            const attended = Number(stat?.attendedMatches) || 0;
+            const possible = Number(stat?.teamKampCount) || 0;
+            if (possible <= 0 && attended <= 0) return '—';
+            if (possible <= 0) return `${attended} kamper`;
+            return `${attended} / ${possible} kamper`;
+        };
+
         window.buildStatsAwardPodium = function(rows, options = {}) {
             const column = options.column;
             const ascending = options.ascending === true;
@@ -3532,6 +3571,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             tiebreakKamper: 'fewer',
                             valueFn: (stat) => `${Number(stat.bb) || 0} · ${Number(stat.kamper) || 0} kamper`,
                             explain: 'Flest kåringer som banens beste i valgt sesong. Ved likt antall rangeres den med færre kamper høyest.'
+                        },
+                        {
+                            id: 'talent',
+                            title: 'Årets talent',
+                            column: 'totalScore',
+                            icon: 'fa-seedling',
+                            maxAge: 19,
+                            explain: 'Høyest Total Score blant spillere som er 19 år eller yngre i valgt sesong. Krever minst 30 % av lagets kamper.'
                         }
                     ]
                 },
@@ -3544,6 +3591,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             title: 'Jernmannen',
                             column: 'minutesTotal',
                             explain: 'Flest registrerte spilleminutter i Spillerbørs. Tallet viser total minutter og snitt per kamp.'
+                        },
+                        {
+                            id: 'tropp',
+                            title: 'Troppens mann',
+                            column: 'attendedMatches',
+                            icon: 'fa-users',
+                            valueFn: (stat) => window.formatTroppAttendanceDisplay(stat),
+                            explain: 'Flest kamper i troppen på kampdagen, uavhengig av minutter. Ved likt antall rangeres den med flest kamper på banen høyest.'
                         },
                         {
                             id: 'oppmote',
@@ -3643,11 +3698,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         requireQualify: award.requireQualify,
                         qualifyAs: award.qualifyAs,
                         tiebreakKamper: award.tiebreakKamper,
-                        filterFn: award.group
-                            ? (stat) => window.getStatsAwardPositionGroup(stat.pos1) === award.group
-                            : (award.id === 'fairplay'
-                                ? (stat) => (Number(stat.attendedMatches) || 0) > 0
-                                : null)
+                        filterFn: window.getStatsAwardFilterFn(award, yearFilter)
                     });
                     return {
                         ...award,
