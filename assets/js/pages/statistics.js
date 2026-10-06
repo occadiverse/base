@@ -667,8 +667,8 @@ window.checkIndividualChemistry = function() {
                 oppmote: true,
                 spillerutvikling: false,
                 oppfolging: false,
-                spillerliste: true,
-                sesongkaaringer: true
+                spillerliste: false,
+                sesongkaaringer: false
             };
             window.statsKampPanelState = window.statsKampPanelState || {};
             Object.keys(defaults).forEach(key => {
