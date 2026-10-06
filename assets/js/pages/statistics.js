@@ -3445,7 +3445,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (va !== vb) return ascending ? va - vb : vb - va;
                 const ka = Number(a.kamper) || 0;
                 const kb = Number(b.kamper) || 0;
-                if (ka !== kb) return kb - ka;
+                if (ka !== kb) {
+                    return options.tiebreakKamper === 'fewer' ? ka - kb : kb - ka;
+                }
                 return String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' });
             });
             return pool.slice(0, limit);
@@ -3527,7 +3529,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'bb',
                             title: 'Banens beste',
                             column: 'bb',
-                            explain: 'Flest kåringer som banens beste i valgt sesong.'
+                            tiebreakKamper: 'fewer',
+                            explain: 'Flest kåringer som banens beste i valgt sesong. Ved likt antall rangeres den med færre kamper høyest.'
                         }
                     ]
                 },
@@ -3638,6 +3641,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         requireRelevant: award.requireRelevant,
                         requireQualify: award.requireQualify,
                         qualifyAs: award.qualifyAs,
+                        tiebreakKamper: award.tiebreakKamper,
                         filterFn: award.group
                             ? (stat) => window.getStatsAwardPositionGroup(stat.pos1) === award.group
                             : (award.id === 'fairplay'
