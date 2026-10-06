@@ -3530,6 +3530,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             title: 'Banens beste',
                             column: 'bb',
                             tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.bb) || 0} · ${Number(stat.kamper) || 0} kamper`,
                             explain: 'Flest kåringer som banens beste i valgt sesong. Ved likt antall rangeres den med færre kamper høyest.'
                         }
                     ]
