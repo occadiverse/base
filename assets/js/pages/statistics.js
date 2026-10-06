@@ -3588,13 +3588,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     awards: [
                         {
                             id: 'jernmann',
-                            title: 'Jernmannen',
+                            title: 'Jernspilleren',
                             column: 'minutesTotal',
                             explain: 'Flest registrerte spilleminutter i Spillerbørs. Tallet viser total minutter og snitt per kamp.'
                         },
                         {
                             id: 'tropp',
-                            title: 'Troppens mann',
+                            title: 'Troppens spiller',
                             column: 'attendedMatches',
                             icon: 'fa-users',
                             valueFn: (stat) => window.formatTroppAttendanceDisplay(stat),
