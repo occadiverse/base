@@ -18502,6 +18502,9 @@
             table-layout: fixed;
             width: 100%;
         }
+        .stats-form-history-table-player {
+            min-width: 33.5rem;
+        }
         .stats-form-history-table-team {
             min-width: 48rem;
         }
@@ -18650,7 +18653,8 @@
             color: #94a3b8;
             font-weight: 800;
         }
-        .stats-form-history-ma {
+        .stats-form-history-ma,
+        .stats-form-history-minutes {
             font-variant-numeric: tabular-nums;
             text-align: center;
             white-space: nowrap;

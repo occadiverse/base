@@ -1140,7 +1140,6 @@ window.renderPlayerProfilePage = function(playerId) {
             <div class="player-profile-panel-header">
                 <div class="min-w-0">
                     <h2 class="player-profile-panel-title">Sesong i tall</h2>
-                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Total score = sesong · Form = nå</p>
                 </div>
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>

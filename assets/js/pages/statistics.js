@@ -5604,6 +5604,14 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
             ? window.getMatchGamePlanPositionLabel(posId)
             : posCode;
 
+        const minutesTracked = typeof window.matchHasMinutesTracking === 'function'
+            && window.matchHasMinutesTracking(m);
+        const minutes = minutesTracked
+            ? (typeof window.getPlayerMatchMinutesForStats === 'function'
+                ? window.getPlayerMatchMinutesForStats(m, playerObj)
+                : Math.max(0, Math.floor(Number(window.getPlayerRefMapValue(m.minutesPlayed, playerObj, 0)) || 0)))
+            : null;
+
         history.push({
             matchId: m.id,
             date: m.date,
@@ -5614,6 +5622,7 @@ window.getPlayerMatchPointsHistory = function(playerName, options = {}) {
             points: ptsDetails.total,
             onPitch,
             startStatus,
+            minutes,
             posId,
             posCode,
             posLabel,
@@ -5776,6 +5785,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         const posHtml = posCode
             ? `<span class="stats-form-history-pos-code">${escapeStatisticsHtml(posCode)}</span>`
             : '–';
+        const minutesText = entry.minutes == null ? '–' : `${entry.minutes}'`;
 
         return `
             <tr class="stats-form-history-row${satEntireBench ? ' is-bench' : ''}">
@@ -5787,6 +5797,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                 <td class="stats-form-history-pos" title="${escapeStatisticsHtml(posLabel || 'Hovedposisjon i kampen')}">${posHtml}</td>
                 <td class="stats-form-history-rating ${ratingClass}">${ratingText}</td>
                 <td class="stats-form-history-sb${startStatus === 'B' ? ' is-bench' : ' is-start'}" title="${escapeStatisticsHtml(sbTitle)}">${startStatus}</td>
+                <td class="stats-form-history-minutes" title="Spilleminutter">${escapeStatisticsHtml(minutesText)}</td>
                 <td class="stats-form-history-ma">${maText}</td>
                 <td class="stats-form-history-cards">${cardsHtml}</td>
                 <td class="stats-form-history-points ${pointsClass}">${entry.points}</td>
@@ -5803,6 +5814,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
                     <th title="Hovedposisjon i kampen">Pos</th>
                     <th>Børs</th>
                     <th title="Start / Benk ved avspark">S/B</th>
+                    <th title="Spilleminutter">Min</th>
                     <th>M/A</th>
                     <th>Kort</th>
                     <th>Poeng</th>
