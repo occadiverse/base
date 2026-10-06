@@ -717,7 +717,8 @@ window.PLAYER_LOCAL_PROFILE_PHOTOS = {
     'Vetle Hegbom': 'assets/img/players/vetle-hegbom-3x4.jpg',
     'Simen Skogstad': 'assets/img/players/simen-skogstad-3x4.jpg',
     'Hans Riseng': 'assets/img/players/hans-riseng-3x4.jpg',
-    'Noah Holdal': 'assets/img/players/noah-holdal-3x4.jpg'
+    'Noah Holdal': 'assets/img/players/noah-holdal-3x4.jpg',
+    'Mikaeel Shabbir': 'assets/img/players/mikaeel-shabbir-3x4.jpg'
 };
 
 window.getPlayerProfilePhotoUrl = function(player) {
