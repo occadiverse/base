@@ -1810,6 +1810,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         assist,
                         expectedMalpoeng,
                         kampbonus: attendedMatches > 0 ? totalMatchPoints / attendedMatches : 0,
+                        kampbonusTotal: totalMatchPoints,
                         guleSerie,
                         rodeSerie,
                         guleCup,
@@ -1962,6 +1963,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? Math.round((((Number(row.goals) || 0) + (Number(row.assists) || 0)) / kamper) * 10) / 10
                         : null,
                     kampbonus: kamper > 0 ? (Number(row.points) || 0) / kamper : 0,
+                    kampbonusTotal: Number(row.points) || 0,
                     kjemi,
                     snittBors: row.ratingsCount > 0 ? row.ratingsSum / row.ratingsCount : 0,
                     bb: Number(row.bb) || 0,
@@ -2065,6 +2067,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'bb': return stat.bb > 0;
                 case 'kamper': return stat.kamper > 0;
                 case 'kampbonus': return stat.attendedMatches > 0;
+                case 'kampbonusTotal': return (Number(stat.kampbonusTotal) || 0) > 0;
                 case 'kjemi': return stat.kjemi > 0;
                 case 'snittBors': return stat.snittBors > 0;
                 case 'oppmotePct': return (Number(stat.oppmotePossible) || 0) > 0;
@@ -2213,6 +2216,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsSortUsesKampShareThreshold = function(column) {
             return column === 'totalScore'
                 || column === 'kampbonus'
+                || column === 'kampbonusTotal'
                 || column === 'kjemi'
                 || column === 'snittBors'
                 || column === 'expectedMalpoeng'
@@ -3497,8 +3501,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         {
                             id: 'kampbidrag',
                             title: 'Årets kampbidrag',
-                            column: 'kampbonus',
-                            explain: 'Høyest gjennomsnittlig kampbidrag per kamp. Krever minst 30 % av lagets kamper.'
+                            column: 'kampbonusTotal',
+                            explain: 'Høyest samlet kampbidrag gjennom sesongen (sum av alle kamper). Krever minst 30 % av lagets kamper.'
                         },
                         {
                             id: 'bors',
@@ -4301,15 +4305,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? window.formatMinutesTotalDisplay(stat)
                         : '-';
                 }
-                if (column === 'totalScore' || column === 'kampbonus' || column === 'snittBors' || column === 'expectedMalpoeng') {
+                if (column === 'totalScore' || column === 'kampbonus' || column === 'kampbonusTotal' || column === 'snittBors' || column === 'expectedMalpoeng') {
                     if (column === 'expectedMalpoeng') {
                         return typeof window.formatExpectedMalpoengDisplay === 'function'
                             ? window.formatExpectedMalpoengDisplay(stat)
                             : '-';
                     }
                     const value = Number(stat[column]);
-                    if (column === 'kampbonus' && !(stat.attendedMatches > 0)) return '-';
+                    if ((column === 'kampbonus' || column === 'kampbonusTotal') && !(stat.attendedMatches > 0)) return '-';
                     if (!Number.isFinite(value) || value <= 0) return '-';
+                    if (column === 'kampbonusTotal') {
+                        const rounded = Math.round(value * 10) / 10;
+                        return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+                    }
                     return value.toFixed(1);
                 }
                 if (column === 'kjemi') return String(stat.kjemi || 0);
@@ -4326,6 +4334,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (column === 'kjemi') return String(Math.round(numeric));
             if (column === 'kampbonus' || column === 'snittBors' || column === 'totalScore') {
                 return numeric > 0 ? numeric.toFixed(1) : '-';
+            }
+            if (column === 'kampbonusTotal') {
+                if (!(numeric > 0)) return '-';
+                const rounded = Math.round(numeric * 10) / 10;
+                return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
             }
             if (column === 'expectedMalpoeng') {
                 return Number.isFinite(numeric) && numeric > 0 ? numeric.toFixed(1) : '-';
