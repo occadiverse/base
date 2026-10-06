@@ -3500,13 +3500,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             explain: 'Høyest Total Score (beste sesong): kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. Krever minst 30 % av lagets kamper.'
                         },
                         {
-                            id: 'kampbidrag',
-                            title: 'Årets kampbidrag',
-                            column: 'kampbonusTotal',
-                            icon: 'fa-chart-line',
-                            explain: 'Høyest samlet kampbidrag gjennom sesongen (sum av alle kamper). Krever minst 30 % av lagets kamper.'
-                        },
-                        {
                             id: 'bors',
                             title: 'Årets børs',
                             column: 'snittBors',
