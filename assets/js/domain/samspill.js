@@ -1340,15 +1340,138 @@
         return positions.includes(pair.posA) && positions.includes(pair.posB);
     }
 
-    window.buildSamspillLineTotals = function(pairs, lineZones) {
+    function sameSamspillPlayer(left, right) {
+        if (!left || !right) return false;
+        if (left.id && right.id) return String(left.id) === String(right.id);
+        return Boolean(left.navn && right.navn && left.navn === right.navn);
+    }
+
+    function swapSamspillLineupPlayer(lineup, posId, player) {
+        const next = { ...(lineup || {}) };
+        Object.keys(next).forEach((otherPosId) => {
+            if (sameSamspillPlayer(next[otherPosId], player)) next[otherPosId] = null;
+        });
+        next[posId] = player;
+        return next;
+    }
+
+    function scoreSamspillLineupZone(lineup, positions, options) {
+        const pairs = window.collectSamspillLineupPairs(lineup, options);
+        const scoped = positions ? pairs.filter((pair) => pairInLine(pair, positions)) : pairs;
+        return averagePairScore(scoped);
+    }
+
+    function isBetterSamspillScore(score, currentBest) {
+        if (score == null) return false;
+        if (currentBest == null) return true;
+        return score > currentBest;
+    }
+
+    window.findBestSamspillLineupScore = function(lineup, positions, bench, options) {
+        const opts = options || {};
+        const slots = (positions || []).filter(Boolean);
+        const candidates = (bench || []).filter(Boolean);
+        const currentScore = scoreSamspillLineupZone(lineup, slots.length ? slots : null, opts);
+        const empty = { score: currentScore, players: [], swaps: [] };
+        if (!slots.length || !candidates.length) return empty;
+
+        const fitsSlot = typeof opts.playerFitsSlot === 'function'
+            ? opts.playerFitsSlot
+            : () => true;
+
+        let bestScore = currentScore;
+        let bestSwaps = [];
+
+        const consider = (trial, incoming) => {
+            const score = scoreSamspillLineupZone(trial, slots.length ? slots : null, opts);
+            if (!isBetterSamspillScore(score, bestScore)) return;
+            bestScore = score;
+            bestSwaps = incoming.filter((swap) => swap?.player);
+        };
+
+        slots.forEach((posId) => {
+            candidates.forEach((candidate) => {
+                if (sameSamspillPlayer(lineup?.[posId], candidate)) return;
+                if (!fitsSlot(candidate, posId)) return;
+                consider(swapSamspillLineupPlayer(lineup, posId, candidate), [{
+                    player: candidate,
+                    posId,
+                    outgoing: lineup?.[posId] || null
+                }]);
+            });
+        });
+
+        for (let i = 0; i < slots.length; i += 1) {
+            for (let j = i + 1; j < slots.length; j += 1) {
+                const posA = slots[i];
+                const posB = slots[j];
+                for (let a = 0; a < candidates.length; a += 1) {
+                    if (!fitsSlot(candidates[a], posA)) continue;
+                    if (sameSamspillPlayer(lineup?.[posA], candidates[a])) continue;
+                    for (let b = 0; b < candidates.length; b += 1) {
+                        if (a === b) continue;
+                        if (!fitsSlot(candidates[b], posB)) continue;
+                        if (sameSamspillPlayer(lineup?.[posB], candidates[b])) continue;
+                        consider(
+                            swapSamspillLineupPlayer(
+                                swapSamspillLineupPlayer(lineup, posA, candidates[a]),
+                                posB,
+                                candidates[b]
+                            ),
+                            [
+                                { player: candidates[a], posId: posA, outgoing: lineup?.[posA] || null },
+                                { player: candidates[b], posId: posB, outgoing: lineup?.[posB] || null }
+                            ]
+                        );
+                    }
+                }
+            }
+        }
+
+        return {
+            score: bestScore,
+            players: bestSwaps.map((swap) => swap.player),
+            swaps: bestSwaps
+        };
+    };
+
+    window.buildSamspillLineTotals = function(pairs, lineZones, bestByLine) {
         const zones = lineZones || {};
         const allPairs = pairs || [];
+        const best = bestByLine || {};
         const lines = [
             { id: 'lag', label: 'Lag', score: averagePairScore(allPairs) },
             { id: 'forsvar', label: 'Forsvar', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.forsvar))) },
             { id: 'midtbane', label: 'Midtbane', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.midtbane))) },
             { id: 'angrep', label: 'Angrep', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.angrep))) }
-        ].map((line) => ({ ...line, tone: scoreTone(line.score) }));
+        ].map((line) => {
+            const bestEntry = best[line.id] && typeof best[line.id] === 'object'
+                ? best[line.id]
+                : { score: best[line.id], players: [] };
+            const bestScore = bestEntry.score;
+            const hasUpside = bestScore != null && line.score != null && bestScore > line.score;
+            const bestSwaps = hasUpside
+                ? (bestEntry.swaps || (bestEntry.players || []).map((player) => ({ player }))).filter((swap) => swap?.player)
+                : [];
+            const bestNames = bestSwaps.map((swap) => {
+                const name = playerLastName(swap.player);
+                return swap.posId ? `${name} → ${swap.posId}` : name;
+            }).filter(Boolean);
+            const bestHint = bestSwaps.map((swap) => {
+                const name = playerLastName(swap.player);
+                const outName = swap.outgoing ? playerLastName(swap.outgoing) : '';
+                if (swap.posId && outName) return `${name} inn på ${swap.posId} for ${outName}`;
+                if (swap.posId) return `${name} inn på ${swap.posId}`;
+                return name;
+            }).filter(Boolean);
+            return {
+                ...line,
+                tone: scoreTone(line.score),
+                bestScore: hasUpside ? bestScore : null,
+                bestNames: bestNames.join(', '),
+                bestHint: bestHint.join(', ')
+            };
+        });
 
         return { lines, teamScore: lines[0].score };
     };
@@ -1388,7 +1511,18 @@
     window.buildSamspillBriefing = function(lineup, options) {
         const opts = options || {};
         const pairs = window.collectSamspillLineupPairs(lineup, opts);
-        const totals = window.buildSamspillLineTotals(pairs, opts.lineZones);
+        const benchByLine = opts.benchByLine || {};
+        const lineZones = opts.lineZones || {};
+        const allSlots = Object.keys(lineup || {}).filter((posId) => lineup[posId]);
+        const bestByLine = typeof window.findBestSamspillLineupScore === 'function'
+            ? {
+                lag: window.findBestSamspillLineupScore(lineup, allSlots, benchByLine.lag, opts),
+                forsvar: window.findBestSamspillLineupScore(lineup, lineZones.forsvar, benchByLine.forsvar, opts),
+                midtbane: window.findBestSamspillLineupScore(lineup, lineZones.midtbane, benchByLine.midtbane, opts),
+                angrep: window.findBestSamspillLineupScore(lineup, lineZones.angrep, benchByLine.angrep, opts)
+            }
+            : {};
+        const totals = window.buildSamspillLineTotals(pairs, lineZones, bestByLine);
         if (!pairs.length) {
             return { isEmpty: true, items: [], totals };
         }
@@ -1485,7 +1619,7 @@
         }
 
         if (!items.length) {
-            return { isEmpty: true, items: [] };
+            return { isEmpty: true, items: [], totals };
         }
 
         const order = { established: 0, new: 1, unproven: 2 };

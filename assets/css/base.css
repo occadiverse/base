@@ -2256,6 +2256,39 @@
             font-weight: 800;
             line-height: 1.1;
         }
+        .match-game-plan-samspill-total-best {
+            color: #64748b;
+            font-size: 0.72em;
+            font-weight: 750;
+        }
+        .match-game-plan-samspill-total.is-strong .match-game-plan-samspill-total-best {
+            color: rgba(21, 128, 61, 0.62);
+        }
+        .match-game-plan-samspill-total.is-ok .match-game-plan-samspill-total-best {
+            color: rgba(161, 98, 7, 0.7);
+        }
+        .match-game-plan-samspill-total.is-weak .match-game-plan-samspill-total-best {
+            color: rgba(185, 28, 28, 0.7);
+        }
+        .match-game-plan-samspill-total-names {
+            color: #475569;
+            font-size: 0.56rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            line-height: 1.25;
+            max-width: 100%;
+            padding: 0 0.08rem;
+            white-space: normal;
+        }
+        .match-game-plan-samspill-total.is-strong .match-game-plan-samspill-total-names {
+            color: rgba(21, 128, 61, 0.82);
+        }
+        .match-game-plan-samspill-total.is-ok .match-game-plan-samspill-total-names {
+            color: rgba(161, 98, 7, 0.88);
+        }
+        .match-game-plan-samspill-total.is-weak .match-game-plan-samspill-total-names {
+            color: rgba(185, 28, 28, 0.82);
+        }
         .match-game-plan-samspill-total.is-strong .match-game-plan-samspill-total-label,
         .match-game-plan-samspill-total.is-strong .match-game-plan-samspill-total-value {
             color: #15803d;

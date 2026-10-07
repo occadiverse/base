@@ -1852,6 +1852,44 @@ function getMatchGamePlanPositionScore(player, posId) {
     return 2;
 }
 
+function playerFitsSamspillSlot(player, posId) {
+    return getMatchGamePlanPositionScore(player, posId) <= 1;
+}
+
+function isMatchGamePlanPlayerAvailableForSamspill(player, match) {
+    if (!player) return false;
+    const injuryInfo = getMatchGamePlanPlayerInjuryInfo(player, match);
+    return !injuryInfo.isInjured;
+}
+
+function getMatchGamePlanSamspillBenchForPositions(match, positions) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const onPitchKeys = new Set(
+        Object.values(lineup || {})
+            .filter(Boolean)
+            .map((player) => player.id || player.navn)
+            .filter(Boolean)
+    );
+    const slots = [...new Set((positions || []).filter(Boolean))];
+    return getMatchDetailAttendingPlayers(match).filter((player) => {
+        const key = player.id || player.navn;
+        if (!key || onPitchKeys.has(key)) return false;
+        if (!isMatchGamePlanPlayerAvailableForSamspill(player, match)) return false;
+        return slots.some((posId) => playerFitsSamspillSlot(player, posId));
+    });
+}
+
+function getMatchGamePlanSamspillBenchByLine(match) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const zones = getMatchGamePlanSamspillZonePositions(match);
+    return {
+        lag: getMatchGamePlanSamspillBenchForPositions(match, Object.keys(lineup || {})),
+        forsvar: getMatchGamePlanSamspillBenchForPositions(match, zones.forsvar),
+        midtbane: getMatchGamePlanSamspillBenchForPositions(match, zones.midtbane),
+        angrep: getMatchGamePlanSamspillBenchForPositions(match, zones.angrep)
+    };
+}
+
 function matchGamePlanSamePlayer(left, right) {
     if (!left || !right) return false;
     return (left.id && right.id && left.id === right.id)
@@ -3221,9 +3259,24 @@ function buildMatchGamePlanSamspillTotalsHtml(totals) {
     return `
         <ul class="match-game-plan-samspill-totals">
             ${lines.map((line) => `
-                <li class="match-game-plan-samspill-total is-${escapeMatchHtml(line.tone || 'unknown')}${line.id === 'lag' ? ' is-team' : ''}">
+                <li class="match-game-plan-samspill-total is-${escapeMatchHtml(line.tone || 'unknown')}${line.id === 'lag' ? ' is-team' : ''}${line.bestNames ? ' has-bench' : ''}"${
+                    line.score != null && line.bestScore != null
+                        ? ` title="${escapeMatchHtml(`${line.label}: ${line.score} nå, ${line.bestScore} med ${line.bestHint || line.bestNames || 'benk'}`)}"`
+                        : ''
+                }>
                     <span class="match-game-plan-samspill-total-label">${escapeMatchHtml(line.label)}</span>
-                    <span class="match-game-plan-samspill-total-value">${line.score == null ? '–' : escapeMatchHtml(String(line.score))}</span>
+                    <span class="match-game-plan-samspill-total-value">${
+                        line.score == null
+                            ? '–'
+                            : `${escapeMatchHtml(String(line.score))}${
+                                line.bestScore != null
+                                    ? `<span class="match-game-plan-samspill-total-best">/${escapeMatchHtml(String(line.bestScore))}</span>`
+                                    : ''
+                            }`
+                    }</span>
+                    ${line.bestNames
+                        ? `<span class="match-game-plan-samspill-total-names">${escapeMatchHtml(line.bestNames)}</span>`
+                        : ''}
                 </li>
             `).join('')}
         </ul>
@@ -3241,7 +3294,9 @@ function buildMatchGamePlanSamspillAnalysisHtml(match) {
                 forsvar: lineZones.forsvar || [],
                 midtbane: lineZones.midtbane || [],
                 angrep: lineZones.angrep || []
-            }
+            },
+            benchByLine: getMatchGamePlanSamspillBenchByLine(match),
+            playerFitsSlot: playerFitsSamspillSlot
         })
         : { isEmpty: true, items: [], totals: { lines: [] } };
 
