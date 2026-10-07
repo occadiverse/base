@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261007-samspill-print-v9">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261007-samspill-info-v12">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -1428,8 +1428,32 @@
                         <li><strong class="text-white">71</strong> er snittet nå. <strong class="text-white">71/72</strong> betyr at benken kan løfte linjen til 72.</li>
                         <li>Navn på en linje, som <strong class="text-white">Krämer → HK</strong>, er hvem som løfter den linjen og på hvilken plass.</li>
                         <li><strong class="text-white">Lag</strong> viser bare tallene. Hvem som løfter, står på linjen det gjelder.</li>
-                        <li>Grønne streker på banen er par som har spilt sammen før.</li>
+                        <li>Fargen på strekken viser styrken. Tallet mellom to spillere er 0–100 for akkurat det paret.</li>
                     </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Fargene på linjene</h4>
+                    <ul class="list-disc pl-5 space-y-1.5 text-slate-300">
+                        <li><strong class="text-emerald-400">Grønn:</strong> minst <strong class="text-white">62</strong>, minst <strong class="text-white">4 kamper på banen sammen</strong>, og etablert som par (minst 3 kamper som naboer, eller 2 som naboer og 8 i samme 11er). Ingen av dem i rød form.</li>
+                        <li><strong class="text-amber-300">Gul:</strong> minst <strong class="text-white">48</strong>, men ikke sterkt nok til grønn. Også par som ellers ville vært grønne, hvis en av dem er i rød form nå.</li>
+                        <li><strong class="text-rose-400">Rød:</strong> under <strong class="text-white">48</strong></li>
+                        <li><strong class="text-slate-400">Grå:</strong> for lite data — under 3 kamper på banen sammen, og de har knapt vært naboer eller i samme 11er</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Tallet mellom spillerne</h4>
+                    <p class="mb-2 text-slate-300">Tallet er 0–100 for det paret. Fire deler summeres:</p>
+                    <ul class="list-disc pl-5 space-y-1.5 text-slate-300">
+                        <li><strong class="text-white">40 % naboer og samme 11er:</strong> 4 kamper som naboer gir full nabodel. 8 kamper i samme 11er gir full 11er-del.</li>
+                        <li><strong class="text-white">30 % på banen sammen:</strong> 8 kamper der begge har vært på banen = 100 på denne delen.</li>
+                        <li><strong class="text-white">20 % børs sammen:</strong> snitt av børsen deres når begge er vurdert. 5 er nøytralt, høyere trekker opp, lavere trekker ned. Mangler børs = 50.</li>
+                        <li><strong class="text-white">10 % form nå:</strong> mest den som er svakest i form, så paret ikke løftes av én spiller alene.</li>
+                    </ul>
+                    <p class="mt-3 text-slate-400 text-[12px]">
+                        Chipene (Lag, Forsvar, Midtbane, Angrep) er snittet av disse par-tallene i linjen.
+                    </p>
                 </div>
 
                 <div>
@@ -1488,15 +1512,15 @@
     </div>
 
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
-    <script src="assets/js/components/modals.js?v=20261007-samspill-print-v9"></script>
+    <script src="assets/js/components/modals.js?v=20261007-samspill-info-v12"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20261006-shabbir-photo-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20261007-match-open-cache-v1"></script>
-    <script src="assets/js/domain/samspill.js?v=20261007-samspill-print-v9"></script>
+    <script src="assets/js/domain/samspill.js?v=20261007-samspill-info-v12"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20261006-profile-kamp-min-v1"></script>
-    <script src="assets/js/pages/matches.js?v=20261007-samspill-print-v9"></script>
+    <script src="assets/js/pages/matches.js?v=20261007-samspill-info-v12"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20261007-match-open-cache-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260929-sandbox-formation-chip-v1"></script>
