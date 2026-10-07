@@ -1318,10 +1318,15 @@ const matchGamePlanPositionRequirements = {
     DM: ['Defensiv midtbane'],
     OM: ['Offensiv midtbane'],
     PM: ['Playmaker'],
-    VK: ['Venstre kant', 'Venstre bekk'],
-    HK: ['Høyre kant', 'Høyre bekk'],
+    VK: ['Venstre kant'],
+    HK: ['Høyre kant'],
     SP: ['Spiss'],
     SP2: ['Spiss']
+};
+
+const matchGamePlanRelatedPositions = {
+    VK: ['Venstre bekk'],
+    HK: ['Høyre bekk']
 };
 
 const matchGamePlanPositionLabels = {
@@ -1846,14 +1851,17 @@ function getMatchGamePlanBenchAssignment(match, playerRef) {
 }
 
 function getMatchGamePlanPositionScore(player, posId) {
-    const acceptedPositions = matchGamePlanPositionRequirements[posId] || [];
-    if (acceptedPositions.includes(player?.pos1)) return 0;
-    if (acceptedPositions.includes(player?.pos2)) return 1;
+    const preferred = matchGamePlanPositionRequirements[posId] || [];
+    const related = matchGamePlanRelatedPositions[posId] || [];
+    if (preferred.includes(player?.pos1)) return 0;
+    if (preferred.includes(player?.pos2)) return 1;
+    if (related.includes(player?.pos1) || related.includes(player?.pos2)) return 1;
     return 2;
 }
 
 function playerFitsSamspillSlot(player, posId) {
-    return getMatchGamePlanPositionScore(player, posId) <= 1;
+    const preferred = matchGamePlanPositionRequirements[posId] || [];
+    return preferred.includes(player?.pos1) || preferred.includes(player?.pos2);
 }
 
 function isMatchGamePlanPlayerAvailableForSamspill(player, match) {
