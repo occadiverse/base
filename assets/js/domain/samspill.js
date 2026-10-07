@@ -225,6 +225,133 @@
         return 'lite historikk sammen';
     }
 
+    function clampScore(value) {
+        return Math.max(0, Math.min(100, Number(value) || 0));
+    }
+
+    function getPlayerMatchLineupPosition(match, playerObj) {
+        if (!match || !playerObj) return null;
+        const lineup = (match.lineupRefs && typeof match.lineupRefs === 'object'
+            && Object.values(match.lineupRefs).some(Boolean))
+            ? match.lineupRefs
+            : match.lineup;
+        if (!lineup || typeof lineup !== 'object') return null;
+        const entry = Object.entries(lineup).find(([, ref]) => {
+            if (!ref) return false;
+            if (typeof window.playerRefMatches === 'function') {
+                return window.playerRefMatches(ref, playerObj);
+            }
+            const name = typeof ref === 'string' ? ref : ref.navn;
+            return name && name === playerObj.navn;
+        });
+        return entry ? entry[0] : null;
+    }
+
+    function wereAdjacentInMatch(match, posA, posB) {
+        if (!posA || !posB || posA === posB) return false;
+        const formation = String(match?.formation || match?.lineupFormation || '').trim();
+        if (formation && typeof window.hasMatchGamePlanSamspillConnections === 'function'
+            && window.hasMatchGamePlanSamspillConnections(formation)
+            && typeof window.getMatchGamePlanSamspillConnections === 'function') {
+            const connections = window.getMatchGamePlanSamspillConnections(formation) || [];
+            return connections.some(([left, right]) => (
+                (left === posA && right === posB) || (left === posB && right === posA)
+            ));
+        }
+        return window.getPositionPairRelevance(posA, posB) >= 0.9;
+    }
+
+    function buildPairPlayLabel(play) {
+        if (!play || play.pitchCount <= 0) {
+            return 'lite felles kamper på banen';
+        }
+        const kampLabel = play.pitchCount === 1 ? 'kamp på banen' : 'kamper på banen';
+        const bits = [`${play.pitchCount} ${kampLabel}`];
+        if (play.adjacentCount >= 2) {
+            bits.push(`${play.adjacentCount} som nabopar`);
+        } else if (play.xiCount >= 2) {
+            bits.push(`${play.xiCount} i samme 11er`);
+        }
+        return bits.join(', ');
+    }
+
+    window.getDuoPairPlayHistory = function(playerA, playerB, options) {
+        const opts = options || {};
+        const filterLag = opts.teamName || null;
+        const historicalOnly = opts.historicalOnly !== false;
+        const playerObjA = resolvePlayer(playerA);
+        const playerObjB = resolvePlayer(playerB);
+        const empty = {
+            troppCount: 0,
+            pitchCount: 0,
+            xiCount: 0,
+            adjacentCount: 0,
+            ratingCount: 0,
+            ratingAvg: 0,
+            dataConfidence: 'none'
+        };
+        if (!playerObjA || !playerObjB) return empty;
+
+        const matches = (window.activeMatches || []).filter((match) => {
+            if (filterLag && match.matchGroup !== filterLag) return false;
+            if (historicalOnly && typeof window.isHistoricalActivity === 'function'
+                && !window.isHistoricalActivity(match)) return false;
+            if (!match.attendance) return false;
+            return window.isPlayerAttending(match.attendance, playerObjA)
+                && window.isPlayerAttending(match.attendance, playerObjB);
+        }).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        let troppCount = 0;
+        let pitchCount = 0;
+        let xiCount = 0;
+        let adjacentCount = 0;
+        let ratingCount = 0;
+        let ratingSum = 0;
+
+        matches.forEach((match) => {
+            troppCount += 1;
+            const onPitchA = typeof window.isPlayerOnPitch === 'function'
+                ? window.isPlayerOnPitch(match, playerObjA)
+                : true;
+            const onPitchB = typeof window.isPlayerOnPitch === 'function'
+                ? window.isPlayerOnPitch(match, playerObjB)
+                : true;
+            if (onPitchA && onPitchB) pitchCount += 1;
+
+            const xiA = typeof window.isPlayerInMatchStartingXi === 'function'
+                && window.isPlayerInMatchStartingXi(match, playerObjA);
+            const xiB = typeof window.isPlayerInMatchStartingXi === 'function'
+                && window.isPlayerInMatchStartingXi(match, playerObjB);
+            if (xiA && xiB) xiCount += 1;
+
+            const posA = getPlayerMatchLineupPosition(match, playerObjA);
+            const posB = getPlayerMatchLineupPosition(match, playerObjB);
+            if (wereAdjacentInMatch(match, posA, posB)) adjacentCount += 1;
+
+            const ratingA = Number(window.getPlayerRefMapValue(match.ratings, playerObjA, 0)) || 0;
+            const ratingB = Number(window.getPlayerRefMapValue(match.ratings, playerObjB, 0)) || 0;
+            if (ratingA > 0 && ratingB > 0) {
+                ratingCount += 1;
+                ratingSum += (ratingA + ratingB) / 2;
+            }
+        });
+
+        let dataConfidence = 'none';
+        if (pitchCount >= 6 || xiCount >= 4 || adjacentCount >= 3) dataConfidence = 'high';
+        else if (pitchCount >= 3 || xiCount >= 2 || adjacentCount >= 1) dataConfidence = 'medium';
+        else if (pitchCount >= 1 || troppCount >= 1) dataConfidence = 'low';
+
+        return {
+            troppCount,
+            pitchCount,
+            xiCount,
+            adjacentCount,
+            ratingCount,
+            ratingAvg: ratingCount > 0 ? ratingSum / ratingCount : 0,
+            dataConfidence
+        };
+    };
+
     window.getDuoHistoricalChemistry = function(playerA, playerB, options) {
         const opts = options || {};
         const filterLag = opts.teamName || null;
@@ -260,44 +387,57 @@
         return Math.round(chemistryPct * 0.4 + weightedPct * 0.6);
     }
 
-    function resolveSamspillStatus(score, history, formA, formB, normBidragA, normBidragB) {
-        const confidence = history.dataConfidence || 'none';
+    function resolveSamspillStatus(score, play, formA, formB, teamName) {
+        const confidence = play?.dataConfidence || 'none';
         const lowHistory = confidence === 'none' || confidence === 'low';
-        const sharedLabel = buildSharedHistoryLabel(history);
-        const formFloor = Math.min(formA, formB);
-        const bidragFloor = Math.min(normBidragA, normBidragB);
-        const highForm = formFloor >= 50;
-        const highBidrag = bidragFloor >= 52;
-        const strongIndividuals = highBidrag || (highForm && bidragFloor >= 40);
+        const pairLabel = buildPairPlayLabel(play);
+        const formToneA = typeof window.getFormScoreTone === 'function'
+            ? window.getFormScoreTone(formA, teamName)
+            : 'none';
+        const formToneB = typeof window.getFormScoreTone === 'function'
+            ? window.getFormScoreTone(formB, teamName)
+            : 'none';
+        const eitherRed = formToneA === 'red' || formToneB === 'red';
+        const formFloor = Math.min(Number(formA) || 0, Number(formB) || 0);
+        const adjacentCount = Number(play?.adjacentCount) || 0;
+        const xiCount = Number(play?.xiCount) || 0;
+        const pitchCount = Number(play?.pitchCount) || 0;
+        const provenPair = adjacentCount >= 3 || (adjacentCount >= 2 && xiCount >= 8);
 
         if (lowHistory) {
-            if (strongIndividuals) {
+            if (formFloor >= 50 && !eitherRed) {
                 return {
                     status: 'potential',
-                    reason: `Potensial (${score}/100): god form/kampbidrag, men ${sharedLabel}`
+                    reason: `Potensial (${score}/100): god form, men ${pairLabel}`
                 };
             }
             return {
                 status: 'unknown',
-                reason: `Usikkert (${score}/100): lite datagrunnlag (${sharedLabel})`
+                reason: `Usikkert (${score}/100): ${pairLabel}`
             };
         }
 
-        if (score >= 68) {
+        if (score >= 62 && pitchCount >= 4 && provenPair && !eitherRed) {
             return {
                 status: 'strong',
-                reason: `Sterkt samspill (${score}/100): høy score nå + ${sharedLabel}`
+                reason: `Sterkt samspill (${score}/100): ${pairLabel}`
+            };
+        }
+        if (score >= 62 && pitchCount >= 4 && provenPair && eitherRed) {
+            return {
+                status: 'ok',
+                reason: `Ok samspill (${score}/100): ${pairLabel}, men svak form nå`
             };
         }
         if (score >= 48) {
             return {
                 status: 'ok',
-                reason: `Ok samspill (${score}/100): ${sharedLabel}`
+                reason: `Ok samspill (${score}/100): ${pairLabel}`
             };
         }
         return {
             status: 'weak',
-            reason: `Svakt samspill (${score}/100): lav form/kampbidrag nå${history.sharedCount > 0 ? ` (${sharedLabel})` : ''}`
+            reason: `Svakt samspill (${score}/100): ${pairLabel}`
         };
     }
 
@@ -324,8 +464,8 @@
         const positionalRelevance = (posA && posB)
             ? window.getPositionPairRelevance(posA, posB)
             : DEFAULT_POSITION_RELEVANCE;
-        const history = window.getDuoSharedHistory(playerObjA, playerObjB, opts);
-        const confidence = history.dataConfidence || 'none';
+        const play = window.getDuoPairPlayHistory(playerObjA, playerObjB, opts);
+        const confidence = play.dataConfidence || 'none';
 
         const formA = typeof window.calculatePlayerPerformanceChemistry === 'function'
             ? window.calculatePlayerPerformanceChemistry(playerObjA.navn)
@@ -333,32 +473,23 @@
         const formB = typeof window.calculatePlayerPerformanceChemistry === 'function'
             ? window.calculatePlayerPerformanceChemistry(playerObjB.navn)
             : 0;
-        const bidragA = typeof window.getPlayerKampbidragSnitt === 'function'
-            ? window.getPlayerKampbidragSnitt(playerObjA, teamName)
-            : 0;
-        const bidragB = typeof window.getPlayerKampbidragSnitt === 'function'
-            ? window.getPlayerKampbidragSnitt(playerObjB, teamName)
-            : 0;
 
-        const normBidragA = normalizeKampbidrag(bidragA);
-        const normBidragB = normalizeKampbidrag(bidragB);
-        const kampbidragScore = pairLimitedScore(normBidragA, normBidragB);
+        const togetherScore = clampScore((play.pitchCount / 8) * 100);
+        const pairingScore = clampScore((play.adjacentCount / 4) * 60 + (play.xiCount / 8) * 40);
+        const togetherQuality = play.ratingCount > 0
+            ? clampScore(40 + (play.ratingAvg - 5) * 30)
+            : 50;
         const formScore = pairLimitedScore(formA, formB);
-        const chemistryPct = window.getDuoHistoricalChemistry(playerObjA, playerObjB, opts);
-        const rawHistoriskScore = getDuoHistoricalSamspillScore(history, chemistryPct);
-        const currentQuality = kampbidragScore * 0.6 + formScore * 0.4;
-        const historyGate = Math.max(0.15, Math.min(1, currentQuality / 50));
-        const historiskScore = Math.round(rawHistoriskScore * historyGate);
         const dataTrustScore = confidenceToTrustScore(confidence);
 
-        const score = Math.round(Math.max(0, Math.min(100, (
-            kampbidragScore * 0.50 +
-            formScore * 0.35 +
-            historiskScore * 0.10 +
-            dataTrustScore * 0.05
-        ))));
+        const score = Math.round(clampScore(
+            togetherScore * 0.30 +
+            pairingScore * 0.40 +
+            togetherQuality * 0.20 +
+            formScore * 0.10
+        ));
 
-        const statusResult = resolveSamspillStatus(score, history, formA, formB, normBidragA, normBidragB);
+        const statusResult = resolveSamspillStatus(score, play, formA, formB, teamName);
 
         return {
             score,
@@ -367,17 +498,19 @@
             reason: statusResult.reason,
             shouldDraw: positionalRelevance >= MIN_RELEVANCE_TO_DRAW,
             positionalRelevance,
-            sharedCount: history.sharedCount,
-            matchCount: history.matchCount,
+            sharedCount: play.troppCount,
+            matchCount: play.pitchCount,
             components: {
                 formA,
                 formB,
-                bidragA,
-                bidragB,
-                kampbidragScore: Math.round(kampbidragScore),
                 formScore: Math.round(formScore),
-                historiskScore,
-                chemistryPct,
+                togetherScore: Math.round(togetherScore),
+                pairingScore: Math.round(pairingScore),
+                togetherQuality: Math.round(togetherQuality),
+                pitchCount: play.pitchCount,
+                xiCount: play.xiCount,
+                adjacentCount: play.adjacentCount,
+                ratingAvg: play.ratingCount > 0 ? Math.round(play.ratingAvg * 10) / 10 : null,
                 dataTrustScore
             }
         };
@@ -1149,5 +1282,179 @@
         const isEmpty = rows.every(zone => zone.isEmpty) && corridors.every(zone => zone.isEmpty);
 
         return { rows, corridors, isEmpty };
+    };
+
+    function playerLastName(player) {
+        const parts = String(player?.navn || '').trim().split(/\s+/).filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : 'Spiller';
+    }
+
+    function pairDisplayName(pair) {
+        return `${playerLastName(pair.playerA)}–${playerLastName(pair.playerB)}`;
+    }
+
+    function pairLineGroup(pair) {
+        const defence = new Set(['GK', 'VB', 'VMS', 'MS', 'HMS', 'HB']);
+        const midfield = new Set(['OM', 'DM', 'PM']);
+        const attack = new Set(['VK', 'HK', 'SP', 'SP2']);
+        const bothDefence = defence.has(pair.posA) && defence.has(pair.posB);
+        const bothMid = midfield.has(pair.posA) && midfield.has(pair.posB);
+        const involvesAttack = attack.has(pair.posA) || attack.has(pair.posB);
+        if (bothDefence) return 'forsvar';
+        if (bothMid) return 'midtbane';
+        if (involvesAttack && !defence.has(pair.posA) && !defence.has(pair.posB)) return 'angrep';
+        return 'other';
+    }
+
+    function isLowHistoryPair(pair) {
+        return pair.confidence === 'none'
+            || pair.confidence === 'low'
+            || (Number(pair.pitchCount) || 0) < 3;
+    }
+
+    window.collectSamspillLineupPairs = function(lineup, options) {
+        const opts = options || {};
+        const formationId = opts.formationId;
+        const connections = typeof window.getMatchGamePlanSamspillConnections === 'function'
+            ? window.getMatchGamePlanSamspillConnections(formationId)
+            : [];
+        const zonePositions = Array.isArray(opts.zonePositions) ? new Set(opts.zonePositions) : null;
+
+        return connections.map(([posA, posB]) => {
+            if (zonePositions && (!zonePositions.has(posA) || !zonePositions.has(posB))) return null;
+            const playerA = lineup?.[posA];
+            const playerB = lineup?.[posB];
+            if (!playerA || !playerB) return null;
+            const samspill = typeof window.getDuoSamspill === 'function'
+                ? window.getDuoSamspill(playerA, playerB, { ...opts, posA, posB })
+                : null;
+            if (!samspill) return null;
+            const play = typeof window.getDuoPairPlayHistory === 'function'
+                ? window.getDuoPairPlayHistory(playerA, playerB, opts)
+                : null;
+            return {
+                posA,
+                posB,
+                playerA,
+                playerB,
+                status: samspill.status || 'unknown',
+                score: Number(samspill.score) || 0,
+                confidence: samspill.confidence || play?.dataConfidence || 'none',
+                pitchCount: Number(play?.pitchCount || samspill.matchCount) || 0,
+                adjacentCount: Number(play?.adjacentCount) || 0,
+                xiCount: Number(play?.xiCount) || 0
+            };
+        }).filter(Boolean);
+    };
+
+    window.buildSamspillBriefing = function(lineup, options) {
+        const pairs = window.collectSamspillLineupPairs(lineup, options);
+        if (!pairs.length) {
+            return { isEmpty: true, items: [] };
+        }
+
+        const items = [];
+        const usedKeys = new Set();
+        const pairKeyOf = (pair) => [pair.playerA?.navn || pair.posA, pair.playerB?.navn || pair.posB].sort().join('|');
+
+        const newPairs = pairs.filter(isLowHistoryPair);
+        const newCountByPlayer = {};
+        newPairs.forEach((pair) => {
+            const nameA = pair.playerA?.navn;
+            const nameB = pair.playerB?.navn;
+            if (nameA) newCountByPlayer[nameA] = (newCountByPlayer[nameA] || 0) + 1;
+            if (nameB) newCountByPlayer[nameB] = (newCountByPlayer[nameB] || 0) + 1;
+        });
+        const hubEntry = Object.entries(newCountByPlayer).sort((a, b) => b[1] - a[1])[0];
+        if (hubEntry && hubEntry[1] >= 2) {
+            const hubName = hubEntry[0];
+            const hubPairs = newPairs.filter((pair) => (
+                pair.playerA?.navn === hubName || pair.playerB?.navn === hubName
+            ));
+            const hubPlayer = hubPairs[0].playerA?.navn === hubName ? hubPairs[0].playerA : hubPairs[0].playerB;
+            const hubPos = hubPairs[0].playerA?.navn === hubName ? hubPairs[0].posA : hubPairs[0].posB;
+            const minPitch = Math.min(...hubPairs.map((pair) => pair.pitchCount));
+            const kampLabel = minPitch === 1 ? 'kamp' : 'kamper';
+            const against = hubPos === 'GK' ? 'stopperne' : hubPairs
+                .map((pair) => playerLastName(pair.playerA?.navn === hubName ? pair.playerB : pair.playerA))
+                .slice(0, 3)
+                .join(', ');
+            items.push({
+                id: 'new',
+                tone: 'unknown',
+                prefix: 'Nye / lite data',
+                text: `${playerLastName(hubPlayer)} mot ${against} — ${minPitch} ${kampLabel} sammen`
+            });
+            hubPairs.forEach((pair) => usedKeys.add(pairKeyOf(pair)));
+        } else {
+            newPairs.slice(0, 2).forEach((pair) => {
+                usedKeys.add(pairKeyOf(pair));
+                const kampLabel = pair.pitchCount === 1 ? 'kamp' : 'kamper';
+                items.push({
+                    id: `new-${pairKeyOf(pair)}`,
+                    tone: 'unknown',
+                    prefix: 'Nye / lite data',
+                    text: `${pairDisplayName(pair)} — ${pair.pitchCount} ${kampLabel} sammen`
+                });
+            });
+        }
+
+        const established = pairs
+            .filter((pair) => pair.status === 'strong' && !isLowHistoryPair(pair))
+            .sort((a, b) => b.score - a.score);
+        const establishedPicks = [];
+        ['forsvar', 'midtbane', 'angrep'].forEach((line) => {
+            const pick = established.find((pair) => (
+                pairLineGroup(pair) === line && !usedKeys.has(pairKeyOf(pair))
+            ));
+            if (pick) establishedPicks.push(pick);
+        });
+        established.forEach((pair) => {
+            if (establishedPicks.length >= 3) return;
+            if (usedKeys.has(pairKeyOf(pair))) return;
+            if (establishedPicks.includes(pair)) return;
+            establishedPicks.push(pair);
+        });
+        if (establishedPicks.length) {
+            establishedPicks.forEach((pair) => usedKeys.add(pairKeyOf(pair)));
+            items.unshift({
+                id: 'established',
+                tone: 'strong',
+                prefix: 'Etablerte par',
+                text: establishedPicks.map(pairDisplayName).join(', ')
+            });
+        }
+
+        const unproven = pairs
+            .filter((pair) => pair.status === 'ok' && !isLowHistoryPair(pair) && !usedKeys.has(pairKeyOf(pair)))
+            .sort((a, b) => {
+                const lineA = pairLineGroup(a) === 'other' ? 1 : 0;
+                const lineB = pairLineGroup(b) === 'other' ? 1 : 0;
+                if (lineA !== lineB) return lineA - lineB;
+                if (a.adjacentCount !== b.adjacentCount) return a.adjacentCount - b.adjacentCount;
+                return a.score - b.score;
+            })
+            .slice(0, 2);
+        if (unproven.length) {
+            items.push({
+                id: 'unproven',
+                tone: 'ok',
+                prefix: 'Ikke etablert ennå',
+                text: unproven.map(pairDisplayName).join(', ')
+            });
+        }
+
+        if (!items.length) {
+            return { isEmpty: true, items: [] };
+        }
+
+        const order = { established: 0, new: 1, unproven: 2 };
+        items.sort((a, b) => {
+            const groupA = a.id.startsWith('new') ? 'new' : a.id;
+            const groupB = b.id.startsWith('new') ? 'new' : b.id;
+            return (order[groupA] ?? 9) - (order[groupB] ?? 9);
+        });
+
+        return { isEmpty: false, items: items.slice(0, 4) };
     };
 })();

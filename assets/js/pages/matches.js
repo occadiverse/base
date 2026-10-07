@@ -3297,29 +3297,35 @@ function buildMatchGamePlanSamspillAnalysisGroupHtml(title, zones, match) {
 
 function buildMatchGamePlanSamspillAnalysisHtml(match) {
     const lineup = getMatchGamePlanDraftLineup(match);
-    const chemOptions = {
-        ...getMatchGamePlanSamspillFilter(match),
-        formationId: getMatchGamePlanDraftFormation(match)
-    };
-    const analysis = typeof window.buildSamspillZoneAnalysis === 'function'
-        ? window.buildSamspillZoneAnalysis(lineup, chemOptions)
-        : { rows: [], corridors: [], isEmpty: true };
+    const selectedZoneId = getMatchGamePlanSamspillZoneFocus(match);
+    const zonePositions = selectedZoneId
+        ? (getMatchGamePlanSamspillZonePositions(match)[selectedZoneId] || [])
+        : null;
+    const briefing = typeof window.buildSamspillBriefing === 'function'
+        ? window.buildSamspillBriefing(lineup, {
+            ...getMatchGamePlanSamspillFilter(match),
+            formationId: getMatchGamePlanDraftFormation(match),
+            zonePositions
+        })
+        : { isEmpty: true, items: [] };
 
-    if (analysis.isEmpty) {
+    if (briefing.isEmpty || !briefing.items?.length) {
         return `
             <p class="match-game-plan-samspill-analysis-empty">
-                Plasser spillere i 11eren for å se samspillanalyse.
+                Plasser spillere i 11eren for å se hvilke par som er etablert, nye eller ikke satt ennå.
             </p>
         `;
     }
 
-    const selectedZoneId = getMatchGamePlanSamspillZoneFocus(match);
-
     return `
-        <div class="match-game-plan-samspill-analysis-body${selectedZoneId ? ' has-zone-focus' : ''}">
-            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Rekker', analysis.rows, match)}
-            ${buildMatchGamePlanSamspillAnalysisGroupHtml('Korridorer', analysis.corridors, match)}
-        </div>
+        <ul class="match-game-plan-samspill-briefing">
+            ${briefing.items.map((item) => `
+                <li class="match-game-plan-samspill-briefing-item is-${escapeMatchHtml(item.tone || 'ok')}">
+                    <span class="match-game-plan-samspill-briefing-prefix">${escapeMatchHtml(item.prefix)}</span>
+                    <span class="match-game-plan-samspill-briefing-text">${escapeMatchHtml(item.text)}</span>
+                </li>
+            `).join('')}
+        </ul>
     `;
 }
 

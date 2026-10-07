@@ -2255,6 +2255,45 @@
             background: rgba(220, 38, 38, 0.12);
             color: #dc2626;
         }
+        .match-game-plan-samspill-briefing {
+            display: grid;
+            gap: 0.42rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .match-game-plan-samspill-briefing-item {
+            background: rgba(248, 250, 252, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 0.68rem;
+            display: grid;
+            gap: 0.12rem;
+            padding: 0.46rem 0.55rem 0.5rem;
+        }
+        .match-game-plan-samspill-briefing-prefix {
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .match-game-plan-samspill-briefing-text {
+            color: #0f172a;
+            font-size: 0.82rem;
+            font-weight: 650;
+            line-height: 1.35;
+        }
+        .match-game-plan-samspill-briefing-item.is-strong .match-game-plan-samspill-briefing-prefix {
+            color: #15803d;
+        }
+        .match-game-plan-samspill-briefing-item.is-ok .match-game-plan-samspill-briefing-prefix {
+            color: #a16207;
+        }
+        .match-game-plan-samspill-briefing-item.is-unknown .match-game-plan-samspill-briefing-prefix {
+            color: #475569;
+        }
+        .match-game-plan-samspill-briefing-item.is-weak .match-game-plan-samspill-briefing-prefix {
+            color: #b91c1c;
+        }
         .match-game-plan-samspill-analysis-empty {
             color: #64748b;
             font-size: 0.72rem;
