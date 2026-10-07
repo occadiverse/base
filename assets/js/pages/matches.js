@@ -181,58 +181,53 @@ function bindMatchSubsPanelEvents() {
 const matchRatingGuide = {
     1: {
         label: 'Katastrofe',
-        description: 'Ødela mer enn hen bidro',
-        points: -24
+        description: 'Ødela mer enn hen bidro'
     },
     2: {
         label: 'Svært svak',
-        description: 'Store feil, lite positivt',
-        points: -18
+        description: 'Store feil, lite positivt'
     },
     3: {
         label: 'Dårlig kamp',
-        description: 'Under nivå for posisjonen, mer minus enn pluss',
-        points: -12
+        description: 'Under nivå for posisjonen, mer minus enn pluss'
     },
     4: {
         label: 'Under pari',
-        description: 'Leverte ikke det posisjonen krever, men ikke helt borte',
-        points: -6
+        description: 'Leverte ikke det posisjonen krever, men ikke helt borte'
     },
     5: {
         label: 'Som forventet',
-        description: 'Nøytral. Gjorde jobben posisjonen krever — verken pluss eller minus fra børsen',
-        points: 0
+        description: 'Nøytral. Gjorde jobben posisjonen krever — verken pluss eller minus fra børsen'
     },
     6: {
         label: 'Solid pluss',
-        description: 'Noen gode aksjoner utover det posisjonen krever',
-        points: 6
+        description: 'Noen gode aksjoner utover det posisjonen krever'
     },
     7: {
         label: 'Sterk kamp',
-        description: 'Tydelig over posisjonens krav, merket for laget',
-        points: 12
+        description: 'Tydelig over posisjonens krav, merket for laget'
     },
     8: {
         label: 'Fremragende',
-        description: 'Blant de beste — kampen ble bedre med hen',
-        points: 18
+        description: 'Blant de beste — kampen ble bedre med hen'
     },
     9: {
         label: 'Eksepsjonelt',
-        description: 'Nesten alt satt, avgjorde retningen',
-        points: 24
+        description: 'Nesten alt satt, avgjorde retningen'
     },
     10: {
         label: 'Enestående',
-        description: 'Sesongnivå — den kampen man husker',
-        points: 30
+        description: 'Sesongnivå — den kampen man husker'
     }
 };
 
 function getMatchRatingGuideEntry(value) {
-    return matchRatingGuide[Number(value)] || null;
+    const entry = matchRatingGuide[Number(value)];
+    if (!entry) return null;
+    const points = typeof window.getPlayerRatingBonusPoints === 'function'
+        ? window.getPlayerRatingBonusPoints(value)
+        : 0;
+    return { ...entry, points };
 }
 
 function formatMatchRatingPointsLabel(points) {
@@ -252,7 +247,7 @@ function buildMatchRatingTooltipHtml(selectedRating) {
     return `
         <div class="match-rating-tooltip" role="tooltip">
             <div class="match-rating-tooltip-title">Spillerbørs</div>
-            <p class="match-rating-tooltip-lead">Gjelder posisjonens oppgaver, ikke forventninger til personen. 5 = nøytral. Hvert trinn over/under gir ±6 kamppoeng.</p>
+            <p class="match-rating-tooltip-lead">Gjelder posisjonens oppgaver, ikke forventninger til personen. 5 = nøytral. Trinnene gir ±5, ±4, ±3, ±2 og ±1 kamppoeng.</p>
             <div class="match-rating-tooltip-list">
                 ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => {
                     const entry = getMatchRatingGuideEntry(value);

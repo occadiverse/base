@@ -346,6 +346,27 @@ window.getPlayerMinutesBonusPoints = function(minutes) {
     return 2;
 };
 
+/** Børs-kamppoeng fra 5: første trinn ±5, deretter 4, 3, 2, 1. */
+window.PLAYER_RATING_BONUS_POINTS = {
+    1: -15,
+    2: -12,
+    3: -9,
+    4: -5,
+    5: 0,
+    6: 5,
+    7: 9,
+    8: 12,
+    9: 14,
+    10: 15
+};
+
+window.getPlayerRatingBonusPoints = function(rating) {
+    const value = Number(rating);
+    if (!Number.isFinite(value) || value <= 0) return 0;
+    const points = window.PLAYER_RATING_BONUS_POINTS[value];
+    return Number.isFinite(points) ? points : 0;
+};
+
 window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false) {
     const onPitch = typeof window.isPlayerOnPitch === 'function'
         ? window.isPlayerOnPitch(m, playerRef)
@@ -378,7 +399,7 @@ window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false
         }
 
         const rating = window.getPlayerRefMapValue(m.ratings, playerRef, 0);
-        if (rating > 0) ratingBonus = (rating - 5) * 6;
+        if (rating > 0) ratingBonus = window.getPlayerRatingBonusPoints(rating);
 
         if (window.motmMatchesPlayer(m.motm, playerRef)) bbBonus = 1;
 
