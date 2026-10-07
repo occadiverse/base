@@ -3306,22 +3306,27 @@ function buildMatchGamePlanSamspillTotalsHtml(totals) {
     `;
 }
 
-function buildMatchGamePlanSamspillAnalysisHtml(match) {
+function getMatchGamePlanSamspillBriefing(match) {
     const lineup = getMatchGamePlanDraftLineup(match);
     const lineZones = getMatchGamePlanSamspillZonePositions(match);
-    const briefing = typeof window.buildSamspillBriefing === 'function'
-        ? window.buildSamspillBriefing(lineup, {
-            ...getMatchGamePlanSamspillFilter(match),
-            formationId: getMatchGamePlanDraftFormation(match),
-            lineZones: {
-                forsvar: lineZones.forsvar || [],
-                midtbane: lineZones.midtbane || [],
-                angrep: lineZones.angrep || []
-            },
-            benchByLine: getMatchGamePlanSamspillBenchByLine(match),
-            playerFitsSlot: playerFitsSamspillSlot
-        })
-        : { isEmpty: true, items: [], totals: { lines: [] } };
+    if (typeof window.buildSamspillBriefing !== 'function') {
+        return { isEmpty: true, items: [], totals: { lines: [] } };
+    }
+    return window.buildSamspillBriefing(lineup, {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId: getMatchGamePlanDraftFormation(match),
+        lineZones: {
+            forsvar: lineZones.forsvar || [],
+            midtbane: lineZones.midtbane || [],
+            angrep: lineZones.angrep || []
+        },
+        benchByLine: getMatchGamePlanSamspillBenchByLine(match),
+        playerFitsSlot: playerFitsSamspillSlot
+    });
+}
+
+function buildMatchGamePlanSamspillAnalysisHtml(match) {
+    const briefing = getMatchGamePlanSamspillBriefing(match);
 
     const totalsHtml = buildMatchGamePlanSamspillTotalsHtml(briefing.totals);
     const briefingHtml = briefing.items?.length
@@ -4655,6 +4660,16 @@ function buildMatchPrintBenchPlanHtml(match) {
     `;
 }
 
+function buildMatchPrintSamspillHtml(match) {
+    const totalsHtml = buildMatchGamePlanSamspillTotalsHtml(getMatchGamePlanSamspillBriefing(match).totals);
+    return `
+        <section class="match-print-section match-print-samspill-section">
+            <h2>Samspillanalyse</h2>
+            ${totalsHtml || '<p class="match-print-empty">Plasser spillere i 11eren for å se samspill.</p>'}
+        </section>
+    `;
+}
+
 function buildMatchPrintKampplanNotesHtml(match) {
     const liveNotes = document.querySelector(
         `[data-match-kampplan-notes-form="${match?.id}"] [data-match-kampplan-notes]`
@@ -4712,6 +4727,7 @@ function buildMatchPrintSheetHtml(match) {
         <div class="match-print-page-break" aria-hidden="true">&nbsp;</div>
         <div class="match-print-page match-print-page-3">
             ${buildMatchPrintKampplanNotesHtml(match)}
+            ${buildMatchPrintSamspillHtml(match)}
         </div>
     `;
 }

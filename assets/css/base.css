@@ -19315,6 +19315,67 @@
                 word-break: break-word;
             }
 
+            .match-print-samspill-section {
+                break-inside: avoid;
+                margin-top: 0.95rem;
+                page-break-inside: avoid;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-totals {
+                display: grid;
+                gap: 0.35rem;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-total {
+                background: none;
+                border: 0.75pt solid #000000;
+                border-radius: 0;
+                color: #000000;
+                display: grid;
+                gap: 0.08rem;
+                justify-items: center;
+                padding: 0.32rem 0.2rem 0.38rem;
+                text-align: center;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-total-label,
+            .match-print-samspill-section .match-game-plan-samspill-total-value,
+            .match-print-samspill-section .match-game-plan-samspill-total-best,
+            .match-print-samspill-section .match-game-plan-samspill-total-names {
+                color: #000000;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-total-label {
+                font-size: 8pt;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-total-value {
+                font-size: 13pt;
+                font-weight: 700;
+                line-height: 1.1;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-total-best {
+                font-size: 9pt;
+                font-weight: 700;
+            }
+
+            .match-print-samspill-section .match-game-plan-samspill-total-names {
+                font-size: 8pt;
+                font-weight: 400;
+                letter-spacing: 0;
+                line-height: 1.2;
+                padding: 0;
+                white-space: normal;
+            }
+
             .match-print-setpiece-grid {
                 break-inside: avoid;
                 display: grid;
