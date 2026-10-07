@@ -2207,6 +2207,23 @@ function getMatchGamePlanLineupOverlayState(match) {
     return state;
 }
 
+function buildMatchGamePlanSamspillAnalysisTitleHtml() {
+    return `
+        <div class="match-game-plan-samspill-analysis-heading">
+            <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+            <button
+                type="button"
+                class="match-game-plan-samspill-info-btn"
+                onclick="event.stopPropagation(); window.openSamspillInfoModal()"
+                title="Slik leses samspillanalysen"
+                aria-label="Slik leses samspillanalysen"
+            >
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            </button>
+        </div>
+    `;
+}
+
 function ensureMatchGamePlanSamspillPanelsDom() {
     const host = document.querySelector('.match-detail-lineup-builder')
         || document.querySelector('.match-detail-squad-lineup')
@@ -2218,7 +2235,7 @@ function ensureMatchGamePlanSamspillPanelsDom() {
         host.insertAdjacentHTML('beforeend', `
             <div class="match-game-plan-samspill-panels" data-samspill-panels>
                 <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
-                    <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+                    ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
                 </section>
             </div>
         `);
@@ -2230,7 +2247,7 @@ function ensureMatchGamePlanSamspillPanelsDom() {
     if (!host.querySelector('[data-samspill-analysis]')) {
         host.querySelector('[data-samspill-panels]')?.insertAdjacentHTML('beforeend', `
             <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
-                <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+                ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
             </section>
         `);
     }
@@ -2855,8 +2872,8 @@ const matchGamePlanSamspillZonePositionsByFormation = {
     },
     '3-4-1-2': {
         forsvar: ['GK', 'VMS', 'MS', 'HMS'],
-        midtbane: ['VK', 'OM', 'DM', 'HK', 'PM'],
-        angrep: ['SP', 'SP2', 'PM', 'VK', 'HK'],
+        midtbane: ['OM', 'DM', 'PM'],
+        angrep: ['VK', 'HK', 'SP', 'SP2'],
         venstre: ['VMS', 'VK', 'OM', 'SP', 'PM'],
         sentral: ['GK', 'VMS', 'MS', 'HMS', 'OM', 'DM', 'PM', 'SP', 'SP2'],
         hoyre: ['HMS', 'HK', 'DM', 'SP2', 'PM']
@@ -3258,11 +3275,16 @@ function buildMatchGamePlanSamspillTotalsHtml(totals) {
 
     return `
         <ul class="match-game-plan-samspill-totals">
-            ${lines.map((line) => `
-                <li class="match-game-plan-samspill-total is-${escapeMatchHtml(line.tone || 'unknown')}${line.id === 'lag' ? ' is-team' : ''}${line.bestNames ? ' has-bench' : ''}"${
-                    line.score != null && line.bestScore != null
-                        ? ` title="${escapeMatchHtml(`${line.label}: ${line.score} nå, ${line.bestScore} med ${line.bestHint || line.bestNames || 'benk'}`)}"`
-                        : ''
+            ${lines.map((line) => {
+                const showNames = line.id !== 'lag' && line.bestNames;
+                const titleText = line.score != null && line.bestScore != null
+                    ? (line.id === 'lag'
+                        ? `${line.label}: ${line.score} nå, ${line.bestScore} med benk`
+                        : `${line.label}: ${line.score} nå, ${line.bestScore} med ${line.bestHint || line.bestNames || 'benk'}`)
+                    : '';
+                return `
+                <li class="match-game-plan-samspill-total is-${escapeMatchHtml(line.tone || 'unknown')}${line.id === 'lag' ? ' is-team' : ''}${showNames ? ' has-bench' : ''}"${
+                    titleText ? ` title="${escapeMatchHtml(titleText)}"` : ''
                 }>
                     <span class="match-game-plan-samspill-total-label">${escapeMatchHtml(line.label)}</span>
                     <span class="match-game-plan-samspill-total-value">${
@@ -3274,11 +3296,12 @@ function buildMatchGamePlanSamspillTotalsHtml(totals) {
                                     : ''
                             }`
                     }</span>
-                    ${line.bestNames
+                    ${showNames
                         ? `<span class="match-game-plan-samspill-total-names">${escapeMatchHtml(line.bestNames)}</span>`
                         : ''}
                 </li>
-            `).join('')}
+            `;
+            }).join('')}
         </ul>
     `;
 }
@@ -3325,7 +3348,7 @@ function buildMatchGamePlanSamspillPanelsShellHtml() {
     return `
         <div class="match-game-plan-samspill-panels" data-samspill-panels>
             <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
-                <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+                ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
             </section>
         </div>
     `;
@@ -3340,17 +3363,29 @@ function renderMatchGamePlanSamspillSummary(match) {
 
     const overlayState = getMatchGamePlanLineupOverlayState(match);
     if (!overlayState.samspill) {
-        analysisEl.innerHTML = `
-            <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
-        `;
+        analysisEl.innerHTML = buildMatchGamePlanSamspillAnalysisTitleHtml();
         return;
     }
 
     analysisEl.innerHTML = `
-        <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
+        ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
         ${buildMatchGamePlanSamspillAnalysisHtml(match)}
     `;
 }
+
+window.openSamspillInfoModal = function() {
+    const modal = document.getElementById('samspill-info-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.closeSamspillInfoModal = function() {
+    const modal = document.getElementById('samspill-info-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+};
 
 function buildMatchGamePlanStarterFooterHtml(match) {
     return `

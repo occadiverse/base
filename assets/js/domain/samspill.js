@@ -1330,9 +1330,14 @@
         return 'weak';
     }
 
-    function averagePairScore(pairs) {
+    function averagePairScoreRaw(pairs) {
         if (!pairs.length) return null;
-        return Math.round(pairs.reduce((sum, pair) => sum + (Number(pair.score) || 0), 0) / pairs.length);
+        return pairs.reduce((sum, pair) => sum + (Number(pair.score) || 0), 0) / pairs.length;
+    }
+
+    function averagePairScore(pairs) {
+        const raw = averagePairScoreRaw(pairs);
+        return raw == null ? null : Math.round(raw);
     }
 
     function pairInLine(pair, positions) {
@@ -1358,7 +1363,26 @@
     function scoreSamspillLineupZone(lineup, positions, options) {
         const pairs = window.collectSamspillLineupPairs(lineup, options);
         const scoped = positions ? pairs.filter((pair) => pairInLine(pair, positions)) : pairs;
-        return averagePairScore(scoped);
+        return averagePairScoreRaw(scoped);
+    }
+
+    function lineSlotGroupsForPos(posId, lineZones) {
+        const zones = lineZones || {};
+        return [zones.forsvar, zones.midtbane, zones.angrep]
+            .filter((slots) => Array.isArray(slots) && slots.includes(posId));
+    }
+
+    function swapKeepsDestinationLines(lineup, trial, incoming, options) {
+        return (incoming || []).every((swap) => {
+            const groups = lineSlotGroupsForPos(swap.posId, options?.lineZones);
+            if (!groups.length) return true;
+            return groups.every((slots) => {
+                const now = scoreSamspillLineupZone(lineup, slots, options);
+                const after = scoreSamspillLineupZone(trial, slots, options);
+                if (now == null || after == null) return true;
+                return after >= now;
+            });
+        });
     }
 
     function isBetterSamspillScore(score, currentBest) {
@@ -1372,7 +1396,8 @@
         const slots = (positions || []).filter(Boolean);
         const candidates = (bench || []).filter(Boolean);
         const currentScore = scoreSamspillLineupZone(lineup, slots.length ? slots : null, opts);
-        const empty = { score: currentScore, players: [], swaps: [] };
+        const currentRounded = currentScore == null ? null : Math.round(currentScore);
+        const empty = { score: currentRounded, players: [], swaps: [] };
         if (!slots.length || !candidates.length) return empty;
 
         const fitsSlot = typeof opts.playerFitsSlot === 'function'
@@ -1385,6 +1410,8 @@
         const consider = (trial, incoming) => {
             const score = scoreSamspillLineupZone(trial, slots.length ? slots : null, opts);
             if (!isBetterSamspillScore(score, bestScore)) return;
+            if (currentRounded != null && Math.round(score) <= currentRounded) return;
+            if (opts.protectLines && !swapKeepsDestinationLines(lineup, trial, incoming, opts)) return;
             bestScore = score;
             bestSwaps = incoming.filter((swap) => swap?.player);
         };
@@ -1428,8 +1455,13 @@
             }
         }
 
+        const bestRounded = bestScore == null ? null : Math.round(bestScore);
+        if (!bestSwaps.length || bestRounded == null || currentRounded == null || bestRounded <= currentRounded) {
+            return empty;
+        }
+
         return {
-            score: bestScore,
+            score: bestRounded,
             players: bestSwaps.map((swap) => swap.player),
             swaps: bestSwaps
         };
@@ -1516,7 +1548,7 @@
         const allSlots = Object.keys(lineup || {}).filter((posId) => lineup[posId]);
         const bestByLine = typeof window.findBestSamspillLineupScore === 'function'
             ? {
-                lag: window.findBestSamspillLineupScore(lineup, allSlots, benchByLine.lag, opts),
+                lag: window.findBestSamspillLineupScore(lineup, allSlots, benchByLine.lag, { ...opts, protectLines: true }),
                 forsvar: window.findBestSamspillLineupScore(lineup, lineZones.forsvar, benchByLine.forsvar, opts),
                 midtbane: window.findBestSamspillLineupScore(lineup, lineZones.midtbane, benchByLine.midtbane, opts),
                 angrep: window.findBestSamspillLineupScore(lineup, lineZones.angrep, benchByLine.angrep, opts)

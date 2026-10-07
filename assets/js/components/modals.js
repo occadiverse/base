@@ -316,7 +316,7 @@ document.getElementById('confirmNoBtn').onclick = function() {
 };
 
 window.onclick = function(event) {
-    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'autofill-info-modal', 'live-setpiece-preview-modal', 'activityModal', 'tacticalPlayerModal', 'matchSummaryPlayersModal', 'matchSubsLogEditModal'];
+    const modals = ['matchModal', 'teamModal', 'playerModal', 'matchInfoModal', 'attendanceModal', 'confirmModal', 'sessionInjuryModal', 'dashboardAlertModal', 'kjemi-info-modal', 'autofill-info-modal', 'samspill-info-modal', 'live-setpiece-preview-modal', 'activityModal', 'tacticalPlayerModal', 'matchSummaryPlayersModal', 'matchSubsLogEditModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
@@ -340,6 +340,9 @@ window.onclick = function(event) {
             }
             if (modalId === 'autofill-info-modal' && typeof window.closeAutofillInfoModal === 'function') {
                 window.closeAutofillInfoModal();
+            }
+            if (modalId === 'samspill-info-modal' && typeof window.closeSamspillInfoModal === 'function') {
+                window.closeSamspillInfoModal();
             }
             if (modalId === 'live-setpiece-preview-modal' && typeof window.closeLiveSetPiecePreview === 'function') {
                 window.closeLiveSetPiecePreview();

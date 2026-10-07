@@ -2060,13 +2060,46 @@
             display: block;
             padding: 0.7rem 0.75rem 0.75rem;
         }
+        .match-game-plan-samspill-analysis-heading {
+            align-items: center;
+            display: flex;
+            gap: 0.35rem;
+            margin: 0 0 0.55rem;
+        }
         .match-game-plan-samspill-analysis-title {
             color: #123f73;
+            flex: 1;
             font-size: 0.68rem;
             font-weight: 800;
             letter-spacing: 0.06em;
-            margin: 0 0 0.55rem;
+            margin: 0;
             text-transform: uppercase;
+        }
+        .match-game-plan-samspill-info-btn {
+            align-items: center;
+            appearance: none;
+            background: rgba(18, 63, 115, 0.06);
+            border: 1px solid rgba(18, 63, 115, 0.14);
+            border-radius: 999px;
+            color: #123f73;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-family: inherit;
+            height: 1.45rem;
+            justify-content: center;
+            padding: 0;
+            width: 1.45rem;
+        }
+        .match-game-plan-samspill-info-btn i {
+            font-size: 0.72rem;
+        }
+        .match-game-plan-samspill-info-btn:hover,
+        .match-game-plan-samspill-info-btn:focus-visible {
+            background: rgba(245, 197, 66, 0.18);
+            border-color: rgba(245, 197, 66, 0.46);
+            color: #123f73;
+            outline: none;
         }
         .match-game-plan-samspill-analysis-body {
             display: grid;
