@@ -7890,6 +7890,87 @@ function compareMatchGamePlanPositionRowsByBidrag(a, b) {
     );
 }
 
+function getMatchGamePlanMatchOpponentLabel(match) {
+    return String(match?.opponent || '').trim() || 'Kamp';
+}
+
+function getMatchGamePlanPlayerRecentStartBench(player, currentMatch, limit = 8) {
+    const teamName = currentMatch?.matchGroup || player?.spillerLag || '';
+    if (!player || !teamName) return [];
+
+    const currentMatchId = currentMatch?.id || null;
+    const currentMatchDate = currentMatch?.date ? new Date(currentMatch.date) : null;
+    if (currentMatchDate) currentMatchDate.setHours(0, 0, 0, 0);
+
+    return (window.activeMatches || [])
+        .filter((match) => {
+            if (!match || (currentMatchId && match.id === currentMatchId)) return false;
+            if (match.matchGroup !== teamName) return false;
+            if (!isMatchPlayedForStartBenchStats(match)) return false;
+            if (!matchHasSavedLineup(match)) return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+            if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, match)) return false;
+            if (typeof window.hasRegisteredAttendance === 'function' && !window.hasRegisteredAttendance(match.attendance)) return false;
+            if (currentMatchDate && match.date) {
+                const matchDate = new Date(match.date);
+                matchDate.setHours(0, 0, 0, 0);
+                if (matchDate >= currentMatchDate) return false;
+            }
+            return true;
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, limit)
+        .reverse()
+        .map((match) => {
+            const attended = Boolean(window.isPlayerAttending?.(match.attendance, player));
+            const started = attended && isPlayerInSavedStartingLineup(match, player);
+            const status = !attended ? 'out' : (started ? 'start' : 'bench');
+            const mark = status === 'start' ? 'S' : (status === 'bench' ? 'B' : '–');
+            const statusLabel = status === 'start' ? 'Start' : (status === 'bench' ? 'Benk' : 'Ikke i tropp');
+            const dateLabel = typeof window.formatStatsShortDate === 'function'
+                ? window.formatStatsShortDate(match.date)
+                : (match.date || '–');
+            const opponent = getMatchGamePlanMatchOpponentLabel(match);
+            return {
+                id: match.id,
+                dateLabel,
+                opponent,
+                status,
+                mark,
+                title: `${dateLabel} · ${opponent} · ${statusLabel}`
+            };
+        });
+}
+
+function buildMatchGamePlanInsightStartBenchRowHtml(player, match) {
+    const rows = getMatchGamePlanPlayerRecentStartBench(player, match, 8);
+    if (!rows.length) {
+        return `
+            <div class="match-game-plan-insight-trainings">
+                <span class="match-game-plan-insight-trainings-label">Start / benk</span>
+                <p class="match-game-plan-insight-trainings-empty">Ingen start eller benk registrert ennå.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="match-game-plan-insight-trainings">
+            <span class="match-game-plan-insight-trainings-label">Start / benk</span>
+            <div class="match-game-plan-insight-trainings-row" aria-label="De 8 siste start eller benk">
+                ${rows.map((row) => `
+                    <span
+                        class="match-game-plan-insight-training is-${escapeMatchHtml(row.status)}"
+                        title="${escapeMatchHtml(row.title)}"
+                    >
+                        <span class="match-game-plan-insight-training-date">${escapeMatchHtml(row.dateLabel)}</span>
+                        <span class="match-game-plan-insight-training-mark">${escapeMatchHtml(row.mark)}</span>
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function getMatchGamePlanPlayerRecentTrainings(player, limit = 8) {
     const teamName = player?.spillerLag || '';
     if (!player || !teamName) return [];
@@ -8033,6 +8114,7 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
                 </table>
             </div>
 
+            ${buildMatchGamePlanInsightStartBenchRowHtml(player, match)}
             ${buildMatchGamePlanInsightTrainingRowHtml(player)}
 
             ${String(player?.utviklingsmoment || '').trim() ? `

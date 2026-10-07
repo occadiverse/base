@@ -13575,6 +13575,27 @@
         .match-game-plan-insight-training.is-missed .match-game-plan-insight-training-mark {
             color: #fca5a5;
         }
+        .match-game-plan-insight-training.is-start {
+            background: rgba(52, 211, 153, 0.16);
+            border: 1px solid rgba(52, 211, 153, 0.38);
+        }
+        .match-game-plan-insight-training.is-bench {
+            background: rgba(251, 191, 36, 0.16);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+        .match-game-plan-insight-training.is-out {
+            background: rgba(248, 113, 113, 0.12);
+            border: 1px solid rgba(248, 113, 113, 0.32);
+        }
+        .match-game-plan-insight-training.is-start .match-game-plan-insight-training-mark {
+            color: #6ee7b7;
+        }
+        .match-game-plan-insight-training.is-bench .match-game-plan-insight-training-mark {
+            color: #fcd34d;
+        }
+        .match-game-plan-insight-training.is-out .match-game-plan-insight-training-mark {
+            color: #fca5a5;
+        }
         .match-game-plan-select-actions {
             background:
                 linear-gradient(180deg, rgba(16, 47, 84, 0.98) 0%, rgba(16, 47, 84, 0.92) 72%, rgba(16, 47, 84, 0) 100%);
