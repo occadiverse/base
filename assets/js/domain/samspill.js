@@ -1467,10 +1467,19 @@
         };
     };
 
-    window.buildSamspillLineTotals = function(pairs, lineZones, bestByLine) {
+    function formatSamspillSlotLabel(posId, formationId) {
+        if (!posId) return '';
+        if (typeof window.getMatchGamePlanPositionBadgeLabel === 'function') {
+            return window.getMatchGamePlanPositionBadgeLabel(posId, formationId);
+        }
+        return posId;
+    }
+
+    window.buildSamspillLineTotals = function(pairs, lineZones, bestByLine, options) {
         const zones = lineZones || {};
         const allPairs = pairs || [];
         const best = bestByLine || {};
+        const formationId = options?.formationId;
         const lines = [
             { id: 'lag', label: 'Lag', score: averagePairScore(allPairs) },
             { id: 'forsvar', label: 'Forsvar', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.forsvar))) },
@@ -1487,13 +1496,15 @@
                 : [];
             const bestNames = bestSwaps.map((swap) => {
                 const name = playerLastName(swap.player);
-                return swap.posId ? `${name} → ${swap.posId}` : name;
+                const posLabel = formatSamspillSlotLabel(swap.posId, formationId);
+                return posLabel ? `${name} → ${posLabel}` : name;
             }).filter(Boolean);
             const bestHint = bestSwaps.map((swap) => {
                 const name = playerLastName(swap.player);
                 const outName = swap.outgoing ? playerLastName(swap.outgoing) : '';
-                if (swap.posId && outName) return `${name} inn på ${swap.posId} for ${outName}`;
-                if (swap.posId) return `${name} inn på ${swap.posId}`;
+                const posLabel = formatSamspillSlotLabel(swap.posId, formationId);
+                if (posLabel && outName) return `${name} inn på ${posLabel} for ${outName}`;
+                if (posLabel) return `${name} inn på ${posLabel}`;
                 return name;
             }).filter(Boolean);
             return {
@@ -1554,7 +1565,7 @@
                 angrep: window.findBestSamspillLineupScore(lineup, lineZones.angrep, benchByLine.angrep, opts)
             }
             : {};
-        const totals = window.buildSamspillLineTotals(pairs, lineZones, bestByLine);
+        const totals = window.buildSamspillLineTotals(pairs, lineZones, bestByLine, opts);
         if (!pairs.length) {
             return { isEmpty: true, items: [], totals };
         }

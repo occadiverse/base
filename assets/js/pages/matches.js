@@ -1325,9 +1325,23 @@ const matchGamePlanPositionRequirements = {
 };
 
 const matchGamePlanRelatedPositions = {
-    VK: ['Venstre bekk'],
-    HK: ['Høyre bekk']
+    VK: ['Venstre bekk', 'Høyre kant', 'Spiss'],
+    HK: ['Høyre bekk', 'Venstre kant', 'Spiss'],
+    SP: ['Venstre kant', 'Høyre kant'],
+    SP2: ['Venstre kant', 'Høyre kant'],
+    OM: ['Defensiv midtbane', 'Playmaker'],
+    DM: ['Offensiv midtbane', 'Playmaker'],
+    PM: ['Offensiv midtbane', 'Defensiv midtbane'],
+    VB: ['Høyre bekk', 'Venstre stopper', 'Høyre stopper'],
+    HB: ['Venstre bekk', 'Venstre stopper', 'Høyre stopper'],
+    VMS: ['Venstre bekk', 'Høyre bekk'],
+    HMS: ['Venstre bekk', 'Høyre bekk'],
+    MS: ['Venstre bekk', 'Høyre bekk']
 };
+
+const matchGamePlanAttackSlotIds = ['VK', 'HK', 'SP', 'SP2']; // SP = SV in 3-4-1-2, SP2 = SH
+const matchGamePlanMidfieldSlotIds = ['OM', 'DM', 'PM'];
+const matchGamePlanDefenceSlotIds = ['VB', 'VMS', 'MS', 'HMS', 'HB']; // VMS = VS, HMS = HS. Not GK.
 
 const matchGamePlanPositionLabels = {
     GK: 'Keeper',
@@ -1874,9 +1888,40 @@ function getMatchGamePlanPositionScore(player, posId) {
     return 2;
 }
 
-function playerFitsSamspillSlot(player, posId) {
+function playerHasSamspillPreferredFit(player, posId) {
     const preferred = matchGamePlanPositionRequirements[posId] || [];
     return preferred.includes(player?.pos1) || preferred.includes(player?.pos2);
+}
+
+function getMatchGamePlanLineSlotIds(match, slotIds, zoneId) {
+    const pitchSlots = new Set(getMatchGamePlanDraftPositionIds(match));
+    const lineSlots = getMatchGamePlanSamspillZonePositions(match)[zoneId] || [];
+    return slotIds.filter((posId) => pitchSlots.has(posId) || lineSlots.includes(posId));
+}
+
+function getMatchGamePlanSamspillAttackSlots(match) {
+    return getMatchGamePlanLineSlotIds(match, matchGamePlanAttackSlotIds, 'angrep');
+}
+
+function getMatchGamePlanSamspillMidfieldSlots(match) {
+    return getMatchGamePlanLineSlotIds(match, matchGamePlanMidfieldSlotIds, 'midtbane');
+}
+
+function getMatchGamePlanSamspillDefenceSlots(match) {
+    return getMatchGamePlanLineSlotIds(match, matchGamePlanDefenceSlotIds, 'forsvar');
+}
+
+function playerFitsSamspillLineSlots(player, posId, slots, roleSlotIds) {
+    if (!slots.includes(posId)) return false;
+    return (roleSlotIds || slots).some((slot) => playerHasSamspillPreferredFit(player, slot));
+}
+
+function playerFitsSamspillSlot(player, posId, match) {
+    if (playerHasSamspillPreferredFit(player, posId)) return true;
+    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillAttackSlots(match), matchGamePlanAttackSlotIds)) return true;
+    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillMidfieldSlots(match), matchGamePlanMidfieldSlotIds)) return true;
+    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillDefenceSlots(match), matchGamePlanDefenceSlotIds)) return true;
+    return false;
 }
 
 function isMatchGamePlanPlayerAvailableForSamspill(player, match) {
@@ -1898,7 +1943,7 @@ function getMatchGamePlanSamspillBenchForPositions(match, positions) {
         const key = player.id || player.navn;
         if (!key || onPitchKeys.has(key)) return false;
         if (!isMatchGamePlanPlayerAvailableForSamspill(player, match)) return false;
-        return slots.some((posId) => playerFitsSamspillSlot(player, posId));
+        return slots.some((posId) => playerFitsSamspillSlot(player, posId, match));
     });
 }
 
@@ -3344,7 +3389,7 @@ function getMatchGamePlanSamspillBriefing(match) {
             angrep: lineZones.angrep || []
         },
         benchByLine: getMatchGamePlanSamspillBenchByLine(match),
-        playerFitsSlot: playerFitsSamspillSlot
+        playerFitsSlot: (player, posId) => playerFitsSamspillSlot(player, posId, match)
     });
 }
 
