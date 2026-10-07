@@ -1696,6 +1696,21 @@ function getMatchGamePlanKnownPositionIds() {
     return [...ids].sort(compareMatchGamePlanPositions);
 }
 
+function getMatchGamePlanBenchPositionIds(match, selectedPosId) {
+    const ids = new Set(getMatchGamePlanKnownPositionIds());
+    const selected = String(selectedPosId || '').trim();
+    if (selected) ids.add(selected);
+    return [...ids].sort(compareMatchGamePlanPositions);
+}
+
+function buildMatchGamePlanBenchPositionOptionsHtml(match, selectedPosId) {
+    const formationId = getMatchGamePlanDraftFormation(match);
+    return getMatchGamePlanBenchPositionIds(match, selectedPosId).map((posId) => {
+        const label = getMatchGamePlanPositionBadgeLabel(posId, formationId);
+        return `<option value="${escapeMatchHtml(posId)}" ${selectedPosId === posId ? 'selected' : ''}>${escapeMatchHtml(label)}</option>`;
+    }).join('');
+}
+
 function getMatchGamePlanDraftPositionIds(match) {
     return getMatchGamePlanFormationPositionIds(getMatchGamePlanDraftFormation(match));
 }
@@ -3658,7 +3673,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
                                     <option value="">POS</option>
-                                    ${Object.keys(matchGamePlanStarterPositions).map(posId => `<option value="${escapeMatchHtml(posId)}" ${assignment.position === posId ? 'selected' : ''}>${escapeMatchHtml(posId)}</option>`).join('')}
+                                    ${buildMatchGamePlanBenchPositionOptionsHtml(match, assignment.position)}
                                 </select>
                             </span>
                             <button
