@@ -1297,10 +1297,19 @@ window.checkIndividualChemistry = function() {
 
 
 window.getPlayerFormComponents = function(playerName, options = {}) {
-    const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
-    if (!playerObj) return { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
-
     const yearFilter = options.yearFilter === undefined ? 'alle' : options.yearFilter;
+    const cache = typeof window.getDerivedStatsCache === 'function'
+        ? window.getDerivedStatsCache('playerForm')
+        : null;
+    const cacheKey = `${playerName}|${yearFilter}`;
+    if (cache?.has(cacheKey)) return cache.get(cacheKey);
+
+    const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
+    if (!playerObj) {
+        const empty = { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
+        if (cache) cache.set(cacheKey, empty);
+        return empty;
+    }
     const spillerLag = playerObj.spillerLag;
     const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
     const isHistorical = (item) => {
@@ -1345,7 +1354,9 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
         .slice(0, 5);
 
     if (recentMatches.length === 0) {
-        return { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
+        const empty = { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
+        if (cache) cache.set(cacheKey, empty);
+        return empty;
     }
 
     let performanceScore = 0;
@@ -1401,7 +1412,9 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
     const dis = Math.round(disciplineScore);
     const total = Math.max(0, Math.min(100, kamp + oppm + dis - recentRedCardPenalty));
 
-    return { total, kamp, oppm, dis, recentRedCardPenalty, hasFormData: true };
+    const result = { total, kamp, oppm, dis, recentRedCardPenalty, hasFormData: true };
+    if (cache) cache.set(cacheKey, result);
+    return result;
 };
 
 window.calculatePlayerPerformanceChemistry = function(playerName) {
@@ -1409,18 +1422,25 @@ window.calculatePlayerPerformanceChemistry = function(playerName) {
 };
 
 window.getTeamFormMedian = function(teamName) {
+    const cache = typeof window.getDerivedStatsCache === 'function'
+        ? window.getDerivedStatsCache('teamFormMedian')
+        : null;
+    const cacheKey = teamName || '*';
+    if (cache?.has(cacheKey)) return cache.get(cacheKey);
+
     const scores = (window.activePlayers || [])
         .filter(p => p.status !== 'Passiv' && (!teamName || p.spillerLag === teamName))
         .map(p => window.calculatePlayerPerformanceChemistry(p.navn))
         .filter(score => score > 0)
         .sort((a, b) => a - b);
 
-    if (!scores.length) return 0;
-
-    const middle = Math.floor(scores.length / 2);
-    return scores.length % 2 === 0
-        ? Math.round((scores[middle - 1] + scores[middle]) / 2)
-        : scores[middle];
+    const median = scores.length
+        ? (scores.length % 2 === 0
+            ? Math.round((scores[Math.floor(scores.length / 2) - 1] + scores[Math.floor(scores.length / 2)]) / 2)
+            : scores[Math.floor(scores.length / 2)])
+        : 0;
+    if (cache) cache.set(cacheKey, median);
+    return median;
 };
 
 window.getTeamMatchSquadPoints = function(match, teamName) {

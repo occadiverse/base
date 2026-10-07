@@ -1,3 +1,20 @@
+window.getDerivedStatsCache = function(name) {
+    const matches = window.activeMatches;
+    const events = window.activeEvents;
+    const players = window.activePlayers;
+    const root = window._derivedStatsCaches;
+    if (!root || root.matches !== matches || root.events !== events || root.players !== players) {
+        window._derivedStatsCaches = { matches, events, players, maps: {} };
+    }
+    const maps = window._derivedStatsCaches.maps;
+    if (!maps[name]) maps[name] = new Map();
+    return maps[name];
+};
+
+window.invalidateDerivedStatsCache = function() {
+    window._derivedStatsCaches = null;
+};
+
 window.getPlayerCardCounts = function(playerRef, teamName, options = {}) {
     const counts = { serie: { gule: 0, rode: 0 }, cup: { gule: 0, rode: 0 } };
     const today = new Date();
@@ -288,6 +305,12 @@ window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
     const lag = teamName || player?.spillerLag;
     if (!player || !lag) return 0;
 
+    const cache = typeof window.getDerivedStatsCache === 'function'
+        ? window.getDerivedStatsCache('kampbidragSnitt')
+        : null;
+    const cacheKey = `${player.id || player.navn}|${lag}`;
+    if (cache?.has(cacheKey)) return cache.get(cacheKey);
+
     let kamper = 0;
     let totalMatchPoints = 0;
 
@@ -300,7 +323,9 @@ window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
         totalMatchPoints += window.calculatePlayerMatchPoints(m, player.navn || playerOrRef);
     });
 
-    return kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+    const snitt = kamper > 0 ? Math.round(totalMatchPoints / kamper) : 0;
+    if (cache) cache.set(cacheKey, snitt);
+    return snitt;
 };
 
 window.getPlayerMatchMinutesForScoring = function(match, playerRef) {

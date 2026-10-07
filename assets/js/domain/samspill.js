@@ -292,6 +292,15 @@
         };
         if (!playerObjA || !playerObjB) return empty;
 
+        const cache = typeof window.getDerivedStatsCache === 'function'
+            ? window.getDerivedStatsCache('duoPairPlay')
+            : null;
+        const cacheKey = [
+            playerObjA.id || playerObjA.navn,
+            playerObjB.id || playerObjB.navn
+        ].sort().join('|') + `|${filterLag || ''}|${historicalOnly ? 1 : 0}`;
+        if (cache?.has(cacheKey)) return cache.get(cacheKey);
+
         const matches = (window.activeMatches || []).filter((match) => {
             if (filterLag && match.matchGroup !== filterLag) return false;
             if (historicalOnly && typeof window.isHistoricalActivity === 'function'
@@ -341,7 +350,7 @@
         else if (pitchCount >= 3 || xiCount >= 2 || adjacentCount >= 1) dataConfidence = 'medium';
         else if (pitchCount >= 1 || troppCount >= 1) dataConfidence = 'low';
 
-        return {
+        const result = {
             troppCount,
             pitchCount,
             xiCount,
@@ -350,6 +359,8 @@
             ratingAvg: ratingCount > 0 ? ratingSum / ratingCount : 0,
             dataConfidence
         };
+        if (cache) cache.set(cacheKey, result);
+        return result;
     };
 
     window.getDuoHistoricalChemistry = function(playerA, playerB, options) {
@@ -1312,6 +1323,36 @@
             || (Number(pair.pitchCount) || 0) < 3;
     }
 
+    function scoreTone(score) {
+        if (score == null) return 'unknown';
+        if (score >= 62) return 'strong';
+        if (score >= 48) return 'ok';
+        return 'weak';
+    }
+
+    function averagePairScore(pairs) {
+        if (!pairs.length) return null;
+        return Math.round(pairs.reduce((sum, pair) => sum + (Number(pair.score) || 0), 0) / pairs.length);
+    }
+
+    function pairInLine(pair, positions) {
+        if (!pair || !Array.isArray(positions) || !positions.length) return false;
+        return positions.includes(pair.posA) && positions.includes(pair.posB);
+    }
+
+    window.buildSamspillLineTotals = function(pairs, lineZones) {
+        const zones = lineZones || {};
+        const allPairs = pairs || [];
+        const lines = [
+            { id: 'lag', label: 'Lag', score: averagePairScore(allPairs) },
+            { id: 'forsvar', label: 'Forsvar', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.forsvar))) },
+            { id: 'midtbane', label: 'Midtbane', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.midtbane))) },
+            { id: 'angrep', label: 'Angrep', score: averagePairScore(allPairs.filter((pair) => pairInLine(pair, zones.angrep))) }
+        ].map((line) => ({ ...line, tone: scoreTone(line.score) }));
+
+        return { lines, teamScore: lines[0].score };
+    };
+
     window.collectSamspillLineupPairs = function(lineup, options) {
         const opts = options || {};
         const formationId = opts.formationId;
@@ -1329,9 +1370,6 @@
                 ? window.getDuoSamspill(playerA, playerB, { ...opts, posA, posB })
                 : null;
             if (!samspill) return null;
-            const play = typeof window.getDuoPairPlayHistory === 'function'
-                ? window.getDuoPairPlayHistory(playerA, playerB, opts)
-                : null;
             return {
                 posA,
                 posB,
@@ -1339,18 +1377,20 @@
                 playerB,
                 status: samspill.status || 'unknown',
                 score: Number(samspill.score) || 0,
-                confidence: samspill.confidence || play?.dataConfidence || 'none',
-                pitchCount: Number(play?.pitchCount || samspill.matchCount) || 0,
-                adjacentCount: Number(play?.adjacentCount) || 0,
-                xiCount: Number(play?.xiCount) || 0
+                confidence: samspill.confidence || samspill.dataConfidence || 'none',
+                pitchCount: Number(samspill.components?.pitchCount || samspill.matchCount) || 0,
+                adjacentCount: Number(samspill.components?.adjacentCount) || 0,
+                xiCount: Number(samspill.components?.xiCount) || 0
             };
         }).filter(Boolean);
     };
 
     window.buildSamspillBriefing = function(lineup, options) {
-        const pairs = window.collectSamspillLineupPairs(lineup, options);
+        const opts = options || {};
+        const pairs = window.collectSamspillLineupPairs(lineup, opts);
+        const totals = window.buildSamspillLineTotals(pairs, opts.lineZones);
         if (!pairs.length) {
-            return { isEmpty: true, items: [] };
+            return { isEmpty: true, items: [], totals };
         }
 
         const items = [];
@@ -1455,6 +1495,6 @@
             return (order[groupA] ?? 9) - (order[groupB] ?? 9);
         });
 
-        return { isEmpty: false, items: items.slice(0, 4) };
+        return { isEmpty: false, items: items.slice(0, 4), totals };
     };
 })();

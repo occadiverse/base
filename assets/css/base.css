@@ -1528,8 +1528,7 @@
             border-color: rgba(245, 197, 66, 0.9);
             box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
         }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-toggle,
-        .match-detail-lineup-builder .match-game-plan-samspill-control-zone {
+        .match-detail-lineup-builder .match-game-plan-samspill-control-toggle {
             align-items: center;
             appearance: none;
             background: transparent;
@@ -1555,8 +1554,7 @@
             transition: color 140ms ease, background 140ms ease, opacity 140ms ease;
             white-space: nowrap;
         }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-shell.is-active .match-game-plan-samspill-control-toggle,
-        .match-detail-lineup-builder .match-game-plan-samspill-control-shell.is-active .match-game-plan-samspill-control-zone {
+        .match-detail-lineup-builder .match-game-plan-samspill-control-shell.is-active .match-game-plan-samspill-control-toggle {
             color: #0b2b4c;
         }
         .match-detail-lineup-builder .match-game-plan-samspill-control-shell:not(.is-active):hover {
@@ -1568,32 +1566,9 @@
             background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
             border-color: rgba(245, 197, 66, 0.95);
         }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-toggle:focus-visible,
-        .match-detail-lineup-builder .match-game-plan-samspill-control-zone:focus-visible {
+        .match-detail-lineup-builder .match-game-plan-samspill-control-toggle:focus-visible {
             box-shadow: inset 0 0 0 2px rgba(245, 197, 66, 0.55);
             outline: none;
-        }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-shell.is-active .match-game-plan-samspill-control-toggle {
-            border-right: 1px solid rgba(11, 43, 76, 0.18);
-            padding-right: 0.55rem;
-        }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-zone {
-            padding-left: 0.5rem;
-            padding-right: 0.55rem;
-        }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-zone.is-hidden {
-            display: none;
-        }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-zone .match-game-plan-formation-trigger-value {
-            font-size: 0.66rem;
-            font-weight: 900;
-            letter-spacing: 0.05em;
-        }
-        .match-detail-lineup-builder .match-game-plan-samspill-control-shell.is-active .match-game-plan-samspill-control-zone .match-game-plan-formation-trigger-chevron {
-            color: #0b2b4c;
-        }
-        .match-detail-lineup-builder .match-game-plan-samspill-control.is-open .match-game-plan-samspill-control-zone {
-            background: rgba(11, 43, 76, 0.08);
         }
         .match-detail-lineup-builder .match-game-plan-lineup-actions {
             display: grid;
@@ -1715,13 +1690,6 @@
             }
             .match-detail-lineup-builder .match-game-plan-samspill-control-toggle {
                 padding: 0 0.55rem;
-            }
-            .match-detail-lineup-builder .match-game-plan-samspill-control-shell.is-active .match-game-plan-samspill-control-toggle {
-                padding-right: 0.45rem;
-            }
-            .match-detail-lineup-builder .match-game-plan-samspill-control-zone {
-                padding-left: 0.42rem;
-                padding-right: 0.48rem;
             }
             .match-detail-lineup-builder .match-game-plan-lineup-clear-btn,
             .match-detail-lineup-builder .match-game-plan-lineup-save-btn {
@@ -2255,6 +2223,54 @@
             background: rgba(220, 38, 38, 0.12);
             color: #dc2626;
         }
+        .match-game-plan-samspill-totals {
+            display: grid;
+            gap: 0.42rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            list-style: none;
+            margin: 0 0 0.42rem;
+            padding: 0;
+        }
+        .match-game-plan-samspill-total {
+            background: rgba(248, 250, 252, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 0.68rem;
+            display: grid;
+            gap: 0.08rem;
+            justify-items: center;
+            padding: 0.42rem 0.28rem 0.46rem;
+            text-align: center;
+        }
+        .match-game-plan-samspill-total.is-team {
+            background: rgba(241, 245, 249, 0.98);
+        }
+        .match-game-plan-samspill-total-label {
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .match-game-plan-samspill-total-value {
+            color: #0f172a;
+            font-size: 1.05rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .match-game-plan-samspill-total.is-strong .match-game-plan-samspill-total-label,
+        .match-game-plan-samspill-total.is-strong .match-game-plan-samspill-total-value {
+            color: #15803d;
+        }
+        .match-game-plan-samspill-total.is-ok .match-game-plan-samspill-total-label {
+            color: #a16207;
+        }
+        .match-game-plan-samspill-total.is-unknown .match-game-plan-samspill-total-label,
+        .match-game-plan-samspill-total.is-unknown .match-game-plan-samspill-total-value {
+            color: #64748b;
+        }
+        .match-game-plan-samspill-total.is-weak .match-game-plan-samspill-total-label,
+        .match-game-plan-samspill-total.is-weak .match-game-plan-samspill-total-value {
+            color: #b91c1c;
+        }
         .match-game-plan-samspill-briefing {
             display: grid;
             gap: 0.42rem;
@@ -2312,6 +2328,9 @@
         @media (max-width: 1023px) {
             .match-game-plan-samspill-analysis-text {
                 font-size: 0.64rem;
+            }
+            .match-game-plan-samspill-totals {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
         .samspill-legend {
