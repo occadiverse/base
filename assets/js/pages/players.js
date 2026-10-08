@@ -829,6 +829,10 @@ function getPlayerProfileStatRank(playerName, column, statsData) {
     const playerStat = relevant.find(stat => stat.navn === playerName);
     if (!playerStat) return null;
 
+    if (typeof window.comparePlayerStatsSort === 'function') {
+        const betterCount = relevant.filter(stat => window.comparePlayerStatsSort(stat, playerStat, column) < 0).length;
+        return betterCount + 1;
+    }
     const playerValue = Number(playerStat[column]) || 0;
     const betterCount = relevant.filter(stat => (Number(stat[column]) || 0) > playerValue).length;
     return betterCount + 1;

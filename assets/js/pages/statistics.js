@@ -2260,6 +2260,28 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : true;
         };
 
+        window.getStatsSortTiebreakKamper = function(column) {
+            return column === 'mal' || column === 'bb' ? 'fewer' : 'more';
+        };
+
+        window.comparePlayerStatsSort = function(a, b, column, options = {}) {
+            const descending = options.descending !== false;
+            if (column === 'navn') {
+                const nameCmp = String(a?.navn || '').localeCompare(String(b?.navn || ''), 'nb', { sensitivity: 'base' });
+                return descending ? nameCmp : -nameCmp;
+            }
+            const va = Number(a?.[column]) || 0;
+            const vb = Number(b?.[column]) || 0;
+            if (va !== vb) return descending ? vb - va : va - vb;
+            const ka = Number(a?.kamper) || 0;
+            const kb = Number(b?.kamper) || 0;
+            if (ka !== kb) {
+                const fewerWins = (options.tiebreakKamper || window.getStatsSortTiebreakKamper(column)) === 'fewer';
+                return fewerWins ? ka - kb : kb - ka;
+            }
+            return String(a?.navn || '').localeCompare(String(b?.navn || ''), 'nb', { sensitivity: 'base' });
+        };
+
         window.playerMeetsExpectedMalpoengThreshold = function(stat) {
             return window.playerMeetsKampShareThreshold(stat);
         };
@@ -3512,6 +3534,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (typeof options.compare === 'function') return options.compare(a, b);
                 const va = Number(a[column]) || 0;
                 const vb = Number(b[column]) || 0;
+                if (typeof window.comparePlayerStatsSort === 'function') {
+                    return window.comparePlayerStatsSort(a, b, column, {
+                        descending: !ascending,
+                        tiebreakKamper: options.tiebreakKamper || window.getStatsSortTiebreakKamper?.(column)
+                    });
+                }
                 if (va !== vb) return ascending ? va - vb : vb - va;
                 const ka = Number(a.kamper) || 0;
                 const kb = Number(b.kamper) || 0;
@@ -3581,7 +3609,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'mal',
                             title: 'Årets målscorer',
                             column: 'mal',
-                            explain: 'Flest scoringer i valgt sesong, serie og cup samlet.'
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.mal) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Flest scoringer i valgt sesong, serie og cup samlet. Ved likt antall rangeres den med færre kamper høyest.'
                         },
                         {
                             id: 'playmaker',
@@ -4157,6 +4187,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const sortRows = (rows) => {
                 rows.sort((a, b) => {
+                    if (typeof window.comparePlayerStatsSort === 'function') {
+                        return window.comparePlayerStatsSort(a, b, currentStatSortCol, {
+                            descending: currentStatSortDesc !== false
+                        });
+                    }
                     if (currentStatSortCol === 'navn') {
                         return currentStatSortDesc ? a.navn.localeCompare(b.navn) : b.navn.localeCompare(a.navn);
                     }
@@ -4215,6 +4250,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const attended = Number(stat.oppmoteAttended) || 0;
                     const possible = Number(stat.oppmotePossible) || 0;
                     valueHtml = `${pct}% <span class="training-data-rank-count">${attended}/${possible}</span>`;
+                }
+                if (currentStatSortCol === 'mal' && (Number(stat.kamper) || 0) > 0) {
+                    valueHtml = `${escapeStatisticsHtml(sortValue)} <span class="training-data-rank-count">${Number(stat.kamper)} kamper</span>`;
                 }
                 return `
                     <li class="${overflow ? 'is-overflow' : ''}">
