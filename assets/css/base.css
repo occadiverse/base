@@ -10191,6 +10191,30 @@
             margin: 0 0 0.28rem;
             text-transform: uppercase;
         }
+        button.stats-kamp-summary-block {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            color: inherit;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0.7rem 0.8rem;
+            text-align: left;
+            width: 100%;
+        }
+        button.stats-kamp-summary-block:hover,
+        button.stats-kamp-summary-block:focus-visible {
+            background: rgba(245, 197, 66, 0.12);
+            border-color: rgba(245, 197, 66, 0.34);
+            outline: none;
+        }
+        button.stats-kamp-summary-block.is-empty p {
+            color: rgba(255, 255, 255, 0.42);
+            font-weight: 650;
+        }
+        .stats-kamp-summary-match {
+            grid-column: 1 / -1;
+        }
         .stats-kamp-summary-block p {
             color: rgba(255, 255, 255, 0.82);
             font-size: 0.78rem;
