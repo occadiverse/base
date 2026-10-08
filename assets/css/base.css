@@ -9235,6 +9235,12 @@
             stroke: rgba(18, 63, 115, 0.1);
             stroke-width: 1;
         }
+        .team-score-diagram-split-line {
+            stroke: var(--bsk-yellow);
+            stroke-width: 1.5;
+            stroke-dasharray: 6 5;
+            pointer-events: none;
+        }
         .team-score-diagram-axis {
             stroke: #0b2b4c;
             stroke-width: 1.5;

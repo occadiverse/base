@@ -3163,6 +3163,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const xMax = isTotal ? 24 : 28;
             const yMin = 4;
             const yMax = 7;
+            const splitX = isTotal ? 16 : 18;
+            const splitY = 5.5;
             const x = value => pad.left + ((Math.max(xMin, Math.min(xMax, value)) - xMin) / (xMax - xMin)) * plotW;
             const y = value => pad.top + (1 - ((Math.max(yMin, Math.min(yMax, value)) - yMin) / (yMax - yMin))) * plotH;
             const gridX = isTotal
@@ -3274,6 +3276,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     <text x="46" y="${y(tick) + 4}" text-anchor="middle" class="team-score-diagram-tick">${tick}</text>
                                 </g>
                             `).join('')}
+                            <g class="team-score-diagram-split" aria-hidden="true">
+                                <line x1="${x(splitX)}" x2="${x(splitX)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-split-line"></line>
+                                <line x1="${pad.left}" x2="${width - pad.right}" y1="${y(splitY)}" y2="${y(splitY)}" class="team-score-diagram-split-line"></line>
+                            </g>
                             <line x1="${pad.left}" x2="${width - pad.right}" y1="${height - pad.bottom}" y2="${height - pad.bottom}" class="team-score-diagram-axis"></line>
                             <line x1="${pad.left}" x2="${pad.left}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-axis"></line>
                             <text x="${width / 2}" y="${height - 14}" text-anchor="middle" class="team-score-diagram-axis-label">${isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5')}</text>
