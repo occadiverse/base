@@ -1365,12 +1365,17 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
 
     recentMatches.forEach((m, index) => {
         const weight = recentMatches.length - index;
-        weightedPoints += window.calculatePlayerMatchPoints(m, playerName) * weight;
+        const matchPoints = typeof window.calculatePlayerFormMatchPoints === 'function'
+            ? window.calculatePlayerFormMatchPoints(m, playerObj)
+            : window.calculatePlayerMatchPoints(m, playerObj);
+        weightedPoints += matchPoints * weight;
         totalWeight += weight;
     });
 
     const weightedAverage = totalWeight > 0 ? weightedPoints / totalWeight : 0;
-    performanceScore = Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
+    performanceScore = typeof window.scaleFormKampScore === 'function'
+        ? window.scaleFormKampScore(weightedAverage)
+        : Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
 
     let totalYellowCards = 0;
 
@@ -4661,7 +4666,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </button>
 
                     <div class="stats-metric-grid is-four">
-                        ${card('Form (nå)', chemistry + '/100', 'Beste nå — nylig kampbidrag, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
+                        ${card('Form (nå)', chemistry + '/100', 'Beste nå — nylig børs og spilletid, oppmøte og disiplin', 'fa-heart-pulse', 'text-emerald-600')}
                         ${card('Kamper', totalMatches, 'Registrerte kamper spilt', 'fa-futbol', 'text-bsk-blue')}
                         ${card('Plassering (sesong)', totalRank > 0 ? String(totalRank) : '-', 'Beste sesong — rangert etter Total Score', 'fa-ranking-star', 'text-bsk-blue')}
                         ${card('Total score (sesong)', totalScoreText, 'Beste sesong: 50% kampbidrag · 25% børs · 15% oppmøte · 10% disiplin', 'fa-gauge-high', 'text-bsk-blue')}

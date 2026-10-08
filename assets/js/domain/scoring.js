@@ -415,3 +415,59 @@ window.calculatePlayerMatchPoints = function(m, playerRef, returnDetails = false
 
     return total;
 };
+
+/** Form-utfall: seier +2, uavgjort +1, tap 0. Ikke mål eller rent null. */
+window.getPlayerFormMatchOutcomeBonus = function(match) {
+    if (!match?.result || !String(match.result).includes('-')) return 0;
+    const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
+        ? window.getMatchOutcomeScore(match)
+        : (typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : (typeof parseScore === 'function' ? parseScore(match.result) : null));
+    if (!outcomeScore) return 0;
+    if (outcomeScore.bsk > outcomeScore.opponent) return 2;
+    if (outcomeScore.bsk === outcomeScore.opponent) return 1;
+    return 0;
+};
+
+/** Form-kamp: 15 + børs + minutter + BB + lite utfall. Sesongens kampbidrag er uendret. */
+window.calculatePlayerFormMatchPoints = function(m, playerRef, returnDetails = false) {
+    const onPitch = typeof window.isPlayerOnPitch === 'function'
+        ? window.isPlayerOnPitch(m, playerRef)
+        : true;
+
+    let base = 15;
+    let resultBonus = 0;
+    let ratingBonus = 0;
+    let bbBonus = 0;
+    let minutesBonus = 0;
+
+    if (onPitch) {
+        resultBonus = window.getPlayerFormMatchOutcomeBonus(m);
+
+        const rating = typeof window.getPlayerRefMapValue === 'function'
+            ? window.getPlayerRefMapValue(m.ratings, playerRef, 0)
+            : 0;
+        if (rating > 0) ratingBonus = window.getPlayerRatingBonusPoints(rating);
+
+        if (window.motmMatchesPlayer(m.motm, playerRef)) bbBonus = 1;
+
+        const minutes = window.getPlayerMatchMinutesForScoring(m, playerRef);
+        minutesBonus = window.getPlayerMinutesBonusPoints(minutes);
+    }
+
+    const total = base + resultBonus + ratingBonus + bbBonus + minutesBonus;
+
+    if (returnDetails) {
+        return { total, base, resultBonus, ratingBonus, bbBonus, minutesBonus, onPitch };
+    }
+
+    return total;
+};
+
+/** Form-kamp 0–70: rundt 12 snitt ≈ 0, rundt 32 snitt ≈ 70. */
+window.scaleFormKampScore = function(average) {
+    const avg = Number(average);
+    if (!Number.isFinite(avg)) return 0;
+    return Math.max(0, Math.min(70, ((avg - 12) / 20) * 70));
+};

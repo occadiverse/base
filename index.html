@@ -1229,7 +1229,7 @@
                     <strong class="block text-emerald-400 mb-2">Kort sagt</strong>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
                         <li><strong class="text-white">Beste sesong</strong> = Total Score (kampbidrag, børs, spilletidstillegg, oppmøte, disiplin)</li>
-                        <li><strong class="text-white">Beste nå</strong> = Form (kampbidrag inntil 70 · oppmøte 20 · disiplin 10)</li>
+                        <li><strong class="text-white">Beste nå</strong> = Form (børs og spilletid inntil 70 · oppmøte 20 · disiplin 10)</li>
                         <li><strong class="text-white">Minuttandel</strong> (andel av kampminutter) er forklarende statistikk — eget fra spilletidstillegget i kamppoeng</li>
                     </ul>
                     <p class="mt-3 text-slate-400 text-[12px]">Form bygger på siste 5 kamper (nyeste teller mest), siste 8 aktiviteter for oppmøte, og disiplin. Uten minst én registrert kamp blir Form grå (0).</p>
@@ -1298,11 +1298,12 @@
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Fra kamper til Form-kampbidrag (maks 70)</h4>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Fra kamper til Form-kamp (maks 70)</h4>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
                         <li>Vi tar de <strong class="text-white">siste 5 kampene</strong> spilleren har vært med på.</li>
                         <li><strong class="text-white">Nyeste kamp teller mest</strong>, slik at Form følger utviklingen.</li>
-                        <li>Det vektede snittet skaleres til 0–70: rundt <strong class="text-white">5 poeng snitt ≈ 0</strong>, rundt <strong class="text-white">40 poeng snitt ≈ 70</strong>.</li>
+                        <li>Form bruker en egen kamp: <strong class="text-white">15 + børs + minutter + BB</strong>, pluss <strong class="text-white">seier +2 / uavgjort +1 / tap 0</strong>. Mål for/imot og rent null teller ikke her — det ligger i sesongens kampbidrag.</li>
+                        <li>Det vektede snittet skaleres til 0–70: rundt <strong class="text-white">12 poeng snitt ≈ 0</strong>, rundt <strong class="text-white">32 poeng snitt ≈ 70</strong>.</li>
                     </ul>
                 </div>
 
@@ -1515,14 +1516,14 @@
     <script src="assets/js/components/modals.js?v=20261007-samspill-forsvar-v21"></script>
     <script src="assets/js/app-shell.js?v=20260903-tropp-scroll-top-v1"></script>
     <script src="assets/js/domain/player-refs.js?v=20261006-shabbir-photo-v1"></script>
-    <script src="assets/js/domain/scoring.js?v=20261008-bors-skala-v1"></script>
+    <script src="assets/js/domain/scoring.js?v=20261008-form-kamp-v1"></script>
     <script src="assets/js/domain/samspill.js?v=20261007-samspill-forsvar-v21"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20261006-profile-kamp-min-v1"></script>
     <script src="assets/js/pages/matches.js?v=20261008-bors-skala-v1"></script>
     <script src="assets/js/pages/attendance.js?v=20260902-activity-match-venue-v1"></script>
-    <script src="assets/js/pages/statistics.js?v=20261008-utvikling-split-v1"></script>
+    <script src="assets/js/pages/statistics.js?v=20261008-form-kamp-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20260929-sandbox-formation-chip-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20260820-tilknyttet-v1"></script>
     <script src="assets/js/pages/training-session.js?v=20261006-oppmote-30-stats-v1"></script>

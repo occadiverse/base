@@ -7864,7 +7864,7 @@ function computeMatchGamePlanPositionForm(entries) {
         totalWeight += weight;
     });
     const snitt = totalWeight > 0 ? weightedPoints / totalWeight : 0;
-    // Samme skala som Form-kampbidrag, basert på snitt poeng på posisjonen.
+    // Posisjonsform bruker sesongens kampbidrag, skalert 5 ≈ 0 og 40 ≈ 100.
     return Math.round(Math.max(0, Math.min(100, ((snitt - 5) / 35) * 100)));
 }
 
