@@ -2968,36 +2968,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'angrep', label: 'Angrep' }
         ];
         window.STATS_LINE_DIAGRAM_POSITION_IDS = {
-            forsvar: ['VB', 'HB', 'VMS', 'HMS', 'MS', 'VS', 'HS'],
-            midtbane: ['OM', 'DM', 'PM'],
-            angrep: ['VK', 'HK', 'SP', 'SP2']
+            forsvar: ['VB', 'VMS', 'MS', 'HMS', 'HB'],
+            midtbane: ['PM', 'OM', 'DM'],
+            angrep: ['VK', 'SP', 'SP2', 'HK']
         };
-        window.STATS_LINE_DIAGRAM_FORMATION_SLOTS = {
-            '4-2-4': {
-                forsvar: ['VB', 'VMS', 'HMS', 'HB'],
-                midtbane: ['OM', 'DM'],
-                angrep: ['VK', 'PM', 'SP', 'HK']
-            },
-            '4-3-3': {
-                forsvar: ['VB', 'VMS', 'HMS', 'HB'],
-                midtbane: ['OM', 'DM', 'PM'],
-                angrep: ['VK', 'SP', 'HK']
-            },
-            '4-2-3-1': {
-                forsvar: ['VB', 'VMS', 'HMS', 'HB'],
-                midtbane: ['OM', 'DM'],
-                angrep: ['VK', 'PM', 'HK', 'SP']
-            },
-            '4-5-1': {
-                forsvar: ['VB', 'VMS', 'HMS', 'HB'],
-                midtbane: ['VK', 'OM', 'DM', 'PM', 'HK'],
-                angrep: ['SP']
-            },
-            '3-4-1-2': {
-                forsvar: ['VMS', 'MS', 'HMS'],
-                midtbane: ['VK', 'OM', 'DM', 'HK'],
-                angrep: ['PM', 'SP', 'SP2']
-            }
+        window.STATS_LINE_DIAGRAM_SLOT_ALIASES = {
+            VS: 'VMS',
+            HS: 'HMS',
+            SV: 'SP',
+            SH: 'SP2'
         };
 
         window.getStatsScoreDiagramKind = function() {
@@ -3047,9 +3026,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return `
                     <p class="training-session-groups-info-title">Linjekart · ${lineLabel}</p>
                     <ul class="training-session-groups-info-list">
-                        <li>Hver boble er én sammensetning av ${lineLabel.toLowerCase()}et, slik formasjonen var: 3 i 3-4-1-2, 4 i 4-2-4.</li>
-                        <li>Høyre er snitt kampbidrag for linjen. Opp er snitt spillerbørs. Trykk på en boble for navnene.</li>
-                        <li>Oppe til høyre er linjene som har levert høyest. Større boble er brukt oftere.</li>
+                        <li>Midtbane er PM, OM og DM. Angrep er VK, SV, SP, SH og HK. Forsvar er VB, VS, MS, HS og HB.</li>
+                        <li>Hver boble er de som startet på ${lineLabel.toLowerCase()}et i kampen. Høyre er snitt kampbidrag. Opp er snitt spillerbørs.</li>
+                        <li>Tallet i boblen er antall kamper. Trykk for navnene: grønt pluss drar snittet opp, rødt minus drar det ned. Kampbidrag først, så børs.</li>
                     </ul>
                 `;
             }
@@ -3600,18 +3579,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }).filter(Boolean);
         };
 
+        window.getStatsDiagramLineSlotId = function(posId) {
+            const id = String(posId || '').trim().toUpperCase();
+            return (window.STATS_LINE_DIAGRAM_SLOT_ALIASES || {})[id] || id;
+        };
+
         window.getStatsDiagramLineSlotIds = function(match, lineId) {
+            const lineSlots = (window.STATS_LINE_DIAGRAM_POSITION_IDS || {})[lineId] || [];
             const formationId = typeof window.getMatchGamePlanFormation === 'function'
                 ? window.getMatchGamePlanFormation(match)
                 : (match?.formation || '4-2-4');
-            const mapped = (window.STATS_LINE_DIAGRAM_FORMATION_SLOTS || {})[formationId];
-            if (mapped?.[lineId]) return mapped[lineId].slice();
-            const fallback = (window.STATS_LINE_DIAGRAM_POSITION_IDS || {})[lineId] || [];
             const formationSlots = typeof window.getMatchGamePlanFormationPositionIds === 'function'
                 ? window.getMatchGamePlanFormationPositionIds(formationId)
                 : [];
-            if (!formationSlots.length) return fallback.slice();
-            return fallback.filter(posId => formationSlots.includes(posId));
+            if (!formationSlots.length) return lineSlots.slice();
+            const present = new Set(formationSlots.map(posId => window.getStatsDiagramLineSlotId(posId)));
+            return lineSlots.filter(posId => present.has(posId));
         };
 
         window.getStatsDiagramMatchLineup = function(match) {
@@ -3655,9 +3638,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (player.spillerLag !== match.matchGroup) return;
                 if (!match.attendance || !window.isPlayerAttending(match.attendance, player)) return;
                 if (typeof window.isPlayerOnPitch === 'function' && !window.isPlayerOnPitch(match, player)) return;
-                const posId = typeof window.getPlayerMatchPlayedPositionId === 'function'
-                    ? window.getPlayerMatchPlayedPositionId(match, player)
-                    : '';
+                const rawPosId = (typeof window.getPlayerMatchPlayedPositionIds === 'function'
+                    ? (window.getPlayerMatchPlayedPositionIds(match, player) || [])[0]
+                    : '')
+                    || (typeof window.getPlayerMatchPlayedPositionId === 'function'
+                        ? window.getPlayerMatchPlayedPositionId(match, player)
+                        : '');
+                const posId = window.getStatsDiagramLineSlotId(rawPosId);
                 if (!slotIds.includes(posId)) return;
                 const minutes = typeof window.getPlayerMatchMinutesForStats === 'function'
                     ? Number(window.getPlayerMatchMinutesForStats(match, player)) || 0
@@ -3689,19 +3676,36 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ));
                 const ratings = linePlayers.map(player => (
                     Number(window.getPlayerRefMapValue?.(match.ratings, player, 0)) || 0
-                )).filter(rating => rating > 0);
-                if (!ratings.length) return;
+                ));
+                const rated = ratings.filter(rating => rating > 0);
+                if (!rated.length) return;
                 const names = linePlayers.map(player => player.navn).sort((a, b) => a.localeCompare(b, 'no'));
                 const key = names.join('\n');
                 const current = combinations.get(key) || {
                     names,
                     matchCount: 0,
                     contribSum: 0,
-                    borsSum: 0
+                    borsSum: 0,
+                    players: {}
                 };
                 current.matchCount += 1;
                 current.contribSum += contribs.reduce((sum, value) => sum + value, 0) / contribs.length;
-                current.borsSum += ratings.reduce((sum, value) => sum + value, 0) / ratings.length;
+                current.borsSum += rated.reduce((sum, value) => sum + value, 0) / rated.length;
+                linePlayers.forEach((player, index) => {
+                    const playerStats = current.players[player.navn] || {
+                        contribSum: 0,
+                        contribCount: 0,
+                        borsSum: 0,
+                        borsCount: 0
+                    };
+                    playerStats.contribSum += contribs[index];
+                    playerStats.contribCount += 1;
+                    if (ratings[index] > 0) {
+                        playerStats.borsSum += ratings[index];
+                        playerStats.borsCount += 1;
+                    }
+                    current.players[player.navn] = playerStats;
+                });
                 combinations.set(key, current);
             });
 
@@ -3712,28 +3716,62 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 });
                 return (((Math.abs(hash) % 100) / 100) - 0.5) * spread;
             };
-            const firstName = (name, allNames) => {
-                const first = String(name || '').trim().split(/\s+/)[0] || '';
-                const clashes = (allNames || []).filter(item => String(item || '').trim().split(/\s+/)[0] === first);
-                if (clashes.length <= 1) return first;
-                const last = String(name || '').trim().split(/\s+/).slice(-1)[0] || '';
-                return last ? `${first} ${last.charAt(0)}` : first;
+            const firstName = (name) => {
+                const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+                const first = parts[0] || '';
+                const lastInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0).toUpperCase() : '';
+                return lastInitial ? `${first} ${lastInitial}` : first;
             };
             const rows = [];
+            const formatLineDelta = (delta) => {
+                const rounded = Math.round((Number(delta) || 0) * 10) / 10;
+                if (rounded === 0) {
+                    return { text: '0.0', className: 'is-season' };
+                }
+                return {
+                    text: `${rounded > 0 ? '+' : '-'}${Math.abs(rounded).toFixed(1)}`,
+                    className: rounded > 0 ? 'is-up' : 'is-down'
+                };
+            };
             combinations.forEach((stats) => {
                 const contrib = stats.contribSum / stats.matchCount;
                 const bors = stats.borsSum / stats.matchCount;
-                const labels = stats.names.map(name => firstName(name, stats.names));
+                const labels = stats.names.map(name => firstName(name));
                 const label = labels.join(' · ');
                 rows.push({
                     name: label,
-                    tooltipRows: stats.names.map((name, index) => ({
-                        name: firstName(name, stats.names),
-                        displayValue: index === 0
-                            ? `${(Math.round(contrib * 10) / 10).toFixed(1)} · ${(Math.round(bors * 10) / 10).toFixed(1)}`
-                            : '',
-                        tooltipValueClass: 'is-season'
-                    })),
+                    tooltipRows: [
+                        {
+                            name: 'Snitt',
+                            displayValue: `${(Math.round(contrib * 10) / 10).toFixed(1)} · ${(Math.round(bors * 10) / 10).toFixed(1)}`,
+                            tooltipValueClass: 'is-season'
+                        },
+                        ...stats.names.map((playerName) => {
+                            const playerStats = stats.players[playerName] || {};
+                            const playerContrib = playerStats.contribCount
+                                ? playerStats.contribSum / playerStats.contribCount
+                                : contrib;
+                            const playerBors = playerStats.borsCount
+                                ? playerStats.borsSum / playerStats.borsCount
+                                : bors;
+                            const contribDelta = formatLineDelta(playerContrib - contrib);
+                            const borsDelta = formatLineDelta(playerBors - bors);
+                            return {
+                                name: firstName(playerName),
+                                displayValue: `${contribDelta.text} · ${borsDelta.text}`,
+                                valueParts: [
+                                    contribDelta,
+                                    { text: ' · ', className: 'is-season' },
+                                    borsDelta
+                                ]
+                            };
+                        }),
+                        {
+                            name: stats.matchCount === 1 ? '1 kamp' : `${stats.matchCount} kamper`,
+                            displayValue: '',
+                            tooltipValueClass: 'is-season'
+                        }
+                    ],
                     x: contrib + jitter(label, 0.18),
                     y: bors + jitter(`${label}|y`, 0.04),
                     score: bors,
@@ -3868,20 +3906,29 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const tooltipHeight = tooltipPadY + (tooltipMembers.length * rowHeight) + (isGroup ? 16 : 4);
                 const tooltipX = Math.max(8, Math.min(width - tooltipWidth - 8, pointX - (tooltipWidth / 2)));
                 const tooltipY = Math.max(8, pointY - hitRadius - tooltipHeight - (isCompact ? 10 : 8));
-                const labelText = (config.hideInitials && !isGroup)
+                const insideLabel = (!isGroup && config.labelInPoint)
+                    ? String(lead.shortName || lead.matchCount || '')
+                    : '';
+                const labelText = insideLabel
                     ? ''
-                    : (isGroup
-                        ? String(members.length)
-                        : (lead.shortName || window.getStatsDiagramInitials(lead.name)));
+                    : ((config.hideInitials && !isGroup)
+                        ? ''
+                        : (isGroup
+                            ? String(members.length)
+                            : (lead.shortName || window.getStatsDiagramInitials(lead.name))));
                 const ariaNames = members.map(m => `${m.name} ${m.displayValue}`).join(', ');
                 const ariaLabel = isGroup
                     ? `${members.length} ${groupNoun}: ${ariaNames}`
                     : `${lead.name}. ${lead.displayValue}`;
                 const tooltipRows = tooltipMembers.map((member, index) => {
                     const rowY = tooltipPadY + 4 + (index * rowHeight);
+                    const valueParts = Array.isArray(member.valueParts) ? member.valueParts.filter(part => part && part.text) : [];
+                    const valueHtml = valueParts.length
+                        ? valueParts.map(part => `<tspan class="${escapeHtml(part.className || member.tooltipValueClass || '')}">${escapeHtml(part.text)}</tspan>`).join('')
+                        : escapeHtml(member.displayValue || '');
                     return `
                         <text x="12" y="${rowY}" class="team-score-diagram-tooltip-name">${escapeHtml(member.name)}</text>
-                        <text x="${tooltipWidth - 12}" y="${rowY}" text-anchor="end" class="team-score-diagram-tooltip-value ${member.tooltipValueClass || ''}">${escapeHtml(member.displayValue || '')}</text>
+                        <text x="${tooltipWidth - 12}" y="${rowY}" text-anchor="end" class="team-score-diagram-tooltip-value ${escapeHtml(member.tooltipValueClass || '')}">${valueHtml}</text>
                     `;
                 }).join('');
                 const groupHint = isGroup
@@ -3891,8 +3938,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return `
                     <g class="team-score-diagram-point${isGroup ? ' is-overlap-group' : ''}" tabindex="0" aria-label="${escapeHtml(ariaLabel)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
                         <circle class="team-score-diagram-hit-area" cx="${pointX}" cy="${pointY}" r="${hitRadius}" fill="transparent" stroke="none"></circle>
-                        <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials${isGroup ? ' is-group-count' : ''}">${escapeHtml(labelText)}</text>
+                        ${labelText ? `<text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials${isGroup ? ' is-group-count' : ''}">${escapeHtml(labelText)}</text>` : ''}
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="#ffffff" stroke-width="1.5" opacity="0.92"></circle>
+                        ${insideLabel ? `<text x="${pointX}" y="${pointY + 1}" text-anchor="middle" dominant-baseline="middle" class="team-score-diagram-initials is-count">${escapeHtml(insideLabel)}</text>` : ''}
                         ${isGroup ? `<circle cx="${pointX}" cy="${pointY}" r="${radius + 3.5}" class="team-score-diagram-overlap-ring" fill="none"></circle>` : ''}
                         <g class="team-score-diagram-tooltip" transform="translate(${tooltipX} ${tooltipY})">
                             <rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
@@ -4129,7 +4177,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 groupNoun: 'linjer',
                 skipOverlap: true,
                 hideInitials: true,
-                tooltipWidth: isCompact ? 210 : 260,
+                labelInPoint: true,
+                tooltipWidth: isCompact ? 228 : 280,
                 xMin: 8,
                 xMax: 32,
                 yMin: 4,
@@ -4141,11 +4190,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 xAxisLabel: isCompact ? 'Kampbidrag' : 'Kampbidrag snitt',
                 yAxisLabel: isCompact ? 'Børs' : 'Spillerbørs snitt',
                 prepareRow: (row) => ({
-                    radius: 5 + Math.min(4, (Number(row.matchCount) || 1) * 0.7),
+                    radius: 8 + Math.min(3, (Number(row.matchCount) || 1) * 0.45),
                     fill: '#0b2b4c',
                     displayValue: `${(Math.round((Number(row.totalScore) || 0) * 10) / 10).toFixed(1)} · ${(Math.round((Number(row.score) || 0) * 10) / 10).toFixed(1)}`,
                     tooltipValueClass: 'is-season',
-                    tooltipRows: row.tooltipRows
+                    tooltipRows: row.tooltipRows,
+                    shortName: String(row.matchCount || 1),
+                    matchCount: row.matchCount
                 })
             });
         };

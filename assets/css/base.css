@@ -7945,7 +7945,8 @@
         :is(.stats-board-card, .stats-page-slot) .team-score-diagram-initials {
             fill: rgba(255, 255, 255, 0.82);
         }
-        :is(.stats-board-card, .stats-page-slot) .team-score-diagram-point.is-overlap-group .team-score-diagram-initials.is-group-count {
+        :is(.stats-board-card, .stats-page-slot) .team-score-diagram-point.is-overlap-group .team-score-diagram-initials.is-group-count,
+        :is(.stats-board-card, .stats-page-slot) .team-score-diagram-initials.is-count {
             fill: #f5c542;
         }
         :is(.stats-board-card, .stats-page-slot) .team-score-diagram-point circle:not(.team-score-diagram-hit-area):not(.team-score-diagram-overlap-ring) {
@@ -9347,6 +9348,12 @@
             fill: #f5c542;
             font-size: 11px;
         }
+        .team-score-diagram-initials.is-count {
+            fill: #f5c542;
+            font-size: 11px;
+            font-weight: 900;
+            pointer-events: none;
+        }
         .team-score-diagram-tooltip {
             opacity: 0;
             pointer-events: none;
@@ -9380,13 +9387,16 @@
             font-size: 11px;
             font-weight: 950;
         }
-        .team-score-diagram-tooltip-value.is-season {
+        .team-score-diagram-tooltip-value.is-season,
+        .team-score-diagram-tooltip-value .is-season {
             fill: #f5c542;
         }
-        .team-score-diagram-tooltip-value.is-up {
+        .team-score-diagram-tooltip-value.is-up,
+        .team-score-diagram-tooltip-value .is-up {
             fill: #00c853;
         }
-        .team-score-diagram-tooltip-value.is-down {
+        .team-score-diagram-tooltip-value.is-down,
+        .team-score-diagram-tooltip-value .is-down {
             fill: #ff1744;
         }
         @media (max-width: 640px) {
