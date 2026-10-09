@@ -3758,6 +3758,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             const borsDelta = formatLineDelta(playerBors - bors);
                             return {
                                 name: firstName(playerName),
+                                contrib: playerContrib,
+                                bors: playerBors,
                                 displayValue: `${contribDelta.text} · ${borsDelta.text}`,
                                 valueParts: [
                                     contribDelta,
@@ -3765,7 +3767,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                     borsDelta
                                 ]
                             };
-                        }),
+                        }).sort((a, b) => (Number(b.contrib) || 0) - (Number(a.contrib) || 0)
+                            || (Number(b.bors) || 0) - (Number(a.bors) || 0)
+                            || String(a.name || '').localeCompare(String(b.name || ''), 'no')),
                         {
                             name: stats.matchCount === 1 ? '1 kamp' : `${stats.matchCount} kamper`,
                             displayValue: '',
