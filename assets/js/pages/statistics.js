@@ -108,8 +108,8 @@ function bindStatisticsEvents() {
         if (action === 'toggle-diagram-info') {
             event.preventDefault();
             event.stopPropagation();
-            if (typeof window.toggleStatsScoreDiagramExplanation === 'function') {
-                window.toggleStatsScoreDiagramExplanation();
+            if (typeof window.toggleStatsDiagramInfo === 'function') {
+                window.toggleStatsDiagramInfo(actionEl.dataset.diagramInfo || 'main');
             }
             return;
         }
@@ -2949,6 +2949,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsScoreDiagramMode = window.statsScoreDiagramMode || 'total';
         window.statsScoreDiagramKind = window.statsScoreDiagramKind || 'tropp';
         window.statsScoreDiagramExplanationOpen = window.statsScoreDiagramExplanationOpen || false;
+        window.statsDiagramInfoOpen = window.statsDiagramInfoOpen || {
+            main: window.statsScoreDiagramExplanationOpen === true,
+            form: false,
+            pair: false
+        };
         window.STATS_SCORE_DIAGRAM_KINDS = [
             { id: 'tropp', label: 'Tropp' },
             { id: 'tillit', label: 'Tillit' },
@@ -2967,71 +2972,146 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle');
         };
 
-        window.renderTeamScoreDiagramExplanationHtml = function() {
+        window.isStatsDiagramInfoOpen = function(which) {
+            const key = which === 'form' || which === 'pair' ? which : 'main';
+            return window.statsDiagramInfoOpen?.[key] === true;
+        };
+
+        window.renderStatsDiagramExplanationHtml = function(which) {
             const isTotal = (window.statsScoreDiagramMode || 'total') !== 'five';
             const kind = window.getStatsScoreDiagramKind();
+            if (which === 'form') {
+                return `
+                    <p class="training-session-groups-info-title">Formkart</p>
+                    <ul class="training-session-groups-info-list">
+                        <li>Høyre er kampbidrag gjennom sesongen. Opp er kampbidrag nå (siste 5 kamper).</li>
+                        <li>Den gule diagonalen er «som vanlig». Over den er i form. Under den er på vei ned.</li>
+                        <li>Grønn boble er over egen sesong. Rød boble er under. Trykk på en boble for navn.</li>
+                    </ul>
+                `;
+            }
+            if (which === 'pair') {
+                return `
+                    <p class="training-session-groups-info-title">Parduet</p>
+                    <ul class="training-session-groups-info-list">
+                        <li>Hver boble er et par, ikke en spiller. Høyre er mange kamper på banen sammen. Opp er høyt samspill.</li>
+                        <li>Viser de 24 sterkeste parene med minst 4 kamper sammen.</li>
+                        <li>Trykk på en boble for navnene. Oppe til venstre er kjemi uten så mange felles kamper. Oppe til høyre er etablerte par.</li>
+                    </ul>
+                `;
+            }
             const kindCopy = {
                 tropp: isTotal ? `
-                    <li><strong>Troppkart · Sesong:</strong> Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
-                    <li>Boblen viser Total Score. Trykk på en boble for navn og score. Gul ring / tall betyr flere på samme sted.</li>
+                    <li><strong>Troppkart · Sesong:</strong> Høyre er høyt kampbidrag. Opp er høy snittbørs.</li>
+                    <li>Oppe til høyre leverer. Boblen viser Total Score. Trykk på en boble for navn. Gul ring / tall betyr flere på samme sted.</li>
                 ` : `
-                    <li><strong>Troppkart · Nå:</strong> Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
-                    <li>Grønn boble er over egen sesongscore, rød boble er under.</li>
+                    <li><strong>Troppkart · Nå:</strong> Høyre er kampbidrag i de siste 5 kampene. Opp er snittbørs i samme periode.</li>
+                    <li>Grønn boble er over egen sesongscore. Rød boble er under. Trykk på en boble for navn.</li>
                 `,
                 tillit: isTotal ? `
-                    <li><strong>Tillitskart · Sesong:</strong> Spillere langt til høyre får mye spilletid. Spillere høyt oppe har høy snittbørs.</li>
-                    <li>Oppe til høyre er kjernen. Oppe til venstre er kvalitet som sitter. Nede til høyre er overbrukt.</li>
+                    <li><strong>Tillitskart · Sesong:</strong> Høyre er mye spilletid. Opp er høy snittbørs.</li>
+                    <li>Oppe til høyre er kjernen. Oppe til venstre er kvalitet som sitter. Nede til høyre er overbrukt. Trykk på en boble for minuttandel.</li>
                 ` : `
                     <li><strong>Tillitskart · Nå:</strong> Minuttandel i de siste 5 lagkampene med spilletid, også kamper de ikke spilte.</li>
-                    <li>Grønn boble får mer spilletid enn egen sesongandel. Rød boble får mindre.</li>
+                    <li>Grønn boble får mer spilletid enn egen sesong. Rød boble får mindre. Trykk på en boble for minuttandel.</li>
                 `,
                 produksjon: isTotal ? `
-                    <li><strong>Produksjonskart · Sesong:</strong> Spillere langt til høyre får mye spilletid. Spillere høyt oppe har høy mål+assist per kamp.</li>
-                    <li>Boblen viser Total Score. Trykk på en boble for navn og produksjon.</li>
+                    <li><strong>Produksjonskart · Sesong:</strong> Høyre er mye spilletid. Opp er høy mål+assist per kamp.</li>
+                    <li>Oppe til venstre scorer uten så mange minutter. Nede til høyre spiller mye uten å skape. Trykk på en boble for produksjon.</li>
                 ` : `
                     <li><strong>Produksjonskart · Nå:</strong> Minuttandel og mål+assist per kamp i de siste 5.</li>
-                    <li>Grønn boble produserer mer enn egen sesong. Rød boble produserer mindre.</li>
+                    <li>Grønn boble produserer mer enn egen sesong. Rød boble produserer mindre. Trykk på en boble for produksjon.</li>
                 `,
                 trening: isTotal ? `
-                    <li><strong>Treningskart · Sesong:</strong> Spillere langt til høyre har høyt treningsoppmøte. Spillere høyt oppe har høyt kampbidrag.</li>
-                    <li>Høyt oppmøte og lavt bidrag er en samtale. Lavt oppmøte og høyt bidrag er en annen.</li>
+                    <li><strong>Treningskart · Sesong:</strong> Høyre er høyt treningsoppmøte. Opp er høyt kampbidrag.</li>
+                    <li>Høyt oppmøte og lavt bidrag er en samtale. Lavt oppmøte og høyt bidrag er en annen. Trykk på en boble for oppmøte.</li>
                 ` : `
                     <li><strong>Treningskart · Nå:</strong> Oppmøte på de siste 5 treningene mot kampbidrag i de siste 5 kampene.</li>
-                    <li>Grønn boble trener mer enn egen sesongandel. Rød boble trener mindre.</li>
+                    <li>Grønn boble trener mer enn egen sesong. Rød boble trener mindre. Trykk på en boble for oppmøte.</li>
                 `
             };
+            const titles = {
+                tropp: 'Troppkart',
+                tillit: 'Tillitskart',
+                produksjon: 'Produksjonskart',
+                trening: 'Treningskart'
+            };
             return `
-                <p class="training-session-groups-info-title">Lesing av diagrammene</p>
+                <p class="training-session-groups-info-title">${titles[kind] || 'Troppkart'}</p>
                 <ul class="training-session-groups-info-list">
                     ${kindCopy[kind] || kindCopy.tropp}
-                    <li><strong>Formkart:</strong> Sesong til høyre, nå opp. Over den gule diagonalen er i form.</li>
-                    <li><strong>Parduet:</strong> Par, ikke enkeltspillere. Viser de 24 sterkeste parene med minst 4 kamper på banen sammen. Høyre er mange kamper, oppe er høyt samspill.</li>
                 </ul>
             `;
         };
 
+        window.renderStatsDiagramInfoButtonHtml = function(which) {
+            const key = which === 'form' || which === 'pair' ? which : 'main';
+            const open = window.isStatsDiagramInfoOpen(key);
+            const panelId = `stats-diagram-info-${key}`;
+            return `
+                <button
+                    type="button"
+                    class="training-session-groups-info-btn team-score-diagram-info-btn${open ? ' is-active' : ''}"
+                    data-stat-action="toggle-diagram-info"
+                    data-diagram-info="${key}"
+                    aria-expanded="${open ? 'true' : 'false'}"
+                    aria-controls="${panelId}"
+                    title="Diagramforklaring"
+                    aria-label="Diagramforklaring"
+                >
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                </button>
+            `;
+        };
+
+        window.renderStatsDiagramInfoPanelHtml = function(which) {
+            const key = which === 'form' || which === 'pair' ? which : 'main';
+            const open = window.isStatsDiagramInfoOpen(key);
+            return `
+                <div
+                    id="stats-diagram-info-${key}"
+                    class="training-session-groups-info team-score-diagram-info${open ? '' : ' is-hidden'}"
+                    ${open ? '' : 'hidden'}
+                >
+                    ${window.renderStatsDiagramExplanationHtml(key)}
+                </div>
+            `;
+        };
+
+        window.toggleStatsDiagramInfo = function(which) {
+            const key = which === 'form' || which === 'pair' ? which : 'main';
+            window.statsDiagramInfoOpen = window.statsDiagramInfoOpen || { main: false, form: false, pair: false };
+            window.statsDiagramInfoOpen[key] = !window.isStatsDiagramInfoOpen(key);
+            window.statsScoreDiagramExplanationOpen = window.statsDiagramInfoOpen.main === true;
+            const wraps = {
+                main: ['team-score-diagram-wrap', window.renderTeamScoreDiagramHtml],
+                form: ['stats-formkart-wrap', window.renderStatsFormDiagramHtml],
+                pair: ['stats-parduet-wrap', window.renderStatsPairDiagramHtml]
+            };
+            const [wrapId, renderFn] = wraps[key] || wraps.main;
+            const wrap = document.getElementById(wrapId);
+            if (wrap && typeof renderFn === 'function') wrap.innerHTML = renderFn();
+        };
+
+        window.renderTeamScoreDiagramExplanationHtml = function() {
+            return window.renderStatsDiagramExplanationHtml('main');
+        };
+
         window.syncStatsScoreDiagramExplanationUi = function() {
-            const open = window.statsScoreDiagramExplanationOpen === true;
-            const panel = document.getElementById('stats-diagram-info');
-            if (panel) {
-                panel.classList.toggle('is-hidden', !open);
-                if (open) panel.removeAttribute('hidden');
-                else panel.setAttribute('hidden', '');
-                panel.innerHTML = window.renderTeamScoreDiagramExplanationHtml();
+            const wrap = document.getElementById('team-score-diagram-wrap');
+            if (wrap && typeof window.renderTeamScoreDiagramHtml === 'function') {
+                wrap.innerHTML = window.renderTeamScoreDiagramHtml();
             }
-            document.querySelectorAll('[data-stat-action="toggle-diagram-info"]').forEach(btn => {
-                btn.classList.toggle('is-active', open);
-                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-            });
+        };
+
+        window.toggleStatsScoreDiagramExplanation = function() {
+            window.toggleStatsDiagramInfo('main');
         };
 
         window.setStatsScoreDiagramMode = function(mode) {
             window.statsScoreDiagramMode = mode === 'five' ? 'five' : 'total';
             const container = document.getElementById('team-score-diagram-wrap');
             if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
-            if (window.statsScoreDiagramExplanationOpen) {
-                window.syncStatsScoreDiagramExplanationUi();
-            }
         };
 
         window.setStatsScoreDiagramKind = function(kind) {
@@ -3039,14 +3119,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             window.statsScoreDiagramKind = ids.includes(kind) ? kind : 'tropp';
             const container = document.getElementById('team-score-diagram-wrap');
             if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
-            if (window.statsScoreDiagramExplanationOpen) {
-                window.syncStatsScoreDiagramExplanationUi();
-            }
-        };
-
-        window.toggleStatsScoreDiagramExplanation = function() {
-            window.statsScoreDiagramExplanationOpen = !window.statsScoreDiagramExplanationOpen;
-            window.syncStatsScoreDiagramExplanationUi();
         };
 
         window.setStatsDiagramPointTooltip = function(point, isActive) {
@@ -3565,15 +3637,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const kinds = window.STATS_SCORE_DIAGRAM_KINDS || [];
             return `
                 <div class="team-score-diagram-topbar">
-                    <div class="team-score-diagram-tabs" role="tablist" aria-label="Diagram">
-                        ${kinds.map(kind => `
-                            <button type="button" onclick="window.setStatsScoreDiagramKind('${kind.id}')" class="team-score-diagram-tab ${activeKind === kind.id ? 'is-active' : ''}" aria-selected="${activeKind === kind.id ? 'true' : 'false'}">${kind.label}</button>
-                        `).join('')}
+                    <div class="team-score-diagram-topbar-main">
+                        <div class="team-score-diagram-tabs" role="tablist" aria-label="Diagram">
+                            ${kinds.map(kind => `
+                                <button type="button" onclick="window.setStatsScoreDiagramKind('${kind.id}')" class="team-score-diagram-tab ${activeKind === kind.id ? 'is-active' : ''}" aria-selected="${activeKind === kind.id ? 'true' : 'false'}">${kind.label}</button>
+                            `).join('')}
+                        </div>
+                        <div class="team-score-diagram-tabs" role="tablist" aria-label="Periode">
+                            <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}" aria-selected="${isTotal ? 'true' : 'false'}">Sesong</button>
+                            <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}" aria-selected="${!isTotal ? 'true' : 'false'}">Nå</button>
+                        </div>
                     </div>
-                    <div class="team-score-diagram-tabs" role="tablist" aria-label="Periode">
-                        <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}" aria-selected="${isTotal ? 'true' : 'false'}">Sesong</button>
-                        <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}" aria-selected="${!isTotal ? 'true' : 'false'}">Nå</button>
-                    </div>
+                    ${window.renderStatsDiagramInfoButtonHtml('main')}
                 </div>
             `;
         };
@@ -3581,11 +3656,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsScatterDiagramCardHtml = function(config) {
             const rows = Array.isArray(config.rows) ? config.rows : [];
             const topbarHtml = config.topbarHtml || '';
+            const infoPanelHtml = config.infoPanelHtml || '';
             const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
             if (!rows.length) {
                 return `
                     <div class="team-score-diagram-card">
                         ${topbarHtml}
+                        ${infoPanelHtml}
                         <p class="team-score-diagram-empty">${config.emptyMessage || 'Ingen spillere å vise.'}</p>
                     </div>
                 `;
@@ -3686,6 +3763,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return `
                 <div class="team-score-diagram-card">
                     ${topbarHtml}
+                    ${infoPanelHtml}
                     <div class="team-score-diagram-scroll">
                         <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(config.ariaLabel || 'Diagram')}" class="team-score-diagram-svg">
                             <rect x="0" y="0" width="${width}" height="${height}" class="team-score-diagram-bg"></rect>
@@ -3825,6 +3903,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             return window.renderStatsScatterDiagramCardHtml({
                 topbarHtml: window.renderTeamScoreDiagramTopbarHtml(isTotal, kind),
+                infoPanelHtml: window.renderStatsDiagramInfoPanelHtml('main'),
                 rows: rowsByKind[kind] || [],
                 emptyMessage: plot.emptyMessage,
                 ariaLabel: `${plot.kindLabel} ${isTotal ? 'Sesong' : 'Nå'}`,
@@ -3837,7 +3916,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
             const grid = isCompact ? [8, 12, 16, 20, 24, 28] : [8, 12, 16, 20, 24, 28];
             return window.renderStatsScatterDiagramCardHtml({
-                topbarHtml: `<div class="team-score-diagram-topbar"><p class="team-score-diagram-card-title">Formkart</p></div>`,
+                topbarHtml: `
+                    <div class="team-score-diagram-topbar">
+                        <p class="team-score-diagram-card-title">Formkart</p>
+                        ${window.renderStatsDiagramInfoButtonHtml('form')}
+                    </div>
+                `,
+                infoPanelHtml: window.renderStatsDiagramInfoPanelHtml('form'),
                 rows: window.buildStatsFormDiagramData(),
                 emptyMessage: 'Mangler form å vise.',
                 ariaLabel: 'Formkart sesong mot nå',
@@ -3866,7 +3951,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsPairDiagramHtml = function() {
             const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
             return window.renderStatsScatterDiagramCardHtml({
-                topbarHtml: `<div class="team-score-diagram-topbar"><p class="team-score-diagram-card-title">Parduet</p></div>`,
+                topbarHtml: `
+                    <div class="team-score-diagram-topbar">
+                        <p class="team-score-diagram-card-title">Parduet</p>
+                        ${window.renderStatsDiagramInfoButtonHtml('pair')}
+                    </div>
+                `,
+                infoPanelHtml: window.renderStatsDiagramInfoPanelHtml('pair'),
                 rows: window.buildStatsPairDiagramData(),
                 emptyMessage: 'Mangler par å vise.',
                 ariaLabel: 'Parduet kamper sammen og samspill',
@@ -4583,34 +4674,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderStatsUtviklingPanelHtml = function() {
-            const diagramInfoOpen = window.statsScoreDiagramExplanationOpen === true;
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerutvikling',
                 title: 'Diagrammer',
                 showLabel: 'Vis diagrammer',
                 hideLabel: 'Skjul diagrammer',
-                headerActionsHtml: `
-                    <button
-                        type="button"
-                        class="training-session-groups-info-btn${diagramInfoOpen ? ' is-active' : ''}"
-                        data-stat-action="toggle-diagram-info"
-                        aria-expanded="${diagramInfoOpen ? 'true' : 'false'}"
-                        aria-controls="stats-diagram-info"
-                        title="Diagramforklaring"
-                        aria-label="Diagramforklaring"
-                    >
-                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    </button>
-                `,
-                infoPanelHtml: `
-                    <div
-                        id="stats-diagram-info"
-                        class="training-session-groups-info${diagramInfoOpen ? '' : ' is-hidden'}"
-                        ${diagramInfoOpen ? '' : 'hidden'}
-                    >
-                        ${window.renderTeamScoreDiagramExplanationHtml()}
-                    </div>
-                `,
                 content: `
                     <div class="stats-diagram-stack">
                         <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">

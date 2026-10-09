@@ -9171,12 +9171,31 @@
             padding: 0.85rem;
         }
         .team-score-diagram-topbar {
+            align-items: start;
+            display: grid;
+            gap: 0.35rem;
+            grid-template-columns: 2.1rem minmax(0, 1fr) 2.1rem;
+            margin-bottom: 0.5rem;
+        }
+        .team-score-diagram-topbar-main {
             align-items: center;
             display: flex;
             flex-direction: column;
             gap: 0.45rem;
-            justify-content: center;
-            margin-bottom: 0.5rem;
+            grid-column: 2;
+        }
+        .team-score-diagram-card-title {
+            align-self: center;
+            grid-column: 2;
+            justify-self: center;
+        }
+        .team-score-diagram-topbar .team-score-diagram-info-btn {
+            grid-column: 3;
+            grid-row: 1;
+            margin-left: 0;
+        }
+        .team-score-diagram-info {
+            margin: 0 0 0.75rem;
         }
         .team-score-diagram-empty {
             color: #123f73;
