@@ -9189,6 +9189,9 @@
             grid-column: 2;
             justify-self: center;
         }
+        .team-score-diagram-topbar-main .team-score-diagram-card-title {
+            grid-column: auto;
+        }
         .team-score-diagram-topbar .team-score-diagram-info-btn {
             grid-column: 3;
             grid-row: 1;
