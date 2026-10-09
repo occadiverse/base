@@ -7907,6 +7907,13 @@
         :is(.stats-board-card, .stats-page-slot) .stats-table-body {
             color: rgba(255, 255, 255, 0.72);
         }
+        :is(.stats-board-card, .stats-page-slot) .team-score-diagram-empty,
+        :is(.stats-board-card, .stats-page-slot) .team-score-diagram-card-title {
+            color: rgba(255, 255, 255, 0.68);
+        }
+        :is(.stats-board-card, .stats-page-slot) .team-score-diagram-card-title {
+            color: #f5c542;
+        }
         :is(.stats-board-card, .stats-page-slot) .team-score-diagram-tab {
             background: rgba(7, 31, 56, 0.46);
             border-color: rgba(255, 255, 255, 0.12);
@@ -9139,7 +9146,21 @@
             text-align: center;
         }
         .team-score-diagram-wrap {
+            margin-top: 0;
+        }
+        .stats-diagram-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
             margin-top: 1rem;
+        }
+        .team-score-diagram-card-title {
+            color: #123f73;
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            margin: 0;
+            text-transform: uppercase;
         }
         .team-score-diagram-card {
             background:
@@ -9152,12 +9173,22 @@
         .team-score-diagram-topbar {
             align-items: center;
             display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
             justify-content: center;
             margin-bottom: 0.5rem;
         }
+        .team-score-diagram-empty {
+            color: #123f73;
+            font-size: 0.85rem;
+            font-weight: 800;
+            margin: 0.75rem 0 0.25rem;
+            text-align: center;
+        }
         .team-score-diagram-tabs {
-            display: inline-flex;
-            gap: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
             justify-content: center;
         }
         .team-score-diagram-tab {
@@ -9167,11 +9198,11 @@
             border-radius: 999px;
             color: #123f73;
             cursor: pointer;
-            font-size: 0.68rem;
+            font-size: 0.62rem;
             font-weight: 950;
             letter-spacing: 0.06em;
             line-height: 1;
-            padding: 0.52rem 0.9rem;
+            padding: 0.48rem 0.72rem;
             text-transform: uppercase;
             transition: background 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
             white-space: nowrap;

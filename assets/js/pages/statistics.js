@@ -2947,22 +2947,65 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.statsScoreDiagramMode = window.statsScoreDiagramMode || 'total';
+        window.statsScoreDiagramKind = window.statsScoreDiagramKind || 'tropp';
         window.statsScoreDiagramExplanationOpen = window.statsScoreDiagramExplanationOpen || false;
+        window.STATS_SCORE_DIAGRAM_KINDS = [
+            { id: 'tropp', label: 'Tropp' },
+            { id: 'tillit', label: 'Tillit' },
+            { id: 'produksjon', label: 'Produksjon' },
+            { id: 'trening', label: 'Trening' }
+        ];
+
+        window.getStatsScoreDiagramKind = function() {
+            const ids = (window.STATS_SCORE_DIAGRAM_KINDS || []).map(kind => kind.id);
+            return ids.includes(window.statsScoreDiagramKind) ? window.statsScoreDiagramKind : 'tropp';
+        };
+
+        window.getStatsDiagramYearFilter = function() {
+            return typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle');
+        };
 
         window.renderTeamScoreDiagramExplanationHtml = function() {
             const isTotal = (window.statsScoreDiagramMode || 'total') !== 'five';
+            const kind = window.getStatsScoreDiagramKind();
+            const kindCopy = {
+                tropp: isTotal ? `
+                    <li><strong>Troppkart · Sesong:</strong> Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
+                    <li>Boblen viser Total Score. Trykk på en boble for navn og score. Gul ring / tall betyr flere på samme sted.</li>
+                ` : `
+                    <li><strong>Troppkart · Nå:</strong> Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
+                    <li>Grønn boble er over egen sesongscore, rød boble er under.</li>
+                `,
+                tillit: isTotal ? `
+                    <li><strong>Tillitskart · Sesong:</strong> Spillere langt til høyre får mye spilletid. Spillere høyt oppe har høy snittbørs.</li>
+                    <li>Oppe til høyre er kjernen. Oppe til venstre er kvalitet som sitter. Nede til høyre er overbrukt.</li>
+                ` : `
+                    <li><strong>Tillitskart · Nå:</strong> Minuttandel i de siste 5 lagkampene med spilletid, også kamper de ikke spilte.</li>
+                    <li>Grønn boble får mer spilletid enn egen sesongandel. Rød boble får mindre.</li>
+                `,
+                produksjon: isTotal ? `
+                    <li><strong>Produksjonskart · Sesong:</strong> Spillere langt til høyre får mye spilletid. Spillere høyt oppe har høy mål+assist per kamp.</li>
+                    <li>Boblen viser Total Score. Trykk på en boble for navn og produksjon.</li>
+                ` : `
+                    <li><strong>Produksjonskart · Nå:</strong> Minuttandel og mål+assist per kamp i de siste 5.</li>
+                    <li>Grønn boble produserer mer enn egen sesong. Rød boble produserer mindre.</li>
+                `,
+                trening: isTotal ? `
+                    <li><strong>Treningskart · Sesong:</strong> Spillere langt til høyre har høyt treningsoppmøte. Spillere høyt oppe har høyt kampbidrag.</li>
+                    <li>Høyt oppmøte og lavt bidrag er en samtale. Lavt oppmøte og høyt bidrag er en annen.</li>
+                ` : `
+                    <li><strong>Treningskart · Nå:</strong> Oppmøte på de siste 5 treningene mot kampbidrag i de siste 5 kampene.</li>
+                    <li>Grønn boble trener mer enn egen sesongandel. Rød boble trener mindre.</li>
+                `
+            };
             return `
-                <p class="training-session-groups-info-title">Lesing av diagrammet</p>
+                <p class="training-session-groups-info-title">Lesing av diagrammene</p>
                 <ul class="training-session-groups-info-list">
-                    ${isTotal ? `
-                        <li><strong>Sesong:</strong> Spillere langt til høyre har høyt kampbidrag. Spillere høyt oppe har høy snittbørs.</li>
-                        <li>Boblen viser Total Score (beste sesong) — kampbidrag (inkl. spilletidstillegg), børs, oppmøte og disiplin.</li>
-                        <li>Trykk på en boble for navn og score. Gul ring / tall betyr flere spillere på samme sted — da listes alle.</li>
-                    ` : `
-                        <li><strong>Nå:</strong> Spillere langt til høyre har høyt kampbidrag i de siste 5 kampene. Spillere høyt oppe har høy snittbørs i samme periode.</li>
-                        <li>Boblen viser nylig score vs egen Total Score. Grønn boble er over egen sesongscore, rød boble er under.</li>
-                        <li>Trykk på en boble for alle navn hvis flere ligger oppå hverandre. Form (Beste nå) er egen 0–100-score.</li>
-                    `}
+                    ${kindCopy[kind] || kindCopy.tropp}
+                    <li><strong>Formkart:</strong> Sesong til høyre, nå opp. Over den gule diagonalen er i form.</li>
+                    <li><strong>Parduet:</strong> Par, ikke enkeltspillere. Viser de 24 sterkeste parene med minst 4 kamper på banen sammen. Høyre er mange kamper, oppe er høyt samspill.</li>
                 </ul>
             `;
         };
@@ -2984,6 +3027,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.setStatsScoreDiagramMode = function(mode) {
             window.statsScoreDiagramMode = mode === 'five' ? 'five' : 'total';
+            const container = document.getElementById('team-score-diagram-wrap');
+            if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
+            if (window.statsScoreDiagramExplanationOpen) {
+                window.syncStatsScoreDiagramExplanationUi();
+            }
+        };
+
+        window.setStatsScoreDiagramKind = function(kind) {
+            const ids = (window.STATS_SCORE_DIAGRAM_KINDS || []).map(item => item.id);
+            window.statsScoreDiagramKind = ids.includes(kind) ? kind : 'tropp';
             const container = document.getElementById('team-score-diagram-wrap');
             if (container) container.innerHTML = window.renderTeamScoreDiagramHtml();
             if (window.statsScoreDiagramExplanationOpen) {
@@ -3022,6 +3075,48 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 .join('');
         };
 
+        window.getStatsDiagramRecentPlayerWindow = function(player, yearFilter) {
+            const teamName = player?.spillerLag;
+            const matches = window.activeMatches || [];
+            const playerMatches = matches
+                .filter(match => (
+                    match.matchGroup === teamName &&
+                    (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
+                    match.attendance &&
+                    window.isPlayerAttending(match.attendance, player) &&
+                    (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter))
+                ))
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                .slice(0, 5);
+            const teamMatches = matches
+                .filter(match => (
+                    match.matchGroup === teamName &&
+                    (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
+                    (typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, match)) &&
+                    (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter))
+                ))
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                .slice(0, 5);
+            return { playerMatches, teamMatches };
+        };
+
+        window.getStatsDiagramRecentSnittBors = function(player, playerMatches) {
+            let ratingSum = 0;
+            let ratingCount = 0;
+            (playerMatches || []).forEach(match => {
+                const onPitch = typeof window.isPlayerOnPitch === 'function'
+                    ? window.isPlayerOnPitch(match, player)
+                    : true;
+                if (!onPitch) return;
+                const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0)) || 0;
+                if (rating > 0) {
+                    ratingSum += rating;
+                    ratingCount += 1;
+                }
+            });
+            return ratingCount > 0 ? ratingSum / ratingCount : 0;
+        };
+
         window.buildStatsTotalScoreDiagramData = function() {
             const playerByName = new Map((window.activePlayers || []).map(player => [player.navn, player]));
             const rows = typeof window.buildPlayerStatsData === 'function'
@@ -3054,29 +3149,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const totalRows = window.buildStatsTotalScoreDiagramData();
             const totalByName = new Map(totalRows.map(row => [row.name, row.totalScore]));
             const rows = scopedPlayers.map(player => {
-                const teamName = player.spillerLag;
-                const playerMatches = (window.activeMatches || [])
-                    .filter(match => (
-                        match.matchGroup === teamName &&
-                        (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
-                        match.attendance &&
-                        window.isPlayerAttending(match.attendance, player) &&
-                        (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter))
-                    ))
-                    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
-                    .slice(0, 5);
-
+                const { playerMatches, teamMatches } = window.getStatsDiagramRecentPlayerWindow(player, yearFilter);
                 if (!playerMatches.length) return null;
-
-                const teamMatches = (window.activeMatches || [])
-                    .filter(match => (
-                        match.matchGroup === teamName &&
-                        (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
-                        (typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, match)) &&
-                        (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter))
-                    ))
-                    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
-                    .slice(0, 5);
 
                 const matchPoints = playerMatches.reduce((sum, match) => {
                     return sum + (typeof window.calculatePlayerMatchPoints === 'function'
@@ -3084,22 +3158,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         : 0);
                 }, 0);
                 const recentKampbidrag = matchPoints / playerMatches.length;
-
-                let ratingSum = 0;
-                let ratingCount = 0;
-                playerMatches.forEach(match => {
-                    const onPitch = typeof window.isPlayerOnPitch === 'function'
-                        ? window.isPlayerOnPitch(match, player)
-                        : true;
-                    if (!onPitch) return;
-
-                    const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0)) || 0;
-                    if (rating > 0) {
-                        ratingSum += rating;
-                        ratingCount++;
-                    }
-                });
-                const recentSnittBors = ratingCount > 0 ? ratingSum / ratingCount : 0;
+                const recentSnittBors = window.getStatsDiagramRecentSnittBors(player, playerMatches);
 
                 const recentOppmote = teamMatches.length > 0
                     ? Math.round((teamMatches.filter(match => window.isPlayerAttending(match.attendance, player)).length / teamMatches.length) * 100)
@@ -3132,6 +3191,341 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                 return { ...row, score };
             });
+        };
+
+        window.buildStatsTillitTotalDiagramData = function() {
+            const playerByName = new Map((window.activePlayers || []).map(player => [player.navn, player]));
+            const rows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true })
+                : [];
+
+            return rows
+                .filter(stat => {
+                    const player = playerByName.get(stat.navn);
+                    return stat.attendedMatches > 0
+                        && (Number(stat.minutesPossible) || 0) > 0
+                        && stat.minutesSharePct != null
+                        && (Number(stat.snittBors) || 0) > 0
+                        && player?.status !== 'Passiv';
+                })
+                .map(stat => {
+                    const minutesSharePct = Math.max(0, Math.min(100, Number(stat.minutesSharePct) || 0));
+                    return {
+                        name: stat.navn,
+                        x: minutesSharePct,
+                        y: Number(stat.snittBors) || 0,
+                        score: Number(stat.totalScore) || 0,
+                        totalScore: Number(stat.totalScore) || 0,
+                        seasonX: minutesSharePct
+                    };
+                });
+        };
+
+        window.buildStatsTillitFiveDiagramData = function() {
+            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
+            const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle');
+            const scopedPlayers = (window.activePlayers || [])
+                .filter(player => player.status !== 'Passiv')
+                .filter(player => filterLag === 'Alle' || player.spillerLag === filterLag);
+            const seasonByName = new Map(
+                (window.buildStatsTillitTotalDiagramData() || []).map(row => [row.name, row])
+            );
+
+            return scopedPlayers.map(player => {
+                const teamName = player.spillerLag;
+                const recentTrackedMatches = (window.activeMatches || [])
+                    .filter(match => (
+                        match.matchGroup === teamName &&
+                        (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
+                        (typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, match)) &&
+                        (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter)) &&
+                        typeof window.matchHasMinutesTracking === 'function' &&
+                        window.matchHasMinutesTracking(match)
+                    ))
+                    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                    .slice(0, 5);
+                if (!recentTrackedMatches.length) return null;
+
+                let minutesTotal = 0;
+                let minutesPossible = 0;
+                recentTrackedMatches.forEach(match => {
+                    minutesPossible += typeof window.getMatchDurationForMinutesShare === 'function'
+                        ? window.getMatchDurationForMinutesShare(match)
+                        : 90;
+                    if (match.attendance && window.isPlayerAttending(match.attendance, player)) {
+                        minutesTotal += typeof window.getPlayerMatchMinutesForStats === 'function'
+                            ? window.getPlayerMatchMinutesForStats(match, player)
+                            : 0;
+                    }
+                });
+                if (!(minutesPossible > 0)) return null;
+
+                const playedMatches = recentTrackedMatches.filter(match => (
+                    match.attendance && window.isPlayerAttending(match.attendance, player)
+                ));
+                const recentSnittBors = window.getStatsDiagramRecentSnittBors(player, playedMatches);
+                const seasonRow = seasonByName.get(player.navn);
+                const y = recentSnittBors > 0 ? recentSnittBors : (Number(seasonRow?.y) || 0);
+                if (!(y > 0)) return null;
+
+                const minutesSharePct = Math.max(0, Math.min(100, (minutesTotal / minutesPossible) * 100));
+                return {
+                    name: player.navn,
+                    x: minutesSharePct,
+                    y,
+                    score: minutesSharePct,
+                    totalScore: seasonRow?.totalScore || 0,
+                    seasonX: seasonRow ? seasonRow.x : minutesSharePct
+                };
+            }).filter(Boolean);
+        };
+
+        window.getStatsDiagramScopedPlayers = function() {
+            const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
+            return (window.activePlayers || [])
+                .filter(player => player.status !== 'Passiv')
+                .filter(player => filterLag === 'Alle' || player.spillerLag === filterLag);
+        };
+
+        window.getStatsDiagramRecentTrainings = function(player, yearFilter) {
+            const events = (window.activeEvents || [])
+                .filter(event => {
+                    if (event.type !== 'Trening') return false;
+                    if ((event.team || event.matchGroup) !== player.spillerLag) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
+                    if (typeof window.hasRegisteredAttendance === 'function'
+                        ? !window.hasRegisteredAttendance(event.attendance)
+                        : !event.attendance) return false;
+                    if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, event)) return false;
+                    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(event, yearFilter)) return false;
+                    return true;
+                })
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                .slice(0, 5);
+            const attended = events.filter(event => window.isPlayerAttending(event.attendance, player)).length;
+            return {
+                possible: events.length,
+                attended,
+                pct: events.length > 0 ? Math.round((attended / events.length) * 100) : null
+            };
+        };
+
+        window.buildStatsProduksjonTotalDiagramData = function() {
+            const playerByName = new Map((window.activePlayers || []).map(player => [player.navn, player]));
+            const rows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true })
+                : [];
+
+            return rows
+                .filter(stat => {
+                    const player = playerByName.get(stat.navn);
+                    return stat.attendedMatches > 0
+                        && (Number(stat.kamper) || 0) > 0
+                        && (Number(stat.minutesPossible) || 0) > 0
+                        && stat.minutesSharePct != null
+                        && player?.status !== 'Passiv';
+                })
+                .map(stat => {
+                    const minutesSharePct = Math.max(0, Math.min(100, Number(stat.minutesSharePct) || 0));
+                    const production = Number(stat.expectedMalpoeng) || 0;
+                    return {
+                        name: stat.navn,
+                        x: minutesSharePct,
+                        y: production,
+                        score: Number(stat.totalScore) || 0,
+                        totalScore: Number(stat.totalScore) || 0,
+                        seasonX: minutesSharePct,
+                        seasonY: production
+                    };
+                });
+        };
+
+        window.buildStatsProduksjonFiveDiagramData = function() {
+            const yearFilter = window.getStatsDiagramYearFilter();
+            const seasonByName = new Map(
+                (window.buildStatsProduksjonTotalDiagramData() || []).map(row => [row.name, row])
+            );
+
+            return window.getStatsDiagramScopedPlayers().map(player => {
+                const { playerMatches } = window.getStatsDiagramRecentPlayerWindow(player, yearFilter);
+                const pitchMatches = (playerMatches || []).filter(match => (
+                    typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(match, player)
+                ));
+                if (!pitchMatches.length) return null;
+
+                const recentTrackedMatches = (window.activeMatches || [])
+                    .filter(match => (
+                        match.matchGroup === player.spillerLag &&
+                        (!window.isHistoricalActivity || window.isHistoricalActivity(match)) &&
+                        (typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, match)) &&
+                        (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter)) &&
+                        typeof window.matchHasMinutesTracking === 'function' &&
+                        window.matchHasMinutesTracking(match)
+                    ))
+                    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                    .slice(0, 5);
+
+                let minutesTotal = 0;
+                let minutesPossible = 0;
+                recentTrackedMatches.forEach(match => {
+                    minutesPossible += typeof window.getMatchDurationForMinutesShare === 'function'
+                        ? window.getMatchDurationForMinutesShare(match)
+                        : 90;
+                    if (match.attendance && window.isPlayerAttending(match.attendance, player)) {
+                        minutesTotal += typeof window.getPlayerMatchMinutesForStats === 'function'
+                            ? window.getPlayerMatchMinutesForStats(match, player)
+                            : 0;
+                    }
+                });
+                if (!(minutesPossible > 0)) return null;
+
+                let goals = 0;
+                let assists = 0;
+                pitchMatches.forEach(match => {
+                    goals += Number(window.getPlayerRefMapValue(match.scorers, player, 0)) || 0;
+                    assists += Number(window.getPlayerRefMapValue(match.assists, player, 0)) || 0;
+                });
+                const production = (goals + assists) / pitchMatches.length;
+                const minutesSharePct = Math.max(0, Math.min(100, (minutesTotal / minutesPossible) * 100));
+                const seasonRow = seasonByName.get(player.navn);
+                return {
+                    name: player.navn,
+                    x: minutesSharePct,
+                    y: production,
+                    score: minutesSharePct,
+                    totalScore: seasonRow?.totalScore || 0,
+                    seasonX: seasonRow ? seasonRow.x : minutesSharePct,
+                    seasonY: seasonRow ? seasonRow.y : production
+                };
+            }).filter(Boolean);
+        };
+
+        window.buildStatsTreningTotalDiagramData = function() {
+            const playerByName = new Map((window.activePlayers || []).map(player => [player.navn, player]));
+            const rows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true })
+                : [];
+
+            return rows
+                .filter(stat => {
+                    const player = playerByName.get(stat.navn);
+                    return stat.attendedMatches > 0
+                        && (Number(stat.oppmotePossible) || 0) > 0
+                        && player?.status !== 'Passiv';
+                })
+                .map(stat => ({
+                    name: stat.navn,
+                    x: Math.max(0, Math.min(100, Number(stat.oppmotePct) || 0)),
+                    y: Number(stat.kampbonus) || 0,
+                    score: Number(stat.totalScore) || 0,
+                    totalScore: Number(stat.totalScore) || 0,
+                    seasonX: Math.max(0, Math.min(100, Number(stat.oppmotePct) || 0))
+                }));
+        };
+
+        window.buildStatsTreningFiveDiagramData = function() {
+            const yearFilter = window.getStatsDiagramYearFilter();
+            const seasonByName = new Map(
+                (window.buildStatsTreningTotalDiagramData() || []).map(row => [row.name, row])
+            );
+            const recentByName = new Map(
+                (window.buildStatsFiveScoreDiagramData() || []).map(row => [row.name, row])
+            );
+
+            return window.getStatsDiagramScopedPlayers().map(player => {
+                const training = window.getStatsDiagramRecentTrainings(player, yearFilter);
+                if (!(training.possible > 0) || training.pct == null) return null;
+                const recent = recentByName.get(player.navn);
+                if (!recent) return null;
+                const seasonRow = seasonByName.get(player.navn);
+                return {
+                    name: player.navn,
+                    x: training.pct,
+                    y: recent.x,
+                    score: training.pct,
+                    totalScore: seasonRow?.totalScore || recent.totalScore || 0,
+                    seasonX: seasonRow ? seasonRow.x : training.pct
+                };
+            }).filter(Boolean);
+        };
+
+        window.buildStatsFormDiagramData = function() {
+            const recentByName = new Map(
+                (window.buildStatsFiveScoreDiagramData() || []).map(row => [row.name, row])
+            );
+            return (window.buildStatsTotalScoreDiagramData() || []).map(row => {
+                const recent = recentByName.get(row.name);
+                if (!recent) return null;
+                return {
+                    name: row.name,
+                    x: row.x,
+                    y: recent.x,
+                    score: row.totalScore || row.score,
+                    totalScore: row.totalScore || row.score
+                };
+            }).filter(Boolean);
+        };
+
+        window.buildStatsPairDiagramData = function() {
+            const yearFilter = window.getStatsDiagramYearFilter();
+            const players = window.getStatsDiagramScopedPlayers();
+            const pairPitch = new Map();
+
+            (window.activeMatches || []).forEach(match => {
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(match, yearFilter)) return;
+                const onPitch = players.filter(player => (
+                    player.spillerLag === match.matchGroup
+                    && match.attendance
+                    && window.isPlayerAttending(match.attendance, player)
+                    && (typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(match, player))
+                ));
+                for (let i = 0; i < onPitch.length; i += 1) {
+                    for (let j = i + 1; j < onPitch.length; j += 1) {
+                        const names = [onPitch[i].navn, onPitch[j].navn].sort((a, b) => a.localeCompare(b, 'no'));
+                        const key = names.join('\n');
+                        pairPitch.set(key, (pairPitch.get(key) || 0) + 1);
+                    }
+                }
+            });
+
+            const jitter = (label, spread) => {
+                let hash = 0;
+                String(label || '').split('').forEach(char => {
+                    hash = ((hash * 31) + char.charCodeAt(0)) | 0;
+                });
+                return (((Math.abs(hash) % 100) / 100) - 0.5) * spread;
+            };
+            const rows = [];
+            pairPitch.forEach((pitchCount, key) => {
+                if (pitchCount < 4) return;
+                const [nameA, nameB] = key.split('\n');
+                const playerA = players.find(player => player.navn === nameA);
+                const samspill = typeof window.getDuoSamspill === 'function'
+                    ? window.getDuoSamspill(nameA, nameB, {
+                        teamName: playerA?.spillerLag || null,
+                        historicalOnly: true
+                    })
+                    : null;
+                const score = Number(samspill?.score) || 0;
+                if (!(score > 0)) return;
+                const label = `${nameA} · ${nameB}`;
+                rows.push({
+                    name: label,
+                    shortName: `${window.getStatsDiagramInitials(nameA)}/${window.getStatsDiagramInitials(nameB)}`,
+                    x: pitchCount + jitter(label, 0.55),
+                    y: Math.max(0, Math.min(100, score + jitter(`${label}|y`, 3))),
+                    score,
+                    totalScore: score
+                });
+            });
+            return rows
+                .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)
+                    || (Number(b.x) || 0) - (Number(a.x) || 0)
+                    || String(a.name || '').localeCompare(String(b.name || ''), 'no'))
+                .slice(0, 24);
         };
 
         window.groupStatsDiagramOverlapPoints = function(points) {
@@ -3167,60 +3561,68 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return Array.from(groups.values());
         };
 
-        window.renderTeamScoreDiagramHtml = function() {
-            const mode = window.statsScoreDiagramMode === 'five' ? 'five' : 'total';
-            const isTotal = mode === 'total';
-            const rows = isTotal
-                ? window.buildStatsTotalScoreDiagramData()
-                : window.buildStatsFiveScoreDiagramData();
+        window.renderTeamScoreDiagramTopbarHtml = function(isTotal, activeKind) {
+            const kinds = window.STATS_SCORE_DIAGRAM_KINDS || [];
+            return `
+                <div class="team-score-diagram-topbar">
+                    <div class="team-score-diagram-tabs" role="tablist" aria-label="Diagram">
+                        ${kinds.map(kind => `
+                            <button type="button" onclick="window.setStatsScoreDiagramKind('${kind.id}')" class="team-score-diagram-tab ${activeKind === kind.id ? 'is-active' : ''}" aria-selected="${activeKind === kind.id ? 'true' : 'false'}">${kind.label}</button>
+                        `).join('')}
+                    </div>
+                    <div class="team-score-diagram-tabs" role="tablist" aria-label="Periode">
+                        <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}" aria-selected="${isTotal ? 'true' : 'false'}">Sesong</button>
+                        <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}" aria-selected="${!isTotal ? 'true' : 'false'}">Nå</button>
+                    </div>
+                </div>
+            `;
+        };
 
+        window.renderStatsScatterDiagramCardHtml = function(config) {
+            const rows = Array.isArray(config.rows) ? config.rows : [];
+            const topbarHtml = config.topbarHtml || '';
+            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
             if (!rows.length) {
-                return '';
+                return `
+                    <div class="team-score-diagram-card">
+                        ${topbarHtml}
+                        <p class="team-score-diagram-empty">${config.emptyMessage || 'Ingen spillere å vise.'}</p>
+                    </div>
+                `;
             }
 
-            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
             const width = isCompact ? 390 : 860;
             const height = isCompact ? 360 : 520;
             const pad = isCompact
-                ? { left: 42, right: 14, top: 40, bottom: 58 }
+                ? { left: 46, right: 14, top: 40, bottom: 58 }
                 : { left: 72, right: 32, top: 36, bottom: 72 };
             const plotW = width - pad.left - pad.right;
             const plotH = height - pad.top - pad.bottom;
-            const xMin = isTotal ? 8 : 8;
-            const xMax = isTotal ? 24 : 28;
-            const yMin = 4;
-            const yMax = 7;
-            const splitX = isTotal ? 16 : 18;
-            const splitY = 5.5;
+            const xMin = Number(config.xMin);
+            const xMax = Number(config.xMax);
+            const yMin = Number(config.yMin);
+            const yMax = Number(config.yMax);
             const x = value => pad.left + ((Math.max(xMin, Math.min(xMax, value)) - xMin) / (xMax - xMin)) * plotW;
             const y = value => pad.top + (1 - ((Math.max(yMin, Math.min(yMax, value)) - yMin) / (yMax - yMin))) * plotH;
-            const gridX = isTotal
-                ? (isCompact ? [8, 12, 16, 20, 24] : [8, 10, 12, 14, 16, 18, 20, 22, 24])
-                : (isCompact ? [8, 12, 16, 20, 24, 28] : [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28]);
-            const gridY = isCompact ? [4, 5, 6, 7] : [4, 4.5, 5, 5.5, 6, 6.5, 7];
             const escapeHtml = window.escapeModalHtml || (value => String(value || ''));
+            const prepare = typeof config.prepareRow === 'function' ? config.prepareRow : row => row;
+            const groupNoun = config.groupNoun || 'spillere';
 
             const prepared = rows.map(row => {
-                const radius = 4 + ((row.score - 20) / 65) * 3;
-                const pointX = x(row.x);
-                const pointY = y(row.y);
-                const recentDelta = row.score - (row.totalScore || 0);
-                const recentDeltaLabel = `${recentDelta >= 0 ? '+' : '-'}${Math.abs(recentDelta).toFixed(1)}`;
+                const extra = prepare(row, { isCompact }) || {};
+                const radius = extra.radius != null ? extra.radius : (4 + ((row.score - 20) / 65) * 3);
                 return {
                     ...row,
+                    ...extra,
                     radius,
-                    pointX,
-                    pointY,
-                    recentDelta,
-                    recentDeltaLabel,
-                    displayValue: isTotal ? row.score.toFixed(1) : recentDeltaLabel,
-                    tooltipValueClass: isTotal
-                        ? 'is-season'
-                        : recentDelta >= 0 ? 'is-up' : 'is-down'
+                    pointX: x(row.x),
+                    pointY: y(row.y)
                 };
             });
 
-            const overlapGroups = window.groupStatsDiagramOverlapPoints(prepared);
+            const overlapGroups = config.skipOverlap
+                ? prepared.map(point => [point])
+                : window.groupStatsDiagramOverlapPoints(prepared);
             const pointsHtml = overlapGroups.map(group => {
                 const members = [...group].sort((a, b) =>
                     (Number(b.score) || 0) - (Number(a.score) || 0) || String(a.name || '').localeCompare(String(b.name || ''), 'no')
@@ -3231,44 +3633,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const pointY = members.reduce((sum, m) => sum + m.pointY, 0) / members.length;
                 const radius = Math.max(...members.map(m => m.radius));
                 const hitRadius = Math.max(radius + (isGroup ? 10 : 8), isGroup ? 16 : 14);
-                const fill = isTotal
-                    ? '#0b2b4c'
-                    : lead.score >= lead.totalScore ? '#00c853' : '#ff1744';
-                const stroke = '#ffffff';
-                const strokeWidth = 1.5;
+                const fill = lead.fill || '#0b2b4c';
                 const rowHeight = 18;
                 const tooltipPadY = 14;
-                const tooltipWidth = isCompact ? 178 : 210;
+                const tooltipWidth = isCompact ? 178 : 220;
                 const tooltipHeight = tooltipPadY + (members.length * rowHeight) + (isGroup ? 16 : 4);
                 const tooltipX = Math.max(8, Math.min(width - tooltipWidth - 8, pointX - (tooltipWidth / 2)));
                 const tooltipY = Math.max(8, pointY - hitRadius - tooltipHeight - (isCompact ? 10 : 8));
-                const labelText = isGroup
-                    ? String(members.length)
-                    : window.getStatsDiagramInitials(lead.name);
-                const ariaNames = members.map(m =>
-                    `${m.name} ${isTotal ? m.displayValue : m.recentDeltaLabel}`
-                ).join(', ');
+                const labelText = (config.hideInitials && !isGroup)
+                    ? ''
+                    : (isGroup
+                        ? String(members.length)
+                        : (lead.shortName || window.getStatsDiagramInitials(lead.name)));
+                const ariaNames = members.map(m => `${m.name} ${m.displayValue}`).join(', ');
                 const ariaLabel = isGroup
-                    ? `${members.length} spillere: ${ariaNames}`
-                    : (isTotal
-                        ? `${lead.name}. Sesong ${lead.displayValue}`
-                        : `${lead.name}. Nå ${lead.recentDeltaLabel}`);
+                    ? `${members.length} ${groupNoun}: ${ariaNames}`
+                    : `${lead.name}. ${lead.displayValue}`;
                 const tooltipRows = members.map((member, index) => {
                     const rowY = tooltipPadY + 4 + (index * rowHeight);
                     return `
                         <text x="12" y="${rowY}" class="team-score-diagram-tooltip-name">${escapeHtml(member.name)}</text>
-                        <text x="${tooltipWidth - 12}" y="${rowY}" text-anchor="end" class="team-score-diagram-tooltip-value ${member.tooltipValueClass}">${escapeHtml(member.displayValue)}</text>
+                        <text x="${tooltipWidth - 12}" y="${rowY}" text-anchor="end" class="team-score-diagram-tooltip-value ${member.tooltipValueClass || ''}">${escapeHtml(member.displayValue)}</text>
                     `;
                 }).join('');
                 const groupHint = isGroup
-                    ? `<text x="12" y="${tooltipHeight - 8}" class="team-score-diagram-tooltip-meta">${members.length} spillere på samme sted</text>`
+                    ? `<text x="12" y="${tooltipHeight - 8}" class="team-score-diagram-tooltip-meta">${members.length} ${groupNoun} på samme sted</text>`
                     : '';
 
                 return `
                     <g class="team-score-diagram-point${isGroup ? ' is-overlap-group' : ''}" tabindex="0" aria-label="${escapeHtml(ariaLabel)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
                         <circle class="team-score-diagram-hit-area" cx="${pointX}" cy="${pointY}" r="${hitRadius}" fill="transparent" stroke="none"></circle>
                         <text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials${isGroup ? ' is-group-count' : ''}">${escapeHtml(labelText)}</text>
-                        <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" opacity="0.92"></circle>
+                        <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="#ffffff" stroke-width="1.5" opacity="0.92"></circle>
                         ${isGroup ? `<circle cx="${pointX}" cy="${pointY}" r="${radius + 3.5}" class="team-score-diagram-overlap-ring" fill="none"></circle>` : ''}
                         <g class="team-score-diagram-tooltip" transform="translate(${tooltipX} ${tooltipY})">
                             <rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
@@ -3279,43 +3675,222 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `;
             }).join('');
 
+            const splitHtml = config.splitDiagonal
+                ? `<line x1="${x(xMin)}" x2="${x(xMax)}" y1="${y(yMin)}" y2="${y(yMax)}" class="team-score-diagram-split-line"></line>`
+                : `
+                    <line x1="${x(config.splitX)}" x2="${x(config.splitX)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-split-line"></line>
+                    <line x1="${pad.left}" x2="${width - pad.right}" y1="${y(config.splitY)}" y2="${y(config.splitY)}" class="team-score-diagram-split-line"></line>
+                `;
+            const formatTick = typeof config.formatTick === 'function' ? config.formatTick : tick => tick;
+
             return `
                 <div class="team-score-diagram-card">
-                    <div class="team-score-diagram-topbar">
-                        <div class="team-score-diagram-tabs">
-                            <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}">Sesong</button>
-                            <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}">Nå</button>
-                        </div>
-                    </div>
-
+                    ${topbarHtml}
                     <div class="team-score-diagram-scroll">
-                        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${isTotal ? 'Sesong' : 'Nå'} diagram" class="team-score-diagram-svg">
+                        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(config.ariaLabel || 'Diagram')}" class="team-score-diagram-svg">
                             <rect x="0" y="0" width="${width}" height="${height}" class="team-score-diagram-bg"></rect>
-                            ${gridX.map(tick => `
+                            ${(config.gridX || []).map(tick => `
                                 <g>
                                     <line x1="${x(tick)}" x2="${x(tick)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-grid"></line>
-                                    <text x="${x(tick)}" y="${height - 42}" text-anchor="middle" class="team-score-diagram-tick">${tick}</text>
+                                    <text x="${x(tick)}" y="${height - 42}" text-anchor="middle" class="team-score-diagram-tick">${formatTick(tick)}</text>
                                 </g>
                             `).join('')}
-                            ${gridY.map(tick => `
+                            ${(config.gridY || []).map(tick => `
                                 <g>
                                     <line x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}" class="team-score-diagram-grid"></line>
-                                    <text x="46" y="${y(tick) + 4}" text-anchor="middle" class="team-score-diagram-tick">${tick}</text>
+                                    <text x="${isCompact ? 22 : 46}" y="${y(tick) + 4}" text-anchor="middle" class="team-score-diagram-tick">${formatTick(tick)}</text>
                                 </g>
                             `).join('')}
-                            <g class="team-score-diagram-split" aria-hidden="true">
-                                <line x1="${x(splitX)}" x2="${x(splitX)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-split-line"></line>
-                                <line x1="${pad.left}" x2="${width - pad.right}" y1="${y(splitY)}" y2="${y(splitY)}" class="team-score-diagram-split-line"></line>
-                            </g>
+                            <g class="team-score-diagram-split" aria-hidden="true">${splitHtml}</g>
                             <line x1="${pad.left}" x2="${width - pad.right}" y1="${height - pad.bottom}" y2="${height - pad.bottom}" class="team-score-diagram-axis"></line>
                             <line x1="${pad.left}" x2="${pad.left}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-axis"></line>
-                            <text x="${width / 2}" y="${height - 14}" text-anchor="middle" class="team-score-diagram-axis-label">${isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5')}</text>
-                            <text transform="translate(18 ${height / 2}) rotate(-90)" text-anchor="middle" class="team-score-diagram-axis-label">${isCompact ? 'Snittbørs' : (isTotal ? 'Snittbørs' : 'Snittbørs siste 5')}</text>
+                            <text x="${width / 2}" y="${height - 14}" text-anchor="middle" class="team-score-diagram-axis-label">${escapeHtml(config.xAxisLabel || '')}</text>
+                            <text transform="translate(18 ${height / 2}) rotate(-90)" text-anchor="middle" class="team-score-diagram-axis-label">${escapeHtml(config.yAxisLabel || '')}</text>
                             ${pointsHtml}
                         </svg>
                     </div>
                 </div>
             `;
+        };
+
+        window.getStatsScoreDiagramTone = function(isUp) {
+            return isUp ? { fill: '#00c853', className: 'is-up' } : { fill: '#ff1744', className: 'is-down' };
+        };
+
+        window.renderTeamScoreDiagramHtml = function() {
+            const kind = window.getStatsScoreDiagramKind();
+            const isTotal = (window.statsScoreDiagramMode || 'total') !== 'five';
+            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+            const rowsByKind = {
+                tropp: isTotal ? window.buildStatsTotalScoreDiagramData() : window.buildStatsFiveScoreDiagramData(),
+                tillit: isTotal ? window.buildStatsTillitTotalDiagramData() : window.buildStatsTillitFiveDiagramData(),
+                produksjon: isTotal ? window.buildStatsProduksjonTotalDiagramData() : window.buildStatsProduksjonFiveDiagramData(),
+                trening: isTotal ? window.buildStatsTreningTotalDiagramData() : window.buildStatsTreningFiveDiagramData()
+            };
+            const percentGrid = isCompact ? [0, 25, 50, 75, 100] : [0, 20, 40, 50, 60, 80, 100];
+            const contribGrid = isTotal
+                ? (isCompact ? [8, 12, 16, 20, 24] : [8, 10, 12, 14, 16, 18, 20, 22, 24])
+                : (isCompact ? [8, 12, 16, 20, 24, 28] : [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28]);
+            const plots = {
+                tropp: {
+                    xMin: 8,
+                    xMax: isTotal ? 24 : 28,
+                    yMin: 4,
+                    yMax: 7,
+                    splitX: isTotal ? 16 : 18,
+                    splitY: 5.5,
+                    gridX: contribGrid,
+                    gridY: isCompact ? [4, 5, 6, 7] : [4, 4.5, 5, 5.5, 6, 6.5, 7],
+                    xAxisLabel: isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5'),
+                    yAxisLabel: isCompact ? 'Snittbørs' : (isTotal ? 'Snittbørs' : 'Snittbørs siste 5'),
+                    emptyMessage: 'Ingen spillere å vise.',
+                    kindLabel: 'Troppkart'
+                },
+                tillit: {
+                    xMin: 0,
+                    xMax: 100,
+                    yMin: 4,
+                    yMax: 7,
+                    splitX: 50,
+                    splitY: 5.5,
+                    gridX: percentGrid,
+                    gridY: isCompact ? [4, 5, 6, 7] : [4, 4.5, 5, 5.5, 6, 6.5, 7],
+                    xAxisLabel: isCompact ? 'Minuttandel' : (isTotal ? 'Minuttandel' : 'Minuttandel siste 5'),
+                    yAxisLabel: isCompact ? 'Snittbørs' : (isTotal ? 'Snittbørs' : 'Snittbørs siste 5'),
+                    emptyMessage: 'Mangler minuttandel å vise.',
+                    kindLabel: 'Tillitskart'
+                },
+                produksjon: {
+                    xMin: 0,
+                    xMax: 100,
+                    yMin: 0,
+                    yMax: 1,
+                    splitX: 50,
+                    splitY: 0.5,
+                    gridX: percentGrid,
+                    gridY: isCompact ? [0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1],
+                    xAxisLabel: isCompact ? 'Minuttandel' : (isTotal ? 'Minuttandel' : 'Minuttandel siste 5'),
+                    yAxisLabel: isCompact ? 'Mål+assist' : 'Mål+assist per kamp',
+                    emptyMessage: 'Mangler produksjon å vise.',
+                    kindLabel: 'Produksjonskart'
+                },
+                trening: {
+                    xMin: 0,
+                    xMax: 100,
+                    yMin: 8,
+                    yMax: isTotal ? 24 : 28,
+                    splitX: 50,
+                    splitY: isTotal ? 16 : 18,
+                    gridX: percentGrid,
+                    gridY: contribGrid,
+                    xAxisLabel: isCompact ? 'Oppmøte' : (isTotal ? 'Treningsoppmøte' : 'Oppmøte siste 5 treninger'),
+                    yAxisLabel: isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5'),
+                    emptyMessage: 'Mangler treningsoppmøte å vise.',
+                    kindLabel: 'Treningskart'
+                }
+            };
+            const plot = plots[kind] || plots.tropp;
+            const formatProduction = value => (Math.round((Number(value) || 0) * 10) / 10).toFixed(1);
+            const prepareRow = (row) => {
+                const radius = 4 + ((row.score - 20) / 65) * 3;
+                if (kind === 'tillit' || kind === 'trening') {
+                    const delta = Math.round(row.x - (Number(row.seasonX) || 0));
+                    const tone = isTotal ? { fill: '#0b2b4c', className: 'is-season' } : window.getStatsScoreDiagramTone(delta >= 0);
+                    return {
+                        radius,
+                        fill: tone.fill,
+                        displayValue: `${Math.round(row.x)}%`,
+                        tooltipValueClass: tone.className
+                    };
+                }
+                if (kind === 'produksjon') {
+                    const delta = (Number(row.y) || 0) - (Number(row.seasonY) || 0);
+                    const tone = isTotal ? { fill: '#0b2b4c', className: 'is-season' } : window.getStatsScoreDiagramTone(delta >= 0);
+                    return {
+                        radius,
+                        fill: tone.fill,
+                        displayValue: formatProduction(row.y),
+                        tooltipValueClass: tone.className
+                    };
+                }
+                const delta = (Number(row.score) || 0) - (Number(row.totalScore) || 0);
+                const tone = isTotal ? { fill: '#0b2b4c', className: 'is-season' } : window.getStatsScoreDiagramTone(delta >= 0);
+                return {
+                    radius,
+                    fill: tone.fill,
+                    displayValue: isTotal ? Number(row.score).toFixed(1) : `${delta >= 0 ? '+' : '-'}${Math.abs(delta).toFixed(1)}`,
+                    tooltipValueClass: tone.className
+                };
+            };
+
+            return window.renderStatsScatterDiagramCardHtml({
+                topbarHtml: window.renderTeamScoreDiagramTopbarHtml(isTotal, kind),
+                rows: rowsByKind[kind] || [],
+                emptyMessage: plot.emptyMessage,
+                ariaLabel: `${plot.kindLabel} ${isTotal ? 'Sesong' : 'Nå'}`,
+                ...plot,
+                prepareRow
+            });
+        };
+
+        window.renderStatsFormDiagramHtml = function() {
+            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+            const grid = isCompact ? [8, 12, 16, 20, 24, 28] : [8, 12, 16, 20, 24, 28];
+            return window.renderStatsScatterDiagramCardHtml({
+                topbarHtml: `<div class="team-score-diagram-topbar"><p class="team-score-diagram-card-title">Formkart</p></div>`,
+                rows: window.buildStatsFormDiagramData(),
+                emptyMessage: 'Mangler form å vise.',
+                ariaLabel: 'Formkart sesong mot nå',
+                xMin: 8,
+                xMax: 28,
+                yMin: 8,
+                yMax: 28,
+                splitDiagonal: true,
+                gridX: grid,
+                gridY: grid,
+                xAxisLabel: isCompact ? 'Sesong' : 'Kampbidrag sesong',
+                yAxisLabel: isCompact ? 'Nå' : 'Kampbidrag nå',
+                prepareRow: (row) => {
+                    const delta = (Number(row.y) || 0) - (Number(row.x) || 0);
+                    const tone = window.getStatsScoreDiagramTone(delta >= 0);
+                    return {
+                        radius: 4 + ((row.score - 20) / 65) * 3,
+                        fill: tone.fill,
+                        displayValue: `${delta >= 0 ? '+' : '-'}${Math.abs(delta).toFixed(1)}`,
+                        tooltipValueClass: tone.className
+                    };
+                }
+            });
+        };
+
+        window.renderStatsPairDiagramHtml = function() {
+            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+            return window.renderStatsScatterDiagramCardHtml({
+                topbarHtml: `<div class="team-score-diagram-topbar"><p class="team-score-diagram-card-title">Parduet</p></div>`,
+                rows: window.buildStatsPairDiagramData(),
+                emptyMessage: 'Mangler par å vise.',
+                ariaLabel: 'Parduet kamper sammen og samspill',
+                groupNoun: 'par',
+                skipOverlap: true,
+                hideInitials: true,
+                xMin: 0,
+                xMax: 16,
+                yMin: 60,
+                yMax: 100,
+                splitX: 8,
+                splitY: 80,
+                gridX: isCompact ? [0, 4, 8, 12, 16] : [0, 2, 4, 6, 8, 10, 12, 14, 16],
+                gridY: isCompact ? [60, 70, 80, 90, 100] : [60, 70, 80, 90, 100],
+                xAxisLabel: isCompact ? 'Kamper sammen' : 'Kamper på banen sammen',
+                yAxisLabel: 'Samspill',
+                prepareRow: (row) => ({
+                    radius: 4 + ((row.score - 20) / 65) * 3,
+                    fill: '#0b2b4c',
+                    displayValue: String(Math.round(row.y)),
+                    tooltipValueClass: 'is-season',
+                    shortName: row.shortName
+                })
+            });
         };
 
         window.statsLagSections = [
@@ -4011,9 +4586,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const diagramInfoOpen = window.statsScoreDiagramExplanationOpen === true;
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerutvikling',
-                title: 'Utvikling',
-                showLabel: 'Vis utvikling',
-                hideLabel: 'Skjul utvikling',
+                title: 'Diagrammer',
+                showLabel: 'Vis diagrammer',
+                hideLabel: 'Skjul diagrammer',
                 headerActionsHtml: `
                     <button
                         type="button"
@@ -4037,8 +4612,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                 `,
                 content: `
-                    <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
-                        ${window.renderTeamScoreDiagramHtml()}
+                    <div class="stats-diagram-stack">
+                        <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
+                            ${window.renderTeamScoreDiagramHtml()}
+                        </div>
+                        <div id="stats-formkart-wrap" class="team-score-diagram-wrap">
+                            ${window.renderStatsFormDiagramHtml()}
+                        </div>
+                        <div id="stats-parduet-wrap" class="team-score-diagram-wrap">
+                            ${window.renderStatsPairDiagramHtml()}
+                        </div>
                     </div>
                 `
             });
@@ -4051,6 +4634,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const diagramWrap = document.getElementById('team-score-diagram-wrap');
             if (diagramWrap && typeof window.renderTeamScoreDiagramHtml === 'function') {
                 diagramWrap.innerHTML = window.renderTeamScoreDiagramHtml();
+            }
+            const formWrap = document.getElementById('stats-formkart-wrap');
+            if (formWrap && typeof window.renderStatsFormDiagramHtml === 'function') {
+                formWrap.innerHTML = window.renderStatsFormDiagramHtml();
+            }
+            const pairWrap = document.getElementById('stats-parduet-wrap');
+            if (pairWrap && typeof window.renderStatsPairDiagramHtml === 'function') {
+                pairWrap.innerHTML = window.renderStatsPairDiagramHtml();
             }
         };
 
