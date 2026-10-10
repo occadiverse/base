@@ -10938,6 +10938,7 @@
         .stats-position-btn .stats-sort-label,
         .stats-position-btn.is-active .stats-sort-label {
             display: inline;
+            font-size: 0.82rem;
         }
         .stats-hero-top-compact {
             align-items: center;
