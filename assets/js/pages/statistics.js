@@ -2269,7 +2269,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.getStatsSortTiebreakKamper = function(column) {
-            return column === 'mal' || column === 'bb' ? 'fewer' : 'more';
+            return column === 'mal' || column === 'assist' || column === 'bb' ? 'fewer' : 'more';
         };
 
         window.comparePlayerStatsSort = function(a, b, column, options = {}) {
@@ -2278,8 +2278,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const nameCmp = String(a?.navn || '').localeCompare(String(b?.navn || ''), 'nb', { sensitivity: 'base' });
                 return descending ? nameCmp : -nameCmp;
             }
-            const va = Number(a?.[column]) || 0;
-            const vb = Number(b?.[column]) || 0;
+            let va = Number(a?.[column]) || 0;
+            let vb = Number(b?.[column]) || 0;
+            if (column === 'snittBors') {
+                va = Math.round(va * 10) / 10;
+                vb = Math.round(vb * 10) / 10;
+            }
             if (va !== vb) return descending ? vb - va : va - vb;
             const ka = Number(a?.kamper) || 0;
             const kb = Number(b?.kamper) || 0;
@@ -4503,7 +4507,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'bors',
                             title: 'Årets børs',
                             column: 'snittBors',
-                            explain: 'Høyest snittkarakter på Spillerbørs gjennom sesongen. Krever minst 30 % av lagets kamper.'
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const avg = Number(stat.snittBors);
+                                const shown = Number.isFinite(avg) && avg > 0 ? avg.toFixed(1) : '—';
+                                return `${shown} · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Høyest snittkarakter på Spillerbørs gjennom sesongen. Krever minst 30 % av lagets kamper. Ved likt snitt rangeres den med flest kamper høyest.'
                         },
                         {
                             id: 'mal',
@@ -4517,7 +4527,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'playmaker',
                             title: 'Årets playmaker',
                             column: 'assist',
-                            explain: 'Flest assists i valgt sesong, serie og cup samlet.'
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.assist) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Flest assists i valgt sesong, serie og cup samlet. Ved likt antall rangeres den med færre kamper høyest.'
                         },
                         {
                             id: 'xp',
@@ -5158,7 +5170,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const possible = Number(stat.oppmotePossible) || 0;
                     valueHtml = `${pct}% <span class="training-data-rank-count">${attended}/${possible}</span>`;
                 }
-                if (currentStatSortCol === 'mal' && (Number(stat.kamper) || 0) > 0) {
+                if ((currentStatSortCol === 'mal' || currentStatSortCol === 'assist' || currentStatSortCol === 'snittBors') && (Number(stat.kamper) || 0) > 0) {
                     valueHtml = `${escapeStatisticsHtml(sortValue)} <span class="training-data-rank-count">${Number(stat.kamper)} kamper</span>`;
                 }
                 return `
