@@ -7114,20 +7114,6 @@
             gap: 0.4rem;
             margin-top: 0.55rem;
         }
-        :is(.stats-board-card, .stats-page-slot) .stats-spiller-position-filter {
-            flex-wrap: nowrap;
-            margin-top: 0.35rem;
-            max-width: 100%;
-            overflow-x: auto;
-            padding-bottom: 0.1rem;
-            scrollbar-width: none;
-        }
-        :is(.stats-board-card, .stats-page-slot) .stats-spiller-position-filter::-webkit-scrollbar {
-            display: none;
-        }
-        :is(.stats-board-card, .stats-page-slot) .stats-spiller-position-filter .stats-kamp-year-btn {
-            flex: 0 0 auto;
-        }
         :is(.stats-board-card, .stats-page-slot) .stats-kamp-collapsible-panel {
             margin-top: 0;
         }
@@ -10655,6 +10641,9 @@
             min-width: 0;
             width: 100%;
         }
+        .stats-player-position-dock {
+            order: -2;
+        }
         .stats-player-sort-dock .stats-player-toolbar {
             margin-inline: 0;
             max-width: none;
@@ -10939,6 +10928,15 @@
             white-space: nowrap;
         }
         .stats-sort-btn.is-active .stats-sort-label {
+            display: inline;
+        }
+        .stats-position-btn.stats-sort-btn,
+        .stats-position-btn.stats-sort-btn.is-active {
+            min-width: 0;
+            padding-inline: 0.72rem;
+        }
+        .stats-position-btn .stats-sort-label,
+        .stats-position-btn.is-active .stats-sort-label {
             display: inline;
         }
         .stats-hero-top-compact {

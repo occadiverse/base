@@ -2022,17 +2022,29 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsSpillerPositionFilterHtml = function() {
             const active = window.getStatsSpillerPositionFilter();
             return `
-                <div class="stats-kamp-year-filter stats-spiller-position-filter" role="tablist" aria-label="Filtrer spillerstats etter posisjon">
-                    ${(window.STATS_SPILLER_POSITION_OPTIONS || []).map((opt) => `
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected="${active === opt.id ? 'true' : 'false'}"
-                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${active === opt.id ? 'is-active' : ''}"
-                            data-stat-action="set-spiller-position"
-                            data-position-id="${escapeStatisticsHtml(opt.id)}"
-                        >${escapeStatisticsHtml(opt.label)}</button>
-                    `).join('')}
+                <div class="stats-player-sort-dock stats-player-position-dock" aria-label="Filtrer etter posisjon" data-no-swipe>
+                    <div class="stats-player-toolbar">
+                        <div class="stats-sort-scroller-wrap">
+                            <div class="stats-sort-scroller" id="stats-player-position-scroller" data-no-swipe>
+                                <div class="roster-status-filter stats-sort-filter" role="tablist" aria-label="Filtrer etter posisjon">
+                                    ${(window.STATS_SPILLER_POSITION_OPTIONS || []).map((opt) => `
+                                        <button
+                                            type="button"
+                                            role="tab"
+                                            aria-selected="${active === opt.id ? 'true' : 'false'}"
+                                            class="bsk-btn bsk-btn-chip roster-status-btn stats-sort-btn stats-position-btn ${active === opt.id ? 'is-active' : ''}"
+                                            data-stat-action="set-spiller-position"
+                                            data-position-id="${escapeStatisticsHtml(opt.id)}"
+                                            aria-label="${escapeStatisticsHtml(opt.label)}"
+                                            title="${escapeStatisticsHtml(opt.label)}"
+                                        >
+                                            <span class="stats-sort-label">${escapeStatisticsHtml(opt.label)}</span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
         };
@@ -5585,10 +5597,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `,
                 content: `
                     ${yearFilterHtml}
-                    ${typeof window.renderStatsSpillerPositionFilterHtml === 'function'
-                        ? window.renderStatsSpillerPositionFilterHtml()
-                        : ''}
                     <div class="stats-spillere-layout">
+                        ${typeof window.renderStatsSpillerPositionFilterHtml === 'function'
+                            ? window.renderStatsSpillerPositionFilterHtml()
+                            : ''}
                         <div id="stats-player-list" class="stats-player-list"></div>
                         <div class="stats-player-sort-dock" aria-label="Sorter spillere" data-no-swipe>
                             <div class="stats-player-toolbar">
