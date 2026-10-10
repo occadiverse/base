@@ -668,7 +668,7 @@ function renderPlayerModalProfile(player) {
     const expectedMalpoeng = stats && stats.expectedMalpoeng != null && (Number(stats.kamper) || 0) > 0
         ? (typeof window.formatExpectedMalpoengDisplay === 'function'
             ? window.formatExpectedMalpoengDisplay(stats)
-            : `${Number(stats.expectedMalpoeng).toFixed(1)} / ${Number(stats.kamper) || 0}`)
+            : `${Number(stats.expectedMalpoeng).toFixed(1)} · ${Number(stats.kamper) || 0} kamper`)
         : '-';
     const gule = stats
         ? formatPlayerProfileCardsSplitLabel(stats.guleSerie, stats.guleCup)
@@ -1043,7 +1043,7 @@ window.renderPlayerProfilePage = function(playerId) {
     const expectedMalpoeng = stats && stats.expectedMalpoeng != null && (Number(stats.kamper) || 0) > 0
         ? (typeof window.formatExpectedMalpoengDisplay === 'function'
             ? window.formatExpectedMalpoengDisplay(stats)
-            : `${Number(stats.expectedMalpoeng).toFixed(1)} / ${Number(stats.kamper) || 0}`)
+            : `${Number(stats.expectedMalpoeng).toFixed(1)} · ${Number(stats.kamper) || 0} kamper`)
         : '-';
     const gule = stats
         ? formatPlayerProfileCardsSplitLabel(stats.guleSerie, stats.guleCup)

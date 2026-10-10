@@ -2233,7 +2233,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (!stat || !(Number(stat.kamper) > 0) || stat.expectedMalpoeng == null) return '-';
             const value = Number(stat.expectedMalpoeng);
             if (!Number.isFinite(value) || value <= 0) return '-';
-            return `${value.toFixed(1)} / ${Number(stat.kamper) || 0}`;
+            return `${value.toFixed(1)} · ${Number(stat.kamper) || 0} kamper`;
         };
 
         window.formatOppmoteDisplay = function(stat) {
@@ -2269,7 +2269,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.getStatsSortTiebreakKamper = function(column) {
-            return column === 'mal' || column === 'assist' || column === 'bb' ? 'fewer' : 'more';
+            return column === 'mal' || column === 'assist' || column === 'bb' || column === 'gule' ? 'fewer' : 'more';
         };
 
         window.comparePlayerStatsSort = function(a, b, column, options = {}) {
@@ -4546,6 +4546,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'xp',
                             title: 'Expected målpoeng',
                             column: 'expectedMalpoeng',
+                            valueFn: (stat) => typeof window.formatExpectedMalpoengDisplay === 'function'
+                                ? window.formatExpectedMalpoengDisplay(stat)
+                                : `${Number(stat.expectedMalpoeng).toFixed(1)} · ${Number(stat.kamper) || 0} kamper`,
                             explain: 'Mål + assist per kamp på banen. Krever minst 30 % av lagets kamper.'
                         },
                         {
@@ -4642,6 +4645,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ascending: true,
                             requireRelevant: false,
                             qualifyAs: 'totalScore',
+                            tiebreakKamper: 'more',
                             valueFn: (stat) => `${Number(stat.gule) || 0} gule · ${Number(stat.kamper) || 0} kamper`,
                             explain: 'Færrest gule kort blant spillere med minst 30 % av lagets kamper. Ved likt vinner den med flest kamper.'
                         },
@@ -4650,7 +4654,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             title: 'Årets gule',
                             column: 'gule',
                             glyph: 'g',
-                            explain: 'Flest gule kort i valgt sesong, serie og cup samlet.'
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.gule) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Flest gule kort i valgt sesong, serie og cup samlet. Ved likt antall rangeres den med færre kamper høyest.'
                         }
                     ]
                 }
@@ -5181,7 +5187,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const possible = Number(stat.oppmotePossible) || 0;
                     valueHtml = `${pct}% <span class="training-data-rank-count">${attended}/${possible}</span>`;
                 }
-                if ((currentStatSortCol === 'mal' || currentStatSortCol === 'assist' || currentStatSortCol === 'snittBors' || currentStatSortCol === 'totalScore') && (Number(stat.kamper) || 0) > 0) {
+                if ((currentStatSortCol === 'mal' || currentStatSortCol === 'assist' || currentStatSortCol === 'snittBors' || currentStatSortCol === 'totalScore' || currentStatSortCol === 'expectedMalpoeng' || currentStatSortCol === 'gule' || currentStatSortCol === 'bb') && (Number(stat.kamper) || 0) > 0) {
                     valueHtml = `${escapeStatisticsHtml(sortValue)} <span class="training-data-rank-count">${Number(stat.kamper)} kamper</span>`;
                 }
                 return `
@@ -5357,9 +5363,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 }
                 if (column === 'totalScore' || column === 'kampbonus' || column === 'kampbonusTotal' || column === 'snittBors' || column === 'expectedMalpoeng') {
                     if (column === 'expectedMalpoeng') {
-                        return typeof window.formatExpectedMalpoengDisplay === 'function'
-                            ? window.formatExpectedMalpoengDisplay(stat)
-                            : '-';
+                        const xp = Number(stat.expectedMalpoeng);
+                        if (!(Number(stat.kamper) > 0) || !Number.isFinite(xp) || xp <= 0) return '-';
+                        return xp.toFixed(1);
                     }
                     const value = Number(stat[column]);
                     if ((column === 'kampbonus' || column === 'kampbonusTotal') && !(stat.attendedMatches > 0)) return '-';
