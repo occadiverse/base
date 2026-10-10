@@ -3012,7 +3012,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <ul class="training-session-groups-info-list">
                         <li>Høyre er kampbidrag gjennom sesongen. Opp er kampbidrag nå (siste 5 kamper).</li>
                         <li>Den gule diagonalen er «som vanlig». Over den er i form. Under den er på vei ned.</li>
-                        <li>Grønn boble er over egen sesong. Rød boble er under. Trykk på en boble for navn.</li>
+                        <li>Gul boble er som vanlig. Grønn er over egen sesong. Rød er under. Trykk på en boble for navn.</li>
                     </ul>
                 `;
             }
@@ -4140,11 +4140,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 yAxisLabel: isCompact ? 'Nå' : 'Kampbidrag nå',
                 prepareRow: (row) => {
                     const delta = (Number(row.y) || 0) - (Number(row.x) || 0);
-                    const tone = window.getStatsScoreDiagramTone(delta >= 0);
+                    const rounded = Math.round(delta * 10) / 10;
+                    const tone = rounded === 0
+                        ? { fill: '#f5c542', className: 'is-season' }
+                        : window.getStatsScoreDiagramTone(rounded > 0);
                     return {
                         radius: 4 + ((row.score - 20) / 65) * 3,
                         fill: tone.fill,
-                        displayValue: `${delta >= 0 ? '+' : '-'}${Math.abs(delta).toFixed(1)}`,
+                        displayValue: rounded === 0
+                            ? '0.0'
+                            : `${rounded > 0 ? '+' : '-'}${Math.abs(rounded).toFixed(1)}`,
                         tooltipValueClass: tone.className
                     };
                 }
