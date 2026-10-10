@@ -5294,7 +5294,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.STATS_PLAYER_SORT_OPTIONS = [
             { id: 'totalScore', label: 'Sesong', icon: 'fa-ranking-star' },
             { id: 'kampbonus', label: 'Kampbidrag', icon: 'fa-chart-line' },
-            { id: 'kjemi', label: 'Form (nå)', icon: 'fa-heart-pulse' },
+            { id: 'kjemi', label: 'Form', icon: 'fa-heart-pulse' },
             { id: 'snittBors', label: 'Snittbørs', icon: 'fa-star' },
             { id: 'mal', label: 'Mål', icon: 'fa-futbol' },
             { id: 'assist', label: 'Assist', icon: 'fa-handshake-angle' },
@@ -5428,7 +5428,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 buttonLabel: 'Slik regnes sesong',
                 items: [
                     '<strong>Sesong</strong> rangeres etter Total Score: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.',
-                    'Krever minst 30 % av lagets kamper for å ligge øverst. Form (nå) er siste 5 kamper — den ligger i i-knappen øverst på Stats.'
+                    'Krever minst 30 % av lagets kamper for å ligge øverst.'
                 ]
             },
             kampbonus: {
@@ -5438,6 +5438,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     '<strong>Kampbidrag</strong> er snitt kamppoeng i kampene spilleren har vært med på.',
                     'Per kamp: 15 + resultat + børs + minutter. Børs 5 er par. 61+ min gir +2. Seier +5, uavgjort +2, tap −2, rent null +3, ±1 per mål.',
                     'Krever minst 30 % av lagets kamper for å ligge øverst. Benk uten minutter får bare de 15 grunnpoengene.'
+                ]
+            },
+            kjemi: {
+                title: 'Spillerstats · Form',
+                buttonLabel: 'Slik regnes form',
+                items: [
+                    '<strong>Form</strong> er siste 5 kamper. Skala 0–100.',
+                    'Nyeste kamp teller mest: ved 5 kamper vektes de 5–4–3–2–1. En fersk kamp trekker Form mer enn en eldre i det vinduet.',
+                    'Kampdel inntil 70 % (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0), treningsoppmøte 20 % og disiplin 10 %.',
+                    'Krever minst 30 % av lagets kamper for å ligge øverst. Uten minst én kamp blir Form 0.'
                 ]
             }
         };
