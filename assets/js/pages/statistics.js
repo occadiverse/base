@@ -113,6 +113,14 @@ function bindStatisticsEvents() {
             }
             return;
         }
+        if (action === 'toggle-spillerstats-info') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof window.toggleStatsSpillerstatsInfo === 'function') {
+                window.toggleStatsSpillerstatsInfo();
+            }
+            return;
+        }
         if (action === 'print-awards') {
             event.preventDefault();
             event.stopPropagation();
@@ -5101,6 +5109,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const sortOption = window.getStatsSortOption(currentStatSortCol);
             const sortLabel = sortOption?.label || 'Stat';
+            const showSeasonInfo = currentStatSortCol === 'totalScore'
+                && typeof window.renderStatsSpillerstatsInfoButtonHtml === 'function';
+            const headingHtml = `
+                <div class="training-data-rank-heading">
+                    <h5>${escapeStatisticsHtml(sortLabel)}</h5>
+                    ${showSeasonInfo ? window.renderStatsSpillerstatsInfoButtonHtml() : ''}
+                </div>
+                ${showSeasonInfo && typeof window.renderStatsSpillerstatsInfoPanelHtml === 'function'
+                    ? window.renderStatsSpillerstatsInfoPanelHtml()
+                    : ''}
+            `;
             const totalPlayers = qualified.length + belowThreshold.length;
 
             if (!totalPlayers) {
@@ -5112,7 +5131,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     : window.getStatsSortEmptyMessage(currentStatSortCol);
                 list.innerHTML = `
                     <div class="training-data-rank-block">
-                        <h5>${escapeStatisticsHtml(sortLabel)}</h5>
+                        ${headingHtml}
                         <div class="training-data-empty">
                             <p>${escapeStatsHtml(emptyMessage)}</p>
                         </div>
@@ -5176,7 +5195,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             list.innerHTML = `
                 <div class="training-data-rank-block">
-                    <h5>${escapeStatisticsHtml(sortLabel)}</h5>
+                    ${headingHtml}
                     <ul class="training-data-rank-list ${isExpanded ? 'is-expanded' : ''}">
                         ${qualifiedHtml}
                         ${belowHtml}
@@ -5400,6 +5419,58 @@ window.getFormScoreBorderClass = function(score, teamName) {
             modal.classList.add('flex');
         };
 
+        window.isStatsSpillerstatsInfoOpen = function() {
+            return window.statsSpillerstatsInfoOpen === true;
+        };
+
+        window.renderStatsSpillerstatsExplanationHtml = function() {
+            return `
+                <p class="training-session-groups-info-title">Spillerstats · Sesong</p>
+                <ul class="training-session-groups-info-list">
+                    <li><strong>Sesong</strong> rangeres etter Total Score: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.</li>
+                    <li>Kampbidrag per kamp: 15 + resultat + børs + minutter. Børs 5 er par. 61+ min gir +2. Seier +5, uavgjort +2, tap −2, rent null +3, ±1 per mål.</li>
+                    <li>Krever minst 30 % av lagets kamper for å ligge øverst. Form (nå) er siste 5 kamper — den ligger i i-knappen øverst på Stats.</li>
+                </ul>
+            `;
+        };
+
+        window.renderStatsSpillerstatsInfoButtonHtml = function() {
+            const open = window.isStatsSpillerstatsInfoOpen();
+            return `
+                <button
+                    type="button"
+                    class="training-session-groups-info-btn stats-spillerstats-heading-info-btn${open ? ' is-active' : ''}"
+                    data-stat-action="toggle-spillerstats-info"
+                    aria-expanded="${open ? 'true' : 'false'}"
+                    aria-controls="stats-spillerstats-info"
+                    title="Slik regnes sesong"
+                    aria-label="Slik regnes sesong"
+                >
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                </button>
+            `;
+        };
+
+        window.renderStatsSpillerstatsInfoPanelHtml = function() {
+            const open = window.isStatsSpillerstatsInfoOpen();
+            return `
+                <div
+                    id="stats-spillerstats-info"
+                    class="training-session-groups-info${open ? '' : ' is-hidden'}"
+                    ${open ? '' : 'hidden'}
+                >
+                    ${window.renderStatsSpillerstatsExplanationHtml()}
+                </div>
+            `;
+        };
+
+        window.toggleStatsSpillerstatsInfo = function() {
+            window.statsSpillerstatsInfoOpen = !window.isStatsSpillerstatsInfoOpen();
+            if (typeof window.renderPlayerStatsList === 'function') {
+                window.renderPlayerStatsList();
+            }
+        };
+
         window.renderStatsSpillerstatsPanelHtml = function() {
             const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
                 ? window.getStatsSpillerYearFilter()
@@ -5421,6 +5492,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 badge: yearFilter,
                 showLabel: 'Vis spillerstats',
                 hideLabel: 'Skjul spillerstats',
+                headerActionsHtml: `
+                    <button
+                        type="button"
+                        data-stat-action="open-form-info"
+                        class="training-session-groups-info-btn stats-chrome-info-btn"
+                        title="Statsforklaring"
+                        aria-label="Statsforklaring"
+                    >
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    </button>
+                `,
                 content: `
                     ${yearFilterHtml}
                     ${typeof window.renderStatsSpillerPositionFilterHtml === 'function'

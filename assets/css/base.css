@@ -7142,6 +7142,26 @@
         :is(.stats-board-card, .stats-page-slot) [data-stats-panel="spillerliste"] .match-collapsible-content {
             overflow: visible;
         }
+        :is(.stats-board-card, .stats-page-slot) .stats-player-list .training-data-rank-heading {
+            align-items: center;
+            display: flex;
+            gap: 0.35rem;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-player-list .stats-spillerstats-heading-info-btn {
+            height: 1.55rem;
+            margin-left: 0;
+            width: 1.55rem;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-player-list .stats-spillerstats-heading-info-btn i {
+            font-size: 0.7rem;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-player-list .training-session-groups-info {
+            margin: 0 0 0.15rem;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-player-list .training-session-groups-info-list strong {
+            color: #ffffff;
+            font-weight: 800;
+        }
         :is(.stats-board-card, .stats-page-slot) .stats-kamp-panel-hint {
             color: rgba(255, 255, 255, 0.58);
             font-size: 0.7rem;
