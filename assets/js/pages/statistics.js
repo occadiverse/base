@@ -117,7 +117,7 @@ function bindStatisticsEvents() {
             event.preventDefault();
             event.stopPropagation();
             if (typeof window.toggleStatsSpillerstatsInfo === 'function') {
-                window.toggleStatsSpillerstatsInfo();
+                window.toggleStatsSpillerstatsInfo(actionEl.dataset.spillerstatsInfo);
             }
             return;
         }
@@ -5109,15 +5109,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const sortOption = window.getStatsSortOption(currentStatSortCol);
             const sortLabel = sortOption?.label || 'Stat';
-            const showSeasonInfo = currentStatSortCol === 'totalScore'
-                && typeof window.renderStatsSpillerstatsInfoButtonHtml === 'function';
+            const infoKind = typeof window.getStatsSpillerstatsInfoKind === 'function'
+                ? window.getStatsSpillerstatsInfoKind(currentStatSortCol)
+                : '';
             const headingHtml = `
                 <div class="training-data-rank-heading">
                     <h5>${escapeStatisticsHtml(sortLabel)}</h5>
-                    ${showSeasonInfo ? window.renderStatsSpillerstatsInfoButtonHtml() : ''}
+                    ${infoKind && typeof window.renderStatsSpillerstatsInfoButtonHtml === 'function'
+                        ? window.renderStatsSpillerstatsInfoButtonHtml(infoKind)
+                        : ''}
                 </div>
-                ${showSeasonInfo && typeof window.renderStatsSpillerstatsInfoPanelHtml === 'function'
-                    ? window.renderStatsSpillerstatsInfoPanelHtml()
+                ${infoKind && typeof window.renderStatsSpillerstatsInfoPanelHtml === 'function'
+                    ? window.renderStatsSpillerstatsInfoPanelHtml(infoKind)
                     : ''}
             `;
             const totalPlayers = qualified.length + belowThreshold.length;
@@ -5419,53 +5422,91 @@ window.getFormScoreBorderClass = function(score, teamName) {
             modal.classList.add('flex');
         };
 
-        window.isStatsSpillerstatsInfoOpen = function() {
-            return window.statsSpillerstatsInfoOpen === true;
+        window.STATS_SPILLERSTATS_INFO = {
+            totalScore: {
+                title: 'Spillerstats · Sesong',
+                buttonLabel: 'Slik regnes sesong',
+                items: [
+                    '<strong>Sesong</strong> rangeres etter Total Score: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.',
+                    'Krever minst 30 % av lagets kamper for å ligge øverst. Form (nå) er siste 5 kamper — den ligger i i-knappen øverst på Stats.'
+                ]
+            },
+            kampbonus: {
+                title: 'Spillerstats · Kampbidrag',
+                buttonLabel: 'Slik regnes kampbidrag',
+                items: [
+                    '<strong>Kampbidrag</strong> er snitt kamppoeng i kampene spilleren har vært med på.',
+                    'Per kamp: 15 + resultat + børs + minutter. Børs 5 er par. 61+ min gir +2. Seier +5, uavgjort +2, tap −2, rent null +3, ±1 per mål.',
+                    'Krever minst 30 % av lagets kamper for å ligge øverst. Benk uten minutter får bare de 15 grunnpoengene.'
+                ]
+            }
+        };
+        window.statsSpillerstatsInfoOpen = window.statsSpillerstatsInfoOpen || {};
+
+        window.getStatsSpillerstatsInfoKind = function(kind) {
+            const key = String(kind || '');
+            return (window.STATS_SPILLERSTATS_INFO || {})[key] ? key : '';
         };
 
-        window.renderStatsSpillerstatsExplanationHtml = function() {
+        window.isStatsSpillerstatsInfoOpen = function(kind) {
+            const key = window.getStatsSpillerstatsInfoKind(kind);
+            return key ? window.statsSpillerstatsInfoOpen?.[key] === true : false;
+        };
+
+        window.renderStatsSpillerstatsExplanationHtml = function(kind) {
+            const key = window.getStatsSpillerstatsInfoKind(kind);
+            const info = (window.STATS_SPILLERSTATS_INFO || {})[key];
+            if (!info) return '';
             return `
-                <p class="training-session-groups-info-title">Spillerstats · Sesong</p>
+                <p class="training-session-groups-info-title">${info.title}</p>
                 <ul class="training-session-groups-info-list">
-                    <li><strong>Sesong</strong> rangeres etter Total Score: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.</li>
-                    <li>Kampbidrag per kamp: 15 + resultat + børs + minutter. Børs 5 er par. 61+ min gir +2. Seier +5, uavgjort +2, tap −2, rent null +3, ±1 per mål.</li>
-                    <li>Krever minst 30 % av lagets kamper for å ligge øverst. Form (nå) er siste 5 kamper — den ligger i i-knappen øverst på Stats.</li>
+                    ${(info.items || []).map(item => `<li>${item}</li>`).join('')}
                 </ul>
             `;
         };
 
-        window.renderStatsSpillerstatsInfoButtonHtml = function() {
-            const open = window.isStatsSpillerstatsInfoOpen();
+        window.renderStatsSpillerstatsInfoButtonHtml = function(kind) {
+            const key = window.getStatsSpillerstatsInfoKind(kind);
+            const info = (window.STATS_SPILLERSTATS_INFO || {})[key];
+            if (!info) return '';
+            const open = window.isStatsSpillerstatsInfoOpen(key);
+            const panelId = `stats-spillerstats-info-${key}`;
             return `
                 <button
                     type="button"
                     class="training-session-groups-info-btn stats-spillerstats-heading-info-btn${open ? ' is-active' : ''}"
                     data-stat-action="toggle-spillerstats-info"
+                    data-spillerstats-info="${key}"
                     aria-expanded="${open ? 'true' : 'false'}"
-                    aria-controls="stats-spillerstats-info"
-                    title="Slik regnes sesong"
-                    aria-label="Slik regnes sesong"
+                    aria-controls="${panelId}"
+                    title="${escapeStatisticsHtml(info.buttonLabel)}"
+                    aria-label="${escapeStatisticsHtml(info.buttonLabel)}"
                 >
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                 </button>
             `;
         };
 
-        window.renderStatsSpillerstatsInfoPanelHtml = function() {
-            const open = window.isStatsSpillerstatsInfoOpen();
+        window.renderStatsSpillerstatsInfoPanelHtml = function(kind) {
+            const key = window.getStatsSpillerstatsInfoKind(kind);
+            if (!key) return '';
+            const open = window.isStatsSpillerstatsInfoOpen(key);
             return `
                 <div
-                    id="stats-spillerstats-info"
+                    id="stats-spillerstats-info-${key}"
                     class="training-session-groups-info${open ? '' : ' is-hidden'}"
                     ${open ? '' : 'hidden'}
                 >
-                    ${window.renderStatsSpillerstatsExplanationHtml()}
+                    ${window.renderStatsSpillerstatsExplanationHtml(key)}
                 </div>
             `;
         };
 
-        window.toggleStatsSpillerstatsInfo = function() {
-            window.statsSpillerstatsInfoOpen = !window.isStatsSpillerstatsInfoOpen();
+        window.toggleStatsSpillerstatsInfo = function(kind) {
+            const key = window.getStatsSpillerstatsInfoKind(kind) || window.getStatsSpillerstatsInfoKind(currentStatSortCol);
+            if (!key) return;
+            window.statsSpillerstatsInfoOpen = window.statsSpillerstatsInfoOpen || {};
+            window.statsSpillerstatsInfoOpen[key] = !window.isStatsSpillerstatsInfoOpen(key);
             if (typeof window.renderPlayerStatsList === 'function') {
                 window.renderPlayerStatsList();
             }
