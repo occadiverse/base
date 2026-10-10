@@ -2280,7 +2280,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
             let va = Number(a?.[column]) || 0;
             let vb = Number(b?.[column]) || 0;
-            if (column === 'snittBors') {
+            if (column === 'snittBors' || column === 'totalScore') {
                 va = Math.round(va * 10) / 10;
                 vb = Math.round(vb * 10) / 10;
             }
@@ -2425,8 +2425,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return true;
                 });
                 if (!relevant.length) return null;
-                const bestValue = Math.max(...relevant.map(stat => Number(stat[column]) || 0));
-                return relevant.find(stat => (Number(stat[column]) || 0) === bestValue) || null;
+                relevant.sort((a, b) => {
+                    if (typeof window.comparePlayerStatsSort === 'function') {
+                        return window.comparePlayerStatsSort(a, b, column);
+                    }
+                    return (Number(b[column]) || 0) - (Number(a[column]) || 0);
+                });
+                return relevant[0] || null;
             };
             const seasonLeader = pickLeader('totalScore');
             const nowLeader = pickLeader('kjemi');
@@ -4501,7 +4506,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'player',
                             title: 'Årets spiller',
                             column: 'totalScore',
-                            explain: 'Høyest Total Score (beste sesong): kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. Krever minst 30 % av lagets kamper.'
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const score = Number(stat.totalScore);
+                                const shown = Number.isFinite(score) && score > 0 ? score.toFixed(1) : '—';
+                                return `${shown} · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Høyest Total Score (beste sesong): kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. Krever minst 30 % av lagets kamper. Ved lik score rangeres den med flest kamper høyest.'
                         },
                         {
                             id: 'bors',
@@ -5170,7 +5181,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const possible = Number(stat.oppmotePossible) || 0;
                     valueHtml = `${pct}% <span class="training-data-rank-count">${attended}/${possible}</span>`;
                 }
-                if ((currentStatSortCol === 'mal' || currentStatSortCol === 'assist' || currentStatSortCol === 'snittBors') && (Number(stat.kamper) || 0) > 0) {
+                if ((currentStatSortCol === 'mal' || currentStatSortCol === 'assist' || currentStatSortCol === 'snittBors' || currentStatSortCol === 'totalScore') && (Number(stat.kamper) || 0) > 0) {
                     valueHtml = `${escapeStatisticsHtml(sortValue)} <span class="training-data-rank-count">${Number(stat.kamper)} kamper</span>`;
                 }
                 return `
