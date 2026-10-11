@@ -9360,15 +9360,24 @@
             font-weight: 900;
             pointer-events: none;
         }
+        .team-score-diagram-tooltip,
+        .team-score-diagram-tooltip-bridge {
+            pointer-events: none;
+        }
         .team-score-diagram-tooltip {
             opacity: 0;
-            pointer-events: none;
             transition: opacity 120ms ease;
         }
         .team-score-diagram-point:hover .team-score-diagram-tooltip,
         .team-score-diagram-point:focus .team-score-diagram-tooltip,
         .team-score-diagram-point.is-active .team-score-diagram-tooltip {
             opacity: 1;
+            pointer-events: auto;
+        }
+        .team-score-diagram-point:hover .team-score-diagram-tooltip-bridge,
+        .team-score-diagram-point:focus .team-score-diagram-tooltip-bridge,
+        .team-score-diagram-point.is-active .team-score-diagram-tooltip-bridge {
+            pointer-events: all;
         }
         .team-score-diagram-tooltip rect {
             fill: #0b2b4c;

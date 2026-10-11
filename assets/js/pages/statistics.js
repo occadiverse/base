@@ -3189,21 +3189,46 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (container) container.innerHTML = window.renderStatsLineDiagramHtml();
         };
 
-        window.setStatsDiagramPointTooltip = function(point, isActive) {
+        window.clearStatsDiagramPointTooltips = function(exceptPoint) {
+            if (window.statsDiagramTooltipHideTimer) {
+                clearTimeout(window.statsDiagramTooltipHideTimer);
+                window.statsDiagramTooltipHideTimer = null;
+            }
+            document.querySelectorAll('.team-score-diagram-point.is-active').forEach(point => {
+                if (point !== exceptPoint) point.classList.remove('is-active');
+            });
+        };
+
+        window.setStatsDiagramPointTooltip = function(point, isActive, event) {
             if (!point) return;
+            if (window.statsDiagramTooltipHideTimer) {
+                clearTimeout(window.statsDiagramTooltipHideTimer);
+                window.statsDiagramTooltipHideTimer = null;
+            }
             if (isActive) {
+                window.clearStatsDiagramPointTooltips(point);
                 const svg = point.closest('.team-score-diagram-svg');
-                if (svg) {
-                    svg.querySelectorAll('.team-score-diagram-point.is-active').forEach(activePoint => {
-                        if (activePoint !== point) activePoint.classList.remove('is-active');
-                    });
-                    svg.appendChild(point);
-                }
+                if (svg && svg.lastElementChild !== point) svg.appendChild(point);
                 point.classList.add('is-active');
                 return;
             }
-            point.classList.remove('is-active');
+            const related = event?.relatedTarget;
+            if (related && point.contains(related)) return;
+            if (event?.pointerType === 'touch' || event?.pointerType === 'pen') return;
+            window.statsDiagramTooltipHideTimer = setTimeout(() => {
+                window.statsDiagramTooltipHideTimer = null;
+                if (point.matches(':hover') || point.contains(document.activeElement)) return;
+                point.classList.remove('is-active');
+            }, 160);
         };
+
+        if (!window._statsDiagramTooltipDismissBound) {
+            window._statsDiagramTooltipDismissBound = true;
+            document.addEventListener('pointerdown', event => {
+                if (event.target.closest?.('.team-score-diagram-point')) return;
+                window.clearStatsDiagramPointTooltips();
+            }, true);
+        }
 
         window.getStatsDiagramInitials = function(name) {
             return String(name || '')
@@ -3967,14 +3992,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const groupHint = isGroup
                     ? `<text x="12" y="${tooltipHeight - 8}" class="team-score-diagram-tooltip-meta">${members.length} ${groupNoun} på samme sted</text>`
                     : '';
+                const bridgeTop = tooltipY + tooltipHeight;
+                const bridgeHeight = Math.max(0, pointY - bridgeTop);
+                const bridgeWidth = Math.max(hitRadius * 2, 28);
+                const bridgeHtml = bridgeHeight > 0
+                    ? `<rect class="team-score-diagram-tooltip-bridge" x="${pointX - (bridgeWidth / 2)}" y="${bridgeTop}" width="${bridgeWidth}" height="${bridgeHeight}" fill="transparent"></rect>`
+                    : '';
 
                 return `
-                    <g class="team-score-diagram-point${isGroup ? ' is-overlap-group' : ''}" tabindex="0" aria-label="${escapeHtml(ariaLabel)}" onmouseenter="window.setStatsDiagramPointTooltip(this, true)" onmouseleave="window.setStatsDiagramPointTooltip(this, false)" onfocus="window.setStatsDiagramPointTooltip(this, true)" onblur="window.setStatsDiagramPointTooltip(this, false)" onpointerdown="window.setStatsDiagramPointTooltip(this, true)">
+                    <g class="team-score-diagram-point${isGroup ? ' is-overlap-group' : ''}" tabindex="0" aria-label="${escapeHtml(ariaLabel)}" onpointerenter="window.setStatsDiagramPointTooltip(this, true, event)" onpointerleave="window.setStatsDiagramPointTooltip(this, false, event)" onfocus="window.setStatsDiagramPointTooltip(this, true, event)" onblur="window.setStatsDiagramPointTooltip(this, false, event)" onpointerdown="window.setStatsDiagramPointTooltip(this, true, event)">
                         <circle class="team-score-diagram-hit-area" cx="${pointX}" cy="${pointY}" r="${hitRadius}" fill="transparent" stroke="none"></circle>
                         ${labelText ? `<text x="${pointX}" y="${pointY - radius - (isCompact ? 8 : 6)}" text-anchor="middle" class="team-score-diagram-initials${isGroup ? ' is-group-count' : ''}">${escapeHtml(labelText)}</text>` : ''}
                         <circle cx="${pointX}" cy="${pointY}" r="${radius}" fill="${fill}" stroke="#ffffff" stroke-width="1.5" opacity="0.92"></circle>
                         ${insideLabel ? `<text x="${pointX}" y="${pointY + 1}" text-anchor="middle" dominant-baseline="middle" class="team-score-diagram-initials is-count">${escapeHtml(insideLabel)}</text>` : ''}
                         ${isGroup ? `<circle cx="${pointX}" cy="${pointY}" r="${radius + 3.5}" class="team-score-diagram-overlap-ring" fill="none"></circle>` : ''}
+                        ${bridgeHtml}
                         <g class="team-score-diagram-tooltip" transform="translate(${tooltipX} ${tooltipY})">
                             <rect width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
                             ${tooltipRows}
@@ -3997,7 +4029,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ${topbarHtml}
                     ${infoPanelHtml}
                     <div class="team-score-diagram-scroll">
-                        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(config.ariaLabel || 'Diagram')}" class="team-score-diagram-svg">
+                        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(config.ariaLabel || 'Diagram')}" class="team-score-diagram-svg" onpointerleave="window.clearStatsDiagramPointTooltips()">
                             <rect x="0" y="0" width="${width}" height="${height}" class="team-score-diagram-bg"></rect>
                             ${(config.gridX || []).map(tick => `
                                 <g>
