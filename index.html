@@ -1356,48 +1356,47 @@
 
             <div class="p-6 space-y-6 text-sm">
                 <p class="text-base text-slate-300">
-                    Autofyll bygger et forslag til 11er i sandkassen. Den prioriterer <strong class="text-white">riktig posisjon først</strong>, deretter form og kampbidrag.
+                    Autofyll bygger et forslag til 11er ut fra <strong class="text-white">hvem som faktisk har spilt plassen</strong>. Tropp-etikett (pos1/pos2) brukes bare hvis ingen har kamper der.
                 </p>
 
                 <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
                     <strong class="block text-bsk-yellow mb-2">Kort sagt</strong>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
-                        <li>Ekte posisjon slår reserveposisjon</li>
-                        <li><strong class="text-white">pos1</strong> teller tyngre enn <strong class="text-white">pos2</strong></li>
-                        <li>Blant like gode treff vinner høyest <strong class="text-white">Form + Kampbidrag</strong></li>
-                        <li>Fot brukes som ekstra hint på stoppere</li>
+                        <li><strong class="text-white">Spilte kamper på plassen</strong> er hovedsignalet</li>
+                        <li>Tropp-etikett teller <strong class="text-white">bare som fallback</strong> når ingen har spilt der</li>
+                        <li>Én kamp er for tynt når noen med mer erfaring er ledig</li>
+                        <li>Fot er en liten myk bonus på VS/HS/VK/HK</li>
                     </ul>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Rekkefølge på banen</h4>
-                    <p class="mb-2 text-slate-300">Posisjonene fylles i denne rekkefølgen, slik at midtbane og angrep får sine før kantene henter reservebekker:</p>
+                    <p class="mb-2 text-slate-300">Posisjonene fylles linje for linje. På forsvar og angrep fylles sidene før midten:</p>
                     <p class="text-slate-200 font-semibold leading-relaxed">
-                        Keeper → Stoppere → DM → OM → Playmaker → Spiss → Bekker → Kanter
+                        Keeper → VS → HS → MS → DM → OM → PM → VK → HK → SV → SH → Bekker
                     </p>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Hvem får hvilken plass?</h4>
                     <ul class="list-disc pl-5 space-y-1.5 text-slate-300">
-                        <li><strong class="text-white">Kanter:</strong> først <em>Venstre/Høyre kant</em>. Bekk brukes bare hvis ingen kant er ledig.</li>
-                        <li><strong class="text-white">Bekker:</strong> <em>Venstre/Høyre bekk</em>.</li>
-                        <li><strong class="text-white">Stoppere:</strong> matcher stopper-posisjon, med bonus for riktig fot.</li>
-                        <li><strong class="text-white">Øvrige:</strong> matcher hovedposisjonen for plassen (Keeper, DM, OM, Playmaker, Spiss).</li>
+                        <li><strong class="text-white">Forsvar:</strong> de 3 beste stopperne (sesong-kampbidrag), deretter speilet fordeling VS/HS (fot + side-erfaring), resten MS.</li>
+                        <li><strong class="text-white">Midtbane / angrep:</strong> de som har spilt plassen konkurrerer; ellers etikett-fallback.</li>
+                        <li><strong class="text-white">Linjer:</strong> forsvar VS/MS/HS · midtbane OM/DM/PM · angrep VK/SV/SH/HK</li>
                     </ul>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Poeng når flere passer</h4>
-                    <p class="mb-2 text-slate-300">Når flere spillere passer like godt posisjonsmessig, sorteres de slik:</p>
+                    <p class="mb-2 text-slate-300">Når noen har spilt plassen:</p>
                     <ol class="list-decimal pl-5 space-y-1 text-slate-300">
-                        <li>Best posisjonstreff (hovedposisjon før reserveposisjon)</li>
-                        <li>Høyest Form</li>
-                        <li>Høyest Kampbidrag</li>
-                        <li>Riktig fot (på plasser der fot er relevant)</li>
+                        <li>Høyest posisjons-kampbidrag på den plassen</li>
+                        <li>Flere kamper der (erfaring)</li>
+                        <li>Form som myk sekundær</li>
+                        <li>Fot som liten bonus der det er relevant</li>
                     </ol>
                     <p class="mt-3 text-slate-400 text-[12px]">
-                        Eksempel: en Venstre kant prioriteres foran en Venstre bekk på VK, selv om bekken har litt høyere form.
+                        Eksempel: Thomas G kan tas på PM uten Playmaker-etikett, fordi han har spilt PM. Brunstad tas ikke på HK bare fordi pos2 sier kant.
                     </p>
                 </div>
             </div>
