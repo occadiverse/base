@@ -3465,21 +3465,21 @@
                 return true;
             });
 
-            // Stoppere: VS/HS før MS. Midtbane: myk OM/DM/PM. Angrep: VK/HK før SV/SH.
+            // Felles autofyll-kjerne for alle plasser. Unntak: speilet VS/HS og SV/SH (+ fot).
             const priorityOrder = [
-                { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false, kind: 'keeper' },
-                { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true, kind: 'stopper', preferredSide: 'Venstre stopper' },
-                { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true, kind: 'stopper', preferredSide: 'Høyre stopper' },
-                { id: 'MS',  pos: ['Venstre stopper', 'Høyre stopper'], foot: null, requireFoot: false, kind: 'stopper', preferredSide: null },
-                { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false, kind: 'midfield', midRole: 'Defensiv midtbane' },
-                { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false, kind: 'midfield', midRole: 'Offensiv midtbane' },
-                { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false, kind: 'midfield', midRole: 'Playmaker' },
-                { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: 'Venstre', requireFoot: true, kind: 'attack', attackRole: 'wing', preferredSide: 'Venstre' },
-                { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: 'Høyre', requireFoot: true, kind: 'attack', attackRole: 'wing', preferredSide: 'Høyre' },
-                { id: 'SP',  pos: ['Spiss'], foot: null, requireFoot: false, kind: 'attack', attackRole: 'spiss', preferredSide: 'Venstre' },
-                { id: 'SP2', pos: ['Spiss'], foot: null, requireFoot: false, kind: 'attack', attackRole: 'spiss', preferredSide: 'Høyre' },
-                { id: 'VB',  pos: ['Venstre bekk'], foot: null, requireFoot: true, kind: 'standard' },
-                { id: 'HB',  pos: ['Høyre bekk'], foot: null, requireFoot: true, kind: 'standard' }
+                { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['GK'], labels: ['Keeper'] },
+                { id: 'VMS', pos: ['Venstre stopper'], foot: 'Venstre', requireFoot: true, kind: 'stopper' },
+                { id: 'HMS', pos: ['Høyre stopper'], foot: 'Høyre', requireFoot: true, kind: 'stopper' },
+                { id: 'MS',  pos: ['Venstre stopper', 'Høyre stopper'], foot: null, requireFoot: false, kind: 'stopper' },
+                { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['DM'], labels: ['Defensiv midtbane', 'Offensiv midtbane', 'Playmaker'] },
+                { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['OM'], labels: ['Offensiv midtbane', 'Defensiv midtbane', 'Playmaker'] },
+                { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['PM'], labels: ['Playmaker', 'Offensiv midtbane', 'Defensiv midtbane'] },
+                { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: 'Venstre', requireFoot: true, kind: 'slot', xpIds: ['VK'], labels: ['Venstre kant', 'Høyre kant', 'Venstre bekk', 'Høyre bekk'] },
+                { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: 'Høyre', requireFoot: true, kind: 'slot', xpIds: ['HK'], labels: ['Høyre kant', 'Venstre kant', 'Høyre bekk', 'Venstre bekk'] },
+                { id: 'SP',  pos: ['Spiss'], foot: 'Høyre', requireFoot: true, kind: 'spiss' }, // invertert fot
+                { id: 'SP2', pos: ['Spiss'], foot: 'Venstre', requireFoot: true, kind: 'spiss' }, // invertert fot
+                { id: 'VB',  pos: ['Venstre bekk'], foot: 'Venstre', requireFoot: true, kind: 'slot', xpIds: ['VB'], labels: ['Venstre bekk', 'Høyre bekk'] },
+                { id: 'HB',  pos: ['Høyre bekk'], foot: 'Høyre', requireFoot: true, kind: 'slot', xpIds: ['HB'], labels: ['Høyre bekk', 'Venstre bekk'] }
             ].filter((req) => {
                 if (typeof window.getMatchGamePlanFormationPositionIds !== 'function') return true;
                 const formationId = getSelectedMatchFormationId();
@@ -3491,417 +3491,170 @@
                     ? Number(window.getPlayerKampbidragSnitt(pObj)) || 0
                     : 0
             );
-
             const getForm = (pObj) => (
                 typeof window.calculatePlayerPerformanceChemistry === 'function'
                     ? Number(window.calculatePlayerPerformanceChemistry(pObj.navn)) || 0
                     : 0
             );
-
-            // Diagram-nær kvalitet (fallback når ingen har spilt plassen).
-            const getQualityScore = (player) => (getKampbidrag(player) * 3) + (getForm(player) * 0.1);
-
-            const isStopperPos = (pos) => pos === 'Venstre stopper' || pos === 'Høyre stopper';
-            const isKantPos = (pos) => pos === 'Venstre kant' || pos === 'Høyre kant';
-            const isSpissPos = (pos) => pos === 'Spiss';
-            const isBekkPos = (pos) => pos === 'Venstre bekk' || pos === 'Høyre bekk';
-            const MID_ROLES = ['Defensiv midtbane', 'Offensiv midtbane', 'Playmaker'];
-            const isMidRolePos = (pos) => MID_ROLES.includes(pos);
-            const hasPos = (player, label) => player.pos1 === label || player.pos2 === label;
-
-            const getSoftFootBonus = (player, req) => {
-                if (!req.requireFoot || !req.foot) return 0;
-                if (player.fot === req.foot || player.fot === 'Begge') return 4;
-                return 0;
-            };
-
-            // Hvilke spilte plass-IDer teller som «har spilt der».
-            const getSlotExperienceIds = (req) => {
-                if (req.kind === 'attack' && req.attackRole === 'spiss') return ['SP', 'SP2'];
-                return [req.id];
-            };
-
             const getPosStatRows = (player, posIds) => {
                 if (typeof window.buildPlayerPositionMatchStats !== 'function') return [];
                 const idSet = new Set(posIds);
                 return (window.buildPlayerPositionMatchStats(player) || []).filter((r) => idSet.has(r.posId));
             };
-
-            const getXpMatches = (player, req) => (
-                getPosStatRows(player, getSlotExperienceIds(req))
-                    .reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
+            const getXpFromIds = (player, posIds) => (
+                getPosStatRows(player, posIds).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
             );
-
-            const getPosSnitt = (player, req) => {
-                const rows = getPosStatRows(player, getSlotExperienceIds(req));
+            const getSnittFromIds = (player, posIds) => {
+                const rows = getPosStatRows(player, posIds);
                 const matches = rows.reduce((sum, r) => sum + (Number(r.matches) || 0), 0);
                 if (matches <= 0) return null;
                 const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
                 return points / matches;
             };
-
-            const applyExperienceGates = (candidates, getXp) => {
-                const experienced = candidates.filter((p) => getXp(p) > 0);
-                if (experienced.length === 0) return [];
-                const established = experienced.filter((p) => getXp(p) >= 2);
-                return established.length > 0 ? established : experienced;
-            };
-
-            // Tropp-etikett brukes KUN når ingen har spilt plassen.
-            const matchesLabelFallback = (player, req) => {
-                if (req.kind === 'stopper') {
-                    return isStopperPos(player.pos1) || isStopperPos(player.pos2);
-                }
-                if (req.kind === 'midfield') {
-                    return isMidRolePos(player.pos1) || isMidRolePos(player.pos2);
-                }
-                if (req.kind === 'attack') {
-                    if (req.attackRole === 'wing') {
-                        return isKantPos(player.pos1) || isKantPos(player.pos2)
-                            || isBekkPos(player.pos1) || isBekkPos(player.pos2);
-                    }
-                    return isSpissPos(player.pos1) || isSpissPos(player.pos2)
-                        || isKantPos(player.pos1) || isKantPos(player.pos2);
-                }
-                return false;
-            };
-
-            const getFallbackLabelBonus = (player, req) => {
-                if (req.kind === 'stopper') {
-                    if (req.id === 'MS') {
-                        const hasVS = hasPos(player, 'Venstre stopper');
-                        const hasHS = hasPos(player, 'Høyre stopper');
-                        return (hasVS && hasHS) ? 6 : 3;
-                    }
-                    const preferred = req.preferredSide;
-                    if (player.pos1 === preferred) return 8;
-                    if (player.pos2 === preferred) return 5;
-                    if (isStopperPos(player.pos1) || isStopperPos(player.pos2)) return 3;
-                    return 0;
-                }
-                if (req.kind === 'midfield') {
-                    if (player.pos1 === req.midRole) return 8;
-                    if (player.pos2 === req.midRole) return 5;
-                    if (isMidRolePos(player.pos1) || isMidRolePos(player.pos2)) return 3;
-                    return 0;
-                }
-                if (req.kind === 'attack') {
-                    const sideKant = req.preferredSide === 'Venstre' ? 'Venstre kant' : 'Høyre kant';
-                    const otherKant = req.preferredSide === 'Venstre' ? 'Høyre kant' : 'Venstre kant';
-                    const sideBekk = req.preferredSide === 'Venstre' ? 'Venstre bekk' : 'Høyre bekk';
-                    if (req.attackRole === 'wing') {
-                        if (player.pos1 === sideKant) return 8;
-                        if (player.pos2 === sideKant) return 5;
-                        if (hasPos(player, otherKant)) return 3;
-                        if (hasPos(player, sideBekk)) return 2;
-                        return 0;
-                    }
-                    if (player.pos1 === 'Spiss') return 8;
-                    if (player.pos2 === 'Spiss') return 5;
-                    if (hasPos(player, sideKant) || hasPos(player, otherKant)) return 3;
-                    return 0;
-                }
-                return 0;
-            };
-
-            // Erfaring: pos-snitt + xp + fot. Ingen tropp-etikett.
-            const getExperienceScore = (player, req) => {
-                const snitt = getPosSnitt(player, req) || 0;
-                const xp = getXpMatches(player, req);
-                return (snitt * 3) + (getForm(player) * 0.1) + (Math.min(xp, 8) * 4) + getSoftFootBonus(player, req);
-            };
-
-            // Fallback: sesong-kampbidrag + etikett + fot.
-            const getFallbackScore = (player, req) => (
-                getQualityScore(player) + getFallbackLabelBonus(player, req) + getSoftFootBonus(player, req)
+            const hasAnyLabel = (player, labels) => (
+                labels.some((label) => player.pos1 === label || player.pos2 === label)
+            );
+            const footBonus = (player, foot) => (
+                foot && (player.fot === foot || player.fot === 'Begge') ? 4 : 0
             );
 
-            const getPositionFitScore = (player, req) => {
-                const preferred = req.pos[0];
-                const fallback = req.pos.slice(1);
-                if (preferred && player.pos1 === preferred) return 100;
-                if (preferred && player.pos2 === preferred) return 80;
-                if (fallback.includes(player.pos1)) return 40;
-                if (fallback.includes(player.pos2)) return 20;
-                return 0;
+            // Felles poeng: kampbidrag ×3 + form ×0.1 + erfaring ×4 (+ fot når relevant).
+            const getCoreScore = (player, posIds, foot = null) => {
+                const xp = getXpFromIds(player, posIds);
+                const snitt = getSnittFromIds(player, posIds);
+                const kamp = snitt != null ? snitt : getKampbidrag(player);
+                return (kamp * 3) + (getForm(player) * 0.1) + (Math.min(xp, 8) * 4) + footBonus(player, foot);
             };
-
-            const pickLinePlayer = (req) => {
-                const experienced = applyExperienceGates(
-                    availablePlayers,
-                    (p) => getXpMatches(p, req)
-                );
-
-                let candidates;
-                let scoreFn;
-                if (experienced.length > 0) {
-                    candidates = experienced;
-                    scoreFn = (p) => getExperienceScore(p, req);
-                } else {
-                    candidates = availablePlayers.filter((p) => matchesLabelFallback(p, req));
-                    if (candidates.length === 0) candidates = [...availablePlayers];
-                    scoreFn = (p) => getFallbackScore(p, req);
-                }
-
-                candidates.sort((a, b) => scoreFn(b) - scoreFn(a));
-                return candidates[0] || null;
-            };
-
-            // Forsvar: beste 3 stoppere først, deretter speilet VS/HS (kun fot + side-xp ulik), resten MS.
-            const STOPPER_LINE_IDS = ['VMS', 'MS', 'HMS'];
-            const getStopperLineRows = (player) => getPosStatRows(player, STOPPER_LINE_IDS);
-            const getStopperLineXp = (player) => (
-                getStopperLineRows(player).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
+            const rankByCore = (list, posIds, foot = null) => (
+                [...list].sort((a, b) => getCoreScore(b, posIds, foot) - getCoreScore(a, posIds, foot))
             );
-            const getStopperLineSnitt = (player) => {
-                const rows = getStopperLineRows(player);
-                const matches = rows.reduce((sum, r) => sum + (Number(r.matches) || 0), 0);
-                if (matches <= 0) return 0;
-                const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
-                return points / matches;
-            };
-            const getStopperSideXp = (player, sideId) => (
-                getPosStatRows(player, [sideId]).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
-            );
-            // Speilet for VS/HS: samme kvalitetsbase, fot + side-erfaring speilet.
-            const getStopperSideAssignScore = (player, sideId, foot) => {
-                const quality = getQualityScore(player);
-                const sideXp = Math.min(getStopperSideXp(player, sideId), 8) * 2;
-                const footBonus = (foot && (player.fot === foot || player.fot === 'Begge')) ? 4 : 0;
-                return quality + sideXp + footBonus;
-            };
-
-            const assignBackThree = () => {
-                const neededIds = priorityOrder.filter((r) => r.kind === 'stopper').map((r) => r.id);
-                if (neededIds.length === 0) return null;
-
-                let pool = availablePlayers.filter((p) => getStopperLineXp(p) >= 2);
-                if (pool.length === 0) {
-                    pool = availablePlayers.filter((p) => getStopperLineXp(p) > 0);
-                }
-                if (pool.length === 0) {
-                    pool = availablePlayers.filter((p) => isStopperPos(p.pos1) || isStopperPos(p.pos2));
-                }
-                if (pool.length === 0) return null;
-
-                pool = [...pool].sort((a, b) => {
+            const rankBySeason = (list, lineIds) => (
+                [...list].sort((a, b) => {
                     const kbDiff = getKampbidrag(b) - getKampbidrag(a);
                     if (kbDiff !== 0) return kbDiff;
-                    const snittDiff = getStopperLineSnitt(b) - getStopperLineSnitt(a);
+                    const snittDiff = (getSnittFromIds(b, lineIds) || 0) - (getSnittFromIds(a, lineIds) || 0);
                     if (snittDiff !== 0) return snittDiff;
                     return getForm(b) - getForm(a);
-                });
+                })
+            );
 
-                let remaining = pool.slice(0, Math.min(3, pool.length));
+            const pickCandidates = (posIds, labels) => {
+                const withXp = availablePlayers.filter((p) => getXpFromIds(p, posIds) > 0);
+                const established = withXp.filter((p) => getXpFromIds(p, posIds) >= 2);
+                if (established.length > 0) return established;
+                if (withXp.length > 0) return withXp;
+                const byLabel = availablePlayers.filter((p) => hasAnyLabel(p, labels));
+                return byLabel.length > 0 ? byLabel : [...availablePlayers];
+            };
+
+            const placePlayer = (player, slotId) => {
+                if (!player) return;
+                window.choosePlayer(player, slotId);
+                availablePlayers = availablePlayers.filter((p) => p.id !== player.id);
+            };
+
+            const pickSlotPlayer = (req) => {
+                const candidates = pickCandidates(req.xpIds, req.labels || req.pos);
+                const foot = req.requireFoot ? req.foot : null;
+                return rankByCore(candidates, req.xpIds, foot)[0] || null;
+            };
+
+            // Unntak 1: bakre tre — beste 3, speilet VS/HS (åpen fot ut), resten MS.
+            const STOPPER_IDS = ['VMS', 'MS', 'HMS'];
+            const STOPPER_LABELS = ['Venstre stopper', 'Høyre stopper'];
+            const assignBackThree = () => {
+                const needed = priorityOrder.filter((r) => r.kind === 'stopper').map((r) => r.id);
+                if (!needed.length) return null;
+                const ranked = rankBySeason(
+                    pickCandidates(STOPPER_IDS, STOPPER_LABELS),
+                    STOPPER_IDS
+                );
+                const pool = ranked.slice(0, Math.min(3, ranked.length));
+                if (!pool.length) return null;
+
+                let remaining = [...pool];
                 const assignment = {};
+                // Speilet VS/HS: samme formel, speilet side-xp + fot (åpen fot ut).
+                const sideScore = (player, sideId, foot) => (
+                    getKampbidrag(player) * 3
+                    + getForm(player) * 0.1
+                    + Math.min(getXpFromIds(player, [sideId]), 8) * 2
+                    + footBonus(player, foot)
+                );
 
-                if (neededIds.includes('VMS') && remaining.length > 0) {
+                if (needed.includes('VMS') && remaining.length) {
                     remaining = [...remaining].sort((a, b) => (
-                        getStopperSideAssignScore(b, 'VMS', 'Venstre')
-                        - getStopperSideAssignScore(a, 'VMS', 'Venstre')
+                        sideScore(b, 'VMS', 'Venstre') - sideScore(a, 'VMS', 'Venstre')
                     ));
                     assignment.VMS = remaining[0];
                     remaining = remaining.filter((p) => p.id !== assignment.VMS.id);
                 }
-                if (neededIds.includes('HMS') && remaining.length > 0) {
+                if (needed.includes('HMS') && remaining.length) {
                     remaining = [...remaining].sort((a, b) => (
-                        getStopperSideAssignScore(b, 'HMS', 'Høyre')
-                        - getStopperSideAssignScore(a, 'HMS', 'Høyre')
+                        sideScore(b, 'HMS', 'Høyre') - sideScore(a, 'HMS', 'Høyre')
                     ));
                     assignment.HMS = remaining[0];
                     remaining = remaining.filter((p) => p.id !== assignment.HMS.id);
                 }
-                if (neededIds.includes('MS') && remaining.length > 0) {
+                if (needed.includes('MS') && remaining.length) {
                     assignment.MS = remaining[0];
                 }
-
                 return assignment;
             };
 
-            // Keeper: erfaring først (ikke én kamp med høy snitt). Nær «Årets keeper».
-            const pickGoalkeeper = () => {
-                if (!priorityOrder.some((r) => r.id === 'GK')) return null;
-
-                const getGkXp = (player) => (
-                    getPosStatRows(player, ['GK']).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
-                );
-                const getGkSnitt = (player) => {
-                    const rows = getPosStatRows(player, ['GK']);
-                    const matches = rows.reduce((sum, r) => sum + (Number(r.matches) || 0), 0);
-                    if (matches <= 0) return null;
-                    const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
-                    return points / matches;
-                };
-
-                let pool = availablePlayers.filter((p) => getGkXp(p) > 0);
-                const established = pool.filter((p) => getGkXp(p) >= 2);
-                if (established.length > 0) {
-                    pool = established;
-                } else {
-                    pool = availablePlayers.filter((p) => (
-                        /keeper/i.test(p.pos1 || '') || /keeper/i.test(p.pos2 || '')
-                    ));
+            // Unntak 2: SV/SH — beste 2, speilet par med invertert fot (sterk fot inn).
+            const SPISS_IDS = ['SP', 'SP2'];
+            const SPISS_LABELS = ['Spiss', 'Venstre kant', 'Høyre kant'];
+            const assignStrikePair = () => {
+                const needed = priorityOrder.filter((r) => r.kind === 'spiss').map((r) => r.id);
+                if (needed.length < 2) return null;
+                const top = rankBySeason(
+                    pickCandidates(SPISS_IDS, SPISS_LABELS),
+                    SPISS_IDS
+                ).slice(0, 2);
+                if (!top.length) return null;
+                if (top.length === 1) {
+                    return needed.includes('SP') ? { SP: top[0] } : { SP2: top[0] };
                 }
-                if (pool.length === 0) return null;
-
-                pool = [...pool].sort((a, b) => {
-                    const snittA = getGkSnitt(a);
-                    const snittB = getGkSnitt(b);
-                    const qualityA = snittA != null ? snittA : getKampbidrag(a);
-                    const qualityB = snittB != null ? snittB : getKampbidrag(b);
-                    if (qualityB !== qualityA) return qualityB - qualityA;
-                    const xpDiff = getGkXp(b) - getGkXp(a);
-                    if (xpDiff !== 0) return xpDiff;
-                    return getForm(b) - getForm(a);
-                });
-                return pool[0];
+                const [a, b] = top;
+                const score = (player, foot) => getKampbidrag(player) * 3 + getForm(player) * 0.1 + footBonus(player, foot);
+                const optionA = score(a, 'Høyre') + score(b, 'Venstre');
+                const optionB = score(b, 'Høyre') + score(a, 'Venstre');
+                const best = optionA >= optionB
+                    ? { SP: a, SP2: b }
+                    : { SP: b, SP2: a };
+                const assignment = {};
+                if (needed.includes('SP')) assignment.SP = best.SP;
+                if (needed.includes('SP2')) assignment.SP2 = best.SP2;
+                return assignment;
             };
-
-            const selectedKeeper = pickGoalkeeper();
-            if (selectedKeeper) {
-                window.choosePlayer(selectedKeeper, 'GK');
-                availablePlayers = availablePlayers.filter((p) => p.id !== selectedKeeper.id);
-            }
 
             const backThree = assignBackThree();
             if (backThree) {
-                ['VMS', 'HMS', 'MS'].forEach((slotId) => {
-                    const player = backThree[slotId];
-                    if (!player) return;
-                    if (!priorityOrder.some((r) => r.id === slotId)) return;
-                    window.choosePlayer(player, slotId);
-                    availablePlayers = availablePlayers.filter((p) => p.id !== player.id);
-                });
+                ['VMS', 'HMS', 'MS'].forEach((id) => placePlayer(backThree[id], id));
             }
 
-            // Angrep SV/SH: samme rolle speilet — beste 2 spisser, kun fot skiller.
-            // Invertert fot (sterk fot inn): SV→høyre, SH→venstre.
-            const SPISS_LINE_IDS = ['SP', 'SP2'];
-            const getSpissLineRows = (player) => getPosStatRows(player, SPISS_LINE_IDS);
-            const getSpissLineXp = (player) => (
-                getSpissLineRows(player).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
-            );
-            const getSpissLineSnitt = (player) => {
-                const rows = getSpissLineRows(player);
-                const matches = rows.reduce((sum, r) => sum + (Number(r.matches) || 0), 0);
-                if (matches <= 0) return 0;
-                const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
-                return points / matches;
-            };
-            const getSpissAssignScore = (player, foot) => {
-                const quality = getQualityScore(player);
-                const footBonus = (foot && (player.fot === foot || player.fot === 'Begge')) ? 4 : 0;
-                return quality + footBonus;
-            };
-
-            const assignStrikePair = () => {
-                const neededIds = priorityOrder
-                    .filter((r) => r.kind === 'attack' && r.attackRole === 'spiss')
-                    .map((r) => r.id);
-                if (neededIds.length < 2) return null;
-
-                let pool = availablePlayers.filter((p) => getSpissLineXp(p) >= 2);
-                if (pool.length === 0) {
-                    pool = availablePlayers.filter((p) => getSpissLineXp(p) > 0);
-                }
-                if (pool.length === 0) {
-                    pool = availablePlayers.filter((p) => (
-                        isSpissPos(p.pos1) || isSpissPos(p.pos2)
-                        || isKantPos(p.pos1) || isKantPos(p.pos2)
-                    ));
-                }
-                if (pool.length === 0) return null;
-
-                pool = [...pool].sort((a, b) => {
-                    const kbDiff = getKampbidrag(b) - getKampbidrag(a);
-                    if (kbDiff !== 0) return kbDiff;
-                    const snittDiff = getSpissLineSnitt(b) - getSpissLineSnitt(a);
-                    if (snittDiff !== 0) return snittDiff;
-                    return getForm(b) - getForm(a);
-                });
-
-                const top = pool.slice(0, Math.min(2, pool.length));
-                const assignment = {};
-
-                if (top.length === 1) {
-                    if (neededIds.includes('SP')) assignment.SP = top[0];
-                    else if (neededIds.includes('SP2')) assignment.SP2 = top[0];
-                    return assignment;
-                }
-
-                // Speilet fordeling: velg kombinasjonen med høyest sum (ikke SV-først).
-                // SV = sterk fot inn (høyre), SH = sterk fot inn (venstre).
-                const [a, b] = top;
-                const optionA = {
-                    SP: a,
-                    SP2: b,
-                    total: getSpissAssignScore(a, 'Høyre') + getSpissAssignScore(b, 'Venstre')
-                };
-                const optionB = {
-                    SP: b,
-                    SP2: a,
-                    total: getSpissAssignScore(b, 'Høyre') + getSpissAssignScore(a, 'Venstre')
-                };
-                const best = optionA.total >= optionB.total ? optionA : optionB;
-                if (neededIds.includes('SP')) assignment.SP = best.SP;
-                if (neededIds.includes('SP2')) assignment.SP2 = best.SP2;
-                return assignment;
-            };
-
-            priorityOrder.forEach(req => {
-                if (req.kind === 'keeper' || req.kind === 'stopper') return; // allerede plukket
-                if (req.kind === 'attack' && req.attackRole === 'spiss') return; // SV/SH etterpå
-
-                let selectedPlayer = null;
-
-                if (req.kind === 'midfield' || req.kind === 'attack') {
-                    selectedPlayer = pickLinePlayer(req);
-                } else {
-                    const preferredPos = req.pos[0] ? [req.pos[0]] : req.pos;
-                    let candidates = availablePlayers.filter(p => (
-                        preferredPos.includes(p.pos1) || preferredPos.includes(p.pos2)
-                    ));
-                    if (candidates.length === 0) {
-                        candidates = availablePlayers.filter(p => (
-                            req.pos.includes(p.pos1) || req.pos.includes(p.pos2)
-                        ));
-                    }
-                    if (candidates.length === 0 && availablePlayers.length > 0) {
-                        candidates = [...availablePlayers];
-                    }
-                    candidates.sort((a, b) => {
-                        const fitA = getPositionFitScore(a, req);
-                        const fitB = getPositionFitScore(b, req);
-                        if (fitA !== fitB) return fitB - fitA;
-                        return getQualityScore(b) - getQualityScore(a);
-                    });
-                    selectedPlayer = candidates[0] || null;
-                }
-
-                if (selectedPlayer) {
-                    window.choosePlayer(selectedPlayer, req.id);
-                    availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
-                }
+            priorityOrder.forEach((req) => {
+                if (req.kind === 'stopper' || req.kind === 'spiss') return;
+                placePlayer(pickSlotPlayer(req), req.id);
             });
 
             const strikePair = assignStrikePair();
             if (strikePair) {
-                ['SP', 'SP2'].forEach((slotId) => {
-                    const player = strikePair[slotId];
-                    if (!player) return;
-                    if (!priorityOrder.some((r) => r.id === slotId)) return;
-                    window.choosePlayer(player, slotId);
-                    availablePlayers = availablePlayers.filter((p) => p.id !== player.id);
-                });
+                ['SP', 'SP2'].forEach((id) => placePlayer(strikePair[id], id));
             } else {
-                // Én spiss-plass (eller mangler par): vanlig linje-logikk.
                 priorityOrder
-                    .filter((r) => r.kind === 'attack' && r.attackRole === 'spiss')
+                    .filter((r) => r.kind === 'spiss')
                     .forEach((req) => {
-                        const selectedPlayer = pickLinePlayer(req);
-                        if (!selectedPlayer) return;
-                        window.choosePlayer(selectedPlayer, req.id);
-                        availablePlayers = availablePlayers.filter((p) => p.id !== selectedPlayer.id);
+                        placePlayer(
+                            pickSlotPlayer({
+                                ...req,
+                                kind: 'slot',
+                                xpIds: SPISS_IDS,
+                                labels: SPISS_LABELS
+                            }),
+                            req.id
+                        );
                     });
             }
         };

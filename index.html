@@ -1356,49 +1356,42 @@
 
             <div class="p-6 space-y-6 text-sm">
                 <p class="text-base text-slate-300">
-                    Autofyll bygger et forslag til 11er ut fra <strong class="text-white">hvem som faktisk har spilt plassen</strong>. Tropp-etikett (pos1/pos2) brukes bare hvis ingen har kamper der.
+                    Autofyll bruker <strong class="text-white">samme kjerne for alle plasser</strong>: erfaring → kampbidrag → form. Tropp-etikett bare som fallback. Eneste unntak er speilet fordeling på VS/HS og SV/SH.
                 </p>
 
                 <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
                     <strong class="block text-bsk-yellow mb-2">Kort sagt</strong>
                     <ul class="list-disc pl-5 space-y-1 text-slate-300">
-                        <li><strong class="text-white">Spilte kamper på plassen</strong> er hovedsignalet</li>
-                        <li>Tropp-etikett teller <strong class="text-white">bare som fallback</strong> når ingen har spilt der</li>
-                        <li>Én kamp er for tynt når noen med mer erfaring er ledig</li>
-                        <li>Fot er en liten myk bonus på VS/HS/VK/HK</li>
+                        <li>Har spilt plassen (≥2 når noen har det) → kandidater</li>
+                        <li>Poeng: <strong class="text-white">kampbidrag ×3 + form ×0.1 + erfaring ×4</strong> (+ fot når relevant)</li>
+                        <li>Etikett bare hvis ingen har spilt der</li>
+                        <li>Unntak: forsvar topp-3 og spisser topp-2 med speilet fot</li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Rekkefølge på banen</h4>
-                    <p class="mb-2 text-slate-300">Posisjonene fylles linje for linje. På forsvar og angrep fylles sidene før midten:</p>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Rekkefølge</h4>
                     <p class="text-slate-200 font-semibold leading-relaxed">
-                        Keeper → VS → HS → MS → DM → OM → PM → VK → HK → SV → SH → Bekker
+                        Forsvar (VS/HS/MS) → Keeper, midtbane, kanter/bekker → Spisser (SV/SH)
                     </p>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Hvem får hvilken plass?</h4>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Unntak (speilet side)</h4>
                     <ul class="list-disc pl-5 space-y-1.5 text-slate-300">
-                        <li><strong class="text-white">Keeper:</strong> har spilt GK → kandidater; ≥2 kamper når noen har det. Rangering på keeper-kampbidrag, deretter flere kamper, så form.</li>
-                        <li><strong class="text-white">Forsvar:</strong> de 3 beste stopperne, deretter speilet VS/HS (fot + side-erfaring), resten MS.</li>
-                        <li><strong class="text-white">Spisser (SV/SH):</strong> beste 2 spisser; kombinasjon med høyest sum — invertert fot (SV høyre, SH venstre).</li>
-                        <li><strong class="text-white">Øvrig midtbane / kant:</strong> de som har spilt plassen konkurrerer; ellers etikett-fallback.</li>
+                        <li><strong class="text-white">VS/HS:</strong> beste 3 stoppere, deretter speilet fordeling med side-erfaring + åpen fot ut; resten MS.</li>
+                        <li><strong class="text-white">SV/SH:</strong> beste 2 spisser; velger kombinasjonen med høyest sum — invertert fot (sterk fot inn).</li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Poeng når flere passer</h4>
-                    <p class="mb-2 text-slate-300">Når noen har spilt plassen:</p>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">3. Felles poeng</h4>
                     <ol class="list-decimal pl-5 space-y-1 text-slate-300">
-                        <li>Høyest posisjons-kampbidrag på den plassen</li>
-                        <li>Flere kamper der (erfaring)</li>
-                        <li>Form som myk sekundær</li>
-                        <li>Fot som liten bonus der det er relevant</li>
+                        <li>Kampbidrag på plassen (ellers sesong)</li>
+                        <li>Erfaring (antall kamper)</li>
+                        <li>Form</li>
+                        <li>Fot der det er relevant (forsvar ut, spiss inn, kant side)</li>
                     </ol>
-                    <p class="mt-3 text-slate-400 text-[12px]">
-                        Eksempel: Thomas G kan tas på PM uten Playmaker-etikett, fordi han har spilt PM. Brunstad tas ikke på HK bare fordi pos2 sier kant.
-                    </p>
                 </div>
             </div>
         </div>
