@@ -3467,7 +3467,7 @@
 
             // Stoppere: VS/HS før MS. Midtbane: myk OM/DM/PM. Angrep: VK/HK før SV/SH.
             const priorityOrder = [
-                { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false, kind: 'standard' },
+                { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false, kind: 'keeper' },
                 { id: 'VMS', pos: ['Venstre stopper', 'Høyre stopper'], foot: 'Venstre', requireFoot: true, kind: 'stopper', preferredSide: 'Venstre stopper' },
                 { id: 'HMS', pos: ['Høyre stopper', 'Venstre stopper'], foot: 'Høyre', requireFoot: true, kind: 'stopper', preferredSide: 'Høyre stopper' },
                 { id: 'MS',  pos: ['Venstre stopper', 'Høyre stopper'], foot: null, requireFoot: false, kind: 'stopper', preferredSide: null },
@@ -3718,6 +3718,51 @@
                 return assignment;
             };
 
+            // Keeper: erfaring først (ikke én kamp med høy snitt). Nær «Årets keeper».
+            const pickGoalkeeper = () => {
+                if (!priorityOrder.some((r) => r.id === 'GK')) return null;
+
+                const getGkXp = (player) => (
+                    getPosStatRows(player, ['GK']).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
+                );
+                const getGkSnitt = (player) => {
+                    const rows = getPosStatRows(player, ['GK']);
+                    const matches = rows.reduce((sum, r) => sum + (Number(r.matches) || 0), 0);
+                    if (matches <= 0) return null;
+                    const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
+                    return points / matches;
+                };
+
+                let pool = availablePlayers.filter((p) => getGkXp(p) > 0);
+                const established = pool.filter((p) => getGkXp(p) >= 2);
+                if (established.length > 0) {
+                    pool = established;
+                } else {
+                    pool = availablePlayers.filter((p) => (
+                        /keeper/i.test(p.pos1 || '') || /keeper/i.test(p.pos2 || '')
+                    ));
+                }
+                if (pool.length === 0) return null;
+
+                pool = [...pool].sort((a, b) => {
+                    const snittA = getGkSnitt(a);
+                    const snittB = getGkSnitt(b);
+                    const qualityA = snittA != null ? snittA : getKampbidrag(a);
+                    const qualityB = snittB != null ? snittB : getKampbidrag(b);
+                    if (qualityB !== qualityA) return qualityB - qualityA;
+                    const xpDiff = getGkXp(b) - getGkXp(a);
+                    if (xpDiff !== 0) return xpDiff;
+                    return getForm(b) - getForm(a);
+                });
+                return pool[0];
+            };
+
+            const selectedKeeper = pickGoalkeeper();
+            if (selectedKeeper) {
+                window.choosePlayer(selectedKeeper, 'GK');
+                availablePlayers = availablePlayers.filter((p) => p.id !== selectedKeeper.id);
+            }
+
             const backThree = assignBackThree();
             if (backThree) {
                 ['VMS', 'HMS', 'MS'].forEach((slotId) => {
@@ -3729,7 +3774,8 @@
                 });
             }
 
-            // Angrep SV/SH: samme rolle speilet — beste 2 spisser, deretter fot (+ myk side-xp).
+            // Angrep SV/SH: samme rolle speilet — beste 2 spisser, kun fot skiller.
+            // Invertert fot (sterk fot inn): SV→høyre, SH→venstre.
             const SPISS_LINE_IDS = ['SP', 'SP2'];
             const getSpissLineRows = (player) => getPosStatRows(player, SPISS_LINE_IDS);
             const getSpissLineXp = (player) => (
@@ -3742,14 +3788,10 @@
                 const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
                 return points / matches;
             };
-            const getSpissSideXp = (player, sideId) => (
-                getPosStatRows(player, [sideId]).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
-            );
-            const getSpissSideAssignScore = (player, sideId, foot) => {
+            const getSpissAssignScore = (player, foot) => {
                 const quality = getQualityScore(player);
-                const sideXp = Math.min(getSpissSideXp(player, sideId), 8) * 2;
                 const footBonus = (foot && (player.fot === foot || player.fot === 'Begge')) ? 4 : 0;
-                return quality + sideXp + footBonus;
+                return quality + footBonus;
             };
 
             const assignStrikePair = () => {
@@ -3778,30 +3820,36 @@
                     return getForm(b) - getForm(a);
                 });
 
-                let remaining = pool.slice(0, Math.min(2, pool.length));
+                const top = pool.slice(0, Math.min(2, pool.length));
                 const assignment = {};
 
-                if (neededIds.includes('SP') && remaining.length > 0) {
-                    remaining = [...remaining].sort((a, b) => (
-                        getSpissSideAssignScore(b, 'SP', 'Venstre')
-                        - getSpissSideAssignScore(a, 'SP', 'Venstre')
-                    ));
-                    assignment.SP = remaining[0];
-                    remaining = remaining.filter((p) => p.id !== assignment.SP.id);
-                }
-                if (neededIds.includes('SP2') && remaining.length > 0) {
-                    remaining = [...remaining].sort((a, b) => (
-                        getSpissSideAssignScore(b, 'SP2', 'Høyre')
-                        - getSpissSideAssignScore(a, 'SP2', 'Høyre')
-                    ));
-                    assignment.SP2 = remaining[0];
+                if (top.length === 1) {
+                    if (neededIds.includes('SP')) assignment.SP = top[0];
+                    else if (neededIds.includes('SP2')) assignment.SP2 = top[0];
+                    return assignment;
                 }
 
+                // Speilet fordeling: velg kombinasjonen med høyest sum (ikke SV-først).
+                // SV = sterk fot inn (høyre), SH = sterk fot inn (venstre).
+                const [a, b] = top;
+                const optionA = {
+                    SP: a,
+                    SP2: b,
+                    total: getSpissAssignScore(a, 'Høyre') + getSpissAssignScore(b, 'Venstre')
+                };
+                const optionB = {
+                    SP: b,
+                    SP2: a,
+                    total: getSpissAssignScore(b, 'Høyre') + getSpissAssignScore(a, 'Venstre')
+                };
+                const best = optionA.total >= optionB.total ? optionA : optionB;
+                if (neededIds.includes('SP')) assignment.SP = best.SP;
+                if (neededIds.includes('SP2')) assignment.SP2 = best.SP2;
                 return assignment;
             };
 
             priorityOrder.forEach(req => {
-                if (req.kind === 'stopper') return; // allerede fordelt som topp-3
+                if (req.kind === 'keeper' || req.kind === 'stopper') return; // allerede plukket
                 if (req.kind === 'attack' && req.attackRole === 'spiss') return; // SV/SH etterpå
 
                 let selectedPlayer = null;
