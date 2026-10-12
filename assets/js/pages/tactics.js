@@ -3729,8 +3729,80 @@
                 });
             }
 
+            // Angrep SV/SH: samme rolle speilet — beste 2 spisser, deretter fot (+ myk side-xp).
+            const SPISS_LINE_IDS = ['SP', 'SP2'];
+            const getSpissLineRows = (player) => getPosStatRows(player, SPISS_LINE_IDS);
+            const getSpissLineXp = (player) => (
+                getSpissLineRows(player).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
+            );
+            const getSpissLineSnitt = (player) => {
+                const rows = getSpissLineRows(player);
+                const matches = rows.reduce((sum, r) => sum + (Number(r.matches) || 0), 0);
+                if (matches <= 0) return 0;
+                const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
+                return points / matches;
+            };
+            const getSpissSideXp = (player, sideId) => (
+                getPosStatRows(player, [sideId]).reduce((sum, r) => sum + (Number(r.matches) || 0), 0)
+            );
+            const getSpissSideAssignScore = (player, sideId, foot) => {
+                const quality = getQualityScore(player);
+                const sideXp = Math.min(getSpissSideXp(player, sideId), 8) * 2;
+                const footBonus = (foot && (player.fot === foot || player.fot === 'Begge')) ? 4 : 0;
+                return quality + sideXp + footBonus;
+            };
+
+            const assignStrikePair = () => {
+                const neededIds = priorityOrder
+                    .filter((r) => r.kind === 'attack' && r.attackRole === 'spiss')
+                    .map((r) => r.id);
+                if (neededIds.length < 2) return null;
+
+                let pool = availablePlayers.filter((p) => getSpissLineXp(p) >= 2);
+                if (pool.length === 0) {
+                    pool = availablePlayers.filter((p) => getSpissLineXp(p) > 0);
+                }
+                if (pool.length === 0) {
+                    pool = availablePlayers.filter((p) => (
+                        isSpissPos(p.pos1) || isSpissPos(p.pos2)
+                        || isKantPos(p.pos1) || isKantPos(p.pos2)
+                    ));
+                }
+                if (pool.length === 0) return null;
+
+                pool = [...pool].sort((a, b) => {
+                    const kbDiff = getKampbidrag(b) - getKampbidrag(a);
+                    if (kbDiff !== 0) return kbDiff;
+                    const snittDiff = getSpissLineSnitt(b) - getSpissLineSnitt(a);
+                    if (snittDiff !== 0) return snittDiff;
+                    return getForm(b) - getForm(a);
+                });
+
+                let remaining = pool.slice(0, Math.min(2, pool.length));
+                const assignment = {};
+
+                if (neededIds.includes('SP') && remaining.length > 0) {
+                    remaining = [...remaining].sort((a, b) => (
+                        getSpissSideAssignScore(b, 'SP', 'Venstre')
+                        - getSpissSideAssignScore(a, 'SP', 'Venstre')
+                    ));
+                    assignment.SP = remaining[0];
+                    remaining = remaining.filter((p) => p.id !== assignment.SP.id);
+                }
+                if (neededIds.includes('SP2') && remaining.length > 0) {
+                    remaining = [...remaining].sort((a, b) => (
+                        getSpissSideAssignScore(b, 'SP2', 'Høyre')
+                        - getSpissSideAssignScore(a, 'SP2', 'Høyre')
+                    ));
+                    assignment.SP2 = remaining[0];
+                }
+
+                return assignment;
+            };
+
             priorityOrder.forEach(req => {
                 if (req.kind === 'stopper') return; // allerede fordelt som topp-3
+                if (req.kind === 'attack' && req.attackRole === 'spiss') return; // SV/SH etterpå
 
                 let selectedPlayer = null;
 
@@ -3763,6 +3835,27 @@
                     availablePlayers = availablePlayers.filter(p => p.id !== selectedPlayer.id);
                 }
             });
+
+            const strikePair = assignStrikePair();
+            if (strikePair) {
+                ['SP', 'SP2'].forEach((slotId) => {
+                    const player = strikePair[slotId];
+                    if (!player) return;
+                    if (!priorityOrder.some((r) => r.id === slotId)) return;
+                    window.choosePlayer(player, slotId);
+                    availablePlayers = availablePlayers.filter((p) => p.id !== player.id);
+                });
+            } else {
+                // Én spiss-plass (eller mangler par): vanlig linje-logikk.
+                priorityOrder
+                    .filter((r) => r.kind === 'attack' && r.attackRole === 'spiss')
+                    .forEach((req) => {
+                        const selectedPlayer = pickLinePlayer(req);
+                        if (!selectedPlayer) return;
+                        window.choosePlayer(selectedPlayer, req.id);
+                        availablePlayers = availablePlayers.filter((p) => p.id !== selectedPlayer.id);
+                    });
+            }
         };
 
 window.updateTacticalBoardStats = function() {
