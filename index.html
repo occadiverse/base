@@ -1356,7 +1356,7 @@
 
             <div class="p-6 space-y-6 text-sm">
                 <p class="text-base text-slate-300">
-                    Autofyll bruker <strong class="text-white">samme kjerne for alle plasser</strong>: erfaring → kampbidrag → form. Tropp-etikett bare som fallback. Eneste unntak er speilet fordeling på VS/HS og SV/SH.
+                    Autofyll bruker <strong class="text-white">samme kjerne for alle plasser</strong>: erfaring → kampbidrag → form. Tropp-etikett bare som fallback. Unntak: speilet forsvarslinje og SV/SH.
                 </p>
 
                 <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
@@ -1365,21 +1365,22 @@
                         <li>Har spilt plassen (≥2 når noen har det) → kandidater</li>
                         <li>Poeng: <strong class="text-white">kampbidrag ×3 + form ×0.1 + erfaring ×4</strong> (+ fot når relevant)</li>
                         <li>Etikett bare hvis ingen har spilt der</li>
-                        <li>Unntak: forsvar topp-3 og spisser topp-2 med speilet fot</li>
+                        <li>Unntak: forsvarslinje og spisser med speilet fot</li>
                     </ul>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">1. Rekkefølge</h4>
                     <p class="text-slate-200 font-semibold leading-relaxed">
-                        Forsvar (VS/HS/MS) → Keeper, midtbane, kanter/bekker → Spisser (SV/SH)
+                        Forsvarslinje → Keeper, midtbane, kanter → Spisser (SV/SH)
                     </p>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">2. Unntak (speilet side)</h4>
                     <ul class="list-disc pl-5 space-y-1.5 text-slate-300">
-                        <li><strong class="text-white">VS/HS:</strong> beste 3 stoppere, deretter speilet fordeling med side-erfaring + åpen fot ut; resten MS.</li>
+                        <li><strong class="text-white">3-back (VS/HS/MS):</strong> beste 3 stoppere, speilet VS/HS med side-erfaring + åpen fot ut; resten MS.</li>
+                        <li><strong class="text-white">4-back (VB/VS/HS/HB):</strong> stoppere og bekker som én linje — speilet VS/HS, deretter speilet VB/HB med samme side-erfaring + åpen fot ut. Forsvar fylles før kant.</li>
                         <li><strong class="text-white">SV/SH:</strong> beste 2 spisser; velger kombinasjonen med høyest sum — invertert fot (sterk fot inn).</li>
                     </ul>
                 </div>

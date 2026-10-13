@@ -3465,21 +3465,21 @@
                 return true;
             });
 
-            // Felles autofyll-kjerne for alle plasser. Unntak: speilet VS/HS og SV/SH (+ fot).
+            // Felles autofyll-kjerne for alle plasser. Unntak: speilet forsvarslinje og SV/SH (+ fot).
             const priorityOrder = [
                 { id: 'GK',  pos: ['Keeper'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['GK'], labels: ['Keeper'] },
-                { id: 'VMS', pos: ['Venstre stopper'], foot: 'Venstre', requireFoot: true, kind: 'stopper' },
-                { id: 'HMS', pos: ['Høyre stopper'], foot: 'Høyre', requireFoot: true, kind: 'stopper' },
-                { id: 'MS',  pos: ['Venstre stopper', 'Høyre stopper'], foot: null, requireFoot: false, kind: 'stopper' },
+                { id: 'VMS', pos: ['Venstre stopper'], foot: 'Venstre', requireFoot: true, kind: 'defence' },
+                { id: 'HMS', pos: ['Høyre stopper'], foot: 'Høyre', requireFoot: true, kind: 'defence' },
+                { id: 'MS',  pos: ['Venstre stopper', 'Høyre stopper'], foot: null, requireFoot: false, kind: 'defence' },
+                { id: 'VB',  pos: ['Venstre bekk'], foot: 'Venstre', requireFoot: true, kind: 'defence' },
+                { id: 'HB',  pos: ['Høyre bekk'], foot: 'Høyre', requireFoot: true, kind: 'defence' },
                 { id: 'DM',  pos: ['Defensiv midtbane'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['DM'], labels: ['Defensiv midtbane', 'Offensiv midtbane', 'Playmaker'] },
                 { id: 'OM',  pos: ['Offensiv midtbane'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['OM'], labels: ['Offensiv midtbane', 'Defensiv midtbane', 'Playmaker'] },
                 { id: 'PM',  pos: ['Playmaker'], foot: null, requireFoot: false, kind: 'slot', xpIds: ['PM'], labels: ['Playmaker', 'Offensiv midtbane', 'Defensiv midtbane'] },
                 { id: 'VK',  pos: ['Venstre kant', 'Venstre bekk'], foot: 'Venstre', requireFoot: true, kind: 'slot', xpIds: ['VK'], labels: ['Venstre kant', 'Høyre kant', 'Venstre bekk', 'Høyre bekk'] },
                 { id: 'HK',  pos: ['Høyre kant', 'Høyre bekk'], foot: 'Høyre', requireFoot: true, kind: 'slot', xpIds: ['HK'], labels: ['Høyre kant', 'Venstre kant', 'Høyre bekk', 'Venstre bekk'] },
                 { id: 'SP',  pos: ['Spiss'], foot: 'Høyre', requireFoot: true, kind: 'spiss' }, // invertert fot
-                { id: 'SP2', pos: ['Spiss'], foot: 'Venstre', requireFoot: true, kind: 'spiss' }, // invertert fot
-                { id: 'VB',  pos: ['Venstre bekk'], foot: 'Venstre', requireFoot: true, kind: 'slot', xpIds: ['VB'], labels: ['Venstre bekk', 'Høyre bekk'] },
-                { id: 'HB',  pos: ['Høyre bekk'], foot: 'Høyre', requireFoot: true, kind: 'slot', xpIds: ['HB'], labels: ['Høyre bekk', 'Venstre bekk'] }
+                { id: 'SP2', pos: ['Spiss'], foot: 'Venstre', requireFoot: true, kind: 'spiss' } // invertert fot
             ].filter((req) => {
                 if (typeof window.getMatchGamePlanFormationPositionIds !== 'function') return true;
                 const formationId = getSelectedMatchFormationId();
@@ -3559,47 +3559,74 @@
                 return rankByCore(candidates, req.xpIds, foot)[0] || null;
             };
 
-            // Unntak 1: bakre tre — beste 3, speilet VS/HS (åpen fot ut), resten MS.
+            // Unntak 1: forsvarslinje — speilet side med side-xp + åpen fot ut.
+            // 3-back: beste N stoppere → VS/HS(/MS). 4-back: stoppere + bekker som én linje.
             const STOPPER_IDS = ['VMS', 'MS', 'HMS'];
             const STOPPER_LABELS = ['Venstre stopper', 'Høyre stopper'];
-            const assignBackThree = () => {
-                const needed = priorityOrder.filter((r) => r.kind === 'stopper').map((r) => r.id);
+            const FULLBACK_IDS = ['VB', 'HB'];
+            const FULLBACK_LABELS = ['Venstre bekk', 'Høyre bekk'];
+            const assignDefensiveLine = () => {
+                const needed = priorityOrder.filter((r) => r.kind === 'defence').map((r) => r.id);
                 if (!needed.length) return null;
-                const ranked = rankBySeason(
-                    pickCandidates(STOPPER_IDS, STOPPER_LABELS),
-                    STOPPER_IDS
-                );
-                const pool = ranked.slice(0, Math.min(3, ranked.length));
-                if (!pool.length) return null;
 
-                let remaining = [...pool];
                 const assignment = {};
-                // Speilet VS/HS: samme formel, speilet side-xp + fot (åpen fot ut).
                 const sideScore = (player, sideId, foot) => (
                     getKampbidrag(player) * 3
                     + getForm(player) * 0.1
                     + Math.min(getXpFromIds(player, [sideId]), 8) * 2
                     + footBonus(player, foot)
                 );
+                const takeSide = (pool, sideId, foot) => {
+                    if (!pool.length) return { pick: null, rest: pool };
+                    const sorted = [...pool].sort((a, b) => (
+                        sideScore(b, sideId, foot) - sideScore(a, sideId, foot)
+                    ));
+                    const pick = sorted[0];
+                    return { pick, rest: pool.filter((p) => p.id !== pick.id) };
+                };
 
-                if (needed.includes('VMS') && remaining.length) {
-                    remaining = [...remaining].sort((a, b) => (
-                        sideScore(b, 'VMS', 'Venstre') - sideScore(a, 'VMS', 'Venstre')
-                    ));
-                    assignment.VMS = remaining[0];
-                    remaining = remaining.filter((p) => p.id !== assignment.VMS.id);
+                const cbNeeded = ['VMS', 'HMS', 'MS'].filter((id) => needed.includes(id));
+                if (cbNeeded.length) {
+                    const ranked = rankBySeason(
+                        pickCandidates(STOPPER_IDS, STOPPER_LABELS),
+                        STOPPER_IDS
+                    );
+                    let remaining = ranked.slice(0, Math.min(cbNeeded.length, ranked.length));
+                    if (needed.includes('VMS')) {
+                        const { pick, rest } = takeSide(remaining, 'VMS', 'Venstre');
+                        if (pick) assignment.VMS = pick;
+                        remaining = rest;
+                    }
+                    if (needed.includes('HMS')) {
+                        const { pick, rest } = takeSide(remaining, 'HMS', 'Høyre');
+                        if (pick) assignment.HMS = pick;
+                        remaining = rest;
+                    }
+                    if (needed.includes('MS') && remaining.length) {
+                        assignment.MS = remaining[0];
+                    }
                 }
-                if (needed.includes('HMS') && remaining.length) {
-                    remaining = [...remaining].sort((a, b) => (
-                        sideScore(b, 'HMS', 'Høyre') - sideScore(a, 'HMS', 'Høyre')
-                    ));
-                    assignment.HMS = remaining[0];
-                    remaining = remaining.filter((p) => p.id !== assignment.HMS.id);
+
+                const fbNeeded = FULLBACK_IDS.filter((id) => needed.includes(id));
+                if (fbNeeded.length) {
+                    const takenIds = new Set(
+                        Object.values(assignment).filter(Boolean).map((p) => p.id)
+                    );
+                    const fbCandidates = pickCandidates(FULLBACK_IDS, FULLBACK_LABELS)
+                        .filter((p) => !takenIds.has(p.id));
+                    let remaining = rankBySeason(fbCandidates, FULLBACK_IDS);
+                    if (needed.includes('VB')) {
+                        const { pick, rest } = takeSide(remaining, 'VB', 'Venstre');
+                        if (pick) assignment.VB = pick;
+                        remaining = rest;
+                    }
+                    if (needed.includes('HB')) {
+                        const { pick } = takeSide(remaining, 'HB', 'Høyre');
+                        if (pick) assignment.HB = pick;
+                    }
                 }
-                if (needed.includes('MS') && remaining.length) {
-                    assignment.MS = remaining[0];
-                }
-                return assignment;
+
+                return Object.keys(assignment).length ? assignment : null;
             };
 
             // Unntak 2: SV/SH — beste 2, speilet par med invertert fot (sterk fot inn).
@@ -3629,13 +3656,13 @@
                 return assignment;
             };
 
-            const backThree = assignBackThree();
-            if (backThree) {
-                ['VMS', 'HMS', 'MS'].forEach((id) => placePlayer(backThree[id], id));
+            const defence = assignDefensiveLine();
+            if (defence) {
+                ['VMS', 'HMS', 'MS', 'VB', 'HB'].forEach((id) => placePlayer(defence[id], id));
             }
 
             priorityOrder.forEach((req) => {
-                if (req.kind === 'stopper' || req.kind === 'spiss') return;
+                if (req.kind === 'defence' || req.kind === 'spiss') return;
                 placePlayer(pickSlotPlayer(req), req.id);
             });
 
