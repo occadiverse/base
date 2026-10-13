@@ -2228,7 +2228,6 @@ function getMatchGamePlanPitchXiPreviousComparison(match, statsByName) {
     return {
         opponent,
         dateLabel,
-        label: dateLabel ? `${dateLabel} vs ${opponent}` : `vs ${opponent}`,
         sesong: averages.sesong,
         kampbidrag: averages.kampbidrag,
         form: averages.form,
@@ -2240,13 +2239,16 @@ function getMatchGamePlanPitchXiPreviousComparison(match, statsByName) {
 function formatMatchGamePlanPitchXiPreviousLabel(previous, key, { decimals = 0 } = {}) {
     if (!previous) return null;
     const raw = previous[key];
+    const opponent = String(previous.opponent || 'motstander').trim();
+    const dateLabel = String(previous.dateLabel || '').trim();
+    const vsText = dateLabel ? `vs ${opponent} ${dateLabel}` : `vs ${opponent}`;
     if (raw == null || !Number.isFinite(Number(raw))) {
-        return `Forrige (${previous.label}): –`;
+        return `– ${vsText}`;
     }
     const value = decimals > 0
         ? Number(raw).toFixed(decimals)
         : String(Math.round(Number(raw)));
-    return `Forrige (${previous.label}): ${value}`;
+    return `${value} ${vsText}`;
 }
 
 function getMatchGamePlanPitchXiStatsByName(match) {
@@ -2462,7 +2464,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
     const totals = getMatchGamePlanPitchXiTotals(match);
     const hasPlayers = totals.playerCount > 0;
     const tones = totals.tones || {};
-    const medians = totals.medians || {};
     const previous = totals.previous || null;
     const formHint = hasPlayers ? getMatchGamePlanPitchXiFormHint(match) : null;
     const formUpgrade = formHint?.type === 'upgrade' ? formHint : null;
@@ -2473,7 +2474,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             label: 'Sesong',
             icon: 'fa-ranking-star',
             value: formatMatchGamePlanPitchXiTotal(totals.sesong, { hasPlayers }),
-            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.sesong),
             previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'sesong'),
             tone: tones.sesong || 'muted'
         },
@@ -2482,7 +2482,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             label: 'Kampbidrag',
             icon: 'fa-chart-line',
             value: formatMatchGamePlanPitchXiTotal(totals.kampbidrag, { hasPlayers }),
-            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.kampbidrag),
             previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'kampbidrag'),
             tone: tones.kampbidrag || 'muted'
         },
@@ -2491,7 +2490,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             label: 'Form',
             icon: 'fa-heart-pulse',
             value: formatMatchGamePlanPitchXiTotal(totals.form, { hasPlayers }),
-            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.form),
             previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'form'),
             tone: tones.form || 'muted',
             upgrade: formUpgrade
@@ -2501,7 +2499,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             label: 'Snittbørs',
             icon: 'fa-star',
             value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers }),
-            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.snittBors, { decimals: 1 }),
             previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'snittBors', { decimals: 1 }),
             tone: tones.snittBors || 'muted'
         },
@@ -2511,10 +2508,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             icon: 'fa-link',
             value: samspillAverage == null ? '-' : String(samspillAverage),
             tone: getMatchGamePlanPitchXiSamspillTone(samspillAverage),
-            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'samspill'),
-            titleOverride: samspillAverage == null
-                ? 'Samspill: ingen par på banen ennå'
-                : `Samspill-snitt på banen: ${samspillAverage}`
+            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'samspill')
         }
     ];
 
@@ -2523,18 +2517,12 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             ${rows.map(row => {
                 const toneClass = row.tone && row.tone !== 'muted' ? ` is-${row.tone}` : '';
                 const upgradeClass = row.upgrade ? ' has-upgrade' : '';
-                let title = row.titleOverride || (
-                    row.medianLabel
-                        ? `Snitt ${row.label}: ${row.value} · Troppmedian ${row.medianLabel}`
-                        : `Snitt ${row.label}: ${row.value}`
-                );
-                if (row.previousLabel) title = `${title} · ${row.previousLabel}`;
-                if (row.upgrade?.title) title = `${title} · ${row.upgrade.title}`;
+                const title = row.previousLabel || '';
                 const upgradeHtml = row.upgrade
                     ? `<i class="fa-solid fa-arrow-up match-game-plan-pitch-xi-upgrade" aria-hidden="true"></i>`
                     : '';
                 return `
-                <span class="match-game-plan-pitch-xi-totals-row${toneClass}${upgradeClass}" title="${escapeMatchHtml(title)}">
+                <span class="match-game-plan-pitch-xi-totals-row${toneClass}${upgradeClass}"${title ? ` title="${escapeMatchHtml(title)}"` : ''}>
                     <i class="fa-solid ${escapeMatchHtml(row.icon)}" aria-hidden="true"></i>
                     <span data-pitch-xi-total="${escapeMatchHtml(row.key)}">${escapeMatchHtml(row.value)}</span>
                     ${upgradeHtml}
