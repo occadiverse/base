@@ -2112,11 +2112,10 @@ function buildMatchGamePlanFormValueHtml(player, match) {
     return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-form ${formTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(formText)}</span>`;
 }
 
-function getMatchGamePlanPitchXiPlayers(match) {
-    const lineup = getMatchGamePlanDraftLineup(match) || {};
+function getMatchGamePlanPitchXiPlayersFromLineup(lineup) {
     const seen = new Set();
     const players = [];
-    Object.values(lineup).forEach(player => {
+    Object.values(lineup || {}).forEach(player => {
         if (!player) return;
         const key = player.id || player.navn || '';
         if (!key || seen.has(key)) return;
@@ -2124,6 +2123,130 @@ function getMatchGamePlanPitchXiPlayers(match) {
         players.push(player);
     });
     return players;
+}
+
+function getMatchGamePlanPitchXiPlayers(match) {
+    return getMatchGamePlanPitchXiPlayersFromLineup(getMatchGamePlanDraftLineup(match));
+}
+
+function matchHasSavedGamePlanLineup(match) {
+    if (!match) return false;
+    if (match.lineupRefs && typeof match.lineupRefs === 'object'
+        && Object.values(match.lineupRefs).some(Boolean)) {
+        return true;
+    }
+    if (match.lineup && typeof match.lineup === 'object'
+        && Object.values(match.lineup).some(Boolean)) {
+        return true;
+    }
+    return false;
+}
+
+function getMatchGamePlanPitchXiPreviousMatch(match) {
+    if (!match) return null;
+    const teamName = match.matchGroup || '';
+    const matchTime = match.date ? new Date(match.date).getTime() : NaN;
+
+    return (window.activeMatches || [])
+        .filter(candidate => {
+            if (!candidate || candidate.id === match.id) return false;
+            if (teamName && candidate.matchGroup !== teamName) return false;
+            if (!matchHasSavedGamePlanLineup(candidate)) return false;
+            if (Number.isFinite(matchTime) && candidate.date) {
+                const candidateTime = new Date(candidate.date).getTime();
+                if (!Number.isFinite(candidateTime) || candidateTime >= matchTime) return false;
+            } else if (typeof window.isHistoricalActivity === 'function'
+                && !window.isHistoricalActivity(candidate)) {
+                return false;
+            }
+            return true;
+        })
+        .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')))[0] || null;
+}
+
+function getMatchGamePlanPitchXiAveragesFromPlayers(players, match, statsByName) {
+    const stats = statsByName || getMatchGamePlanPitchXiStatsByName(match);
+    const count = (players || []).length;
+    if (!count) {
+        return { playerCount: 0, sesong: null, kampbidrag: null, form: null, snittBors: null };
+    }
+
+    let sesong = 0;
+    let kampbidrag = 0;
+    let form = 0;
+    let snittBors = 0;
+    players.forEach(player => {
+        const row = stats.get(player.navn) || null;
+        sesong += Number(row?.totalScore) || 0;
+        kampbidrag += Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
+        form += Number(getMatchGamePlanPlayerForm(player)) || 0;
+        snittBors += Number(row?.snittBors) || 0;
+    });
+
+    return {
+        playerCount: count,
+        sesong: Math.round(sesong / count),
+        kampbidrag: Math.round(kampbidrag / count),
+        form: Math.round(form / count),
+        snittBors: Math.round((snittBors / count) * 10) / 10
+    };
+}
+
+function getMatchGamePlanPitchXiSamspillAverageForLineup(lineup, match, formationId) {
+    const pairs = typeof window.collectSamspillLineupPairs === 'function'
+        ? window.collectSamspillLineupPairs(lineup, {
+            ...getMatchGamePlanSamspillFilter(match),
+            formationId: formationId || getMatchGamePlanFormation(match)
+        })
+        : [];
+    const scores = (pairs || [])
+        .map(pair => Number(pair?.score))
+        .filter(score => Number.isFinite(score) && score > 0);
+    if (!scores.length) return null;
+    return Math.round(scores.reduce((total, score) => total + score, 0) / scores.length);
+}
+
+function getMatchGamePlanPitchXiPreviousComparison(match, statsByName) {
+    const previousMatch = getMatchGamePlanPitchXiPreviousMatch(match);
+    if (!previousMatch) return null;
+
+    const lineup = getMatchGamePlanLineup(previousMatch) || {};
+    const players = getMatchGamePlanPitchXiPlayersFromLineup(lineup);
+    if (!players.length) return null;
+
+    const averages = getMatchGamePlanPitchXiAveragesFromPlayers(players, previousMatch, statsByName);
+    const samspill = getMatchGamePlanPitchXiSamspillAverageForLineup(
+        lineup,
+        previousMatch,
+        getMatchGamePlanFormation(previousMatch)
+    );
+    const opponent = previousMatch.opponent || 'forrige kamp';
+    const dateLabel = previousMatch.date
+        ? new Date(previousMatch.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' })
+        : '';
+
+    return {
+        opponent,
+        dateLabel,
+        label: dateLabel ? `${dateLabel} vs ${opponent}` : `vs ${opponent}`,
+        sesong: averages.sesong,
+        kampbidrag: averages.kampbidrag,
+        form: averages.form,
+        snittBors: averages.snittBors,
+        samspill
+    };
+}
+
+function formatMatchGamePlanPitchXiPreviousLabel(previous, key, { decimals = 0 } = {}) {
+    if (!previous) return null;
+    const raw = previous[key];
+    if (raw == null || !Number.isFinite(Number(raw))) {
+        return `Forrige (${previous.label}): –`;
+    }
+    const value = decimals > 0
+        ? Number(raw).toFixed(decimals)
+        : String(Math.round(Number(raw)));
+    return `Forrige (${previous.label}): ${value}`;
 }
 
 function getMatchGamePlanPitchXiStatsByName(match) {
@@ -2213,42 +2336,25 @@ function getMatchGamePlanPitchXiTotals(match) {
     const players = getMatchGamePlanPitchXiPlayers(match);
     const statsByName = getMatchGamePlanPitchXiStatsByName(match);
     const medians = getMatchGamePlanPitchXiMedians(match, statsByName);
-    let sesong = 0;
-    let kampbidrag = 0;
-    let form = 0;
-    let snittBors = 0;
-    const count = players.length;
+    const averages = getMatchGamePlanPitchXiAveragesFromPlayers(players, match, statsByName);
+    const previous = getMatchGamePlanPitchXiPreviousComparison(match, statsByName);
 
-    players.forEach(player => {
-        const row = statsByName.get(player.navn) || null;
-        sesong += Number(row?.totalScore) || 0;
-        kampbidrag += Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
-        form += Number(getMatchGamePlanPlayerForm(player)) || 0;
-        snittBors += Number(row?.snittBors) || 0;
-    });
-
-    if (!count) {
+    if (!averages.playerCount) {
         return {
             playerCount: 0,
             sesong: 0,
             kampbidrag: 0,
             form: 0,
             snittBors: 0,
-            medians
+            medians,
+            previous
         };
     }
 
-    const averages = {
-        playerCount: count,
-        sesong: Math.round(sesong / count),
-        kampbidrag: Math.round(kampbidrag / count),
-        form: Math.round(form / count),
-        snittBors: Math.round((snittBors / count) * 10) / 10,
-        medians
-    };
-
     return {
         ...averages,
+        medians,
+        previous,
         tones: {
             sesong: getMatchGamePlanPitchXiTone(averages.sesong, medians.sesong, 5),
             kampbidrag: getMatchGamePlanPitchXiTone(averages.kampbidrag, medians.kampbidrag, 2),
@@ -2337,14 +2443,11 @@ function getMatchGamePlanPitchXiFormHint(match) {
 }
 
 function getMatchGamePlanPitchXiSamspillAverage(match) {
-    const pairs = typeof collectMatchGamePlanSamspillPairs === 'function'
-        ? collectMatchGamePlanSamspillPairs(match)
-        : [];
-    const scores = (pairs || [])
-        .map(pair => Number(pair?.score))
-        .filter(score => Number.isFinite(score) && score > 0);
-    if (!scores.length) return null;
-    return Math.round(scores.reduce((total, score) => total + score, 0) / scores.length);
+    return getMatchGamePlanPitchXiSamspillAverageForLineup(
+        getMatchGamePlanDraftLineup(match),
+        match,
+        getMatchGamePlanDraftFormation(match)
+    );
 }
 
 function getMatchGamePlanPitchXiSamspillTone(score) {
@@ -2360,6 +2463,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
     const hasPlayers = totals.playerCount > 0;
     const tones = totals.tones || {};
     const medians = totals.medians || {};
+    const previous = totals.previous || null;
     const formHint = hasPlayers ? getMatchGamePlanPitchXiFormHint(match) : null;
     const formUpgrade = formHint?.type === 'upgrade' ? formHint : null;
     const samspillAverage = hasPlayers ? getMatchGamePlanPitchXiSamspillAverage(match) : null;
@@ -2370,6 +2474,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             icon: 'fa-ranking-star',
             value: formatMatchGamePlanPitchXiTotal(totals.sesong, { hasPlayers }),
             medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.sesong),
+            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'sesong'),
             tone: tones.sesong || 'muted'
         },
         {
@@ -2378,6 +2483,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             icon: 'fa-chart-line',
             value: formatMatchGamePlanPitchXiTotal(totals.kampbidrag, { hasPlayers }),
             medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.kampbidrag),
+            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'kampbidrag'),
             tone: tones.kampbidrag || 'muted'
         },
         {
@@ -2386,6 +2492,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             icon: 'fa-heart-pulse',
             value: formatMatchGamePlanPitchXiTotal(totals.form, { hasPlayers }),
             medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.form),
+            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'form'),
             tone: tones.form || 'muted',
             upgrade: formUpgrade
         },
@@ -2395,6 +2502,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             icon: 'fa-star',
             value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers }),
             medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.snittBors, { decimals: 1 }),
+            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'snittBors', { decimals: 1 }),
             tone: tones.snittBors || 'muted'
         },
         {
@@ -2403,6 +2511,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             icon: 'fa-link',
             value: samspillAverage == null ? '-' : String(samspillAverage),
             tone: getMatchGamePlanPitchXiSamspillTone(samspillAverage),
+            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'samspill'),
             titleOverride: samspillAverage == null
                 ? 'Samspill: ingen par på banen ennå'
                 : `Samspill-snitt på banen: ${samspillAverage}`
@@ -2419,6 +2528,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
                         ? `Snitt ${row.label}: ${row.value} · Troppmedian ${row.medianLabel}`
                         : `Snitt ${row.label}: ${row.value}`
                 );
+                if (row.previousLabel) title = `${title} · ${row.previousLabel}`;
                 if (row.upgrade?.title) title = `${title} · ${row.upgrade.title}`;
                 const upgradeHtml = row.upgrade
                     ? `<i class="fa-solid fa-arrow-up match-game-plan-pitch-xi-upgrade" aria-hidden="true"></i>`
