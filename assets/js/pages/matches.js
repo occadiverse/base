@@ -1587,6 +1587,7 @@ function refreshMatchGamePlanLineupAfterChange(match, affectedPosIds = []) {
     uniquePosIds.forEach(posId => renderMatchGamePlanStarterCardNode(match, posId));
     renderMatchDetailSquadList(match);
     syncMatchGamePlanLineupOverlayUi(match);
+    syncMatchGamePlanPitchXiTotals(match);
     requestAnimationFrame(() => {
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
@@ -2109,6 +2110,114 @@ function buildMatchGamePlanFormValueHtml(player, match) {
     const title = formScore > 0 ? `Form: ${formScore}/100` : 'Form: ingen data';
 
     return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-form ${formTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(formText)}</span>`;
+}
+
+function getMatchGamePlanPitchXiPlayers(match) {
+    const lineup = getMatchGamePlanDraftLineup(match) || {};
+    const seen = new Set();
+    const players = [];
+    Object.values(lineup).forEach(player => {
+        if (!player) return;
+        const key = player.id || player.navn || '';
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        players.push(player);
+    });
+    return players;
+}
+
+function getMatchGamePlanPitchXiStatsByName(match) {
+    if (typeof window.buildPlayerStatsData !== 'function') return new Map();
+    const year = new Date().getFullYear();
+    const rows = window.buildPlayerStatsData({ applyYearFilter: true, yearFilter: year }) || [];
+    const byName = new Map();
+    rows.forEach(row => {
+        if (row?.navn) byName.set(row.navn, row);
+    });
+    return byName;
+}
+
+function getMatchGamePlanPitchXiTotals(match) {
+    const players = getMatchGamePlanPitchXiPlayers(match);
+    const statsByName = getMatchGamePlanPitchXiStatsByName(match);
+    let sesong = 0;
+    let kampbidrag = 0;
+    let form = 0;
+    let snittBors = 0;
+
+    players.forEach(player => {
+        const row = statsByName.get(player.navn) || null;
+        sesong += Number(row?.totalScore) || 0;
+        kampbidrag += Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
+        form += Number(getMatchGamePlanPlayerForm(player)) || 0;
+        snittBors += Number(row?.snittBors) || 0;
+    });
+
+    return {
+        playerCount: players.length,
+        sesong: Math.round(sesong),
+        kampbidrag: Math.round(kampbidrag),
+        form: Math.round(form),
+        snittBors: Math.round(snittBors * 10) / 10
+    };
+}
+
+function formatMatchGamePlanPitchXiTotal(value, { decimals = 0, hasPlayers = false } = {}) {
+    if (!hasPlayers) return '-';
+    const numeric = Number(value) || 0;
+    if (decimals > 0) return numeric.toFixed(decimals);
+    return String(Math.round(numeric));
+}
+
+function buildMatchGamePlanPitchXiTotalsHtml(match) {
+    const totals = getMatchGamePlanPitchXiTotals(match);
+    const hasPlayers = totals.playerCount > 0;
+    const rows = [
+        {
+            key: 'sesong',
+            label: 'Sesong',
+            icon: 'fa-ranking-star',
+            value: formatMatchGamePlanPitchXiTotal(totals.sesong, { hasPlayers })
+        },
+        {
+            key: 'kampbidrag',
+            label: 'Kampbidrag',
+            icon: 'fa-chart-line',
+            value: formatMatchGamePlanPitchXiTotal(totals.kampbidrag, { hasPlayers })
+        },
+        {
+            key: 'form',
+            label: 'Form',
+            icon: 'fa-heart-pulse',
+            value: formatMatchGamePlanPitchXiTotal(totals.form, { hasPlayers })
+        },
+        {
+            key: 'snittbors',
+            label: 'Snittbørs',
+            icon: 'fa-star',
+            value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers })
+        }
+    ];
+
+    return `
+        <div class="match-game-plan-pitch-xi-totals" data-pitch-xi-totals aria-label="Sum for spillere på banen">
+            ${rows.map(row => `
+                <span class="match-game-plan-pitch-xi-totals-row" title="${escapeMatchHtml(`${row.label}: ${row.value}`)}">
+                    <i class="fa-solid ${escapeMatchHtml(row.icon)}" aria-hidden="true"></i>
+                    <span data-pitch-xi-total="${escapeMatchHtml(row.key)}">${escapeMatchHtml(row.value)}</span>
+                </span>
+            `).join('')}
+        </div>
+    `;
+}
+
+function syncMatchGamePlanPitchXiTotals(match) {
+    const host = document.querySelector('.match-detail-lineup-pitch-wrap [data-pitch-xi-totals]');
+    if (!host || !match) return;
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = buildMatchGamePlanPitchXiTotalsHtml(match).trim();
+    const next = wrapper.firstElementChild;
+    if (next) host.replaceWith(next);
 }
 
 function buildMatchBenchPlayerHtml(match, player) {
@@ -3474,6 +3583,7 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
             extraClass: `${extraClass} match-game-plan-starter11-wrap`,
             childrenHtml: `
                 <svg class="match-game-plan-chemistry-lines" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                ${buildMatchGamePlanPitchXiTotalsHtml(match)}
                 ${Object.entries(formation.positions).map(([posId, coords]) => `
                     ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
                 `).join('')}
