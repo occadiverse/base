@@ -2137,13 +2137,87 @@ function getMatchGamePlanPitchXiStatsByName(match) {
     return byName;
 }
 
+function getMatchGamePlanPitchXiReferencePlayers(match) {
+    const attending = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match).filter(player => player?.navn)
+        : [];
+    if (attending.length >= 8) return attending;
+
+    const teamName = match?.matchGroup || '';
+    return (window.activePlayers || []).filter(player => (
+        player?.navn
+        && player.status !== 'Passiv'
+        && (!teamName || player.spillerLag === teamName)
+    ));
+}
+
+function getMatchGamePlanPitchXiMetricMedian(values) {
+    if (typeof window.getMedianOfNumbers === 'function') {
+        return window.getMedianOfNumbers(values);
+    }
+    const sorted = (values || [])
+        .map(Number)
+        .filter(value => Number.isFinite(value) && value > 0)
+        .sort((a, b) => a - b);
+    if (!sorted.length) return null;
+    const middle = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0
+        ? (sorted[middle - 1] + sorted[middle]) / 2
+        : sorted[middle];
+    return Math.round(median * 10) / 10;
+}
+
+function getMatchGamePlanPitchXiMedians(match, statsByName) {
+    const referencePlayers = getMatchGamePlanPitchXiReferencePlayers(match);
+    const sesongValues = [];
+    const kampbidragValues = [];
+    const formValues = [];
+    const snittBorsValues = [];
+
+    referencePlayers.forEach(player => {
+        const row = statsByName.get(player.navn) || null;
+        const sesong = Number(row?.totalScore) || 0;
+        const kampbidrag = Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
+        const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+        const snittBors = Number(row?.snittBors) || 0;
+        if (sesong > 0) sesongValues.push(sesong);
+        if (kampbidrag > 0) kampbidragValues.push(kampbidrag);
+        if (form > 0) formValues.push(form);
+        if (snittBors > 0) snittBorsValues.push(snittBors);
+    });
+
+    return {
+        sesong: getMatchGamePlanPitchXiMetricMedian(sesongValues),
+        kampbidrag: getMatchGamePlanPitchXiMetricMedian(kampbidragValues),
+        form: getMatchGamePlanPitchXiMetricMedian(formValues),
+        snittBors: getMatchGamePlanPitchXiMetricMedian(snittBorsValues),
+        referenceCount: referencePlayers.length
+    };
+}
+
+function getMatchGamePlanPitchXiTone(value, median, threshold) {
+    if (!(Number(value) > 0) || median == null || !(Number(median) > 0)) return 'muted';
+    const delta = Number(value) - Number(median);
+    if (delta >= threshold) return 'green';
+    if (delta <= -threshold) return 'red';
+    return 'amber';
+}
+
+function formatMatchGamePlanPitchXiMedianLabel(median, { decimals = 0 } = {}) {
+    if (median == null || !(Number(median) > 0)) return null;
+    if (decimals > 0) return Number(median).toFixed(decimals);
+    return String(Math.round(Number(median)));
+}
+
 function getMatchGamePlanPitchXiTotals(match) {
     const players = getMatchGamePlanPitchXiPlayers(match);
     const statsByName = getMatchGamePlanPitchXiStatsByName(match);
+    const medians = getMatchGamePlanPitchXiMedians(match, statsByName);
     let sesong = 0;
     let kampbidrag = 0;
     let form = 0;
     let snittBors = 0;
+    const count = players.length;
 
     players.forEach(player => {
         const row = statsByName.get(player.navn) || null;
@@ -2153,12 +2227,34 @@ function getMatchGamePlanPitchXiTotals(match) {
         snittBors += Number(row?.snittBors) || 0;
     });
 
+    if (!count) {
+        return {
+            playerCount: 0,
+            sesong: 0,
+            kampbidrag: 0,
+            form: 0,
+            snittBors: 0,
+            medians
+        };
+    }
+
+    const averages = {
+        playerCount: count,
+        sesong: Math.round(sesong / count),
+        kampbidrag: Math.round(kampbidrag / count),
+        form: Math.round(form / count),
+        snittBors: Math.round((snittBors / count) * 10) / 10,
+        medians
+    };
+
     return {
-        playerCount: players.length,
-        sesong: Math.round(sesong),
-        kampbidrag: Math.round(kampbidrag),
-        form: Math.round(form),
-        snittBors: Math.round(snittBors * 10) / 10
+        ...averages,
+        tones: {
+            sesong: getMatchGamePlanPitchXiTone(averages.sesong, medians.sesong, 5),
+            kampbidrag: getMatchGamePlanPitchXiTone(averages.kampbidrag, medians.kampbidrag, 2),
+            form: getMatchGamePlanPitchXiTone(averages.form, medians.form, 8),
+            snittBors: getMatchGamePlanPitchXiTone(averages.snittBors, medians.snittBors, 0.3)
+        }
     };
 }
 
@@ -2169,44 +2265,140 @@ function formatMatchGamePlanPitchXiTotal(value, { decimals = 0, hasPlayers = fal
     return String(Math.round(numeric));
 }
 
+function getMatchGamePlanPitchXiFormHint(match) {
+    const lineup = getMatchGamePlanDraftLineup(match) || {};
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const pitchEntries = Object.entries(lineup)
+        .filter(([, player]) => player)
+        .map(([posId, player]) => ({
+            posId,
+            posLabel: getMatchGamePlanPositionBadgeLabel(posId, formationId) || posId,
+            player,
+            value: Number(getMatchGamePlanPlayerForm(player)) || 0
+        }))
+        .filter(entry => entry.value > 0);
+
+    if (!pitchEntries.length) return null;
+
+    const worst = [...pitchEntries].sort((left, right) => (
+        left.value - right.value
+        || String(left.posLabel).localeCompare(String(right.posLabel), 'nb')
+    ))[0];
+
+    const onPitchIds = new Set(
+        Object.values(lineup).filter(Boolean).map(player => player.id || player.navn).filter(Boolean)
+    );
+    const benchEntries = getMatchDetailAttendingPlayers(match)
+        .filter(player => {
+            const key = player.id || player.navn || '';
+            if (!key || onPitchIds.has(key)) return false;
+            // Only suggest players who can realistically cover the weak slot.
+            return getMatchGamePlanPositionScore(player, worst.posId) <= 1;
+        })
+        .map(player => ({
+            player,
+            value: Number(getMatchGamePlanPlayerForm(player)) || 0,
+            fit: getMatchGamePlanPositionScore(player, worst.posId)
+        }))
+        .filter(entry => entry.value > worst.value)
+        .sort((left, right) => (
+            left.fit - right.fit
+            || right.value - left.value
+            || String(left.player?.navn || '').localeCompare(String(right.player?.navn || ''), 'nb')
+        ));
+
+    if (benchEntries.length) {
+        const bestBench = benchEntries[0];
+        const currentSum = pitchEntries.reduce((total, entry) => total + entry.value, 0);
+        const currentAverage = currentSum / pitchEntries.length;
+        const improvedAverage = (currentSum - worst.value + bestBench.value) / pitchEntries.length;
+        const delta = Math.round(improvedAverage - currentAverage);
+        if (delta > 0) {
+            const benchName = getMatchGamePlanPlayerLastName(bestBench.player)
+                || getMatchGamePlanPlayerDisplayName(bestBench.player);
+            return {
+                type: 'upgrade',
+                delta,
+                posLabel: worst.posLabel,
+                weakValue: worst.value,
+                benchName,
+                benchValue: bestBench.value,
+                title: `${benchName} (${bestBench.value}) inn for ${worst.posLabel} (${worst.value}) hever Form-snittet med ca. +${delta}`
+            };
+        }
+    }
+
+    return {
+        type: 'weak',
+        posLabel: worst.posLabel,
+        weakValue: worst.value,
+        title: `Lavest Form på banen: ${worst.posLabel} (${worst.value})`
+    };
+}
+
 function buildMatchGamePlanPitchXiTotalsHtml(match) {
     const totals = getMatchGamePlanPitchXiTotals(match);
     const hasPlayers = totals.playerCount > 0;
+    const tones = totals.tones || {};
+    const medians = totals.medians || {};
+    const formHint = hasPlayers ? getMatchGamePlanPitchXiFormHint(match) : null;
+    const formUpgrade = formHint?.type === 'upgrade' ? formHint : null;
     const rows = [
         {
             key: 'sesong',
             label: 'Sesong',
             icon: 'fa-ranking-star',
-            value: formatMatchGamePlanPitchXiTotal(totals.sesong, { hasPlayers })
+            value: formatMatchGamePlanPitchXiTotal(totals.sesong, { hasPlayers }),
+            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.sesong),
+            tone: tones.sesong || 'muted'
         },
         {
             key: 'kampbidrag',
             label: 'Kampbidrag',
             icon: 'fa-chart-line',
-            value: formatMatchGamePlanPitchXiTotal(totals.kampbidrag, { hasPlayers })
+            value: formatMatchGamePlanPitchXiTotal(totals.kampbidrag, { hasPlayers }),
+            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.kampbidrag),
+            tone: tones.kampbidrag || 'muted'
         },
         {
             key: 'form',
             label: 'Form',
             icon: 'fa-heart-pulse',
-            value: formatMatchGamePlanPitchXiTotal(totals.form, { hasPlayers })
+            value: formatMatchGamePlanPitchXiTotal(totals.form, { hasPlayers }),
+            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.form),
+            tone: tones.form || 'muted',
+            upgrade: formUpgrade
         },
         {
             key: 'snittbors',
             label: 'Snittbørs',
             icon: 'fa-star',
-            value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers })
+            value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers }),
+            medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.snittBors, { decimals: 1 }),
+            tone: tones.snittBors || 'muted'
         }
     ];
 
     return `
-        <div class="match-game-plan-pitch-xi-totals" data-pitch-xi-totals aria-label="Sum for spillere på banen">
-            ${rows.map(row => `
-                <span class="match-game-plan-pitch-xi-totals-row" title="${escapeMatchHtml(`${row.label}: ${row.value}`)}">
+        <div class="match-game-plan-pitch-xi-totals" data-pitch-xi-totals aria-label="Snitt for spillere på banen mot troppmedian">
+            ${rows.map(row => {
+                const toneClass = row.tone && row.tone !== 'muted' ? ` is-${row.tone}` : '';
+                const upgradeClass = row.upgrade ? ' has-upgrade' : '';
+                let title = row.medianLabel
+                    ? `Snitt ${row.label}: ${row.value} · Troppmedian ${row.medianLabel}`
+                    : `Snitt ${row.label}: ${row.value}`;
+                if (row.upgrade?.title) title = `${title} · ${row.upgrade.title}`;
+                const upgradeHtml = row.upgrade
+                    ? `<i class="fa-solid fa-arrow-up match-game-plan-pitch-xi-upgrade" aria-hidden="true"></i>`
+                    : '';
+                return `
+                <span class="match-game-plan-pitch-xi-totals-row${toneClass}${upgradeClass}" title="${escapeMatchHtml(title)}">
                     <i class="fa-solid ${escapeMatchHtml(row.icon)}" aria-hidden="true"></i>
                     <span data-pitch-xi-total="${escapeMatchHtml(row.key)}">${escapeMatchHtml(row.value)}</span>
+                    ${upgradeHtml}
                 </span>
-            `).join('')}
+            `;
+            }).join('')}
         </div>
     `;
 }
