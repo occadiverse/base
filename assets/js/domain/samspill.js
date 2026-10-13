@@ -65,24 +65,8 @@
     };
 
     const MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS = {
-        '4-2-4': [
-            // Keeper → hele forsvarsfiresome
-            ['GK', 'VB'], ['GK', 'VMS'], ['GK', 'HMS'], ['GK', 'HB'],
-            // Venstre bekk → keeper, nærmeste stopper, kant og midtbane
-            ['VB', 'VMS'], ['VB', 'VK'], ['VB', 'OM'],
-            // Høyre bekk → keeper, nærmeste stopper, kant og midtbane
-            ['HB', 'HMS'], ['HB', 'HK'], ['HB', 'DM'],
-            // Midtstoppere → keeper, nærmeste bekk, stopperpartner og begge midtbanespillere
-            ['VMS', 'HMS'], ['VMS', 'DM'], ['VMS', 'OM'],
-            ['HMS', 'DM'], ['HMS', 'OM'],
-            // Midtbane ↔ kant
-            ['OM', 'VK'], ['DM', 'HK'],
-            ['DM', 'OM'],
-            // PM → kant, midtbane og spiss
-            ['PM', 'HK'], ['PM', 'DM'], ['PM', 'OM'], ['PM', 'SP'],
-            // SP → kant, midtbanespillere
-            ['SP', 'VK'], ['SP', 'DM'], ['SP', 'OM']
-        ],
+        // 4-2-4: egne linjer per fase (F1/F2/F3) — f.eks. VB–DM bare i F2/F3.
+        '4-2-4': TACTICAL_SAMSPILL_CONNECTIONS,
         '4-3-3': [
             // Keeper → hele forsvarsfiresome
             ['GK', 'VB'], ['GK', 'VMS'], ['GK', 'HMS'], ['GK', 'HB'],
@@ -156,15 +140,23 @@
         ]
     };
 
-    window.getMatchGamePlanSamspillConnections = function(formationId) {
-        const id = formationId || '4-2-4';
-        const raw = MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id]
-            ? MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id]
-            : window.getTacticalSamspillConnections(
-                typeof window.getActiveTacticalSamspillPhase === 'function'
-                    ? window.getActiveTacticalSamspillPhase()
-                    : undefined
-            );
+    function resolveSamspillConnectionList(entry, phaseId) {
+        if (!entry) return null;
+        if (Array.isArray(entry)) return entry;
+        const phase = phaseId
+            || (typeof window.getActiveTacticalSamspillPhase === 'function'
+                ? window.getActiveTacticalSamspillPhase()
+                : null)
+            || TACTICAL_SAMSPILL_DEFAULT_PHASE;
+        if (Array.isArray(entry[phase])) return entry[phase];
+        if (Array.isArray(entry[TACTICAL_SAMSPILL_DEFAULT_PHASE])) {
+            return entry[TACTICAL_SAMSPILL_DEFAULT_PHASE];
+        }
+        const first = Object.values(entry).find((list) => Array.isArray(list));
+        return first || [];
+    }
+
+    function dedupeSamspillPairs(raw) {
         const seen = new Set();
         return (raw || []).filter(([posA, posB]) => {
             if (!posA || !posB || posA === posB) return false;
@@ -173,6 +165,20 @@
             seen.add(key);
             return true;
         });
+    }
+
+    window.getMatchGamePlanSamspillConnections = function(formationId, phaseId) {
+        const id = formationId || '4-2-4';
+        const entry = MATCH_GAME_PLAN_SAMSPILL_CONNECTIONS[id];
+        const raw = entry
+            ? resolveSamspillConnectionList(entry, phaseId)
+            : window.getTacticalSamspillConnections(
+                phaseId
+                    || (typeof window.getActiveTacticalSamspillPhase === 'function'
+                        ? window.getActiveTacticalSamspillPhase()
+                        : undefined)
+            );
+        return dedupeSamspillPairs(raw);
     };
 
     window.hasMatchGamePlanSamspillConnections = function(formationId) {
@@ -253,9 +259,12 @@
         if (formation && typeof window.hasMatchGamePlanSamspillConnections === 'function'
             && window.hasMatchGamePlanSamspillConnections(formation)
             && typeof window.getMatchGamePlanSamspillConnections === 'function') {
-            const connections = window.getMatchGamePlanSamspillConnections(formation) || [];
-            return connections.some(([left, right]) => (
+            const pairMatches = (connections) => (connections || []).some(([left, right]) => (
                 (left === posA && right === posB) || (left === posB && right === posA)
+            ));
+            // Faseavhengige formasjoner: nabopar hvis koblingen finnes i minst én fase.
+            return ['fase1', 'fase2', 'fase3'].some((phase) => (
+                pairMatches(window.getMatchGamePlanSamspillConnections(formation, phase))
             ));
         }
         return window.getPositionPairRelevance(posA, posB) >= 0.9;

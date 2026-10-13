@@ -1808,19 +1808,18 @@
                 return;
             }
             const formationId = getSelectedMatchFormationId();
+            const activePhase = typeof window.getActiveTacticalSamspillPhase === 'function'
+                ? window.getActiveTacticalSamspillPhase()
+                : undefined;
             const formationConnections = (
                 typeof window.hasMatchGamePlanSamspillConnections === 'function'
                 && window.hasMatchGamePlanSamspillConnections(formationId)
                 && typeof window.getMatchGamePlanSamspillConnections === 'function'
             );
             const connections = formationConnections
-                ? window.getMatchGamePlanSamspillConnections(formationId)
+                ? window.getMatchGamePlanSamspillConnections(formationId, activePhase)
                 : (typeof window.getTacticalSamspillConnections === 'function'
-                    ? window.getTacticalSamspillConnections(
-                        typeof window.getActiveTacticalSamspillPhase === 'function'
-                            ? window.getActiveTacticalSamspillPhase()
-                            : undefined
-                    )
+                    ? window.getTacticalSamspillConnections(activePhase)
                     : []);
             const focusPos = typeof currentSelectPos !== 'undefined' ? currentSelectPos : null;
             const chemOptions = typeof window.getTacticalChemistryFilter === 'function'
