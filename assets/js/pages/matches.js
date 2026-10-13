@@ -2336,6 +2336,25 @@ function getMatchGamePlanPitchXiFormHint(match) {
     };
 }
 
+function getMatchGamePlanPitchXiSamspillAverage(match) {
+    const pairs = typeof collectMatchGamePlanSamspillPairs === 'function'
+        ? collectMatchGamePlanSamspillPairs(match)
+        : [];
+    const scores = (pairs || [])
+        .map(pair => Number(pair?.score))
+        .filter(score => Number.isFinite(score) && score > 0);
+    if (!scores.length) return null;
+    return Math.round(scores.reduce((total, score) => total + score, 0) / scores.length);
+}
+
+function getMatchGamePlanPitchXiSamspillTone(score) {
+    if (score == null || !(Number(score) > 0)) return 'muted';
+    // Same bands as samspill line totals: strong / ok / weak.
+    if (score >= 62) return 'green';
+    if (score >= 48) return 'amber';
+    return 'red';
+}
+
 function buildMatchGamePlanPitchXiTotalsHtml(match) {
     const totals = getMatchGamePlanPitchXiTotals(match);
     const hasPlayers = totals.playerCount > 0;
@@ -2343,6 +2362,7 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
     const medians = totals.medians || {};
     const formHint = hasPlayers ? getMatchGamePlanPitchXiFormHint(match) : null;
     const formUpgrade = formHint?.type === 'upgrade' ? formHint : null;
+    const samspillAverage = hasPlayers ? getMatchGamePlanPitchXiSamspillAverage(match) : null;
     const rows = [
         {
             key: 'sesong',
@@ -2376,17 +2396,29 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers }),
             medianLabel: formatMatchGamePlanPitchXiMedianLabel(medians.snittBors, { decimals: 1 }),
             tone: tones.snittBors || 'muted'
+        },
+        {
+            key: 'samspill',
+            label: 'Samspill',
+            icon: 'fa-link',
+            value: samspillAverage == null ? '-' : String(samspillAverage),
+            tone: getMatchGamePlanPitchXiSamspillTone(samspillAverage),
+            titleOverride: samspillAverage == null
+                ? 'Samspill: ingen par på banen ennå'
+                : `Samspill-snitt på banen: ${samspillAverage}`
         }
     ];
 
     return `
-        <div class="match-game-plan-pitch-xi-totals" data-pitch-xi-totals aria-label="Snitt for spillere på banen mot troppmedian">
+        <div class="match-game-plan-pitch-xi-totals" data-pitch-xi-totals aria-label="Snitt for spillere på banen">
             ${rows.map(row => {
                 const toneClass = row.tone && row.tone !== 'muted' ? ` is-${row.tone}` : '';
                 const upgradeClass = row.upgrade ? ' has-upgrade' : '';
-                let title = row.medianLabel
-                    ? `Snitt ${row.label}: ${row.value} · Troppmedian ${row.medianLabel}`
-                    : `Snitt ${row.label}: ${row.value}`;
+                let title = row.titleOverride || (
+                    row.medianLabel
+                        ? `Snitt ${row.label}: ${row.value} · Troppmedian ${row.medianLabel}`
+                        : `Snitt ${row.label}: ${row.value}`
+                );
                 if (row.upgrade?.title) title = `${title} · ${row.upgrade.title}`;
                 const upgradeHtml = row.upgrade
                     ? `<i class="fa-solid fa-arrow-up match-game-plan-pitch-xi-upgrade" aria-hidden="true"></i>`
