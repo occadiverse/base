@@ -1832,7 +1832,9 @@
                 const activePhase = typeof window.getActiveTacticalSamspillPhase === 'function'
                     ? window.getActiveTacticalSamspillPhase()
                     : (typeof currentTacticalPhase !== 'undefined' ? currentTacticalPhase : 'fase1');
+                // F1 top-edge VS–HS is for dype stopperpar; 4-5-1 bruker samme midtpunkt som F2/F3.
                 const isF1StopperPair = activePhase === 'fase1'
+                    && formationId !== '4-5-1'
                     && ((posA === 'VMS' && posB === 'HMS') || (posA === 'HMS' && posB === 'VMS'));
                 if (isF1StopperPair && pitchRect?.width && pitchRect?.height) {
                     const leftNode = posA === 'VMS' ? nodeA : nodeB;
