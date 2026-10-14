@@ -2534,11 +2534,50 @@ function syncMatchGamePlanPitchXiTotals(match) {
     if (next) host.replaceWith(next);
 }
 
-function mapMatchGamePlanSamspillToneToPitchChip(tone) {
-    if (tone === 'strong') return 'green';
-    if (tone === 'ok') return 'amber';
-    if (tone === 'weak') return 'red';
-    return 'muted';
+function getMatchGamePlanPitchSamspillTroppPlayersForZone(match, zoneId) {
+    const referencePlayers = getMatchGamePlanPitchXiReferencePlayers(match)
+        .filter((player) => isMatchGamePlanPlayerAvailableForSamspill(player, match));
+    if (!zoneId || zoneId === 'lag') return referencePlayers;
+
+    const slots = getMatchGamePlanSamspillZonePositions(match)[zoneId] || [];
+    if (!slots.length) return referencePlayers;
+    return referencePlayers.filter((player) => (
+        slots.some((posId) => playerFitsSamspillSlot(player, posId, match))
+    ));
+}
+
+function getMatchGamePlanPitchSamspillTroppPairScores(match, zoneId) {
+    const players = getMatchGamePlanPitchSamspillTroppPlayersForZone(match, zoneId);
+    if (players.length < 2 || typeof window.getDuoSamspill !== 'function') return [];
+
+    const chemOptions = getMatchGamePlanSamspillFilter(match);
+    const scores = [];
+    for (let i = 0; i < players.length; i += 1) {
+        for (let j = i + 1; j < players.length; j += 1) {
+            const samspill = window.getDuoSamspill(players[i], players[j], chemOptions);
+            const score = Number(samspill?.score);
+            if (Number.isFinite(score) && score > 0) scores.push(score);
+        }
+    }
+    return scores;
+}
+
+function getMatchGamePlanPitchSamspillTroppMedians(match) {
+    return {
+        lag: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'lag')),
+        angrep: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'angrep')),
+        midtbane: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'midtbane')),
+        forsvar: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'forsvar'))
+    };
+}
+
+function getMatchGamePlanPitchSamspillZoneTone(score, troppMedian) {
+    if (score == null || !(Number(score) > 0)) return 'muted';
+    // Same relative idea as left XI chips: current snitt vs tropp-median.
+    if (troppMedian != null && Number(troppMedian) > 0) {
+        return getMatchGamePlanPitchXiTone(score, troppMedian, 5);
+    }
+    return getMatchGamePlanPitchXiSamspillTone(score);
 }
 
 function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
@@ -2548,6 +2587,8 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
     const lineById = Object.fromEntries(
         (briefing?.totals?.lines || []).map((line) => [line.id, line])
     );
+    const troppMedians = getMatchGamePlanPitchSamspillTroppMedians(match);
+    const previousComparison = getMatchGamePlanPitchXiPreviousComparison(match);
     const rowOrder = [
         { id: 'lag', label: 'Lag', shortLabel: null, icon: 'fa-link' },
         { id: 'angrep', label: 'Angrep', shortLabel: 'A', icon: null },
@@ -2563,13 +2604,11 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
         const value = score == null
             ? '-'
             : (hasBest ? `${score}/${bestScore}` : String(score));
-        const previous = id === 'lag'
-            ? formatMatchGamePlanPitchXiPreviousLabel(
-                getMatchGamePlanPitchXiPreviousComparison(match),
-                'samspill'
-            )
+        const troppMedian = troppMedians[id];
+        const previousLabel = id === 'lag'
+            ? formatMatchGamePlanPitchXiPreviousLabel(previousComparison, 'samspill')
             : '';
-        let title = previous || '';
+        let title = previousLabel || '';
         if (hasBest) {
             const who = line.bestHint || line.bestNames || 'benk';
             const bestTitle = `${label}: ${score} nå, ${bestScore} med ${who}`;
@@ -2581,7 +2620,7 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
             shortLabel,
             icon,
             value,
-            tone: mapMatchGamePlanSamspillToneToPitchChip(line?.tone),
+            tone: getMatchGamePlanPitchSamspillZoneTone(score, troppMedian),
             title,
             hasBest
         };
@@ -2780,19 +2819,24 @@ function getMatchGamePlanLineupOverlayState(match) {
     return state;
 }
 
+function buildMatchGamePlanSamspillInfoButtonHtml() {
+    return `
+        <button
+            type="button"
+            class="match-game-plan-samspill-info-btn"
+            onclick="event.stopPropagation(); window.openSamspillInfoModal()"
+            title="Slik leses samspillanalysen"
+            aria-label="Slik leses samspillanalysen"
+        >
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        </button>
+    `;
+}
+
 function buildMatchGamePlanSamspillAnalysisTitleHtml() {
     return `
         <div class="match-game-plan-samspill-analysis-heading">
             <h4 class="match-game-plan-samspill-analysis-title">Samspillanalyse</h4>
-            <button
-                type="button"
-                class="match-game-plan-samspill-info-btn"
-                onclick="event.stopPropagation(); window.openSamspillInfoModal()"
-                title="Slik leses samspillanalysen"
-                aria-label="Slik leses samspillanalysen"
-            >
-                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-            </button>
         </div>
     `;
 }
@@ -6001,6 +6045,7 @@ window.showMatchDetails = function(id) {
                     <button type="button" class="match-panel-toggle-btn" aria-expanded="${isLineupPanelOpen ? 'true' : 'false'}" aria-label="${isLineupPanelOpen ? 'Skjul lagoppstilling' : 'Vis lagoppstilling'}" data-show-label="Vis lagoppstilling" data-hide-label="Skjul lagoppstilling">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
+                    ${buildMatchGamePlanSamspillInfoButtonHtml()}
                 </div>
                 <div class="match-collapsible-content">
                     <div class="match-detail-squad-lineup match-detail-squad-zone" aria-label="Lagoppstilling">
