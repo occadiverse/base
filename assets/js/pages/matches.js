@@ -5487,13 +5487,10 @@ function buildMatchPrintPitchChipsHtml(match, briefing = null) {
 
 function buildMatchPrintSamspillHtml(match) {
     const briefing = getMatchGamePlanSamspillBriefing(match);
-    const totalsHtml = buildMatchGamePlanSamspillTotalsHtml(briefing.totals);
-    const chipsHtml = buildMatchPrintPitchChipsHtml(match, briefing);
     return `
         <section class="match-print-section match-print-samspill-section">
             <h2>Samspillanalyse</h2>
-            ${totalsHtml || '<p class="match-print-empty">Plasser spillere i 11eren for å se samspill.</p>'}
-            ${chipsHtml}
+            ${buildMatchPrintPitchChipsHtml(match, briefing)}
         </section>
     `;
 }
@@ -5592,10 +5589,10 @@ function buildMatchPrintSheetHtml(match) {
         <div class="match-print-page match-print-page-2">
             ${buildMatchPrintRolesHtml(match)}
             ${buildMatchPrintBenchPlanHtml(match)}
+            ${buildMatchPrintKampplanNotesHtml(match)}
         </div>
         <div class="match-print-page-break" aria-hidden="true">&nbsp;</div>
         <div class="match-print-page match-print-page-3">
-            ${buildMatchPrintKampplanNotesHtml(match)}
             ${buildMatchPrintSamspillHtml(match)}
             ${buildMatchPrintUtviklingsmomentHtml(match)}
         </div>
