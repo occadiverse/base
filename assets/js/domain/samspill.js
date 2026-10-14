@@ -500,13 +500,26 @@
             ? clampScore(40 + (play.ratingAvg - 5) * 30)
             : 50;
         const formScore = pairLimitedScore(formA, formB);
+        const kampbidragA = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? Number(window.getPlayerKampbidragSnitt(playerObjA, teamName)) || 0
+            : 0;
+        const kampbidragB = typeof window.getPlayerKampbidragSnitt === 'function'
+            ? Number(window.getPlayerKampbidragSnitt(playerObjB, teamName)) || 0
+            : 0;
+        const kampbidragScore = pairLimitedScore(
+            normalizeKampbidrag(kampbidragA),
+            normalizeKampbidrag(kampbidragB)
+        );
         const dataTrustScore = confidenceToTrustScore(confidence);
 
+        // Historikk fortsatt viktig, men form + kampbidrag veier tyngre enn før
+        // (tidligere ca. 10 % form og 0 % kampbidrag).
         const score = Math.round(clampScore(
-            togetherScore * 0.30 +
-            pairingScore * 0.40 +
-            togetherQuality * 0.20 +
-            formScore * 0.10
+            togetherScore * 0.20 +
+            pairingScore * 0.20 +
+            togetherQuality * 0.15 +
+            formScore * 0.25 +
+            kampbidragScore * 0.20
         ));
 
         const statusResult = resolveSamspillStatus(score, play, formA, formB, teamName);
@@ -524,6 +537,9 @@
                 formA,
                 formB,
                 formScore: Math.round(formScore),
+                kampbidragA,
+                kampbidragB,
+                kampbidragScore: Math.round(kampbidragScore),
                 togetherScore: Math.round(togetherScore),
                 pairingScore: Math.round(pairingScore),
                 togetherQuality: Math.round(togetherQuality),
