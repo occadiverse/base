@@ -2562,13 +2562,34 @@ function getMatchGamePlanPitchSamspillTroppPairScores(match, zoneId) {
     return scores;
 }
 
+function getMatchGamePlanPitchSamspillTroppMedianCacheKey(match) {
+    const refs = getMatchGamePlanPitchXiReferencePlayers(match)
+        .map((player) => player?.id || player?.navn || '')
+        .filter(Boolean)
+        .sort()
+        .join(',');
+    return `${match?.id || ''}|${refs}`;
+}
+
 function getMatchGamePlanPitchSamspillTroppMedians(match) {
-    return {
-        lag: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'lag')),
-        angrep: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'angrep')),
-        midtbane: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'midtbane')),
-        forsvar: getMatchGamePlanPitchXiMetricMedian(getMatchGamePlanPitchSamspillTroppPairScores(match, 'forsvar'))
+    window._matchGamePlanSamspillTroppMedianCache = window._matchGamePlanSamspillTroppMedianCache || {};
+    const cacheKey = getMatchGamePlanPitchSamspillTroppMedianCacheKey(match);
+    if (window._matchGamePlanSamspillTroppMedianCache[cacheKey]) {
+        return window._matchGamePlanSamspillTroppMedianCache[cacheKey];
+    }
+
+    // Lag all-pairs is enough as tropp baseline; per-line pools were O(n²) × 4 on every open.
+    const lagMedian = getMatchGamePlanPitchXiMetricMedian(
+        getMatchGamePlanPitchSamspillTroppPairScores(match, 'lag')
+    );
+    const medians = {
+        lag: lagMedian,
+        angrep: lagMedian,
+        midtbane: lagMedian,
+        forsvar: lagMedian
     };
+    window._matchGamePlanSamspillTroppMedianCache[cacheKey] = medians;
+    return medians;
 }
 
 function getMatchGamePlanPitchSamspillZoneTone(score, troppMedian) {
@@ -2625,6 +2646,17 @@ function getMatchGamePlanPitchSamspillZonePreviousScores(match) {
         ? new Date(previousMatch.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' })
         : '';
     return { opponent, dateLabel, scores };
+}
+
+function buildMatchGamePlanPitchSamspillZoneTotalsPlaceholderHtml() {
+    return `
+        <div
+            class="match-game-plan-pitch-samspill-zones"
+            data-pitch-samspill-zones
+            data-pitch-samspill-zones-pending
+            aria-label="Samspillsnitt per linje"
+        ></div>
+    `;
 }
 
 function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
@@ -3960,8 +3992,17 @@ function buildMatchGamePlanSamspillTotalsHtml(totals) {
     `;
 }
 
-function getMatchGamePlanSamspillSlotQuality(player, posId, match) {
+function getMatchGamePlanSamspillSlotQualityCacheKey(player, posId) {
+    return `${player?.id || player?.navn || ''}|${posId || ''}`;
+}
+
+function getMatchGamePlanSamspillSlotQuality(player, posId, match, qualityCache = null) {
     if (!player || !posId) return null;
+
+    const cacheKey = getMatchGamePlanSamspillSlotQualityCacheKey(player, posId);
+    if (qualityCache && Object.prototype.hasOwnProperty.call(qualityCache, cacheKey)) {
+        return qualityCache[cacheKey];
+    }
 
     const statsPosId = normalizeMatchGamePlanStatsPositionId(posId);
     const posStat = getPlayerPositionStatForPos(player, statsPosId)
@@ -3974,28 +4015,36 @@ function getMatchGamePlanSamspillSlotQuality(player, posId, match) {
         ? Number(computeMatchGamePlanPositionForm(posStat.entries)) || 0
         : 0;
 
+    let quality = null;
     if (seasonValue > 0 && posFormValue > 0) {
-        return Math.round(seasonValue * 0.65 + posFormValue * 0.35);
+        quality = Math.round(seasonValue * 0.65 + posFormValue * 0.35);
+    } else if (seasonValue > 0) {
+        quality = Math.round(seasonValue);
+    } else if (posFormValue > 0) {
+        quality = Math.round(posFormValue);
+    } else {
+        const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+        const kamp = Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
+        const kampNorm = kamp > 0
+            ? Math.max(0, Math.min(100, ((kamp - 5) / 25) * 100))
+            : 0;
+        if (form > 0 || kampNorm > 0) {
+            quality = (form > 0 && kampNorm > 0)
+                ? Math.round(form * 0.6 + kampNorm * 0.4)
+                : Math.round(form > 0 ? form : kampNorm);
+        }
     }
-    if (seasonValue > 0) return Math.round(seasonValue);
-    if (posFormValue > 0) return Math.round(posFormValue);
 
-    const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
-    const kamp = Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
-    const kampNorm = kamp > 0
-        ? Math.max(0, Math.min(100, ((kamp - 5) / 25) * 100))
-        : 0;
-    if (form <= 0 && kampNorm <= 0) return null;
-    if (form > 0 && kampNorm > 0) return Math.round(form * 0.6 + kampNorm * 0.4);
-    return Math.round(form > 0 ? form : kampNorm);
+    if (qualityCache) qualityCache[cacheKey] = quality;
+    return quality;
 }
 
-function isMatchGamePlanSamspillSwapQualityOk(incoming, outgoing, posId, match) {
+function isMatchGamePlanSamspillSwapQualityOk(incoming, outgoing, posId, match, qualityCache = null) {
     if (!incoming) return false;
     if (!outgoing) return true;
 
-    const incomingQuality = getMatchGamePlanSamspillSlotQuality(incoming, posId, match);
-    const outgoingQuality = getMatchGamePlanSamspillSlotQuality(outgoing, posId, match);
+    const incomingQuality = getMatchGamePlanSamspillSlotQuality(incoming, posId, match, qualityCache);
+    const outgoingQuality = getMatchGamePlanSamspillSlotQuality(outgoing, posId, match, qualityCache);
 
     // Don't replace a known role profile with someone who has no readable quality signal.
     if (incomingQuality == null && outgoingQuality == null) return true;
@@ -4013,6 +4062,7 @@ function getMatchGamePlanSamspillBriefing(match) {
     if (typeof window.buildSamspillBriefing !== 'function') {
         return { isEmpty: true, items: [], totals: { lines: [] } };
     }
+    const qualityCache = {};
     return window.buildSamspillBriefing(lineup, {
         ...getMatchGamePlanSamspillFilter(match),
         formationId: getMatchGamePlanDraftFormation(match),
@@ -4023,8 +4073,16 @@ function getMatchGamePlanSamspillBriefing(match) {
         },
         benchByLine: getMatchGamePlanSamspillBenchByLine(match),
         playerFitsSlot: (player, posId) => playerFitsSamspillSlot(player, posId, match),
+        // Single swaps only: double-swap search freezes match open with quality checks.
+        maxSwaps: 1,
         swapQualityOk: (swaps) => (swaps || []).every((swap) => (
-            isMatchGamePlanSamspillSwapQualityOk(swap?.player, swap?.outgoing, swap?.posId, match)
+            isMatchGamePlanSamspillSwapQualityOk(
+                swap?.player,
+                swap?.outgoing,
+                swap?.posId,
+                match,
+                qualityCache
+            )
         ))
     });
 }
@@ -4091,7 +4149,7 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
             childrenHtml: `
                 <svg class="match-game-plan-chemistry-lines" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
                 ${buildMatchGamePlanPitchXiTotalsHtml(match)}
-                ${buildMatchGamePlanPitchSamspillZoneTotalsHtml(match)}
+                ${buildMatchGamePlanPitchSamspillZoneTotalsPlaceholderHtml()}
                 ${Object.entries(formation.positions).map(([posId, coords]) => `
                     ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
                 `).join('')}
@@ -4791,6 +4849,7 @@ function renderMatchGamePlanStarter11Page(match) {
     renderMatchDetailSquadList(match);
     syncMatchGamePlanLineupOverlayUi(match);
     requestAnimationFrame(() => {
+        syncMatchGamePlanPitchSamspillZoneTotals(match);
         syncMatchDetailSquadCardSizeToPitch();
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
@@ -6265,13 +6324,19 @@ window.showMatchDetails = function(id) {
         if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
         window.initMatchGamePlanScroller();
         window.syncMatchGamePlanScroller();
-        ensureMatchGamePlanSamspillPanelsDom();
+        removeMatchGamePlanSamspillPanelsDom();
         syncMatchGamePlanLineupOverlayUi(match);
         syncMatchDetailSquadCardSizeToPitch();
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
         if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
+
+        // Heavy samspill chips after first paint so hero/detail open stays responsive.
+        window.setTimeout(() => {
+            if (window.activeDetailsId !== match.id) return;
+            syncMatchGamePlanPitchSamspillZoneTotals(match);
+        }, 0);
 
         if (openForAttendanceFeedback) {
             window._pendingAttendanceFeedback = null;
@@ -6724,9 +6789,20 @@ function formatMatchGamePlanXp(goals, assists, matches) {
     return (Math.round((totalMa / matchCount) * 10) / 10).toFixed(1);
 }
 
+function getPlayerPositionStatRowsCached(player) {
+    if (!player) return [];
+    window._matchGamePlanPositionStatRowsCache = window._matchGamePlanPositionStatRowsCache || new Map();
+    const cacheKey = player.id || player.navn || '';
+    if (!cacheKey) return buildPlayerPositionMatchStats(player);
+    if (!window._matchGamePlanPositionStatRowsCache.has(cacheKey)) {
+        window._matchGamePlanPositionStatRowsCache.set(cacheKey, buildPlayerPositionMatchStats(player));
+    }
+    return window._matchGamePlanPositionStatRowsCache.get(cacheKey) || [];
+}
+
 function getPlayerPositionStatForPos(player, posId) {
     if (!player || !posId) return null;
-    return buildPlayerPositionMatchStats(player).find(row => row.posId === posId) || null;
+    return getPlayerPositionStatRowsCached(player).find(row => row.posId === posId) || null;
 }
 
 function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced, selectedPlayer = null) {
@@ -9039,9 +9115,10 @@ window.toggleMatchPanel = function(btn) {
         requestAnimationFrame(() => {
             const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (!match) return;
-            ensureMatchGamePlanSamspillPanelsDom();
+            removeMatchGamePlanSamspillPanelsDom();
             syncMatchGamePlanLineupOverlayUi(match);
             renderMatchGamePlanSamspillSummary(match);
+            syncMatchGamePlanPitchSamspillZoneTotals(match);
             syncMatchDetailSquadCardSizeToPitch();
             if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
                 window.drawMatchGamePlanChemistryLines(match);

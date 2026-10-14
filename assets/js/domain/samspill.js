@@ -1459,28 +1459,32 @@
             });
         });
 
-        for (let i = 0; i < slots.length; i += 1) {
-            for (let j = i + 1; j < slots.length; j += 1) {
-                const posA = slots[i];
-                const posB = slots[j];
-                for (let a = 0; a < candidates.length; a += 1) {
-                    if (!fitsSlot(candidates[a], posA)) continue;
-                    if (sameSamspillPlayer(lineup?.[posA], candidates[a])) continue;
-                    for (let b = 0; b < candidates.length; b += 1) {
-                        if (a === b) continue;
-                        if (!fitsSlot(candidates[b], posB)) continue;
-                        if (sameSamspillPlayer(lineup?.[posB], candidates[b])) continue;
-                        consider(
-                            swapSamspillLineupPlayer(
-                                swapSamspillLineupPlayer(lineup, posA, candidates[a]),
-                                posB,
-                                candidates[b]
-                            ),
-                            [
-                                { player: candidates[a], posId: posA, outgoing: lineup?.[posA] || null },
-                                { player: candidates[b], posId: posB, outgoing: lineup?.[posB] || null }
-                            ]
-                        );
+        // Double swaps are expensive (and rarely needed for chip hints). Opt in only.
+        const maxSwaps = Number(opts.maxSwaps) > 0 ? Number(opts.maxSwaps) : 2;
+        if (maxSwaps >= 2) {
+            for (let i = 0; i < slots.length; i += 1) {
+                for (let j = i + 1; j < slots.length; j += 1) {
+                    const posA = slots[i];
+                    const posB = slots[j];
+                    for (let a = 0; a < candidates.length; a += 1) {
+                        if (!fitsSlot(candidates[a], posA)) continue;
+                        if (sameSamspillPlayer(lineup?.[posA], candidates[a])) continue;
+                        for (let b = 0; b < candidates.length; b += 1) {
+                            if (a === b) continue;
+                            if (!fitsSlot(candidates[b], posB)) continue;
+                            if (sameSamspillPlayer(lineup?.[posB], candidates[b])) continue;
+                            consider(
+                                swapSamspillLineupPlayer(
+                                    swapSamspillLineupPlayer(lineup, posA, candidates[a]),
+                                    posB,
+                                    candidates[b]
+                                ),
+                                [
+                                    { player: candidates[a], posId: posA, outgoing: lineup?.[posA] || null },
+                                    { player: candidates[b], posId: posB, outgoing: lineup?.[posB] || null }
+                                ]
+                            );
+                        }
                     }
                 }
             }
