@@ -1797,7 +1797,7 @@ function syncMatchGamePlanSamspillHint(match) {
 
     hint.hidden = !shouldShow;
     if (shouldShow) {
-        hint.textContent = 'Velg Samspill for å se relasjoner og samspillanalyse';
+        hint.textContent = 'Velg Samspill for å se relasjoner på banen';
     }
 }
 
@@ -2896,33 +2896,10 @@ function buildMatchGamePlanSamspillAnalysisTitleHtml() {
     `;
 }
 
-function ensureMatchGamePlanSamspillPanelsDom() {
-    const host = document.querySelector('.match-detail-lineup-builder')
-        || document.querySelector('.match-detail-squad-lineup')
-        || document.querySelector('.match-detail-squad-players');
-    if (!host) return;
-
-    if (!host.querySelector('[data-samspill-panels]')) {
-        host.querySelectorAll('[data-samspill-summary], [data-samspill-analysis]').forEach(element => element.remove());
-        host.insertAdjacentHTML('beforeend', `
-            <div class="match-game-plan-samspill-panels" data-samspill-panels>
-                <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
-                    ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
-                </section>
-            </div>
-        `);
-        return;
-    }
-
-    host.querySelector('[data-samspill-summary]')?.remove();
-
-    if (!host.querySelector('[data-samspill-analysis]')) {
-        host.querySelector('[data-samspill-panels]')?.insertAdjacentHTML('beforeend', `
-            <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
-                ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
-            </section>
-        `);
-    }
+function removeMatchGamePlanSamspillPanelsDom() {
+    document.querySelectorAll(
+        '.match-detail-lineup-builder [data-samspill-panels], .match-detail-squad-lineup [data-samspill-panels], .match-detail-squad-players [data-samspill-panels], [data-samspill-summary], [data-samspill-analysis]'
+    ).forEach((element) => element.remove());
 }
 
 function isMatchGamePlanSamspillSummaryVisible(_builder, overlayState) {
@@ -4021,33 +3998,9 @@ function buildMatchGamePlanSamspillAnalysisHtml(match) {
     return `${totalsHtml}${briefingHtml}`;
 }
 
-function buildMatchGamePlanSamspillPanelsShellHtml() {
-    return `
-        <div class="match-game-plan-samspill-panels" data-samspill-panels>
-            <section class="match-game-plan-samspill-analysis" data-samspill-analysis aria-label="Samspillanalyse">
-                ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
-            </section>
-        </div>
-    `;
-}
-
-function renderMatchGamePlanSamspillSummary(match) {
-    ensureMatchGamePlanSamspillPanelsDom();
-    ensureMatchGamePlanSamspillAnalysisEventsBound();
-
-    const analysisEl = document.querySelector('[data-samspill-analysis]');
-    if (!analysisEl) return;
-
-    const overlayState = getMatchGamePlanLineupOverlayState(match);
-    if (!overlayState.samspill) {
-        analysisEl.innerHTML = buildMatchGamePlanSamspillAnalysisTitleHtml();
-        return;
-    }
-
-    analysisEl.innerHTML = `
-        ${buildMatchGamePlanSamspillAnalysisTitleHtml()}
-        ${buildMatchGamePlanSamspillAnalysisHtml(match)}
-    `;
+function renderMatchGamePlanSamspillSummary(_match) {
+    // Pitch chips replaced the under-pitch analysis box.
+    removeMatchGamePlanSamspillPanelsDom();
 }
 
 window.openSamspillInfoModal = function() {
@@ -4070,7 +4023,6 @@ function buildMatchGamePlanStarterFooterHtml(match) {
             <p class="match-game-plan-samspill-hint" data-samspill-hint hidden></p>
             <p class="match-inline-status match-game-plan-lineup-save-state" data-lineup-save-state aria-live="polite" hidden></p>
         </div>
-        ${buildMatchGamePlanSamspillPanelsShellHtml()}
     `;
 }
 
