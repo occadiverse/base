@@ -1731,7 +1731,19 @@
             top: clamp(0.28rem, 1.8cqi, 0.55rem);
             z-index: 5;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones {
+            align-items: flex-end;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.14rem, 0.9cqi, 0.28rem);
+            pointer-events: none;
+            position: absolute;
+            right: clamp(0.28rem, 1.8cqi, 0.55rem);
+            top: clamp(0.28rem, 1.8cqi, 0.55rem);
+            z-index: 5;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row {
             align-items: center;
             background: rgba(7, 24, 45, 0.55);
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -1749,48 +1761,66 @@
             pointer-events: auto;
             white-space: nowrap;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row i {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-label {
+            font-size: 0.92em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            opacity: 0.92;
+            text-transform: uppercase;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row i,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row i {
             color: #f5c542;
             font-size: 0.78em;
             width: 0.9em;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-green {
             background: rgba(74, 222, 128, 0.92);
             border-color: rgba(220, 252, 231, 0.98);
             box-shadow: 0 4px 12px rgba(22, 163, 74, 0.28);
             color: #14532d;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green i {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green i,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-green i {
             color: #166534;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-amber {
             background: rgba(250, 204, 21, 0.92);
             border-color: rgba(254, 249, 195, 0.98);
             box-shadow: 0 4px 12px rgba(202, 138, 4, 0.28);
             color: #422006;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber i {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber i,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-amber i {
             color: #854d0e;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-red {
             background: rgba(220, 38, 38, 0.94);
             border-color: rgba(254, 202, 202, 0.95);
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
             color: #ffffff;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red i {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red i,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-red i {
             color: #fecaca;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row .match-game-plan-pitch-xi-upgrade {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row .match-game-plan-pitch-xi-upgrade,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row .match-game-plan-pitch-xi-upgrade {
             color: #166534;
             font-size: 0.72em;
             margin-left: 0.02rem;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber .match-game-plan-pitch-xi-upgrade,
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green .match-game-plan-pitch-xi-upgrade {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green .match-game-plan-pitch-xi-upgrade,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-amber .match-game-plan-pitch-xi-upgrade,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-green .match-game-plan-pitch-xi-upgrade {
             color: #14532d;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red .match-game-plan-pitch-xi-upgrade {
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red .match-game-plan-pitch-xi-upgrade,
+        .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-red .match-game-plan-pitch-xi-upgrade {
             color: #ffffff;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {

@@ -1588,6 +1588,7 @@ function refreshMatchGamePlanLineupAfterChange(match, affectedPosIds = []) {
     renderMatchDetailSquadList(match);
     syncMatchGamePlanLineupOverlayUi(match);
     syncMatchGamePlanPitchXiTotals(match);
+    syncMatchGamePlanPitchSamspillZoneTotals(match);
     requestAnimationFrame(() => {
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
@@ -2467,7 +2468,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
     const previous = totals.previous || null;
     const formHint = hasPlayers ? getMatchGamePlanPitchXiFormHint(match) : null;
     const formUpgrade = formHint?.type === 'upgrade' ? formHint : null;
-    const samspillAverage = hasPlayers ? getMatchGamePlanPitchXiSamspillAverage(match) : null;
     const rows = [
         {
             key: 'sesong',
@@ -2501,14 +2501,6 @@ function buildMatchGamePlanPitchXiTotalsHtml(match) {
             value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers }),
             previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'snittBors', { decimals: 1 }),
             tone: tones.snittBors || 'muted'
-        },
-        {
-            key: 'samspill',
-            label: 'Samspill',
-            icon: 'fa-link',
-            value: samspillAverage == null ? '-' : String(samspillAverage),
-            tone: getMatchGamePlanPitchXiSamspillTone(samspillAverage),
-            previousLabel: formatMatchGamePlanPitchXiPreviousLabel(previous, 'samspill')
         }
     ];
 
@@ -2538,6 +2530,93 @@ function syncMatchGamePlanPitchXiTotals(match) {
     if (!host || !match) return;
     const wrapper = document.createElement('div');
     wrapper.innerHTML = buildMatchGamePlanPitchXiTotalsHtml(match).trim();
+    const next = wrapper.firstElementChild;
+    if (next) host.replaceWith(next);
+}
+
+function mapMatchGamePlanSamspillToneToPitchChip(tone) {
+    if (tone === 'strong') return 'green';
+    if (tone === 'ok') return 'amber';
+    if (tone === 'weak') return 'red';
+    return 'muted';
+}
+
+function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
+    const briefing = typeof getMatchGamePlanSamspillBriefing === 'function'
+        ? getMatchGamePlanSamspillBriefing(match)
+        : { totals: { lines: [] } };
+    const lineById = Object.fromEntries(
+        (briefing?.totals?.lines || []).map((line) => [line.id, line])
+    );
+    const rowOrder = [
+        { id: 'lag', label: 'Lag', shortLabel: null, icon: 'fa-link' },
+        { id: 'angrep', label: 'Angrep', shortLabel: 'A', icon: null },
+        { id: 'midtbane', label: 'Midtbane', shortLabel: 'M', icon: null },
+        { id: 'forsvar', label: 'Forsvar', shortLabel: 'F', icon: null }
+    ];
+
+    const rows = rowOrder.map(({ id, label, shortLabel, icon }) => {
+        const line = lineById[id] || null;
+        const score = line?.score;
+        const bestScore = line?.bestScore;
+        const hasBest = bestScore != null && score != null && bestScore > score;
+        const value = score == null
+            ? '-'
+            : (hasBest ? `${score}/${bestScore}` : String(score));
+        const previous = id === 'lag'
+            ? formatMatchGamePlanPitchXiPreviousLabel(
+                getMatchGamePlanPitchXiPreviousComparison(match),
+                'samspill'
+            )
+            : '';
+        let title = previous || '';
+        if (hasBest) {
+            const who = line.bestHint || line.bestNames || 'benk';
+            const bestTitle = `${label}: ${score} nå, ${bestScore} med ${who}`;
+            title = title ? `${title} · ${bestTitle}` : bestTitle;
+        }
+        return {
+            key: id,
+            label,
+            shortLabel,
+            icon,
+            value,
+            tone: mapMatchGamePlanSamspillToneToPitchChip(line?.tone),
+            title,
+            hasBest
+        };
+    });
+
+    return `
+        <div class="match-game-plan-pitch-samspill-zones" data-pitch-samspill-zones aria-label="Samspillsnitt per linje">
+            ${rows.map((row) => {
+                const toneClass = row.tone && row.tone !== 'muted' ? ` is-${row.tone}` : '';
+                const upgradeClass = row.hasBest ? ' has-upgrade' : '';
+                const upgradeHtml = row.hasBest
+                    ? `<i class="fa-solid fa-arrow-up match-game-plan-pitch-xi-upgrade" aria-hidden="true"></i>`
+                    : '';
+                const leadHtml = row.icon
+                    ? `<i class="fa-solid ${escapeMatchHtml(row.icon)}" aria-hidden="true"></i>`
+                    : `<span class="match-game-plan-pitch-samspill-zones-label">${escapeMatchHtml(row.shortLabel || row.label)}</span>`;
+                return `
+                <span class="match-game-plan-pitch-samspill-zones-row${toneClass}${upgradeClass}"${
+                    row.title ? ` title="${escapeMatchHtml(row.title)}"` : ''
+                } aria-label="${escapeMatchHtml(row.label)}">
+                    ${leadHtml}
+                    <span data-pitch-samspill-zone="${escapeMatchHtml(row.key)}">${escapeMatchHtml(row.value)}</span>
+                    ${upgradeHtml}
+                </span>
+            `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function syncMatchGamePlanPitchSamspillZoneTotals(match) {
+    const host = document.querySelector('.match-detail-lineup-pitch-wrap [data-pitch-samspill-zones]');
+    if (!host || !match) return;
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = buildMatchGamePlanPitchSamspillZoneTotalsHtml(match).trim();
     const next = wrapper.firstElementChild;
     if (next) host.replaceWith(next);
 }
@@ -3906,6 +3985,7 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
             childrenHtml: `
                 <svg class="match-game-plan-chemistry-lines" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
                 ${buildMatchGamePlanPitchXiTotalsHtml(match)}
+                ${buildMatchGamePlanPitchSamspillZoneTotalsHtml(match)}
                 ${Object.entries(formation.positions).map(([posId, coords]) => `
                     ${buildMatchGamePlanStarterCardNodeHtml(match, posId, coords)}
                 `).join('')}
