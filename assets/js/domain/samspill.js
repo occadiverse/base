@@ -1430,11 +1430,15 @@
         const fitsSlot = typeof opts.playerFitsSlot === 'function'
             ? opts.playerFitsSlot
             : () => true;
+        const swapQualityOk = typeof opts.swapQualityOk === 'function'
+            ? opts.swapQualityOk
+            : () => true;
 
         let bestScore = currentScore;
         let bestSwaps = [];
 
         const consider = (trial, incoming) => {
+            if (!swapQualityOk(incoming)) return;
             const score = scoreSamspillLineupZone(trial, slots.length ? slots : null, opts);
             if (!isBetterSamspillScore(score, bestScore)) return;
             if (currentRounded != null && Math.round(score) <= currentRounded) return;

@@ -3960,6 +3960,53 @@ function buildMatchGamePlanSamspillTotalsHtml(totals) {
     `;
 }
 
+function getMatchGamePlanSamspillSlotQuality(player, posId, match) {
+    if (!player || !posId) return null;
+
+    const statsPosId = normalizeMatchGamePlanStatsPositionId(posId);
+    const posStat = getPlayerPositionStatForPos(player, statsPosId)
+        || (statsPosId !== posId ? getPlayerPositionStatForPos(player, posId) : null);
+    const seasonStat = getMatchGamePlanPlayerSeasonStat(player);
+    const seasonValue = posStat?.matches > 0
+        ? Number(computeMatchGamePlanPositionSeason(posStat, seasonStat)) || 0
+        : 0;
+    const posFormValue = posStat?.entries?.length
+        ? Number(computeMatchGamePlanPositionForm(posStat.entries)) || 0
+        : 0;
+
+    if (seasonValue > 0 && posFormValue > 0) {
+        return Math.round(seasonValue * 0.65 + posFormValue * 0.35);
+    }
+    if (seasonValue > 0) return Math.round(seasonValue);
+    if (posFormValue > 0) return Math.round(posFormValue);
+
+    const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+    const kamp = Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
+    const kampNorm = kamp > 0
+        ? Math.max(0, Math.min(100, ((kamp - 5) / 25) * 100))
+        : 0;
+    if (form <= 0 && kampNorm <= 0) return null;
+    if (form > 0 && kampNorm > 0) return Math.round(form * 0.6 + kampNorm * 0.4);
+    return Math.round(form > 0 ? form : kampNorm);
+}
+
+function isMatchGamePlanSamspillSwapQualityOk(incoming, outgoing, posId, match) {
+    if (!incoming) return false;
+    if (!outgoing) return true;
+
+    const incomingQuality = getMatchGamePlanSamspillSlotQuality(incoming, posId, match);
+    const outgoingQuality = getMatchGamePlanSamspillSlotQuality(outgoing, posId, match);
+
+    // Don't replace a known role profile with someone who has no readable quality signal.
+    if (incomingQuality == null && outgoingQuality == null) return true;
+    if (incomingQuality == null) return false;
+    if (outgoingQuality == null) return true;
+
+    // Block only clearly weaker role profiles (e.g. 90 vs 42), not tiny gaps.
+    const maxDrop = 12;
+    return incomingQuality >= outgoingQuality - maxDrop;
+}
+
 function getMatchGamePlanSamspillBriefing(match) {
     const lineup = getMatchGamePlanDraftLineup(match);
     const lineZones = getMatchGamePlanSamspillZonePositions(match);
@@ -3975,7 +4022,10 @@ function getMatchGamePlanSamspillBriefing(match) {
             angrep: lineZones.angrep || []
         },
         benchByLine: getMatchGamePlanSamspillBenchByLine(match),
-        playerFitsSlot: (player, posId) => playerFitsSamspillSlot(player, posId, match)
+        playerFitsSlot: (player, posId) => playerFitsSamspillSlot(player, posId, match),
+        swapQualityOk: (swaps) => (swaps || []).every((swap) => (
+            isMatchGamePlanSamspillSwapQualityOk(swap?.player, swap?.outgoing, swap?.posId, match)
+        ))
     });
 }
 
