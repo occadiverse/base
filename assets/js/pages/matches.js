@@ -2580,6 +2580,53 @@ function getMatchGamePlanPitchSamspillZoneTone(score, troppMedian) {
     return getMatchGamePlanPitchXiSamspillTone(score);
 }
 
+function getMatchGamePlanPitchSamspillZoneScoresForLineup(lineup, match, formationId) {
+    if (!lineup || typeof window.collectSamspillLineupPairs !== 'function') return {};
+    const formation = formationId || getMatchGamePlanFormation(match);
+    const pairs = window.collectSamspillLineupPairs(lineup, {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId: formation
+    });
+    const lineZones = getMatchGamePlanSamspillZonePositions(match);
+    if (typeof window.buildSamspillLineTotals !== 'function') {
+        const lag = getMatchGamePlanPitchXiSamspillAverageForLineup(lineup, match, formation);
+        return lag == null ? {} : { lag };
+    }
+    const totals = window.buildSamspillLineTotals(
+        pairs,
+        {
+            forsvar: lineZones.forsvar || [],
+            midtbane: lineZones.midtbane || [],
+            angrep: lineZones.angrep || []
+        },
+        {},
+        { formationId: formation }
+    );
+    return Object.fromEntries(
+        (totals?.lines || [])
+            .filter((line) => line?.id)
+            .map((line) => [line.id, line.score])
+    );
+}
+
+function getMatchGamePlanPitchSamspillZonePreviousScores(match) {
+    const previousMatch = getMatchGamePlanPitchXiPreviousMatch(match);
+    if (!previousMatch) return null;
+    const lineup = getMatchGamePlanLineup(previousMatch) || {};
+    if (!Object.keys(lineup).length) return null;
+    const scores = getMatchGamePlanPitchSamspillZoneScoresForLineup(
+        lineup,
+        previousMatch,
+        getMatchGamePlanFormation(previousMatch)
+    );
+    if (!Object.keys(scores).length) return null;
+    const opponent = previousMatch.opponent || 'forrige kamp';
+    const dateLabel = previousMatch.date
+        ? new Date(previousMatch.date).toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' })
+        : '';
+    return { opponent, dateLabel, scores };
+}
+
 function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
     const briefing = typeof getMatchGamePlanSamspillBriefing === 'function'
         ? getMatchGamePlanSamspillBriefing(match)
@@ -2588,7 +2635,8 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
         (briefing?.totals?.lines || []).map((line) => [line.id, line])
     );
     const troppMedians = getMatchGamePlanPitchSamspillTroppMedians(match);
-    const previousComparison = getMatchGamePlanPitchXiPreviousComparison(match);
+    const previousZones = getMatchGamePlanPitchSamspillZonePreviousScores(match);
+    const previousScores = previousZones?.scores || {};
     const rowOrder = [
         { id: 'lag', label: 'Lag', shortLabel: null, icon: 'fa-link' },
         { id: 'angrep', label: 'Angrep', shortLabel: 'A', icon: null },
@@ -2605,8 +2653,15 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
             ? '-'
             : (hasBest ? `${score}/${bestScore}` : String(score));
         const troppMedian = troppMedians[id];
-        const previousLabel = id === 'lag'
-            ? formatMatchGamePlanPitchXiPreviousLabel(previousComparison, 'samspill')
+        const previousLabel = previousZones
+            ? formatMatchGamePlanPitchXiPreviousLabel(
+                {
+                    opponent: previousZones.opponent,
+                    dateLabel: previousZones.dateLabel,
+                    [id]: previousScores[id]
+                },
+                id
+            )
             : '';
         let title = previousLabel || '';
         if (hasBest) {
