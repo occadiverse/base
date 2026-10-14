@@ -3015,10 +3015,15 @@ function getMatchGamePlanBidragToneClass(value) {
 }
 
 function getMatchGamePlanSamspillFilter(match) {
-    if (match?.matchGroup) {
-        return { teamName: match.matchGroup, historicalOnly: true };
-    }
-    return { teamName: null, historicalOnly: true };
+    // Exclude the match being planned so a saved XI cannot self-justify
+    // and wipe bench-upgrade suggestions on the pitch chips.
+    const filter = {
+        historicalOnly: true,
+        excludeMatchId: match?.id || null
+    };
+    if (match?.matchGroup) filter.teamName = match.matchGroup;
+    else filter.teamName = null;
+    return filter;
 }
 
 function buildMatchGamePlanLineupCardOverlayHtml(match, player) {

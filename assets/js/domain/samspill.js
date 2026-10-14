@@ -288,6 +288,7 @@
         const opts = options || {};
         const filterLag = opts.teamName || null;
         const historicalOnly = opts.historicalOnly !== false;
+        const excludeMatchId = opts.excludeMatchId || null;
         const playerObjA = resolvePlayer(playerA);
         const playerObjB = resolvePlayer(playerB);
         const empty = {
@@ -307,10 +308,11 @@
         const cacheKey = [
             playerObjA.id || playerObjA.navn,
             playerObjB.id || playerObjB.navn
-        ].sort().join('|') + `|${filterLag || ''}|${historicalOnly ? 1 : 0}`;
+        ].sort().join('|') + `|${filterLag || ''}|${historicalOnly ? 1 : 0}|${excludeMatchId || ''}`;
         if (cache?.has(cacheKey)) return cache.get(cacheKey);
 
         const matches = (window.activeMatches || []).filter((match) => {
+            if (excludeMatchId && match?.id === excludeMatchId) return false;
             if (filterLag && match.matchGroup !== filterLag) return false;
             if (historicalOnly && typeof window.isHistoricalActivity === 'function'
                 && !window.isHistoricalActivity(match)) return false;
