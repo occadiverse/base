@@ -5400,12 +5400,141 @@ function buildMatchPrintBenchPlanHtml(match) {
     `;
 }
 
+function buildMatchPrintPitchChipsHtml(match, briefing = null) {
+    const totals = getMatchGamePlanPitchXiTotals(match);
+    const hasPlayers = totals.playerCount > 0;
+    const tones = totals.tones || {};
+    const formHint = hasPlayers ? getMatchGamePlanPitchXiFormHint(match) : null;
+    const formUpgrade = formHint?.type === 'upgrade' ? formHint : null;
+    const samspillBriefing = briefing || (
+        typeof getMatchGamePlanSamspillBriefing === 'function'
+            ? getMatchGamePlanSamspillBriefing(match)
+            : { totals: { lines: [] } }
+    );
+    const lineById = Object.fromEntries(
+        (samspillBriefing?.totals?.lines || []).map((line) => [line.id, line])
+    );
+    const troppMedians = getMatchGamePlanPitchSamspillTroppMedians(match);
+
+    const xiChips = [
+        {
+            key: 'sesong',
+            label: 'Sesong',
+            value: formatMatchGamePlanPitchXiTotal(totals.sesong, { hasPlayers }),
+            tone: tones.sesong || 'muted'
+        },
+        {
+            key: 'kampbidrag',
+            label: 'Kampbidrag',
+            value: formatMatchGamePlanPitchXiTotal(totals.kampbidrag, { hasPlayers }),
+            tone: tones.kampbidrag || 'muted'
+        },
+        {
+            key: 'form',
+            label: 'Form',
+            value: formatMatchGamePlanPitchXiTotal(totals.form, { hasPlayers }),
+            tone: tones.form || 'muted',
+            note: formUpgrade
+                ? `↑ ${formUpgrade.benchName || ''}`.trim()
+                : ''
+        },
+        {
+            key: 'snittbors',
+            label: 'Snittbørs',
+            value: formatMatchGamePlanPitchXiTotal(totals.snittBors, { decimals: 1, hasPlayers }),
+            tone: tones.snittBors || 'muted'
+        }
+    ];
+
+    const zoneChips = [
+        { id: 'lag', label: 'Lag' },
+        { id: 'angrep', label: 'Angrep' },
+        { id: 'midtbane', label: 'Midtbane' },
+        { id: 'forsvar', label: 'Forsvar' }
+    ].map(({ id, label }) => {
+        const line = lineById[id] || null;
+        const score = line?.score;
+        const bestScore = line?.bestScore;
+        const hasBest = bestScore != null && score != null && bestScore > score;
+        return {
+            key: id,
+            label,
+            value: score == null
+                ? '-'
+                : (hasBest ? `${score}/${bestScore}` : String(score)),
+            tone: getMatchGamePlanPitchSamspillZoneTone(score, troppMedians[id]),
+            note: hasBest ? (line.bestHint || line.bestNames || '') : ''
+        };
+    });
+
+    const chips = [...xiChips, ...zoneChips];
+    return `
+        <div class="match-print-pitch-chips" aria-label="XI- og samspillchipper">
+            <ul class="match-print-pitch-chips-list">
+                ${chips.map((chip) => `
+                    <li class="match-print-pitch-chip is-${escapeMatchHtml(chip.tone || 'muted')}">
+                        <span class="match-print-pitch-chip-label">${escapeMatchHtml(chip.label)}</span>
+                        <span class="match-print-pitch-chip-value">${escapeMatchHtml(chip.value)}</span>
+                        ${chip.note
+                            ? `<span class="match-print-pitch-chip-note">${escapeMatchHtml(chip.note)}</span>`
+                            : ''}
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+}
+
 function buildMatchPrintSamspillHtml(match) {
-    const totalsHtml = buildMatchGamePlanSamspillTotalsHtml(getMatchGamePlanSamspillBriefing(match).totals);
+    const briefing = getMatchGamePlanSamspillBriefing(match);
+    const totalsHtml = buildMatchGamePlanSamspillTotalsHtml(briefing.totals);
+    const chipsHtml = buildMatchPrintPitchChipsHtml(match, briefing);
     return `
         <section class="match-print-section match-print-samspill-section">
             <h2>Samspillanalyse</h2>
             ${totalsHtml || '<p class="match-print-empty">Plasser spillere i 11eren for å se samspill.</p>'}
+            ${chipsHtml}
+        </section>
+    `;
+}
+
+function buildMatchPrintUtviklingsmomentHtml(match) {
+    const players = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match)
+        : [];
+
+    return `
+        <section class="match-print-section match-print-utvikling-section">
+            <h2>Utviklingsmoment</h2>
+            ${players.length ? `
+                <table class="match-print-utvikling-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nr</th>
+                            <th scope="col">Spiller</th>
+                            <th scope="col">Fokus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${players.map((player) => {
+                            const moment = String(player?.utviklingsmoment || '').trim();
+                            return `
+                                <tr>
+                                    <td class="match-print-jersey">${escapeMatchHtml(getMatchPrintJersey(player))}</td>
+                                    <td class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</td>
+                                    <td class="match-print-utvikling-text">${
+                                        moment
+                                            ? escapeMatchHtml(moment)
+                                            : '<span class="match-print-empty">—</span>'
+                                    }</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            ` : `
+                <p class="match-print-empty">Ingen spillere i kamptroppen.</p>
+            `}
         </section>
     `;
 }
@@ -5468,6 +5597,7 @@ function buildMatchPrintSheetHtml(match) {
         <div class="match-print-page match-print-page-3">
             ${buildMatchPrintKampplanNotesHtml(match)}
             ${buildMatchPrintSamspillHtml(match)}
+            ${buildMatchPrintUtviklingsmomentHtml(match)}
         </div>
     `;
 }
