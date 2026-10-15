@@ -6448,18 +6448,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ].join('');
             const planEmpty = !planLines.length && !notesPositive && !notesChallenge;
 
-            const buildBlock = (id, title, bodyHtml, empty) => `
+            const buildBlock = (id, title, bodyHtml, empty) => {
+                const extraClass = id === 'spillerbors'
+                    ? ' stats-kamp-summary-match'
+                    : (id === 'kampplan'
+                        ? ' stats-kamp-summary-plan'
+                        : (id === 'bytter' ? ' stats-kamp-summary-tropp' : ''));
+                return `
                 <button
                     type="button"
-                    class="stats-kamp-summary-block is-clickable${empty ? ' is-empty' : ''}${id === 'spillerbors' ? ' stats-kamp-summary-match' : ''}"
+                    class="stats-kamp-summary-block is-clickable${empty ? ' is-empty' : ''}${extraClass}"
                     data-match-action="open-summary-card"
                     data-summary-card="${escapeStatisticsHtml(id)}"
                     data-match-id="${escapeStatisticsHtml(matchId)}"
                 >
                     <h4>${escapeStatisticsHtml(title)}</h4>
-                    ${bodyHtml}
+                    <div class="stats-kamp-summary-block-body">${bodyHtml}</div>
                 </button>
             `;
+            };
 
             const pitchChipsHtml = typeof window.buildMatchSummaryPitchChipsHtml === 'function'
                 ? window.buildMatchSummaryPitchChipsHtml(match, context)
