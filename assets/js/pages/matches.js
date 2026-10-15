@@ -2361,7 +2361,8 @@ function getMatchGamePlanPitchXiTotals(match) {
         tones: {
             sesong: getMatchGamePlanPitchXiTone(averages.sesong, medians.sesong, 5),
             kampbidrag: getMatchGamePlanPitchXiTone(averages.kampbidrag, medians.kampbidrag, 2),
-            form: getMatchGamePlanPitchXiTone(averages.form, medians.form, 8),
+            // Same rule as after-match chips: green above tropp, amber near/just below, red far below.
+            form: getMatchSummaryVsSeasonTone(averages.form, medians.form, 8),
             snittBors: getMatchGamePlanPitchXiTone(averages.snittBors, medians.snittBors, 0.3)
         }
     };
@@ -2746,6 +2747,498 @@ function syncMatchGamePlanPitchSamspillZoneTotals(match) {
     const next = wrapper.firstElementChild;
     if (next) host.replaceWith(next);
 }
+
+function getMatchSummaryPlayerMatchRating(match, player) {
+    if (!match || !player || typeof window.getPlayerRefMapValue !== 'function') return null;
+    const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0)) || 0;
+    return rating > 0 ? rating : null;
+}
+
+function getMatchSummaryRatedPlayers(match) {
+    if (!match) return [];
+
+    const players = [];
+    const seen = new Set();
+    const pushPlayer = (player) => {
+        if (!player) return;
+        const rating = getMatchSummaryPlayerMatchRating(match, player);
+        if (rating == null) return;
+        const key = player.id || player.navn || '';
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        players.push(player);
+    };
+
+    const attending = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match)
+        : [];
+    attending.forEach((player) => pushPlayer(player));
+
+    if (!players.length && match.ratings && typeof match.ratings === 'object') {
+        Object.keys(match.ratings).forEach((ref) => {
+            const player = typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(ref)
+                : null;
+            pushPlayer(player);
+        });
+    }
+
+    return players;
+}
+
+function getMatchSummaryAllRatedSnittBors(match) {
+    const players = getMatchSummaryRatedPlayers(match);
+    if (!players.length) return null;
+    const ratings = players
+        .map((player) => getMatchSummaryPlayerMatchRating(match, player))
+        .filter((rating) => rating != null);
+    if (!ratings.length) return null;
+    return Math.round((ratings.reduce((sum, value) => sum + value, 0) / ratings.length) * 10) / 10;
+}
+
+function getMatchSummaryKamptroppPlayers(match) {
+    if (!match || typeof getMatchDetailAttendingPlayers !== 'function') return [];
+    return getMatchDetailAttendingPlayers(match).filter(Boolean);
+}
+
+function getMatchSummaryKamptroppSeasonSnittBors(match) {
+    const players = getMatchSummaryKamptroppPlayers(match);
+    if (!players.length) return null;
+    const statsByName = typeof getMatchGamePlanPitchXiStatsByName === 'function'
+        ? getMatchGamePlanPitchXiStatsByName(match)
+        : new Map();
+    const seasonValues = players
+        .map((player) => Number(statsByName.get(player.navn)?.snittBors) || 0)
+        .filter((value) => value > 0);
+    if (!seasonValues.length) return null;
+    return Math.round((seasonValues.reduce((sum, value) => sum + value, 0) / seasonValues.length) * 10) / 10;
+}
+
+function getMatchSummaryKamptroppSeasonKampbidrag(match) {
+    const players = getMatchSummaryKamptroppPlayers(match);
+    if (!players.length) return null;
+    const seasonValues = players
+        .map((player) => Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0)
+        .filter((value) => value > 0);
+    if (!seasonValues.length) return null;
+    return Math.round(seasonValues.reduce((sum, value) => sum + value, 0) / seasonValues.length);
+}
+
+function getMatchSummaryKamptroppFormSnitt(match) {
+    const players = getMatchSummaryKamptroppPlayers(match);
+    if (!players.length) return null;
+    const values = players
+        .map((player) => Number(getMatchGamePlanPlayerForm(player)) || 0)
+        .filter((value) => value > 0);
+    if (!values.length) return null;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function getMatchSummaryKamptroppSesongSnitt(match) {
+    const players = getMatchSummaryKamptroppPlayers(match);
+    if (!players.length) return null;
+    const statsByName = typeof getMatchGamePlanPitchXiStatsByName === 'function'
+        ? getMatchGamePlanPitchXiStatsByName(match)
+        : new Map();
+    const values = players
+        .map((player) => Number(statsByName.get(player.navn)?.totalScore) || 0)
+        .filter((value) => value > 0);
+    if (!values.length) return null;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function getMatchSummaryMatchParticipantPlayers(match) {
+    let players = getMatchSummaryRatedPlayers(match);
+    if (!players.length) players = getMatchSummaryKampbidragPlayers(match);
+    return players;
+}
+
+function getMatchSummaryMatchSesongSnitt(match) {
+    const players = getMatchSummaryMatchParticipantPlayers(match);
+    if (!players.length) return null;
+    const statsByName = typeof getMatchGamePlanPitchXiStatsByName === 'function'
+        ? getMatchGamePlanPitchXiStatsByName(match)
+        : new Map();
+    const values = players
+        .map((player) => Number(statsByName.get(player.navn)?.totalScore) || 0)
+        .filter((value) => value > 0);
+    if (!values.length) return null;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function getMatchSummaryMatchFormSnitt(match) {
+    const players = getMatchSummaryMatchParticipantPlayers(match);
+    if (!players.length) return null;
+    const values = players
+        .map((player) => Number(getMatchGamePlanPlayerForm(player)) || 0)
+        .filter((value) => value > 0);
+    if (!values.length) return null;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function getMatchSummaryKamptroppPlayersForZone(match, zoneId) {
+    const tropp = getMatchSummaryKamptroppPlayers(match);
+    if (!zoneId || zoneId === 'lag') return tropp;
+    const slots = typeof getMatchGamePlanSamspillZonePositions === 'function'
+        ? (getMatchGamePlanSamspillZonePositions(match)[zoneId] || [])
+        : [];
+    if (!slots.length) return tropp;
+    return tropp.filter((player) => (
+        slots.some((posId) => playerFitsSamspillSlot(player, posId, match))
+    ));
+}
+
+function getMatchSummaryKamptroppZoneSeasonSnittBors(match, zoneId) {
+    const players = getMatchSummaryKamptroppPlayersForZone(match, zoneId);
+    if (!players.length) return null;
+    const statsByName = typeof getMatchGamePlanPitchXiStatsByName === 'function'
+        ? getMatchGamePlanPitchXiStatsByName(match)
+        : new Map();
+    const values = players
+        .map((player) => Number(statsByName.get(player.navn)?.snittBors) || 0)
+        .filter((value) => value > 0);
+    if (!values.length) return null;
+    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+}
+
+function getMatchSummaryVsSeasonTone(matchValue, seasonValue, nearThreshold = 0.3, options = {}) {
+    const allowZero = options.allowZero === true;
+    if (!(Number(seasonValue) > 0)) return 'muted';
+    if (matchValue == null || !Number.isFinite(Number(matchValue))) return 'muted';
+    if (!allowZero && !(Number(matchValue) > 0)) return 'muted';
+    const delta = Number(matchValue) - Number(seasonValue);
+    if (delta > 0) return 'green';
+    if (delta <= -Math.abs(Number(nearThreshold) || 0.3)) return 'red';
+    return 'amber';
+}
+
+function getMatchSummaryMatchXpTotal(match) {
+    if (!match) return null;
+    let total = 0;
+    let hasData = false;
+    [match.scorers, match.assists].forEach((map) => {
+        if (!map || typeof map !== 'object') return;
+        Object.values(map).forEach((value) => {
+            const amount = Math.max(0, Number(value) || 0);
+            if (amount > 0) hasData = true;
+            total += amount;
+        });
+    });
+    // Show 0 when scorers/assists maps exist but are empty / zeroed.
+    if (!hasData && !(match.scorers || match.assists)) return null;
+    return total;
+}
+
+function getMatchSummarySeasonExpectedXp(match) {
+    const players = getMatchSummaryKamptroppPlayers(match);
+    if (!players.length) return null;
+
+    const statsByName = typeof getMatchGamePlanPitchXiStatsByName === 'function'
+        ? getMatchGamePlanPitchXiStatsByName(match)
+        : new Map();
+    const rates = players
+        .map((player) => {
+            const row = statsByName.get(player?.navn) || null;
+            const expected = Number(row?.expectedMalpoeng);
+            if (Number.isFinite(expected) && expected > 0) return expected;
+            const kamper = Number(row?.kamper) || 0;
+            if (kamper <= 0) return null;
+            const mal = Number(row?.mal) || 0;
+            const assist = Number(row?.assist) || 0;
+            const rate = (mal + assist) / kamper;
+            return rate > 0 ? rate : null;
+        })
+        .filter((value) => value != null);
+
+    if (!rates.length) return null;
+    return Math.round(rates.reduce((sum, value) => sum + value, 0) * 10) / 10;
+}
+
+function getMatchSummarySnittBorsTone(matchSnitt, seasonSnitt, nearThreshold = 0.3) {
+    return getMatchSummaryVsSeasonTone(matchSnitt, seasonSnitt, nearThreshold);
+}
+
+function getMatchSummaryPlayerMatchPoints(match, player) {
+    if (!match || !player || typeof window.calculatePlayerMatchPoints !== 'function') return null;
+    const details = window.calculatePlayerMatchPoints(match, player, true);
+    const total = Number(details?.total);
+    if (!Number.isFinite(total)) return null;
+    // Include anyone who earned points this match (pitch or benk-oppmøte).
+    if (total <= 0 && details?.onPitch === false) return null;
+    if (total < 0) return null;
+    return total;
+}
+
+function getMatchSummaryKampbidragPlayers(match) {
+    if (!match) return [];
+    const players = [];
+    const seen = new Set();
+    const attending = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match)
+        : [];
+    attending.forEach((player) => {
+        if (!player) return;
+        const points = getMatchSummaryPlayerMatchPoints(match, player);
+        if (points == null) return;
+        const key = player.id || player.navn || '';
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        players.push(player);
+    });
+    return players;
+}
+
+function getMatchSummaryAllKampbidragSnitt(match) {
+    const players = getMatchSummaryKampbidragPlayers(match);
+    if (!players.length) return null;
+    const points = players
+        .map((player) => getMatchSummaryPlayerMatchPoints(match, player))
+        .filter((value) => value != null);
+    if (!points.length) return null;
+    return Math.round(points.reduce((sum, value) => sum + value, 0) / points.length);
+}
+
+function getMatchSummaryXiMatchMetrics(match, players, lineup = null) {
+    const list = Array.isArray(players) ? players : [];
+    const empty = {
+        snittBors: null,
+        poeng: null,
+        xp: null,
+        minutes: null,
+        zoneRatings: { lag: null, angrep: null, midtbane: null, forsvar: null }
+    };
+    if (!match || !list.length) return empty;
+
+    const ratings = [];
+    const points = [];
+    const minutes = [];
+    let xp = 0;
+    const zoneRatings = {
+        lag: [],
+        angrep: [],
+        midtbane: [],
+        forsvar: []
+    };
+    const zones = typeof getMatchGamePlanSamspillZonePositions === 'function'
+        ? getMatchGamePlanSamspillZonePositions(match)
+        : {};
+
+    const avg = (values) => {
+        if (!values.length) return null;
+        return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+    };
+
+    list.forEach((player) => {
+        const rating = getMatchSummaryPlayerMatchRating(match, player);
+        if (rating != null) {
+            ratings.push(rating);
+            zoneRatings.lag.push(rating);
+        }
+
+        if (typeof window.calculatePlayerMatchPoints === 'function') {
+            const details = window.calculatePlayerMatchPoints(match, player, true);
+            const total = Number(details?.total);
+            if (Number.isFinite(total) && details?.onPitch !== false) points.push(total);
+        }
+
+        if (typeof window.getPlayerRefMapValue === 'function') {
+            const goals = Number(window.getPlayerRefMapValue(match.scorers, player, 0)) || 0;
+            const assists = Number(window.getPlayerRefMapValue(match.assists, player, 0)) || 0;
+            xp += goals + assists;
+
+            if (typeof window.matchHasMinutesTracking === 'function'
+                && window.matchHasMinutesTracking(match)) {
+                const minutesRaw = window.getPlayerRefMapValue(match.minutesPlayed, player, null);
+                if (minutesRaw !== null && minutesRaw !== undefined && minutesRaw !== '') {
+                    minutes.push(Math.max(0, Math.floor(Number(minutesRaw) || 0)));
+                }
+            }
+        }
+    });
+
+    Object.entries(lineup || {}).forEach(([posId, player]) => {
+        if (!player || !posId) return;
+        const rating = getMatchSummaryPlayerMatchRating(match, player);
+        if (rating == null) return;
+        ['angrep', 'midtbane', 'forsvar'].forEach((zoneId) => {
+            if ((zones[zoneId] || []).includes(posId)) zoneRatings[zoneId].push(rating);
+        });
+    });
+
+    return {
+        snittBors: avg(ratings),
+        poeng: points.length
+            ? Math.round(points.reduce((sum, value) => sum + value, 0) / points.length)
+            : null,
+        xp: xp > 0 ? xp : (ratings.length || points.length ? 0 : null),
+        minutes: minutes.length
+            ? Math.round(minutes.reduce((sum, value) => sum + value, 0) / minutes.length)
+            : null,
+        zoneRatings: {
+            lag: avg(zoneRatings.lag),
+            angrep: avg(zoneRatings.angrep),
+            midtbane: avg(zoneRatings.midtbane),
+            forsvar: avg(zoneRatings.forsvar)
+        }
+    };
+}
+
+function getMatchSummaryAfterMatchRatingTone(score) {
+    if (score == null || !(Number(score) > 0)) return 'muted';
+    if (score >= 7) return 'green';
+    if (score >= 5.5) return 'amber';
+    return 'red';
+}
+
+function getMatchSummaryAfterMatchDeltaTone(delta) {
+    if (delta == null || !Number.isFinite(Number(delta))) return 'muted';
+    if (delta >= 0.3) return 'green';
+    if (delta <= -0.3) return 'red';
+    return 'amber';
+}
+
+function formatMatchSummaryAfterMatchDelta(delta) {
+    if (delta == null || !Number.isFinite(Number(delta))) return '-';
+    const value = Math.round(Number(delta) * 10) / 10;
+    if (Object.is(value, -0) || value === 0) return '0';
+    return value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1);
+}
+
+function buildMatchSummaryPitchChipsHtml(match, context = {}) {
+    if (!match) return '';
+
+    const lineup = typeof getMatchGamePlanLineup === 'function'
+        ? getMatchGamePlanLineup(match)
+        : (typeof getMatchGamePlanDraftLineup === 'function' ? getMatchGamePlanDraftLineup(match) : {});
+    const players = getMatchGamePlanPitchXiPlayersFromLineup(lineup);
+    const hasLineup = players.length > 0 || matchHasSavedGamePlanLineup(match);
+
+    const seasonTotals = typeof getMatchGamePlanPitchXiTotals === 'function'
+        ? getMatchGamePlanPitchXiTotals(match)
+        : { playerCount: 0, snittBors: null };
+    const metrics = getMatchSummaryXiMatchMetrics(match, players, lineup);
+    const contextAvg = Number(context.avgRating);
+    const snittBors = getMatchSummaryAllRatedSnittBors(match)
+        ?? (Number.isFinite(contextAvg) && contextAvg > 0 ? Math.round(contextAvg * 10) / 10 : null);
+    const troppSnittBors = getMatchSummaryKamptroppSeasonSnittBors(match)
+        ?? (Number(seasonTotals.snittBors) > 0 ? Number(seasonTotals.snittBors) : null);
+    const kampbidrag = getMatchSummaryAllKampbidragSnitt(match);
+    const troppKampbidrag = getMatchSummaryKamptroppSeasonKampbidrag(match)
+        ?? (Number(seasonTotals.kampbidrag) > 0 ? Number(seasonTotals.kampbidrag) : null);
+    const matchSesong = getMatchSummaryMatchSesongSnitt(match);
+    const troppSesong = getMatchSummaryKamptroppSesongSnitt(match)
+        ?? (Number(seasonTotals.sesong) > 0 ? Number(seasonTotals.sesong) : null);
+    const matchForm = getMatchSummaryMatchFormSnitt(match);
+    const troppForm = getMatchSummaryKamptroppFormSnitt(match)
+        ?? (Number(seasonTotals.form) > 0 ? Number(seasonTotals.form) : null);
+
+    const hasAnyMatchStat = [
+        matchSesong,
+        kampbidrag,
+        matchForm,
+        snittBors,
+        metrics.zoneRatings.lag,
+        metrics.zoneRatings.angrep,
+        metrics.zoneRatings.midtbane,
+        metrics.zoneRatings.forsvar
+    ].some((value) => value != null);
+
+    if (!hasLineup && !hasAnyMatchStat) return '';
+
+    const leftChips = [
+        {
+            key: 'sesong',
+            label: 'Sesong',
+            icon: 'fa-ranking-star',
+            value: matchSesong == null ? '-' : String(matchSesong),
+            tone: getMatchSummaryVsSeasonTone(matchSesong, troppSesong, 5),
+            title: troppSesong != null && matchSesong != null
+                ? `Sesong ${matchSesong} for spillere med børs/poeng mot kamptroppens sesongsnitt ${troppSesong}`
+                : 'Sesongsnitt for spillere med børs/poeng i kampen'
+        },
+        {
+            key: 'kampbidrag',
+            label: 'Kampbidrag',
+            icon: 'fa-chart-line',
+            value: kampbidrag == null ? '-' : String(kampbidrag),
+            tone: getMatchSummaryVsSeasonTone(kampbidrag, troppKampbidrag, 2),
+            title: troppKampbidrag != null && kampbidrag != null
+                ? `Kampens snittbidrag ${kampbidrag} mot kamptroppens sesongsnitt ${troppKampbidrag}`
+                : 'Snitt kampbidrag for alle med poeng i kampen'
+        },
+        {
+            key: 'form',
+            label: 'Form',
+            icon: 'fa-heart-pulse',
+            value: matchForm == null ? '-' : String(matchForm),
+            tone: getMatchSummaryVsSeasonTone(matchForm, troppForm, 8),
+            title: troppForm != null && matchForm != null
+                ? `Form ${matchForm} for spillere med børs/poeng mot kamptroppens formsnitt ${troppForm}`
+                : 'Formsnitt for spillere med børs/poeng i kampen'
+        },
+        {
+            key: 'snittbors',
+            label: 'Snittbørs',
+            icon: 'fa-star',
+            value: snittBors == null ? '-' : Number(snittBors).toFixed(1),
+            tone: getMatchSummarySnittBorsTone(snittBors, troppSnittBors),
+            title: troppSnittBors != null && snittBors != null
+                ? `Kampens snittbørs ${Number(snittBors).toFixed(1)} mot kamptroppens sesongsnitt ${Number(troppSnittBors).toFixed(1)}`
+                : 'Snittbørs for alle som har fått børs i kampen'
+        }
+    ];
+
+    const rightChips = [
+        { id: 'lag', label: 'Lag', shortLabel: null, icon: 'fa-link' },
+        { id: 'angrep', label: 'Angrep', shortLabel: 'A', icon: null },
+        { id: 'midtbane', label: 'Midtbane', shortLabel: 'M', icon: null },
+        { id: 'forsvar', label: 'Forsvar', shortLabel: 'F', icon: null }
+    ].map(({ id, label, shortLabel, icon }) => {
+        const score = metrics.zoneRatings[id];
+        const troppSnitt = getMatchSummaryKamptroppZoneSeasonSnittBors(match, id)
+            ?? troppSnittBors;
+        return {
+            key: id,
+            label,
+            shortLabel,
+            icon,
+            value: score == null ? '-' : Number(score).toFixed(1),
+            tone: getMatchSummaryVsSeasonTone(score, troppSnitt, 0.3),
+            title: troppSnitt != null && score != null
+                ? `${label}: kampbørs ${Number(score).toFixed(1)} mot kamptroppens sesongsnitt ${Number(troppSnitt).toFixed(1)}`
+                : `${label}: snittbørs i denne kampen`
+        };
+    });
+
+    const renderChip = (chip) => {
+        const toneClass = chip.tone && chip.tone !== 'muted' ? ` is-${chip.tone}` : '';
+        const leadHtml = chip.icon
+            ? `<i class="fa-solid ${escapeMatchHtml(chip.icon)}" aria-hidden="true"></i>`
+            : `<span class="match-game-plan-pitch-samspill-zones-label">${escapeMatchHtml(chip.shortLabel || chip.label)}</span>`;
+        return `
+            <span
+                class="match-game-plan-pitch-xi-totals-row${toneClass}"
+                title="${escapeMatchHtml(chip.title || chip.label)}"
+                aria-label="${escapeMatchHtml(chip.label)}"
+            >
+                ${leadHtml}
+                <span>${escapeMatchHtml(chip.value)}</span>
+            </span>
+        `;
+    };
+
+    return `
+        <div class="stats-kamp-summary-pitch-chips" aria-label="Etterkamp-chipper">
+            <div class="stats-kamp-summary-pitch-chips-col" aria-label="Kampytelse">
+                ${leftChips.map(renderChip).join('')}
+            </div>
+            <div class="stats-kamp-summary-pitch-chips-col is-right" aria-label="Børs per linje">
+                ${rightChips.map(renderChip).join('')}
+            </div>
+        </div>
+    `;
+}
+window.buildMatchSummaryPitchChipsHtml = buildMatchSummaryPitchChipsHtml;
 
 function buildMatchBenchPlayerHtml(match, player) {
     const lastName = getMatchGamePlanPlayerLastName(player);

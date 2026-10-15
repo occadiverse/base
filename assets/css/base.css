@@ -10375,6 +10375,82 @@
             font-weight: 800;
             padding: 0.55rem 0.7rem;
         }
+        .stats-kamp-summary-pitch-chips {
+            display: flex;
+            gap: 0.45rem;
+            justify-content: space-between;
+            margin: 0 0 0.55rem;
+        }
+        .stats-kamp-summary-pitch-chips-col {
+            display: flex;
+            flex: 1 1 auto;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+        }
+        .stats-kamp-summary-pitch-chips-col.is-right {
+            justify-content: flex-end;
+        }
+        .stats-kamp-summary-block .stats-kamp-summary-pitch-chips + .stats-kamp-summary-line,
+        .stats-kamp-summary-block .stats-kamp-summary-pitch-chips + p {
+            margin-top: 0.15rem;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row,
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-samspill-zones-row {
+            align-items: center;
+            background: rgba(7, 24, 45, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.18);
+            color: #fff;
+            display: inline-flex;
+            font-size: 0.68rem;
+            font-weight: 900;
+            gap: 0.28rem;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            min-height: 1.35rem;
+            padding: 0.12rem 0.38rem 0.12rem 0.28rem;
+            white-space: nowrap;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-samspill-zones-label {
+            font-size: 0.92em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            opacity: 0.92;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row i {
+            color: #f5c542;
+            font-size: 0.78em;
+            width: 0.9em;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row.is-green {
+            background: rgba(74, 222, 128, 0.92);
+            border-color: rgba(220, 252, 231, 0.98);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.28);
+            color: #14532d;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row.is-green i {
+            color: #166534;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row.is-amber {
+            background: rgba(250, 204, 21, 0.92);
+            border-color: rgba(254, 249, 195, 0.98);
+            box-shadow: 0 4px 12px rgba(202, 138, 4, 0.28);
+            color: #422006;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row.is-amber i {
+            color: #854d0e;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row.is-red {
+            background: rgba(220, 38, 38, 0.94);
+            border-color: rgba(254, 202, 202, 0.95);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+            color: #ffffff;
+        }
+        .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row.is-red i {
+            color: #fecaca;
+        }
         .stats-kamp-summary-grid {
             display: grid;
             gap: 0.65rem;
@@ -10411,15 +10487,96 @@
         .stats-kamp-summary-match {
             grid-column: 1 / -1;
         }
-        .stats-kamp-summary-block p {
+        .stats-kamp-summary-block p,
+        .stats-kamp-summary-block .stats-kamp-summary-text {
             color: rgba(255, 255, 255, 0.82);
             font-size: 0.78rem;
             font-weight: 650;
             line-height: 1.4;
             margin: 0;
         }
-        .stats-kamp-summary-block p + p {
-            margin-top: 0.35rem;
+        .stats-kamp-summary-block p + p,
+        .stats-kamp-summary-block .stats-kamp-summary-line + .stats-kamp-summary-line,
+        .stats-kamp-summary-block .stats-kamp-summary-text + .stats-kamp-summary-line,
+        .stats-kamp-summary-block .stats-kamp-summary-line + .stats-kamp-summary-text,
+        .stats-kamp-summary-block .stats-kamp-summary-text + .stats-kamp-summary-text {
+            margin-top: 0.45rem;
+        }
+        .stats-kamp-summary-line {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem 0.55rem;
+        }
+        .stats-kamp-summary-line-label {
+            color: rgba(255, 255, 255, 0.55);
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            line-height: 1.2;
+            min-width: 3.4rem;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-line-label.is-icon {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            font-size: 1.05rem;
+            justify-content: center;
+            min-width: 1.55rem;
+            text-transform: none;
+        }
+        .stats-kamp-summary-players {
+            align-items: flex-start;
+            display: flex;
+            flex: 1 1 auto;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .stats-kamp-summary-player {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.7rem;
+            display: inline-flex;
+            gap: 0.45rem;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.15rem 0.45rem 0.15rem 0.15rem;
+        }
+        .stats-kamp-summary-player .roster-player-avatar {
+            flex: 0 0 auto;
+        }
+        .stats-kamp-summary-player-name {
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 900;
+            line-height: 1.15;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .stats-kamp-summary-player-value,
+        .stats-kamp-summary-player-extra {
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.72rem;
+            font-weight: 950;
+        }
+        .stats-kamp-summary-bors-bit {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .stats-kamp-summary-bors-value {
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 950;
+            line-height: 1;
         }
         .stats-kamp-summary-note-label {
             color: rgba(255, 255, 255, 0.55);
