@@ -10376,20 +10376,21 @@
             padding: 0.55rem 0.7rem;
         }
         .stats-kamp-summary-pitch-chips {
+            align-items: center;
             display: flex;
-            gap: 0.55rem;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.28rem;
             margin: 0 0 0.35rem;
             width: 100%;
         }
-        .stats-kamp-summary-pitch-chips-col {
-            display: flex;
-            flex: 1 1 auto;
-            flex-wrap: wrap;
-            gap: 0.28rem;
-        }
-        .stats-kamp-summary-pitch-chips-col.is-right {
-            justify-content: flex-end;
+        .stats-kamp-summary-pitch-chips-sep {
+            color: rgba(255, 255, 255, 0.42);
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1;
+            margin: 0 0.2rem;
+            user-select: none;
         }
         .stats-kamp-summary-pitch-chips .match-game-plan-pitch-xi-totals-row,
         .stats-kamp-summary-pitch-chips .match-game-plan-pitch-samspill-zones-row {

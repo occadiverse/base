@@ -3229,12 +3229,9 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
 
     return `
         <div class="stats-kamp-summary-pitch-chips" aria-label="Etterkamp-chipper">
-            <div class="stats-kamp-summary-pitch-chips-col" aria-label="Kampytelse">
-                ${leftChips.map(renderChip).join('')}
-            </div>
-            <div class="stats-kamp-summary-pitch-chips-col is-right" aria-label="Børs per linje">
-                ${rightChips.map(renderChip).join('')}
-            </div>
+            ${leftChips.map(renderChip).join('')}
+            <span class="stats-kamp-summary-pitch-chips-sep" aria-hidden="true">–</span>
+            ${rightChips.map(renderChip).join('')}
         </div>
     `;
 }
