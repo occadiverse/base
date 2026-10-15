@@ -1787,20 +1787,6 @@ function getMatchGamePlanDraftLineupPlayerCount(match) {
 }
 window.getMatchGamePlanDraftLineupPlayerCount = getMatchGamePlanDraftLineupPlayerCount;
 
-function syncMatchGamePlanSamspillHint(match) {
-    const hint = document.querySelector('[data-samspill-hint]');
-    if (!hint || !match) return;
-
-    const overlayState = getMatchGamePlanLineupOverlayState(match);
-    const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
-    const shouldShow = !overlayState.samspill && playerCount >= 2;
-
-    hint.hidden = !shouldShow;
-    if (shouldShow) {
-        hint.textContent = 'Velg Samspill for å se relasjoner på banen';
-    }
-}
-
 function setMatchDetailFeedback(selector, message, variant = '', autoClearMs = 0) {
     const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
     if (!el) return;
@@ -4650,7 +4636,6 @@ window.closeSamspillInfoModal = function() {
 function buildMatchGamePlanStarterFooterHtml(match) {
     return `
         <div class="match-game-plan-lineup-footer">
-            <p class="match-game-plan-samspill-hint" data-samspill-hint hidden></p>
             <p class="match-inline-status match-game-plan-lineup-save-state" data-lineup-save-state aria-live="polite" hidden></p>
         </div>
     `;
@@ -5353,7 +5338,6 @@ function syncMatchGamePlanLineupOverlayUi(match) {
     syncMatchGamePlanLineupViewSegmentUi(match);
     renderMatchGamePlanSamspillSummary(match);
     syncMatchGamePlanLineupSaveState(match);
-    syncMatchGamePlanSamspillHint(match);
     syncMatchGamePlanSamspillZonePickerUi(match);
 }
 

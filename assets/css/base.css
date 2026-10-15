@@ -1857,7 +1857,8 @@
             min-height: 0;
             width: 100%;
         }
-        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area {
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area,
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-empty-slot {
             container-name: lineup-card-photo;
             container-type: size;
             position: relative;
@@ -1867,6 +1868,13 @@
             border-radius: var(--lineup-card-radius) var(--lineup-card-radius) clamp(0.1rem, 0.65cqi, 0.16rem) clamp(0.1rem, 0.65cqi, 0.16rem);
             height: 100%;
             position: relative;
+            width: 100%;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo img {
+            height: 100%;
+            inset: 0;
+            object-fit: cover;
+            position: absolute;
             width: 100%;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
@@ -1916,17 +1924,22 @@
             overflow: hidden;
             padding: clamp(0.08rem, 0.55cqi, 0.12rem) clamp(0.06rem, 0.45cqi, 0.08rem) clamp(0.07rem, 0.42cqi, 0.11rem);
         }
+        /* Badge size relative to the card photo box (same container for photo and empty/gray).
+           Use cqw on width/height directly — cq units inside custom properties re-resolve against
+           the nearest container at use-time and previously made photo badges smaller than gray ones. */
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
-            --badge-size: clamp(1.25rem, 7.5cqi, 1.85rem);
+            --badge-size: clamp(1.25rem, 38.5cqw, 1.85rem);
+            height: clamp(1.25rem, 38.5cqw, 1.85rem);
+            width: clamp(1.25rem, 38.5cqw, 1.85rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
-            font-size: clamp(0.52rem, 2.7cqi, 0.74rem);
+            font-size: clamp(0.52rem, 15.4cqw, 0.74rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-injury {
-            font-size: clamp(0.3rem, 1.6cqi, 0.42rem);
+            font-size: clamp(0.3rem, 8.7cqw, 0.42rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge.is-injury-only .match-game-plan-lineup-pos-badge-injury {
-            font-size: clamp(0.44rem, 2.4cqi, 0.62rem);
+            font-size: clamp(0.44rem, 12.9cqw, 0.62rem);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-visual > span:not(.match-game-plan-lineup-photo):not(.match-game-plan-lineup-empty-slot):not(.match-game-plan-lineup-photo-area) {
             font-size: 0.38rem;
@@ -2697,16 +2710,6 @@
             flex-direction: column;
             gap: 0.35rem;
         }
-        .match-game-plan-samspill-hint {
-            color: rgba(18, 63, 115, 0.72);
-            font-size: 0.64rem;
-            font-weight: 800;
-            line-height: 1.35;
-            margin: 0;
-            padding: 0 0.35rem;
-            text-align: center;
-        }
-        .match-game-plan-samspill-hint[hidden],
         .match-inline-status[hidden] {
             display: none;
         }
@@ -16388,6 +16391,8 @@
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge {
                 --badge-size: 1.45rem;
+                height: 1.45rem;
+                width: 1.45rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-lineup-pos-badge-label {
                 font-size: 0.56rem;
