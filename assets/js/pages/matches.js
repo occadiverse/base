@@ -2602,17 +2602,28 @@ function getMatchGamePlanPitchSamspillZoneTone(score, troppMedian) {
     return getMatchGamePlanPitchXiSamspillTone(score);
 }
 
-function getMatchGamePlanPitchSamspillZoneScoresForLineup(lineup, match, formationId) {
+function getMatchGamePlanPitchSamspillZoneScoresForLineup(lineup, match, formationId, options = {}) {
     if (!lineup || typeof window.collectSamspillLineupPairs !== 'function') return {};
     const formation = formationId || getMatchGamePlanFormation(match);
-    const pairs = window.collectSamspillLineupPairs(lineup, {
+    const filter = {
         ...getMatchGamePlanSamspillFilter(match),
-        formationId: formation
-    });
+        formationId: formation,
+        ...options
+    };
+    if (Object.prototype.hasOwnProperty.call(options, 'excludeMatchId')) {
+        filter.excludeMatchId = options.excludeMatchId;
+    }
+    const pairs = window.collectSamspillLineupPairs(lineup, filter);
     const lineZones = getMatchGamePlanSamspillZonePositions(match);
     if (typeof window.buildSamspillLineTotals !== 'function') {
-        const lag = getMatchGamePlanPitchXiSamspillAverageForLineup(lineup, match, formation);
-        return lag == null ? {} : { lag };
+        const lagPairs = pairs || [];
+        const scores = lagPairs
+            .map((pair) => Number(pair?.score))
+            .filter((score) => Number.isFinite(score) && score > 0);
+        if (!scores.length) return {};
+        return {
+            lag: Math.round(scores.reduce((total, score) => total + score, 0) / scores.length)
+        };
     }
     const totals = window.buildSamspillLineTotals(
         pairs,
@@ -3090,18 +3101,22 @@ function getMatchSummaryAfterMatchRatingTone(score) {
     return 'red';
 }
 
-function getMatchSummaryAfterMatchDeltaTone(delta) {
-    if (delta == null || !Number.isFinite(Number(delta))) return 'muted';
-    if (delta >= 0.3) return 'green';
-    if (delta <= -0.3) return 'red';
-    return 'amber';
-}
-
-function formatMatchSummaryAfterMatchDelta(delta) {
-    if (delta == null || !Number.isFinite(Number(delta))) return '-';
-    const value = Math.round(Number(delta) * 10) / 10;
-    if (Object.is(value, -0) || value === 0) return '0';
-    return value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1);
+function getMatchSummaryLineupZoneSeasonSnittBors(match, lineup, zoneId) {
+    const slots = typeof getMatchGamePlanSamspillZonePositions === 'function'
+        ? (getMatchGamePlanSamspillZonePositions(match)[zoneId] || [])
+        : [];
+    if (!slots.length) return null;
+    const statsByName = typeof getMatchGamePlanPitchXiStatsByName === 'function'
+        ? getMatchGamePlanPitchXiStatsByName(match)
+        : new Map();
+    const values = [];
+    Object.entries(lineup || {}).forEach(([posId, player]) => {
+        if (!player || !slots.includes(posId)) return;
+        const season = Number(statsByName.get(player.navn)?.snittBors) || 0;
+        if (season > 0) values.push(season);
+    });
+    if (!values.length) return null;
+    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
 }
 
 function buildMatchSummaryPitchChipsHtml(match, context = {}) {
@@ -3116,7 +3131,6 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
     const seasonTotals = typeof getMatchGamePlanPitchXiTotals === 'function'
         ? getMatchGamePlanPitchXiTotals(match)
         : { playerCount: 0, snittBors: null };
-    const metrics = getMatchSummaryXiMatchMetrics(match, players, lineup);
     const contextAvg = Number(context.avgRating);
     const snittBors = getMatchSummaryAllRatedSnittBors(match)
         ?? (Number.isFinite(contextAvg) && contextAvg > 0 ? Math.round(contextAvg * 10) / 10 : null);
@@ -3131,16 +3145,30 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
     const matchForm = getMatchSummaryMatchFormSnitt(match);
     const troppForm = getMatchSummaryKamptroppFormSnitt(match)
         ?? (Number(seasonTotals.form) > 0 ? Number(seasonTotals.form) : null);
+    const formationId = getMatchGamePlanFormation(match);
+    // Before = same as lineup chips (current match excluded). After = include this match.
+    const samspillBefore = getMatchGamePlanPitchSamspillZoneScoresForLineup(
+        lineup,
+        match,
+        formationId,
+        { excludeMatchId: match?.id || null }
+    );
+    const samspillAfter = getMatchGamePlanPitchSamspillZoneScoresForLineup(
+        lineup,
+        match,
+        formationId,
+        { excludeMatchId: null }
+    );
 
     const hasAnyMatchStat = [
         matchSesong,
         kampbidrag,
         matchForm,
         snittBors,
-        metrics.zoneRatings.lag,
-        metrics.zoneRatings.angrep,
-        metrics.zoneRatings.midtbane,
-        metrics.zoneRatings.forsvar
+        samspillAfter.lag,
+        samspillAfter.angrep,
+        samspillAfter.midtbane,
+        samspillAfter.forsvar
     ].some((value) => value != null);
 
     if (!hasLineup && !hasAnyMatchStat) return '';
@@ -3153,7 +3181,7 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
             value: matchSesong == null ? '-' : String(matchSesong),
             tone: getMatchSummaryVsSeasonTone(matchSesong, troppSesong, 5),
             title: troppSesong != null && matchSesong != null
-                ? `Sesong ${matchSesong} for spillere med børs/poeng mot kamptroppens sesongsnitt ${troppSesong}`
+                ? `Sesong ${matchSesong} mot kamptropp ${troppSesong}`
                 : 'Sesongsnitt for spillere med børs/poeng i kampen'
         },
         {
@@ -3163,7 +3191,7 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
             value: kampbidrag == null ? '-' : String(kampbidrag),
             tone: getMatchSummaryVsSeasonTone(kampbidrag, troppKampbidrag, 2),
             title: troppKampbidrag != null && kampbidrag != null
-                ? `Kampens snittbidrag ${kampbidrag} mot kamptroppens sesongsnitt ${troppKampbidrag}`
+                ? `Kampbidrag ${kampbidrag} mot kamptropp ${troppKampbidrag}`
                 : 'Snitt kampbidrag for alle med poeng i kampen'
         },
         {
@@ -3173,7 +3201,7 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
             value: matchForm == null ? '-' : String(matchForm),
             tone: getMatchSummaryVsSeasonTone(matchForm, troppForm, 8),
             title: troppForm != null && matchForm != null
-                ? `Form ${matchForm} for spillere med børs/poeng mot kamptroppens formsnitt ${troppForm}`
+                ? `Form ${matchForm} mot kamptropp ${troppForm}`
                 : 'Formsnitt for spillere med børs/poeng i kampen'
         },
         {
@@ -3183,7 +3211,7 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
             value: snittBors == null ? '-' : Number(snittBors).toFixed(1),
             tone: getMatchSummarySnittBorsTone(snittBors, troppSnittBors),
             title: troppSnittBors != null && snittBors != null
-                ? `Kampens snittbørs ${Number(snittBors).toFixed(1)} mot kamptroppens sesongsnitt ${Number(troppSnittBors).toFixed(1)}`
+                ? `Kampbørs ${Number(snittBors).toFixed(1)} mot kamptropp ${Number(troppSnittBors).toFixed(1)}`
                 : 'Snittbørs for alle som har fått børs i kampen'
         }
     ];
@@ -3194,19 +3222,18 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
         { id: 'midtbane', label: 'Midtbane', shortLabel: 'M', icon: null },
         { id: 'forsvar', label: 'Forsvar', shortLabel: 'F', icon: null }
     ].map(({ id, label, shortLabel, icon }) => {
-        const score = metrics.zoneRatings[id];
-        const troppSnitt = getMatchSummaryKamptroppZoneSeasonSnittBors(match, id)
-            ?? troppSnittBors;
+        const afterScore = samspillAfter[id];
+        const beforeScore = samspillBefore[id];
         return {
             key: id,
             label,
             shortLabel,
             icon,
-            value: score == null ? '-' : Number(score).toFixed(1),
-            tone: getMatchSummaryVsSeasonTone(score, troppSnitt, 0.3),
-            title: troppSnitt != null && score != null
-                ? `${label}: kampbørs ${Number(score).toFixed(1)} mot kamptroppens sesongsnitt ${Number(troppSnitt).toFixed(1)}`
-                : `${label}: snittbørs i denne kampen`
+            value: afterScore == null ? '-' : String(afterScore),
+            tone: getMatchSummaryVsSeasonTone(afterScore, beforeScore, 5),
+            title: afterScore != null && beforeScore != null
+                ? `${label}-samspill etter kamp ${afterScore} (før kamp ${beforeScore})`
+                : `${label}: samspillsnitt for 11eren etter kampen`
         };
     });
 
