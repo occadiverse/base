@@ -1742,6 +1742,43 @@
             top: clamp(0.28rem, 1.8cqi, 0.55rem);
             z-index: 5;
         }
+        .match-detail-lineup-pitch-wrap .match-game-plan-line-suggest-pitch-actions {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.14rem, 0.9cqi, 0.28rem);
+            margin-top: clamp(0.08rem, 0.55cqi, 0.16rem);
+            pointer-events: auto;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-line-suggest-pitch-btn {
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.18);
+            color: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            font-size: clamp(0.52rem, 2.6cqi, 0.68rem);
+            font-weight: 900;
+            gap: 0.28rem;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            min-height: clamp(1.05rem, 5.2cqi, 1.35rem);
+            padding: 0.12rem 0.42rem 0.12rem 0.32rem;
+            white-space: nowrap;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-line-suggest-pitch-btn.is-apply {
+            background: rgba(22, 101, 52, 0.88);
+            border-color: rgba(187, 247, 208, 0.35);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-line-suggest-pitch-btn.is-cancel {
+            background: rgba(7, 24, 45, 0.72);
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-line-suggest-pitch-btn i {
+            font-size: 0.78em;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-line-suggest-pitch-btn:hover {
+            filter: brightness(1.06);
+        }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row {
             align-items: center;
@@ -1896,12 +1933,26 @@
             border: 1px solid rgba(18, 63, 115, 0.12);
             border-radius: 0.7rem;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            box-sizing: border-box;
             display: flex;
             flex-wrap: wrap;
             gap: 0.55rem 0.75rem;
             justify-content: space-between;
-            margin: 0 0 0.35rem;
+            margin: 0 auto 0.35rem;
             padding: 0.55rem 0.65rem;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .match-detail-lineup-builder .match-game-plan-line-suggest-bar {
+                max-width: min(100%, 27rem, calc((100dvh - 10rem) * 2 / 3));
+                width: min(100%, 27rem, calc((100dvh - 10rem) * 2 / 3));
+            }
+        }
+        @media (min-width: 1280px) {
+            .match-detail-lineup-builder .match-game-plan-line-suggest-bar {
+                max-width: min(100%, 30rem, calc((100dvh - 8rem) * 2 / 3));
+                width: min(100%, 30rem, calc((100dvh - 8rem) * 2 / 3));
+            }
         }
         .match-game-plan-line-suggest-main {
             display: flex;
@@ -1946,11 +1997,6 @@
             font-weight: 900;
             letter-spacing: 0.02em;
             line-height: 1;
-        }
-        .match-game-plan-line-suggest-actions {
-            display: inline-flex;
-            flex: 0 0 auto;
-            gap: 0.35rem;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
             --lineup-card-radius: clamp(0.48rem, 2.8cqi, 0.64rem);

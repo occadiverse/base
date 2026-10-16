@@ -4328,8 +4328,8 @@ function clearMatchGamePlanLineSuggestPreview() {
     });
     const builder = document.querySelector('.match-detail-lineup-builder');
     if (builder) builder.classList.remove('is-line-suggest');
-    const bar = document.querySelector('[data-line-suggest-bar]');
-    if (bar) bar.remove();
+    document.querySelector('[data-line-suggest-bar]')?.remove();
+    document.querySelector('[data-line-suggest-pitch-actions]')?.remove();
 }
 
 function buildMatchGamePlanLineSuggestPlayerChipHtml(swap, formationId) {
@@ -4360,6 +4360,33 @@ function buildMatchGamePlanLineSuggestOverlayHtml(swap, formationId) {
     `;
 }
 
+function buildMatchGamePlanLineSuggestPitchActionsHtml() {
+    return `
+        <div class="match-game-plan-line-suggest-pitch-actions" data-line-suggest-pitch-actions>
+            <button
+                type="button"
+                class="match-game-plan-line-suggest-pitch-btn is-apply"
+                data-line-suggest-apply
+                title="Bruk forslag"
+                aria-label="Bruk forslag"
+            >
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span>Bruk</span>
+            </button>
+            <button
+                type="button"
+                class="match-game-plan-line-suggest-pitch-btn is-cancel"
+                data-line-suggest-cancel
+                title="Avbryt forslag"
+                aria-label="Avbryt forslag"
+            >
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                <span>Avbryt</span>
+            </button>
+        </div>
+    `;
+}
+
 function buildMatchGamePlanLineSuggestBarHtml(suggestion) {
     const scoreLabel = suggestion.currentScore == null && suggestion.score == null
         ? ''
@@ -4379,30 +4406,18 @@ function buildMatchGamePlanLineSuggestBarHtml(suggestion) {
                     ${playersHtml}
                 </div>
             </div>
-            <div class="match-game-plan-line-suggest-actions">
-                <button
-                    type="button"
-                    class="bsk-btn bsk-btn-primary is-collapsible match-game-plan-line-suggest-apply"
-                    data-line-suggest-apply
-                    title="Bruk forslag"
-                    aria-label="Bruk forslag"
-                >
-                    <i class="fa-solid fa-check" aria-hidden="true"></i>
-                    <span class="bsk-btn-label">Bruk</span>
-                </button>
-                <button
-                    type="button"
-                    class="bsk-btn bsk-btn-ghost is-collapsible match-game-plan-line-suggest-cancel"
-                    data-line-suggest-cancel
-                    title="Avbryt forslag"
-                    aria-label="Avbryt forslag"
-                >
-                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                    <span class="bsk-btn-label">Avbryt</span>
-                </button>
-            </div>
         </div>
     `;
+}
+
+function bindMatchGamePlanLineSuggestActionButtons(root, matchId) {
+    if (!root) return;
+    root.querySelector('[data-line-suggest-apply]')?.addEventListener('click', () => {
+        window.applyMatchGamePlanLineSuggest(matchId);
+    });
+    root.querySelector('[data-line-suggest-cancel]')?.addEventListener('click', () => {
+        window.cancelMatchGamePlanLineSuggest(matchId);
+    });
 }
 
 function applyMatchGamePlanLineSuggestPreview(match, suggestion) {
@@ -4457,20 +4472,25 @@ function applyMatchGamePlanLineSuggestPreview(match, suggestion) {
         }
     });
 
+    const zonesHost = document.querySelector(
+        '.match-detail-lineup-pitch-wrap [data-pitch-samspill-zones]'
+    );
+    if (zonesHost) {
+        const actionsWrap = document.createElement('div');
+        actionsWrap.innerHTML = buildMatchGamePlanLineSuggestPitchActionsHtml().trim();
+        const actions = actionsWrap.firstElementChild;
+        if (actions) {
+            zonesHost.appendChild(actions);
+            bindMatchGamePlanLineSuggestActionButtons(actions, match.id);
+        }
+    }
+
     const footer = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-footer');
     if (footer) {
         const wrap = document.createElement('div');
         wrap.innerHTML = buildMatchGamePlanLineSuggestBarHtml(suggestion).trim();
         const bar = wrap.firstElementChild;
-        if (bar) {
-            footer.prepend(bar);
-            bar.querySelector('[data-line-suggest-apply]')?.addEventListener('click', () => {
-                window.applyMatchGamePlanLineSuggest(match.id);
-            });
-            bar.querySelector('[data-line-suggest-cancel]')?.addEventListener('click', () => {
-                window.cancelMatchGamePlanLineSuggest(match.id);
-            });
-        }
+        if (bar) footer.prepend(bar);
     }
 }
 
