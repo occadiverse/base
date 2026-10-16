@@ -4062,8 +4062,8 @@ function collectMatchGamePlanAttackSuggestCandidates(match, lineup, slots) {
 
 // Full kredit for posisjonsminutter rundt 8 × 75' (skiller starter fra korte innbytter).
 const MATCH_GAME_PLAN_ATTACK_MINUTES_FULL = 600;
-// Myk invertert-fot-bonus på kant (VK høyrebent / HK venstrebent).
-const MATCH_GAME_PLAN_ATTACK_FOOT_BONUS = 6;
+// Liten invertert-fot-bonus på kant (VK høyrebent / HK venstrebent) — ikke overstyr pos-kvalitet.
+const MATCH_GAME_PLAN_ATTACK_FOOT_BONUS = 3;
 
 function getMatchGamePlanAttackPreferredFoot(posId) {
     if (posId === 'VK') return 'Høyre';
@@ -4085,6 +4085,8 @@ function getMatchGamePlanAttackSlotPlayerScore(player, posId, match, seasonStat 
             matches: 0,
             minutes: 0,
             xp: 0,
+            snittBidrag: 0,
+            posForm: 0,
             snittBors: 0,
             form: 0,
             matchesScore: 0,
@@ -4100,45 +4102,64 @@ function getMatchGamePlanAttackSlotPlayerScore(player, posId, match, seasonStat 
 
     // SP/SV/SH deler SP-stats (SP2 normaliseres til SP).
     const statsPosId = isMatchGamePlanAttackStrikerSlot(posId) ? 'SP' : posId;
+    const isStriker = isMatchGamePlanAttackStrikerSlot(posId);
     const posStat = getMatchGamePlanLineStatsPosStat(player, statsPosId);
+    const seasonStatResolved = seasonStat || getMatchGamePlanPlayerSeasonStat(player);
     const matches = Number(posStat?.matches) || 0;
     const minutes = Math.max(0, Math.floor(Number(posStat?.minutes) || 0));
+    const snittBidrag = matches > 0 ? getMatchGamePlanSnittBidrag(posStat) : 0;
+    const bestKampbonus = Number(seasonStatResolved?.bestKampbonus) || 0;
+    const snittBidragScore = snittBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (snittBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((snittBidrag - 5) / 35) * 100)))
+        : 0;
     const xp = matches > 0 ? getMatchGamePlanXpValue(posStat) : 0;
     const snittBors = (Number(posStat?.ratingsCount) || 0) > 0
         ? (Number(posStat.ratingsSum) || 0) / Number(posStat.ratingsCount)
         : 0;
+    const posForm = posStat?.entries?.length
+        ? Number(computeMatchGamePlanPositionForm(posStat.entries)) || 0
+        : 0;
     const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
 
-    // Normaliser til 0–100:
-    // - kamper: 8+ = full kredit
-    // - minutter: 600'+ = full kredit
-    // - XP: 2.5 mål+assist/kamp = full kredit
-    // - børs: snitt 10 = 100
     const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
     const minutesScore = Math.max(0, Math.min(100, (minutes / MATCH_GAME_PLAN_ATTACK_MINUTES_FULL) * 100));
     const xpScore = Math.max(0, Math.min(100, xp * 40));
     const borsScore = snittBors > 0 ? Math.max(0, Math.min(100, snittBors * 10)) : 0;
-    const formScore = Math.max(0, Math.min(100, form));
+    // Myk √-sample: 1 kamp ≈ 0.58, 2 ≈ 0.82, 3+ = 1 — kvalitet veier, volum demper støy.
+    const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL)) : 0;
 
-    // Vekting: XP 25 %, minutter 20 %, kamper 15 %, snittbørs 20 %, form 20 %.
-    const baseScore = (
-        xpScore * 0.25
-        + minutesScore * 0.20
-        + matchesScore * 0.15
-        + borsScore * 0.20
-        + formScore * 0.20
-    );
+    // Kvalitet først (bidrag/pos-form). XP tyngre på spiss; kant uten mål skal ikke tape på 0 XP.
+    // Treffer: Kristian K > Adrian på HK (samme kampantall, bedre pos-stats).
+    const quality = isStriker
+        ? (
+            snittBidragScore * 0.30
+            + posForm * 0.25
+            + xpScore * 0.20
+            + borsScore * 0.15
+            + minutesScore * 0.10
+        )
+        : (
+            snittBidragScore * 0.35
+            + posForm * 0.30
+            + borsScore * 0.15
+            + minutesScore * 0.12
+            + matchesScore * 0.08
+        );
     const footMatch = getMatchGamePlanAttackFootMatch(player, posId);
     const footBonus = footMatch ? MATCH_GAME_PLAN_ATTACK_FOOT_BONUS : 0;
-    const score = Math.round((baseScore + footBonus) * 10) / 10;
+    const score = Math.round((sample * quality * 0.78 + form * 0.14 + footBonus) * 10) / 10;
 
     return {
         score,
         matches,
         minutes,
         xp: Math.round(xp * 100) / 100,
+        snittBidrag: Math.round(snittBidrag * 10) / 10,
+        posForm: Math.round(posForm * 10) / 10,
         snittBors: Math.round(snittBors * 10) / 10,
-        form: formScore,
+        form: Math.max(0, Math.min(100, form)),
         matchesScore: Math.round(matchesScore * 10) / 10,
         minutesScore: Math.round(minutesScore * 10) / 10,
         xpScore: Math.round(xpScore * 10) / 10,
@@ -4146,7 +4167,8 @@ function getMatchGamePlanAttackSlotPlayerScore(player, posId, match, seasonStat 
         footBonus,
         footMatch,
         hasPosMatches: matches > 0,
-        sampleOk: matches >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL
+        // Soft √-sample i score — ingen hard 3-kamp-tier (ellers taper Kristian K mot lav-bidrag volum).
+        sampleOk: matches > 0
     };
 }
 
@@ -4155,11 +4177,12 @@ function compareMatchGamePlanAttackSlotCandidates(left, right) {
     if (Boolean(left?.meta?.hasPosMatches) !== Boolean(right?.meta?.hasPosMatches)) {
         return left?.meta?.hasPosMatches ? -1 : 1;
     }
-    if (Boolean(left?.meta?.sampleOk) !== Boolean(right?.meta?.sampleOk)) {
-        return left?.meta?.sampleOk ? -1 : 1;
-    }
     const scoreDelta = (Number(right?.meta?.score) || 0) - (Number(left?.meta?.score) || 0);
     if (scoreDelta) return scoreDelta;
+    const bidragDelta = (Number(right?.meta?.snittBidrag) || 0) - (Number(left?.meta?.snittBidrag) || 0);
+    if (bidragDelta) return bidragDelta;
+    const posFormDelta = (Number(right?.meta?.posForm) || 0) - (Number(left?.meta?.posForm) || 0);
+    if (posFormDelta) return posFormDelta;
     if (Boolean(left?.meta?.footMatch) !== Boolean(right?.meta?.footMatch)) {
         return left?.meta?.footMatch ? -1 : 1;
     }
