@@ -3159,8 +3159,615 @@ function computeMatchGamePlanBestXiSuggestion(match) {
     return finalizeMatchGamePlanSuggestResult(match, 'lag', slots, lineup, bestSeed.assignment, opts);
 }
 
+// Posisjons-sesong krever litt volum før snittet stoles på (unngår 1-kamps «spiss»/midt).
+const MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL = 3;
+// Full kredit for posisjonsminutter rundt 8 × 75'.
+const MATCH_GAME_PLAN_LINE_STATS_MINUTES_FULL = 600;
+
+function isMatchGamePlanLineStatsSuggestZone(zoneId) {
+    // A har egen fyllorden/score (SP→SH→VK→HK). M/F deler denne pathen.
+    return zoneId === 'midtbane' || zoneId === 'forsvar';
+}
+
+function getMatchGamePlanLineStatsPosStat(player, posId) {
+    if (!player || !posId) return null;
+    const statsPosId = normalizeMatchGamePlanStatsPositionId(posId);
+    return getPlayerPositionStatForPos(player, statsPosId)
+        || (statsPosId !== posId ? getPlayerPositionStatForPos(player, posId) : null);
+}
+
+function playerFitsMatchGamePlanLineStatsSuggestSlot(player, posId, match) {
+    if (playerFitsSamspillSlot(player, posId, match)) return true;
+    // Utenfor pos1/pos2: krev nok kamper på sloten til at sesongsnittet er lesbart.
+    return (Number(getMatchGamePlanLineStatsPosStat(player, posId)?.matches) || 0)
+        >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL;
+}
+
+function isMatchGamePlanPlayerLockedOutsideSuggestSlots(lineup, slots, player) {
+    if (!player) return false;
+    const slotSet = new Set(slots || []);
+    return Object.entries(lineup || {}).some(([posId, lineupPlayer]) => (
+        matchGamePlanSamePlayer(lineupPlayer, player) && !slotSet.has(posId)
+    ));
+}
+
+function collectMatchGamePlanLineStatsSuggestCandidates(match, lineup, slots) {
+    const seen = new Set();
+    const candidates = [];
+    const pushPlayer = (player, { allowOutsideLine = false } = {}) => {
+        if (!player || !isMatchGamePlanPlayerAvailableForSamspill(player, match)) return;
+        const key = player.id || player.navn;
+        if (!key || seen.has(key)) return;
+        // Ikke trekk spillere som allerede er satt utenfor denne linjen (f.eks. SP → PM).
+        if (!allowOutsideLine && isMatchGamePlanPlayerLockedOutsideSuggestSlots(lineup, slots, player)) {
+            return;
+        }
+        if (!(slots || []).some((posId) => playerFitsMatchGamePlanLineStatsSuggestSlot(player, posId, match))) {
+            return;
+        }
+        seen.add(key);
+        candidates.push(player);
+    };
+
+    // Spillere allerede på linjen kan omrokkere; øvrige må være ledige.
+    (slots || []).forEach((posId) => pushPlayer(lineup?.[posId], { allowOutsideLine: true }));
+    getMatchDetailAttendingPlayers(match).forEach((player) => pushPlayer(player));
+    return candidates;
+}
+
+function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonStat = null, zoneId = '') {
+    if (!player || !posId) {
+        return {
+            tier: 1,
+            score: 0,
+            season: 0,
+            form: 0,
+            posForm: 0,
+            snittBidrag: 0,
+            matches: 0,
+            qualifies: false,
+            kampSharePct: 0
+        };
+    }
+
+    const posStat = getMatchGamePlanLineStatsPosStat(player, posId);
+    const seasonStatResolved = seasonStat || getMatchGamePlanPlayerSeasonStat(player);
+    const season = posStat?.matches > 0
+        ? Number(computeMatchGamePlanPositionSeason(posStat, seasonStatResolved)) || 0
+        : 0;
+    const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+    const matches = Number(posStat?.matches) || 0;
+    const snittBidrag = matches > 0 ? getMatchGamePlanSnittBidrag(posStat) : 0;
+    const bestKampbonus = Number(seasonStatResolved?.bestKampbonus) || 0;
+    const snittBidragScore = snittBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (snittBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((snittBidrag - 5) / 35) * 100)))
+        : 0;
+    const minutes = Math.max(0, Math.floor(Number(posStat?.minutes) || 0));
+    const snittBors = (Number(posStat?.ratingsCount) || 0) > 0
+        ? (Number(posStat.ratingsSum) || 0) / Number(posStat.ratingsCount)
+        : 0;
+    const borsScore = snittBors > 0 ? Math.max(0, Math.min(100, snittBors * 10)) : 0;
+    const posForm = posStat?.entries?.length
+        ? Number(computeMatchGamePlanPositionForm(posStat.entries)) || 0
+        : 0;
+    const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
+    const minutesScore = Math.max(
+        0,
+        Math.min(100, (minutes / MATCH_GAME_PLAN_LINE_STATS_MINUTES_FULL) * 100)
+    );
+    const kampSharePct = Number(seasonStatResolved?.kampSharePct) || 0;
+    const qualifies = typeof window.playerMeetsKampShareThreshold === 'function'
+        ? window.playerMeetsKampShareThreshold({ kampSharePct })
+        : kampSharePct >= 30;
+    // 1 kamp → 1/3 posisjonsvekt, 2 → 2/3, 3+ → full.
+    const sampleFactor = matches <= 0
+        ? 0
+        : Math.min(1, matches / MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL);
+    let sampleOk = matches >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL;
+    let relaxSampleTier = false;
+
+    let score;
+    if (zoneId === 'midtbane' && posId === 'PM') {
+        // PM: kvalitet først (bidrag/pos-form), myk √-sample, OM/DM-fyll + playmaker-bonus.
+        // Treffer ønsket rekkefølge: Gundersen > Skonnord > Sixten > Hjelle > Laheld > Pizzaro > Dyrhof.
+        score = getMatchGamePlanPlaymakerSlotScore(player, {
+            posStat,
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches,
+            minutes,
+            bestKampbonus
+        });
+        relaxSampleTier = true;
+        sampleOk = matches > 0;
+    } else if (zoneId === 'midtbane') {
+        // OM/DM: bidrag 25 %, pos-form 20 %, minutter 15 %, børs 15 %, kamper 10 %, total form 15 %.
+        score = Math.round((
+            snittBidragScore * sampleFactor * 0.25
+            + posForm * sampleFactor * 0.20
+            + minutesScore * sampleFactor * 0.15
+            + borsScore * sampleFactor * 0.15
+            + matchesScore * 0.10
+            + form * 0.15
+        ) * 10) / 10;
+    } else {
+        // F (og øvrige): 70 % posisjons-sesong + 30 % total form.
+        const effectiveSeason = season * sampleFactor;
+        score = Math.round((effectiveSeason * 0.7 + form * 0.3) * 10) / 10;
+    }
+
+    return {
+        tier: qualifies ? 0 : 1,
+        score,
+        season,
+        effectiveSeason: Math.round(season * sampleFactor * 10) / 10,
+        form,
+        posForm,
+        snittBidrag: Math.round(snittBidrag * 10) / 10,
+        snittBidragScore: Math.round(snittBidragScore * 10) / 10,
+        snittBors: Math.round(snittBors * 10) / 10,
+        matches,
+        minutes,
+        matchesScore: Math.round(matchesScore * 10) / 10,
+        minutesScore: Math.round(minutesScore * 10) / 10,
+        sampleOk,
+        relaxSampleTier,
+        qualifies,
+        kampSharePct
+    };
+}
+
+function getMatchGamePlanPlaymakerSlotScore(player, parts) {
+    const {
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0,
+        minutes = 0,
+        bestKampbonus = 0
+    } = parts || {};
+
+    // Myk sample: 1 kamp ≈ 0.58, 3+ = 1 (kvalitet kan vinne over rent volum).
+    const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
+    const minutesScore = Math.max(0, Math.min(100, (minutes / 450) * 100));
+    const matchesScore = Math.max(0, Math.min(100, (matches / 6) * 100));
+    const pmQuality = (
+        snittBidragScore * 0.40
+        + posForm * 0.35
+        + borsScore * 0.15
+        + minutesScore * 0.05
+        + matchesScore * 0.05
+    );
+
+    // Når PM-volum er tynt: fyll med OM/DM-erfaring (Hjelle), ikke motsatt for sterke PM-profiler.
+    let midMatches = 0;
+    let midMinutes = 0;
+    let midPoints = 0;
+    ['OM', 'DM', 'PM'].forEach((midPosId) => {
+        const row = getMatchGamePlanLineStatsPosStat(player, midPosId);
+        if (!(row?.matches > 0)) return;
+        midMatches += Number(row.matches) || 0;
+        midMinutes += Number(row.minutes) || 0;
+        midPoints += Number(row.points) || 0;
+    });
+    const midBidrag = midMatches > 0 ? midPoints / midMatches : 0;
+    const midBidragScore = midBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (midBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((midBidrag - 5) / 35) * 100)))
+        : 0;
+    const midMinutesScore = Math.max(0, Math.min(100, (midMinutes / 900) * 100));
+    const midFill = (1 - sample) * (
+        midBidragScore * 0.55 + midMinutesScore * 0.45
+    ) * 0.45;
+
+    const prefPM = player?.pos1 === 'Playmaker' || player?.pos2 === 'Playmaker';
+    const pref = prefPM ? 6 : 0;
+
+    return Math.round((sample * pmQuality * 0.70 + midFill + form * 0.18 + pref) * 10) / 10;
+}
+
+function compareMatchGamePlanLineStatsSlotCandidates(left, right) {
+    if (Boolean(left?.meta?.qualifies) !== Boolean(right?.meta?.qualifies)) {
+        return left?.meta?.qualifies ? -1 : 1;
+    }
+    // PM bruker myk sample i scoren — ikke hard 3-kampsterskel her.
+    const relaxSample = left?.meta?.relaxSampleTier || right?.meta?.relaxSampleTier;
+    if (!relaxSample && Boolean(left?.meta?.sampleOk) !== Boolean(right?.meta?.sampleOk)) {
+        return left?.meta?.sampleOk ? -1 : 1;
+    }
+    const scoreDelta = (Number(right?.meta?.score) || 0) - (Number(left?.meta?.score) || 0);
+    if (scoreDelta) return scoreDelta;
+    const minutesDelta = (Number(right?.meta?.minutes) || 0) - (Number(left?.meta?.minutes) || 0);
+    if (minutesDelta) return minutesDelta;
+    const matchDelta = (Number(right?.meta?.matches) || 0) - (Number(left?.meta?.matches) || 0);
+    if (matchDelta) return matchDelta;
+    return String(left?.player?.navn || '').localeCompare(
+        String(right?.player?.navn || ''),
+        'nb',
+        { sensitivity: 'base' }
+    );
+}
+
+function scoreMatchGamePlanLineStatsAssignment(assignment, slots, match, seasonStatByKey = null, zoneId = '') {
+    let filled = 0;
+    let qualified = 0;
+    let scoreSum = 0;
+
+    (slots || []).forEach((posId) => {
+        const player = assignment?.[posId];
+        if (!player) return;
+        filled += 1;
+        const key = player.id || player.navn || '';
+        const seasonStat = seasonStatByKey && key ? seasonStatByKey.get(key) : null;
+        const meta = getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonStat, zoneId);
+        if (meta.qualifies) qualified += 1;
+        scoreSum += Number(meta.score) || 0;
+    });
+
+    return { filled, qualified, scoreSum };
+}
+
+function isBetterMatchGamePlanLineStatsSuggestion(candidate, baseline) {
+    if (!candidate) return false;
+    if (!baseline) return true;
+    if (candidate.filled !== baseline.filled) return candidate.filled > baseline.filled;
+    if (candidate.qualified !== baseline.qualified) return candidate.qualified > baseline.qualified;
+    return candidate.scoreSum > baseline.scoreSum;
+}
+
+function computeMatchGamePlanBestLineStatsSuggestion(match, zoneId) {
+    if (!isMatchGamePlanLineStatsSuggestZone(zoneId)) return null;
+
+    const slots = getMatchGamePlanSuggestSlots(match, zoneId);
+    if (!slots.length) return null;
+
+    const lineup = cloneMatchGamePlanLineup(getMatchGamePlanDraftLineup(match));
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const opts = {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId
+    };
+    const candidates = collectMatchGamePlanLineStatsSuggestCandidates(match, lineup, slots);
+    if (!candidates.length) return null;
+
+    const seasonStatByKey = new Map();
+    const rememberSeasonStat = (player) => {
+        const key = player?.id || player?.navn || '';
+        if (!key || seasonStatByKey.has(key)) return;
+        seasonStatByKey.set(key, getMatchGamePlanPlayerSeasonStat(player));
+    };
+    candidates.forEach(rememberSeasonStat);
+    slots.forEach((posId) => rememberSeasonStat(lineup[posId]));
+
+    const assignment = Object.fromEntries(slots.map((posId) => [posId, null]));
+    let remaining = [...candidates];
+
+    slots.forEach((posId) => {
+        const ranked = remaining
+            .filter((player) => playerFitsMatchGamePlanLineStatsSuggestSlot(player, posId, match))
+            .map((player) => ({
+                player,
+                meta: getMatchGamePlanLineStatsSlotPlayerScore(
+                    player,
+                    posId,
+                    match,
+                    seasonStatByKey.get(player.id || player.navn || ''),
+                    zoneId
+                )
+            }))
+            .sort(compareMatchGamePlanLineStatsSlotCandidates);
+        const best = ranked[0];
+        if (!best?.player) return;
+        assignment[posId] = best.player;
+        remaining = remaining.filter((player) => !matchGamePlanSamePlayer(player, best.player));
+    });
+
+    const unchanged = slots.every((posId) => matchGamePlanSamePlayer(lineup[posId], assignment[posId]));
+    if (unchanged) return null;
+
+    const currentAssignment = Object.fromEntries(slots.map((posId) => [posId, lineup[posId] || null]));
+    const baseline = scoreMatchGamePlanLineStatsAssignment(
+        currentAssignment,
+        slots,
+        match,
+        seasonStatByKey,
+        zoneId
+    );
+    const candidate = scoreMatchGamePlanLineStatsAssignment(
+        assignment,
+        slots,
+        match,
+        seasonStatByKey,
+        zoneId
+    );
+    if (!isBetterMatchGamePlanLineStatsSuggestion(candidate, baseline)) return null;
+
+    const { swaps } = diffMatchGamePlanZoneAssignment(lineup, slots, assignment, formationId);
+    if (!swaps.length) return null;
+
+    const trial = buildMatchGamePlanLineupWithZoneAssignment(lineup, slots, assignment);
+    // Samspill på chip/bar er konsekvens, ikke optimaliseringsmål for A/M/F.
+    return {
+        zoneId,
+        slots: [...slots],
+        formationId,
+        currentScore: scoreMatchGamePlanLineupZoneSamspill(lineup, slots, opts),
+        currentFilled: baseline.filled,
+        score: scoreMatchGamePlanLineupZoneSamspill(trial, slots, opts),
+        filled: candidate.filled,
+        assignment,
+        swaps,
+        summary: summarizeMatchGamePlanSuggestSwaps(swaps, formationId)
+    };
+}
+
+function isMatchGamePlanAttackStrikerSlot(posId) {
+    return posId === 'SP' || posId === 'SP2';
+}
+
+function getMatchGamePlanAttackFillOrder(slots) {
+    // SP/SV først (samme stats-posisjon), deretter SH, VK, HK.
+    const preferred = ['SP', 'SP2', 'VK', 'HK'];
+    const present = new Set(slots || []);
+    const ordered = preferred.filter((posId) => present.has(posId));
+    (slots || []).forEach((posId) => {
+        if (!ordered.includes(posId)) ordered.push(posId);
+    });
+    return ordered;
+}
+
+function playerFitsMatchGamePlanAttackSuggestSlot(player, posId, match) {
+    if (!player || !posId) return false;
+    if (isMatchGamePlanAttackStrikerSlot(posId)) {
+        // Kun ekte spiss-profil eller kamper på SP/SV/SH (SP2 → SP i stats).
+        if (playerHasSamspillPreferredFit(player, 'SP') || playerHasSamspillPreferredFit(player, 'SP2')) {
+            return true;
+        }
+        return (Number(getMatchGamePlanLineStatsPosStat(player, 'SP')?.matches) || 0) > 0;
+    }
+    if (playerHasSamspillPreferredFit(player, posId)) return true;
+    return (Number(getMatchGamePlanLineStatsPosStat(player, posId)?.matches) || 0) > 0;
+}
+
+function collectMatchGamePlanAttackSuggestCandidates(match, lineup, slots) {
+    const seen = new Set();
+    const candidates = [];
+    const pushPlayer = (player, { allowOutsideLine = false } = {}) => {
+        if (!player || !isMatchGamePlanPlayerAvailableForSamspill(player, match)) return;
+        const key = player.id || player.navn;
+        if (!key || seen.has(key)) return;
+        // Ikke trekk spillere som allerede er satt utenfor A (f.eks. DM → SP).
+        if (!allowOutsideLine && isMatchGamePlanPlayerLockedOutsideSuggestSlots(lineup, slots, player)) {
+            return;
+        }
+        if (!(slots || []).some((posId) => playerFitsMatchGamePlanAttackSuggestSlot(player, posId, match))) {
+            return;
+        }
+        seen.add(key);
+        candidates.push(player);
+    };
+
+    (slots || []).forEach((posId) => pushPlayer(lineup?.[posId], { allowOutsideLine: true }));
+    getMatchDetailAttendingPlayers(match).forEach((player) => pushPlayer(player));
+    return candidates;
+}
+
+// Full kredit for posisjonsminutter rundt 8 × 75' (skiller starter fra korte innbytter).
+const MATCH_GAME_PLAN_ATTACK_MINUTES_FULL = 600;
+// Myk invertert-fot-bonus på kant (VK høyrebent / HK venstrebent).
+const MATCH_GAME_PLAN_ATTACK_FOOT_BONUS = 6;
+
+function getMatchGamePlanAttackPreferredFoot(posId) {
+    if (posId === 'VK') return 'Høyre';
+    if (posId === 'HK') return 'Venstre';
+    return null;
+}
+
+function getMatchGamePlanAttackFootMatch(player, posId) {
+    const preferred = getMatchGamePlanAttackPreferredFoot(posId);
+    if (!preferred || !player) return false;
+    const foot = String(player.fot || '').trim();
+    return foot === preferred || foot === 'Begge';
+}
+
+function getMatchGamePlanAttackSlotPlayerScore(player, posId, match, seasonStat = null) {
+    if (!player || !posId) {
+        return {
+            score: 0,
+            matches: 0,
+            minutes: 0,
+            xp: 0,
+            snittBors: 0,
+            form: 0,
+            matchesScore: 0,
+            minutesScore: 0,
+            xpScore: 0,
+            borsScore: 0,
+            footBonus: 0,
+            footMatch: false,
+            hasPosMatches: false,
+            sampleOk: false
+        };
+    }
+
+    // SP/SV/SH deler SP-stats (SP2 normaliseres til SP).
+    const statsPosId = isMatchGamePlanAttackStrikerSlot(posId) ? 'SP' : posId;
+    const posStat = getMatchGamePlanLineStatsPosStat(player, statsPosId);
+    const matches = Number(posStat?.matches) || 0;
+    const minutes = Math.max(0, Math.floor(Number(posStat?.minutes) || 0));
+    const xp = matches > 0 ? getMatchGamePlanXpValue(posStat) : 0;
+    const snittBors = (Number(posStat?.ratingsCount) || 0) > 0
+        ? (Number(posStat.ratingsSum) || 0) / Number(posStat.ratingsCount)
+        : 0;
+    const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+
+    // Normaliser til 0–100:
+    // - kamper: 8+ = full kredit
+    // - minutter: 600'+ = full kredit
+    // - XP: 2.5 mål+assist/kamp = full kredit
+    // - børs: snitt 10 = 100
+    const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
+    const minutesScore = Math.max(0, Math.min(100, (minutes / MATCH_GAME_PLAN_ATTACK_MINUTES_FULL) * 100));
+    const xpScore = Math.max(0, Math.min(100, xp * 40));
+    const borsScore = snittBors > 0 ? Math.max(0, Math.min(100, snittBors * 10)) : 0;
+    const formScore = Math.max(0, Math.min(100, form));
+
+    // Vekting: XP 25 %, minutter 20 %, kamper 15 %, snittbørs 20 %, form 20 %.
+    const baseScore = (
+        xpScore * 0.25
+        + minutesScore * 0.20
+        + matchesScore * 0.15
+        + borsScore * 0.20
+        + formScore * 0.20
+    );
+    const footMatch = getMatchGamePlanAttackFootMatch(player, posId);
+    const footBonus = footMatch ? MATCH_GAME_PLAN_ATTACK_FOOT_BONUS : 0;
+    const score = Math.round((baseScore + footBonus) * 10) / 10;
+
+    return {
+        score,
+        matches,
+        minutes,
+        xp: Math.round(xp * 100) / 100,
+        snittBors: Math.round(snittBors * 10) / 10,
+        form: formScore,
+        matchesScore: Math.round(matchesScore * 10) / 10,
+        minutesScore: Math.round(minutesScore * 10) / 10,
+        xpScore: Math.round(xpScore * 10) / 10,
+        borsScore: Math.round(borsScore * 10) / 10,
+        footBonus,
+        footMatch,
+        hasPosMatches: matches > 0,
+        sampleOk: matches >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL
+    };
+}
+
+function compareMatchGamePlanAttackSlotCandidates(left, right) {
+    // Først de som faktisk har kamper på posisjonen (SP/SV/SH eller kant).
+    if (Boolean(left?.meta?.hasPosMatches) !== Boolean(right?.meta?.hasPosMatches)) {
+        return left?.meta?.hasPosMatches ? -1 : 1;
+    }
+    if (Boolean(left?.meta?.sampleOk) !== Boolean(right?.meta?.sampleOk)) {
+        return left?.meta?.sampleOk ? -1 : 1;
+    }
+    const scoreDelta = (Number(right?.meta?.score) || 0) - (Number(left?.meta?.score) || 0);
+    if (scoreDelta) return scoreDelta;
+    if (Boolean(left?.meta?.footMatch) !== Boolean(right?.meta?.footMatch)) {
+        return left?.meta?.footMatch ? -1 : 1;
+    }
+    const minutesDelta = (Number(right?.meta?.minutes) || 0) - (Number(left?.meta?.minutes) || 0);
+    if (minutesDelta) return minutesDelta;
+    const matchDelta = (Number(right?.meta?.matches) || 0) - (Number(left?.meta?.matches) || 0);
+    if (matchDelta) return matchDelta;
+    const xpDelta = (Number(right?.meta?.xp) || 0) - (Number(left?.meta?.xp) || 0);
+    if (xpDelta) return xpDelta;
+    return String(left?.player?.navn || '').localeCompare(
+        String(right?.player?.navn || ''),
+        'nb',
+        { sensitivity: 'base' }
+    );
+}
+
+function scoreMatchGamePlanAttackAssignment(assignment, slots, match) {
+    let filled = 0;
+    let withPosMatches = 0;
+    let scoreSum = 0;
+
+    (slots || []).forEach((posId) => {
+        const player = assignment?.[posId];
+        if (!player) return;
+        filled += 1;
+        const meta = getMatchGamePlanAttackSlotPlayerScore(player, posId, match);
+        if (meta.hasPosMatches) withPosMatches += 1;
+        scoreSum += Number(meta.score) || 0;
+    });
+
+    return { filled, withPosMatches, scoreSum };
+}
+
+function isBetterMatchGamePlanAttackSuggestion(candidate, baseline) {
+    if (!candidate) return false;
+    if (!baseline) return true;
+    if (candidate.filled !== baseline.filled) return candidate.filled > baseline.filled;
+    if (candidate.withPosMatches !== baseline.withPosMatches) {
+        return candidate.withPosMatches > baseline.withPosMatches;
+    }
+    return candidate.scoreSum > baseline.scoreSum;
+}
+
+function computeMatchGamePlanBestAttackSuggestion(match) {
+    const slots = getMatchGamePlanSuggestSlots(match, 'angrep');
+    if (!slots.length) return null;
+
+    const lineup = cloneMatchGamePlanLineup(getMatchGamePlanDraftLineup(match));
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const opts = {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId
+    };
+    const candidates = collectMatchGamePlanAttackSuggestCandidates(match, lineup, slots);
+    if (!candidates.length) return null;
+
+    const fillOrder = getMatchGamePlanAttackFillOrder(slots);
+    const assignment = Object.fromEntries(slots.map((posId) => [posId, null]));
+    let remaining = [...candidates];
+
+    fillOrder.forEach((posId) => {
+        const ranked = remaining
+            .filter((player) => playerFitsMatchGamePlanAttackSuggestSlot(player, posId, match))
+            .map((player) => ({
+                player,
+                meta: getMatchGamePlanAttackSlotPlayerScore(player, posId, match)
+            }))
+            .sort(compareMatchGamePlanAttackSlotCandidates);
+        const best = ranked[0];
+        if (!best?.player) return;
+        assignment[posId] = best.player;
+        remaining = remaining.filter((player) => !matchGamePlanSamePlayer(player, best.player));
+    });
+
+    const unchanged = slots.every((posId) => matchGamePlanSamePlayer(lineup[posId], assignment[posId]));
+    if (unchanged) return null;
+
+    const currentAssignment = Object.fromEntries(slots.map((posId) => [posId, lineup[posId] || null]));
+    const baseline = scoreMatchGamePlanAttackAssignment(currentAssignment, slots, match);
+    const candidate = scoreMatchGamePlanAttackAssignment(assignment, slots, match);
+    if (!isBetterMatchGamePlanAttackSuggestion(candidate, baseline)) return null;
+
+    const { swaps } = diffMatchGamePlanZoneAssignment(lineup, slots, assignment, formationId);
+    if (!swaps.length) return null;
+
+    const trial = buildMatchGamePlanLineupWithZoneAssignment(lineup, slots, assignment);
+    return {
+        zoneId: 'angrep',
+        slots: [...slots],
+        formationId,
+        currentScore: scoreMatchGamePlanLineupZoneSamspill(lineup, slots, opts),
+        currentFilled: baseline.filled,
+        score: scoreMatchGamePlanLineupZoneSamspill(trial, slots, opts),
+        filled: candidate.filled,
+        assignment,
+        swaps,
+        summary: summarizeMatchGamePlanSuggestSwaps(swaps, formationId)
+    };
+}
+
+function computeMatchGamePlanBestMidfieldSuggestion(match) {
+    return computeMatchGamePlanBestLineStatsSuggestion(match, 'midtbane');
+}
+
 function computeMatchGamePlanBestLineSuggestion(match, zoneId) {
     if (zoneId === 'lag') return computeMatchGamePlanBestXiSuggestion(match);
+    if (zoneId === 'angrep') return computeMatchGamePlanBestAttackSuggestion(match);
+    if (isMatchGamePlanLineStatsSuggestZone(zoneId)) {
+        return computeMatchGamePlanBestLineStatsSuggestion(match, zoneId);
+    }
     if (!isMatchGamePlanLineSuggestZone(zoneId)) return null;
 
     const slots = getMatchGamePlanSuggestSlots(match, zoneId);
@@ -9795,7 +10402,15 @@ function buildPlayerPositionMatchStats(player, options = {}) {
 
 function getMatchGamePlanPlayerSeasonStat(player, yearFilter) {
     if (!player?.navn || typeof window.buildPlayerStatsData !== 'function') {
-        return { totalScore: 0, form: 0, oppmotePct: 0, disiplinScore: 0, bestKampbonus: 0, formParts: { oppm: 0, dis: 0, recentRedCardPenalty: 0 } };
+        return {
+            totalScore: 0,
+            form: 0,
+            oppmotePct: 0,
+            disiplinScore: 0,
+            kampSharePct: 0,
+            bestKampbonus: 0,
+            formParts: { oppm: 0, dis: 0, recentRedCardPenalty: 0 }
+        };
     }
     const year = yearFilter != null && yearFilter !== '' && yearFilter !== 'alle'
         ? Number(yearFilter)
@@ -9818,6 +10433,7 @@ function getMatchGamePlanPlayerSeasonStat(player, yearFilter) {
         form: Number(formParts.total) || 0,
         oppmotePct: Number(row?.oppmotePct) || 0,
         disiplinScore: Number(row?.disiplinScore) || 0,
+        kampSharePct: Number(row?.kampSharePct) || 0,
         bestKampbonus,
         formParts: {
             oppm: Number(formParts.oppm) || 0,
