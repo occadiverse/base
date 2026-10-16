@@ -3268,9 +3268,24 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         : Math.min(1, matches / MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL);
     let sampleOk = matches >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL;
     let relaxSampleTier = false;
+    let relaxQualifiesTier = false;
 
     let score;
-    if (zoneId === 'midtbane' && posId === 'PM') {
+    if (zoneId === 'forsvar' && posId === 'GK') {
+        // GK: kvalitet/form først. Kampandel-terskel treffer nye keepere feil (Smerud).
+        // Treffer: Maximillian > Sebastian > (nødinnhopp som Skogstad sist).
+        score = getMatchGamePlanGoalkeeperSlotScore(player, {
+            season,
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches
+        });
+        relaxSampleTier = true;
+        relaxQualifiesTier = true;
+        sampleOk = matches > 0;
+    } else if (zoneId === 'midtbane' && posId === 'PM') {
         // PM: kvalitet først (bidrag/pos-form), myk √-sample, OM/DM-fyll + playmaker-bonus.
         // Treffer ønsket rekkefølge: Gundersen > Skonnord > Sixten > Hjelle > Laheld > Pizzaro > Dyrhof.
         score = getMatchGamePlanPlaymakerSlotScore(player, {
@@ -3389,9 +3404,38 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         minutesScore: Math.round(minutesScore * 10) / 10,
         sampleOk,
         relaxSampleTier,
+        relaxQualifiesTier,
         qualifies,
         kampSharePct
     };
+}
+
+function getMatchGamePlanGoalkeeperSlotScore(player, parts) {
+    const {
+        season = 0,
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0
+    } = parts || {};
+
+    // Myk sample; 1-kamps nødløsning (trener/innhopp) dempes ekstra.
+    const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
+    const emergencyFactor = matches === 1 ? 0.55 : 1;
+    const gkQuality = (
+        season * 0.35
+        + snittBidragScore * 0.25
+        + posForm * 0.25
+        + borsScore * 0.15
+    );
+    const pref = player?.pos1 === 'Keeper' ? 4 : 0;
+
+    return Math.round((
+        sample * emergencyFactor * gkQuality * 0.72
+        + form * 0.22
+        + pref
+    ) * 10) / 10;
 }
 
 function getMatchGamePlanPlaymakerSlotScore(player, parts) {
@@ -3802,10 +3846,12 @@ function getMatchGamePlanDefensiveMidSlotScore(player, parts) {
 }
 
 function compareMatchGamePlanLineStatsSlotCandidates(left, right) {
-    if (Boolean(left?.meta?.qualifies) !== Boolean(right?.meta?.qualifies)) {
+    // GK: nye keepere kan ha lav kampandel — ikke la 30 %-terskelen overstyre.
+    const relaxQualifies = left?.meta?.relaxQualifiesTier || right?.meta?.relaxQualifiesTier;
+    if (!relaxQualifies && Boolean(left?.meta?.qualifies) !== Boolean(right?.meta?.qualifies)) {
         return left?.meta?.qualifies ? -1 : 1;
     }
-    // PM bruker myk sample i scoren — ikke hard 3-kampsterskel her.
+    // Myk sample i scoren (PM/OM/DM/GK/CB) — ikke hard 3-kampsterskel her.
     const relaxSample = left?.meta?.relaxSampleTier || right?.meta?.relaxSampleTier;
     if (!relaxSample && Boolean(left?.meta?.sampleOk) !== Boolean(right?.meta?.sampleOk)) {
         return left?.meta?.sampleOk ? -1 : 1;
@@ -3851,8 +3897,8 @@ function isBetterMatchGamePlanLineStatsSuggestion(candidate, baseline) {
 }
 
 function getMatchGamePlanDefenceFillOrder(slots) {
-    // VS først, deretter HS, deretter MS (øvrige VB/HB beholder relativ rekkefølge).
-    const preferred = ['VMS', 'HMS', 'MS'];
+    // GK først, deretter VS → HS → MS (øvrige VB/HB beholder relativ rekkefølge).
+    const preferred = ['GK', 'VMS', 'HMS', 'MS'];
     const present = new Set(slots || []);
     const ordered = preferred.filter((posId) => present.has(posId));
     (slots || []).forEach((posId) => {
