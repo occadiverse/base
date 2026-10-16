@@ -163,10 +163,12 @@ function switchTab(tabId, options = {}) {
         window.renderPlayerRoster();
     } else if (tabId === 'statistikk') {
         if (typeof window.updateDynamicSelectors === 'function') window.updateDynamicSelectors();
-        window.renderStatistikkSide();
+        // Kun switchStatTab — den kaller renderStatistikkSide én gang (unngå dobbel rebuild).
         if (typeof window.switchStatTab === 'function') {
             const tabName = window.getStatsLagSection && window.getStatsLagSection() === 'spillerdata' ? 'spillere' : 'lag';
             window.switchStatTab(tabName);
+        } else if (typeof window.renderStatistikkSide === 'function') {
+            window.renderStatistikkSide();
         }
     } else if (tabId === 'admin' && isAdminUnlocked) {
         renderAdminTeamsList();
