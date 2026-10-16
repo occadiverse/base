@@ -1850,50 +1850,40 @@
             z-index: 4;
         }
         .match-game-plan-line-suggest-overlay {
-            align-items: center;
-            background: rgba(7, 24, 45, 0.9);
-            border-radius: 0.34rem;
-            bottom: 1.05rem;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            gap: 0.12rem;
-            justify-content: center;
-            left: 0.18rem;
-            padding: 0.18rem 0.16rem 0.14rem;
+            border-radius: var(--lineup-card-radius) var(--lineup-card-radius) clamp(0.1rem, 0.65cqi, 0.16rem) clamp(0.1rem, 0.65cqi, 0.16rem);
+            inset: 0;
+            overflow: hidden;
             pointer-events: none;
             position: absolute;
-            right: 0.18rem;
-            text-align: center;
             z-index: 6;
         }
-        .match-game-plan-line-suggest-overlay-avatar {
-            align-items: center;
-            background: rgba(248, 250, 252, 0.14);
-            border-radius: 999px;
-            display: inline-flex;
-            height: 1.55rem;
-            justify-content: center;
-            overflow: hidden;
-            width: 1.55rem;
-        }
-        .match-game-plan-line-suggest-overlay-avatar img {
+        .match-game-plan-line-suggest-overlay img {
             display: block;
             height: 100%;
+            inset: 0;
             object-fit: cover;
+            position: absolute;
             width: 100%;
         }
-        .match-game-plan-line-suggest-overlay-avatar span {
-            font-size: 0.5rem;
+        .match-game-plan-line-suggest-overlay-fallback {
+            align-items: center;
+            background: rgba(226, 232, 240, 0.96);
+            color: #123f73;
+            display: flex;
+            font-size: clamp(0.7rem, 18cqw, 1rem);
             font-weight: 900;
+            height: 100%;
+            justify-content: center;
             letter-spacing: 0.02em;
-            line-height: 1;
+            width: 100%;
         }
-        .match-game-plan-line-suggest-overlay-pos {
-            font-size: 0.48rem;
-            font-weight: 900;
-            letter-spacing: 0.02em;
-            line-height: 1;
+        .match-game-plan-line-suggest-overlay .match-game-plan-lineup-pos-badge {
+            z-index: 7;
+        }
+        .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-empty.is-suggest-target .match-game-plan-lineup-visual strong {
+            color: inherit;
+            font-size: clamp(0.46rem, 2.35cqi, 0.6rem);
+            line-height: 1.25;
         }
         .match-detail-squad-list .match-bench-player.is-suggest-source {
             box-shadow:

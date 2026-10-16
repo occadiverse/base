@@ -4320,6 +4320,11 @@ function clearMatchGamePlanLineSuggestPreview() {
     document.querySelectorAll('.match-game-plan-lineup-card.is-suggest-target, .match-bench-player.is-suggest-source').forEach((el) => {
         el.classList.remove('is-suggest-target', 'is-suggest-fill', 'is-suggest-swap', 'is-suggest-source');
         el.querySelectorAll('.match-game-plan-line-suggest-overlay').forEach((node) => node.remove());
+        const nameEl = el.querySelector('.match-game-plan-lineup-visual > strong[data-suggest-name-original]');
+        if (nameEl) {
+            nameEl.textContent = nameEl.dataset.suggestNameOriginal || '';
+            delete nameEl.dataset.suggestNameOriginal;
+        }
     });
     const builder = document.querySelector('.match-detail-lineup-builder');
     if (builder) builder.classList.remove('is-line-suggest');
@@ -4343,13 +4348,14 @@ function buildMatchGamePlanLineSuggestOverlayHtml(swap, formationId) {
     const initials = getMatchGamePlanPlayerInitials(swap.player);
     const posLabel = getMatchGamePlanPositionBadgeLabel(swap.posId, formationId);
     const detail = describeMatchGamePlanLineSuggestSwap(swap, formationId);
+    const badgeHtml = buildMatchGamePlanPosBadgeHtml(posLabel, swap.player);
     const media = photoUrl
         ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
-        : `<span>${escapeMatchHtml(initials)}</span>`;
+        : `<span class="match-game-plan-line-suggest-overlay-fallback" aria-hidden="true">${escapeMatchHtml(initials)}</span>`;
     return `
         <span class="match-game-plan-line-suggest-overlay is-photo" title="${escapeMatchHtml(detail)}">
-            <span class="match-game-plan-line-suggest-overlay-avatar" aria-hidden="true">${media}</span>
-            <span class="match-game-plan-line-suggest-overlay-pos">${escapeMatchHtml(posLabel)}</span>
+            ${media}
+            ${badgeHtml}
         </span>
     `;
 }
@@ -4418,12 +4424,20 @@ function applyMatchGamePlanLineSuggestPreview(match, suggestion) {
                 'is-suggest-target',
                 isFill ? 'is-suggest-fill' : 'is-suggest-swap'
             );
-            const visual = card.querySelector('.match-game-plan-lineup-visual');
-            if (visual && !visual.querySelector('.match-game-plan-line-suggest-overlay')) {
+            const photoHost = card.querySelector(
+                '.match-game-plan-lineup-photo-area, .match-game-plan-lineup-empty-slot'
+            );
+            const host = photoHost || card.querySelector('.match-game-plan-lineup-visual');
+            if (host && !host.querySelector('.match-game-plan-line-suggest-overlay')) {
                 const wrap = document.createElement('div');
                 wrap.innerHTML = buildMatchGamePlanLineSuggestOverlayHtml(swap, formationId).trim();
                 const overlay = wrap.firstElementChild;
-                if (overlay) visual.appendChild(overlay);
+                if (overlay) host.appendChild(overlay);
+            }
+            const nameEl = card.querySelector('.match-game-plan-lineup-visual > strong');
+            if (nameEl && nameEl.dataset.suggestNameOriginal == null) {
+                nameEl.dataset.suggestNameOriginal = nameEl.textContent || '';
+                nameEl.textContent = swap.playerName || '';
             }
         }
 
