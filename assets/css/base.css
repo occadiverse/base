@@ -1779,22 +1779,22 @@
             background: rgba(74, 222, 128, 0.92);
             border-color: rgba(220, 252, 231, 0.98);
             box-shadow: 0 4px 12px rgba(22, 163, 74, 0.28);
-            color: #14532d;
+            color: #0a0a0a;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green i,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-green i {
-            color: #166534;
+            color: #0a0a0a;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-amber {
             background: rgba(250, 204, 21, 0.92);
             border-color: rgba(254, 249, 195, 0.98);
             box-shadow: 0 4px 12px rgba(202, 138, 4, 0.28);
-            color: #422006;
+            color: #0a0a0a;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-amber i,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-amber i {
-            color: #854d0e;
+            color: #0a0a0a;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-red {
@@ -1817,11 +1817,88 @@
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-green .match-game-plan-pitch-xi-upgrade,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-amber .match-game-plan-pitch-xi-upgrade,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-green .match-game-plan-pitch-xi-upgrade {
-            color: #14532d;
+            color: #0a0a0a;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-xi-totals-row.is-red .match-game-plan-pitch-xi-upgrade,
         .match-detail-lineup-pitch-wrap .match-game-plan-pitch-samspill-zones-row.is-red .match-game-plan-pitch-xi-upgrade {
             color: #ffffff;
+        }
+        /* Reset UA button chrome only — size/type come from shared chip rules above. */
+        .match-detail-lineup-pitch-wrap button.match-game-plan-pitch-samspill-zones-row.is-suggestable {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            display: inline-flex;
+            margin: 0;
+            text-align: inherit;
+        }
+        .match-detail-lineup-pitch-wrap button.match-game-plan-pitch-samspill-zones-row.is-suggestable:hover {
+            filter: brightness(1.06);
+        }
+        .match-detail-lineup-pitch-wrap button.match-game-plan-pitch-samspill-zones-row.is-suggest-active {
+            box-shadow:
+                0 4px 10px rgba(2, 6, 23, 0.18),
+                inset 0 0 0 1.5px rgba(245, 197, 66, 0.95);
+        }
+        .match-detail-lineup-builder.is-line-suggest .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card:not(.is-suggest-target) {
+            opacity: 0.55;
+        }
+        .match-detail-lineup-builder.is-line-suggest .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card.is-suggest-target {
+            box-shadow:
+                0 10px 22px rgba(2, 6, 23, 0.28),
+                0 0 0 2px rgba(245, 197, 66, 0.88);
+            z-index: 4;
+        }
+        .match-game-plan-line-suggest-overlay {
+            background: rgba(7, 24, 45, 0.88);
+            border-radius: 0.28rem;
+            bottom: 1.15rem;
+            color: #f8fafc;
+            font-size: 0.52rem;
+            font-weight: 900;
+            left: 0.18rem;
+            letter-spacing: 0.01em;
+            line-height: 1.2;
+            padding: 0.16rem 0.22rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.18rem;
+            text-align: center;
+            z-index: 6;
+        }
+        .match-detail-squad-list .match-bench-player.is-suggest-source {
+            box-shadow:
+                0 10px 20px rgba(2, 6, 23, 0.2),
+                0 0 0 2px rgba(245, 197, 66, 0.85);
+        }
+        .match-game-plan-line-suggest-bar {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(18, 63, 115, 0.12);
+            border-radius: 0.7rem;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem 0.75rem;
+            justify-content: space-between;
+            margin: 0 0 0.35rem;
+            padding: 0.55rem 0.65rem;
+        }
+        .match-game-plan-line-suggest-copy {
+            color: #123f73;
+            flex: 1 1 12rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin: 0;
+        }
+        .match-game-plan-line-suggest-copy strong {
+            font-weight: 950;
+        }
+        .match-game-plan-line-suggest-actions {
+            display: inline-flex;
+            flex: 0 0 auto;
+            gap: 0.35rem;
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-card {
             --lineup-card-radius: clamp(0.48rem, 2.8cqi, 0.64rem);

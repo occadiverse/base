@@ -1588,6 +1588,7 @@ function refreshMatchGamePlanLineupAfterChange(match, affectedPosIds = []) {
     renderMatchDetailSquadList(match);
     syncMatchGamePlanLineupOverlayUi(match);
     syncMatchGamePlanPitchXiTotals(match);
+    // Keep an active line-suggest preview in sync after applies; clear only when caller did.
     syncMatchGamePlanPitchSamspillZoneTotals(match);
     requestAnimationFrame(() => {
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
@@ -2674,14 +2675,36 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
         { id: 'forsvar', label: 'Forsvar', shortLabel: 'F', icon: null }
     ];
 
+    const activeSuggest = getMatchGamePlanLineSuggest(match);
     const rows = rowOrder.map(({ id, label, shortLabel, icon }) => {
         const line = lineById[id] || null;
         const score = line?.score;
         const bestScore = line?.bestScore;
-        const hasBest = bestScore != null && score != null && bestScore > score;
-        const value = score == null
+        // Line chips use click-to-suggest instead of nå/best — old bestScore ignores empty slots / swaps.
+        const usesSuggestButton = isMatchGamePlanLineSuggestZone(id);
+        const hasBest = !usesSuggestButton
+            && bestScore != null
+            && score != null
+            && bestScore > score;
+        let value = score == null
             ? '-'
             : (hasBest ? `${score}/${bestScore}` : String(score));
+        // While a line suggestion is open, show current → proposed snitt on that chip.
+        if (
+            usesSuggestButton
+            && activeSuggest?.zoneId === id
+            && activeSuggest.score != null
+            && score != null
+        ) {
+            value = `${score}→${activeSuggest.score}`;
+        } else if (
+            usesSuggestButton
+            && activeSuggest?.zoneId === id
+            && activeSuggest.score != null
+            && score == null
+        ) {
+            value = `–→${activeSuggest.score}`;
+        }
         const troppMedian = troppMedians[id];
         const previousLabel = previousZones
             ? formatMatchGamePlanPitchXiPreviousLabel(
@@ -2698,6 +2721,11 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
             const who = line.bestHint || line.bestNames || 'benk';
             const bestTitle = `${label}: ${score} nå, ${bestScore} med ${who}`;
             title = title ? `${title} · ${bestTitle}` : bestTitle;
+        } else if (usesSuggestButton) {
+            const suggestTitle = id === 'lag'
+                ? 'Klikk for optimal starter-11 fra kamptroppen'
+                : `Klikk for beste ${getMatchGamePlanLineSuggestZoneShortLabel(id)}-forslag fra kamptroppen`;
+            title = title ? `${title} · ${suggestTitle}` : suggestTitle;
         }
         return {
             key: id,
@@ -2711,6 +2739,8 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
         };
     });
 
+    const activeSuggestZone = getMatchGamePlanLineSuggest(match)?.zoneId || '';
+
     return `
         <div class="match-game-plan-pitch-samspill-zones" data-pitch-samspill-zones aria-label="Samspillsnitt per linje">
             ${rows.map((row) => {
@@ -2722,13 +2752,35 @@ function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
                 const leadHtml = row.icon
                     ? `<i class="fa-solid ${escapeMatchHtml(row.icon)}" aria-hidden="true"></i>`
                     : `<span class="match-game-plan-pitch-samspill-zones-label">${escapeMatchHtml(row.shortLabel || row.label)}</span>`;
-                return `
-                <span class="match-game-plan-pitch-samspill-zones-row${toneClass}${upgradeClass}"${
-                    row.title ? ` title="${escapeMatchHtml(row.title)}"` : ''
-                } aria-label="${escapeMatchHtml(row.label)}">
+                const isSuggestable = isMatchGamePlanLineSuggestZone(row.key);
+                const isSuggestActive = isSuggestable && activeSuggestZone === row.key;
+                const rowClass = `match-game-plan-pitch-samspill-zones-row${toneClass}${upgradeClass}${
+                    isSuggestable ? ' is-suggestable' : ''
+                }${isSuggestActive ? ' is-suggest-active' : ''}`;
+                const titleAttr = row.title ? ` title="${escapeMatchHtml(row.title)}"` : '';
+                const bodyHtml = `
                     ${leadHtml}
                     <span data-pitch-samspill-zone="${escapeMatchHtml(row.key)}">${escapeMatchHtml(row.value)}</span>
                     ${upgradeHtml}
+                `;
+                if (isSuggestable) {
+                    return `
+                    <button
+                        type="button"
+                        class="${rowClass}"
+                        data-pitch-samspill-suggest="${escapeMatchHtml(row.key)}"
+                        aria-pressed="${isSuggestActive ? 'true' : 'false'}"
+                        aria-label="${escapeMatchHtml(row.label)}: vis beste forslag"
+                        ${titleAttr}
+                        onclick="window.toggleMatchGamePlanLineSuggest('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(row.key)}')"
+                    >
+                        ${bodyHtml}
+                    </button>
+                `;
+                }
+                return `
+                <span class="${rowClass}"${titleAttr} aria-label="${escapeMatchHtml(row.label)}">
+                    ${bodyHtml}
                 </span>
             `;
             }).join('')}
@@ -2743,7 +2795,608 @@ function syncMatchGamePlanPitchSamspillZoneTotals(match) {
     wrapper.innerHTML = buildMatchGamePlanPitchSamspillZoneTotalsHtml(match).trim();
     const next = wrapper.firstElementChild;
     if (next) host.replaceWith(next);
+    syncMatchGamePlanLineSuggestUi(match);
 }
+
+function isMatchGamePlanLineSuggestZone(zoneId) {
+    return zoneId === 'lag'
+        || zoneId === 'angrep'
+        || zoneId === 'midtbane'
+        || zoneId === 'forsvar';
+}
+
+function getMatchGamePlanLineSuggestZoneShortLabel(zoneId) {
+    if (zoneId === 'lag') return 'XI';
+    if (zoneId === 'angrep') return 'A';
+    if (zoneId === 'midtbane') return 'M';
+    if (zoneId === 'forsvar') return 'F';
+    return zoneId || '';
+}
+
+function getMatchGamePlanLineSuggestBarTitle(zoneId) {
+    if (zoneId === 'lag') return 'Forslag XI';
+    return `Forslag ${getMatchGamePlanLineSuggestZoneShortLabel(zoneId)}`;
+}
+
+function getMatchGamePlanLineSuggestEmptyFeedback(zoneId) {
+    if (zoneId === 'lag') return 'Ingen bedre XI-forslag fra kamptroppen akkurat nå';
+    const label = getMatchGamePlanLineSuggestZoneShortLabel(zoneId);
+    return `Ingen bedre ${label}-forslag fra kamptroppen akkurat nå`;
+}
+
+function getMatchGamePlanLineSuggest(match) {
+    if (!match?.id) return null;
+    window.matchGamePlanLineSuggest = window.matchGamePlanLineSuggest || {};
+    return window.matchGamePlanLineSuggest[match.id] || null;
+}
+
+function setMatchGamePlanLineSuggest(match, suggestion) {
+    if (!match?.id) return;
+    window.matchGamePlanLineSuggest = window.matchGamePlanLineSuggest || {};
+    if (suggestion) window.matchGamePlanLineSuggest[match.id] = suggestion;
+    else delete window.matchGamePlanLineSuggest[match.id];
+}
+
+function clearMatchGamePlanLineSuggest(match) {
+    setMatchGamePlanLineSuggest(match, null);
+}
+
+function countMatchGamePlanLineupFilledSlots(lineup, slots) {
+    return (slots || []).filter((posId) => Boolean(lineup?.[posId])).length;
+}
+
+function scoreMatchGamePlanLineupZoneSamspill(lineup, slots, options) {
+    if (typeof window.collectSamspillLineupPairs !== 'function') return null;
+    const slotSet = Array.isArray(slots) && slots.length ? new Set(slots) : null;
+    const pairs = window.collectSamspillLineupPairs(lineup, options || {})
+        .filter((pair) => !slotSet || (slotSet.has(pair.posA) && slotSet.has(pair.posB)));
+    if (!pairs.length) return null;
+    const raw = pairs.reduce((sum, pair) => sum + (Number(pair.score) || 0), 0) / pairs.length;
+    return Math.round(raw);
+}
+
+function scoreMatchGamePlanLineupXiSamspill(lineup, options) {
+    return scoreMatchGamePlanLineupZoneSamspill(lineup, null, options);
+}
+
+function isBetterMatchGamePlanLineSuggestion(candidate, currentBest) {
+    if (!candidate) return false;
+    if (!currentBest) return true;
+    if (candidate.filled !== currentBest.filled) return candidate.filled > currentBest.filled;
+    if (candidate.score == null) return false;
+    if (currentBest.score == null) return true;
+    return candidate.score > currentBest.score;
+}
+
+function buildMatchGamePlanLineSuggestSwap(player, posId, outgoing, fromPosId = '') {
+    return {
+        player,
+        posId,
+        fromPosId: fromPosId || '',
+        outgoing: outgoing || null,
+        playerName: getMatchGamePlanPlayerLastName(player),
+        outgoingName: outgoing ? getMatchGamePlanPlayerLastName(outgoing) : ''
+    };
+}
+
+function findMatchGamePlanPlayerSlotInLine(lineup, slots, player) {
+    if (!player) return '';
+    return (slots || []).find((posId) => matchGamePlanSamePlayer(lineup?.[posId], player)) || '';
+}
+
+function describeMatchGamePlanLineSuggestSwap(swap, formationId) {
+    const posLabel = getMatchGamePlanPositionBadgeLabel(swap.posId, formationId);
+    if (swap.fromPosId && swap.fromPosId !== swap.posId) {
+        const fromLabel = getMatchGamePlanPositionBadgeLabel(swap.fromPosId, formationId);
+        return `${swap.playerName} ${fromLabel} → ${posLabel}`;
+    }
+    if (!swap.outgoingName) return `${swap.playerName} inn på ${posLabel}`;
+    return `${swap.playerName} inn på ${posLabel} for ${swap.outgoingName}`;
+}
+
+function buildMatchGamePlanLineupWithZoneAssignment(lineup, slots, assignment) {
+    let next = cloneMatchGamePlanLineup(lineup);
+    (slots || []).forEach((posId) => {
+        next[posId] = null;
+    });
+    (slots || []).forEach((posId) => {
+        const player = assignment?.[posId];
+        if (player) next = assignMatchGamePlanDraftLineupPlayer(next, posId, player);
+    });
+    return next;
+}
+
+function diffMatchGamePlanZoneAssignment(lineup, slots, assignment, formationId) {
+    const swaps = [];
+    (slots || []).forEach((posId) => {
+        const nextPlayer = assignment?.[posId] || null;
+        const currentPlayer = lineup?.[posId] || null;
+        if (matchGamePlanSamePlayer(nextPlayer, currentPlayer)) return;
+        if (!nextPlayer) return;
+        const fromPosId = findMatchGamePlanPlayerSlotInLine(lineup, slots, nextPlayer);
+        swaps.push(buildMatchGamePlanLineSuggestSwap(nextPlayer, posId, currentPlayer, fromPosId));
+    });
+    return {
+        swaps,
+        summary: swaps.map((swap) => describeMatchGamePlanLineSuggestSwap(swap, formationId)).join(' · ')
+    };
+}
+
+function collectMatchGamePlanLineSuggestCandidates(match, zoneId, lineup, slots) {
+    const seen = new Set();
+    const candidates = [];
+    const pushPlayer = (player) => {
+        if (!player || !isMatchGamePlanPlayerAvailableForSamspill(player, match)) return;
+        const key = player.id || player.navn;
+        if (!key || seen.has(key)) return;
+        if (!(slots || []).some((posId) => playerFitsSamspillSlot(player, posId, match))) return;
+        seen.add(key);
+        candidates.push(player);
+    };
+
+    (slots || []).forEach((posId) => pushPlayer(lineup?.[posId]));
+    // Whole attending pool (filtered by slot fit) so line suggests can pull across lines.
+    getMatchDetailAttendingPlayers(match).forEach(pushPlayer);
+    return candidates;
+}
+
+function getMatchGamePlanSuggestSlots(match, zoneId) {
+    if (zoneId === 'lag') return getMatchGamePlanDraftPositionIds(match);
+    return getMatchGamePlanSamspillZonePositions(match)[zoneId] || [];
+}
+
+function scoreMatchGamePlanSuggestPlacement(player, posId, assignment, connections, match, options) {
+    let sum = 0;
+    let count = 0;
+    (connections || []).forEach(([posA, posB]) => {
+        let otherPos = '';
+        if (posA === posId) otherPos = posB;
+        else if (posB === posId) otherPos = posA;
+        else return;
+        const other = assignment[otherPos];
+        if (!other || typeof window.getDuoSamspill !== 'function') return;
+        const samspill = window.getDuoSamspill(player, other, {
+            ...options,
+            posA: posId,
+            posB: otherPos
+        });
+        const score = Number(samspill?.score);
+        if (!Number.isFinite(score)) return;
+        sum += score;
+        count += 1;
+    });
+    if (count > 0) return sum / count;
+
+    const form = typeof window.calculatePlayerPerformanceChemistry === 'function'
+        ? Number(window.calculatePlayerPerformanceChemistry(player.navn)) || 0
+        : 0;
+    const kampbidrag = getMatchGamePlanPlayerKampbidrag(player, match);
+    return (form * 0.6) + (Math.min(40, Number(kampbidrag) || 0) * 1.1);
+}
+
+function buildGreedyMatchGamePlanXiAssignment(match, slots, candidates, options) {
+    const formationId = options.formationId;
+    const connections = typeof window.getMatchGamePlanSamspillConnections === 'function'
+        ? window.getMatchGamePlanSamspillConnections(formationId)
+        : [];
+    const degree = Object.fromEntries(slots.map((posId) => [posId, 0]));
+    connections.forEach(([posA, posB]) => {
+        if (degree[posA] != null) degree[posA] += 1;
+        if (degree[posB] != null) degree[posB] += 1;
+    });
+    const orderedSlots = [...slots].sort((left, right) => (degree[right] || 0) - (degree[left] || 0));
+    const assignment = Object.fromEntries(slots.map((posId) => [posId, null]));
+    let remaining = [...candidates];
+
+    orderedSlots.forEach((posId) => {
+        let bestPlayer = null;
+        let bestScore = -Infinity;
+        remaining.forEach((player) => {
+            if (!playerFitsSamspillSlot(player, posId, match)) return;
+            const score = scoreMatchGamePlanSuggestPlacement(
+                player,
+                posId,
+                assignment,
+                connections,
+                match,
+                options
+            );
+            if (score > bestScore) {
+                bestScore = score;
+                bestPlayer = player;
+            }
+        });
+        if (!bestPlayer) return;
+        assignment[posId] = bestPlayer;
+        remaining = remaining.filter((player) => !matchGamePlanSamePlayer(player, bestPlayer));
+    });
+
+    return assignment;
+}
+
+function improveMatchGamePlanXiAssignment(match, slots, candidates, assignment, options) {
+    let current = { ...assignment };
+    let currentLineup = buildMatchGamePlanLineupWithZoneAssignment({}, slots, current);
+    let currentFilled = countMatchGamePlanLineupFilledSlots(currentLineup, slots);
+    let currentScore = scoreMatchGamePlanLineupXiSamspill(currentLineup, options);
+    let improved = true;
+    let guard = 0;
+
+    while (improved && guard < 24) {
+        improved = false;
+        guard += 1;
+
+        for (let i = 0; i < slots.length; i += 1) {
+            for (let j = i + 1; j < slots.length; j += 1) {
+                const posA = slots[i];
+                const posB = slots[j];
+                const playerA = current[posA];
+                const playerB = current[posB];
+                if (!playerA || !playerB) continue;
+                if (!playerFitsSamspillSlot(playerA, posB, match)) continue;
+                if (!playerFitsSamspillSlot(playerB, posA, match)) continue;
+                const trial = { ...current, [posA]: playerB, [posB]: playerA };
+                const trialLineup = buildMatchGamePlanLineupWithZoneAssignment({}, slots, trial);
+                const trialFilled = countMatchGamePlanLineupFilledSlots(trialLineup, slots);
+                const trialScore = scoreMatchGamePlanLineupXiSamspill(trialLineup, options);
+                const candidate = { filled: trialFilled, score: trialScore };
+                const baseline = { filled: currentFilled, score: currentScore };
+                if (!isBetterMatchGamePlanLineSuggestion(candidate, baseline)) continue;
+                current = trial;
+                currentFilled = trialFilled;
+                currentScore = trialScore;
+                improved = true;
+            }
+        }
+
+        slots.forEach((posId) => {
+            const outgoing = current[posId];
+            candidates.forEach((player) => {
+                if (matchGamePlanSamePlayer(player, outgoing)) return;
+                if (slots.some((otherPos) => matchGamePlanSamePlayer(current[otherPos], player))) return;
+                if (!playerFitsSamspillSlot(player, posId, match)) return;
+                const trial = { ...current, [posId]: player };
+                const trialLineup = buildMatchGamePlanLineupWithZoneAssignment({}, slots, trial);
+                const trialFilled = countMatchGamePlanLineupFilledSlots(trialLineup, slots);
+                const trialScore = scoreMatchGamePlanLineupXiSamspill(trialLineup, options);
+                const candidate = { filled: trialFilled, score: trialScore };
+                const baseline = { filled: currentFilled, score: currentScore };
+                if (!isBetterMatchGamePlanLineSuggestion(candidate, baseline)) return;
+                current = trial;
+                currentFilled = trialFilled;
+                currentScore = trialScore;
+                improved = true;
+            });
+        });
+    }
+
+    return current;
+}
+
+function summarizeMatchGamePlanSuggestSwaps(swaps, formationId) {
+    if (!swaps.length) return '';
+    const parts = swaps.map((swap) => describeMatchGamePlanLineSuggestSwap(swap, formationId));
+    if (parts.length <= 4) return parts.join(' · ');
+    return `${parts.length} endringer: ${parts.slice(0, 3).join(' · ')} · …`;
+}
+
+function finalizeMatchGamePlanSuggestResult(match, zoneId, slots, lineup, assignment, opts) {
+    const unchanged = slots.every((posId) => matchGamePlanSamePlayer(lineup[posId], assignment[posId]));
+    if (unchanged) return null;
+
+    const trial = buildMatchGamePlanLineupWithZoneAssignment(lineup, slots, assignment);
+    const filled = countMatchGamePlanLineupFilledSlots(trial, slots);
+    const score = zoneId === 'lag'
+        ? scoreMatchGamePlanLineupXiSamspill(trial, opts)
+        : scoreMatchGamePlanLineupZoneSamspill(trial, slots, opts);
+    const currentFilled = countMatchGamePlanLineupFilledSlots(lineup, slots);
+    const currentScore = zoneId === 'lag'
+        ? scoreMatchGamePlanLineupXiSamspill(lineup, opts)
+        : scoreMatchGamePlanLineupZoneSamspill(lineup, slots, opts);
+    const baseline = { filled: currentFilled, score: currentScore };
+    const candidate = { filled, score };
+    if (!isBetterMatchGamePlanLineSuggestion(candidate, baseline)) return null;
+
+    const { swaps } = diffMatchGamePlanZoneAssignment(lineup, slots, assignment, opts.formationId);
+    if (!swaps.length) return null;
+
+    return {
+        zoneId,
+        slots: [...slots],
+        formationId: opts.formationId,
+        currentScore,
+        currentFilled,
+        score,
+        filled,
+        assignment,
+        swaps,
+        summary: summarizeMatchGamePlanSuggestSwaps(swaps, opts.formationId)
+    };
+}
+
+function computeMatchGamePlanBestXiSuggestion(match) {
+    const slots = getMatchGamePlanSuggestSlots(match, 'lag');
+    if (!slots.length) return null;
+
+    const lineup = cloneMatchGamePlanLineup(getMatchGamePlanDraftLineup(match));
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const opts = {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId
+    };
+    const candidates = collectMatchGamePlanLineSuggestCandidates(match, 'lag', lineup, slots);
+    if (!candidates.length) return null;
+
+    const currentAssignment = Object.fromEntries(slots.map((posId) => [posId, lineup[posId] || null]));
+    const greedyAssignment = buildGreedyMatchGamePlanXiAssignment(match, slots, candidates, opts);
+    const improvedCurrent = improveMatchGamePlanXiAssignment(
+        match,
+        slots,
+        candidates,
+        currentAssignment,
+        opts
+    );
+    const improvedGreedy = improveMatchGamePlanXiAssignment(
+        match,
+        slots,
+        candidates,
+        greedyAssignment,
+        opts
+    );
+
+    const rank = (assignment) => {
+        const trial = buildMatchGamePlanLineupWithZoneAssignment(lineup, slots, assignment);
+        return {
+            filled: countMatchGamePlanLineupFilledSlots(trial, slots),
+            score: scoreMatchGamePlanLineupXiSamspill(trial, opts),
+            assignment
+        };
+    };
+    const bestSeed = [rank(improvedCurrent), rank(improvedGreedy)].reduce((best, item) => (
+        isBetterMatchGamePlanLineSuggestion(item, best) ? item : best
+    ));
+
+    return finalizeMatchGamePlanSuggestResult(match, 'lag', slots, lineup, bestSeed.assignment, opts);
+}
+
+function computeMatchGamePlanBestLineSuggestion(match, zoneId) {
+    if (zoneId === 'lag') return computeMatchGamePlanBestXiSuggestion(match);
+    if (!isMatchGamePlanLineSuggestZone(zoneId)) return null;
+
+    const slots = getMatchGamePlanSuggestSlots(match, zoneId);
+    if (!slots.length) return null;
+
+    const lineup = cloneMatchGamePlanLineup(getMatchGamePlanDraftLineup(match));
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const opts = {
+        ...getMatchGamePlanSamspillFilter(match),
+        formationId
+    };
+    const candidates = collectMatchGamePlanLineSuggestCandidates(match, zoneId, lineup, slots);
+    if (!candidates.length) return null;
+
+    const currentAssignment = Object.fromEntries(slots.map((posId) => [posId, lineup[posId] || null]));
+    const greedyAssignment = buildGreedyMatchGamePlanXiAssignment(match, slots, candidates, opts);
+    const improvedCurrent = improveMatchGamePlanXiAssignment(
+        match,
+        slots,
+        candidates,
+        currentAssignment,
+        opts
+    );
+    const improvedGreedy = improveMatchGamePlanXiAssignment(
+        match,
+        slots,
+        candidates,
+        greedyAssignment,
+        opts
+    );
+
+    const rank = (assignment) => {
+        const trial = buildMatchGamePlanLineupWithZoneAssignment(lineup, slots, assignment);
+        return {
+            filled: countMatchGamePlanLineupFilledSlots(trial, slots),
+            score: scoreMatchGamePlanLineupZoneSamspill(trial, slots, opts),
+            assignment
+        };
+    };
+    const bestSeed = [rank(improvedCurrent), rank(improvedGreedy)].reduce((best, item) => (
+        isBetterMatchGamePlanLineSuggestion(item, best) ? item : best
+    ));
+
+    return finalizeMatchGamePlanSuggestResult(match, zoneId, slots, lineup, bestSeed.assignment, opts);
+}
+
+function clearMatchGamePlanLineSuggestPreview() {
+    document.querySelectorAll('.match-game-plan-lineup-card.is-suggest-target, .match-bench-player.is-suggest-source').forEach((el) => {
+        el.classList.remove('is-suggest-target', 'is-suggest-fill', 'is-suggest-swap', 'is-suggest-source');
+        el.querySelectorAll('.match-game-plan-line-suggest-overlay').forEach((node) => node.remove());
+    });
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    if (builder) builder.classList.remove('is-line-suggest');
+    const bar = document.querySelector('[data-line-suggest-bar]');
+    if (bar) bar.remove();
+}
+
+function buildMatchGamePlanLineSuggestBarHtml(suggestion) {
+    const scoreLabel = suggestion.currentScore == null && suggestion.score == null
+        ? ''
+        : ` (${suggestion.currentScore == null ? '–' : suggestion.currentScore} → ${suggestion.score == null ? '–' : suggestion.score})`;
+    const title = getMatchGamePlanLineSuggestBarTitle(suggestion.zoneId);
+    return `
+        <div class="match-game-plan-line-suggest-bar" data-line-suggest-bar>
+            <p class="match-game-plan-line-suggest-copy">
+                <strong>${escapeMatchHtml(title)}</strong>${escapeMatchHtml(scoreLabel)}:
+                ${escapeMatchHtml(suggestion.summary)}
+            </p>
+            <div class="match-game-plan-line-suggest-actions">
+                <button
+                    type="button"
+                    class="bsk-btn bsk-btn-primary is-collapsible match-game-plan-line-suggest-apply"
+                    data-line-suggest-apply
+                    title="Bruk forslag"
+                    aria-label="Bruk forslag"
+                >
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    <span class="bsk-btn-label">Bruk</span>
+                </button>
+                <button
+                    type="button"
+                    class="bsk-btn bsk-btn-ghost is-collapsible match-game-plan-line-suggest-cancel"
+                    data-line-suggest-cancel
+                    title="Avbryt forslag"
+                    aria-label="Avbryt forslag"
+                >
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    <span class="bsk-btn-label">Avbryt</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function applyMatchGamePlanLineSuggestPreview(match, suggestion) {
+    clearMatchGamePlanLineSuggestPreview();
+    if (!match || !suggestion?.swaps?.length) return;
+
+    const builder = document.querySelector('.match-detail-lineup-builder');
+    if (builder) builder.classList.add('is-line-suggest');
+    const formationId = suggestion.formationId || getMatchGamePlanDraftFormation(match);
+
+    suggestion.swaps.forEach((swap) => {
+        const card = document.querySelector(
+            `.match-detail-lineup-pitch-wrap .match-game-plan-lineup-card[data-game-plan-node="${swap.posId}"]`
+        );
+        if (card) {
+            const isMove = Boolean(swap.fromPosId && swap.fromPosId !== swap.posId);
+            const isFill = !swap.outgoing && !isMove;
+            card.classList.add(
+                'is-suggest-target',
+                isFill ? 'is-suggest-fill' : 'is-suggest-swap'
+            );
+            const visual = card.querySelector('.match-game-plan-lineup-visual');
+            if (visual && !visual.querySelector('.match-game-plan-line-suggest-overlay')) {
+                const overlay = document.createElement('span');
+                overlay.className = 'match-game-plan-line-suggest-overlay';
+                if (isMove) {
+                    const fromLabel = getMatchGamePlanPositionBadgeLabel(swap.fromPosId, formationId);
+                    const toLabel = getMatchGamePlanPositionBadgeLabel(swap.posId, formationId);
+                    overlay.textContent = `${swap.playerName} ${fromLabel}→${toLabel}`;
+                } else if (isFill) {
+                    overlay.textContent = swap.playerName;
+                } else {
+                    overlay.textContent = `${swap.outgoingName} → ${swap.playerName}`;
+                }
+                visual.appendChild(overlay);
+            }
+        }
+
+        if (swap.fromPosId && swap.fromPosId !== swap.posId) {
+            const fromCard = document.querySelector(
+                `.match-detail-lineup-pitch-wrap .match-game-plan-lineup-card[data-game-plan-node="${swap.fromPosId}"]`
+            );
+            if (fromCard) fromCard.classList.add('is-suggest-target', 'is-suggest-swap');
+        }
+
+        const playerId = swap.player?.id;
+        if (playerId) {
+            const benchEl = document.querySelector(
+                `.match-detail-squad-list .match-bench-player[data-player-id="${playerId}"]`
+            );
+            if (benchEl) benchEl.classList.add('is-suggest-source');
+        }
+    });
+
+    const footer = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-footer');
+    if (footer) {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = buildMatchGamePlanLineSuggestBarHtml(suggestion).trim();
+        const bar = wrap.firstElementChild;
+        if (bar) {
+            footer.prepend(bar);
+            bar.querySelector('[data-line-suggest-apply]')?.addEventListener('click', () => {
+                window.applyMatchGamePlanLineSuggest(match.id);
+            });
+            bar.querySelector('[data-line-suggest-cancel]')?.addEventListener('click', () => {
+                window.cancelMatchGamePlanLineSuggest(match.id);
+            });
+        }
+    }
+}
+
+function syncMatchGamePlanLineSuggestUi(match) {
+    const suggestion = getMatchGamePlanLineSuggest(match);
+    if (!suggestion) {
+        clearMatchGamePlanLineSuggestPreview();
+        return;
+    }
+    applyMatchGamePlanLineSuggestPreview(match, suggestion);
+}
+
+window.toggleMatchGamePlanLineSuggest = function(matchId, zoneId) {
+    const match = (window.activeMatches || []).find((item) => item.id === matchId);
+    if (!match || !isMatchGamePlanLineSuggestZone(zoneId)) return;
+
+    const current = getMatchGamePlanLineSuggest(match);
+    if (current?.zoneId === zoneId) {
+        clearMatchGamePlanLineSuggest(match);
+        syncMatchGamePlanPitchSamspillZoneTotals(match);
+        return;
+    }
+
+    const suggestion = computeMatchGamePlanBestLineSuggestion(match, zoneId);
+    if (!suggestion) {
+        clearMatchGamePlanLineSuggest(match);
+        syncMatchGamePlanPitchSamspillZoneTotals(match);
+        setMatchDetailFeedback(
+            '[data-lineup-save-state]',
+            getMatchGamePlanLineSuggestEmptyFeedback(zoneId),
+            'pending',
+            3200
+        );
+        return;
+    }
+
+    setMatchGamePlanLineSuggest(match, suggestion);
+    syncMatchGamePlanPitchSamspillZoneTotals(match);
+};
+
+window.cancelMatchGamePlanLineSuggest = function(matchId) {
+    const match = (window.activeMatches || []).find((item) => item.id === matchId);
+    if (!match) return;
+    clearMatchGamePlanLineSuggest(match);
+    syncMatchGamePlanPitchSamspillZoneTotals(match);
+};
+
+window.applyMatchGamePlanLineSuggest = function(matchId) {
+    const match = (window.activeMatches || []).find((item) => item.id === matchId);
+    const suggestion = getMatchGamePlanLineSuggest(match);
+    if (!match || !suggestion?.assignment) return;
+
+    const slots = suggestion.slots?.length
+        ? suggestion.slots
+        : getMatchGamePlanSuggestSlots(match, suggestion.zoneId);
+    const previousLineup = getMatchGamePlanDraftLineup(match);
+    const draft = getMatchGamePlanDraft(match);
+    const nextLineup = buildMatchGamePlanLineupWithZoneAssignment(
+        previousLineup,
+        slots,
+        suggestion.assignment
+    );
+    const affected = new Set(slots);
+    suggestion.swaps.forEach((swap) => {
+        affected.add(swap.posId);
+        if (swap.fromPosId) affected.add(swap.fromPosId);
+        getMatchGamePlanDraftLineupPosIdsForPlayer(previousLineup, swap.player).forEach((posId) => affected.add(posId));
+        getMatchGamePlanDraftLineupPosIdsForPlayer(previousLineup, swap.outgoing).forEach((posId) => affected.add(posId));
+        getMatchGamePlanDraftLineupPosIdsForPlayer(nextLineup, swap.player).forEach((posId) => affected.add(posId));
+    });
+
+    draft.lineup = nextLineup;
+    clearMatchGamePlanLineSuggest(match);
+    refreshMatchGamePlanLineupAfterChange(match, [...affected]);
+    syncMatchGamePlanLineupSaveState(match);
+};
 
 function getMatchSummaryPlayerMatchRating(match, player) {
     if (!match || !player || typeof window.getPlayerRefMapValue !== 'function') return null;
@@ -7028,6 +7681,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     const draft = getMatchGamePlanDraft(match);
     const previousLineup = getMatchGamePlanDraftLineup(match);
     draft.lineup = assignMatchGamePlanDraftLineupPlayer(previousLineup, posId, selectedPlayer);
+    clearMatchGamePlanLineSuggest(match);
 
     const affectedPosIds = new Set([
         posId,
