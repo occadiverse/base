@@ -1,0 +1,19 @@
+---
+description: Hold Google auth / Firestore access work until the user explicitly asks
+alwaysApply: true
+---
+
+# Google auth hold
+
+Do **not** commit, push, merge, or deploy Google authentication / access-control work unless the user explicitly asks in the current message.
+
+This includes (not exhaustive):
+- Branch `feature/google-auth`
+- `firestore.rules`, `firebase.json`, `docs/google-auth-bootstrap.md`
+- Auth changes in `assets/js/firebase-sync.js`, `assets/js/app-shell.js`, `assets/js/components/navigation.js`
+- Admin/editor invite UI and related write-gating
+- Deploying Firestore rules or enabling Google sign-in in Firebase
+
+If the user asks to “push live” or commit other work on `main`, exclude Google-auth files and do not merge `feature/google-auth`.
+
+When they are ready, they will say so explicitly (e.g. “push Google auth” / “merge feature/google-auth”).
