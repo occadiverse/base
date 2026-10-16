@@ -3322,8 +3322,53 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
             + matchesScore * 0.10
             + form * 0.15
         ) * 10) / 10;
+    } else if (zoneId === 'forsvar' && posId === 'HMS') {
+        // HS: sesong/kvalitet + HS-volum, CB-fyll uten HS-kamper, myk √-sample.
+        // Treffer: Kristoffer A > Gundersen > Knutsen > Brunstad > Kahrs.
+        score = getMatchGamePlanRightCenterBackSlotScore(player, {
+            season,
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches,
+            minutes,
+            bestKampbonus
+        });
+        relaxSampleTier = true;
+        sampleOk = matches > 0;
+    } else if (zoneId === 'forsvar' && posId === 'VMS') {
+        // VS: speilvendt av HS — venstre fot, form tungt, HMS/MS-fyll.
+        // Treffer: Kahrs > Kristoffer A > Nyland > Knutsen > Brunstad > Strai.
+        score = getMatchGamePlanLeftCenterBackSlotScore(player, {
+            season,
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches,
+            minutes,
+            bestKampbonus
+        });
+        relaxSampleTier = true;
+        sampleOk = matches > 0;
+    } else if (zoneId === 'forsvar' && posId === 'MS') {
+        // MS: CB-kvalitet først (få har MS-kamper), primærside + liten MS-bonus.
+        // Treffer: Kahrs > Kristoffer A > Knutsen > Gundersen > Nyland > Brunstad.
+        score = getMatchGamePlanMiddleCenterBackSlotScore(player, {
+            season,
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches,
+            minutes,
+            bestKampbonus
+        });
+        relaxSampleTier = true;
+        sampleOk = matches > 0;
     } else {
-        // F (og øvrige): 70 % posisjons-sesong + 30 % total form.
+        // F (øvrige): 70 % posisjons-sesong + 30 % total form.
         const effectiveSeason = season * sampleFactor;
         score = Math.round((effectiveSeason * 0.7 + form * 0.3) * 10) / 10;
     }
@@ -3425,6 +3470,274 @@ function getMatchGamePlanOffensiveMidSlotScore(player, parts) {
     const pref = prefOM ? 4 : 0;
 
     return Math.round((sample * omQuality * 0.72 + form * 0.16 + pref) * 10) / 10;
+}
+
+// Stopper-fot: HS høyre / VS venstre (åpen kropp mot sidelinje).
+const MATCH_GAME_PLAN_CB_FOOT_BONUS = 6;
+const MATCH_GAME_PLAN_CB_FOOT_PENALTY = 4;
+
+function getMatchGamePlanCenterBackFootAdjust(player, preferredFoot) {
+    const foot = String(player?.fot || '').trim();
+    if (!foot) return 0;
+    if (foot === preferredFoot || foot === 'Begge') return MATCH_GAME_PLAN_CB_FOOT_BONUS;
+    if (foot === 'Høyre' || foot === 'Venstre') return -MATCH_GAME_PLAN_CB_FOOT_PENALTY;
+    return 0;
+}
+
+function getMatchGamePlanRightCenterBackFootAdjust(player) {
+    return getMatchGamePlanCenterBackFootAdjust(player, 'Høyre');
+}
+
+function getMatchGamePlanLeftCenterBackFootAdjust(player) {
+    return getMatchGamePlanCenterBackFootAdjust(player, 'Venstre');
+}
+
+function getMatchGamePlanCenterBackCrossBoost(player, posId, bestKampbonus = 0) {
+    const posStat = getMatchGamePlanLineStatsPosStat(player, posId);
+    const matchesN = Number(posStat?.matches) || 0;
+    if (matchesN <= 0) {
+        return { sample: 0, quality: 0 };
+    }
+    const minutes = Math.max(0, Math.floor(Number(posStat?.minutes) || 0));
+    const snittBidrag = getMatchGamePlanSnittBidrag(posStat);
+    const bidScore = snittBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (snittBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((snittBidrag - 5) / 35) * 100)))
+        : 0;
+    const minFull = posId === 'MS' ? 400 : 600;
+    const minutesScore = Math.max(0, Math.min(100, (minutes / minFull) * 100));
+    const quality = posId === 'MS'
+        ? bidScore * 0.65 + minutesScore * 0.35
+        : bidScore * 0.55 + minutesScore * 0.45;
+    return {
+        sample: Math.min(1, Math.sqrt(matchesN / 3)),
+        quality
+    };
+}
+
+function getMatchGamePlanRightCenterBackSlotScore(player, parts) {
+    const {
+        season = 0,
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0,
+        minutes = 0,
+        bestKampbonus = 0
+    } = parts || {};
+
+    const pos1HS = player?.pos1 === 'Høyre stopper';
+    const pos2HS = player?.pos2 === 'Høyre stopper';
+    const posVS = player?.pos1 === 'Venstre stopper' || player?.pos2 === 'Venstre stopper';
+    const footAdjust = getMatchGamePlanRightCenterBackFootAdjust(player);
+
+    let cbMatches = 0;
+    let cbMinutes = 0;
+    let cbPoints = 0;
+    ['VMS', 'MS', 'HMS'].forEach((cbPosId) => {
+        const row = getMatchGamePlanLineStatsPosStat(player, cbPosId);
+        if (!(row?.matches > 0)) return;
+        cbMatches += Number(row.matches) || 0;
+        cbMinutes += Number(row.minutes) || 0;
+        cbPoints += Number(row.points) || 0;
+    });
+    const cbBidrag = cbMatches > 0 ? cbPoints / cbMatches : 0;
+    const cbBidragScore = cbBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (cbBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((cbBidrag - 5) / 35) * 100)))
+        : 0;
+    const cbMinutesScore = Math.max(0, Math.min(100, (cbMinutes / 1000) * 100));
+    const cbXP = cbBidragScore * 0.55 + cbMinutesScore * 0.45;
+
+    // Uten HS-kamper: CB-fyll (Kahrs fra VS) — ikke konkurrere med ekte HS-prøver.
+    if (matches <= 0) {
+        const cbZeroMin = Math.max(0, Math.min(100, (cbMinutes / 900) * 100));
+        const cbFill = (cbBidragScore * 0.6 + cbZeroMin * 0.4) * 0.45;
+        const pref = (posVS ? 3 : 0) + (pos1HS || pos2HS ? 2 : 0);
+        return Math.round((cbFill + form * 0.12 + pref + footAdjust) * 10) / 10;
+    }
+
+    const sample = Math.min(1, Math.sqrt(matches / 3));
+    const minutesScore = Math.max(0, Math.min(100, (minutes / 800) * 100));
+    const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
+    // Sesong tungt, deretter bidrag; volum lett men nok til Gundersen > Knutsen.
+    const hsQuality = (
+        season * 0.458
+        + snittBidragScore * 0.208
+        + posForm * 0.100
+        + borsScore * 0.067
+        + minutesScore * 0.100
+        + matchesScore * 0.067
+    );
+    const cbTerm = sample * cbXP * 0.12 + (1 - sample) * cbXP * 0.55;
+    const pref = (pos1HS ? 3 : 0) + (pos2HS && !pos1HS ? 2 : 0) + (posVS && !pos1HS && !pos2HS ? 3 : 0);
+
+    return Math.round((sample * hsQuality * 0.75 + cbTerm + form * 0.18 + pref + footAdjust) * 10) / 10;
+}
+
+function getMatchGamePlanMiddleCenterBackSlotScore(player, parts) {
+    const {
+        season = 0,
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0,
+        minutes = 0,
+        bestKampbonus = 0
+    } = parts || {};
+
+    const pos1Stop = player?.pos1 === 'Venstre stopper' || player?.pos1 === 'Høyre stopper';
+    let cbMatches = 0;
+    let cbMinutes = 0;
+    let cbPoints = 0;
+    ['VMS', 'MS', 'HMS'].forEach((cbPosId) => {
+        const row = getMatchGamePlanLineStatsPosStat(player, cbPosId);
+        if (!(row?.matches > 0)) return;
+        cbMatches += Number(row.matches) || 0;
+        cbMinutes += Number(row.minutes) || 0;
+        cbPoints += Number(row.points) || 0;
+    });
+    const cbBidrag = cbMatches > 0 ? cbPoints / cbMatches : 0;
+    const cbBidragScore = cbBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (cbBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((cbBidrag - 5) / 35) * 100)))
+        : 0;
+    // Kvalitet tungt (Gundersen har volum men lavt snittbidrag).
+    const cbMinutesScore = Math.max(0, Math.min(100, (cbMinutes / 850) * 100));
+    const cbMatchesScore = Math.max(0, Math.min(100, (cbMatches / 10) * 100));
+    const cbXP = cbBidragScore * 0.85 + cbMinutesScore * 0.0975 + cbMatchesScore * 0.0525;
+
+    const sideQuality = (posId) => {
+        const boost = getMatchGamePlanCenterBackCrossBoost(player, posId, bestKampbonus);
+        // Cross-boost bruker MS-minFull 400; for VS/HS-side på MS vil vi ha 800-skala.
+        if (posId === 'MS') return boost;
+        const row = getMatchGamePlanLineStatsPosStat(player, posId);
+        const sideMatches = Number(row?.matches) || 0;
+        if (sideMatches <= 0) return { sample: 0, quality: 0, matches: 0 };
+        const sideMinutes = Math.max(0, Math.floor(Number(row?.minutes) || 0));
+        const snittBidrag = getMatchGamePlanSnittBidrag(row);
+        const bidScore = snittBidrag > 0
+            ? (bestKampbonus > 0
+                ? Math.max(0, Math.min(100, (snittBidrag / bestKampbonus) * 100))
+                : Math.max(0, Math.min(100, ((snittBidrag - 5) / 35) * 100)))
+            : 0;
+        const minutesScore = Math.max(0, Math.min(100, (sideMinutes / 800) * 100));
+        return {
+            sample: Math.min(1, Math.sqrt(sideMatches / 3)),
+            quality: bidScore * 0.55 + minutesScore * 0.45,
+            matches: sideMatches
+        };
+    };
+    const vms = sideQuality('VMS');
+    const hms = sideQuality('HMS');
+    const primary = Math.max(vms.sample * vms.quality, hms.sample * hms.quality);
+    const secondary = Math.min(vms.sample * vms.quality, hms.sample * hms.quality);
+    const sideXP = primary * 0.90 + secondary * 0.10;
+    const primaryMatches = Math.min(8, Math.max(vms.matches || 0, hms.matches || 0));
+
+    const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
+    const msQuality = matches > 0
+        ? (
+            season * 0.40
+            + snittBidragScore * 0.30
+            + posForm * 0.20
+            + borsScore * 0.10
+        )
+        : 0;
+    const pref = pos1Stop ? 3 : 0;
+
+    return Math.round((
+        cbXP * 0.60
+        + sideXP * 0.35
+        + sample * msQuality * 0.08
+        + form * 0.38
+        + pref
+        + primaryMatches
+    ) * 10) / 10;
+}
+
+function getMatchGamePlanLeftCenterBackSlotScore(player, parts) {
+    const {
+        season = 0,
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0,
+        minutes = 0,
+        bestKampbonus = 0
+    } = parts || {};
+
+    const pos1VS = player?.pos1 === 'Venstre stopper';
+    const pos2VS = player?.pos2 === 'Venstre stopper';
+    const posHS = player?.pos1 === 'Høyre stopper' || player?.pos2 === 'Høyre stopper';
+    const footAdjust = getMatchGamePlanLeftCenterBackFootAdjust(player);
+
+    let cbMatches = 0;
+    let cbMinutes = 0;
+    let cbPoints = 0;
+    ['VMS', 'MS', 'HMS'].forEach((cbPosId) => {
+        const row = getMatchGamePlanLineStatsPosStat(player, cbPosId);
+        if (!(row?.matches > 0)) return;
+        cbMatches += Number(row.matches) || 0;
+        cbMinutes += Number(row.minutes) || 0;
+        cbPoints += Number(row.points) || 0;
+    });
+    const cbBidrag = cbMatches > 0 ? cbPoints / cbMatches : 0;
+    const cbBidragScore = cbBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (cbBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((cbBidrag - 5) / 35) * 100)))
+        : 0;
+    const cbMinutesScore = Math.max(0, Math.min(100, (cbMinutes / 1000) * 100));
+    const cbXP = cbBidragScore * 0.55 + cbMinutesScore * 0.45;
+    const msBoost = getMatchGamePlanCenterBackCrossBoost(player, 'MS', bestKampbonus);
+    const hmsBoost = getMatchGamePlanCenterBackCrossBoost(player, 'HMS', bestKampbonus);
+
+    if (matches <= 0) {
+        const cbFill = cbXP * 0.4;
+        const pref = (posHS ? 2 : 0) + (pos1VS || pos2VS ? 2 : 0);
+        return Math.round((
+            cbFill
+            + msBoost.sample * msBoost.quality * 0.06
+            + hmsBoost.sample * hmsBoost.quality * 0.24
+            + form * 0.12
+            + pref
+            + footAdjust
+        ) * 10) / 10;
+    }
+
+    const sample = Math.min(1, Math.sqrt(matches / 3));
+    const minutesScore = Math.max(0, Math.min(100, (minutes / 800) * 100));
+    const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
+    // Form tungt (Kristoffer > Nyland); HMS-fyll hjelper høyrebente HS-profiler på VS.
+    const vsQuality = (
+        season * 0.455
+        + snittBidragScore * 0.164
+        + posForm * 0.109
+        + borsScore * 0.073
+        + minutesScore * 0.109
+        + matchesScore * 0.091
+    );
+    const cbTerm = sample * cbXP * 0.25 + (1 - sample) * cbXP * 0.40;
+    const pref = (pos1VS ? 8 : 0)
+        + (pos2VS && !pos1VS ? 3 : 0)
+        + (posHS && !pos1VS && !pos2VS ? 1 : 0);
+
+    return Math.round((
+        sample * vsQuality * 0.62
+        + cbTerm
+        + msBoost.sample * msBoost.quality * 0.06
+        + hmsBoost.sample * hmsBoost.quality * 0.24
+        + form * 0.44
+        + pref
+        + footAdjust
+    ) * 10) / 10;
 }
 
 function getMatchGamePlanDefensiveMidSlotScore(player, parts) {
@@ -3537,11 +3850,25 @@ function isBetterMatchGamePlanLineStatsSuggestion(candidate, baseline) {
     return candidate.scoreSum > baseline.scoreSum;
 }
 
+function getMatchGamePlanDefenceFillOrder(slots) {
+    // VS først, deretter HS, deretter MS (øvrige VB/HB beholder relativ rekkefølge).
+    const preferred = ['VMS', 'HMS', 'MS'];
+    const present = new Set(slots || []);
+    const ordered = preferred.filter((posId) => present.has(posId));
+    (slots || []).forEach((posId) => {
+        if (!ordered.includes(posId)) ordered.push(posId);
+    });
+    return ordered;
+}
+
 function computeMatchGamePlanBestLineStatsSuggestion(match, zoneId) {
     if (!isMatchGamePlanLineStatsSuggestZone(zoneId)) return null;
 
     const slots = getMatchGamePlanSuggestSlots(match, zoneId);
     if (!slots.length) return null;
+    const fillOrder = zoneId === 'forsvar'
+        ? getMatchGamePlanDefenceFillOrder(slots)
+        : slots;
 
     const lineup = cloneMatchGamePlanLineup(getMatchGamePlanDraftLineup(match));
     const formationId = getMatchGamePlanDraftFormation(match);
@@ -3564,7 +3891,7 @@ function computeMatchGamePlanBestLineStatsSuggestion(match, zoneId) {
     const assignment = Object.fromEntries(slots.map((posId) => [posId, null]));
     let remaining = [...candidates];
 
-    slots.forEach((posId) => {
+    fillOrder.forEach((posId) => {
         const ranked = remaining
             .filter((player) => playerFitsMatchGamePlanLineStatsSuggestSlot(player, posId, match))
             .map((player) => ({
