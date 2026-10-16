@@ -3907,6 +3907,17 @@ function getMatchGamePlanDefenceFillOrder(slots) {
     return ordered;
 }
 
+function getMatchGamePlanMidfieldFillOrder(slots) {
+    // PM først, deretter OM, deretter DM.
+    const preferred = ['PM', 'OM', 'DM'];
+    const present = new Set(slots || []);
+    const ordered = preferred.filter((posId) => present.has(posId));
+    (slots || []).forEach((posId) => {
+        if (!ordered.includes(posId)) ordered.push(posId);
+    });
+    return ordered;
+}
+
 function computeMatchGamePlanBestLineStatsSuggestion(match, zoneId) {
     if (!isMatchGamePlanLineStatsSuggestZone(zoneId)) return null;
 
@@ -3914,7 +3925,9 @@ function computeMatchGamePlanBestLineStatsSuggestion(match, zoneId) {
     if (!slots.length) return null;
     const fillOrder = zoneId === 'forsvar'
         ? getMatchGamePlanDefenceFillOrder(slots)
-        : slots;
+        : (zoneId === 'midtbane'
+            ? getMatchGamePlanMidfieldFillOrder(slots)
+            : slots);
 
     const lineup = cloneMatchGamePlanLineup(getMatchGamePlanDraftLineup(match));
     const formationId = getMatchGamePlanDraftFormation(match);
