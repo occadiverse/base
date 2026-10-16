@@ -4327,17 +4327,52 @@ function clearMatchGamePlanLineSuggestPreview() {
     if (bar) bar.remove();
 }
 
+function buildMatchGamePlanLineSuggestPlayerChipHtml(swap, formationId) {
+    const posLabel = getMatchGamePlanPositionBadgeLabel(swap.posId, formationId);
+    const detail = describeMatchGamePlanLineSuggestSwap(swap, formationId);
+    return `
+        <span class="match-game-plan-line-suggest-player" title="${escapeMatchHtml(detail)}">
+            ${buildMatchGamePlanPlayerOptionAvatarHtml(swap.player)}
+            <span class="match-game-plan-line-suggest-player-pos">${escapeMatchHtml(posLabel)}</span>
+        </span>
+    `;
+}
+
+function buildMatchGamePlanLineSuggestOverlayHtml(swap, formationId) {
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(swap.player);
+    const initials = getMatchGamePlanPlayerInitials(swap.player);
+    const posLabel = getMatchGamePlanPositionBadgeLabel(swap.posId, formationId);
+    const detail = describeMatchGamePlanLineSuggestSwap(swap, formationId);
+    const media = photoUrl
+        ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
+        : `<span>${escapeMatchHtml(initials)}</span>`;
+    return `
+        <span class="match-game-plan-line-suggest-overlay is-photo" title="${escapeMatchHtml(detail)}">
+            <span class="match-game-plan-line-suggest-overlay-avatar" aria-hidden="true">${media}</span>
+            <span class="match-game-plan-line-suggest-overlay-pos">${escapeMatchHtml(posLabel)}</span>
+        </span>
+    `;
+}
+
 function buildMatchGamePlanLineSuggestBarHtml(suggestion) {
     const scoreLabel = suggestion.currentScore == null && suggestion.score == null
         ? ''
         : ` (${suggestion.currentScore == null ? '–' : suggestion.currentScore} → ${suggestion.score == null ? '–' : suggestion.score})`;
     const title = getMatchGamePlanLineSuggestBarTitle(suggestion.zoneId);
+    const formationId = suggestion.formationId || '';
+    const playersHtml = (suggestion.swaps || [])
+        .map((swap) => buildMatchGamePlanLineSuggestPlayerChipHtml(swap, formationId))
+        .join('');
     return `
         <div class="match-game-plan-line-suggest-bar" data-line-suggest-bar>
-            <p class="match-game-plan-line-suggest-copy">
-                <strong>${escapeMatchHtml(title)}</strong>${escapeMatchHtml(scoreLabel)}:
-                ${escapeMatchHtml(suggestion.summary)}
-            </p>
+            <div class="match-game-plan-line-suggest-main">
+                <p class="match-game-plan-line-suggest-copy">
+                    <strong>${escapeMatchHtml(title)}</strong>${escapeMatchHtml(scoreLabel)}
+                </p>
+                <div class="match-game-plan-line-suggest-players" aria-label="${escapeMatchHtml(suggestion.summary || 'Foreslåtte spillere')}">
+                    ${playersHtml}
+                </div>
+            </div>
             <div class="match-game-plan-line-suggest-actions">
                 <button
                     type="button"
@@ -4385,18 +4420,10 @@ function applyMatchGamePlanLineSuggestPreview(match, suggestion) {
             );
             const visual = card.querySelector('.match-game-plan-lineup-visual');
             if (visual && !visual.querySelector('.match-game-plan-line-suggest-overlay')) {
-                const overlay = document.createElement('span');
-                overlay.className = 'match-game-plan-line-suggest-overlay';
-                if (isMove) {
-                    const fromLabel = getMatchGamePlanPositionBadgeLabel(swap.fromPosId, formationId);
-                    const toLabel = getMatchGamePlanPositionBadgeLabel(swap.posId, formationId);
-                    overlay.textContent = `${swap.playerName} ${fromLabel}→${toLabel}`;
-                } else if (isFill) {
-                    overlay.textContent = swap.playerName;
-                } else {
-                    overlay.textContent = `${swap.outgoingName} → ${swap.playerName}`;
-                }
-                visual.appendChild(overlay);
+                const wrap = document.createElement('div');
+                wrap.innerHTML = buildMatchGamePlanLineSuggestOverlayHtml(swap, formationId).trim();
+                const overlay = wrap.firstElementChild;
+                if (overlay) visual.appendChild(overlay);
             }
         }
 
