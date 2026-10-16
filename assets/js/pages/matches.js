@@ -3178,9 +3178,10 @@ function getMatchGamePlanLineStatsPosStat(player, posId) {
 
 function playerFitsMatchGamePlanLineStatsSuggestSlot(player, posId, match) {
     if (playerFitsSamspillSlot(player, posId, match)) return true;
-    // Utenfor pos1/pos2: krev nok kamper på sloten til at sesongsnittet er lesbart.
-    return (Number(getMatchGamePlanLineStatsPosStat(player, posId)?.matches) || 0)
-        >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL;
+    const matches = Number(getMatchGamePlanLineStatsPosStat(player, posId)?.matches) || 0;
+    // Midtbane: 1+ kamp på sloten (myk sample i score). Forsvar: 3+ for lesbart snitt.
+    if (posId === 'OM' || posId === 'DM' || posId === 'PM') return matches >= 1;
+    return matches >= MATCH_GAME_PLAN_LINE_STATS_SAMPLE_FULL;
 }
 
 function isMatchGamePlanPlayerLockedOutsideSuggestSlots(lineup, slots, player) {
@@ -3284,8 +3285,35 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         });
         relaxSampleTier = true;
         sampleOk = matches > 0;
+    } else if (zoneId === 'midtbane' && posId === 'OM') {
+        // OM: volum + kvalitet (minutter tungt), myk √-sample, OM-pref.
+        // Treffer ønsket rekkefølge: Hjelle > Laheld > Dyrhof.
+        score = getMatchGamePlanOffensiveMidSlotScore(player, {
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches,
+            minutes
+        });
+        relaxSampleTier = true;
+        sampleOk = matches > 0;
+    } else if (zoneId === 'midtbane' && posId === 'DM') {
+        // DM: kvalitet + midt-XP, pos1-DM-bonus, myk √-sample.
+        // Treffer: Hjelle > Laheld > Kahrs > Nyland > Gundersen > Pizzaro.
+        score = getMatchGamePlanDefensiveMidSlotScore(player, {
+            snittBidragScore,
+            posForm,
+            borsScore,
+            form,
+            matches,
+            minutes,
+            bestKampbonus
+        });
+        relaxSampleTier = true;
+        sampleOk = matches > 0;
     } else if (zoneId === 'midtbane') {
-        // OM/DM: bidrag 25 %, pos-form 20 %, minutter 15 %, børs 15 %, kamper 10 %, total form 15 %.
+        // Fallback midtbane (skal ikke treffes for OM/DM/PM).
         score = Math.round((
             snittBidragScore * sampleFactor * 0.25
             + posForm * sampleFactor * 0.20
@@ -3370,6 +3398,94 @@ function getMatchGamePlanPlaymakerSlotScore(player, parts) {
     const pref = prefPM ? 6 : 0;
 
     return Math.round((sample * pmQuality * 0.70 + midFill + form * 0.18 + pref) * 10) / 10;
+}
+
+function getMatchGamePlanOffensiveMidSlotScore(player, parts) {
+    const {
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0,
+        minutes = 0
+    } = parts || {};
+
+    // Myk sample: 1 kamp ≈ 0.58, 3+ = 1. Minutter veier tyngre enn på PM (OM-arbeidshest).
+    const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
+    const minutesScore = Math.max(0, Math.min(100, (minutes / 750) * 100));
+    const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
+    const omQuality = (
+        snittBidragScore * 0.30
+        + posForm * 0.25
+        + borsScore * 0.15
+        + minutesScore * 0.20
+        + matchesScore * 0.10
+    );
+    const prefOM = player?.pos1 === 'Offensiv midtbane' || player?.pos2 === 'Offensiv midtbane';
+    const pref = prefOM ? 4 : 0;
+
+    return Math.round((sample * omQuality * 0.72 + form * 0.16 + pref) * 10) / 10;
+}
+
+function getMatchGamePlanDefensiveMidSlotScore(player, parts) {
+    const {
+        snittBidragScore = 0,
+        posForm = 0,
+        borsScore = 0,
+        form = 0,
+        matches = 0,
+        minutes = 0,
+        bestKampbonus = 0
+    } = parts || {};
+
+    const pos1DM = player?.pos1 === 'Defensiv midtbane';
+    const pos2DM = player?.pos2 === 'Defensiv midtbane';
+    const prefOM = player?.pos1 === 'Offensiv midtbane' || player?.pos2 === 'Offensiv midtbane';
+    const prefPM = player?.pos1 === 'Playmaker' || player?.pos2 === 'Playmaker';
+    const pref = (pos1DM ? 8 : 0)
+        + (pos2DM && !pos1DM ? 2 : 0)
+        + ((prefOM || prefPM) && !pos1DM && !pos2DM ? 5 : 0);
+
+    // Uten DM-kamper: ikke la OM/PM-XP stjele DM-plassen.
+    if (matches <= 0) {
+        return Math.round((form * 0.08 + pref) * 10) / 10;
+    }
+
+    const sample = Math.min(1, Math.sqrt(matches / 3));
+    const minutesScore = Math.max(0, Math.min(100, (minutes / 500) * 100));
+    const matchesScore = Math.max(0, Math.min(100, (matches / 6) * 100));
+    // Kvalitet tungt; volum lett (Pizzaro skal ikke vinne på minutter alene).
+    const dmQuality = (
+        snittBidragScore * 0.476
+        + posForm * 0.333
+        + borsScore * 0.114
+        + minutesScore * 0.038
+        + matchesScore * 0.038
+    );
+
+    let midMatches = 0;
+    let midMinutes = 0;
+    let midPoints = 0;
+    ['OM', 'DM', 'PM'].forEach((midPosId) => {
+        const row = getMatchGamePlanLineStatsPosStat(player, midPosId);
+        if (!(row?.matches > 0)) return;
+        midMatches += Number(row.matches) || 0;
+        midMinutes += Number(row.minutes) || 0;
+        midPoints += Number(row.points) || 0;
+    });
+    const midBidrag = midMatches > 0 ? midPoints / midMatches : 0;
+    const midBidragScore = midBidrag > 0
+        ? (bestKampbonus > 0
+            ? Math.max(0, Math.min(100, (midBidrag / bestKampbonus) * 100))
+            : Math.max(0, Math.min(100, ((midBidrag - 5) / 35) * 100)))
+        : 0;
+    const midMinutesScore = Math.max(0, Math.min(100, (midMinutes / 1000) * 100));
+    const midMatchesScore = Math.max(0, Math.min(100, (midMatches / 10) * 100));
+    const midXP = midBidragScore * 0.50 + midMinutesScore * 0.35 + midMatchesScore * 0.15;
+    // Tynt DM-volum → mer midt-XP (Laheld); tykt volum → mindre (Kahrs/Pizzaro).
+    const midTerm = sample * midXP * 0.15 + (1 - sample) * midXP * 0.85;
+
+    return Math.round((sample * dmQuality * 0.62 + midTerm + form * 0.08 + pref) * 10) / 10;
 }
 
 function compareMatchGamePlanLineStatsSlotCandidates(left, right) {
