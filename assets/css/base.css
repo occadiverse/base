@@ -14642,6 +14642,8 @@
         .match-detail-page .match-subs-panel.is-game-card .match-subs-panel-body {
             display: grid;
             gap: 1.15rem;
+            max-width: 100%;
+            min-width: 0;
             padding: 0 0.05rem;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log,
@@ -14652,6 +14654,8 @@
             border-radius: 0;
             box-shadow: none;
             margin: 0;
+            max-width: 100%;
+            min-width: 0;
             padding: 0;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time {
@@ -14888,6 +14892,8 @@
             gap: 0.28rem;
             list-style: none;
             margin: 0;
+            max-width: 100%;
+            min-width: 0;
             padding: 0;
         }
         .match-subs-playing-time-row {
@@ -14899,6 +14905,8 @@
             gap: 0.55rem 0.75rem;
             grid-template-columns: minmax(0, 1fr) auto;
             line-height: 1.35;
+            max-width: 100%;
+            min-width: 0;
             padding: 0.18rem 0.1rem;
         }
         .match-subs-playing-time-row.has-positions {
@@ -14929,6 +14937,7 @@
             display: none;
         }
         .match-subs-playing-time-diff {
+            flex-shrink: 0;
             font-size: 0.7rem;
             font-variant-numeric: tabular-nums;
             font-weight: 800;
@@ -14943,8 +14952,34 @@
         }
         .match-subs-playing-time-mins {
             color: #fde68a;
+            flex-shrink: 0;
             font-variant-numeric: tabular-nums;
             font-weight: 900;
+            justify-self: end;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            .match-subs-playing-time-row {
+                column-gap: 0.45rem;
+                font-size: 0.74rem;
+            }
+            .match-subs-playing-time-row.has-positions,
+            .match-subs-playing-time-row.has-positions.has-diff {
+                grid-template-columns: minmax(0, 1fr) auto auto;
+            }
+            .match-subs-playing-time-row.has-positions:not(.has-diff) {
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+            .match-subs-playing-time-positions {
+                grid-column: 1 / -1;
+                text-align: left;
+                white-space: normal;
+                overflow-wrap: anywhere;
+            }
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-list,
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-row {
+                overflow-x: clip;
+            }
         }
         .match-opponent-info-panel {
             background:
