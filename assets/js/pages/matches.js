@@ -9905,6 +9905,14 @@ function getMatchSubsPlayingTimeRows(match) {
                 .sort((a, b) => b.minutes - a.minutes || compareMatchGamePlanPositions(a.posId, b.posId));
         const positionsSum = positions.reduce((sum, entry) => sum + entry.minutes, 0);
         const diff = positions.length ? (positionsSum - minutes) : 0;
+        let positionsLabel = '';
+        if (positions.length === 1) {
+            positionsLabel = positions[0].label || '';
+        } else if (positions.length > 1) {
+            positionsLabel = positions
+                .map((entry) => `${entry.label} ${entry.minutes}'`)
+                .join(' / ');
+        }
         rows.push({
             key,
             name,
@@ -9912,9 +9920,8 @@ function getMatchSubsPlayingTimeRows(match) {
             positions,
             positionsSum,
             diff,
-            positionsLabel: positions.length
-                ? positions.map((entry) => `${entry.label} ${entry.minutes}'`).join('/')
-                : ''
+            positionsLabel,
+            player: player || null
         });
     };
 
@@ -9944,6 +9951,49 @@ function getMatchSubsPlayingTimeRows(match) {
     return rows.sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, 'nb'));
 }
 
+function buildMatchSubsPlayingTimeAvatarHtml(player, name) {
+    const photoUrl = player ? getMatchGamePlanPlayerPhotoUrl(player) : '';
+    const initials = player
+        ? getMatchGamePlanPlayerInitials(player)
+        : String(name || '')
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join('')
+            .toUpperCase() || '?';
+    if (photoUrl) {
+        return `
+            <span class="match-subs-playing-time-avatar is-photo" aria-hidden="true">
+                <img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">
+            </span>
+        `;
+    }
+    return `
+        <span class="match-subs-playing-time-avatar" aria-hidden="true">
+            <span>${escapeMatchHtml(initials)}</span>
+        </span>
+    `;
+}
+
+function buildMatchSubsPlayingTimeBadgesHtml(positions) {
+    if (!Array.isArray(positions) || !positions.length) return '';
+    if (positions.length === 1) {
+        return `
+            <span class="match-subs-playing-time-badge">
+                <span class="match-subs-playing-time-badge-pos">${escapeMatchHtml(positions[0].label || '')}</span>
+            </span>
+        `;
+    }
+    return positions.map((entry) => `
+        <span class="match-subs-playing-time-badge is-stint">
+            <span class="match-subs-playing-time-badge-pos">${escapeMatchHtml(entry.label || '')}</span>
+            <span class="match-subs-playing-time-badge-mins">${escapeMatchHtml(String(entry.minutes))}'</span>
+        </span>
+    `).join('');
+}
+
 function buildMatchSubsPlayingTimeHtml(match) {
     const rows = getMatchSubsPlayingTimeRows(match);
     if (!rows.length) {
@@ -9965,7 +10015,8 @@ function buildMatchSubsPlayingTimeHtml(match) {
             </div>
             <ul class="match-subs-playing-time-list">
                 ${rows.map((row) => {
-                    const hasPositions = Boolean(row.positionsLabel);
+                    const hasPositions = Array.isArray(row.positions) && row.positions.length > 0;
+                    const isMulti = hasPositions && row.positions.length > 1;
                     const hasDiff = hasPositions && row.diff !== 0;
                     const diffTone = row.diff > 0 ? 'is-over' : (row.diff < 0 ? 'is-under' : '');
                     const diffLabel = row.diff > 0
@@ -9976,16 +10027,24 @@ function buildMatchSubsPlayingTimeHtml(match) {
                             ? `Bytter ${row.diff} min mer enn total`
                             : `Bytter ${Math.abs(row.diff)} min mindre enn total`)
                         : '';
+                    const badgesHtml = hasPositions
+                        ? buildMatchSubsPlayingTimeBadgesHtml(row.positions)
+                        : '';
                     return `
-                    <li class="match-subs-playing-time-row${hasPositions ? ' has-positions' : ''}${hasDiff ? ' has-diff' : ''}">
-                        <span class="match-subs-playing-time-name">${escapeMatchHtml(row.name)}</span>
-                        ${hasPositions
-                            ? `<span class="match-subs-playing-time-positions">${escapeMatchHtml(row.positionsLabel)}</span>`
-                            : '<span class="match-subs-playing-time-positions" aria-hidden="true"></span>'}
-                        ${hasDiff
-                            ? `<span class="match-subs-playing-time-diff ${diffTone}" title="${escapeMatchHtml(diffAria)}" aria-label="${escapeMatchHtml(diffAria)}">${escapeMatchHtml(diffLabel)}</span>`
-                            : '<span class="match-subs-playing-time-diff" aria-hidden="true"></span>'}
-                        <span class="match-subs-playing-time-mins">${escapeMatchHtml(String(row.minutes))}'</span>
+                    <li class="match-subs-playing-time-row is-game-row${hasPositions ? ' has-positions' : ''}${isMulti ? ' is-multi' : ' is-single'}${hasDiff ? ' has-diff' : ''}">
+                        <div class="match-subs-playing-time-player">
+                            ${buildMatchSubsPlayingTimeAvatarHtml(row.player, row.name)}
+                            <span class="match-subs-playing-time-name">${escapeMatchHtml(row.name)}</span>
+                        </div>
+                        <div class="match-subs-playing-time-badges" aria-label="${escapeMatchHtml(row.positionsLabel || 'Posisjoner')}">
+                            ${badgesHtml}
+                        </div>
+                        <div class="match-subs-playing-time-total">
+                            ${hasDiff
+                                ? `<span class="match-subs-playing-time-diff ${diffTone}" title="${escapeMatchHtml(diffAria)}" aria-label="${escapeMatchHtml(diffAria)}">${escapeMatchHtml(diffLabel)}</span>`
+                                : ''}
+                            <span class="match-subs-playing-time-mins">${escapeMatchHtml(String(row.minutes))}<span class="match-subs-playing-time-mins-unit">'</span></span>
+                        </div>
                     </li>`;
                 }).join('')}
             </ul>

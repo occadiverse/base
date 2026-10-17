@@ -14708,11 +14708,6 @@
             color: #ffe08a;
             font-weight: 900;
         }
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-name,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-positions,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-mins {
-            color: #ffffff;
-        }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-actions {
             align-items: center;
             display: flex;
@@ -14893,59 +14888,124 @@
         }
         .match-subs-playing-time-list {
             display: grid;
-            gap: 0.28rem;
+            gap: 0.4rem;
             list-style: none;
             margin: 0;
             max-width: 100%;
             min-width: 0;
             padding: 0;
         }
-        .match-subs-playing-time-row {
-            align-items: baseline;
+        .match-subs-playing-time-row.is-game-row {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(245, 197, 66, 0.14);
+            border-radius: 0.75rem;
             color: #ffffff;
             display: grid;
-            font-size: 0.78rem;
-            font-weight: 650;
-            gap: 0.55rem 0.75rem;
-            grid-template-columns: minmax(0, 1fr) auto;
-            line-height: 1.35;
+            gap: 0.45rem 0.55rem;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
             max-width: 100%;
             min-width: 0;
-            padding: 0.18rem 0.1rem;
+            padding: 0.4rem 0.5rem;
         }
-        .match-subs-playing-time-row.has-positions {
-            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto;
+        .match-subs-playing-time-row.is-game-row:not(.has-positions) {
+            grid-template-columns: minmax(0, 1fr) auto;
         }
-        .match-subs-playing-time-row.has-positions.has-diff {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) 2.4rem auto;
-        }
-        .match-subs-playing-time-name {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .match-subs-playing-time-positions {
-            color: #ffffff;
-            font-size: 0.7rem;
-            font-variant-numeric: tabular-nums;
-            font-weight: 700;
-            min-width: 0;
-            overflow: hidden;
-            text-align: right;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .match-subs-playing-time-row:not(.has-positions) .match-subs-playing-time-positions,
-        .match-subs-playing-time-row:not(.has-diff) .match-subs-playing-time-diff {
+        .match-subs-playing-time-row.is-game-row:not(.has-positions) .match-subs-playing-time-badges {
             display: none;
         }
-        .match-subs-playing-time-diff {
-            flex-shrink: 0;
-            font-size: 0.7rem;
+        .match-subs-playing-time-player {
+            align-items: center;
+            display: flex;
+            gap: 0.45rem;
+            min-width: 0;
+        }
+        .match-subs-playing-time-avatar {
+            align-items: center;
+            background:
+                radial-gradient(circle at 35% 28%, #ffe9a8 0%, #f5c542 42%, #b8840f 78%, #7a5608 100%);
+            border: 1.5px solid rgba(255, 248, 220, 0.7);
+            border-radius: 999px;
+            box-shadow:
+                0 2px 0 #6b4a0c,
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            color: #10233f;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.58rem;
+            font-weight: 950;
+            height: 1.85rem;
+            justify-content: center;
+            overflow: hidden;
+            width: 1.85rem;
+        }
+        .match-subs-playing-time-avatar.is-photo {
+            background: #0a1a30;
+        }
+        .match-subs-playing-time-avatar img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-subs-playing-time-name {
+            color: #fff6d6;
+            font-size: 0.78rem;
+            font-weight: 850;
+            letter-spacing: 0.01em;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+            white-space: nowrap;
+        }
+        .match-subs-playing-time-badges {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+        .match-subs-playing-time-badge {
+            align-items: center;
+            background: linear-gradient(180deg, rgba(245, 197, 66, 0.28) 0%, rgba(245, 197, 66, 0.12) 100%);
+            border: 1px solid rgba(245, 197, 66, 0.45);
+            border-radius: 0.5rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            color: #ffe08a;
+            display: inline-flex;
+            flex: 0 1 auto;
+            gap: 0.22rem;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.22rem 0.42rem;
+        }
+        .match-subs-playing-time-badge-pos {
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .match-subs-playing-time-badge-mins {
+            color: #ffffff;
+            font-size: 0.66rem;
             font-variant-numeric: tabular-nums;
             font-weight: 800;
-            text-align: right;
+            line-height: 1;
+        }
+        .match-subs-playing-time-total {
+            align-items: baseline;
+            display: inline-flex;
+            flex: 0 0 auto;
+            gap: 0.28rem;
+            justify-content: flex-end;
+        }
+        .match-subs-playing-time-diff {
+            font-size: 0.66rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
             white-space: nowrap;
         }
         .match-subs-playing-time-diff.is-over {
@@ -14956,32 +15016,42 @@
         }
         .match-subs-playing-time-mins {
             color: #ffffff;
-            flex-shrink: 0;
+            font-size: 1.05rem;
             font-variant-numeric: tabular-nums;
-            font-weight: 900;
-            justify-self: end;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             white-space: nowrap;
         }
+        .match-subs-playing-time-mins-unit {
+            font-size: 0.72em;
+            font-weight: 900;
+            opacity: 0.85;
+        }
         @media (max-width: 640px) {
-            .match-subs-playing-time-row {
-                column-gap: 0.4rem;
-                font-size: 0.74rem;
+            .match-subs-playing-time-row.is-game-row {
+                column-gap: 0.35rem;
+                padding: 0.35rem 0.4rem;
             }
-            .match-subs-playing-time-row.has-positions {
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) auto;
+            .match-subs-playing-time-avatar {
+                height: 1.7rem;
+                width: 1.7rem;
             }
-            .match-subs-playing-time-row.has-positions.has-diff {
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 2rem auto;
+            .match-subs-playing-time-name {
+                font-size: 0.72rem;
             }
-            .match-subs-playing-time-name,
-            .match-subs-playing-time-positions {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+            .match-subs-playing-time-badge {
+                padding: 0.18rem 0.34rem;
             }
-            .match-subs-playing-time-positions {
-                font-size: 0.66rem;
-                text-align: left;
+            .match-subs-playing-time-badge-pos {
+                font-size: 0.62rem;
+            }
+            .match-subs-playing-time-badge-mins {
+                font-size: 0.6rem;
+            }
+            .match-subs-playing-time-mins {
+                font-size: 0.95rem;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-list,
             .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-row {
