@@ -6805,6 +6805,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </div>
                 </div>
             `;
+            if (typeof window.autosizeMatchCoachNotesFields === 'function') {
+                requestAnimationFrame(() => window.autosizeMatchCoachNotesFields(container));
+            }
         };
 
         window.openTacticalPlanForMatch = function(matchId) {

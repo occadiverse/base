@@ -14432,6 +14432,399 @@
             margin-top: 0.75rem;
             min-height: 1.2rem;
         }
+
+        /* Clash-spillkort — Trenernotater + Bytter og Spilletid (få lag inni). */
+        .match-detail-page .match-coach-notes-panel.is-game-card,
+        .match-detail-page .match-subs-panel.is-game-card {
+            background:
+                radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
+                radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.38), transparent 55%),
+                radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
+                linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
+            border: 3.5px solid #f5c542;
+            border-radius: 1.25rem;
+            box-shadow:
+                0 0 0 2px #0a1a30,
+                0 0 0 5px rgba(196, 146, 20, 0.55),
+                0 20px 40px rgba(2, 6, 23, 0.42),
+                inset 0 3px 0 rgba(255, 255, 255, 0.28),
+                inset 0 -16px 36px rgba(0, 0, 0, 0.38);
+            padding: 0.9rem 1.05rem 1.1rem;
+            position: relative;
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card::before,
+        .match-detail-page .match-subs-panel.is-game-card::before {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 248, 220, 0.2) 18%,
+                #ffe08a 50%,
+                rgba(255, 248, 220, 0.2) 82%,
+                transparent 100%
+            );
+            box-shadow: 0 0 12px rgba(245, 197, 66, 0.45);
+            content: "";
+            height: 3.5px;
+            left: 8%;
+            pointer-events: none;
+            position: absolute;
+            right: 8%;
+            top: 0;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .match-detail-page .match-coach-notes-panel.is-game-card:hover,
+            .match-detail-page .match-subs-panel.is-game-card:hover {
+                border-color: #ffd76a;
+                box-shadow:
+                    0 0 0 2px #0a1a30,
+                    0 0 0 5px rgba(224, 176, 32, 0.7),
+                    0 22px 42px rgba(2, 6, 23, 0.45),
+                    inset 0 3px 0 rgba(255, 255, 255, 0.32),
+                    inset 0 -16px 36px rgba(0, 0, 0, 0.38);
+            }
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-topline {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 0.95rem;
+            cursor: pointer;
+            margin: -0.15rem -0.15rem 1.05rem;
+            overflow: hidden;
+            padding: 0.55rem 0.65rem 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline::after,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-topline::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0.35rem;
+            position: absolute;
+            right: 0.35rem;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading,
+        .match-detail-page .match-subs-panel.is-game-card .match-bench-heading {
+            gap: 0.65rem;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading h3,
+        .match-detail-page .match-subs-panel.is-game-card .match-bench-heading h3 {
+            color: #ffe9a8;
+            font-size: clamp(1.22rem, 3.4vw, 1.45rem);
+            font-weight: 950;
+            letter-spacing: 0.07em;
+            text-shadow:
+                0 2px 0 #0a1a30,
+                0 3px 0 rgba(122, 86, 8, 0.55),
+                0 0 22px rgba(255, 214, 102, 0.45);
+            text-transform: uppercase;
+        }
+        .match-detail-page .is-game-card .match-game-card-crest {
+            align-items: center;
+            background:
+                radial-gradient(circle at 35% 28%, #ffe9a8 0%, #f5c542 42%, #b8840f 78%, #7a5608 100%);
+            border: 2px solid rgba(255, 248, 220, 0.7);
+            border-radius: 999px;
+            box-shadow:
+                0 3px 0 #6b4a0c,
+                inset 0 2px 0 rgba(255, 255, 255, 0.45),
+                0 0 14px rgba(245, 197, 66, 0.35);
+            color: #10233f;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.95rem;
+            height: 2.15rem;
+            justify-content: center;
+            width: 2.15rem;
+        }
+        .match-detail-page .is-game-card .match-game-card-crest i {
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(255, 248, 220, 0.35);
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-body,
+        .match-detail-page .match-subs-panel.is-game-card .match-collapsible-content {
+            position: relative;
+            z-index: 1;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields {
+            gap: 1.15rem;
+            padding: 0 0.05rem;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > div {
+            background: none;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-label {
+            align-items: center;
+            background: none;
+            border: 0;
+            border-radius: 0;
+            color: #ffe08a;
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 950;
+            gap: 0.4rem;
+            letter-spacing: 0.14em;
+            margin-bottom: 0.4rem;
+            padding: 0;
+            text-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.65),
+                0 0 12px rgba(245, 197, 66, 0.35);
+            text-transform: uppercase;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-label i {
+            color: #ffe08a;
+            flex: 0 0 auto;
+            font-size: 0.85rem;
+            line-height: 1;
+            text-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.7),
+                0 0 10px rgba(245, 197, 66, 0.4);
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-label span {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field,
+        .match-coach-notes-field {
+            field-sizing: content;
+            height: auto;
+            min-height: 4.6rem;
+            overflow: hidden;
+            resize: none;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field {
+            background:
+                linear-gradient(180deg, rgba(2, 8, 18, 0.72) 0%, rgba(6, 22, 42, 0.55) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.42);
+            border-radius: 0.7rem;
+            box-shadow:
+                inset 0 4px 10px rgba(0, 0, 0, 0.45),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.08);
+            color: #fff8e7;
+            font-weight: 650;
+            padding: 0.7rem 0.8rem;
+            transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field::placeholder {
+            color: rgba(255, 236, 170, 0.32);
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus {
+            background:
+                linear-gradient(180deg, rgba(4, 14, 28, 0.8) 0%, rgba(10, 36, 64, 0.65) 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 4px 10px rgba(0, 0, 0, 0.4),
+                0 0 0 3px rgba(245, 197, 66, 0.22),
+                0 0 18px rgba(245, 197, 66, 0.18);
+            outline: none;
+            transform: none;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-footer {
+            position: relative;
+            z-index: 1;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-panel-body {
+            display: grid;
+            gap: 1.15rem;
+            padding: 0 0.05rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-empty,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time {
+            background: none;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time {
+            border-top: 1px solid rgba(245, 197, 66, 0.22);
+            padding-top: 1rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-section-heading {
+            align-items: center;
+            color: #ffe08a;
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 950;
+            gap: 0.4rem;
+            letter-spacing: 0.14em;
+            margin-bottom: 0.45rem;
+            text-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.65),
+                0 0 12px rgba(245, 197, 66, 0.35);
+            text-transform: uppercase;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-section-heading i {
+            color: #ffe08a;
+            flex: 0 0 auto;
+            font-size: 0.85rem;
+            line-height: 1;
+            text-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.7),
+                0 0 10px rgba(245, 197, 66, 0.4);
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-section-heading span {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-empty {
+            color: rgba(255, 248, 220, 0.72);
+            display: grid;
+            gap: 0.3rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item {
+            border: 1px solid transparent;
+            border-radius: 0.7rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item:hover,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item:focus-visible {
+            background: rgba(245, 197, 66, 0.1);
+            border-color: rgba(245, 197, 66, 0.28);
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-minute,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-mins {
+            color: #ffe08a;
+            font-weight: 900;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-actions {
+            align-items: center;
+            display: flex;
+            gap: 0.55rem;
+            justify-content: space-between;
+            margin-top: 0.65rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-hint-field {
+            align-items: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0.28) 0%,
+                    rgba(255, 255, 255, 0.12) 46%,
+                    rgba(255, 255, 255, 0.04) 54%,
+                    rgba(255, 255, 255, 0.03) 100%
+                );
+            border: 1px solid rgba(210, 235, 255, 0.26);
+            border-radius: 0.7rem;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                inset 0 -1px 0 rgba(8, 28, 56, 0.12);
+            display: flex;
+            flex: 1 1 auto;
+            height: 2.15rem;
+            min-height: 2.15rem;
+            min-width: 0;
+            overflow: hidden;
+            padding: 0 0.75rem;
+            position: relative;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-hint-field::before {
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.34) 0%,
+                rgba(255, 255, 255, 0.08) 70%,
+                transparent 100%
+            );
+            content: "";
+            height: 50%;
+            left: 0;
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-hint-field .match-subs-log-hint {
+            color: rgba(235, 244, 255, 0.78);
+            flex: 1 1 auto;
+            font-size: 0.68rem;
+            font-weight: 650;
+            letter-spacing: 0.01em;
+            line-height: 1.25;
+            margin: 0;
+            min-width: 0;
+            overflow: hidden;
+            position: relative;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            z-index: 1;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-save-state {
+            margin: 0.35rem 0 0;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn {
+            align-items: center;
+            background:
+                linear-gradient(180deg, #5eb0ff 0%, #2f78d8 42%, #1a4f9e 100%);
+            border: 2px solid rgba(210, 235, 255, 0.75);
+            border-radius: 0.7rem;
+            box-shadow:
+                0 0 0 1.5px #0f2f5c,
+                0 3px 0 #0a2244,
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            color: #f4f9ff;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 2.15rem;
+            justify-content: center;
+            padding: 0;
+            transition: box-shadow 120ms ease, background 120ms ease, transform 120ms ease;
+            width: 2.15rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn i {
+            color: #f4f9ff;
+            font-size: 0.9rem;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:hover {
+            background:
+                linear-gradient(180deg, #7ec2ff 0%, #3d8aec 48%, #2460b8 100%);
+            box-shadow:
+                0 0 0 1.5px #143a6e,
+                0 3px 0 #0f2f5c,
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:active {
+            box-shadow:
+                0 0 0 1.5px #0a2244,
+                0 1px 0 #07182f,
+                inset 0 2px 4px rgba(0, 0, 0, 0.28);
+            transform: translateY(2px);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .match-detail-page .match-coach-notes-panel.is-game-card,
+            .match-detail-page .match-subs-panel.is-game-card,
+            .match-detail-page .match-coach-notes-panel.is-game-card .portal-field,
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn {
+                transition: none;
+            }
+            .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus,
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:active {
+                transform: none;
+            }
+        }
+
         .match-stats-panel {
             background:
                 radial-gradient(circle at 92% 0%, rgba(245, 197, 66, 0.13), transparent 28%),

@@ -8410,6 +8410,18 @@ window.deleteMatchGamePlanTemplatePrompt = function(matchId) {
     doDelete();
 };
 
+window.autosizeMatchCoachNoteField = function(el) {
+    if (!el || el.tagName !== 'TEXTAREA') return;
+    el.style.height = '0px';
+    el.style.height = `${Math.max(el.scrollHeight, 1)}px`;
+};
+
+window.autosizeMatchCoachNotesFields = function(root = document) {
+    if (!root || typeof root.querySelectorAll !== 'function') return;
+    root.querySelectorAll('textarea[data-match-note-positive], textarea[data-match-note-challenge]')
+        .forEach((el) => window.autosizeMatchCoachNoteField(el));
+};
+
 window.buildMatchCoachNotesFieldsHtml = function(match) {
     if (!match || !match.id) return '';
 
@@ -8421,23 +8433,31 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
     return `
         <div class="match-coach-notes-fields" data-match-notes-form="${matchId}">
             <div>
-                <label class="portal-label">Positivt</label>
+                <label class="portal-label">
+                    <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>
+                    <span>Positivt</span>
+                </label>
                 <textarea
                     rows="2"
                     data-match-note-positive="${matchId}"
                     placeholder="Hva fungerte bra i denne kampen?"
+                    oninput="window.autosizeMatchCoachNoteField(this)"
                     onblur="saveMatchSummaryNotes('${matchIdJs}', this)"
-                    class="portal-field portal-textarea-sm"
+                    class="portal-field portal-textarea-sm match-coach-notes-field"
                 >${positiveNote}</textarea>
             </div>
             <div>
-                <label class="portal-label">Utfordringer</label>
+                <label class="portal-label">
+                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <span>Utfordringer</span>
+                </label>
                 <textarea
                     rows="2"
                     data-match-note-challenge="${matchId}"
                     placeholder="Hva må vi forbedre eller følge opp?"
+                    oninput="window.autosizeMatchCoachNoteField(this)"
                     onblur="saveMatchSummaryNotes('${matchIdJs}', this)"
-                    class="portal-field portal-textarea-sm"
+                    class="portal-field portal-textarea-sm match-coach-notes-field"
                 >${challengeNote}</textarea>
             </div>
         </div>
@@ -8696,14 +8716,24 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-coach-notes-panel match-collapsible-panel ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
-            <div class="match-bench-action-row match-bench-topline match-coach-notes-topline" onclick="window.onMatchPanelToplineClick(event)">
+        <section class="match-coach-notes-panel match-collapsible-panel is-game-card ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
+            <div
+                class="match-bench-action-row match-bench-topline match-coach-notes-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}"
+                aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}"
+                data-show-label="Vis trenernotater"
+                data-hide-label="Skjul trenernotater"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
                 <div class="match-bench-heading">
+                    <span class="match-game-card-crest" aria-hidden="true">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </span>
                     <h3>Trenernotater</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}" aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}" data-show-label="Vis trenernotater" data-hide-label="Skjul trenernotater">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
             </div>
             <div class="match-collapsible-content">
                 <div class="match-coach-notes-body">
@@ -8715,25 +8745,28 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-subs-panel match-collapsible-panel ${isSubsPanelOpen ? '' : 'is-collapsed'}" data-match-panel="bytter">
-            <div class="match-bench-action-row match-bench-topline match-subs-topline" onclick="window.onMatchPanelToplineClick(event)">
+        <section class="match-subs-panel match-collapsible-panel is-game-card ${isSubsPanelOpen ? '' : 'is-collapsed'}" data-match-panel="bytter">
+            <div
+                class="match-bench-action-row match-bench-topline match-subs-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}"
+                aria-label="${isSubsPanelOpen ? 'Skjul bytter og spilletid' : 'Vis bytter og spilletid'}"
+                data-show-label="Vis bytter og spilletid"
+                data-hide-label="Skjul bytter og spilletid"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
                 <div class="match-bench-heading">
+                    <span class="match-game-card-crest" aria-hidden="true">
+                        <i class="fa-solid fa-right-left"></i>
+                    </span>
                     <h3>Bytter og Spilletid</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}" aria-label="${isSubsPanelOpen ? 'Skjul bytter og spilletid' : 'Vis bytter og spilletid'}" data-show-label="Vis bytter og spilletid" data-hide-label="Skjul bytter og spilletid">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
             </div>
             <div class="match-collapsible-content">
                 <div class="match-subs-panel-body" id="kampdetaljer-bytter">
                     ${buildMatchSubsPanelBodyHtml(match)}
-                </div>
-                <div class="match-stats-footer match-subs-footer">
-                    <p class="match-inline-status match-subs-save-state" data-subs-save-state aria-live="polite" hidden></p>
-                    <button type="button" onclick="window.saveMatchSubsPanel()" class="match-bench-action-btn match-stats-save-btn">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        <span>Lagre</span>
-                    </button>
                 </div>
             </div>
         </section>
@@ -8801,6 +8834,7 @@ window.showMatchDetails = function(id) {
         removeMatchGamePlanSamspillPanelsDom();
         syncMatchGamePlanLineupOverlayUi(match);
         syncMatchDetailSquadCardSizeToPitch();
+        window.autosizeMatchCoachNotesFields(container);
         if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
             window.drawMatchGamePlanChemistryLines(match);
         }
@@ -9789,11 +9823,35 @@ function buildMatchLiveSubsLogHtml(match) {
 
     return `
         <div class="match-subs-log" aria-label="Bytter fra Live">
+            <div class="match-subs-section-heading">
+                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                <span>Bytter</span>
+            </div>
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
-            <p class="match-subs-log-hint">Trykk en rad for å redigere. Lagre oppdaterer Live-byttene.</p>
+            ${buildMatchSubsLogSaveRowHtml('Trykk en rad for å redigere. Lagre oppdaterer Live-byttene.')}
         </div>
+    `;
+}
+
+function buildMatchSubsLogSaveRowHtml(hintText) {
+    return `
+        <div class="match-subs-log-actions">
+            <div class="match-subs-hint-field">
+                <p class="match-subs-log-hint">${escapeMatchHtml(hintText)}</p>
+            </div>
+            <button
+                type="button"
+                class="match-subs-save-icon-btn"
+                onclick="window.saveMatchSubsPanel()"
+                title="Lagre bytter"
+                aria-label="Lagre bytter"
+            >
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p class="match-inline-status match-subs-save-state" data-subs-save-state aria-live="polite" hidden></p>
     `;
 }
 
@@ -9891,14 +9949,20 @@ function buildMatchSubsPlayingTimeHtml(match) {
     if (!rows.length) {
         return `
             <div class="match-subs-playing-time" aria-label="Spilletid">
-                <div class="match-subs-playing-time-heading">Spilletid</div>
+                <div class="match-subs-section-heading match-subs-playing-time-heading">
+                    <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
+                    <span>Spilletid</span>
+                </div>
                 <p class="match-subs-log-hint">Ingen spilletid registrert ennå.</p>
             </div>
         `;
     }
     return `
         <div class="match-subs-playing-time" aria-label="Spilletid">
-            <div class="match-subs-playing-time-heading">Spilletid</div>
+            <div class="match-subs-section-heading match-subs-playing-time-heading">
+                <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
+                <span>Spilletid</span>
+            </div>
             <ul class="match-subs-playing-time-list">
                 ${rows.map((row) => {
                     const hasPositions = Boolean(row.positionsLabel);
@@ -9934,8 +9998,12 @@ function buildMatchSubsPanelBodyHtml(match) {
     return `
         ${subsHtml || `
             <div class="match-subs-log-empty">
+                <div class="match-subs-section-heading">
+                    <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                    <span>Bytter</span>
+                </div>
                 <p>Ingen bytter registrert ennå.</p>
-                <p class="match-subs-log-hint">Live-bytter vises her. Lagre synker Live til denne loggen.</p>
+                ${buildMatchSubsLogSaveRowHtml('Live-bytter vises her. Lagre synker Live til denne loggen.')}
             </div>
         `}
         ${buildMatchSubsPlayingTimeHtml(match)}
@@ -11508,14 +11576,15 @@ function getMatchDetailsPanelId(panel) {
 function setMatchDetailsPanelCollapsed(panel, collapsed) {
     if (!panel) return;
     panel.classList.toggle('is-collapsed', collapsed);
-    const toggle = panel.querySelector('.match-panel-toggle-btn');
-    if (!toggle) return;
-    toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    toggle.setAttribute(
+    const control = panel.querySelector('.match-panel-toggle-btn')
+        || panel.querySelector('.match-bench-topline[aria-expanded]');
+    if (!control) return;
+    control.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    control.setAttribute(
         'aria-label',
         collapsed
-            ? (toggle.dataset.showLabel || 'Vis seksjon')
-            : (toggle.dataset.hideLabel || 'Skjul seksjon')
+            ? (control.dataset.showLabel || 'Vis seksjon')
+            : (control.dataset.hideLabel || 'Skjul seksjon')
     );
 }
 
@@ -11544,19 +11613,19 @@ window.onMatchPanelToplineClick = function(event) {
         return;
     }
 
-    const toggle = interactive?.classList.contains('match-panel-toggle-btn')
-        ? interactive
-        : topline.querySelector('.match-panel-toggle-btn');
-    if (!toggle) return;
+    const panel = topline.closest('.match-collapsible-panel');
+    if (!panel) return;
 
     if (interactive?.classList.contains('match-panel-toggle-btn')) {
         event.preventDefault();
     }
-    window.toggleMatchPanel(toggle);
+    window.toggleMatchPanel(panel);
 };
 
-window.toggleMatchPanel = function(btn) {
-    const panel = btn?.closest('.match-collapsible-panel');
+window.toggleMatchPanel = function(btnOrPanel) {
+    const panel = btnOrPanel?.classList?.contains('match-collapsible-panel')
+        ? btnOrPanel
+        : btnOrPanel?.closest('.match-collapsible-panel');
     if (!panel) return;
 
     const panelId = getMatchDetailsPanelId(panel);
@@ -11593,6 +11662,10 @@ window.toggleMatchPanel = function(btn) {
             window.initMatchGamePlanScroller();
             window.syncMatchGamePlanScroller();
         });
+    }
+
+    if (shouldOpen && panelId === 'trenernotater') {
+        requestAnimationFrame(() => window.autosizeMatchCoachNotesFields(panel));
     }
 
     if (shouldOpen && isPairPanel) {
@@ -11638,10 +11711,9 @@ window.openMatchDetailsPanelFromSummary = function(cardId, matchId) {
     }
 
     const panel = document.querySelector(`#kampdetaljer-info [data-match-panel="${id}"]`);
-    const toggle = panel?.querySelector('.match-panel-toggle-btn');
-    if (!toggle) return;
+    if (!panel) return;
     if (panel.classList.contains('is-collapsed')) {
-        window.toggleMatchPanel(toggle);
+        window.toggleMatchPanel(panel);
     }
     requestAnimationFrame(() => {
         if (typeof panel.scrollIntoView === 'function') {
