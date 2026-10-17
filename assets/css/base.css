@@ -14849,11 +14849,14 @@
             display: grid;
             font-size: 0.8rem;
             font-weight: 750;
-            gap: 0.35rem 0.4rem;
-            grid-template-columns: 2.55rem auto minmax(0, 1fr);
+            gap: 0.35rem 0.45rem;
+            grid-template-columns: 2.55rem auto minmax(0, 1fr) auto;
             max-width: 100%;
             min-width: 0;
-            padding: 0.45rem 0.55rem;
+            padding: 0.4rem 0.5rem;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:not(:has(> .match-subs-log-pos:last-child)) {
+            grid-template-columns: 2.55rem auto minmax(0, 1fr);
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:hover,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:focus-visible {
@@ -14877,10 +14880,10 @@
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-body {
             align-items: center;
             display: grid;
-            gap: 0.3rem 0.85rem;
+            gap: 0.35rem 0.55rem;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             min-width: 0;
-            overflow: hidden;
+            width: 100%;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-player {
             align-items: center;
@@ -14899,14 +14902,15 @@
             justify-self: start;
             text-align: left;
         }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-player.is-empty {
+            height: 2.15rem;
+            width: 2.15rem;
+        }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-body .match-subs-playing-time-avatar {
-            border: 1px solid rgba(255, 248, 220, 0.45);
+            border: 1px solid rgba(255, 248, 220, 0.4);
             border-radius: 0.7rem;
-            box-shadow:
-                0 1px 0 rgba(107, 74, 12, 0.55),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: none;
             flex: 0 0 auto;
-            font-size: 0.62rem;
             height: 2.15rem;
             width: 2.15rem;
         }
@@ -14962,45 +14966,21 @@
             text-align: center;
             text-transform: uppercase;
         }
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row > .match-subs-log-pos.is-empty {
-            background: transparent;
-            border-color: transparent;
-            box-shadow: none;
-            min-width: 0;
-            padding: 0;
-            width: 0;
-        }
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-player .match-subs-log-pos {
-            background: linear-gradient(180deg, rgba(245, 197, 66, 0.28) 0%, rgba(245, 197, 66, 0.12) 100%);
-            border: 1px solid rgba(245, 197, 66, 0.45);
-            border-radius: 0.45rem;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-            color: #ffe08a;
-            flex: 0 0 auto;
-            font-size: 0.62rem;
-            font-weight: 950;
-            letter-spacing: 0.04em;
-            line-height: 1;
-            padding: 0.18rem 0.34rem;
-            text-transform: uppercase;
-        }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-arrow {
             background:
                 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M4.5 1.5v12m0 0L1.5 10.5M4.5 13.5l3-3' stroke='%23ff4d4d' stroke-width='2.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M13.5 16.5V4.5m0 0L10.5 7.5M13.5 4.5l3 3' stroke='%233dff7a' stroke-width='2.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
                     center / contain no-repeat;
             flex: 0 0 auto;
             filter: drop-shadow(0 1px 0 rgba(2, 6, 23, 0.45));
-            height: 1.25rem;
-            justify-self: center;
-            margin-inline: 0.2rem;
-            width: 1.2rem;
+            height: 1.2rem;
+            width: 1.15rem;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-arrow.is-swap {
             background-image:
                 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 14' fill='none'%3E%3Cpath d='M9 4H2m0 0l3-3M2 4l3 3' stroke='%2334d399' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M13 10h7m0 0l-3-3m3 3l-3 3' stroke='%236ee7b7' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
             filter: drop-shadow(0 1px 0 rgba(6, 95, 70, 0.55));
-            height: 1.05rem;
-            width: 1.45rem;
+            height: 0.95rem;
+            width: 1.35rem;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-actions {
             align-items: center;
@@ -15018,31 +14998,28 @@
                 overflow-x: clip;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row {
-                column-gap: 0.3rem;
+                column-gap: 0.35rem;
                 font-size: 0.74rem;
-                padding: 0.4rem 0.4rem;
-                grid-template-columns: 2.25rem auto minmax(0, 1fr);
+                gap: 0.3rem 0.35rem;
+                grid-template-columns: 2.3rem auto minmax(0, 1fr) auto;
+                padding: 0.35rem 0.4rem;
+            }
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:not(:has(> .match-subs-log-pos:last-child)) {
+                grid-template-columns: 2.3rem auto minmax(0, 1fr);
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-minute {
                 font-size: 0.95rem;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-body {
-                gap: 0.22rem 0.65rem;
-            }
-            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-arrow {
-                margin-inline: 0.12rem;
+                gap: 0.3rem 0.4rem;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-player {
                 gap: 0.28rem;
             }
-            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-body .match-subs-playing-time-avatar {
-                border-radius: 0.7rem;
-            }
-            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row > .match-subs-log-pos,
-            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-player .match-subs-log-pos {
-                font-size: 0.58rem;
-                min-width: 1.5rem;
-                padding: 0.14rem 0.26rem;
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-body .match-subs-playing-time-avatar,
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-player.is-empty {
+                height: 2.15rem;
+                width: 2.15rem;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-firstname {
                 font-size: 0.58rem;
@@ -15050,9 +15027,14 @@
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-lastname {
                 font-size: 0.72rem;
             }
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row > .match-subs-log-pos {
+                font-size: 0.58rem;
+                min-width: 1.5rem;
+                padding: 0.14rem 0.26rem;
+            }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-arrow.is-swap {
-                height: 0.95rem;
-                width: 1.3rem;
+                height: 0.85rem;
+                width: 1.2rem;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-log-actions {
                 gap: 0.4rem;
@@ -15402,6 +15384,15 @@
             min-width: 0;
             padding: 0;
         }
+        @media (min-width: 900px) {
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-list {
+                column-gap: 0.75rem;
+                grid-auto-columns: minmax(0, 1fr);
+                grid-auto-flow: column;
+                grid-template-rows: repeat(10, auto);
+                row-gap: 0.4rem;
+            }
+        }
         .match-subs-playing-time-row.is-game-row {
             align-items: center;
             background: rgba(255, 255, 255, 0.04);
@@ -15439,12 +15430,12 @@
             color: #10233f;
             display: inline-flex;
             flex: 0 0 auto;
-            font-size: 0.58rem;
+            font-size: 0.62rem;
             font-weight: 950;
-            height: 2rem;
+            height: 2.35rem;
             justify-content: center;
             overflow: hidden;
-            width: 2rem;
+            width: 2.35rem;
         }
         .match-subs-playing-time-avatar.is-photo {
             background: #0a1a30;
@@ -15544,8 +15535,8 @@
             }
             .match-subs-playing-time-avatar {
                 border-radius: 0.7rem;
-                height: 1.85rem;
-                width: 1.85rem;
+                height: 2.15rem;
+                width: 2.15rem;
             }
             .match-subs-playing-time-name {
                 font-size: 0.72rem;

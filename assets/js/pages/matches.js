@@ -9635,14 +9635,21 @@ function getMatchLiveSubPlayer(ref) {
         : null;
 }
 
-function buildMatchSubsLogPlayerCardHtml(ref) {
+function buildMatchSubsLogPlayerCardHtml(ref, extraClass = '') {
     const player = getMatchLiveSubPlayer(ref);
     const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
     const lastName = player
         ? getMatchGamePlanPlayerLastName(player)
         : getMatchLiveSubPlayerLabel(ref);
+    const className = [
+        'match-game-plan-lineup-card',
+        'match-bench-player',
+        'is-filled',
+        'match-subs-log-board-card',
+        extraClass
+    ].filter(Boolean).join(' ');
     return `
-        <div class="match-game-plan-lineup-card match-bench-player is-filled match-subs-log-board-card" aria-hidden="true">
+        <div class="${className}" aria-hidden="true">
             <span class="match-game-plan-lineup-visual">
                 <span class="match-game-plan-lineup-photo-area">
                     <span class="match-game-plan-lineup-photo match-bench-photo">
@@ -9720,11 +9727,11 @@ function getMatchLiveSubsLogEventCount(match) {
 }
 window.getMatchLiveSubsLogEventCount = getMatchLiveSubsLogEventCount;
 
-function buildMatchLiveSubsLogHtml(match) {
+function getMatchLiveSubsLogEvents(match) {
     const subs = Array.isArray(match?.liveSubstitutions) ? [...match.liveSubstitutions] : [];
     const moves = Array.isArray(match?.liveLineupMoves) ? [...match.liveLineupMoves] : [];
     const roles = Array.isArray(match?.liveRoleChanges) ? [...match.liveRoleChanges] : [];
-    if (!subs.length && !moves.length && !roles.length) return '';
+    if (!subs.length && !moves.length && !roles.length) return [];
 
     const events = [];
     subs.forEach((sub, index) => {
@@ -9755,13 +9762,98 @@ function buildMatchLiveSubsLogHtml(match) {
         });
     });
     events.sort((a, b) => a.minute - b.minute || a.order - b.order);
+    return events;
+}
 
+/** Tekstrader for Live-kortet («Live bytter»). */
+function buildMatchLiveSubsLogTextRowsHtml(events) {
+    return events.map((event) => {
+        const minuteLabel = `${event.minute}'`;
+        const editAttrs = `type="button" class="match-subs-log-item${event.type === 'move' ? ' is-move' : ''}${event.type === 'role' ? ' is-role' : ''}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="Rediger eller slett"`;
+        if (event.type === 'move') {
+            const move = event.move || {};
+            const aName = getMatchLiveSubPlayerLabel(move.aId);
+            const bName = getMatchLiveSubPlayerLabel(move.bId);
+            const aPos = getMatchGamePlanPositionBadgeLabel(move.aPos || '');
+            const bPos = getMatchGamePlanPositionBadgeLabel(move.bPos || '');
+            return `
+                <li>
+                    <button ${editAttrs}>
+                        <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                        <span class="match-subs-log-text">
+                            Rokering: ${escapeMatchHtml(aName)} (${escapeMatchHtml(aPos)}) ↔ ${escapeMatchHtml(bName)} (${escapeMatchHtml(bPos)})
+                        </span>
+                    </button>
+                </li>
+            `;
+        }
+
+        if (event.type === 'role') {
+            const change = event.change || {};
+            const playerName = getMatchLiveSubPlayerLabel(change.playerId);
+            const fromPos = getMatchGamePlanPositionBadgeLabel(change.fromRole || change.slotId || '');
+            const toPos = getMatchGamePlanPositionBadgeLabel(change.toRole || '');
+            const playerBit = playerName && playerName !== '—' ? ` (${escapeMatchHtml(playerName)})` : '';
+            return `
+                <li>
+                    <button ${editAttrs}>
+                        <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                        <span class="match-subs-log-text">
+                            ${escapeMatchHtml(fromPos)} → ${escapeMatchHtml(toPos)}${playerBit}
+                        </span>
+                    </button>
+                </li>
+            `;
+        }
+
+        const sub = event.sub || {};
+        const outName = getMatchLiveSubPlayerLabel(sub.outId);
+        const inName = getMatchLiveSubPlayerLabel(sub.inId);
+        const outPos = getMatchGamePlanPositionBadgeLabel(sub.posId || '');
+        const inPosId = sub.inPosId || sub.posId || '';
+        const inPos = getMatchGamePlanPositionBadgeLabel(inPosId);
+        const reshuffle = Boolean(sub.inPosId && sub.posId && sub.inPosId !== sub.posId);
+        const fillChain = Array.isArray(sub.fillChain) && sub.fillChain.length
+            ? sub.fillChain
+            : (sub.fillFromPos
+                ? [{ fromPos: sub.fillFromPos, toPos: sub.posId, playerId: sub.fillId || '' }]
+                : []);
+        const chainBit = reshuffle && fillChain.length
+            ? fillChain.map((step) => {
+                const mover = getMatchLiveSubPlayerLabel(step.playerId);
+                const fromPos = getMatchGamePlanPositionBadgeLabel(step.fromPos || '');
+                const toPos = getMatchGamePlanPositionBadgeLabel(step.toPos || '');
+                return `${escapeMatchHtml(mover)} ${escapeMatchHtml(fromPos)}→${escapeMatchHtml(toPos)}`;
+            }).join(' · ')
+            : '';
+        const fillBit = chainBit ? ` · ${chainBit}` : '';
+        const inBit = reshuffle
+            ? `${escapeMatchHtml(inName)} inn på ${escapeMatchHtml(inPos)}`
+            : `${escapeMatchHtml(inName)} inn`;
+
+        return `
+            <li>
+                <button ${editAttrs}>
+                    <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                    <span class="match-subs-log-text">
+                        ${escapeMatchHtml(outName)} ut (${escapeMatchHtml(outPos)}) → ${inBit}${fillBit}
+                    </span>
+                </button>
+            </li>
+        `;
+    }).join('');
+}
+
+/** Lean Clash-rader for kampdetalj («Bytter og Spilletid») — matcher Spilletid-språk. */
+function buildMatchDetailSubsLogGameRowsHtml(events) {
     const posBadge = (label) => label
         ? `<span class="match-subs-log-pos">${escapeMatchHtml(label)}</span>`
-        : '<span class="match-subs-log-pos is-empty" aria-hidden="true"></span>';
-    const nameBlockHtml = (ref) => {
+        : '';
+    const playerAvatar = (ref, side = 'out') => {
         const names = getMatchLiveSubPlayerNameParts(ref);
-        return `
+        const sideClass = side === 'in' ? ' is-in' : ' is-out';
+        const avatar = buildMatchSubsPlayingTimeAvatarHtml(getMatchLiveSubPlayer(ref), names.full);
+        const nameblock = `
             <span class="match-subs-log-nameblock">
                 ${names.first
                     ? `<span class="match-subs-log-firstname">${escapeMatchHtml(names.first)}</span>`
@@ -9769,29 +9861,27 @@ function buildMatchLiveSubsLogHtml(match) {
                 <span class="match-subs-log-lastname">${escapeMatchHtml(names.last)}</span>
             </span>
         `;
-    };
-    const playerChip = (ref, side = 'out') => {
-        const names = getMatchLiveSubPlayerNameParts(ref);
-        const avatar = buildMatchSubsPlayingTimeAvatarHtml(getMatchLiveSubPlayer(ref), names.full);
-        const namesHtml = nameBlockHtml(ref);
-        const sideClass = side === 'in' ? ' is-in' : ' is-out';
         return side === 'in'
-            ? `<span class="match-subs-log-player${sideClass}">${avatar}${namesHtml}</span>`
-            : `<span class="match-subs-log-player${sideClass}">${namesHtml}${avatar}</span>`;
+            ? `<span class="match-subs-log-player${sideClass}">${avatar}${nameblock}</span>`
+            : `<span class="match-subs-log-player${sideClass}">${nameblock}${avatar}</span>`;
     };
-    const gameRow = (editAttrs, minuteLabel, posLabel, bodyHtml) => `
+    const arrowHtml = (isSwap = false) => `
+        <span class="match-subs-log-arrow${isSwap ? ' is-swap' : ''}" aria-hidden="true"></span>
+    `;
+    const gameRow = (editAttrs, minuteLabel, leftPos, rightPos, bodyInnerHtml) => `
         <li>
             <button ${editAttrs}>
                 <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
-                ${posBadge(posLabel)}
+                ${posBadge(leftPos)}
                 <span class="match-subs-log-body">
-                    ${bodyHtml}
+                    ${bodyInnerHtml}
                 </span>
+                ${rightPos && rightPos !== leftPos ? posBadge(rightPos) : ''}
             </button>
         </li>
     `;
 
-    const rows = events.map((event) => {
+    return events.map((event) => {
         const minuteLabel = `${event.minute}'`;
         const typeClass = event.type === 'move' ? ' is-move' : (event.type === 'role' ? ' is-role' : '');
         if (event.type === 'move') {
@@ -9805,11 +9895,12 @@ function buildMatchLiveSubsLogHtml(match) {
             return gameRow(
                 editAttrs,
                 minuteLabel,
-                aPos || bPos,
+                aPos,
+                bPos,
                 `
-                    ${playerChip(move.aId, 'out')}
-                    <span class="match-subs-log-arrow is-swap" aria-hidden="true"></span>
-                    ${playerChip(move.bId, 'in')}
+                    ${playerAvatar(move.aId, 'out')}
+                    ${arrowHtml(true)}
+                    ${playerAvatar(move.bId, 'in')}
                 `
             );
         }
@@ -9828,14 +9919,11 @@ function buildMatchLiveSubsLogHtml(match) {
                 editAttrs,
                 minuteLabel,
                 fromPos,
+                toPos,
                 `
-                    ${hasPlayer ? playerChip(change.playerId, 'out') : '<span class="match-subs-log-player is-out"></span>'}
-                    <span class="match-subs-log-arrow" aria-hidden="true"></span>
-                    <span class="match-subs-log-player is-in">${
-                        toPos
-                            ? `<span class="match-subs-log-pos">${escapeMatchHtml(toPos)}</span>`
-                            : ''
-                    }</span>
+                    ${hasPlayer ? playerAvatar(change.playerId, 'out') : '<span class="match-subs-log-player is-out is-empty" aria-hidden="true"></span>'}
+                    ${arrowHtml(false)}
+                    <span class="match-subs-log-player is-in is-empty" aria-hidden="true"></span>
                 `
             );
         }
@@ -9869,20 +9957,42 @@ function buildMatchLiveSubsLogHtml(match) {
             editAttrs,
             minuteLabel,
             outPos,
+            reshuffle ? inPos : '',
             `
-                ${playerChip(sub.outId, 'out')}
-                <span class="match-subs-log-arrow" aria-hidden="true"></span>
-                ${playerChip(sub.inId, 'in')}
+                ${playerAvatar(sub.outId, 'out')}
+                ${arrowHtml(false)}
+                ${playerAvatar(sub.inId, 'in')}
             `
         );
     }).join('');
+}
+
+/**
+ * Bytter-logg HTML.
+ * - variant 'live' (default): Live-kortet «Live bytter» (tekstrader)
+ * - variant 'detail': kampdetalj «Bytter og Spilletid» (Clash-rader)
+ */
+function buildMatchLiveSubsLogHtml(match, options = {}) {
+    const events = getMatchLiveSubsLogEvents(match);
+    if (!events.length) return '';
+
+    const variant = options.variant === 'detail' || options.variant === 'game'
+        ? 'detail'
+        : 'live';
+    const rows = variant === 'detail'
+        ? buildMatchDetailSubsLogGameRowsHtml(events)
+        : buildMatchLiveSubsLogTextRowsHtml(events);
+    const saveHint = variant === 'detail'
+        ? 'Trykk en rad for å redigere. Lagre oppdaterer Live-byttene.'
+        : 'Trykk en rad for å redigere.';
+    const ariaLabel = variant === 'detail' ? 'Bytter på kampdetalj' : 'Live bytter';
 
     return `
-        <div class="match-subs-log" aria-label="Bytter fra Live">
+        <div class="match-subs-log" aria-label="${ariaLabel}">
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
-            ${buildMatchSubsLogSaveRowHtml('Trykk en rad for å redigere. Lagre oppdaterer Live-byttene.')}
+            ${variant === 'detail' ? buildMatchSubsLogSaveRowHtml(saveHint) : `<p class="match-subs-log-hint">${escapeMatchHtml(saveHint)}</p>`}
         </div>
     `;
 }
@@ -10154,7 +10264,7 @@ window.setMatchSubsPanelView = function(view) {
 
 function buildMatchSubsPanelBodyHtml(match) {
     const activeView = matchSubsPanelActiveView === 'spilletid' ? 'spilletid' : 'bytter';
-    const subsHtml = buildMatchLiveSubsLogHtml(match);
+    const subsHtml = buildMatchLiveSubsLogHtml(match, { variant: 'detail' });
     const bytterPanel = subsHtml || `
         <div class="match-subs-log-empty">
             <p>Ingen bytter registrert ennå.</p>
