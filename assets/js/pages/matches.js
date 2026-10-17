@@ -8729,9 +8729,7 @@ window.showMatchDetails = function(id) {
                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
             >
                 <div class="match-bench-heading">
-                    <span class="match-game-card-crest" aria-hidden="true">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                    </span>
+                    <span class="match-game-card-icon match-coach-notes-mark" aria-hidden="true"></span>
                     <h3>Trenernotater</h3>
                 </div>
             </div>
@@ -8758,9 +8756,7 @@ window.showMatchDetails = function(id) {
                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
             >
                 <div class="match-bench-heading">
-                    <span class="match-game-card-crest" aria-hidden="true">
-                        <i class="fa-solid fa-right-left"></i>
-                    </span>
+                    <span class="match-game-card-icon match-subs-swap-mark" aria-hidden="true"></span>
                     <h3>Bytter og Spilletid</h3>
                 </div>
             </div>
@@ -9604,17 +9600,32 @@ function parseMatchLiveSubMinute(value) {
     return Math.floor(Number(String(value ?? '').trim().replace(/'$/, '')) || 0);
 }
 
-function getMatchLiveSubPlayerLabel(ref) {
-    if (!ref) return 'Ukjent';
+function getMatchLiveSubPlayerFullName(ref) {
+    if (!ref) return '';
     const player = typeof window.findPlayerByRef === 'function'
         ? window.findPlayerByRef(ref)
         : null;
-    const name = String(player?.navn || (typeof window.getPlayerNameFromRef === 'function'
+    return String(player?.navn || (typeof window.getPlayerNameFromRef === 'function'
         ? window.getPlayerNameFromRef(ref)
         : ref) || '').trim();
-    if (!name) return 'Ukjent';
-    const parts = name.split(/\s+/).filter(Boolean);
-    return parts.length > 1 ? parts[parts.length - 1] : name;
+}
+
+function getMatchLiveSubPlayerNameParts(ref) {
+    const full = getMatchLiveSubPlayerFullName(ref);
+    if (!full) return { first: '', last: 'Ukjent', full: 'Ukjent' };
+    const parts = full.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) {
+        return { first: '', last: parts[0], full };
+    }
+    return {
+        first: parts.slice(0, -1).join(' '),
+        last: parts[parts.length - 1],
+        full
+    };
+}
+
+function getMatchLiveSubPlayerLabel(ref) {
+    return getMatchLiveSubPlayerNameParts(ref).last || 'Ukjent';
 }
 
 function getMatchLiveSubPlayer(ref) {
@@ -9745,48 +9756,93 @@ function buildMatchLiveSubsLogHtml(match) {
     });
     events.sort((a, b) => a.minute - b.minute || a.order - b.order);
 
+    const posBadge = (label) => label
+        ? `<span class="match-subs-log-pos">${escapeMatchHtml(label)}</span>`
+        : '<span class="match-subs-log-pos is-empty" aria-hidden="true"></span>';
+    const nameBlockHtml = (ref) => {
+        const names = getMatchLiveSubPlayerNameParts(ref);
+        return `
+            <span class="match-subs-log-nameblock">
+                ${names.first
+                    ? `<span class="match-subs-log-firstname">${escapeMatchHtml(names.first)}</span>`
+                    : ''}
+                <span class="match-subs-log-lastname">${escapeMatchHtml(names.last)}</span>
+            </span>
+        `;
+    };
+    const playerChip = (ref, side = 'out') => {
+        const names = getMatchLiveSubPlayerNameParts(ref);
+        const avatar = buildMatchSubsPlayingTimeAvatarHtml(getMatchLiveSubPlayer(ref), names.full);
+        const namesHtml = nameBlockHtml(ref);
+        const sideClass = side === 'in' ? ' is-in' : ' is-out';
+        return side === 'in'
+            ? `<span class="match-subs-log-player${sideClass}">${avatar}${namesHtml}</span>`
+            : `<span class="match-subs-log-player${sideClass}">${namesHtml}${avatar}</span>`;
+    };
+    const gameRow = (editAttrs, minuteLabel, posLabel, bodyHtml) => `
+        <li>
+            <button ${editAttrs}>
+                <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
+                ${posBadge(posLabel)}
+                <span class="match-subs-log-body">
+                    ${bodyHtml}
+                </span>
+            </button>
+        </li>
+    `;
+
     const rows = events.map((event) => {
         const minuteLabel = `${event.minute}'`;
-        const editAttrs = `type="button" class="match-subs-log-item${event.type === 'move' ? ' is-move' : ''}${event.type === 'role' ? ' is-role' : ''}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="Rediger eller slett"`;
+        const typeClass = event.type === 'move' ? ' is-move' : (event.type === 'role' ? ' is-role' : '');
         if (event.type === 'move') {
             const move = event.move || {};
-            const aName = getMatchLiveSubPlayerLabel(move.aId);
-            const bName = getMatchLiveSubPlayerLabel(move.bId);
+            const aNames = getMatchLiveSubPlayerNameParts(move.aId);
+            const bNames = getMatchLiveSubPlayerNameParts(move.bId);
             const aPos = getMatchGamePlanPositionBadgeLabel(move.aPos || '');
             const bPos = getMatchGamePlanPositionBadgeLabel(move.bPos || '');
-            return `
-                <li>
-                    <button ${editAttrs}>
-                        <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
-                        <span class="match-subs-log-text">
-                            Rokering: ${escapeMatchHtml(aName)} (${escapeMatchHtml(aPos)}) ↔ ${escapeMatchHtml(bName)} (${escapeMatchHtml(bPos)})
-                        </span>
-                    </button>
-                </li>
-            `;
+            const title = `Rokering: ${aNames.full} (${aPos}) ↔ ${bNames.full} (${bPos})`;
+            const editAttrs = `type="button" class="match-subs-log-item is-game-row${typeClass}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="${escapeMatchHtml(title)}"`;
+            return gameRow(
+                editAttrs,
+                minuteLabel,
+                aPos || bPos,
+                `
+                    ${playerChip(move.aId, 'out')}
+                    <span class="match-subs-log-arrow is-swap" aria-hidden="true"></span>
+                    ${playerChip(move.bId, 'in')}
+                `
+            );
         }
 
         if (event.type === 'role') {
             const change = event.change || {};
-            const playerName = getMatchLiveSubPlayerLabel(change.playerId);
+            const names = getMatchLiveSubPlayerNameParts(change.playerId);
             const fromPos = getMatchGamePlanPositionBadgeLabel(change.fromRole || change.slotId || '');
             const toPos = getMatchGamePlanPositionBadgeLabel(change.toRole || '');
-            const playerBit = playerName && playerName !== '—' ? ` (${escapeMatchHtml(playerName)})` : '';
-            return `
-                <li>
-                    <button ${editAttrs}>
-                        <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
-                        <span class="match-subs-log-text">
-                            ${escapeMatchHtml(fromPos)} → ${escapeMatchHtml(toPos)}${playerBit}
-                        </span>
-                    </button>
-                </li>
-            `;
+            const hasPlayer = Boolean(names.full && names.full !== 'Ukjent');
+            const title = hasPlayer
+                ? `${fromPos} → ${toPos} (${names.full})`
+                : `${fromPos} → ${toPos}`;
+            const editAttrs = `type="button" class="match-subs-log-item is-game-row${typeClass}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="${escapeMatchHtml(title)}"`;
+            return gameRow(
+                editAttrs,
+                minuteLabel,
+                fromPos,
+                `
+                    ${hasPlayer ? playerChip(change.playerId, 'out') : '<span class="match-subs-log-player is-out"></span>'}
+                    <span class="match-subs-log-arrow" aria-hidden="true"></span>
+                    <span class="match-subs-log-player is-in">${
+                        toPos
+                            ? `<span class="match-subs-log-pos">${escapeMatchHtml(toPos)}</span>`
+                            : ''
+                    }</span>
+                `
+            );
         }
 
         const sub = event.sub || {};
-        const outName = getMatchLiveSubPlayerLabel(sub.outId);
-        const inName = getMatchLiveSubPlayerLabel(sub.inId);
+        const outNames = getMatchLiveSubPlayerNameParts(sub.outId);
+        const inNames = getMatchLiveSubPlayerNameParts(sub.inId);
         const outPos = getMatchGamePlanPositionBadgeLabel(sub.posId || '');
         const inPosId = sub.inPosId || sub.posId || '';
         const inPos = getMatchGamePlanPositionBadgeLabel(inPosId);
@@ -9796,37 +9852,33 @@ function buildMatchLiveSubsLogHtml(match) {
             : (sub.fillFromPos
                 ? [{ fromPos: sub.fillFromPos, toPos: sub.posId, playerId: sub.fillId || '' }]
                 : []);
-        const chainBit = reshuffle && fillChain.length
+        const chainTitle = reshuffle && fillChain.length
             ? fillChain.map((step) => {
-                const mover = getMatchLiveSubPlayerLabel(step.playerId);
+                const mover = getMatchLiveSubPlayerNameParts(step.playerId).full;
                 const fromPos = getMatchGamePlanPositionBadgeLabel(step.fromPos || '');
                 const toPos = getMatchGamePlanPositionBadgeLabel(step.toPos || '');
-                return `${escapeMatchHtml(mover)} ${escapeMatchHtml(fromPos)}→${escapeMatchHtml(toPos)}`;
+                return `${mover} ${fromPos}→${toPos}`;
             }).join(' · ')
             : '';
-        const fillBit = chainBit ? ` · ${chainBit}` : '';
-        const inBit = reshuffle
-            ? `${escapeMatchHtml(inName)} inn på ${escapeMatchHtml(inPos)}`
-            : `${escapeMatchHtml(inName)} inn`;
+        const title = reshuffle
+            ? `${outNames.full} ut (${outPos}) → ${inNames.full} inn på ${inPos}${chainTitle ? ` · ${chainTitle}` : ''}`
+            : `${outNames.full} ut (${outPos}) → ${inNames.full} inn`;
+        const editAttrs = `type="button" class="match-subs-log-item is-game-row${typeClass}" data-match-stat-action="sub-log-edit" data-kind="${escapeMatchHtml(event.type)}" data-index="${event.index}" title="${escapeMatchHtml(title)}"`;
 
-        return `
-            <li>
-                <button ${editAttrs}>
-                    <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
-                    <span class="match-subs-log-text">
-                        ${escapeMatchHtml(outName)} ut (${escapeMatchHtml(outPos)}) → ${inBit}${fillBit}
-                    </span>
-                </button>
-            </li>
-        `;
+        return gameRow(
+            editAttrs,
+            minuteLabel,
+            outPos,
+            `
+                ${playerChip(sub.outId, 'out')}
+                <span class="match-subs-log-arrow" aria-hidden="true"></span>
+                ${playerChip(sub.inId, 'in')}
+            `
+        );
     }).join('');
 
     return `
         <div class="match-subs-log" aria-label="Bytter fra Live">
-            <div class="match-subs-section-heading">
-                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-                <span>Bytter</span>
-            </div>
             <ul class="match-subs-log-list">
                 ${rows}
             </ul>
@@ -9999,20 +10051,12 @@ function buildMatchSubsPlayingTimeHtml(match) {
     if (!rows.length) {
         return `
             <div class="match-subs-playing-time" aria-label="Spilletid">
-                <div class="match-subs-section-heading match-subs-playing-time-heading">
-                    <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
-                    <span>Spilletid</span>
-                </div>
                 <p class="match-subs-log-hint">Ingen spilletid registrert ennå.</p>
             </div>
         `;
     }
     return `
         <div class="match-subs-playing-time" aria-label="Spilletid">
-            <div class="match-subs-section-heading match-subs-playing-time-heading">
-                <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
-                <span>Spilletid</span>
-            </div>
             <ul class="match-subs-playing-time-list">
                 ${rows.map((row) => {
                     const hasPositions = Array.isArray(row.positions) && row.positions.length > 0;
@@ -10052,20 +10096,79 @@ function buildMatchSubsPlayingTimeHtml(match) {
     `;
 }
 
-function buildMatchSubsPanelBodyHtml(match) {
-    const subsHtml = buildMatchLiveSubsLogHtml(match);
+let matchSubsPanelActiveView = 'bytter';
+
+function buildMatchSubsPanelTabsHtml(activeView) {
+    const bytterActive = activeView !== 'spilletid';
+    const headingLabel = bytterActive ? 'Bytter' : 'Spilletid';
     return `
-        ${subsHtml || `
-            <div class="match-subs-log-empty">
-                <div class="match-subs-section-heading">
-                    <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-                    <span>Bytter</span>
-                </div>
-                <p>Ingen bytter registrert ennå.</p>
-                ${buildMatchSubsLogSaveRowHtml('Live-bytter vises her. Lagre synker Live til denne loggen.')}
+        <div class="match-subs-view-toolbar">
+            <div class="match-subs-view-tabs" role="tablist" aria-label="Bytter og Spilletid">
+                <button
+                    type="button"
+                    class="match-subs-view-tab is-icon${bytterActive ? ' is-active' : ''}"
+                    role="tab"
+                    aria-selected="${bytterActive ? 'true' : 'false'}"
+                    aria-label="Bytter"
+                    title="Bytter"
+                    data-subs-view-tab="bytter"
+                    onclick="window.setMatchSubsPanelView('bytter')"
+                ><span class="match-subs-view-tab-sub-icon" aria-hidden="true"></span></button>
+                <button
+                    type="button"
+                    class="match-subs-view-tab is-icon${bytterActive ? '' : ' is-active'}"
+                    role="tab"
+                    aria-selected="${bytterActive ? 'false' : 'true'}"
+                    aria-label="Spilletid"
+                    title="Spilletid"
+                    data-subs-view-tab="spilletid"
+                    onclick="window.setMatchSubsPanelView('spilletid')"
+                ><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></button>
             </div>
-        `}
-        ${buildMatchSubsPlayingTimeHtml(match)}
+            <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
+                <span data-subs-view-heading>${escapeMatchHtml(headingLabel)}</span>
+            </div>
+        </div>
+    `;
+}
+
+window.setMatchSubsPanelView = function(view) {
+    matchSubsPanelActiveView = view === 'spilletid' ? 'spilletid' : 'bytter';
+    const body = document.getElementById('kampdetaljer-bytter');
+    if (!body) return;
+    body.dataset.subsView = matchSubsPanelActiveView;
+    body.querySelectorAll('[data-subs-view-panel]').forEach((panel) => {
+        const isActive = panel.dataset.subsViewPanel === matchSubsPanelActiveView;
+        panel.hidden = !isActive;
+    });
+    body.querySelectorAll('[data-subs-view-tab]').forEach((btn) => {
+        const isActive = btn.dataset.subsViewTab === matchSubsPanelActiveView;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    const heading = body.querySelector('[data-subs-view-heading]');
+    if (heading) {
+        heading.textContent = matchSubsPanelActiveView === 'spilletid' ? 'Spilletid' : 'Bytter';
+    }
+};
+
+function buildMatchSubsPanelBodyHtml(match) {
+    const activeView = matchSubsPanelActiveView === 'spilletid' ? 'spilletid' : 'bytter';
+    const subsHtml = buildMatchLiveSubsLogHtml(match);
+    const bytterPanel = subsHtml || `
+        <div class="match-subs-log-empty">
+            <p>Ingen bytter registrert ennå.</p>
+            ${buildMatchSubsLogSaveRowHtml('Live-bytter vises her. Lagre synker Live til denne loggen.')}
+        </div>
+    `;
+    return `
+        ${buildMatchSubsPanelTabsHtml(activeView)}
+        <div class="match-subs-view-panel" data-subs-view-panel="bytter"${activeView === 'bytter' ? '' : ' hidden'}>
+            ${bytterPanel}
+        </div>
+        <div class="match-subs-view-panel" data-subs-view-panel="spilletid"${activeView === 'spilletid' ? '' : ' hidden'}>
+            ${buildMatchSubsPlayingTimeHtml(match)}
+        </div>
     `;
 }
 
@@ -10466,7 +10569,12 @@ function collectMatchSubsLogFillChainFromForm() {
 function refreshMatchLiveSubsLogUi(match) {
     const body = document.getElementById('kampdetaljer-bytter');
     if (!body) return;
+    const currentView = body.dataset.subsView || body.querySelector('[data-subs-view-tab].is-active')?.dataset?.subsViewTab;
+    if (currentView === 'bytter' || currentView === 'spilletid') {
+        matchSubsPanelActiveView = currentView;
+    }
     body.innerHTML = buildMatchSubsPanelBodyHtml(match);
+    body.dataset.subsView = matchSubsPanelActiveView;
     const panel = body.closest('[data-match-panel="bytter"]');
     const badge = panel?.querySelector('.match-detail-section-badge');
     const count = getMatchLiveSubsLogEventCount(match);
