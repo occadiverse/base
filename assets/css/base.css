@@ -14704,10 +14704,14 @@
             background: rgba(245, 197, 66, 0.1);
             border-color: rgba(245, 197, 66, 0.28);
         }
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-minute,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-mins {
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-log-minute {
             color: #ffe08a;
             font-weight: 900;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-name,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-positions,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-mins {
+            color: #ffffff;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-actions {
             align-items: center;
@@ -14898,7 +14902,7 @@
         }
         .match-subs-playing-time-row {
             align-items: baseline;
-            color: rgba(255, 255, 255, 0.82);
+            color: #ffffff;
             display: grid;
             font-size: 0.78rem;
             font-weight: 650;
@@ -14922,7 +14926,7 @@
             white-space: nowrap;
         }
         .match-subs-playing-time-positions {
-            color: rgba(255, 255, 255, 0.58);
+            color: #ffffff;
             font-size: 0.7rem;
             font-variant-numeric: tabular-nums;
             font-weight: 700;
@@ -14951,7 +14955,7 @@
             color: #fca5a5;
         }
         .match-subs-playing-time-mins {
-            color: #fde68a;
+            color: #ffffff;
             flex-shrink: 0;
             font-variant-numeric: tabular-nums;
             font-weight: 900;
@@ -14960,21 +14964,24 @@
         }
         @media (max-width: 640px) {
             .match-subs-playing-time-row {
-                column-gap: 0.45rem;
+                column-gap: 0.4rem;
                 font-size: 0.74rem;
             }
-            .match-subs-playing-time-row.has-positions,
-            .match-subs-playing-time-row.has-positions.has-diff {
-                grid-template-columns: minmax(0, 1fr) auto auto;
+            .match-subs-playing-time-row.has-positions {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) auto;
             }
-            .match-subs-playing-time-row.has-positions:not(.has-diff) {
-                grid-template-columns: minmax(0, 1fr) auto;
+            .match-subs-playing-time-row.has-positions.has-diff {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 2rem auto;
+            }
+            .match-subs-playing-time-name,
+            .match-subs-playing-time-positions {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             .match-subs-playing-time-positions {
-                grid-column: 1 / -1;
+                font-size: 0.66rem;
                 text-align: left;
-                white-space: normal;
-                overflow-wrap: anywhere;
             }
             .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-list,
             .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-row {
