@@ -12314,15 +12314,9 @@ window.renderPlayerRowForm = function(match) {
         div.innerHTML = `
             ${buildMatchStatsPlayerAvatarHtml(playerObj)}
             <div class="match-stats-player-body">
-                <div class="match-stats-player-topline">
-                    <div class="match-stats-player-info">
-                        <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
-                    </div>
-                </div>
                 <div class="match-stats-controls">
                     <div class="player-pitch-stats match-stats-pitch-controls${isBenchOnly ? ' is-disabled' : ''}">
                         <div class="match-stat-field">
-                            <span class="match-stat-label">Min</span>
                             <input
                                 type="number"
                                 inputmode="numeric"
@@ -12337,21 +12331,21 @@ window.renderPlayerRowForm = function(match) {
                                 aria-label="Spilletid i minutter for ${playerAttr}"
                                 title="Total spilletid. Forhåndsutfylt fra Live/Bytter — det du lagrer her er fasit."
                             >
+                            <span class="match-stat-label">Min</span>
                         </div>
                         <div class="match-stat-field">
-                            <span class="match-stat-label">Mål</span>
                             <select class="blknapp player-goals-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
                                 ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
                             </select>
+                            <span class="match-stat-label">Mål</span>
                         </div>
                         <div class="match-stat-field">
-                            <span class="match-stat-label">Ass</span>
                             <select class="blknapp player-assists-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Assist for ${playerAttr}">
                                 ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
                             </select>
+                            <span class="match-stat-label">Ass</span>
                         </div>
                         <div class="match-stat-field match-rating-field">
-                            <span class="match-stat-label">Børs</span>
                             <select
                                 class="blknapp player-rating-select match-stat-select match-stat-select-rating"
                                 data-match-stat-action="rating-select"
@@ -12364,16 +12358,18 @@ window.renderPlayerRowForm = function(match) {
                                     `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v}</option>`
                                 ).join('')}
                             </select>
+                            <span class="match-stat-label">Børs</span>
                             ${buildMatchRatingTooltipHtml(prevRating)}
                         </div>
                         <div class="match-stats-card-group">
                             <button type="button" data-match-stat-action="yellow-card" class="blknapp player-card-btn is-yellow is-icon${hasYellow ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}" aria-label="Gult kort" title="Gult kort"><span class="blknapp-card-mark is-yellow" aria-hidden="true"></span></button>
                             <button type="button" data-match-stat-action="red-card" class="blknapp player-card-btn is-red is-icon${hasRed ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}" aria-label="Rødt kort" title="Rødt kort"><span class="blknapp-card-mark is-red" aria-hidden="true"></span></button>
                             <button type="button" data-match-stat-action="motm-toggle" class="blknapp player-motm-btn is-icon${isMotm ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}" aria-label="Banens beste" title="Banens beste">BB</button>
-                            <button type="button" data-match-stat-action="bench-toggle" class="blknapp player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs">Benk</button>
+                            <button type="button" data-match-stat-action="bench-toggle" class="blknapp player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs"><span class="blknapp-stack" aria-hidden="true"><span>BE</span><span>NK</span></span></button>
                         </div>
                     </div>
                 </div>
+                <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
         `;
         formList.appendChild(div);
