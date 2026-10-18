@@ -899,6 +899,53 @@ window.toggleMatchStatsPenaltyFields = function() {
     if (scores) scores.hidden = !enabled;
 };
 
+function buildMatchStatsResultCrestHtml(teamName) {
+    const logoHtml = typeof window.buildClubLogoImgHtml === 'function'
+        ? window.buildClubLogoImgHtml(teamName, 'match-stats-result-logo')
+        : '';
+    if (logoHtml) {
+        return `<span class="match-stats-result-crest">${logoHtml}</span>`;
+    }
+    return `
+        <span class="match-stats-result-crest is-fallback" aria-hidden="true">
+            <i class="fa-solid fa-shield"></i>
+        </span>
+    `;
+}
+
+function buildMatchStatsResultScorelineHtml({
+    homeName,
+    awayName,
+    homeScoreHtml,
+    awayScoreHtml,
+    awayForId = '',
+    compact = false
+}) {
+    const homeLabel = escapeMatchHtml(homeName);
+    const awayLabel = escapeMatchHtml(awayName);
+    const awayTeamTag = awayForId
+        ? `<label class="match-stats-result-team" for="${escapeMatchHtml(awayForId)}" title="${awayLabel}">${awayLabel}</label>`
+        : `<span class="match-stats-result-team" title="${awayLabel}">${awayLabel}</span>`;
+
+    return `
+        <div class="match-stats-result-scoreline${compact ? ' is-compact' : ''}">
+            <div class="match-stats-result-side is-home">
+                ${buildMatchStatsResultCrestHtml(homeName)}
+                <span class="match-stats-result-team">${homeLabel}</span>
+            </div>
+            <div class="match-stats-result-center">
+                ${homeScoreHtml}
+                <span class="match-stats-result-dash" aria-hidden="true">-</span>
+                ${awayScoreHtml}
+            </div>
+            <div class="match-stats-result-side is-away">
+                ${buildMatchStatsResultCrestHtml(awayName)}
+                ${awayTeamTag}
+            </div>
+        </div>
+    `;
+}
+
 function buildMatchStatsResultBarHtml(match) {
     const scoreParts = getMatchScoreParts(match);
     const penaltyParts = getMatchPenaltyScoreParts(match);
@@ -909,6 +956,25 @@ function buildMatchStatsResultBarHtml(match) {
     const isCupMatch = match?.matchType === 'Cup';
     const penaltiesEnabled = Boolean(match?.penaltyResult);
     const regularHeading = isCupMatch ? 'Sluttresultat' : 'Kampresultat';
+
+    const regularScorelineHtml = buildMatchStatsResultScorelineHtml({
+        homeName: 'BSK',
+        awayName: opponentName,
+        awayForId: 'match-stats-opponent-goals',
+        homeScoreHtml: `<output id="match-stats-bsk-goals" class="match-stats-result-score is-home" aria-live="polite">${bskGoals}</output>`,
+        awayScoreHtml: `
+            <input
+                type="number"
+                id="match-stats-opponent-goals"
+                class="match-stats-result-score match-stats-result-input is-away"
+                min="0"
+                max="99"
+                inputmode="numeric"
+                value="${scoreParts.opponent}"
+                aria-label="${opponentLabel} mål"
+            >
+        `
+    });
 
     const penaltySectionHtml = isCupMatch
         ? `
@@ -924,31 +990,36 @@ function buildMatchStatsResultBarHtml(match) {
                 </label>
                 <div class="match-stats-penalty-scores" id="match-stats-penalty-scores" ${penaltiesEnabled ? '' : 'hidden'}>
                     <p class="match-stats-result-heading">Straffespark</p>
-                    <div class="match-stats-result-scoreline">
-                        <span class="match-stats-result-team">BSK</span>
-                        <span class="match-stats-result-dash" aria-hidden="true">-</span>
-                        <label class="match-stats-result-team" for="match-stats-penalty-opponent" title="${opponentLabel}">${opponentLabel}</label>
-                        <input
-                            type="number"
-                            id="match-stats-penalty-bsk"
-                            class="match-stats-result-score match-stats-result-input"
-                            min="0"
-                            max="99"
-                            inputmode="numeric"
-                            value="${penaltyParts.bsk}"
-                            aria-label="BSK straffemål"
-                        >
-                        <input
-                            type="number"
-                            id="match-stats-penalty-opponent"
-                            class="match-stats-result-score match-stats-result-input"
-                            min="0"
-                            max="99"
-                            inputmode="numeric"
-                            value="${penaltyParts.opponent}"
-                            aria-label="${opponentLabel} straffemål"
-                        >
-                    </div>
+                    ${buildMatchStatsResultScorelineHtml({
+                        homeName: 'BSK',
+                        awayName: opponentName,
+                        awayForId: 'match-stats-penalty-opponent',
+                        compact: true,
+                        homeScoreHtml: `
+                            <input
+                                type="number"
+                                id="match-stats-penalty-bsk"
+                                class="match-stats-result-score match-stats-result-input is-home"
+                                min="0"
+                                max="99"
+                                inputmode="numeric"
+                                value="${penaltyParts.bsk}"
+                                aria-label="BSK straffemål"
+                            >
+                        `,
+                        awayScoreHtml: `
+                            <input
+                                type="number"
+                                id="match-stats-penalty-opponent"
+                                class="match-stats-result-score match-stats-result-input is-away"
+                                min="0"
+                                max="99"
+                                inputmode="numeric"
+                                value="${penaltyParts.opponent}"
+                                aria-label="${opponentLabel} straffemål"
+                            >
+                        `
+                    })}
                     <p class="match-stats-result-hint">I Obos cup avgjøres uavgjort direkte på straffespark</p>
                 </div>
             </div>
@@ -959,22 +1030,7 @@ function buildMatchStatsResultBarHtml(match) {
         <div class="match-stats-result-bar" aria-label="Kampresultat">
             <div class="match-stats-result-board">
                 <p class="match-stats-result-heading">${regularHeading}</p>
-                <div class="match-stats-result-scoreline">
-                    <span class="match-stats-result-team">BSK</span>
-                    <span class="match-stats-result-dash" aria-hidden="true">-</span>
-                    <label class="match-stats-result-team" for="match-stats-opponent-goals" title="${opponentLabel}">${opponentLabel}</label>
-                    <output id="match-stats-bsk-goals" class="match-stats-result-score" aria-live="polite">${bskGoals}</output>
-                    <input
-                        type="number"
-                        id="match-stats-opponent-goals"
-                        class="match-stats-result-score match-stats-result-input"
-                        min="0"
-                        max="99"
-                        inputmode="numeric"
-                        value="${scoreParts.opponent}"
-                        aria-label="${opponentLabel} mål"
-                    >
-                </div>
+                ${regularScorelineHtml}
                 <p class="match-stats-result-hint">BSK-tall summeres fra spillermål</p>
                 ${penaltySectionHtml}
             </div>
@@ -8422,6 +8478,8 @@ window.autosizeMatchCoachNotesFields = function(root = document) {
         .forEach((el) => window.autosizeMatchCoachNoteField(el));
 };
 
+let matchCoachNotesActiveView = 'positive';
+
 window.buildMatchCoachNotesFieldsHtml = function(match) {
     if (!match || !match.id) return '';
 
@@ -8429,14 +8487,39 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
     const matchIdJs = escapeMatchJsString(match.id);
     const positiveNote = escapeMatchHtml(match.notes?.positive || '');
     const challengeNote = escapeMatchHtml(match.notes?.challenge || '');
+    const positiveActive = matchCoachNotesActiveView !== 'challenge';
+    const headingLabel = positiveActive ? 'Positivt' : 'Utfordringer';
 
     return `
-        <div class="match-coach-notes-fields" data-match-notes-form="${matchId}">
-            <div>
-                <label class="portal-label">
-                    <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>
-                    <span>Positivt</span>
-                </label>
+        <div class="match-coach-notes-fields" data-match-notes-form="${matchId}" data-notes-view="${positiveActive ? 'positive' : 'challenge'}">
+            <div class="match-subs-view-toolbar">
+                <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
+                    <span data-notes-view-heading>${escapeMatchHtml(headingLabel)}</span>
+                </div>
+                <div class="match-subs-view-tabs" role="tablist" aria-label="Trenernotater">
+                    <button
+                        type="button"
+                        class="match-subs-view-tab is-icon${positiveActive ? ' is-active' : ''}"
+                        role="tab"
+                        aria-selected="${positiveActive ? 'true' : 'false'}"
+                        aria-label="Positivt"
+                        title="Positivt"
+                        data-notes-view-tab="positive"
+                        onclick="window.setMatchCoachNotesView('positive')"
+                    ><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i></button>
+                    <button
+                        type="button"
+                        class="match-subs-view-tab is-icon${positiveActive ? '' : ' is-active'}"
+                        role="tab"
+                        aria-selected="${positiveActive ? 'false' : 'true'}"
+                        aria-label="Utfordringer"
+                        title="Utfordringer"
+                        data-notes-view-tab="challenge"
+                        onclick="window.setMatchCoachNotesView('challenge')"
+                    ><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></button>
+                </div>
+            </div>
+            <div class="match-subs-view-panel" data-notes-view-panel="positive"${positiveActive ? '' : ' hidden'}>
                 <textarea
                     rows="2"
                     data-match-note-positive="${matchId}"
@@ -8444,13 +8527,10 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
                     oninput="window.autosizeMatchCoachNoteField(this)"
                     onblur="saveMatchSummaryNotes('${matchIdJs}', this)"
                     class="portal-field portal-textarea-sm match-coach-notes-field"
+                    aria-label="Positivt"
                 >${positiveNote}</textarea>
             </div>
-            <div>
-                <label class="portal-label">
-                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                    <span>Utfordringer</span>
-                </label>
+            <div class="match-subs-view-panel" data-notes-view-panel="challenge"${positiveActive ? ' hidden' : ''}>
                 <textarea
                     rows="2"
                     data-match-note-challenge="${matchId}"
@@ -8458,10 +8538,35 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
                     oninput="window.autosizeMatchCoachNoteField(this)"
                     onblur="saveMatchSummaryNotes('${matchIdJs}', this)"
                     class="portal-field portal-textarea-sm match-coach-notes-field"
+                    aria-label="Utfordringer"
                 >${challengeNote}</textarea>
             </div>
         </div>
     `;
+};
+
+window.setMatchCoachNotesView = function(view) {
+    matchCoachNotesActiveView = view === 'challenge' ? 'challenge' : 'positive';
+    const form = document.querySelector('.match-coach-notes-panel [data-match-notes-form]');
+    if (!form) return;
+    form.dataset.notesView = matchCoachNotesActiveView;
+    form.querySelectorAll('[data-notes-view-panel]').forEach((panel) => {
+        const isActive = panel.dataset.notesViewPanel === matchCoachNotesActiveView;
+        panel.hidden = !isActive;
+    });
+    form.querySelectorAll('[data-notes-view-tab]').forEach((btn) => {
+        const isActive = btn.dataset.notesViewTab === matchCoachNotesActiveView;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    const heading = form.querySelector('[data-notes-view-heading]');
+    if (heading) {
+        heading.textContent = matchCoachNotesActiveView === 'challenge' ? 'Utfordringer' : 'Positivt';
+    }
+    const activeField = form.querySelector(`[data-notes-view-panel="${matchCoachNotesActiveView}"] textarea`);
+    if (activeField && typeof window.autosizeMatchCoachNoteField === 'function') {
+        window.autosizeMatchCoachNoteField(activeField);
+    }
 };
 
 window.promptDeleteMatch = function(id) {
@@ -8750,14 +8855,14 @@ window.showMatchDetails = function(id) {
                 role="button"
                 tabindex="0"
                 aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}"
-                aria-label="${isSubsPanelOpen ? 'Skjul bytter og spilletid' : 'Vis bytter og spilletid'}"
-                data-show-label="Vis bytter og spilletid"
-                data-hide-label="Skjul bytter og spilletid"
+                aria-label="${isSubsPanelOpen ? 'Skjul banetid' : 'Vis banetid'}"
+                data-show-label="Vis banetid"
+                data-hide-label="Skjul banetid"
                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
             >
                 <div class="match-bench-heading">
-                    <span class="match-game-card-icon match-subs-swap-mark" aria-hidden="true"></span>
-                    <h3>Bytter og Spilletid</h3>
+                    <span class="match-game-card-icon match-subs-playing-time-mark" aria-hidden="true"></span>
+                    <h3>Banetid</h3>
                 </div>
             </div>
             <div class="match-collapsible-content">
@@ -8767,14 +8872,22 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-stats-panel match-collapsible-panel ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
-            <div class="match-bench-action-row match-bench-topline match-stats-topline" onclick="window.onMatchPanelToplineClick(event)">
+        <section class="match-stats-panel match-collapsible-panel is-game-card ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
+            <div
+                class="match-bench-action-row match-bench-topline match-stats-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isStatsOpen ? 'true' : 'false'}"
+                aria-label="${isStatsOpen ? 'Skjul spillerbørs' : 'Vis spillerbørs'}"
+                data-show-label="Vis spillerbørs"
+                data-hide-label="Skjul spillerbørs"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
                 <div class="match-bench-heading">
+                    <span class="match-game-card-icon match-stats-star-mark" aria-hidden="true"></span>
                     <h3>Spillerbørs</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isStatsOpen ? 'true' : 'false'}" aria-label="${isStatsOpen ? 'Skjul spillerbørs' : 'Vis spillerbørs'}" data-show-label="Vis spillerbørs" data-hide-label="Skjul spillerbørs">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
             </div>
             <div class="match-collapsible-content">
                 <div class="match-stats-body">
@@ -8798,15 +8911,23 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-opponent-info-panel match-collapsible-panel ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
-            <div class="match-bench-action-row match-bench-topline match-opponent-info-topline" onclick="window.onMatchPanelToplineClick(event)">
+        <section class="match-opponent-info-panel match-collapsible-panel is-game-card ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
+            <div
+                class="match-bench-action-row match-bench-topline match-opponent-info-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isOpponentInfoOpen ? 'true' : 'false'}"
+                aria-label="${isOpponentInfoOpen ? 'Skjul motstanderinfo' : 'Vis motstanderinfo'}"
+                data-show-label="Vis motstanderinfo"
+                data-hide-label="Skjul motstanderinfo"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
                 <div class="match-bench-heading">
+                    <span class="match-game-card-icon match-opponent-info-mark" aria-hidden="true"></span>
                     <h3>Motstanderinfo</h3>
                     <span class="match-detail-section-badge" aria-label="${escapeMatchHtml(opponentInfoBadgeLabel)} kamper mot ${escapeMatchHtml(match.opponent || 'motstanderen')} totalt">${escapeMatchHtml(opponentInfoBadgeLabel)}</span>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isOpponentInfoOpen ? 'true' : 'false'}" aria-label="${isOpponentInfoOpen ? 'Skjul motstanderinfo' : 'Vis motstanderinfo'}" data-show-label="Vis motstanderinfo" data-hide-label="Skjul motstanderinfo">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
             </div>
             <div class="match-collapsible-content">
                 <div class="match-opponent-info-body">
@@ -9844,7 +9965,7 @@ function buildMatchLiveSubsLogTextRowsHtml(events) {
     }).join('');
 }
 
-/** Lean Clash-rader for kampdetalj («Bytter og Spilletid») — matcher Spilletid-språk. */
+/** Lean Clash-rader for kampdetalj («Banetid» / Bytter-fanen) — matcher Spilletid-språk. */
 function buildMatchDetailSubsLogGameRowsHtml(events) {
     const posBadge = (label) => label
         ? `<span class="match-subs-log-pos">${escapeMatchHtml(label)}</span>`
@@ -9970,7 +10091,7 @@ function buildMatchDetailSubsLogGameRowsHtml(events) {
 /**
  * Bytter-logg HTML.
  * - variant 'live' (default): Live-kortet «Live bytter» (tekstrader)
- * - variant 'detail': kampdetalj «Bytter og Spilletid» (Clash-rader)
+ * - variant 'detail': kampdetalj «Banetid» (Clash-rader)
  */
 function buildMatchLiveSubsLogHtml(match, options = {}) {
     const events = getMatchLiveSubsLogEvents(match);
@@ -10213,7 +10334,10 @@ function buildMatchSubsPanelTabsHtml(activeView) {
     const headingLabel = bytterActive ? 'Bytter' : 'Spilletid';
     return `
         <div class="match-subs-view-toolbar">
-            <div class="match-subs-view-tabs" role="tablist" aria-label="Bytter og Spilletid">
+            <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
+                <span data-subs-view-heading>${escapeMatchHtml(headingLabel)}</span>
+            </div>
+            <div class="match-subs-view-tabs" role="tablist" aria-label="Banetid">
                 <button
                     type="button"
                     class="match-subs-view-tab is-icon${bytterActive ? ' is-active' : ''}"
@@ -10234,9 +10358,6 @@ function buildMatchSubsPanelTabsHtml(activeView) {
                     data-subs-view-tab="spilletid"
                     onclick="window.setMatchSubsPanelView('spilletid')"
                 ><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></button>
-            </div>
-            <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
-                <span data-subs-view-heading>${escapeMatchHtml(headingLabel)}</span>
             </div>
         </div>
     `;
@@ -12054,14 +12175,12 @@ window.toggleMotm = function(btn) {
 
     document.querySelectorAll('.player-motm-btn').forEach(b => {
         b.setAttribute('data-active', 'false');
-        b.classList.remove('bg-purple-700', 'border-purple-800', 'text-white', 'shadow-sm', 'scale-95');
-        b.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-300');
+        b.classList.remove('is-active');
     });
 
     if (!isActive) {
         btn.setAttribute('data-active', 'true');
-        btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-300');
-        btn.classList.add('bg-purple-700', 'border-purple-800', 'text-white', 'shadow-sm', 'scale-95');
+        btn.classList.add('is-active');
     }
 };
 
@@ -12186,12 +12305,11 @@ window.renderPlayerRowForm = function(match) {
         const isBenchOnly = typeof window.isPlayerBenchOnly === 'function'
             ? window.isPlayerBenchOnly(match, player)
             : false;
-        const pitchDisabled = isBenchOnly ? 'opacity-40 pointer-events-none' : '';
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
         const ratingHint = formatMatchRatingHint(prevRating);
 
         const div = document.createElement('div');
-        div.className = "match-stats-player-row";
+        div.className = `match-stats-player-row${isBenchOnly ? ' is-bench-only' : ''}`;
         div.innerHTML = `
             <div class="match-stats-player-main">
                 ${buildMatchStatsPlayerAvatarHtml(playerObj)}
@@ -12202,10 +12320,10 @@ window.renderPlayerRowForm = function(match) {
                     </div>
                     <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
                 </div>
+                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs">Benk</button>
             </div>
             <div class="match-stats-controls">
-                <button type="button" data-match-stat-action="bench-toggle" class="player-bench-btn h-7 px-2 rounded-md border-2 font-black text-[8px] transition-all flex items-center justify-center shrink-0 ${isBenchOnly ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs">Kun oppmøte</button>
-                <div class="player-pitch-stats match-stats-pitch-controls ${pitchDisabled}">
+                <div class="player-pitch-stats match-stats-pitch-controls${isBenchOnly ? ' is-disabled' : ''}">
                 <div class="match-stat-field">
                     <span class="match-stat-label">Min</span>
                     <input
@@ -12248,16 +12366,16 @@ window.renderPlayerRowForm = function(match) {
                     >
                         <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
                         ${[1,2,3,4,5,6,7,8,9,10].map(v =>
-                            `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v} ★</option>`
+                            `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v}</option>`
                         ).join('')}
                     </select>
                     ${buildMatchRatingTooltipHtml(prevRating)}
                 </div>
 
                 <div class="match-stats-card-group">
-                    <button type="button" data-match-stat-action="yellow-card" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasYellow ? 'bg-yellow-400 border-yellow-500 text-slate-900 shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}">🟨</button>
-                    <button type="button" data-match-stat-action="red-card" class="player-card-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${hasRed ? 'bg-red-500 border-red-600 text-white shadow-inner scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400 hover:border-red-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}">🟥</button>
-                    <button type="button" data-match-stat-action="motm-toggle" class="player-motm-btn w-7 h-7 rounded-md border-2 font-black text-[10px] transition-all flex items-center justify-center ${isMotm ? 'bg-purple-700 border-purple-800 text-white shadow-sm scale-95' : 'bg-slate-50 border-slate-200 text-slate-300 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200'}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}">BB</button>
+                    <button type="button" data-match-stat-action="yellow-card" class="player-card-btn is-yellow${hasYellow ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}" aria-label="Gult kort">G</button>
+                    <button type="button" data-match-stat-action="red-card" class="player-card-btn is-red${hasRed ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}" aria-label="Rødt kort">R</button>
+                    <button type="button" data-match-stat-action="motm-toggle" class="player-motm-btn${isMotm ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}" aria-label="Banens beste">BB</button>
                 </div>
                 </div>
             </div>
@@ -12273,43 +12391,34 @@ window.toggleBenchOnly = function(btn) {
     const isActive = btn.getAttribute('data-active') === 'true';
     const newState = !isActive;
     btn.setAttribute('data-active', newState ? 'true' : 'false');
+    btn.classList.toggle('is-active', newState);
 
     const row = btn.closest('.match-stats-player-row');
     const pitchStats = row ? row.querySelector('.player-pitch-stats') : null;
+    const badge = row ? row.querySelector('.match-stats-bench-badge') : null;
 
-    if (newState) {
-        btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-400', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:border-amber-200');
-        btn.classList.add('bg-amber-100', 'border-amber-300', 'text-amber-900', 'shadow-inner', 'scale-95');
-        if (pitchStats) pitchStats.classList.add('opacity-40', 'pointer-events-none');
-    } else {
-        btn.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-400', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:border-amber-200');
-        btn.classList.remove('bg-amber-100', 'border-amber-300', 'text-amber-900', 'shadow-inner', 'scale-95');
-        if (pitchStats) pitchStats.classList.remove('opacity-40', 'pointer-events-none');
+    if (row) row.classList.toggle('is-bench-only', newState);
+    if (pitchStats) pitchStats.classList.toggle('is-disabled', newState);
+
+    if (newState && row && !badge) {
+        const nameRow = row.querySelector('.match-stats-player-name-row');
+        if (nameRow) {
+            const mark = document.createElement('span');
+            mark.className = 'match-stats-bench-badge';
+            mark.title = 'Benkspiller – kun oppmøtepoeng';
+            mark.textContent = 'Benk';
+            nameRow.appendChild(mark);
+        }
+    } else if (!newState && badge) {
+        badge.remove();
     }
 };
 
 window.toggleCard = function(btn, type) {
     const isActive = btn.getAttribute('data-active') === 'true';
     const newState = !isActive;
-    btn.setAttribute('data-active', newState);
-
-    if (type === 'yellow') {
-        if (newState) {
-            btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-300', 'text-white', 'hover:bg-yellow-50', 'hover:text-yellow-600', 'hover:border-yellow-200');
-            btn.classList.add('bg-yellow-400', 'border-yellow-500', 'text-slate-900', 'shadow-inner', 'scale-95');
-        } else {
-            btn.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-300', 'hover:bg-yellow-50', 'hover:text-yellow-600', 'hover:border-yellow-200');
-            btn.classList.remove('bg-yellow-400', 'border-yellow-500', 'text-white', 'text-slate-900', 'shadow-inner', 'scale-95');
-        }
-    } else if (type === 'red') {
-        if (newState) {
-            btn.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-300', 'hover:bg-red-50', 'hover:text-red-400', 'hover:border-red-200');
-            btn.classList.add('bg-red-500', 'border-red-600', 'text-white', 'shadow-inner', 'scale-95');
-        } else {
-            btn.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-300', 'hover:bg-red-50', 'hover:text-red-400', 'hover:border-red-200');
-            btn.classList.remove('bg-red-500', 'border-red-600', 'text-white', 'shadow-inner', 'scale-95');
-        }
-    }
+    btn.setAttribute('data-active', newState ? 'true' : 'false');
+    btn.classList.toggle('is-active', newState);
 };
 
 window.resetPlayerMatchStats = async function() {

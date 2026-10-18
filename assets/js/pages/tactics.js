@@ -487,7 +487,7 @@
             );
             const totalSubs = Math.max(subCount, savedSubCount);
             const message = totalSubs > 0
-                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• Tavle tilbake til kampplan\n• ${totalSubs} bytte(r) slettes (også i Bytter og Spilletid)\n\nTotale minutter i Spillerbørs beholdes.`
+                ? `Start Live på nytt fra kampplanen?\n\n• Klokke til 00:00\n• Tavle tilbake til kampplan\n• ${totalSubs} bytte(r) slettes (også i Banetid)\n\nTotale minutter i Spillerbørs beholdes.`
                 : 'Start Live på nytt? Klokken settes til 00:00 og tavlen tilbake til kampplanen.';
             if (!confirm(message)) {
                 return;
@@ -2143,7 +2143,7 @@
                 ? window.buildMatchLiveSubsLogHtml(displayMatch)
                 : '';
             host.innerHTML = logHtml || `
-                <p class="tactical-live-panel-hint">Ingen bytter ennå. Bytt fra benken, eller rediger i Bytter og Spilletid.</p>
+                <p class="tactical-live-panel-hint">Ingen bytter ennå. Bytt fra benken, eller rediger i Banetid.</p>
             `;
 
             host.querySelectorAll('[data-match-stat-action="sub-log-edit"]').forEach((btn) => {
