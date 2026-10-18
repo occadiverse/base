@@ -14693,8 +14693,56 @@
             gap: 0.75rem;
             padding: 0 0.05rem;
         }
-        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar {
-            margin-bottom: 0;
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar {
+            display: grid;
+            gap: 0;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            justify-content: stretch;
+            margin: 0;
+            position: relative;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar::before,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar::before {
+            align-self: center;
+            background: radial-gradient(circle at 35% 30%, #fff6d6 0%, #f5c542 48%, #b8840f 100%);
+            border: 1.5px solid rgba(255, 253, 245, 0.7);
+            border-radius: 999px;
+            box-shadow:
+                0 2px 0 #6b4a0c,
+                0 0 8px rgba(245, 197, 66, 0.45);
+            content: "";
+            grid-column: 2;
+            grid-row: 1;
+            height: 0.55rem;
+            justify-self: center;
+            margin: 0 0.35rem;
+            width: 0.55rem;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-subs-view-heading,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-heading {
+            align-items: center;
+            display: flex;
+            flex: none;
+            grid-column: 1;
+            justify-content: center;
+            justify-self: stretch;
+            min-width: 0;
+            padding: 0 0.75rem 0 0;
+            text-align: center;
+            width: 100%;
+        }
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-subs-view-tabs,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-tabs {
+            display: flex;
+            flex: none;
+            grid-column: 3;
+            justify-content: center;
+            justify-self: stretch;
+            margin-left: 0;
+            min-width: 0;
+            padding: 0 0 0 0.75rem;
+            width: 100%;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-panel {
             background: none;
@@ -14781,7 +14829,7 @@
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-panel-body {
             display: grid;
-            gap: 1.15rem;
+            gap: 0.75rem;
             max-width: 100%;
             min-width: 0;
             padding: 0 0.05rem;
@@ -15408,10 +15456,15 @@
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row {
             align-items: center;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(245, 197, 66, 0.14);
-            border-radius: 0.75rem;
-            color: #ffffff;
+            background:
+                linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.48);
+            border-radius: 0.7rem;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.1);
+            color: #fffdf5;
             display: grid;
             font-size: 0.8rem;
             font-weight: 750;
@@ -15419,28 +15472,33 @@
             grid-template-columns: 2.55rem auto minmax(0, 1fr) auto;
             max-width: 100%;
             min-width: 0;
-            padding: 0.4rem 0.5rem;
+            padding: 0.55rem 0.7rem;
+            transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:not(:has(> .match-subs-log-pos:last-child)) {
             grid-template-columns: 2.55rem auto minmax(0, 1fr);
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:hover,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-item.is-game-row:focus-visible {
-            background: rgba(245, 197, 66, 0.1);
-            border-color: rgba(245, 197, 66, 0.28);
+            background:
+                linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 0 0 3px rgba(245, 197, 66, 0.22),
+                0 0 18px rgba(245, 197, 66, 0.2);
             outline: none;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-minute {
-            color: #ffffff;
+            color: #fffdf5;
             font-size: 1.05rem;
             font-variant-numeric: tabular-nums;
             font-weight: 950;
             letter-spacing: -0.02em;
             line-height: 1;
             text-align: left;
-            text-shadow:
-                0 1px 0 rgba(2, 6, 23, 0.4),
-                0 2px 0 rgba(2, 6, 23, 0.35);
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             white-space: nowrap;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-log-body {
@@ -15675,38 +15733,66 @@
         }
         .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-toolbar {
             align-items: center;
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 0.65rem;
-            justify-content: space-between;
-            margin: 0 0 0.75rem;
+            display: grid;
+            gap: 0;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            justify-content: stretch;
+            margin: 0;
             max-width: 100%;
             min-width: 0;
+            position: relative;
+        }
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-toolbar::before {
+            align-self: center;
+            background: radial-gradient(circle at 35% 30%, #fff6d6 0%, #f5c542 48%, #b8840f 100%);
+            border: 1.5px solid rgba(255, 253, 245, 0.7);
+            border-radius: 999px;
+            box-shadow:
+                0 2px 0 #6b4a0c,
+                0 0 8px rgba(245, 197, 66, 0.45);
+            content: "";
+            grid-column: 2;
+            grid-row: 1;
+            height: 0.55rem;
+            justify-self: center;
+            margin: 0 0.35rem;
+            width: 0.55rem;
         }
         .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tabs {
             display: flex;
-            flex: 0 0 auto;
+            flex: none;
             flex-wrap: nowrap;
             gap: 0.45rem;
+            grid-column: 3;
+            justify-content: center;
+            justify-self: stretch;
             margin: 0;
-            margin-left: auto;
             min-width: 0;
+            padding: 0 0 0 0.75rem;
+            width: 100%;
         }
         .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-heading {
+            align-items: center;
             color: #fff6d6;
-            display: inline-flex;
-            flex: 1 1 auto;
+            display: flex;
+            flex: none;
             font-size: 1.12rem;
             font-weight: 950;
+            grid-column: 1;
+            justify-content: center;
+            justify-self: stretch;
             letter-spacing: 0.04em;
             margin: 0;
             min-width: 0;
+            padding: 0 0.75rem 0 0;
+            text-align: center;
             text-shadow:
                 0 1px 0 #0a1a30,
                 0 2px 0 #061020,
                 0 3px 0 rgba(6, 16, 32, 0.75),
                 0 0 14px rgba(255, 224, 138, 0.35);
             text-transform: none;
+            width: 100%;
         }
         .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-heading span {
             color: #fff6d6;
@@ -15715,6 +15801,24 @@
             letter-spacing: inherit;
             line-height: 1.1;
             text-shadow: inherit;
+        }
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar .match-subs-playing-time-heading {
+            background: none;
+            border: 0;
+            box-shadow: none;
+            color: #fff6d6;
+            font-size: 1.12rem;
+            gap: 0;
+            letter-spacing: 0.04em;
+            margin: 0;
+            padding: 0 0.75rem 0 0;
+            text-shadow:
+                0 1px 0 #0a1a30,
+                0 2px 0 #061020,
+                0 3px 0 rgba(6, 16, 32, 0.75),
+                0 0 14px rgba(255, 224, 138, 0.35);
+            text-transform: none;
+            width: 100%;
         }
         .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab {
             align-items: center;
@@ -16237,6 +16341,66 @@
         .match-opponent-info-panel .match-fixture-row.is-current {
             background: rgba(245, 197, 66, 0.12);
             border-color: rgba(245, 197, 66, 0.34);
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-list {
+            gap: 0.45rem;
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row {
+            background:
+                linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.48);
+            border-radius: 0.7rem;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.1);
+            color: #fffdf5;
+            transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row:hover,
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row:focus-visible {
+            background:
+                linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 0 0 3px rgba(245, 197, 66, 0.22),
+                0 0 18px rgba(245, 197, 66, 0.2);
+            outline: none;
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row.is-current {
+            background:
+                linear-gradient(180deg, rgba(42, 68, 28, 0.55) 0%, rgba(18, 42, 72, 0.88) 42%, rgba(12, 32, 58, 0.78) 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 0 1px rgba(245, 197, 66, 0.28);
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-opponent,
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-date-day,
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-date-month {
+            color: #fffdf5;
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-meta,
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-weekday {
+            color: rgba(255, 246, 214, 0.72);
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-chevron {
+            color: rgba(255, 224, 138, 0.72);
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row.is-win .match-fixture-side-value {
+            color: #3ecf70;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row.is-draw .match-fixture-side-value {
+            color: #ffd866;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-fixture-row.is-loss .match-fixture-side-value {
+            color: #f07171;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
         .match-opponent-info-empty {
             align-items: center;
