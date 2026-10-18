@@ -15348,6 +15348,25 @@
             padding: 0;
             width: var(--blknapp-size, 2.15rem);
         }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp {
+            align-items: center;
+            justify-content: center;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp-card-mark {
+            height: 1.15rem;
+            width: 0.82rem;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .player-motm-btn.blknapp {
+            font-size: 0.9rem;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .blknapp-stack {
+            font-size: 0.58rem;
+            gap: 0.04rem;
+            line-height: 1;
+        }
         .blknapp-stack {
             align-items: center;
             display: flex;
@@ -15386,13 +15405,12 @@
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
             --blknapp-size: 2.15rem;
-            --blknapp-label-gap: 0.2rem;
-            --blknapp-label-h: 0.7rem;
+            --blknapp-chip-width: 3.05rem;
             align-items: start;
             display: flex;
             flex-wrap: wrap;
             gap: 0.35rem;
-            min-height: calc(var(--blknapp-size) + var(--blknapp-label-gap) + var(--blknapp-label-h));
+            min-height: var(--blknapp-size);
             overflow: visible;
             width: 100%;
         }
@@ -15405,46 +15423,82 @@
             opacity: 0.4;
             pointer-events: none;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-field {
-            gap: var(--blknapp-label-gap, 0.2rem);
-            min-width: 0;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-field:has(.blknapp) {
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-chip.blknapp {
+            align-items: stretch;
+            display: inline-flex;
             flex: 0 0 auto;
-            min-height: calc(var(--blknapp-size) + var(--blknapp-label-gap) + var(--blknapp-label-h));
-            width: var(--blknapp-size);
+            flex-direction: row;
+            gap: 0;
+            height: var(--blknapp-size);
+            justify-content: flex-start;
+            max-width: none;
+            min-width: var(--blknapp-chip-width);
+            overflow: hidden;
+            padding: 0;
+            width: var(--blknapp-chip-width);
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-label {
-            color: #c8e4ff;
-            display: block;
-            flex: 0 0 auto;
-            font-size: 0.54rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-field.match-stat-chip.blknapp {
+            cursor: default;
+        }
+        .match-detail-page .match-stats-panel.is-game-card button.match-stat-chip.blknapp {
+            cursor: pointer;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-label-vertical {
+            align-items: center;
+            background: linear-gradient(180deg, #2f6fbf 0%, #1a4a8c 55%, #143a72 100%);
+            border-right: 1px solid rgba(255, 224, 138, 0.28);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.22),
+                inset 0 -1px 0 rgba(8, 28, 56, 0.35);
+            color: #fff6d6;
+            display: flex;
+            flex: 0 0 0.95rem;
+            flex-direction: column;
+            font-size: 0.5rem;
             font-weight: 950;
-            letter-spacing: 0.08em;
-            line-height: 1.15;
-            min-height: var(--blknapp-label-h);
-            text-align: center;
-            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
-            width: 100%;
+            gap: 0.02rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            line-height: 1.08;
+            min-width: 0;
+            padding: 0.14rem 0.04rem;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.65);
+            text-transform: uppercase;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.blknapp,
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-select.blknapp {
-            flex: 0 0 var(--blknapp-size);
-            font-size: 0.78rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-label-vertical > span {
+            display: block;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-chip-value {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            color: inherit;
+            flex: 1 1 auto;
+            font: inherit;
+            font-size: 1.08rem;
             font-variant-numeric: tabular-nums;
             font-weight: 950;
-            height: var(--blknapp-size);
-            max-width: var(--blknapp-size);
-            min-width: var(--blknapp-size);
-            padding: 0;
+            height: 100%;
+            min-width: 0;
+            padding: 0 0.1rem;
             text-align: center;
             text-align-last: center;
-            width: var(--blknapp-size);
+            text-shadow: inherit;
+            width: auto;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.blknapp.is-empty {
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-chip-value:focus {
+            outline: none;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-field.match-stat-chip:focus-within {
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+            box-shadow: 0 3px 0 #0f2f5c;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.is-empty {
             color: rgba(244, 249, 255, 0.55);
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-select.blknapp option {
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-chip-value option {
             background: #123f73;
             color: #f4f9ff;
         }
@@ -15458,11 +15512,6 @@
             margin: 0;
             padding: 0 0 0 0.35rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .player-motm-btn.blknapp {
-            font-size: 0.62rem;
-            font-weight: 950;
-            letter-spacing: 0.04em;
-        }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-notice {
             margin: 0 0 0.4rem;
         }
@@ -15472,72 +15521,107 @@
             border-radius: 0.85rem;
         }
         @media (max-width: 640px) {
+            .match-detail-page .match-stats-panel.is-game-card {
+                --blknapp-size: clamp(2.15rem, 12vw, 2.85rem);
+                --stats-row-gap: clamp(0.22rem, 1vw, 0.36rem);
+                --stats-pitch-height: calc((var(--blknapp-size) * 2) + var(--stats-row-gap));
+                --stats-card-width: calc(var(--stats-pitch-height) / 1.42);
+            }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
-                align-items: start;
-                column-gap: 0.45rem;
+                align-items: stretch;
+                column-gap: clamp(0.35rem, 1.4vw, 0.55rem);
                 grid-template-columns: auto minmax(0, 1fr);
-                padding: 0.55rem 0.5rem 0.6rem;
-                row-gap: 0.4rem;
+                grid-template-rows: var(--stats-pitch-height) auto;
+                padding: clamp(0.45rem, 1.6vw, 0.65rem) clamp(0.4rem, 1.5vw, 0.6rem);
+                row-gap: var(--stats-row-gap);
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card {
-                --stats-card-width: 3.55rem;
                 align-self: stretch;
-                grid-row: 1 / -1;
+                grid-column: 1;
+                grid-row: 1 / span 2;
+                height: auto;
+                max-height: none;
+                min-height: 100%;
+                width: var(--stats-card-width);
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-visual {
+                height: 100%;
+                min-height: 100%;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-visual strong {
-                font-size: 0.5rem;
+                font-size: clamp(0.46rem, 1.45vw, 0.54rem);
                 padding: 0.08rem 0.06rem 0.07rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-body {
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-body,
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-controls {
                 display: contents;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-controls {
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
+                align-items: stretch;
+                column-gap: clamp(0.2rem, 1vw, 0.4rem);
+                display: grid;
                 grid-column: 2;
                 grid-row: 1;
-                min-width: 0;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-rows: repeat(2, minmax(0, 1fr));
+                height: var(--stats-pitch-height);
+                justify-content: stretch;
+                max-height: var(--stats-pitch-height);
+                min-height: var(--stats-pitch-height);
+                overflow: hidden;
+                padding-bottom: 0;
+                row-gap: var(--stats-row-gap);
+                width: 100%;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-rating-current-hint {
-                font-size: 0.74rem;
+                align-self: start;
+                font-size: clamp(0.7rem, 2.05vw, 0.82rem);
+                grid-column: 2;
+                grid-row: 2;
                 min-width: 0;
+                padding-top: 0.05rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
-                --blknapp-size: 2rem;
-                --blknapp-label-h: 0.65rem;
-                flex-wrap: nowrap;
-                gap: 0.22rem;
-                min-height: calc(var(--blknapp-size) + var(--blknapp-label-gap) + var(--blknapp-label-h));
-                overflow-x: auto;
-                overflow-y: visible;
-                padding-bottom: 0.15rem;
-                -webkit-overflow-scrolling: touch;
+            .match-detail-page .match-stats-panel.is-game-card .match-stat-field.match-stat-chip.blknapp {
+                height: 100%;
+                max-width: none;
+                min-width: 0;
+                width: 100%;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-field:has(.blknapp) {
-                flex: 0 0 auto;
-                min-height: calc(var(--blknapp-size) + var(--blknapp-label-gap) + var(--blknapp-label-h));
-                width: var(--blknapp-size);
+            .match-detail-page .match-stats-panel.is-game-card .match-stat-label-vertical {
+                flex-basis: clamp(0.88rem, 4vw, 1.1rem);
+                font-size: clamp(0.46rem, 1.45vw, 0.56rem);
+                gap: 0.03rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.blknapp,
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-select.blknapp,
+            .match-detail-page .match-stats-panel.is-game-card .match-stat-chip-value {
+                font-size: clamp(1.05rem, 3.4vw, 1.35rem);
+            }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp,
             .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp {
-                flex: 0 0 var(--blknapp-size);
-                font-size: 0.72rem;
-                height: var(--blknapp-size);
-                max-width: var(--blknapp-size);
-                min-width: var(--blknapp-size);
-                width: var(--blknapp-size);
+                height: 100%;
+                max-width: none;
+                min-height: 0;
+                min-width: 0;
+                width: 100%;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group {
-                border-left: 1px solid rgba(200, 228, 255, 0.22);
-                gap: 0.22rem;
-                padding: 0 0 0 0.22rem;
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp-card-mark {
+                height: clamp(1.15rem, 4vw, 1.45rem);
+                width: clamp(0.82rem, 2.8vw, 1.05rem);
+            }
+            .match-detail-page .match-stats-panel.is-game-card .player-motm-btn.blknapp {
+                font-size: clamp(0.95rem, 3.2vw, 1.2rem);
+                line-height: 1;
+                padding-top: 0.05rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .blknapp-stack {
-                font-size: 0.46rem;
+                font-size: clamp(0.52rem, 1.7vw, 0.66rem);
+                gap: 0.05rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .blknapp-card-mark {
-                height: 0.85rem;
-                width: 0.6rem;
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group {
+                border-left: 0;
+                display: contents;
+                gap: 0;
+                margin: 0;
+                padding: 0;
             }
         }
         @media (min-width: 641px) and (max-width: 900px) {
@@ -15558,10 +15642,21 @@
             display: none;
         }
         @media (max-width: 767px) {
+            body.is-spillerbors-focus,
             body.is-spillerbors-focus .portal-main-shell {
                 overflow: hidden !important;
+                scrollbar-gutter: auto;
+                scrollbar-width: none;
+            }
+            body.is-spillerbors-focus::-webkit-scrollbar,
+            body.is-spillerbors-focus .portal-main-shell::-webkit-scrollbar {
+                display: none;
+                width: 0;
+                height: 0;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus {
+                --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
+                --focus-pad-y: clamp(0.4rem, 1.6vw, 0.75rem);
                 border-left: 0;
                 border-radius: 0;
                 border-right: 0;
@@ -15570,13 +15665,15 @@
                 box-shadow: none;
                 display: flex;
                 flex-direction: column;
+                height: calc(100dvh - (3.5rem + env(safe-area-inset-top, 0px)));
                 left: 0;
                 margin: 0;
-                max-height: none;
-                padding: 0.55rem 0.7rem calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 0.55rem);
+                max-height: calc(100dvh - (3.5rem + env(safe-area-inset-top, 0px)));
+                padding: var(--focus-pad-y) var(--focus-pad-x) calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + var(--focus-pad-y));
                 position: fixed;
                 right: 0;
                 top: calc(3.5rem + env(safe-area-inset-top, 0px));
+                width: 100%;
                 z-index: 45;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus::before {
@@ -15585,16 +15682,19 @@
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline {
                 background: transparent;
                 flex: 0 0 auto;
-                margin: 0 0 0.45rem;
-                padding: 0.15rem 0.05rem 0.55rem;
+                margin: 0 0 clamp(0.35rem, 1.4vw, 0.55rem);
+                padding: 0.1rem 0.05rem clamp(0.4rem, 1.6vw, 0.6rem);
                 position: relative;
                 z-index: 2;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-bench-heading h3 {
+                font-size: clamp(1.05rem, 4.6vw, 1.35rem);
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content {
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;
-                gap: 0.55rem;
+                gap: clamp(0.4rem, 1.6vw, 0.7rem);
                 min-height: 0;
                 overflow: hidden;
                 position: relative;
@@ -15607,7 +15707,18 @@
                 overflow-x: hidden;
                 overflow-y: auto;
                 overscroll-behavior: contain;
-                padding-top: 0.15rem;
+                padding-top: 0.1rem;
+                scrollbar-width: none;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body::-webkit-scrollbar {
+                display: none;
+                width: 0;
+                height: 0;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-list {
+                gap: clamp(0.35rem, 1.4vw, 0.55rem);
+                max-width: 100%;
+                width: 100%;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-footer {
                 flex: 0 0 auto;
@@ -15622,20 +15733,21 @@
                 height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
                 justify-content: center;
                 left: 0;
-                padding: 0.35rem 0.75rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+                padding: 0.35rem clamp(0.75rem, 4vw, 1.25rem) calc(0.35rem + env(safe-area-inset-bottom, 0px));
                 position: fixed;
                 right: 0;
+                width: 100%;
                 z-index: 46;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-btn.blknapp {
                 flex: 0 0 auto;
-                font-size: 0.78rem;
+                font-size: clamp(0.74rem, 2.2vw, 0.86rem);
                 font-weight: 950;
-                height: 2.35rem;
+                height: clamp(2.25rem, 6.2vw, 2.55rem);
                 letter-spacing: 0.1em;
                 max-width: none;
-                min-width: 6.5rem;
-                padding: 0 1.15rem;
+                min-width: clamp(6.25rem, 28vw, 8rem);
+                padding: 0 clamp(1rem, 4vw, 1.4rem);
                 width: auto;
             }
         }
@@ -19712,6 +19824,12 @@
         select.match-stat-select.blknapp:hover,
         select.match-stat-select.blknapp:focus {
             background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+        }
+        select.match-stat-chip-value.match-stat-select {
+            background-image: none;
+            cursor: pointer;
+            padding-left: 0.1rem;
+            padding-right: 0.1rem;
         }
         .portal-field-inline {
             background: transparent;

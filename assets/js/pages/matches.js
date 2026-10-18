@@ -248,6 +248,12 @@ function formatMatchPlayerStatHint(value, isBenchOnly) {
     return formatMatchRatingHint(value);
 }
 
+function buildMatchStatVerticalLabel(text) {
+    return `<span class="match-stat-label-vertical" aria-hidden="true">${[...String(text || '')].map((ch) =>
+        `<span>${escapeMatchHtml(ch)}</span>`
+    ).join('')}</span>`;
+}
+
 function syncMatchPlayerStatHint(row) {
     if (!row) return;
     const hint = row.querySelector('[data-rating-current-hint]');
@@ -12387,14 +12393,15 @@ window.renderPlayerRowForm = function(match) {
             <div class="match-stats-player-body">
                 <div class="match-stats-controls">
                     <div class="player-pitch-stats match-stats-pitch-controls${isBenchOnly ? ' is-disabled' : ''}">
-                        <div class="match-stat-field">
+                        <div class="match-stat-field match-stat-chip blknapp">
+                            ${buildMatchStatVerticalLabel('MIN')}
                             <input
                                 type="number"
                                 inputmode="numeric"
                                 min="0"
                                 max="120"
                                 step="1"
-                                class="blknapp player-minutes-input match-stat-minutes-input${minutesPlayed === null ? ' is-empty' : ''}"
+                                class="match-stat-chip-value player-minutes-input match-stat-minutes-input${minutesPlayed === null ? ' is-empty' : ''}"
                                 data-player-id="${playerIdAttr}"
                                 data-player="${playerAttr}"
                                 value="${minutesPlayed === null ? '' : minutesPlayed}"
@@ -12402,23 +12409,23 @@ window.renderPlayerRowForm = function(match) {
                                 aria-label="Spilletid i minutter for ${playerAttr}"
                                 title="Total spilletid. Forhåndsutfylt fra Live/Bytter — det du lagrer her er fasit."
                             >
-                            <span class="match-stat-label">Min</span>
                         </div>
-                        <div class="match-stat-field">
-                            <select class="blknapp player-goals-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
+                        <div class="match-stat-field match-stat-chip blknapp">
+                            ${buildMatchStatVerticalLabel('MÅL')}
+                            <select class="match-stat-chip-value player-goals-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
                                 ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
                             </select>
-                            <span class="match-stat-label">Mål</span>
                         </div>
-                        <div class="match-stat-field">
-                            <select class="blknapp player-assists-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Assist for ${playerAttr}">
+                        <div class="match-stat-field match-stat-chip blknapp">
+                            ${buildMatchStatVerticalLabel('ASS')}
+                            <select class="match-stat-chip-value player-assists-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Assist for ${playerAttr}">
                                 ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
                             </select>
-                            <span class="match-stat-label">Ass</span>
                         </div>
-                        <div class="match-stat-field match-rating-field">
+                        <div class="match-stat-field match-stat-chip blknapp match-rating-field">
+                            ${buildMatchStatVerticalLabel('BØRS')}
                             <select
-                                class="blknapp player-rating-select match-stat-select match-stat-select-rating"
+                                class="match-stat-chip-value player-rating-select match-stat-select match-stat-select-rating"
                                 data-match-stat-action="rating-select"
                                 data-player-id="${playerIdAttr}"
                                 data-player="${playerAttr}"
@@ -12429,7 +12436,6 @@ window.renderPlayerRowForm = function(match) {
                                     `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v}</option>`
                                 ).join('')}
                             </select>
-                            <span class="match-stat-label">Børs</span>
                             ${buildMatchRatingTooltipHtml(prevRating)}
                         </div>
                         <div class="match-stats-card-group">
