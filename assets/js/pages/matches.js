@@ -243,6 +243,25 @@ function formatMatchRatingHint(value) {
     return entry.description;
 }
 
+function formatMatchPlayerStatHint(value, isBenchOnly) {
+    if (isBenchOnly) return 'Benk hele kampen';
+    return formatMatchRatingHint(value);
+}
+
+function syncMatchPlayerStatHint(row) {
+    if (!row) return;
+    const hint = row.querySelector('[data-rating-current-hint]');
+    if (!hint) return;
+
+    const select = row.querySelector('.player-rating-select');
+    const rating = Number(select?.value) || 0;
+    const isBenchOnly = row.classList.contains('is-bench-only')
+        || row.querySelector('.player-bench-btn')?.getAttribute('data-active') === 'true';
+
+    hint.textContent = formatMatchPlayerStatHint(rating, isBenchOnly);
+    hint.classList.toggle('is-empty', !isBenchOnly && rating === 0);
+}
+
 function buildMatchRatingTooltipHtml(selectedRating) {
     return `
         <div class="match-rating-tooltip" role="tooltip">
@@ -8665,6 +8684,7 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
 };
 
 window.showMatchDetails = function(id) {
+    clearSpillerborsMobileFocus();
     const stayOnDetails = window.currentTab === 'kampdetaljer';
     const savedScrollTop = stayOnDetails ? (getPortalMainScrollHost()?.scrollTop || 0) : null;
 
@@ -8910,6 +8930,14 @@ window.showMatchDetails = function(id) {
                     </div>
                 </div>
             </div>
+            <div class="match-stats-mobile-close-bar" hidden>
+                <button
+                    type="button"
+                    class="blknapp match-stats-mobile-close-btn"
+                    onclick="window.closeSpillerborsMobileFocus()"
+                    aria-label="Lukk spillerbørs"
+                >LUKK</button>
+            </div>
         </section>
 
         <section class="match-opponent-info-panel match-collapsible-panel is-game-card ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
@@ -8944,6 +8972,10 @@ window.showMatchDetails = function(id) {
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
     if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
+    if (isStatsOpen && isSpillerborsMobileFocusViewport()) {
+        const statsPanel = container?.querySelector('.match-stats-panel');
+        if (statsPanel) window.enterSpillerborsMobileFocus(statsPanel);
+    }
 
     requestAnimationFrame(() => {
         if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
@@ -12021,6 +12053,44 @@ window.onMatchPanelToplineClick = function(event) {
     window.toggleMatchPanel(panel);
 };
 
+function isSpillerborsMobileFocusViewport() {
+    return typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 767px)').matches;
+}
+
+function clearSpillerborsMobileFocus() {
+    document.body.classList.remove('is-spillerbors-focus');
+    const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
+    if (!panel) return;
+    panel.classList.remove('is-mobile-focus');
+    const closeBar = panel.querySelector('.match-stats-mobile-close-bar');
+    if (closeBar) closeBar.hidden = true;
+}
+window.clearSpillerborsMobileFocus = clearSpillerborsMobileFocus;
+
+window.enterSpillerborsMobileFocus = function(panel) {
+    const statsPanel = panel?.classList?.contains('match-stats-panel')
+        ? panel
+        : document.querySelector('#kampdetaljer-info .match-stats-panel');
+    if (!statsPanel || !isSpillerborsMobileFocusViewport()) return;
+    if (statsPanel.classList.contains('is-collapsed')) {
+        setMatchDetailsPanelCollapsed(statsPanel, false);
+        window.activeMatchDetailsOpenPanel = 'spillerbors';
+    }
+    document.body.classList.add('is-spillerbors-focus');
+    statsPanel.classList.add('is-mobile-focus');
+    const closeBar = statsPanel.querySelector('.match-stats-mobile-close-bar');
+    if (closeBar) closeBar.hidden = false;
+};
+
+window.closeSpillerborsMobileFocus = function() {
+    const statsPanel = document.querySelector('#kampdetaljer-info .match-stats-panel');
+    clearSpillerborsMobileFocus();
+    if (!statsPanel || statsPanel.classList.contains('is-collapsed')) return;
+    setMatchDetailsPanelCollapsed(statsPanel, true);
+    window.activeMatchDetailsOpenPanel = syncMatchDetailPairPanelsAfterExclusiveClose();
+};
+
 window.toggleMatchPanel = function(btnOrPanel) {
     const panel = btnOrPanel?.classList?.contains('match-collapsible-panel')
         ? btnOrPanel
@@ -12031,6 +12101,10 @@ window.toggleMatchPanel = function(btnOrPanel) {
     const isPairPanel = isMatchDetailsPairPanelId(panelId);
     const shouldOpen = panel.classList.contains('is-collapsed');
     window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
+
+    if (panelId !== 'spillerbors' || !shouldOpen) {
+        clearSpillerborsMobileFocus();
+    }
 
     if (shouldOpen) {
         document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel').forEach(otherPanel => {
@@ -12043,6 +12117,9 @@ window.toggleMatchPanel = function(btnOrPanel) {
         setMatchDetailsPanelCollapsed(panel, false);
         window.activeMatchDetailsOpenPanel = panelId;
         if (isPairPanel) window.matchDetailPairPanelState[panelId] = true;
+        if (panelId === 'spillerbors' && isSpillerborsMobileFocusViewport()) {
+            window.enterSpillerborsMobileFocus(panel);
+        }
     } else {
         setMatchDetailsPanelCollapsed(panel, true);
         if (isPairPanel) {
@@ -12125,14 +12202,8 @@ window.updateMatchRatingHint = function(select) {
     if (!select) return;
 
     const row = select.closest('.match-stats-player-row');
-    const hint = row ? row.querySelector('[data-rating-current-hint]') : null;
     const rating = Number(select.value) || 0;
-    const hintText = formatMatchRatingHint(rating);
-
-    if (hint) {
-        hint.textContent = hintText;
-        hint.classList.toggle('is-empty', rating === 0);
-    }
+    syncMatchPlayerStatHint(row);
 
     const tooltipRows = row ? row.querySelectorAll('.match-rating-tooltip-row') : [];
     tooltipRows.forEach(tooltipRow => {
@@ -12307,7 +12378,7 @@ window.renderPlayerRowForm = function(match) {
             ? window.isPlayerBenchOnly(match, player)
             : false;
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
-        const ratingHint = formatMatchRatingHint(prevRating);
+        const ratingHint = formatMatchPlayerStatHint(prevRating, isBenchOnly);
 
         const div = document.createElement('div');
         div.className = `match-stats-player-row${isBenchOnly ? ' is-bench-only' : ''}`;
@@ -12368,7 +12439,7 @@ window.renderPlayerRowForm = function(match) {
                             <button type="button" data-match-stat-action="bench-toggle" class="blknapp player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs"><span class="blknapp-stack" aria-hidden="true"><span>BE</span><span>NK</span></span></button>
                         </div>
                     </div>
-                    <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
+                    <span class="match-rating-current-hint ${!isBenchOnly && Number(prevRating) === 0 ? 'is-empty' : ''}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
                 </div>
             </div>
         `;
@@ -12390,6 +12461,7 @@ window.toggleBenchOnly = function(btn) {
 
     if (row) row.classList.toggle('is-bench-only', newState);
     if (pitchStats) pitchStats.classList.toggle('is-disabled', newState);
+    syncMatchPlayerStatHint(row);
 };
 
 window.toggleCard = function(btn, type) {

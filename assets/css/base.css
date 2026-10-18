@@ -15554,6 +15554,91 @@
                 padding: 0 0 0 0.28rem;
             }
         }
+        .match-stats-mobile-close-bar {
+            display: none;
+        }
+        @media (max-width: 767px) {
+            body.is-spillerbors-focus .portal-main-shell {
+                overflow: hidden !important;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus {
+                border-left: 0;
+                border-radius: 0;
+                border-right: 0;
+                border-top: 0;
+                bottom: 0;
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                left: 0;
+                margin: 0;
+                max-height: none;
+                padding: 0.55rem 0.7rem calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 0.55rem);
+                position: fixed;
+                right: 0;
+                top: calc(3.5rem + env(safe-area-inset-top, 0px));
+                z-index: 45;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus::before {
+                display: none;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline {
+                background: transparent;
+                flex: 0 0 auto;
+                margin: 0 0 0.45rem;
+                padding: 0.15rem 0.05rem 0.55rem;
+                position: relative;
+                z-index: 2;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                gap: 0.55rem;
+                min-height: 0;
+                overflow: hidden;
+                position: relative;
+                z-index: 1;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body {
+                -webkit-overflow-scrolling: touch;
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-top: 0.15rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-footer {
+                flex: 0 0 auto;
+                margin-top: 0;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar {
+                align-items: center;
+                background: rgba(100, 116, 139, 0.94);
+                bottom: 0;
+                box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18);
+                display: flex;
+                height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                justify-content: center;
+                left: 0;
+                padding: 0.35rem 0.75rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+                position: fixed;
+                right: 0;
+                z-index: 46;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-btn.blknapp {
+                flex: 0 0 auto;
+                font-size: 0.78rem;
+                font-weight: 950;
+                height: 2.35rem;
+                letter-spacing: 0.1em;
+                max-width: none;
+                min-width: 6.5rem;
+                padding: 0 1.15rem;
+                width: auto;
+            }
+        }
         .match-detail-page .match-opponent-info-panel.is-game-card .match-detail-section-badge {
             background: rgba(245, 197, 66, 0.18);
             border-color: rgba(255, 224, 138, 0.45);

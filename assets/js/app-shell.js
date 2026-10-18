@@ -88,6 +88,9 @@ function switchTab(tabId, options = {}) {
     currentTab = tabId;
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
+    if (previousTab === 'kampdetaljer' && tabId !== 'kampdetaljer' && typeof window.clearSpillerborsMobileFocus === 'function') {
+        window.clearSpillerborsMobileFocus();
+    }
 
     ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'spillerprofil', 'oktside'].forEach(id => {
         const el = document.getElementById(`view-${id}`);
