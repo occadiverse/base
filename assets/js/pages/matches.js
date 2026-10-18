@@ -12368,8 +12368,8 @@ window.renderPlayerRowForm = function(match) {
                             <button type="button" data-match-stat-action="bench-toggle" class="blknapp player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs"><span class="blknapp-stack" aria-hidden="true"><span>BE</span><span>NK</span></span></button>
                         </div>
                     </div>
+                    <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
                 </div>
-                <span class="match-rating-current-hint ${Number(prevRating) > 0 ? '' : 'is-empty'}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             </div>
         `;
         formList.appendChild(div);
