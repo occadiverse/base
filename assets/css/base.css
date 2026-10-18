@@ -15214,51 +15214,126 @@
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-list {
             display: grid;
-            gap: 0.4rem;
+            gap: 0.45rem;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row + .match-stats-player-row {
+            border-top: 0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
             align-items: stretch;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1.5px solid rgba(240, 215, 140, 0.22);
+            background:
+                linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.48);
             border-radius: 0.85rem;
-            box-shadow: 0 2px 0 rgba(8, 18, 36, 0.35);
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.1);
+            color: #fffdf5;
+            column-gap: 0.75rem;
             display: grid;
-            gap: 0.55rem;
-            padding: 0.55rem 0.6rem 0.6rem;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row + .match-stats-player-row {
-            border-top: 1.5px solid rgba(240, 215, 140, 0.22);
+            grid-template-columns: auto minmax(0, 1fr);
+            padding: 0.7rem 0.8rem 0.75rem;
+            row-gap: 0;
+            transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-bench-only {
+            opacity: 0.82;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card {
+            --stats-card-width: 5.25rem;
+            --stats-card-radius: 0.64rem;
+            align-self: center;
+            background: #ffffff;
+            border: 1px solid rgba(245, 197, 66, 0.72);
+            border-radius: var(--stats-card-radius);
+            box-shadow:
+                0 3px 0 rgba(107, 74, 12, 0.55),
+                0 8px 16px rgba(2, 6, 23, 0.22);
+            flex: 0 0 auto;
+            grid-row: 1 / -1;
+            height: calc(var(--stats-card-width) * 1.42);
+            overflow: hidden;
+            width: var(--stats-card-width);
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-visual {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-photo-area {
+            flex: 1 1 0;
+            min-height: 0;
+            position: relative;
+            width: 100%;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-photo {
+            align-items: center;
+            background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+            border-radius: var(--stats-card-radius) var(--stats-card-radius) 0.16rem 0.16rem;
+            color: #123f73;
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-photo img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-photo i {
+            font-size: 1.15rem;
             opacity: 0.78;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-main {
-            align-items: center;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-visual strong {
+            background: #ffffff;
+            color: #123f73;
+            display: block;
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            font-weight: 950;
+            line-height: 1.2;
+            overflow: hidden;
+            padding: 0.14rem 0.12rem 0.12rem;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-body {
             display: grid;
-            gap: 0.5rem;
-            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 0.55rem;
+            min-width: 0;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-avatar {
-            background: linear-gradient(180deg, #ffe08a 0%, #d4a017 100%);
-            border: 1.5px solid rgba(255, 248, 220, 0.55);
-            border-radius: 0.65rem;
-            box-shadow: 0 2px 0 #6b4a0c;
-            color: #10233f;
-            height: 2.15rem;
-            width: 2.15rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-topline {
+            align-items: start;
+            display: grid;
+            gap: 0.35rem;
+            grid-template-columns: minmax(0, 1fr);
+            min-width: 0;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-avatar.is-photo {
-            background: #0a1a30;
-            padding: 0;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-info {
+            gap: 0.12rem;
+            min-width: 0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-name {
-            color: #fff6d6;
-            font-size: 0.8rem;
+            color: #fffdf5;
+            font-size: 0.95rem;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+            line-height: 1.15;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
         .match-detail-page .match-stats-panel.is-game-card .match-rating-current-hint {
-            color: rgba(255, 253, 245, 0.55);
-            font-size: 0.6rem;
+            color: rgba(255, 246, 214, 0.55);
+            font-size: 0.64rem;
+            line-height: 1.25;
             max-width: none;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -15267,126 +15342,106 @@
         .match-detail-page .match-stats-panel.is-game-card .match-stats-bench-badge {
             background: linear-gradient(180deg, #ffd866 0%, #d4a017 100%);
             border: 1.5px solid #f0d78c;
-            box-shadow: 0 1px 0 #6b4a0c;
+            box-shadow: 0 2px 0 #6b4a0c;
             color: #1a1204;
             font-size: 0.52rem;
             padding: 0.14rem 0.35rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn {
-            align-items: center;
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.28) 0%, rgba(26, 79, 158, 0.35) 100%);
-            border: 2px solid rgba(200, 228, 255, 0.4);
-            border-radius: 0.55rem;
-            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.65);
-            color: rgba(244, 249, 255, 0.78);
-            cursor: pointer;
-            display: inline-flex;
-            flex: 0 0 auto;
-            font-size: 0.58rem;
+        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp {
+            flex: 0 0 3.5rem;
+            font-size: 0.56rem;
             font-weight: 950;
-            height: 1.85rem;
-            justify-content: center;
+            height: 2.15rem;
             letter-spacing: 0.06em;
-            min-width: 3.1rem;
-            padding: 0 0.45rem;
+            max-width: 3.5rem;
+            min-width: 3.5rem;
+            padding: 0;
             text-transform: uppercase;
+            width: 3.5rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.is-active {
-            background: linear-gradient(180deg, #ffd866 0%, #d4a017 100%);
-            border-color: #f0d78c;
-            box-shadow: 0 2px 0 #6b4a0c;
-            color: #1a1204;
+        .blknapp.player-bench-btn.is-active {
+            background: linear-gradient(180deg, #9aabbf 0%, #5b6f86 55%, #3a4b60 100%);
+            border-color: #d0dbe8;
+            box-shadow: 0 3px 0 #243142;
+            color: #f4f7fa;
+            opacity: 1;
+        }
+        .blknapp.player-bench-btn.is-active:hover {
+            background: linear-gradient(180deg, #a9b8c9 0%, #6a7f96 55%, #45586e 100%);
+            box-shadow: 0 3px 0 #243142;
+            opacity: 1;
+        }
+        .blknapp.player-bench-btn.is-active:active {
+            box-shadow: 0 1px 0 #182230;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-controls {
+            min-width: 0;
             width: 100%;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
             align-items: end;
-            display: grid;
+            display: flex;
+            flex-wrap: wrap;
             gap: 0.35rem;
-            grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
             width: 100%;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls.is-disabled {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls.is-disabled .match-stat-field,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls.is-disabled .player-card-btn,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls.is-disabled .player-motm-btn {
             opacity: 0.4;
             pointer-events: none;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stat-field {
-            gap: 0.16rem;
+            gap: 0.2rem;
             min-width: 0;
-            width: 100%;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-field:has(.blknapp) {
+            flex: 0 0 2.15rem;
+            width: 2.15rem;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stat-label {
-            color: rgba(255, 224, 138, 0.78);
-            font-size: 0.52rem;
-            letter-spacing: 0.06em;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-select,
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input,
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-select-rating {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.95) 0%, rgba(10, 36, 72, 0.98) 100%);
-            border: 2px solid rgba(240, 215, 140, 0.45);
-            border-radius: 0.55rem;
-            box-shadow: 0 2px 0 rgba(8, 18, 36, 0.55);
-            color: #fffdf5;
-            font-size: 0.78rem;
-            font-weight: 900;
-            min-height: 2rem;
-            padding: 0 0.2rem;
+            color: #c8e4ff;
+            font-size: 0.54rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            text-align: center;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
             width: 100%;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-select-rating {
-            padding-right: 1.1rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.blknapp,
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-select.blknapp {
+            flex: 0 0 2.15rem;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            height: 2.15rem;
+            max-width: 2.15rem;
+            min-width: 2.15rem;
+            padding: 0;
+            text-align: center;
+            text-align-last: center;
+            width: 2.15rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .portal-field:focus {
-            background: linear-gradient(180deg, rgba(47, 120, 216, 0.95) 0%, rgba(26, 79, 158, 0.98) 100%);
-            border-color: #ffe08a;
-            box-shadow: 0 2px 0 rgba(8, 18, 36, 0.55);
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.blknapp.is-empty {
+            color: rgba(244, 249, 255, 0.55);
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-select.blknapp option {
+            background: #123f73;
+            color: #f4f9ff;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group {
             align-items: end;
-            border-left: 0;
-            display: grid;
-            gap: 0.28rem;
-            grid-template-columns: repeat(3, 2rem);
+            border-left: 1px solid rgba(200, 228, 255, 0.28);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
             margin: 0;
-            padding: 0;
+            padding: 0 0 0 0.4rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .player-card-btn,
-        .match-detail-page .match-stats-panel.is-game-card .player-motm-btn {
-            align-items: center;
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.28) 0%, rgba(26, 79, 158, 0.35) 100%);
-            border: 2px solid rgba(200, 228, 255, 0.4);
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.65);
-            color: rgba(244, 249, 255, 0.72);
-            cursor: pointer;
-            display: inline-flex;
+        .match-detail-page .match-stats-panel.is-game-card .player-motm-btn.blknapp {
             font-size: 0.62rem;
             font-weight: 950;
-            height: 2rem;
-            justify-content: center;
             letter-spacing: 0.04em;
-            padding: 0;
-            width: 2rem;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .player-card-btn.is-yellow.is-active {
-            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 100%);
-            border-color: #f0d78c;
-            box-shadow: 0 2px 0 #6b4a0c;
-            color: #1a1204;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .player-card-btn.is-red.is-active {
-            background: linear-gradient(180deg, #f07171 0%, #b91c1c 100%);
-            border-color: #f0d78c;
-            box-shadow: 0 2px 0 #5c1010;
-            color: #fffdf5;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .player-motm-btn.is-active {
-            background: linear-gradient(180deg, #c084fc 0%, #7e22ce 100%);
-            border-color: #f0d78c;
-            box-shadow: 0 2px 0 #4c1d95;
-            color: #fffdf5;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-notice {
             margin: 0 0 0.4rem;
@@ -15398,30 +15453,61 @@
         }
         @media (max-width: 640px) {
             .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
-                padding: 0.5rem 0.5rem 0.55rem;
+                column-gap: 0.55rem;
+                grid-template-columns: auto minmax(0, 1fr);
+                padding: 0.6rem 0.55rem 0.65rem;
+                row-gap: 0.55rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card {
+                --stats-card-width: 3.9rem;
+                align-self: start;
+                grid-row: auto;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card-visual strong {
+                font-size: 0.54rem;
+                padding: 0.1rem 0.08rem 0.09rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-body {
+                display: contents;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-topline {
+                align-items: center;
+                gap: 0.4rem;
+                grid-column: 2;
+                grid-row: 1;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-controls {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-name {
+                font-size: 0.88rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
-                gap: 0.28rem;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 0.3rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group {
-                grid-column: 1 / -1;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                justify-self: stretch;
+                border-left: 0;
+                flex: 1 1 100%;
+                justify-content: flex-start;
+                margin-top: 0.1rem;
+                padding: 0.35rem 0 0;
                 width: 100%;
-            }
-            .match-detail-page .match-stats-panel.is-game-card .player-card-btn,
-            .match-detail-page .match-stats-panel.is-game-card .player-motm-btn {
-                width: 100%;
-            }
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-select,
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input,
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-select-rating {
-                font-size: 0.72rem;
-                min-height: 1.9rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-rating-current-hint {
                 display: none;
+            }
+        }
+        @media (min-width: 641px) and (max-width: 900px) {
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card {
+                --stats-card-width: 4.35rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group {
+                border-left: 0;
+                flex: 1 1 100%;
+                justify-content: flex-start;
+                padding: 0.2rem 0 0;
+                width: 100%;
             }
         }
         .match-detail-page .match-opponent-info-panel.is-game-card .match-detail-section-badge {
@@ -15820,7 +15906,16 @@
             text-transform: none;
             width: 100%;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab {
+        /*
+         * blknapp — blå liten knapp
+         * Samme stil/utseende/oppførsel som Banetid-fanene (Bytter/Spilletid).
+         * Bruk: class="blknapp" (+ is-active når valgt). Innhold: ikon eller merke.
+         */
+        .blknapp {
+            -webkit-appearance: none;
+            appearance: none;
+            box-sizing: border-box;
+            font: inherit;
             align-items: center;
             background: linear-gradient(180deg, #5eb0ff 0%, #1a4f9e 100%);
             border: 2.5px solid #c8e4ff;
@@ -15840,32 +15935,135 @@
             transition: box-shadow 120ms ease, background 120ms ease, transform 120ms ease, opacity 120ms ease;
             width: 2.15rem;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab.is-active {
+        .blknapp.is-active {
             background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
             box-shadow: 0 3px 0 #0f2f5c;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab:not(.is-active) {
+        /* Dim kun fane-blknapper (Bytter/Spilletid) — ikke Spillerbørs-kontroller */
+        .blknapp.match-subs-view-tab:not(.is-active) {
             background: linear-gradient(180deg, rgba(94, 176, 255, 0.45) 0%, rgba(26, 79, 158, 0.45) 100%);
             border-color: rgba(200, 228, 255, 0.45);
             box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
             color: rgba(244, 249, 255, 0.78);
             opacity: 0.85;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab:hover {
+        input.blknapp {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            cursor: text;
+        }
+        input.blknapp::-webkit-outer-spin-button,
+        input.blknapp::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        select.blknapp {
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        select.blknapp::-ms-expand {
+            display: none;
+        }
+        input.blknapp:focus,
+        select.blknapp:focus {
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+            border-color: #c8e4ff;
+            box-shadow: 0 3px 0 #0f2f5c;
+            color: #f4f9ff;
+            opacity: 1;
+            outline: none;
+        }
+        .blknapp:hover {
             background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
             box-shadow: 0 3px 0 #0f2f5c;
             opacity: 1;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab:active,
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab.is-active:active {
+        .blknapp:active,
+        .blknapp.is-active:active {
             box-shadow: 0 1px 0 #07182f;
             transform: translateY(2px);
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab i {
+        .blknapp i {
             color: inherit;
             font-size: 0.95rem;
             line-height: 1;
             text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+        }
+        .blknapp-card-mark {
+            border-radius: 0.14rem;
+            box-shadow:
+                0 1px 0 rgba(8, 28, 56, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            display: block;
+            flex: 0 0 auto;
+            height: 0.95rem;
+            width: 0.68rem;
+        }
+        .blknapp-card-mark.is-yellow {
+            background: linear-gradient(180deg, #ffe566 0%, #f5c542 55%, #d4a017 100%);
+        }
+        .blknapp-card-mark.is-red {
+            background: linear-gradient(180deg, #ff7b7b 0%, #e11d2e 55%, #9f1239 100%);
+        }
+        .blknapp.is-yellow.is-active {
+            background: linear-gradient(180deg, #d9b24a 0%, #a87d18 55%, #7a5a0e 100%);
+            border-color: #e8c86a;
+            box-shadow: 0 3px 0 #4a3208;
+            color: #fff8e1;
+            opacity: 1;
+        }
+        .blknapp.is-yellow.is-active:hover {
+            background: linear-gradient(180deg, #e4c05a 0%, #b88a20 55%, #8a6612 100%);
+            box-shadow: 0 3px 0 #4a3208;
+            opacity: 1;
+        }
+        .blknapp.is-yellow.is-active:active {
+            box-shadow: 0 1px 0 #2f2005;
+        }
+        .blknapp.is-yellow.is-active .blknapp-card-mark.is-yellow {
+            box-shadow:
+                0 1px 0 rgba(47, 32, 5, 0.55),
+                0 0 0 1px rgba(255, 248, 220, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        .blknapp.is-red.is-active {
+            background: linear-gradient(180deg, #c24a4a 0%, #8f1a1a 55%, #5c1010 100%);
+            border-color: #e07a7a;
+            box-shadow: 0 3px 0 #3f0a0a;
+            color: #fff5f5;
+            opacity: 1;
+        }
+        .blknapp.is-red.is-active:hover {
+            background: linear-gradient(180deg, #d05555 0%, #a02020 55%, #6b1212 100%);
+            box-shadow: 0 3px 0 #3f0a0a;
+            opacity: 1;
+        }
+        .blknapp.is-red.is-active:active {
+            box-shadow: 0 1px 0 #2a0707;
+        }
+        .blknapp.is-red.is-active .blknapp-card-mark.is-red {
+            box-shadow:
+                0 1px 0 rgba(42, 7, 7, 0.55),
+                0 0 0 1px rgba(255, 245, 245, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        .blknapp.player-motm-btn.is-active {
+            background: linear-gradient(180deg, #b07ae8 0%, #7e22ce 55%, #5b168a 100%);
+            border-color: #d8b4fe;
+            box-shadow: 0 3px 0 #3b0764;
+            color: #faf5ff;
+            opacity: 1;
+        }
+        .blknapp.player-motm-btn.is-active:hover {
+            background: linear-gradient(180deg, #c084fc 0%, #9333ea 55%, #6b21a8 100%);
+            box-shadow: 0 3px 0 #3b0764;
+            opacity: 1;
+        }
+        .blknapp.player-motm-btn.is-active:active {
+            box-shadow: 0 1px 0 #2e1065;
         }
         .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab-sub-icon {
             background:
@@ -15917,6 +16115,7 @@
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn,
+            .blknapp,
             .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab {
                 transition: none;
             }
@@ -15924,6 +16123,7 @@
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:active,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn:active,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn:active,
+            .blknapp:active,
             .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab:active {
                 transform: none;
             }
@@ -16942,47 +17142,89 @@
             margin-right: auto;
         }
         .match-stats-player-row {
-            align-items: flex-start;
-            display: flex;
-            gap: 0.85rem;
-            justify-content: space-between;
+            align-items: stretch;
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: auto minmax(0, 1fr);
             padding: 0.85rem;
         }
         .match-stats-player-row + .match-stats-player-row {
             border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .match-stats-player-main {
-            align-items: flex-start;
-            display: flex;
-            flex: 1 1 auto;
-            gap: 0.65rem;
+        .match-stats-player-body {
+            display: grid;
+            gap: 0.55rem;
             min-width: 0;
         }
-        .match-stats-player-avatar {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(245, 197, 66, 0.32);
-            border-radius: 0.55rem;
-            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.18);
-            color: #f5c542;
-            display: inline-flex;
+        .match-stats-player-topline {
+            align-items: start;
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            min-width: 0;
+        }
+        .match-stats-player-card {
+            --stats-card-width: 4.5rem;
+            --stats-card-radius: 0.64rem;
+            align-self: center;
+            background: #ffffff;
+            border: 1px solid rgba(245, 197, 66, 0.7);
+            border-radius: var(--stats-card-radius);
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.2);
             flex: 0 0 auto;
-            font-size: 0.62rem;
-            font-weight: 950;
-            height: 2.65rem;
+            height: calc(var(--stats-card-width) * 1.42);
+            overflow: hidden;
+            width: var(--stats-card-width);
+        }
+        .match-stats-player-card-visual {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        .match-stats-player-card-photo-area {
+            flex: 1 1 0;
+            min-height: 0;
+            position: relative;
+            width: 100%;
+        }
+        .match-stats-player-card-photo {
+            align-items: center;
+            background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+            border-radius: var(--stats-card-radius) var(--stats-card-radius) 0.16rem 0.16rem;
+            color: #123f73;
+            display: flex;
+            height: 100%;
             justify-content: center;
             overflow: hidden;
-            width: 2rem;
+            position: relative;
+            width: 100%;
         }
-        .match-stats-player-avatar.is-photo {
-            background: #0b2b4c;
-            padding: 0;
-        }
-        .match-stats-player-avatar img {
+        .match-stats-player-card-photo img {
             display: block;
             height: 100%;
             object-fit: cover;
             width: 100%;
+        }
+        .match-stats-player-card-photo i {
+            font-size: 1.05rem;
+            opacity: 0.78;
+        }
+        .match-stats-player-card-visual strong {
+            background: #ffffff;
+            color: #123f73;
+            display: block;
+            flex: 0 0 auto;
+            font-size: 0.6rem;
+            font-weight: 950;
+            line-height: 1.2;
+            overflow: hidden;
+            padding: 0.12rem 0.1rem 0.1rem;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .match-stats-player-info {
             display: grid;
@@ -18525,13 +18767,26 @@
                 padding: 0.65rem;
             }
             .match-stats-player-row {
-                align-items: flex-start;
-                flex-direction: column;
-                gap: 0.7rem;
+                gap: 0.55rem 0.65rem;
+                grid-template-columns: auto minmax(0, 1fr);
                 padding: 0.75rem 0.65rem;
+            }
+            .match-stats-player-card {
+                --stats-card-width: 3.7rem;
+                align-self: start;
+            }
+            .match-stats-player-body {
+                display: contents;
+            }
+            .match-stats-player-topline {
+                align-items: center;
+                grid-column: 2;
+                grid-row: 1;
             }
             .match-stats-controls {
                 flex-wrap: wrap;
+                grid-column: 1 / -1;
+                grid-row: 2;
                 justify-content: space-between;
                 width: 100%;
             }
@@ -19317,6 +19572,17 @@
                 calc(100% - 8px) calc(50% - 2px);
             padding-left: 0.45rem;
             padding-right: 1.25rem;
+        }
+        select.match-stat-select.blknapp {
+            background: linear-gradient(180deg, #5eb0ff 0%, #1a4f9e 100%);
+            max-width: 2.15rem;
+            min-width: 2.15rem;
+            padding: 0;
+            width: 2.15rem;
+        }
+        select.match-stat-select.blknapp:hover,
+        select.match-stat-select.blknapp:focus {
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
         }
         .portal-field-inline {
             background: transparent;
