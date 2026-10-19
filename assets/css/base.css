@@ -15049,32 +15049,18 @@
             display: none;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn.blknapp,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-close-bar-balance {
+            flex: 0 0 auto;
             height: 2.15rem;
             min-width: 0;
             padding: 0;
             width: 2.15rem;
         }
-        /* Nullstill: varm korall — advarsel/undo, ikke slett-rød og ikke lagre-blå */
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp {
-            background: linear-gradient(180deg, #ff8f6b 0%, #dc4a2f 48%, #9a2f1c 100%);
-            border-color: #ffc4b0;
-            box-shadow: 0 2px 0 #5c1c12;
-            color: #fff8f5;
-            opacity: 0.88;
-            text-shadow: 0 1px 0 rgba(60, 16, 10, 0.45);
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-close-bar-balance {
+            pointer-events: none;
+            visibility: hidden;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:hover {
-            background: linear-gradient(180deg, #ffa888 0%, #e85a38 48%, #b03822 100%);
-            box-shadow: 0 3px 0 #6e2416;
-            opacity: 1;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:active {
-            box-shadow: 0 1px 0 #3d120c;
-            transform: translateY(2px);
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn.blknapp:disabled,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:disabled {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn.blknapp:disabled {
             cursor: wait;
             opacity: 0.55;
         }
@@ -15934,12 +15920,9 @@
                 width: auto;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-btn.blknapp,
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-reset-btn.blknapp {
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-close-bar-balance {
                 height: clamp(2.25rem, 6.2vw, 2.55rem);
                 width: clamp(2.25rem, 6.2vw, 2.55rem);
-            }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-reset-btn.blknapp {
-                opacity: 0.9;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-btn.blknapp {
                 opacity: 1;
@@ -16618,7 +16601,6 @@
             .match-detail-page .match-coach-notes-panel.is-game-card .portal-field,
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn,
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn,
             .blknapp,
             .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab {
                 transition: none;
@@ -16626,7 +16608,6 @@
             .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus,
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:active,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn:active,
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn:active,
             .blknapp:active,
             .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab:active {
                 transform: none;
@@ -17882,8 +17863,7 @@
         .match-coach-notes-save-state {
             margin: 0 0 0.65rem;
         }
-        .match-stats-save-btn span,
-        .match-stats-reset-btn span {
+        .match-stats-save-btn span {
             display: inline;
             white-space: nowrap;
         }

@@ -8923,15 +8923,7 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
             <div class="match-stats-mobile-close-bar">
-                <button
-                    type="button"
-                    onclick="window.resetPlayerMatchStats()"
-                    class="blknapp is-icon match-stats-reset-btn"
-                    title="Nullstill Spillerbørs"
-                    aria-label="Nullstill Spillerbørs"
-                >
-                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-                </button>
+                <span class="match-stats-close-bar-balance" aria-hidden="true"></span>
                 <button
                     type="button"
                     class="blknapp match-stats-mobile-close-btn"
