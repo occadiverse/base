@@ -11068,7 +11068,7 @@
             color: #ffffff;
         }
         .stats-kampdata-bb-mark {
-            color: #d4a017;
+            color: #c084fc;
             font-size: 0.78rem;
             font-weight: 950;
             margin-left: 0.15rem;
@@ -11707,7 +11707,7 @@
         }
         .stats-leader-chip.is-form .stats-leader-chip-label i { color: #fb923c; }
         .stats-leader-chip.is-goals .stats-leader-chip-label i { color: #34d399; }
-        .stats-leader-chip.is-bb .stats-leader-chip-label i { color: #f5c542; }
+        .stats-leader-chip.is-bb .stats-leader-chip-label i { color: #c084fc; }
         @media (max-width: 480px) {
             .stats-hero-leaders {
                 grid-template-columns: 1fr;
@@ -15055,14 +15055,23 @@
             padding: 0;
             width: 2.15rem;
         }
+        /* Nullstill: varm korall — advarsel/undo, ikke slett-rød og ikke lagre-blå */
         .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp {
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.4) 0%, rgba(26, 79, 158, 0.42) 100%);
-            border-color: rgba(200, 228, 255, 0.35);
-            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.6);
-            opacity: 0.72;
+            background: linear-gradient(180deg, #ff8f6b 0%, #dc4a2f 48%, #9a2f1c 100%);
+            border-color: #ffc4b0;
+            box-shadow: 0 2px 0 #5c1c12;
+            color: #fff8f5;
+            opacity: 0.88;
+            text-shadow: 0 1px 0 rgba(60, 16, 10, 0.45);
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:hover {
+            background: linear-gradient(180deg, #ffa888 0%, #e85a38 48%, #b03822 100%);
+            box-shadow: 0 3px 0 #6e2416;
             opacity: 1;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:active {
+            box-shadow: 0 1px 0 #3d120c;
+            transform: translateY(2px);
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn.blknapp:disabled,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:disabled {
@@ -15398,21 +15407,22 @@
             align-items: center;
             justify-content: center;
         }
+        /* Samme FA-krone som på spillerstats — lilla for Banens beste */
         .blknapp-bb-mark {
-            background:
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M16 3.2l3.55 8.15 8.85.95-6.7 5.95 1.95 8.7L16 22.35l-7.65 4.6 1.95-8.7-6.7-5.95 8.85-.95L16 3.2z' fill='%23f5c542'/%3E%3Cpath d='M16 3.2l3.55 8.15 8.85.95-6.7 5.95 1.95 8.7L16 22.35l-7.65 4.6 1.95-8.7-6.7-5.95 8.85-.95L16 3.2z' fill='%23ffe08a' fill-opacity='.42'/%3E%3Cpath d='M16 3.2l3.55 8.15 8.85.95-6.7 5.95 1.95 8.7L16 22.35l-7.65 4.6 1.95-8.7-6.7-5.95 8.85-.95L16 3.2z' stroke='%23fffdf5' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E")
-                    center / contain no-repeat;
+            color: #c084fc;
             display: block;
             filter:
-                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.55))
-                drop-shadow(0 2px 0 rgba(107, 74, 12, 0.75));
+                drop-shadow(0 1px 0 rgba(250, 245, 255, 0.45))
+                drop-shadow(0 2px 0 rgba(59, 7, 100, 0.65));
             flex: 0 0 auto;
-            height: 1.15rem;
-            width: 1.15rem;
+            font-size: 0.95rem;
+            line-height: 1;
+            text-shadow: none;
         }
         .blknapp.player-motm-btn.is-active .blknapp-bb-mark {
+            color: #faf5ff;
             filter:
-                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.75))
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.55))
                 drop-shadow(0 2px 0 rgba(59, 7, 100, 0.55))
                 drop-shadow(0 0 8px rgba(216, 180, 254, 0.55));
         }
@@ -15670,8 +15680,7 @@
                 width: clamp(0.68rem, 2.3vw, 0.86rem);
             }
             .match-detail-page .match-stats-panel.is-game-card .blknapp-bb-mark {
-                height: clamp(1rem, 3.4vw, 1.25rem);
-                width: clamp(1rem, 3.4vw, 1.25rem);
+                font-size: clamp(0.92rem, 3.2vw, 1.15rem);
             }
             .match-detail-page .match-stats-panel.is-game-card .blknapp-stack {
                 font-size: clamp(0.42rem, 1.4vw, 0.52rem);
@@ -15746,7 +15755,8 @@
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus {
                 --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
-                --focus-pad-y: clamp(0.4rem, 1.6vw, 0.75rem);
+                --focus-pad-y: clamp(0.35rem, 1.4vw, 0.55rem);
+                --focus-close-bar-height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
                 border-left: 0;
                 border-radius: 0;
                 border-right: 0;
@@ -15759,7 +15769,8 @@
                 left: 0;
                 margin: 0;
                 max-height: calc(100dvh - (3.5rem + env(safe-area-inset-top, 0px)));
-                padding: var(--focus-pad-y) var(--focus-pad-x) calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + var(--focus-pad-y));
+                /* Ingen bunnpadding — LUKK-baren ligger i flex rett under scroll */
+                padding: var(--focus-pad-y) var(--focus-pad-x) 0;
                 position: fixed;
                 right: 0;
                 top: calc(3.5rem + env(safe-area-inset-top, 0px));
@@ -15769,16 +15780,26 @@
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus::before {
                 display: none;
             }
+            /* #kampdetaljer-info har egen topline-margin — må slås av eksplisitt i focus */
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline,
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline:hover {
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline:hover,
+            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline,
+            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline:hover {
                 background: transparent;
                 border-bottom: 0;
                 flex: 0 0 auto;
-                margin: 0 0 clamp(0.35rem, 1.4vw, 0.55rem);
+                margin: 0;
                 min-height: 0;
-                padding: 0.1rem 0.05rem 0.55rem;
+                padding: 0.1rem 0.05rem 0.5rem;
                 position: relative;
                 z-index: 2;
+            }
+            /* Gullinje under overskrift: kant-i-kant, samme som nederst på grå bar */
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline::after,
+            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline::after {
+                bottom: 0;
+                left: calc(-1 * var(--focus-pad-x));
+                right: calc(-1 * var(--focus-pad-x));
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-bench-heading h3 {
                 font-size: clamp(1.05rem, 4.6vw, 1.35rem);
@@ -15787,11 +15808,48 @@
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;
-                gap: clamp(0.4rem, 1.6vw, 0.7rem);
+                gap: 0;
+                margin: 0;
                 min-height: 0;
                 overflow: hidden;
+                padding: 0;
                 position: relative;
                 z-index: 1;
+            }
+            /* Clash-aktig vignett: innhold fades mykt inn i gullrammen (ikke hard clip) */
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content::before,
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content::after {
+                content: "";
+                left: calc(-1 * var(--focus-pad-x));
+                pointer-events: none;
+                position: absolute;
+                right: calc(-1 * var(--focus-pad-x));
+                z-index: 4;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content::before {
+                background: linear-gradient(
+                    180deg,
+                    rgba(4, 14, 28, 0.88) 0%,
+                    rgba(4, 14, 28, 0.45) 42%,
+                    rgba(4, 14, 28, 0.12) 78%,
+                    transparent 100%
+                );
+                height: 2.35rem;
+                top: 0;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content::after {
+                /* Heldekkende bunn — unngår gjennomsiktig søm mot LUKK-baren */
+                background: linear-gradient(
+                    180deg,
+                    transparent 0%,
+                    rgba(4, 14, 28, 0.35) 30%,
+                    rgba(4, 14, 28, 0.78) 64%,
+                    #040e1c 92%,
+                    #040e1c 100%
+                );
+                bottom: 0;
+                box-shadow: none;
+                height: 3.75rem;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body {
                 -webkit-overflow-scrolling: touch;
@@ -15800,8 +15858,11 @@
                 overflow-x: hidden;
                 overflow-y: auto;
                 overscroll-behavior: contain;
-                padding-top: 0.1rem;
+                padding: 0;
                 scrollbar-width: none;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-result-bar {
+                margin: 0.4rem 0 0.55rem;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body::-webkit-scrollbar {
                 display: none;
@@ -15811,25 +15872,55 @@
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-list {
                 gap: clamp(0.5rem, 1.8vw, 0.65rem);
                 max-width: 100%;
+                /* Litt ekstra så kort kan scrolle under vignettene */
+                padding-bottom: 1.55rem;
+                padding-top: 0.55rem;
                 width: 100%;
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar {
+            /* I flow under scroll — opaque metallic bar (ingen alpha-søm) + gold bloom */
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar,
+            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar {
                 align-items: center;
-                background: rgba(100, 116, 139, 0.94);
-                bottom: 0;
-                box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18);
+                background: linear-gradient(
+                    180deg,
+                    #4e5c70 0%,
+                    #647489 36%,
+                    #546276 100%
+                );
+                bottom: auto;
+                box-shadow: inset 0 14px 22px rgba(2, 6, 23, 0.22);
                 display: flex;
+                flex: 0 0 auto;
                 flex-wrap: nowrap;
                 gap: 0.4rem;
-                height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                height: var(--focus-close-bar-height);
                 justify-content: center;
-                left: 0;
-                margin: 0;
+                left: auto;
+                margin: 0 calc(-1 * var(--focus-pad-x)) 0;
                 padding: 0.35rem clamp(0.55rem, 3vw, 1rem) calc(0.35rem + env(safe-area-inset-bottom, 0px));
-                position: fixed;
+                position: relative;
+                right: auto;
+                width: calc(100% + (2 * var(--focus-pad-x)));
+                z-index: 2;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar::before,
+            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar::before {
+                background: linear-gradient(
+                    90deg,
+                    #c4921a 0%,
+                    #ffe08a 22%,
+                    #f5c542 50%,
+                    #ffe08a 78%,
+                    #c4921a 100%
+                );
+                /* Kun lokal glow på selve linjen — ingen ekstra kant over */
+                box-shadow: 0 0 8px rgba(245, 197, 66, 0.4);
+                content: "";
+                height: 2.5px;
+                left: 0;
+                position: absolute;
                 right: 0;
-                width: 100%;
-                z-index: 46;
+                top: 0;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-btn.blknapp {
                 flex: 0 0 auto;
@@ -15848,7 +15939,7 @@
                 width: clamp(2.25rem, 6.2vw, 2.55rem);
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-reset-btn.blknapp {
-                opacity: 0.62;
+                opacity: 0.9;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-btn.blknapp {
                 opacity: 1;

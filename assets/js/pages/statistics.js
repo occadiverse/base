@@ -6689,7 +6689,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const cardBits = [];
                 if (s.yellow > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-yellow" title="Gult kort">${s.yellow > 1 ? s.yellow : ''}</span>`);
                 if (s.red > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-red" title="Rødt kort">${s.red > 1 ? s.red : ''}</span>`);
-                if (s.isBbInMatch) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste">★</span>');
+                if (s.isBbInMatch) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>');
                 const cardsHtml = cardBits.length ? cardBits.join('') : '–';
                 const roleHtml = s.onPitch === false
                     ? '<span class="stats-kampdata-role is-bench">Benk</span>'
@@ -7078,7 +7078,7 @@ window.renderPlayerFormHistoryTableHtml = function(playerName, history) {
         const cardBits = [];
         if (entry.yellow) cardBits.push('<span class="stats-kampdata-card-dot is-yellow" title="Gult kort"></span>');
         if (entry.red) cardBits.push('<span class="stats-kampdata-card-dot is-red" title="Rødt kort"></span>');
-        if (entry.bb) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste">★</span>');
+        if (entry.bb) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>');
         const cardsHtml = cardBits.length ? cardBits.join('') : '–';
         const benchNote = satEntireBench
             ? '<span class="stats-form-history-bench">Benk</span>'
