@@ -42,17 +42,9 @@ window.getPlayerCardCounts = function(playerRef, teamName, options = {}) {
     return counts;
 };
 
-/** Spilletid > 0 fra Spillerbørs/Live/Bytter. Overstyrer «kun benk»-antakelser. */
+/** Positiv spilletid fra lagret kart og/eller Live-bytter (uavhengig av minutesSource). */
 window.getPlayerMatchPlayingMinutes = function(match, playerRef) {
     if (!match || !playerRef) return 0;
-
-    if (typeof window.getMatchPlayerMinutesForSpillerbors === 'function') {
-        const fromSpillerbors = window.getMatchPlayerMinutesForSpillerbors(match, playerRef);
-        if (fromSpillerbors !== null && fromSpillerbors !== undefined) {
-            const minutes = Math.max(0, Math.floor(Number(fromSpillerbors) || 0));
-            if (minutes > 0) return minutes;
-        }
-    }
 
     if (typeof window.getPlayerRefMapValue === 'function') {
         const storedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerRef, null);
@@ -62,8 +54,15 @@ window.getPlayerMatchPlayingMinutes = function(match, playerRef) {
         }
     }
 
-    if (match.minutesSource === 'spillerbors') return 0;
+    if (typeof window.getMatchPlayerMinutesForSpillerbors === 'function') {
+        const fromSpillerbors = window.getMatchPlayerMinutesForSpillerbors(match, playerRef);
+        if (fromSpillerbors !== null && fromSpillerbors !== undefined) {
+            const minutes = Math.max(0, Math.floor(Number(fromSpillerbors) || 0));
+            if (minutes > 0) return minutes;
+        }
+    }
 
+    // Alltid sjekk Live-bytter — også når Spillerbørs er «fasit» med tomt felt.
     if (typeof window.getMatchLiveMinutesPlayedMap === 'function'
         && typeof window.getPlayerRefMapValue === 'function') {
         const liveMap = window.getMatchLiveMinutesPlayedMap(match);
@@ -77,11 +76,42 @@ window.getPlayerMatchPlayingMinutes = function(match, playerRef) {
     return 0;
 };
 
+/** True hvis spilleren er kommet inn via Live-bytte (inkl. fill-chain). */
+window.playerHasLiveSubAppearance = function(match, playerRef) {
+    if (!match || !playerRef) return false;
+    const player = typeof playerRef === 'object' && playerRef !== null
+        ? playerRef
+        : (typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(playerRef) : null);
+    const matchesRef = (ref) => {
+        if (!ref) return false;
+        if (player && typeof window.playerRefMatches === 'function') {
+            return window.playerRefMatches(ref, player);
+        }
+        return ref === playerRef || (player && (ref === player.id || ref === player.navn));
+    };
+
+    const subs = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions : [];
+    for (const sub of subs) {
+        if (matchesRef(sub?.inId)) return true;
+        if (matchesRef(sub?.fillId)) return true;
+        const chain = typeof window.getMatchSubsLogFillChainSteps === 'function'
+            ? window.getMatchSubsLogFillChainSteps(sub)
+            : (Array.isArray(sub?.fillChain) ? sub.fillChain : []);
+        for (const step of chain) {
+            if (matchesRef(step?.playerId) || matchesRef(step?.fillId) || matchesRef(step?.inId)) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
 window.isPlayerOnPitch = function(match, playerRef) {
     if (!match || !playerRef) return true;
 
-    // Innbytter med spilletid er på banen — ikke «kun benk».
+    // Innbytter med spilletid / bytte-inn er på banen — ikke «kun benk».
     if (window.getPlayerMatchPlayingMinutes(match, playerRef) > 0) return true;
+    if (window.playerHasLiveSubAppearance(match, playerRef)) return true;
 
     if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === true) return false;
     if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === false) return true;
@@ -153,13 +183,14 @@ window.getPlayerMatchStartStatus = function(match, playerRef) {
 window.isPlayerBenchOnly = function(match, playerRef) {
     if (!match || !playerRef) return false;
 
-    // Spilletid fra Live/Bytter/Spillerbørs betyr at spilleren var inne — ikke benk-only.
+    // Spilletid eller innbytte i Live/Bytter betyr at spilleren var inne — ikke benk-only.
     if (window.getPlayerMatchPlayingMinutes(match, playerRef) > 0) return false;
+    if (window.playerHasLiveSubAppearance(match, playerRef)) return false;
 
     if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === true) return true;
     if (window.getPlayerRefMapValue(match.benchOnly, playerRef, undefined) === false) return false;
 
-    // Uten lagret flagg: anta benk-only kun hvis de ikke er i 11eren og mangler spilletid.
+    // Uten lagret flagg: anta benk-only kun hvis de ikke er i 11eren og mangler spilletid/bytte.
     if (match.lineup && typeof match.lineup === 'object' && Object.keys(match.lineup).length > 0) {
         return !window.isPlayerInMatchStartingXi(match, playerRef);
     }

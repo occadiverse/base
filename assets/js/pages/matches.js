@@ -12386,7 +12386,7 @@ window.renderPlayerRowForm = function(match) {
         const hasRed = window.playerRefListIncludes(match.rodeKort, playerObj);
         const isMotm = window.motmMatchesPlayer(match.motm, playerObj);
         const isBenchOnly = typeof window.isPlayerBenchOnly === 'function'
-            ? window.isPlayerBenchOnly(match, player)
+            ? window.isPlayerBenchOnly(match, playerObj)
             : false;
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
         const ratingHint = formatMatchPlayerStatHint(prevRating, isBenchOnly);
