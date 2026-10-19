@@ -12290,14 +12290,32 @@ window.getMatchLiveMinutesPlayedMap = function(match) {
     return window.computeLiveMinutesPlayed(match, subs, duration) || {};
 };
 
-/** Spilletid i Bytter-panelet: følg bytteloggen, med mindre Spillerbørs er fasit. */
-function getMatchSubsPanelPlayerMinutes(match, playerObj) {
-    if (!match || !playerObj) return null;
-    if (match.minutesSource === 'spillerbors') {
-        return typeof window.getMatchPlayerMinutesForSpillerbors === 'function'
-            ? window.getMatchPlayerMinutesForSpillerbors(match, playerObj)
-            : null;
+/** Sum av faktiske posisjonsstints fra bytteloggen (f.eks. 45+15 → 60). */
+function sumMatchLivePositionMinutes(match, playerObj) {
+    if (!match || !playerObj) return 0;
+
+    const stints = getMatchLiveComputedPositionStints(match, playerObj);
+    if (Array.isArray(stints) && stints.length) {
+        return stints.reduce(
+            (sum, stint) => sum + Math.max(0, Math.floor(Number(stint?.minutes) || 0)),
+            0
+        );
     }
+
+    const posMap = getMatchLiveComputedPositionMinutesMap(match, playerObj);
+    return Object.values(posMap || {}).reduce(
+        (sum, mins) => sum + Math.max(0, Math.floor(Number(mins) || 0)),
+        0
+    );
+}
+
+/** Live/Bytter-spilletid for én spiller — posisjonsstints først, deretter on/off. */
+function getMatchLivePlayerMinutes(match, playerObj) {
+    if (!match || !playerObj) return null;
+
+    const fromPositions = sumMatchLivePositionMinutes(match, playerObj);
+    if (fromPositions > 0) return fromPositions;
+
     const liveMap = window.getMatchLiveMinutesPlayedMap(match);
     const liveRaw = window.getPlayerRefMapValue(liveMap, playerObj, null);
     if (liveRaw === null || liveRaw === undefined || liveRaw === '') return null;
@@ -12305,8 +12323,24 @@ function getMatchSubsPanelPlayerMinutes(match, playerObj) {
     return live > 0 ? live : null;
 }
 
+/** Spilletid i Bytter-panelet: samme fasit som Spillerbørs-Min. */
+function getMatchSubsPanelPlayerMinutes(match, playerObj) {
+    if (!match || !playerObj) return null;
+    if (typeof window.getMatchPlayerMinutesForSpillerbors === 'function') {
+        return window.getMatchPlayerMinutesForSpillerbors(match, playerObj);
+    }
+    return getMatchLivePlayerMinutes(match, playerObj);
+}
+
+/**
+ * Spilletid i Spillerbørs (Min) og Spilletid-fanen:
+ * Bytteloggens faktiske minutter (posisjonsstints) er fasit når de finnes.
+ */
 window.getMatchPlayerMinutesForSpillerbors = function(match, playerObj) {
     if (!match || !playerObj) return null;
+
+    const liveActual = getMatchLivePlayerMinutes(match, playerObj);
+    if (liveActual > 0) return liveActual;
 
     const storedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerObj, null);
     if (storedRaw !== null && storedRaw !== undefined && storedRaw !== '') {
@@ -12314,14 +12348,7 @@ window.getMatchPlayerMinutesForSpillerbors = function(match, playerObj) {
         return stored > 0 ? stored : null;
     }
 
-    // Etter Spillerbørs-lagring er minutesPlayed fasit for total spilletid (også tomme felt).
-    if (match.minutesSource === 'spillerbors') return null;
-
-    const liveMap = window.getMatchLiveMinutesPlayedMap(match);
-    const liveRaw = window.getPlayerRefMapValue(liveMap, playerObj, null);
-    if (liveRaw === null || liveRaw === undefined || liveRaw === '') return null;
-    const live = Math.max(0, Math.floor(Number(liveRaw) || 0));
-    return live > 0 ? live : null;
+    return null;
 };
 
 window.renderPlayerRowForm = function(match) {

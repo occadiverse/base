@@ -42,17 +42,9 @@ window.getPlayerCardCounts = function(playerRef, teamName, options = {}) {
     return counts;
 };
 
-/** Positiv spilletid fra lagret kart og/eller Live-bytter (uavhengig av minutesSource). */
+/** Positiv spilletid — byttelogg/faktisk spilt først, deretter lagret. */
 window.getPlayerMatchPlayingMinutes = function(match, playerRef) {
     if (!match || !playerRef) return 0;
-
-    if (typeof window.getPlayerRefMapValue === 'function') {
-        const storedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerRef, null);
-        if (storedRaw !== null && storedRaw !== undefined && storedRaw !== '') {
-            const stored = Math.max(0, Math.floor(Number(storedRaw) || 0));
-            if (stored > 0) return stored;
-        }
-    }
 
     if (typeof window.getMatchPlayerMinutesForSpillerbors === 'function') {
         const fromSpillerbors = window.getMatchPlayerMinutesForSpillerbors(match, playerRef);
@@ -62,7 +54,6 @@ window.getPlayerMatchPlayingMinutes = function(match, playerRef) {
         }
     }
 
-    // Alltid sjekk Live-bytter — også når Spillerbørs er «fasit» med tomt felt.
     if (typeof window.getMatchLiveMinutesPlayedMap === 'function'
         && typeof window.getPlayerRefMapValue === 'function') {
         const liveMap = window.getMatchLiveMinutesPlayedMap(match);
@@ -70,6 +61,14 @@ window.getPlayerMatchPlayingMinutes = function(match, playerRef) {
         if (liveRaw !== null && liveRaw !== undefined && liveRaw !== '') {
             const live = Math.max(0, Math.floor(Number(liveRaw) || 0));
             if (live > 0) return live;
+        }
+    }
+
+    if (typeof window.getPlayerRefMapValue === 'function') {
+        const storedRaw = window.getPlayerRefMapValue(match.minutesPlayed, playerRef, null);
+        if (storedRaw !== null && storedRaw !== undefined && storedRaw !== '') {
+            const stored = Math.max(0, Math.floor(Number(storedRaw) || 0));
+            if (stored > 0) return stored;
         }
     }
 
