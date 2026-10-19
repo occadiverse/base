@@ -14505,18 +14505,28 @@
             z-index: 1;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-topline:hover,
+        #kampdetaljer-info .match-stats-panel.is-game-card .match-stats-topline,
         #kampdetaljer-info .match-stats-panel.is-game-card .match-stats-topline:hover,
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline,
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline:hover,
+        #kampdetaljer-info .match-coach-notes-panel.is-game-card .match-coach-notes-topline,
         #kampdetaljer-info .match-coach-notes-panel.is-game-card .match-coach-notes-topline:hover,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-topline,
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-topline:hover,
+        #kampdetaljer-info .match-subs-panel.is-game-card .match-subs-topline,
         #kampdetaljer-info .match-subs-panel.is-game-card .match-subs-topline:hover,
         .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline,
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline:hover,
+        #kampdetaljer-info .match-opponent-info-panel.is-game-card .match-opponent-info-topline,
         #kampdetaljer-info .match-opponent-info-panel.is-game-card .match-opponent-info-topline:hover {
             background: transparent;
+            border-bottom: 0;
             border-radius: 0;
             margin: 0 0 0.85rem;
+            min-height: 0;
             overflow: visible;
-            padding: 0.2rem 0.1rem 0.1rem;
+            padding: 0.2rem 0.1rem 0.55rem;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline::after,
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline::after,
@@ -15024,45 +15034,31 @@
             position: relative;
             z-index: 1;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-footer {
-            margin-top: 0.9rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-state {
+            margin: 0 0 0.55rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn {
-            background: linear-gradient(180deg, #5eb0ff 0%, #1a4f9e 100%);
-            border: 2.5px solid #c8e4ff;
-            border-radius: 0.75rem;
-            box-shadow: 0 3px 0 #0a2244;
-            color: #f4f9ff;
-            min-height: 2.35rem;
-            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
-            transition: box-shadow 120ms ease, background 120ms ease, transform 120ms ease;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-bar {
+            align-items: center;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.4rem;
+            justify-content: center;
+            margin-top: 0.85rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn i,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn i {
-            color: #f4f9ff;
+        .match-detail-page .match-stats-panel.is-game-card.is-collapsed .match-stats-mobile-close-bar {
+            display: none;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn:hover,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn:hover {
-            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
-            box-shadow: 0 3px 0 #0f2f5c;
-            transform: none;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn.blknapp,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp {
+            height: 2.15rem;
+            min-width: 0;
+            padding: 0;
+            width: 2.15rem;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn:active,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn:active {
-            box-shadow: 0 1px 0 #07182f;
-            transform: translateY(2px);
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn {
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.38) 0%, rgba(26, 79, 158, 0.42) 100%);
-            border-color: rgba(200, 228, 255, 0.4);
-            box-shadow: 0 3px 0 rgba(10, 34, 68, 0.75);
-            color: rgba(244, 249, 255, 0.88);
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn:hover {
-            background: linear-gradient(180deg, rgba(126, 194, 255, 0.55) 0%, rgba(36, 96, 184, 0.55) 100%);
-            box-shadow: 0 3px 0 #0f2f5c;
-            color: #f4f9ff;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn.blknapp:disabled,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-reset-btn.blknapp:disabled {
+            cursor: wait;
+            opacity: 0.55;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-body {
             background: transparent;
@@ -15214,7 +15210,7 @@
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-list {
             display: grid;
-            gap: 0.45rem;
+            gap: 0.55rem;
             max-width: 100%;
             min-width: 0;
         }
@@ -15224,18 +15220,15 @@
                 grid-auto-columns: minmax(0, 1fr);
                 grid-auto-flow: column;
                 grid-template-rows: repeat(10, auto);
-                row-gap: 0.45rem;
+                row-gap: 0.55rem;
             }
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row + .match-stats-player-row {
-            border-top: 0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
             align-items: start;
             background:
                 linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
             border: 1.5px solid rgba(245, 197, 66, 0.48);
-            border-radius: 0.85rem;
+            border-radius: 0.7rem;
             box-shadow:
                 inset 0 3px 8px rgba(0, 0, 0, 0.28),
                 inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -15247,6 +15240,17 @@
             padding: 0.7rem 0.8rem 0.75rem;
             row-gap: 0;
             transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:hover,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within {
+            background:
+                linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 0 0 3px rgba(245, 197, 66, 0.22),
+                0 0 18px rgba(245, 197, 66, 0.2);
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-bench-only {
             opacity: 0.82;
@@ -15409,7 +15413,7 @@
             align-items: start;
             display: flex;
             flex-wrap: wrap;
-            gap: 0.35rem;
+            gap: 0.45rem;
             min-height: var(--blknapp-size);
             overflow: visible;
             width: 100%;
@@ -15508,9 +15512,9 @@
             display: flex;
             flex: 0 0 auto;
             flex-wrap: nowrap;
-            gap: 0.3rem;
+            gap: 0.45rem;
             margin: 0;
-            padding: 0 0 0 0.35rem;
+            padding: 0 0 0 0.4rem;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-notice {
             margin: 0 0 0.4rem;
@@ -15522,9 +15526,10 @@
         }
         @media (max-width: 640px) {
             .match-detail-page .match-stats-panel.is-game-card {
-                --blknapp-size: clamp(2.15rem, 12vw, 2.85rem);
-                --stats-row-gap: clamp(0.22rem, 1vw, 0.36rem);
-                --stats-pitch-height: calc((var(--blknapp-size) * 2) + var(--stats-row-gap));
+                --blknapp-size: clamp(2.05rem, 11.5vw, 2.7rem);
+                --stats-btn-gap: clamp(0.32rem, 1.4vw, 0.48rem);
+                --stats-row-gap: clamp(0.28rem, 1.2vw, 0.4rem);
+                --stats-pitch-height: calc((var(--blknapp-size) * 2) + var(--stats-btn-gap));
                 --stats-card-width: calc(var(--stats-pitch-height) / 1.42);
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
@@ -15558,7 +15563,7 @@
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
                 align-items: stretch;
-                column-gap: clamp(0.2rem, 1vw, 0.4rem);
+                column-gap: var(--stats-btn-gap);
                 display: grid;
                 grid-column: 2;
                 grid-row: 1;
@@ -15570,7 +15575,7 @@
                 min-height: var(--stats-pitch-height);
                 overflow: hidden;
                 padding-bottom: 0;
-                row-gap: var(--stats-row-gap);
+                row-gap: var(--stats-btn-gap);
                 width: 100%;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-rating-current-hint {
@@ -15637,9 +15642,15 @@
                 border-left: 1px solid rgba(200, 228, 255, 0.22);
                 padding: 0 0 0 0.28rem;
             }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls {
+                gap: 0.42rem;
+            }
         }
         .match-stats-mobile-close-bar {
             display: none;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-bar {
+            display: flex;
         }
         @media (max-width: 767px) {
             body.is-spillerbors-focus,
@@ -15679,11 +15690,14 @@
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus::before {
                 display: none;
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline {
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline,
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline:hover {
                 background: transparent;
+                border-bottom: 0;
                 flex: 0 0 auto;
                 margin: 0 0 clamp(0.35rem, 1.4vw, 0.55rem);
-                padding: 0.1rem 0.05rem clamp(0.4rem, 1.6vw, 0.6rem);
+                min-height: 0;
+                padding: 0.1rem 0.05rem 0.55rem;
                 position: relative;
                 z-index: 2;
             }
@@ -15716,13 +15730,9 @@
                 height: 0;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-list {
-                gap: clamp(0.35rem, 1.4vw, 0.55rem);
+                gap: clamp(0.5rem, 1.8vw, 0.65rem);
                 max-width: 100%;
                 width: 100%;
-            }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-footer {
-                flex: 0 0 auto;
-                margin-top: 0;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar {
                 align-items: center;
@@ -15730,10 +15740,13 @@
                 bottom: 0;
                 box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18);
                 display: flex;
+                flex-wrap: nowrap;
+                gap: 0.4rem;
                 height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
                 justify-content: center;
                 left: 0;
-                padding: 0.35rem clamp(0.75rem, 4vw, 1.25rem) calc(0.35rem + env(safe-area-inset-bottom, 0px));
+                margin: 0;
+                padding: 0.35rem clamp(0.55rem, 3vw, 1rem) calc(0.35rem + env(safe-area-inset-bottom, 0px));
                 position: fixed;
                 right: 0;
                 width: 100%;
@@ -15746,9 +15759,14 @@
                 height: clamp(2.25rem, 6.2vw, 2.55rem);
                 letter-spacing: 0.1em;
                 max-width: none;
-                min-width: clamp(6.25rem, 28vw, 8rem);
-                padding: 0 clamp(1rem, 4vw, 1.4rem);
+                min-width: clamp(5.5rem, 22vw, 7rem);
+                padding: 0 clamp(0.85rem, 3.2vw, 1.2rem);
                 width: auto;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-btn.blknapp,
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-reset-btn.blknapp {
+                height: clamp(2.25rem, 6.2vw, 2.55rem);
+                width: clamp(2.25rem, 6.2vw, 2.55rem);
             }
         }
         .match-detail-page .match-opponent-info-panel.is-game-card .match-detail-section-badge {
@@ -17613,24 +17631,6 @@
         .match-kampplan-feedback,
         .match-coach-notes-save-state {
             margin: 0 0 0.65rem;
-        }
-        .match-stats-save-btn,
-        .match-stats-reset-btn {
-            gap: 0.45rem;
-            min-width: 5.5rem;
-            padding: 0.65rem 0.85rem;
-            white-space: nowrap;
-            width: auto;
-        }
-        .match-stats-reset-btn {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.18);
-            color: rgba(255, 255, 255, 0.88);
-        }
-        .match-stats-reset-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(245, 197, 66, 0.35);
-            color: #ffffff;
         }
         .match-stats-save-btn span,
         .match-stats-reset-btn span {
@@ -19667,10 +19667,21 @@
             width: min(24rem, calc(100vw - 2rem));
             z-index: 80;
         }
-        .match-rating-field:hover .match-rating-tooltip,
-        .match-rating-field:focus-within .match-rating-tooltip,
         .match-rating-field.is-guide-open .match-rating-tooltip {
             display: block;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .match-rating-field:hover .match-rating-tooltip,
+            .match-rating-field:focus-within .match-rating-tooltip {
+                display: block;
+            }
+        }
+        /* Spillerbørs: native select + hint is enough — tooltip blocks the controls */
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-tooltip,
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-field:hover .match-rating-tooltip,
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-field:focus-within .match-rating-tooltip,
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-field.is-guide-open .match-rating-tooltip {
+            display: none !important;
         }
         .match-rating-tooltip::after {
             display: none;

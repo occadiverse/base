@@ -189,19 +189,19 @@ const matchRatingGuide = {
     },
     3: {
         label: 'Dårlig kamp',
-        description: 'Under nivå for posisjonen, mer minus enn pluss'
+        description: 'Mer minus enn pluss for posisjonen'
     },
     4: {
         label: 'Under pari',
-        description: 'Leverte ikke det posisjonen krever, men ikke helt borte'
+        description: 'Greit, men leverte ikke det posisjonen krever'
     },
     5: {
         label: 'Som forventet',
-        description: 'Nøytral. Gjorde jobben posisjonen krever — verken pluss eller minus fra børsen'
+        description: 'Nøytral, gjorde det posisjonen krever'
     },
     6: {
         label: 'Solid pluss',
-        description: 'Noen gode aksjoner utover det posisjonen krever'
+        description: 'Noen gode aksjoner utover det pos. krever'
     },
     7: {
         label: 'Sterk kamp',
@@ -8919,30 +8919,37 @@ window.showMatchDetails = function(id) {
             <div class="match-collapsible-content">
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
+                    <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
                 </div>
-                <div class="match-stats-footer">
-                    <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
-                    <div class="match-stats-footer-actions">
-                        <button type="button" onclick="window.resetPlayerMatchStats()" class="match-bench-action-btn match-stats-reset-btn" title="Tøm Spillerbørs slik at Min kan fylles fra Live/Bytter på nytt">
-                            <i class="fa-solid fa-rotate-left"></i>
-                            <span>Nullstill</span>
-                        </button>
-                        <button type="button" onclick="savePlayerMatchStats()" class="match-bench-action-btn match-stats-save-btn">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>Lagre</span>
-                        </button>
-                    </div>
-                </div>
             </div>
-            <div class="match-stats-mobile-close-bar" hidden>
+            <div class="match-stats-mobile-close-bar">
+                <button
+                    type="button"
+                    onclick="window.resetPlayerMatchStats()"
+                    class="blknapp is-icon match-stats-reset-btn"
+                    title="Nullstill Spillerbørs"
+                    aria-label="Nullstill Spillerbørs"
+                >
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                </button>
                 <button
                     type="button"
                     class="blknapp match-stats-mobile-close-btn"
                     onclick="window.closeSpillerborsMobileFocus()"
                     aria-label="Lukk spillerbørs"
+                    hidden
                 >LUKK</button>
+                <button
+                    type="button"
+                    onclick="savePlayerMatchStats()"
+                    class="blknapp is-icon match-stats-save-btn"
+                    title="Lagre Spillerbørs"
+                    aria-label="Lagre Spillerbørs"
+                >
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                </button>
             </div>
         </section>
 
@@ -12069,8 +12076,8 @@ function clearSpillerborsMobileFocus() {
     const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
     if (!panel) return;
     panel.classList.remove('is-mobile-focus');
-    const closeBar = panel.querySelector('.match-stats-mobile-close-bar');
-    if (closeBar) closeBar.hidden = true;
+    const closeBtn = panel.querySelector('.match-stats-mobile-close-btn');
+    if (closeBtn) closeBtn.hidden = true;
 }
 window.clearSpillerborsMobileFocus = clearSpillerborsMobileFocus;
 
@@ -12085,8 +12092,8 @@ window.enterSpillerborsMobileFocus = function(panel) {
     }
     document.body.classList.add('is-spillerbors-focus');
     statsPanel.classList.add('is-mobile-focus');
-    const closeBar = statsPanel.querySelector('.match-stats-mobile-close-bar');
-    if (closeBar) closeBar.hidden = false;
+    const closeBtn = statsPanel.querySelector('.match-stats-mobile-close-btn');
+    if (closeBtn) closeBtn.hidden = false;
 };
 
 window.closeSpillerborsMobileFocus = function() {
@@ -12536,9 +12543,7 @@ window.resetPlayerMatchStats = async function() {
     }
 
     const resetBtn = document.querySelector('.match-stats-reset-btn');
-    const resetLabel = resetBtn?.querySelector('span');
     if (resetBtn) resetBtn.disabled = true;
-    if (resetLabel) resetLabel.textContent = 'Nullstiller...';
     setMatchDetailFeedback('[data-stats-save-state]', 'Nullstiller spillerbørs...', 'pending');
 
     try {
@@ -12547,7 +12552,6 @@ window.resetPlayerMatchStats = async function() {
         console.error(error);
         setMatchDetailFeedback('[data-stats-save-state]', error.message || 'Nullstilling feilet', 'error');
         if (resetBtn) resetBtn.disabled = false;
-        if (resetLabel) resetLabel.textContent = 'Nullstill';
         return;
     }
 
@@ -12577,7 +12581,6 @@ window.resetPlayerMatchStats = async function() {
         5000
     );
     if (resetBtn) resetBtn.disabled = false;
-    if (resetLabel) resetLabel.textContent = 'Nullstill';
 };
 
 window.savePlayerMatchStats = async function() {
@@ -12702,10 +12705,8 @@ window.savePlayerMatchStats = async function() {
     }
 
     const saveBtn = document.querySelector('.match-stats-save-btn');
-    const saveLabel = saveBtn?.querySelector('span');
 
     if (saveBtn) saveBtn.disabled = true;
-    if (saveLabel) saveLabel.textContent = 'Lagrer...';
     setMatchDetailFeedback('[data-stats-save-state]', 'Lagrer spillerbørs...', 'pending');
 
     try {
@@ -12714,13 +12715,11 @@ window.savePlayerMatchStats = async function() {
         console.error(error);
         setMatchDetailFeedback('[data-stats-save-state]', error.message || 'Lagring feilet', 'error');
         if (saveBtn) saveBtn.disabled = false;
-        if (saveLabel) saveLabel.textContent = 'Lagre';
         return;
     }
 
     setMatchDetailFeedback('[data-stats-save-state]', 'Spillerbørs lagret', 'success', 5000);
     if (saveBtn) saveBtn.disabled = false;
-    if (saveLabel) saveLabel.textContent = 'Lagre';
     window.updateMatchStatsResultBar();
     syncMatchDetailCardResult(match);
     const card = document.querySelector('#kampdetaljer-info .match-detail-card');
