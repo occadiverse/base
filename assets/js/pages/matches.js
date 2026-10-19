@@ -248,10 +248,8 @@ function formatMatchPlayerStatHint(value, isBenchOnly) {
     return formatMatchRatingHint(value);
 }
 
-function buildMatchStatVerticalLabel(text) {
-    return `<span class="match-stat-label-vertical" aria-hidden="true">${[...String(text || '')].map((ch) =>
-        `<span>${escapeMatchHtml(ch)}</span>`
-    ).join('')}</span>`;
+function buildMatchStatLabel(text) {
+    return `<span class="match-stat-label" aria-hidden="true">${escapeMatchHtml(text)}</span>`;
 }
 
 function syncMatchPlayerStatHint(row) {
@@ -12397,62 +12395,78 @@ window.renderPlayerRowForm = function(match) {
         div.className = `match-stats-player-row${isBenchOnly ? ' is-bench-only' : ''}`;
         div.innerHTML = `
             ${buildMatchStatsPlayerAvatarHtml(playerObj)}
+            <span class="match-rating-current-hint ${!isBenchOnly && Number(prevRating) === 0 ? 'is-empty' : ''}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
             <div class="match-stats-player-body">
                 <div class="match-stats-controls">
                     <div class="player-pitch-stats match-stats-pitch-controls${isBenchOnly ? ' is-disabled' : ''}">
-                        <div class="match-stat-field match-stat-chip blknapp">
-                            ${buildMatchStatVerticalLabel('MIN')}
-                            <input
-                                type="number"
-                                inputmode="numeric"
-                                min="0"
-                                max="120"
-                                step="1"
-                                class="match-stat-chip-value player-minutes-input match-stat-minutes-input${minutesPlayed === null ? ' is-empty' : ''}"
-                                data-player-id="${playerIdAttr}"
-                                data-player="${playerAttr}"
-                                value="${minutesPlayed === null ? '' : minutesPlayed}"
-                                placeholder="—"
-                                aria-label="Spilletid i minutter for ${playerAttr}"
-                                title="Total spilletid. Forhåndsutfylt fra Live/Bytter — det du lagrer her er fasit."
-                            >
+                        <div class="match-stat-field">
+                            ${buildMatchStatLabel('MIN')}
+                            <div class="match-stat-chip blknapp">
+                                <input
+                                    type="number"
+                                    inputmode="numeric"
+                                    min="0"
+                                    max="120"
+                                    step="1"
+                                    class="match-stat-chip-value player-minutes-input match-stat-minutes-input${minutesPlayed === null ? ' is-empty' : ''}"
+                                    data-player-id="${playerIdAttr}"
+                                    data-player="${playerAttr}"
+                                    value="${minutesPlayed === null ? '' : minutesPlayed}"
+                                    placeholder="—"
+                                    aria-label="Spilletid i minutter for ${playerAttr}"
+                                    title="Total spilletid. Forhåndsutfylt fra Live/Bytter — det du lagrer her er fasit."
+                                >
+                            </div>
                         </div>
-                        <div class="match-stat-field match-stat-chip blknapp">
-                            ${buildMatchStatVerticalLabel('MÅL')}
-                            <select class="match-stat-chip-value player-goals-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
-                                ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
-                            </select>
+                        <div class="match-stat-field">
+                            ${buildMatchStatLabel('MÅL')}
+                            <div class="match-stat-chip blknapp">
+                                <select class="match-stat-chip-value player-goals-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Mål for ${playerAttr}">
+                                    ${scoreOptions.map(v => `<option value="${v}" ${Number(prevGoals) === v ? 'selected' : ''}>${v}</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
-                        <div class="match-stat-field match-stat-chip blknapp">
-                            ${buildMatchStatVerticalLabel('ASS')}
-                            <select class="match-stat-chip-value player-assists-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Assist for ${playerAttr}">
-                                ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
-                            </select>
+                        <div class="match-stat-field">
+                            ${buildMatchStatLabel('ASS')}
+                            <div class="match-stat-chip blknapp">
+                                <select class="match-stat-chip-value player-assists-input match-stat-select" data-player-id="${playerIdAttr}" data-player="${playerAttr}" aria-label="Assist for ${playerAttr}">
+                                    ${scoreOptions.map(v => `<option value="${v}" ${Number(prevAssists) === v ? 'selected' : ''}>${v}</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
-                        <div class="match-stat-field match-stat-chip blknapp match-rating-field">
-                            ${buildMatchStatVerticalLabel('BØRS')}
-                            <select
-                                class="match-stat-chip-value player-rating-select match-stat-select match-stat-select-rating"
-                                data-match-stat-action="rating-select"
-                                data-player-id="${playerIdAttr}"
-                                data-player="${playerAttr}"
-                                aria-label="Børs for ${playerAttr}"
-                            >
-                                <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
-                                ${[1,2,3,4,5,6,7,8,9,10].map(v =>
-                                    `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v}</option>`
-                                ).join('')}
-                            </select>
+                        <div class="match-stat-field match-rating-field">
+                            ${buildMatchStatLabel('BØRS')}
+                            <div class="match-stat-chip blknapp">
+                                <select
+                                    class="match-stat-chip-value player-rating-select match-stat-select match-stat-select-rating"
+                                    data-match-stat-action="rating-select"
+                                    data-player-id="${playerIdAttr}"
+                                    data-player="${playerAttr}"
+                                    aria-label="Børs for ${playerAttr}"
+                                >
+                                    <option value="0" ${prevRating === 0 ? 'selected' : ''}>--</option>
+                                    ${[1,2,3,4,5,6,7,8,9,10].map(v =>
+                                        `<option value="${v}" ${prevRating === v ? 'selected' : ''}>${v}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
                             ${buildMatchRatingTooltipHtml(prevRating)}
                         </div>
                         <div class="match-stats-card-group">
-                            <button type="button" data-match-stat-action="yellow-card" class="blknapp player-card-btn is-yellow is-icon${hasYellow ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}" aria-label="Gult kort" title="Gult kort"><span class="blknapp-card-mark is-yellow" aria-hidden="true"></span></button>
-                            <button type="button" data-match-stat-action="red-card" class="blknapp player-card-btn is-red is-icon${hasRed ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}" aria-label="Rødt kort" title="Rødt kort"><span class="blknapp-card-mark is-red" aria-hidden="true"></span></button>
-                            <button type="button" data-match-stat-action="motm-toggle" class="blknapp player-motm-btn is-icon${isMotm ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}" aria-label="Banens beste" title="Banens beste">BB</button>
-                            <button type="button" data-match-stat-action="bench-toggle" class="blknapp player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs"><span class="blknapp-stack" aria-hidden="true"><span>BE</span><span>NK</span></span></button>
+                            <div class="match-stat-field is-icon-only">
+                                <button type="button" data-match-stat-action="yellow-card" class="blknapp player-card-btn is-yellow is-icon${hasYellow ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="yellow" data-active="${hasYellow ? 'true' : 'false'}" aria-label="Gult kort" title="Gult kort"><span class="blknapp-card-mark is-yellow" aria-hidden="true"></span></button>
+                            </div>
+                            <div class="match-stat-field is-icon-only">
+                                <button type="button" data-match-stat-action="red-card" class="blknapp player-card-btn is-red is-icon${hasRed ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-type="red" data-active="${hasRed ? 'true' : 'false'}" aria-label="Rødt kort" title="Rødt kort"><span class="blknapp-card-mark is-red" aria-hidden="true"></span></button>
+                            </div>
+                            <div class="match-stat-field is-icon-only">
+                                <button type="button" data-match-stat-action="motm-toggle" class="blknapp player-motm-btn is-icon${isMotm ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isMotm ? 'true' : 'false'}" aria-label="Banens beste" title="Banens beste"><span class="blknapp-bb-mark" aria-hidden="true"></span></button>
+                            </div>
+                            <div class="match-stat-field is-icon-only">
+                                <button type="button" data-match-stat-action="bench-toggle" class="blknapp player-bench-btn${isBenchOnly ? ' is-active' : ''}" data-player-id="${playerIdAttr}" data-player="${playerAttr}" data-active="${isBenchOnly ? 'true' : 'false'}" aria-label="Kun oppmøtepoeng på benken" title="Benkspiller – kun oppmøtepoeng (15 p), ikke mål, assist eller børs"><span class="blknapp-stack" aria-hidden="true"><span>BE</span><span>NK</span></span></button>
+                            </div>
                         </div>
                     </div>
-                    <span class="match-rating-current-hint ${!isBenchOnly && Number(prevRating) === 0 ? 'is-empty' : ''}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
                 </div>
             </div>
         `;
