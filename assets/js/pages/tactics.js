@@ -1412,24 +1412,23 @@
 
             // Hold spilletid synket med bytteloggen (med mindre Spillerbørs er fasit).
             if (match.minutesSource !== 'spillerbors') {
-                if (commitMinutes) {
-                    match.liveDurationMinutes = duration;
-                } else {
-                    match.liveDurationMinutes = Math.max(
+                // Aldri lagre kampvarighet under 90 — ellers får innbyttere f.eks. 5' i stedet for 30'.
+                match.liveDurationMinutes = commitMinutes
+                    ? Math.max(duration, 90)
+                    : Math.max(
                         Math.floor(Number(match.liveDurationMinutes) || 0),
                         posDuration
                     );
-                }
                 match.minutesPlayed = computeMinutesPlayed(
                     match,
                     liveSubstitutions,
-                    commitMinutes ? Math.max(duration, 90) : posDuration
+                    match.liveDurationMinutes
                 );
                 match.minutesSource = 'live';
                 if (typeof computeLivePositionMinutes === 'function') {
                     match.positionMinutes = computeLivePositionMinutes(
                         match,
-                        commitMinutes ? Math.max(duration, 90) : posDuration
+                        match.liveDurationMinutes
                     );
                     match.positionMinutesSource = 'live';
                 }
