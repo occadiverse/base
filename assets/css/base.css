@@ -15413,7 +15413,7 @@
                 drop-shadow(0 0 8px rgba(216, 180, 254, 0.55));
         }
         .match-detail-page .match-stats-panel.is-game-card .blknapp-stack {
-            font-size: 0.58rem;
+            font-size: 0.52rem;
             gap: 0.04rem;
             line-height: 1;
         }
@@ -15428,6 +15428,31 @@
             letter-spacing: 0.06em;
             line-height: 1;
             text-transform: uppercase;
+        }
+        /* Hierarki: Børs først, G/R/BB/Benk sekundært (PC + mobil) */
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-field:not(.match-rating-field) .match-stat-chip.blknapp {
+            opacity: 0.88;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-field .match-stat-chip.blknapp {
+            background: linear-gradient(180deg, #6bb8ff 0%, #1f5aad 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                0 3px 0 #0a2244,
+                0 0 0 1px rgba(245, 197, 66, 0.35);
+            opacity: 1;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp:not(.is-active),
+        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active) {
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.38) 0%, rgba(26, 79, 158, 0.4) 100%);
+            border-color: rgba(200, 228, 255, 0.32);
+            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.55);
+            opacity: 0.52;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp:not(.is-active):hover,
+        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active):hover,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp.is-active,
+        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp.is-active {
+            opacity: 1;
         }
         .blknapp.player-bench-btn.is-active {
             background: linear-gradient(180deg, #9aabbf 0%, #5b6f86 55%, #3a4b60 100%);
@@ -15678,31 +15703,6 @@
                 gap: 0;
                 margin: 0;
                 padding: 0;
-            }
-            /* Hierarki: Børs først, G/R/BB/Benk sekundært */
-            .match-detail-page .match-stats-panel.is-game-card .match-stat-field:not(.match-rating-field) .match-stat-chip.blknapp {
-                opacity: 0.88;
-            }
-            .match-detail-page .match-stats-panel.is-game-card .match-rating-field .match-stat-chip.blknapp {
-                background: linear-gradient(180deg, #6bb8ff 0%, #1f5aad 100%);
-                border-color: #ffe08a;
-                box-shadow:
-                    0 3px 0 #0a2244,
-                    0 0 0 1px rgba(245, 197, 66, 0.35);
-                opacity: 1;
-            }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp:not(.is-active),
-            .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active) {
-                background: linear-gradient(180deg, rgba(94, 176, 255, 0.38) 0%, rgba(26, 79, 158, 0.4) 100%);
-                border-color: rgba(200, 228, 255, 0.32);
-                box-shadow: 0 2px 0 rgba(10, 34, 68, 0.55);
-                opacity: 0.52;
-            }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp:not(.is-active):hover,
-            .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active):hover,
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp.is-active,
-            .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp.is-active {
-                opacity: 1;
             }
         }
         @media (min-width: 641px) and (max-width: 900px) {
