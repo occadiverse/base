@@ -10220,7 +10220,7 @@ function getMatchSubsPlayingTimeRows(match) {
                 to: stint.to
             }))
             .filter((entry) => entry.minutes > 0);
-        const positions = stints.length
+        let positions = stints.length
             ? stints
             : Object.entries(positionMinutes || {})
                 .map(([posId, mins]) => ({
@@ -10230,7 +10230,25 @@ function getMatchSubsPlayingTimeRows(match) {
                 }))
                 .filter((entry) => entry.minutes > 0)
                 .sort((a, b) => b.minutes - a.minutes || compareMatchGamePlanPositions(a.posId, b.posId));
-        const positionsSum = positions.reduce((sum, entry) => sum + entry.minutes, 0);
+        let positionsSum = positions.reduce((sum, entry) => sum + entry.minutes, 0);
+        // Total (on/off) er fasit — skalér posisjonsmerker så vi ikke viser f.eks. «-25» foran 30'.
+        if (positions.length && positionsSum > 0 && positionsSum !== minutes) {
+            if (positions.length === 1) {
+                positions = [{ ...positions[0], minutes }];
+            } else {
+                const scaled = scaleMatchPositionMinutesMap(
+                    Object.fromEntries(positions.map((entry) => [entry.posId, entry.minutes])),
+                    minutes
+                );
+                positions = positions
+                    .map((entry) => ({
+                        ...entry,
+                        minutes: Math.max(0, Math.floor(Number(scaled[entry.posId]) || 0))
+                    }))
+                    .filter((entry) => entry.minutes > 0);
+            }
+            positionsSum = positions.reduce((sum, entry) => sum + entry.minutes, 0);
+        }
         const diff = positions.length ? (positionsSum - minutes) : 0;
         let positionsLabel = '';
         if (positions.length === 1) {
