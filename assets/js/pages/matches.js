@@ -10013,7 +10013,7 @@ function buildMatchLiveSubsLogTextRowsHtml(events) {
 function buildMatchDetailSubsLogGameRowsHtml(events) {
     const posBadge = (label) => label
         ? `<span class="match-subs-log-pos">${escapeMatchHtml(label)}</span>`
-        : '';
+        : `<span class="match-subs-log-pos is-empty" aria-hidden="true"></span>`;
     const playerAvatar = (ref, side = 'out') => {
         const names = getMatchLiveSubPlayerNameParts(ref);
         const sideClass = side === 'in' ? ' is-in' : ' is-out';
@@ -10026,14 +10026,17 @@ function buildMatchDetailSubsLogGameRowsHtml(events) {
                 <span class="match-subs-log-lastname">${escapeMatchHtml(names.last)}</span>
             </span>
         `;
+        const label = escapeMatchHtml(names.full || names.last || '');
         return side === 'in'
-            ? `<span class="match-subs-log-player${sideClass}">${avatar}${nameblock}</span>`
-            : `<span class="match-subs-log-player${sideClass}">${nameblock}${avatar}</span>`;
+            ? `<span class="match-subs-log-player${sideClass}" aria-label="${label}" title="${label}">${avatar}${nameblock}</span>`
+            : `<span class="match-subs-log-player${sideClass}" aria-label="${label}" title="${label}">${nameblock}${avatar}</span>`;
     };
     const arrowHtml = (isSwap = false) => `
         <span class="match-subs-log-arrow${isSwap ? ' is-swap' : ''}" aria-hidden="true"></span>
     `;
-    const gameRow = (editAttrs, minuteLabel, leftPos, rightPos, bodyInnerHtml) => `
+    const gameRow = (editAttrs, minuteLabel, leftPos, rightPos, bodyInnerHtml) => {
+        const rightLabel = rightPos && rightPos !== leftPos ? rightPos : '';
+        return `
         <li>
             <button ${editAttrs}>
                 <span class="match-subs-log-minute">${escapeMatchHtml(minuteLabel)}</span>
@@ -10041,10 +10044,11 @@ function buildMatchDetailSubsLogGameRowsHtml(events) {
                 <span class="match-subs-log-body">
                     ${bodyInnerHtml}
                 </span>
-                ${rightPos && rightPos !== leftPos ? posBadge(rightPos) : ''}
+                ${posBadge(rightLabel)}
             </button>
         </li>
     `;
+    };
 
     return events.map((event) => {
         const minuteLabel = `${event.minute}'`;
