@@ -15515,7 +15515,7 @@
             color: #f4f7fa;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-save-state {
-            margin: 0 0 0.55rem;
+            margin: 0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-bar {
             align-items: center;
@@ -15560,14 +15560,17 @@
             transform: translateY(2px);
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-body {
+            align-content: start;
             background: transparent;
             border: 0;
             border-radius: 0;
+            display: grid;
+            gap: 0.75rem;
             overflow: visible;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-result-bar {
             border-bottom: 0;
-            margin: 0 0 0.85rem;
+            margin: 0;
             padding: 0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-result-board {
@@ -15905,38 +15908,42 @@
         .match-stats-player-row.is-filter-hidden {
             display: none !important;
         }
-        .match-stats-squad-toolbar {
-            margin: 0 0 0.65rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar.match-subs-view-toolbar {
+            align-self: start;
+            margin: 0;
+            min-height: 2.15rem;
         }
-        .match-stats-squad-filters {
-            display: grid;
-            gap: 0.35rem;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-        .match-stats-squad-filter {
-            background: rgba(15, 30, 52, 0.85);
-            border: 1.5px solid rgba(72, 97, 148, 0.75);
-            border-radius: 0.55rem;
-            box-shadow: 0 2px 0 rgba(12, 18, 33, 0.85);
-            color: #8fa5d1;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.72rem;
-            font-weight: 900;
-            letter-spacing: 0.02em;
-            padding: 0.45rem 0.35rem;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .match-subs-view-heading {
+            justify-content: center;
             text-align: center;
         }
-        .match-stats-squad-filter.is-active {
-            background: linear-gradient(180deg, #4d9eff 0%, #195bb0 100%);
-            border-color: #8ac0ff;
-            box-shadow: 0 2px 0 #0c2d59;
-            color: #fff;
-            text-shadow: 0 1px 0 #081e3d;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .match-subs-view-tabs {
+            gap: 0.35rem;
+            justify-content: center;
         }
-        .match-stats-squad-filter span {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-tab-xi {
+            font-size: 0.92rem;
             font-variant-numeric: tabular-nums;
-            opacity: 0.9;
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .blknapp-stack {
+            font-size: 0.62rem;
+            gap: 0.04rem;
+            letter-spacing: 0.06em;
+            line-height: 0.95;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-subs-view-heading [data-stats-squad-heading] {
+            align-items: baseline;
+            display: inline-flex;
+            gap: 0.35rem;
+            min-width: 0;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-subs-view-heading [data-filter-count-active] {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:hover,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within {
@@ -17056,7 +17063,7 @@
         .match-detail-page .match-subs-panel.is-game-card .match-subs-save-state {
             margin: 0.35rem 0 0;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-toolbar {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-toolbar {
             align-items: center;
             display: grid;
             gap: 0;
@@ -17067,7 +17074,7 @@
             min-width: 0;
             position: relative;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-toolbar::before {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-toolbar::before {
             align-self: center;
             background: radial-gradient(circle at 35% 30%, #fff6d6 0%, #f5c542 48%, #b8840f 100%);
             border: 1.5px solid rgba(255, 253, 245, 0.7);
@@ -17083,7 +17090,7 @@
             margin: 0 0.35rem;
             width: 0.55rem;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-tabs {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-tabs {
             display: flex;
             flex: none;
             flex-wrap: nowrap;
@@ -17096,7 +17103,7 @@
             padding: 0 0 0 0.75rem;
             width: 100%;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-heading {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-heading {
             align-items: center;
             color: #fff6d6;
             display: flex;
@@ -17119,7 +17126,7 @@
             text-transform: none;
             width: 100%;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-heading span {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-heading span {
             color: #fff6d6;
             font-size: inherit;
             font-weight: inherit;
@@ -17143,7 +17150,8 @@
         .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar .match-subs-view-tabs {
             gap: 0.35rem;
         }
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar .match-subs-playing-time-heading {
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar .match-subs-playing-time-heading,
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .match-subs-playing-time-heading {
             background: none;
             border: 0;
             box-shadow: none;
@@ -17370,14 +17378,14 @@
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn,
             .blknapp,
-            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-tab {
+            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-tab {
                 transition: none;
             }
             .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus,
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:active,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn:active,
             .blknapp:active,
-            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-tab:active {
+            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel, .match-stats-panel).is-game-card .match-subs-view-tab:active {
                 transform: none;
             }
         }

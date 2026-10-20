@@ -9053,11 +9053,41 @@ window.showMatchDetails = function(id) {
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
                     <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
-                    <div class="match-stats-squad-toolbar" data-stats-squad-toolbar data-no-swipe>
-                        <div class="match-stats-squad-filters" role="tablist" aria-label="Filtrer tropp">
-                            <button type="button" class="match-stats-squad-filter is-active" data-match-stat-action="squad-filter" data-filter="ALL" role="tab" aria-selected="true">Alle <span data-filter-count="ALL">0</span></button>
-                            <button type="button" class="match-stats-squad-filter" data-match-stat-action="squad-filter" data-filter="START" role="tab" aria-selected="false">Startere <span data-filter-count="START">0</span></button>
-                            <button type="button" class="match-stats-squad-filter" data-match-stat-action="squad-filter" data-filter="BENCH" role="tab" aria-selected="false">Benk <span data-filter-count="BENCH">0</span></button>
+                    <div class="match-stats-squad-toolbar match-subs-view-toolbar" data-stats-squad-toolbar data-no-swipe>
+                        <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
+                            <span data-stats-squad-heading><span data-stats-squad-label>Alle</span><span data-filter-count-active>0</span></span>
+                        </div>
+                        <div class="match-subs-view-tabs" role="tablist" aria-label="Filtrer tropp">
+                            <button
+                                type="button"
+                                class="blknapp match-subs-view-tab is-icon is-active"
+                                data-match-stat-action="squad-filter"
+                                data-filter="ALL"
+                                role="tab"
+                                aria-selected="true"
+                                aria-label="Alle"
+                                title="Alle"
+                            ><i class="fa-solid fa-users" aria-hidden="true"></i></button>
+                            <button
+                                type="button"
+                                class="blknapp match-subs-view-tab is-icon"
+                                data-match-stat-action="squad-filter"
+                                data-filter="START"
+                                role="tab"
+                                aria-selected="false"
+                                aria-label="Startere"
+                                title="Startere"
+                            ><span class="match-stats-squad-tab-xi" aria-hidden="true">11</span></button>
+                            <button
+                                type="button"
+                                class="blknapp match-subs-view-tab is-icon"
+                                data-match-stat-action="squad-filter"
+                                data-filter="BENCH"
+                                role="tab"
+                                aria-selected="false"
+                                aria-label="Benk"
+                                title="Benk"
+                            ><span class="blknapp-stack" aria-hidden="true"><span>BE</span><span>NK</span></span></button>
                         </div>
                     </div>
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
@@ -12576,13 +12606,16 @@ function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer
             btn.classList.toggle('is-active', active);
             btn.setAttribute('aria-selected', active ? 'true' : 'false');
         });
-        const setCount = (key, value) => {
-            const el = toolbar.querySelector(`[data-filter-count="${key}"]`);
-            if (el) el.textContent = String(value);
-        };
-        setCount('ALL', countAll);
-        setCount('START', countStart);
-        setCount('BENCH', countBench);
+        const headingLabel = filter === 'START'
+            ? 'Startere'
+            : (filter === 'BENCH' ? 'Benk' : 'Alle');
+        const headingCount = filter === 'START'
+            ? countStart
+            : (filter === 'BENCH' ? countBench : countAll);
+        const headingEl = toolbar.querySelector('[data-stats-squad-heading]');
+        if (headingEl) {
+            headingEl.innerHTML = `<span data-stats-squad-label>${escapeMatchHtml(headingLabel)}</span><span data-filter-count-active>${headingCount}</span>`;
+        }
     }
 }
 
