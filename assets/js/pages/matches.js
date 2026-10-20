@@ -110,6 +110,30 @@ function bindMatchStatsEvents() {
         panel.dataset.matchStatEventsBound = 'true';
 
         panel.addEventListener('click', (event) => {
+            const accordionToggle = event.target.closest('[data-stats-accordion-toggle]');
+            if (accordionToggle && panel.contains(accordionToggle)) {
+                if (event.target.closest('[data-stats-summary-bors]')) {
+                    const row = accordionToggle.closest('.match-stats-player-row');
+                    const playerKey = row?.dataset?.playerKey || '';
+                    if (playerKey) setMatchStatsAccordionOpen(playerKey, true);
+                    const ratingSelect = row?.querySelector('.player-rating-select');
+                    if (ratingSelect) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        ratingSelect.focus({ preventScroll: true });
+                        if (typeof ratingSelect.showPicker === 'function') {
+                            try { ratingSelect.showPicker(); } catch (_) { /* ignore */ }
+                        }
+                    }
+                    syncMatchStatsPlayerSummary(row);
+                    return;
+                }
+                event.preventDefault();
+                const playerKey = accordionToggle.closest('.match-stats-player-row')?.dataset?.playerKey || '';
+                toggleMatchStatsAccordion(playerKey);
+                return;
+            }
+
             const actionEl = event.target.closest('[data-match-stat-action]');
             if (!actionEl) return;
 
@@ -117,15 +141,28 @@ function bindMatchStatsEvents() {
             if (action === 'bench-toggle') {
                 window.toggleBenchOnly(actionEl);
                 window.updateMatchStatsResultBar();
+                syncMatchStatsPlayerSummary(actionEl.closest('.match-stats-player-row'));
             } else if (action === 'yellow-card') {
                 window.toggleCard(actionEl, 'yellow');
+                syncMatchStatsPlayerSummary(actionEl.closest('.match-stats-player-row'));
             } else if (action === 'red-card') {
                 window.toggleCard(actionEl, 'red');
+                syncMatchStatsPlayerSummary(actionEl.closest('.match-stats-player-row'));
             } else if (action === 'motm-toggle') {
                 window.toggleMotm(actionEl);
+                panel.querySelectorAll('.match-stats-player-row.is-accordion').forEach((row) => {
+                    syncMatchStatsPlayerSummary(row);
+                });
             } else if (action === 'rating-guide-select') {
                 const rating = Number(actionEl.dataset.rating);
                 if (!Number.isNaN(rating)) window.selectMatchRatingFromGuide(actionEl, rating);
+                syncMatchStatsPlayerSummary(actionEl.closest('.match-stats-player-row'));
+            } else if (action === 'squad-filter') {
+                event.preventDefault();
+                setMatchStatsSquadFilter(actionEl.dataset.filter || 'ALL');
+            } else if (action === 'batch-90') {
+                event.preventDefault();
+                batchSetMatchStatsNinetyMinutes();
             }
         });
 
@@ -139,6 +176,9 @@ function bindMatchStatsEvents() {
 
             const select = event.target.closest('[data-match-stat-action="rating-select"]');
             if (select) window.updateMatchRatingHint(select);
+            if (event.target.matches('.player-goals-input, .player-assists-input, .player-rating-select, .player-minutes-input')) {
+                syncMatchStatsPlayerSummary(event.target.closest('.match-stats-player-row'));
+            }
         });
 
         panel.addEventListener('input', (event) => {
@@ -148,6 +188,7 @@ function bindMatchStatsEvents() {
             if (event.target.matches('.player-minutes-input')) {
                 const raw = String(event.target.value || '').trim();
                 event.target.classList.toggle('is-empty', raw === '');
+                syncMatchStatsPlayerSummary(event.target.closest('.match-stats-player-row'));
             }
         });
 
@@ -236,34 +277,49 @@ function formatMatchRatingPointsLabel(points) {
     return String(value);
 }
 
-function formatMatchRatingHint(value) {
-    const entry = getMatchRatingGuideEntry(value);
-    if (!entry) return 'Ingen børs satt ennå';
-
-    return entry.description;
-}
-
-function formatMatchPlayerStatHint(value, isBenchOnly) {
-    if (isBenchOnly) return 'Benk hele kampen';
-    return formatMatchRatingHint(value);
-}
-
 function buildMatchStatLabel(text) {
     return `<span class="match-stat-label" aria-hidden="true">${escapeMatchHtml(text)}</span>`;
 }
 
+const MATCH_RATING_COMMENT_EMPTY = 'Ingen børskommentar registrert';
+
+function getMatchRatingCommentText(rating, isBenchOnly) {
+    if (isBenchOnly) return 'Benk hele kampen';
+    const entry = getMatchRatingGuideEntry(rating);
+    if (!entry) return MATCH_RATING_COMMENT_EMPTY;
+    return entry.description;
+}
+
 function syncMatchPlayerStatHint(row) {
     if (!row) return;
-    const hint = row.querySelector('[data-rating-current-hint]');
-    if (!hint) return;
+    const wrap = row.querySelector('[data-rating-comment]');
+    const textEl = wrap?.querySelector('[data-rating-comment-text]');
+    if (!wrap || !textEl) return;
 
     const select = row.querySelector('.player-rating-select');
     const rating = Number(select?.value) || 0;
     const isBenchOnly = row.classList.contains('is-bench-only')
         || row.querySelector('.player-bench-btn')?.getAttribute('data-active') === 'true';
+    const text = getMatchRatingCommentText(rating, isBenchOnly);
+    const isEmpty = !isBenchOnly && rating === 0;
 
-    hint.textContent = formatMatchPlayerStatHint(rating, isBenchOnly);
-    hint.classList.toggle('is-empty', !isBenchOnly && rating === 0);
+    textEl.textContent = text;
+    wrap.classList.toggle('is-empty', isEmpty);
+}
+
+function buildMatchRatingCommentHtml(rating = 0, isBenchOnly = false) {
+    const text = getMatchRatingCommentText(rating, isBenchOnly);
+    const isEmpty = !isBenchOnly && !(Number(rating) > 0);
+    return `
+        <div class="match-rating-comment${isEmpty ? ' is-empty' : ''}" data-rating-comment>
+            <div class="match-rating-comment-bar" aria-live="polite">
+                <span class="match-rating-comment-icon" aria-hidden="true">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </span>
+                <span class="match-rating-comment-text" data-rating-comment-text>${escapeMatchHtml(text)}</span>
+            </div>
+        </div>
+    `;
 }
 
 function buildMatchRatingTooltipHtml(selectedRating) {
@@ -9000,6 +9056,19 @@ window.showMatchDetails = function(id) {
                 <div class="match-stats-body">
                     ${buildMatchStatsResultBarHtml(match)}
                     <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
+                    <div class="match-stats-squad-toolbar" data-stats-squad-toolbar data-no-swipe>
+                        <button
+                            type="button"
+                            class="match-stats-batch-90-btn"
+                            data-match-stat-action="batch-90"
+                            title="Sett 90 minutter på startere som mangler Min"
+                        >⚡ 90' på resten</button>
+                        <div class="match-stats-squad-filters" role="tablist" aria-label="Filtrer tropp">
+                            <button type="button" class="match-stats-squad-filter is-active" data-match-stat-action="squad-filter" data-filter="ALL" role="tab" aria-selected="true">Alle <span data-filter-count="ALL">0</span></button>
+                            <button type="button" class="match-stats-squad-filter" data-match-stat-action="squad-filter" data-filter="START" role="tab" aria-selected="false">Startere <span data-filter-count="START">0</span></button>
+                            <button type="button" class="match-stats-squad-filter" data-match-stat-action="squad-filter" data-filter="BENCH" role="tab" aria-selected="false">Benk <span data-filter-count="BENCH">0</span></button>
+                        </div>
+                    </div>
                     <div id="kampdetaljer-spillerbors" class="match-stats-list">
                     </div>
                 </div>
@@ -12465,9 +12534,249 @@ window.getMatchPlayerMinutesForSpillerbors = function(match, playerObj) {
     return null;
 };
 
+/** Which Spillerbørs accordion row is open (player id/name). Toggle never re-renders rows. */
+let matchStatsAccordionOpenKey = '';
+let matchStatsAccordionMatchId = '';
+/** Squad filter for Spillerbørs list: ALL | START | BENCH */
+let matchStatsSquadFilter = 'ALL';
+
+function getMatchStatsRowStartGroup(match, playerObj) {
+    const status = typeof window.getPlayerMatchStartStatus === 'function'
+        ? window.getPlayerMatchStartStatus(match, playerObj)
+        : '';
+    if (status === 'S') return 'S';
+    if (status === 'B') return 'B';
+    return 'U';
+}
+
+function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer-spillerbors')) {
+    const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
+    const toolbar = panel?.querySelector('[data-stats-squad-toolbar]') || null;
+    if (!list) return;
+
+    const filter = ['ALL', 'START', 'BENCH'].includes(matchStatsSquadFilter)
+        ? matchStatsSquadFilter
+        : 'ALL';
+    matchStatsSquadFilter = filter;
+
+    let countAll = 0;
+    let countStart = 0;
+    let countBench = 0;
+    let openHidden = false;
+
+    list.querySelectorAll('.match-stats-player-row.is-accordion').forEach((row) => {
+        const group = String(row.dataset.startGroup || 'U');
+        countAll += 1;
+        if (group === 'S') countStart += 1;
+        if (group === 'B') countBench += 1;
+
+        const show = filter === 'ALL'
+            || (filter === 'START' && group === 'S')
+            || (filter === 'BENCH' && group === 'B');
+        row.classList.toggle('is-filter-hidden', !show);
+        if (!show && row.classList.contains('is-open')) openHidden = true;
+    });
+
+    if (openHidden) setMatchStatsAccordionOpen('', false);
+
+    if (toolbar) {
+        toolbar.querySelectorAll('[data-match-stat-action="squad-filter"]').forEach((btn) => {
+            const active = btn.dataset.filter === filter;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        const setCount = (key, value) => {
+            const el = toolbar.querySelector(`[data-filter-count="${key}"]`);
+            if (el) el.textContent = String(value);
+        };
+        setCount('ALL', countAll);
+        setCount('START', countStart);
+        setCount('BENCH', countBench);
+    }
+}
+
+function setMatchStatsSquadFilter(filter) {
+    matchStatsSquadFilter = String(filter || 'ALL').toUpperCase();
+    applyMatchStatsSquadFilter();
+}
+
+/**
+ * Sett 90' kun på startere med tomt Min-felt.
+ * Overskriver aldri eksisterende Min (Live/Bytter/manuelt).
+ * Skriver kun til DOM — brukeren lagrer som vanlig.
+ */
+function batchSetMatchStatsNinetyMinutes() {
+    const list = document.getElementById('kampdetaljer-spillerbors');
+    if (!list) return;
+
+    let updated = 0;
+    list.querySelectorAll('.match-stats-player-row.is-accordion').forEach((row) => {
+        if (row.dataset.startGroup !== 'S') return;
+        if (row.classList.contains('is-bench-only')) return;
+        const input = row.querySelector('.player-minutes-input');
+        if (!input || input.disabled) return;
+        const raw = String(input.value || '').trim();
+        if (raw !== '') return;
+        input.value = '90';
+        input.classList.remove('is-empty');
+        syncMatchStatsPlayerSummary(row);
+        updated += 1;
+    });
+
+    const message = updated > 0
+        ? `Satte 90' på ${updated} starter${updated === 1 ? '' : 'e'} uten Min`
+        : 'Ingen startere manglet Min';
+    setMatchDetailFeedback('[data-stats-save-state]', message, updated > 0 ? 'success' : 'pending', 4000);
+}
+
+function getMatchStatsAccordionPlayerKey(playerObj) {
+    return String(playerObj?.id || playerObj?.navn || '').trim();
+}
+
+function setMatchStatsAccordionOpen(playerKey, open) {
+    const list = document.getElementById('kampdetaljer-spillerbors');
+    if (!list) return;
+    const targetKey = open ? String(playerKey || '').trim() : '';
+    list.querySelectorAll('.match-stats-player-row.is-accordion').forEach((row) => {
+        const key = String(row.dataset.playerKey || '').trim();
+        const shouldOpen = Boolean(targetKey) && key === targetKey;
+        row.classList.toggle('is-open', shouldOpen);
+        const toggle = row.querySelector('[data-stats-accordion-toggle]');
+        if (toggle) toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    });
+    matchStatsAccordionOpenKey = targetKey;
+}
+
+function toggleMatchStatsAccordion(playerKey) {
+    const key = String(playerKey || '').trim();
+    if (!key) return;
+    const nextOpen = matchStatsAccordionOpenKey === key ? '' : key;
+    setMatchStatsAccordionOpen(nextOpen, Boolean(nextOpen));
+    if (nextOpen) {
+        const rows = document.querySelectorAll('#kampdetaljer-spillerbors .match-stats-player-row.is-accordion');
+        const row = Array.from(rows).find((el) => el.dataset.playerKey === nextOpen);
+        if (row) {
+            requestAnimationFrame(() => {
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+    }
+}
+
+function syncMatchStatsPlayerSummary(row) {
+    if (!row) return;
+    const summary = row.querySelector('[data-stats-player-summary]');
+    if (!summary) return;
+
+    const minInput = row.querySelector('.player-minutes-input');
+    const goalsInput = row.querySelector('.player-goals-input');
+    const assistsInput = row.querySelector('.player-assists-input');
+    const ratingSelect = row.querySelector('.player-rating-select');
+    const yellowBtn = row.querySelector('.player-card-btn.is-yellow');
+    const redBtn = row.querySelector('.player-card-btn.is-red');
+    const motmBtn = row.querySelector('.player-motm-btn');
+    const benchBtn = row.querySelector('.player-bench-btn');
+
+    const minRaw = String(minInput?.value || '').trim();
+    const minEl = summary.querySelector('[data-summary-min]');
+    if (minEl) minEl.textContent = minRaw === '' ? '—' : `${minRaw}'`;
+
+    const goals = Math.max(0, Math.floor(Number(goalsInput?.value) || 0));
+    const assists = Math.max(0, Math.floor(Number(assistsInput?.value) || 0));
+    const rating = Math.max(0, Math.floor(Number(ratingSelect?.value) || 0));
+    const hasYellow = yellowBtn?.getAttribute('data-active') === 'true';
+    const hasRed = redBtn?.getAttribute('data-active') === 'true';
+    const isMotm = motmBtn?.getAttribute('data-active') === 'true';
+    const isBench = benchBtn?.getAttribute('data-active') === 'true';
+
+    const tagsEl = summary.querySelector('[data-summary-tags]');
+    if (tagsEl) {
+        const bits = [];
+        if (goals > 0) bits.push(`<span class="match-stats-summary-chip is-goal">⚽ ${goals}</span>`);
+        if (assists > 0) bits.push(`<span class="match-stats-summary-chip is-assist">A ${assists}</span>`);
+        if (hasYellow) bits.push('<span class="match-stats-summary-chip is-yellow" aria-label="Gult kort"></span>');
+        if (hasRed) bits.push('<span class="match-stats-summary-chip is-red" aria-label="Rødt kort"></span>');
+        if (isMotm) bits.push('<span class="match-stats-summary-chip is-bb" aria-label="Banens beste"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>');
+        if (isBench) bits.push('<span class="match-stats-summary-chip is-bench">BENK</span>');
+        tagsEl.innerHTML = bits.join('');
+    }
+
+    const borsEl = summary.querySelector('[data-summary-bors-value]');
+    if (borsEl) borsEl.textContent = rating > 0 ? String(rating) : '–';
+}
+
+function buildMatchStatsPlayerSummaryHtml(playerObj, match, state = {}) {
+    const name = String(playerObj?.navn || '').trim() || 'Spiller';
+    const photoUrl = getMatchGamePlanPlayerPhotoUrl(playerObj);
+    const formationId = typeof getMatchGamePlanFormation === 'function'
+        ? getMatchGamePlanFormation(match)
+        : String(match?.formation || match?.lineupFormation || '').trim();
+    const posId = typeof getPlayerMatchPlayedPositionIds === 'function'
+        ? ((getPlayerMatchPlayedPositionIds(match, playerObj) || [])[0] || '')
+        : (typeof getMatchPlayerSpillerborsPosId === 'function'
+            ? (getMatchPlayerSpillerborsPosId(match, playerObj) || '')
+            : '');
+    const posCode = posId && typeof getMatchGamePlanPositionBadgeLabel === 'function'
+        ? getMatchGamePlanPositionBadgeLabel(posId, formationId)
+        : posId;
+    const minutes = state.minutes;
+    const minutesText = minutes == null || minutes === '' ? '—' : `${minutes}'`;
+    const rating = Number(state.rating) || 0;
+    const goals = Number(state.goals) || 0;
+    const assists = Number(state.assists) || 0;
+    const tagBits = [];
+    if (goals > 0) tagBits.push(`<span class="match-stats-summary-chip is-goal">⚽ ${goals}</span>`);
+    if (assists > 0) tagBits.push(`<span class="match-stats-summary-chip is-assist">A ${assists}</span>`);
+    if (state.hasYellow) tagBits.push('<span class="match-stats-summary-chip is-yellow" aria-label="Gult kort"></span>');
+    if (state.hasRed) tagBits.push('<span class="match-stats-summary-chip is-red" aria-label="Rødt kort"></span>');
+    if (state.isMotm) tagBits.push('<span class="match-stats-summary-chip is-bb" aria-label="Banens beste"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>');
+    if (state.isBenchOnly) tagBits.push('<span class="match-stats-summary-chip is-bench">BENK</span>');
+
+    return `
+        <button
+            type="button"
+            class="match-stats-player-summary"
+            data-stats-player-summary
+            data-stats-accordion-toggle
+            aria-expanded="false"
+            aria-label="Vis eller skjul Spillerbørs for ${escapeMatchHtml(name)}"
+        >
+            <span class="match-stats-summary-thumb" aria-hidden="true">
+                ${photoUrl
+                    ? `<img src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
+                    : '<i class="fa-solid fa-user"></i>'}
+            </span>
+            <span class="match-stats-summary-copy">
+                <span class="match-stats-summary-name">${escapeMatchHtml(name)}</span>
+                <span class="match-stats-summary-meta">
+                    ${posCode
+                        ? `<span class="match-stats-summary-chip is-pos">${escapeMatchHtml(posCode)}</span>`
+                        : ''}
+                    <span class="match-stats-summary-min" data-summary-min>${escapeMatchHtml(minutesText)}</span>
+                    <span class="match-stats-summary-tags" data-summary-tags>${tagBits.join('')}</span>
+                </span>
+            </span>
+            <span class="match-stats-summary-bors" data-stats-summary-bors title="Sett børs">
+                <span class="match-stats-summary-bors-label">Børs</span>
+                <span class="match-stats-summary-bors-value" data-summary-bors-value>${rating > 0 ? escapeMatchHtml(String(rating)) : '–'}</span>
+            </span>
+            <span class="match-stats-summary-chevron" aria-hidden="true">
+                <i class="fa-solid fa-chevron-down"></i>
+            </span>
+        </button>
+    `;
+}
+
 window.renderPlayerRowForm = function(match) {
     const formList = document.getElementById('kampdetaljer-spillerbors');
     if (!formList) return;
+
+    const matchId = String(match?.id || '');
+    if (matchId !== matchStatsAccordionMatchId) {
+        matchStatsAccordionMatchId = matchId;
+        matchStatsAccordionOpenKey = '';
+        matchStatsSquadFilter = 'ALL';
+    }
 
     formList.innerHTML = '';
 
@@ -12530,13 +12839,27 @@ window.renderPlayerRowForm = function(match) {
             ? window.isPlayerBenchOnly(match, playerObj)
             : false;
         const scoreOptions = [0,1,2,3,4,5,6,7,8,9,10];
-        const ratingHint = formatMatchPlayerStatHint(prevRating, isBenchOnly);
+        const playerKey = getMatchStatsAccordionPlayerKey(playerObj);
+        const isAccordionOpen = Boolean(playerKey) && matchStatsAccordionOpenKey === playerKey;
+        const startGroup = getMatchStatsRowStartGroup(match, playerObj);
 
         const div = document.createElement('div');
-        div.className = `match-stats-player-row${isBenchOnly ? ' is-bench-only' : ''}`;
+        div.className = `match-stats-player-row is-accordion${isBenchOnly ? ' is-bench-only' : ''}${isAccordionOpen ? ' is-open' : ''}`;
+        div.dataset.playerKey = playerKey;
+        div.dataset.startGroup = startGroup;
         div.innerHTML = `
+            ${buildMatchStatsPlayerSummaryHtml(playerObj, match, {
+                minutes: minutesPlayed,
+                rating: prevRating,
+                goals: prevGoals,
+                assists: prevAssists,
+                hasYellow,
+                hasRed,
+                isMotm,
+                isBenchOnly
+            })}
             ${buildMatchStatsPlayerAvatarHtml(playerObj)}
-            <span class="match-rating-current-hint ${!isBenchOnly && Number(prevRating) === 0 ? 'is-empty' : ''}" data-rating-current-hint>${escapeMatchHtml(ratingHint)}</span>
+            ${buildMatchRatingCommentHtml(prevRating, isBenchOnly)}
             <div class="match-stats-player-body">
                 <div class="match-stats-controls">
                     <div class="player-pitch-stats match-stats-pitch-controls${isBenchOnly ? ' is-disabled' : ''}">
@@ -12611,10 +12934,13 @@ window.renderPlayerRowForm = function(match) {
                 </div>
             </div>
         `;
+        const summaryToggle = div.querySelector('[data-stats-accordion-toggle]');
+        if (summaryToggle) summaryToggle.setAttribute('aria-expanded', isAccordionOpen ? 'true' : 'false');
         formList.appendChild(div);
     });
 
     bindMatchStatsEvents();
+    applyMatchStatsSquadFilter(formList);
     window.updateMatchStatsResultBar();
 };
 

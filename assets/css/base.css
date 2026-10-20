@@ -15741,6 +15741,229 @@
             row-gap: 0.35rem;
             transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
         }
+        /* Desktop: accordion summary hidden — full row always visible */
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-summary {
+            display: none;
+        }
+        .match-stats-player-summary {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: inherit;
+            cursor: pointer;
+            display: none;
+            font: inherit;
+            gap: 0.55rem;
+            padding: 0;
+            text-align: left;
+            width: 100%;
+        }
+        .match-stats-summary-thumb {
+            background: linear-gradient(180deg, #1f3a5f, #123f73);
+            border: 1.5px solid rgba(245, 197, 66, 0.65);
+            border-radius: 0.55rem;
+            flex: 0 0 auto;
+            height: 2.55rem;
+            overflow: hidden;
+            position: relative;
+            width: 2.35rem;
+        }
+        .match-stats-summary-thumb img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-stats-summary-thumb > i {
+            color: rgba(255, 253, 245, 0.75);
+            font-size: 0.95rem;
+            left: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .match-stats-summary-chip.is-pos {
+            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            color: #fff;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
+        }
+        .match-stats-summary-copy {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 0;
+        }
+        .match-stats-summary-name {
+            color: #fffdf5;
+            font-size: 0.92rem;
+            font-weight: 900;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-stats-summary-meta {
+            align-items: center;
+            color: rgba(196, 214, 240, 0.9);
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.7rem;
+            font-weight: 800;
+            gap: 0.28rem;
+            min-width: 0;
+        }
+        .match-stats-summary-min {
+            color: #f5c542;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+        }
+        .match-stats-summary-tags {
+            align-items: center;
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.22rem;
+        }
+        .match-stats-summary-chip {
+            align-items: center;
+            border-radius: 0.28rem;
+            display: inline-flex;
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1;
+            padding: 0.14rem 0.28rem;
+        }
+        .match-stats-summary-chip.is-goal {
+            background: rgba(34, 197, 94, 0.28);
+            color: #bbf7d0;
+        }
+        .match-stats-summary-chip.is-assist {
+            background: rgba(59, 130, 246, 0.28);
+            color: #bfdbfe;
+        }
+        .match-stats-summary-chip.is-yellow {
+            background: #f5c542;
+            height: 0.85rem;
+            padding: 0;
+            width: 0.58rem;
+        }
+        .match-stats-summary-chip.is-red {
+            background: #ef4444;
+            height: 0.85rem;
+            padding: 0;
+            width: 0.58rem;
+        }
+        .match-stats-summary-chip.is-bb {
+            background: rgba(245, 197, 66, 0.22);
+            color: #fde68a;
+            padding: 0.12rem 0.28rem;
+        }
+        .match-stats-summary-chip.is-bench {
+            background: rgba(148, 163, 184, 0.25);
+            color: #e2e8f0;
+        }
+        .match-stats-summary-bors {
+            align-items: center;
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border: 1.5px solid #fff099;
+            border-radius: 0.55rem;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            display: inline-flex;
+            flex: 0 0 auto;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 2.55rem;
+            padding: 0.18rem 0.35rem 0.22rem;
+            text-shadow: 0 1px 0 #5c2e00;
+        }
+        .match-stats-summary-bors-label {
+            font-size: 0.52rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .match-stats-summary-bors-value {
+            font-size: 1rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            line-height: 1;
+            margin-top: 0.08rem;
+        }
+        .match-stats-summary-chevron {
+            color: rgba(148, 163, 184, 0.9);
+            flex: 0 0 auto;
+            font-size: 0.75rem;
+            transition: transform 160ms ease, color 160ms ease;
+        }
+        .match-stats-player-row.is-accordion.is-open .match-stats-summary-chevron {
+            color: #f5c542;
+            transform: rotate(180deg);
+        }
+        .match-stats-player-row.is-accordion.is-open {
+            border-color: rgba(245, 197, 66, 0.85);
+        }
+        .match-stats-player-row.is-filter-hidden {
+            display: none !important;
+        }
+        .match-stats-squad-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin: 0 0 0.65rem;
+        }
+        .match-stats-batch-90-btn {
+            align-self: stretch;
+            background: linear-gradient(180deg, #4ce077 0%, #1fa344 100%);
+            border: 1.5px solid #8affaa;
+            border-radius: 0.65rem;
+            box-shadow: 0 2px 0 #0b501f;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            padding: 0.5rem 0.7rem;
+            text-shadow: 0 1px 0 #093c17;
+        }
+        .match-stats-batch-90-btn:active {
+            box-shadow: 0 0 0 #0b501f;
+            transform: translateY(1px);
+        }
+        .match-stats-squad-filters {
+            display: grid;
+            gap: 0.35rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .match-stats-squad-filter {
+            background: rgba(15, 30, 52, 0.85);
+            border: 1.5px solid rgba(72, 97, 148, 0.75);
+            border-radius: 0.55rem;
+            box-shadow: 0 2px 0 rgba(12, 18, 33, 0.85);
+            color: #8fa5d1;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            padding: 0.45rem 0.35rem;
+            text-align: center;
+        }
+        .match-stats-squad-filter.is-active {
+            background: linear-gradient(180deg, #4d9eff 0%, #195bb0 100%);
+            border-color: #8ac0ff;
+            box-shadow: 0 2px 0 #0c2d59;
+            color: #fff;
+            text-shadow: 0 1px 0 #081e3d;
+        }
+        .match-stats-squad-filter span {
+            font-variant-numeric: tabular-nums;
+            opacity: 0.9;
+        }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:hover,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within {
             background:
@@ -15829,21 +16052,57 @@
             grid-row: 1;
             min-width: 0;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-rating-current-hint {
-            color: rgba(255, 246, 214, 0.72);
-            font-size: 0.72rem;
-            font-weight: 750;
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-comment {
             grid-column: 1 / -1;
             grid-row: 2;
             justify-self: stretch;
+            min-width: 0;
+            width: 100%;
+        }
+        .match-rating-comment {
+            min-width: 0;
+            position: relative;
+            width: 100%;
+        }
+        .match-rating-comment-bar {
+            align-items: center;
+            background: rgba(12, 22, 40, 0.92);
+            border: 1.5px solid rgba(72, 97, 148, 0.55);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(8, 14, 26, 0.75);
+            color: #f4f7ff;
+            display: flex;
+            gap: 0.55rem;
+            min-height: 2.55rem;
+            padding: 0.4rem 0.65rem 0.4rem 0.45rem;
+            width: 100%;
+        }
+        .match-rating-comment-icon {
+            align-items: center;
+            background: linear-gradient(180deg, #e0b84a 0%, #b8891a 100%);
+            border-radius: 0.4rem;
+            box-shadow: 0 1px 0 rgba(70, 45, 0, 0.45);
+            color: #1a1204;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            height: 1.7rem;
+            justify-content: center;
+            width: 1.7rem;
+        }
+        .match-rating-comment-text {
+            flex: 1 1 auto;
+            font-size: 0.78rem;
+            font-weight: 800;
             line-height: 1.25;
-            max-width: none;
             min-width: 0;
             overflow: hidden;
-            text-align: left;
             text-overflow: ellipsis;
             white-space: nowrap;
-            width: 100%;
+        }
+        .match-rating-comment.is-empty .match-rating-comment-text {
+            color: rgba(232, 238, 250, 0.88);
+            font-weight: 750;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-bench-badge {
             background: linear-gradient(180deg, #ffd866 0%, #d4a017 100%);
@@ -15910,29 +16169,28 @@
             line-height: 1;
             text-transform: uppercase;
         }
-        /* Hierarki: Børs først, G/R/BB/Benk sekundært (PC + mobil) */
-        .match-detail-page .match-stats-panel.is-game-card .match-stat-field:not(.match-rating-field) .match-stat-chip.blknapp {
-            opacity: 0.88;
-        }
-        .match-detail-page .match-stats-panel.is-game-card .match-rating-field .match-stat-chip.blknapp {
-            background: linear-gradient(180deg, #6bb8ff 0%, #1f5aad 100%);
-            border-color: #ffe08a;
-            box-shadow:
-                0 3px 0 #0a2244,
-                0 0 0 1px rgba(245, 197, 66, 0.35);
-            opacity: 1;
-        }
+        /* Pitch-knapper i samme språk som Alle/Startere/Benk-filter */
+        .match-detail-page .match-stats-panel.is-game-card .match-stat-chip.blknapp,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp:not(.is-active),
         .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active) {
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.38) 0%, rgba(26, 79, 158, 0.4) 100%);
-            border-color: rgba(200, 228, 255, 0.32);
-            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.55);
-            opacity: 0.52;
+            background: rgba(15, 30, 52, 0.85);
+            border: 1.5px solid rgba(72, 97, 148, 0.75);
+            border-radius: 0.55rem;
+            box-shadow: 0 2px 0 rgba(12, 18, 33, 0.85);
+            color: #8fa5d1;
+            opacity: 1;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-rating-field .match-stat-chip.blknapp {
+            color: #c5d4f0;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp:not(.is-active):hover,
-        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active):hover,
+        .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp:not(.is-active):hover {
+            border-color: rgba(138, 192, 255, 0.75);
+            color: #d7e4ff;
+        }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-card-group .blknapp.is-active,
         .match-detail-page .match-stats-panel.is-game-card .player-bench-btn.blknapp.is-active {
+            border-radius: 0.55rem;
             opacity: 1;
         }
         .blknapp.player-bench-btn.is-active {
@@ -16049,8 +16307,11 @@
             outline: none;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stat-field:focus-within .match-stat-chip.blknapp {
-            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
-            box-shadow: 0 3px 0 #0f2f5c;
+            background: linear-gradient(180deg, #4d9eff 0%, #195bb0 100%);
+            border-color: #8ac0ff;
+            box-shadow: 0 2px 0 #0c2d59;
+            color: #fff;
+            text-shadow: 0 1px 0 #081e3d;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stat-minutes-input.is-empty {
             color: rgba(244, 249, 255, 0.55);
@@ -16101,6 +16362,43 @@
                 padding: clamp(0.45rem, 1.6vw, 0.65rem) clamp(0.4rem, 1.5vw, 0.6rem);
                 row-gap: var(--stats-row-gap);
             }
+            /* Mobil accordion: kompakt stripe; kontroller forblir i DOM (skjult) så lagring ikke mister verdier */
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion .match-stats-player-summary {
+                align-items: center;
+                display: flex;
+                grid-column: 1 / -1;
+                grid-row: 1;
+                min-height: 2.85rem;
+                padding: 0.1rem 0.05rem;
+                width: 100%;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion:not(.is-open) {
+                display: flex;
+                padding: 0.45rem 0.55rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion:not(.is-open) > :not(.match-stats-player-summary) {
+                display: none !important;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion.is-open {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: auto auto auto;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion.is-open .match-stats-player-card {
+                display: none !important;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion.is-open .match-stats-pitch-controls {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion.is-open .match-rating-comment {
+                grid-column: 1 / -1;
+                grid-row: 3;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion.is-open .match-stat-chip.blknapp,
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row.is-accordion.is-open .match-stats-pitch-controls .blknapp {
+                max-width: none;
+                width: 100%;
+            }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-player-card {
                 align-self: start;
                 grid-column: 1;
@@ -16144,21 +16442,9 @@
                 height: var(--blknapp-size);
                 justify-content: center;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-rating-current-hint {
-                align-self: start;
-                font-size: clamp(0.62rem, 1.9vw, 0.74rem);
+            .match-detail-page .match-stats-panel.is-game-card .match-rating-comment {
                 grid-column: 1 / -1;
                 grid-row: 2;
-                justify-self: stretch;
-                line-height: 1.25;
-                max-width: none;
-                min-width: 0;
-                overflow: hidden;
-                padding-top: 0;
-                text-align: left;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                width: 100%;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-pitch-controls .match-stat-field {
                 min-width: 0;
