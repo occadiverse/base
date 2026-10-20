@@ -160,9 +160,6 @@ function bindMatchStatsEvents() {
             } else if (action === 'squad-filter') {
                 event.preventDefault();
                 setMatchStatsSquadFilter(actionEl.dataset.filter || 'ALL');
-            } else if (action === 'batch-90') {
-                event.preventDefault();
-                batchSetMatchStatsNinetyMinutes();
             }
         });
 
@@ -9057,12 +9054,6 @@ window.showMatchDetails = function(id) {
                     ${buildMatchStatsResultBarHtml(match)}
                     <p class="match-inline-status match-stats-save-state" data-stats-save-state aria-live="polite" hidden></p>
                     <div class="match-stats-squad-toolbar" data-stats-squad-toolbar data-no-swipe>
-                        <button
-                            type="button"
-                            class="match-stats-batch-90-btn"
-                            data-match-stat-action="batch-90"
-                            title="Sett 90 minutter på startere som mangler Min"
-                        >⚡ 90' på resten</button>
                         <div class="match-stats-squad-filters" role="tablist" aria-label="Filtrer tropp">
                             <button type="button" class="match-stats-squad-filter is-active" data-match-stat-action="squad-filter" data-filter="ALL" role="tab" aria-selected="true">Alle <span data-filter-count="ALL">0</span></button>
                             <button type="button" class="match-stats-squad-filter" data-match-stat-action="squad-filter" data-filter="START" role="tab" aria-selected="false">Startere <span data-filter-count="START">0</span></button>
@@ -12598,35 +12589,6 @@ function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer
 function setMatchStatsSquadFilter(filter) {
     matchStatsSquadFilter = String(filter || 'ALL').toUpperCase();
     applyMatchStatsSquadFilter();
-}
-
-/**
- * Sett 90' kun på startere med tomt Min-felt.
- * Overskriver aldri eksisterende Min (Live/Bytter/manuelt).
- * Skriver kun til DOM — brukeren lagrer som vanlig.
- */
-function batchSetMatchStatsNinetyMinutes() {
-    const list = document.getElementById('kampdetaljer-spillerbors');
-    if (!list) return;
-
-    let updated = 0;
-    list.querySelectorAll('.match-stats-player-row.is-accordion').forEach((row) => {
-        if (row.dataset.startGroup !== 'S') return;
-        if (row.classList.contains('is-bench-only')) return;
-        const input = row.querySelector('.player-minutes-input');
-        if (!input || input.disabled) return;
-        const raw = String(input.value || '').trim();
-        if (raw !== '') return;
-        input.value = '90';
-        input.classList.remove('is-empty');
-        syncMatchStatsPlayerSummary(row);
-        updated += 1;
-    });
-
-    const message = updated > 0
-        ? `Satte 90' på ${updated} starter${updated === 1 ? '' : 'e'} uten Min`
-        : 'Ingen startere manglet Min';
-    setMatchDetailFeedback('[data-stats-save-state]', message, updated > 0 ? 'success' : 'pending', 4000);
 }
 
 function getMatchStatsAccordionPlayerKey(playerObj) {
