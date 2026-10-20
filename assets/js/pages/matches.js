@@ -2793,7 +2793,7 @@ function buildMatchGamePlanPitchSamspillZoneTotalsPlaceholderHtml() {
 
 function buildMatchGamePlanPitchSamspillZoneTotalsHtml(match) {
     const briefing = typeof getMatchGamePlanSamspillBriefing === 'function'
-        ? getMatchGamePlanSamspillBriefing(match)
+        ? getMatchGamePlanSamspillBriefing(match, { skipBestSearch: true })
         : { totals: { lines: [] } };
     const lineById = Object.fromEntries(
         (briefing?.totals?.lines || []).map((line) => [line.id, line])
@@ -5530,8 +5530,28 @@ function isPlayerInSavedStartingLineup(match, player) {
     return false;
 }
 
+let playerStartBenchCountsCache = { key: '', map: null };
+
+function getPlayerStartBenchCountsCacheKey(teamName, currentMatch) {
+    return [
+        currentMatch?.id || '',
+        currentMatch?.date || '',
+        teamName || '',
+        (window.activeMatches || []).length
+    ].join('|');
+}
+
 function getPlayerStartBenchCounts(player, teamName, currentMatch) {
     if (!player) return { starts: 0, bench: 0 };
+
+    const cacheKey = getPlayerStartBenchCountsCacheKey(teamName, currentMatch);
+    if (!playerStartBenchCountsCache.map || playerStartBenchCountsCache.key !== cacheKey) {
+        playerStartBenchCountsCache = { key: cacheKey, map: new Map() };
+    }
+    const playerKey = String(player.id || player.navn || '').trim();
+    if (playerKey && playerStartBenchCountsCache.map.has(playerKey)) {
+        return playerStartBenchCountsCache.map.get(playerKey);
+    }
 
     const currentMatchId = currentMatch?.id || null;
     const currentMatchDate = currentMatch?.date ? new Date(currentMatch.date) : null;
@@ -5562,7 +5582,9 @@ function getPlayerStartBenchCounts(player, teamName, currentMatch) {
         bench += 1;
     });
 
-    return { starts, bench };
+    const result = { starts, bench };
+    if (playerKey) playerStartBenchCountsCache.map.set(playerKey, result);
+    return result;
 }
 
 function getMatchGamePlanBidragToneClass(value) {
@@ -6583,12 +6605,13 @@ function isMatchGamePlanSamspillSwapQualityOk(incoming, outgoing, posId, match, 
     return incomingQuality >= outgoingQuality - maxDrop;
 }
 
-function getMatchGamePlanSamspillBriefing(match) {
+function getMatchGamePlanSamspillBriefing(match, options = {}) {
     const lineup = getMatchGamePlanDraftLineup(match);
     const lineZones = getMatchGamePlanSamspillZonePositions(match);
     if (typeof window.buildSamspillBriefing !== 'function') {
         return { isEmpty: true, items: [], totals: { lines: [] } };
     }
+    const skipBestSearch = Boolean(options.skipBestSearch);
     const qualityCache = {};
     return window.buildSamspillBriefing(lineup, {
         ...getMatchGamePlanSamspillFilter(match),
@@ -6598,19 +6621,23 @@ function getMatchGamePlanSamspillBriefing(match) {
             midtbane: lineZones.midtbane || [],
             angrep: lineZones.angrep || []
         },
-        benchByLine: getMatchGamePlanSamspillBenchByLine(match),
+        // Bench pools only needed for swap search — skip when chips just need line snitt.
+        benchByLine: skipBestSearch ? {} : getMatchGamePlanSamspillBenchByLine(match),
         playerFitsSlot: (player, posId) => playerFitsSamspillSlot(player, posId, match),
+        skipBestSearch,
         // Single swaps only: double-swap search freezes match open with quality checks.
-        maxSwaps: 1,
-        swapQualityOk: (swaps) => (swaps || []).every((swap) => (
-            isMatchGamePlanSamspillSwapQualityOk(
-                swap?.player,
-                swap?.outgoing,
-                swap?.posId,
-                match,
-                qualityCache
-            )
-        ))
+        maxSwaps: skipBestSearch ? 0 : 1,
+        swapQualityOk: skipBestSearch
+            ? undefined
+            : ((swaps) => (swaps || []).every((swap) => (
+                isMatchGamePlanSamspillSwapQualityOk(
+                    swap?.player,
+                    swap?.outgoing,
+                    swap?.posId,
+                    match,
+                    qualityCache
+                )
+            )))
     });
 }
 
@@ -12332,13 +12359,18 @@ window.toggleMatchPanel = function(btnOrPanel) {
             const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (!match) return;
             removeMatchGamePlanSamspillPanelsDom();
-            syncMatchGamePlanLineupOverlayUi(match);
-            renderMatchGamePlanSamspillSummary(match);
-            syncMatchGamePlanPitchSamspillZoneTotals(match);
-            syncMatchDetailSquadCardSizeToPitch();
-            if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
-                window.drawMatchGamePlanChemistryLines(match);
+            // Pitch/samspill chips live on Lagoppstilling — skip heavy work for Kamptropp-only open.
+            const needPitchSync = panelId === 'oppstilling'
+                || window.matchDetailPairPanelState?.oppstilling === true;
+            if (needPitchSync) {
+                syncMatchGamePlanLineupOverlayUi(match);
+                renderMatchGamePlanSamspillSummary(match);
+                syncMatchGamePlanPitchSamspillZoneTotals(match);
+                if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+                    window.drawMatchGamePlanChemistryLines(match);
+                }
             }
+            syncMatchDetailSquadCardSizeToPitch();
         });
     }
 };

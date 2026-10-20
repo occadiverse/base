@@ -554,7 +554,37 @@
         };
     };
 
+    const duoSamspillResultCache = new Map();
+    const DUO_SAMSPILL_RESULT_CACHE_MAX = 2500;
+
+    function getDuoSamspillResultCacheKey(playerA, playerB, options) {
+        const opts = options || {};
+        const playerObjA = resolvePlayer(playerA);
+        const playerObjB = resolvePlayer(playerB);
+        const idA = String(playerObjA?.id || playerObjA?.navn || '').trim();
+        const idB = String(playerObjB?.id || playerObjB?.navn || '').trim();
+        if (!idA || !idB) return '';
+        const [left, right] = idA < idB ? [idA, idB] : [idB, idA];
+        const posLeft = idA < idB ? (opts.posA || '') : (opts.posB || '');
+        const posRight = idA < idB ? (opts.posB || '') : (opts.posA || '');
+        return [
+            left,
+            right,
+            posLeft,
+            posRight,
+            opts.teamName || '',
+            opts.excludeMatchId || '',
+            opts.historicalOnly ? '1' : '0',
+            (window.activeMatches || []).length
+        ].join('|');
+    }
+
     window.getDuoSamspill = function(playerA, playerB, options) {
+        const cacheKey = getDuoSamspillResultCacheKey(playerA, playerB, options);
+        if (cacheKey && duoSamspillResultCache.has(cacheKey)) {
+            return duoSamspillResultCache.get(cacheKey);
+        }
+
         const result = window.computeDuoSamspillScore(playerA, playerB, options);
         const statusLabels = {
             strong: 'Sterkt samspill',
@@ -564,13 +594,23 @@
             unknown: 'Usikkert'
         };
 
-        return {
+        const wrapped = {
             ...result,
             tone: result.status,
             label: statusLabels[result.status] || 'Usikkert',
             tooltip: result.reason,
             dataConfidence: result.confidence
         };
+
+        if (cacheKey) {
+            if (duoSamspillResultCache.size >= DUO_SAMSPILL_RESULT_CACHE_MAX) {
+                const firstKey = duoSamspillResultCache.keys().next().value;
+                if (firstKey != null) duoSamspillResultCache.delete(firstKey);
+            }
+            duoSamspillResultCache.set(cacheKey, wrapped);
+        }
+
+        return wrapped;
     };
     window.getPositionPairRelevance = function(posA, posB) {
         if (!posA || !posB || posA === posB) return 0;
@@ -1592,14 +1632,15 @@
         const benchByLine = opts.benchByLine || {};
         const lineZones = opts.lineZones || {};
         const allSlots = Object.keys(lineup || {}).filter((posId) => lineup[posId]);
-        const bestByLine = typeof window.findBestSamspillLineupScore === 'function'
-            ? {
+        // Pitch chips use click-to-suggest; skip expensive bench swap search unless asked.
+        const bestByLine = opts.skipBestSearch || typeof window.findBestSamspillLineupScore !== 'function'
+            ? {}
+            : {
                 lag: window.findBestSamspillLineupScore(lineup, allSlots, benchByLine.lag, { ...opts, protectLines: true }),
                 forsvar: window.findBestSamspillLineupScore(lineup, lineZones.forsvar, benchByLine.forsvar, opts),
                 midtbane: window.findBestSamspillLineupScore(lineup, lineZones.midtbane, benchByLine.midtbane, opts),
                 angrep: window.findBestSamspillLineupScore(lineup, lineZones.angrep, benchByLine.angrep, opts)
-            }
-            : {};
+            };
         const totals = window.buildSamspillLineTotals(pairs, lineZones, bestByLine, opts);
         if (!pairs.length) {
             return { isEmpty: true, items: [], totals };
