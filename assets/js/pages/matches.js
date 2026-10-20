@@ -5401,6 +5401,17 @@ function compareMatchSquadLinePlayers(match, lineKey, left, right) {
         || String(left?.navn || '').localeCompare(String(right?.navn || ''), 'nb', { sensitivity: 'base' });
 }
 
+function buildMatchDetailSquadGroupHtml(match, row) {
+    return `
+        <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeMatchHtml(row.label)}">
+            <div class="match-bench-group-title stats-kamp-summary-metric-heading">${escapeMatchHtml(row.label)}</div>
+            <div class="match-bench-row">
+                ${row.players.map(player => buildMatchBenchPlayerHtml(match, player)).join('')}
+            </div>
+        </section>
+    `;
+}
+
 function buildMatchDetailSquadListHtml(match) {
     const selectedPlayers = getMatchDetailAttendingPlayers(match);
     const benchPositionRows = [
@@ -5432,14 +5443,21 @@ function buildMatchDetailSquadListHtml(match) {
         `;
     }
 
-    return benchPositionRows.map(row => `
-        <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeMatchHtml(row.label)}">
-            <div class="match-bench-group-title stats-kamp-summary-metric-heading">${escapeMatchHtml(row.label)}</div>
-            <div class="match-bench-row">
-                ${row.players.map(player => buildMatchBenchPlayerHtml(match, player)).join('')}
+    const [keeperRow, defenceRow, midfieldRow, attackRow] = benchPositionRows;
+    return `
+        <div class="match-detail-squad-columns" aria-label="Kamptropp etter linje">
+            <div class="match-detail-squad-column match-detail-squad-column-back">
+                ${buildMatchDetailSquadGroupHtml(match, keeperRow)}
+                ${buildMatchDetailSquadGroupHtml(match, defenceRow)}
             </div>
-        </section>
-    `).join('');
+            <div class="match-detail-squad-column match-detail-squad-column-mid">
+                ${buildMatchDetailSquadGroupHtml(match, midfieldRow)}
+            </div>
+            <div class="match-detail-squad-column match-detail-squad-column-fwd">
+                ${buildMatchDetailSquadGroupHtml(match, attackRow)}
+            </div>
+        </div>
+    `;
 }
 
 function syncMatchDetailSquadCardSizeToPitch() {

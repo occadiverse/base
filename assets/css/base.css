@@ -1497,6 +1497,26 @@
         .match-detail-squad-list {
             padding: 0;
         }
+        .match-detail-squad-columns {
+            align-items: start;
+            display: grid;
+            gap: 0.7rem;
+            grid-template-columns: minmax(0, 1fr);
+            min-width: 0;
+            width: 100%;
+        }
+        .match-detail-squad-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+        @media (min-width: 700px) {
+            .match-detail-squad-columns {
+                gap: 0.55rem 0.65rem;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
         .match-detail-squad-lineup {
             min-width: 0;
             padding: 0.15rem 0.15rem 0.35rem;
@@ -12488,19 +12508,12 @@
             display: flex;
             flex-direction: column;
             flex-wrap: nowrap;
-            gap: 0.55rem;
+            gap: 0.45rem;
             width: 100%;
         }
-        @media (min-width: 900px) {
-            .match-detail-squad-list .match-bench-row {
-                column-gap: 0.75rem;
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                row-gap: 0.55rem;
-            }
-        }
         .match-detail-squad-list .match-bench-group {
-            gap: 0.4rem;
+            gap: 0.35rem;
+            min-width: 0;
         }
         .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
             align-self: stretch;
@@ -12777,7 +12790,7 @@
             color: inherit;
             font-weight: 950;
         }
-        @media (min-width: 641px) {
+        @media (min-width: 641px) and (max-width: 699px) {
             .match-detail-squad-list .match-bench-player {
                 padding: 0.55rem 0.8rem;
             }
@@ -12787,6 +12800,29 @@
             }
             .match-detail-squad-list .match-bench-stripe-name {
                 font-size: 0.98rem;
+            }
+        }
+        @media (min-width: 700px) {
+            .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
+                letter-spacing: 0.08em;
+                padding: 0.3rem 0.4rem;
+            }
+            .match-detail-squad-list .match-bench-player {
+                padding: 0.45rem 0.5rem;
+            }
+            .match-detail-squad-list .match-bench-photo {
+                height: 2.35rem;
+                width: 2.15rem;
+            }
+            .match-detail-squad-list .match-bench-stripe-name {
+                font-size: 0.88rem;
+            }
+            .match-detail-squad-list .match-bench-stripe-signal {
+                font-size: 1.05rem;
+                min-width: 2.55rem;
+            }
+            .match-detail-squad-list .match-bench-stripe-signal.is-bench {
+                font-size: 0.72rem;
             }
         }
 
