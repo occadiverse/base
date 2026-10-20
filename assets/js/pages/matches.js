@@ -1342,9 +1342,9 @@ const matchGamePlanFormations = {
 };
 
 const matchGamePlanLineupOverlayOptions = [
-    { id: 'bidrag', label: 'Bidrag' },
-    { id: 'startBenk', label: 'Start/benk' },
-    { id: 'form', label: 'Form' }
+    { id: 'bidrag', label: 'Bidrag', icon: 'fa-chart-line' },
+    { id: 'startBenk', label: 'Start/benk', icon: 'fa-shuffle' },
+    { id: 'form', label: 'Form', icon: 'fa-heart-pulse' }
 ];
 
 const matchGamePlanSamspillZoneOptions = [
@@ -2093,6 +2093,33 @@ function getMatchGamePlanPositionBadgeLabel(posId, formationId) {
     return posId;
 }
 
+function getMatchGamePlanPlayerPosAbbrev(player, match) {
+    const preferred = String(player?.pos1 || '').trim();
+    if (!preferred) return '';
+    if (/^[A-Z0-9]{1,3}$/i.test(preferred)) {
+        return getMatchGamePlanPositionBadgeLabel(
+            preferred.toUpperCase(),
+            match ? getMatchGamePlanDraftFormation(match) : ''
+        );
+    }
+
+    let posId = Object.keys(matchGamePlanPositionRequirements).find(
+        (id) => matchGamePlanPositionRequirements[id][0] === preferred
+    );
+    if (!posId) {
+        posId = Object.keys(matchGamePlanPositionRequirements).find(
+            (id) => matchGamePlanPositionRequirements[id].includes(preferred)
+        );
+    }
+    if (!posId && preferred === 'Midtstopper') posId = 'MS';
+    if (!posId) return preferred;
+
+    return getMatchGamePlanPositionBadgeLabel(
+        posId,
+        match ? getMatchGamePlanDraftFormation(match) : ''
+    );
+}
+
 function getMatchGamePlanPlayerInjuryInfo(player, match) {
     if (!player || typeof window.getPlayerInjuryInfo !== 'function') {
         return { isInjured: false, type: 'frisk', label: '', shortLabel: '' };
@@ -2142,6 +2169,22 @@ function getMatchDetailPositionCategory(pos1) {
     if (['Høyre bekk', 'Venstre bekk', 'Høyre stopper', 'Venstre stopper', 'Midtstopper'].includes(normalized)) return 'F';
     if (['Spiss', 'Høyre kant', 'Venstre kant'].includes(normalized)) return 'A';
     return 'M';
+}
+
+function getMatchDetailPitchPositionCategory(posId) {
+    if (!posId) return null;
+    if (posId === 'GK') return 'K';
+    if (matchGamePlanDefenceSlotIds.includes(posId)) return 'F';
+    if (matchGamePlanMidfieldSlotIds.includes(posId)) return 'M';
+    if (matchGamePlanAttackSlotIds.includes(posId)) return 'A';
+    return null;
+}
+
+function getMatchDetailSquadPlayerCategory(match, player) {
+    const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+    const pitchCategory = getMatchDetailPitchPositionCategory(pitchPosId);
+    if (pitchCategory) return pitchCategory;
+    return getMatchDetailPositionCategory(player?.pos1) || 'M';
 }
 
 function getMatchDetailAttendingPlayers(match) {
@@ -5275,7 +5318,7 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
 window.buildMatchSummaryPitchChipsHtml = buildMatchSummaryPitchChipsHtml;
 
 function buildMatchBenchPlayerHtml(match, player) {
-    const lastName = getMatchGamePlanPlayerLastName(player);
+    const displayName = getMatchGamePlanPlayerShortName(player);
     const photoUrl = getMatchGamePlanPlayerPhotoUrl(player);
     const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
     const isOnPitch = Boolean(pitchPosId);
@@ -5288,35 +5331,74 @@ function buildMatchBenchPlayerHtml(match, player) {
         ? (injuryInfo.shortLabel || injuryInfo.label || 'Skadet')
         : '';
     const ariaLabel = isOnPitch
-        ? `${lastName}, på banen som ${pitchCode}${isInjured ? `, ${injuryNote}` : ''}. Bytt posisjon eller spiller.`
-        : `${lastName}${isInjured ? `, ${injuryNote}` : ''}. Plasser på banen.`;
-    const badgeHtml = (isOnPitch || isInjured)
-        ? buildMatchGamePlanPosBadgeHtml(pitchCode, player, { showPositionWhenInjured: isOnPitch, match })
-        : '';
+        ? `${displayName}, på banen som ${pitchCode}${isInjured ? `, ${injuryNote}` : ''}. Bytt posisjon eller spiller.`
+        : `${displayName}${isInjured ? `, ${injuryNote}` : ''}. Plasser på banen.`;
+    const metaChips = [];
+    if (isInjured) {
+        metaChips.push(`<span class="match-bench-stripe-chip is-injured" title="${escapeMatchHtml(injuryNote)}">${escapeMatchHtml(injuryNote)}</span>`);
+    }
     const overlayHtml = buildMatchGamePlanLineupCardOverlayHtml(match, player);
+    const signalHtml = isOnPitch && pitchCode
+        ? `<span class="match-bench-stripe-signal is-on-pitch" title="I startelleveren som ${escapeMatchHtml(pitchCode)}">${escapeMatchHtml(pitchCode)}</span>`
+        : '<span class="match-bench-stripe-signal is-bench" title="Benk">Benk</span>';
 
     return `
         <button
             type="button"
-            class="match-game-plan-lineup-card match-bench-player is-filled${isOnPitch ? ' is-on-pitch' : ''}${isInjured ? ' is-injured' : ''}"
+            class="match-bench-player is-filled${isOnPitch ? ' is-on-pitch' : ''}${isInjured ? ' is-injured' : ''}"
             data-player-id="${escapeMatchHtml(player.id || '')}"${isOnPitch ? ` data-pitch-pos="${escapeMatchHtml(pitchPosId)}"` : ''}
             aria-label="${escapeMatchHtml(ariaLabel)}"
             onclick="window.openMatchGamePlanBenchPlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(player.id || '')}')"
         >
-            <span class="match-game-plan-lineup-visual" aria-hidden="true">
-                <span class="match-game-plan-lineup-photo-area">
-                    <span class="match-game-plan-lineup-photo match-bench-photo">
-                        ${photoUrl
-                            ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
-                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                        ${badgeHtml}
-                    </span>
-                    ${overlayHtml}
+            <span class="match-bench-stripe-main" aria-hidden="true">
+                <span class="match-bench-photo${photoUrl ? ' is-photo' : ''}">
+                    ${photoUrl
+                        ? `<img src="${escapeMatchHtml(photoUrl)}" alt="">`
+                        : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
                 </span>
-                <strong>${escapeMatchHtml(lastName)}</strong>
+                <span class="match-bench-stripe-copy">
+                    <strong class="match-bench-stripe-name">${escapeMatchHtml(displayName)}</strong>
+                    <span class="match-bench-stripe-meta">
+                        ${metaChips.join('')}
+                        ${overlayHtml}
+                    </span>
+                </span>
+                ${signalHtml}
             </span>
         </button>
     `;
+}
+
+const MATCH_SQUAD_LINE_PITCH_SORT = {
+    keeper: ['GK'],
+    defence: ['VB', 'VS', 'MS', 'HS', 'HB'],
+    midfield: ['DM', 'OM', 'PM'],
+    attack: ['VK', 'SV', 'SP', 'SH', 'HK']
+};
+
+function getMatchSquadLinePitchSortIndex(match, player, lineKey) {
+    const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
+    if (!pitchPosId) return 1000;
+
+    const formationId = getMatchGamePlanDraftFormation(match);
+    const badgeLabel = getMatchGamePlanPositionBadgeLabel(pitchPosId, formationId);
+    const order = MATCH_SQUAD_LINE_PITCH_SORT[lineKey] || [];
+    const byLabel = order.indexOf(badgeLabel);
+    if (byLabel !== -1) return byLabel;
+    const byPosId = order.indexOf(pitchPosId);
+    if (byPosId !== -1) return byPosId;
+    return 500;
+}
+
+function compareMatchSquadLinePlayers(match, lineKey, left, right) {
+    const leftIndex = getMatchSquadLinePitchSortIndex(match, left, lineKey);
+    const rightIndex = getMatchSquadLinePitchSortIndex(match, right, lineKey);
+    const leftOnPitch = leftIndex < 1000 ? 0 : 1;
+    const rightOnPitch = rightIndex < 1000 ? 0 : 1;
+    return leftOnPitch - rightOnPitch
+        || leftIndex - rightIndex
+        || (Number(left?.drakt) || 999) - (Number(right?.drakt) || 999)
+        || String(left?.navn || '').localeCompare(String(right?.navn || ''), 'nb', { sensitivity: 'base' });
 }
 
 function buildMatchDetailSquadListHtml(match) {
@@ -5329,9 +5411,13 @@ function buildMatchDetailSquadListHtml(match) {
     ];
 
     selectedPlayers.forEach(player => {
-        const category = getMatchDetailPositionCategory(player.pos1) || 'M';
+        const category = getMatchDetailSquadPlayerCategory(match, player);
         const row = benchPositionRows.find(positionRow => positionRow.categories.includes(category)) || benchPositionRows[2];
         row.players.push(player);
+    });
+
+    benchPositionRows.forEach((row) => {
+        row.players.sort((left, right) => compareMatchSquadLinePlayers(match, row.key, left, right));
     });
 
     if (!selectedPlayers.length) {
@@ -5348,7 +5434,7 @@ function buildMatchDetailSquadListHtml(match) {
 
     return benchPositionRows.map(row => `
         <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeMatchHtml(row.label)}">
-            <div class="match-bench-group-title">${escapeMatchHtml(row.label)}</div>
+            <div class="match-bench-group-title stats-kamp-summary-metric-heading">${escapeMatchHtml(row.label)}</div>
             <div class="match-bench-row">
                 ${row.players.map(player => buildMatchBenchPlayerHtml(match, player)).join('')}
             </div>
@@ -5357,16 +5443,7 @@ function buildMatchDetailSquadListHtml(match) {
 }
 
 function syncMatchDetailSquadCardSizeToPitch() {
-    const pitchCard = document.querySelector('.match-detail-lineup-pitch-wrap .match-game-plan-lineup-card');
-    const squadList = document.querySelector('.match-detail-squad-list');
-    if (!pitchCard || !squadList) return;
-
-    const width = pitchCard.getBoundingClientRect().width;
-    if (!width) return;
-
-    const pitchStyles = window.getComputedStyle(pitchCard);
-    squadList.style.setProperty('--squad-card-width', `${width}px`);
-    squadList.style.setProperty('--lineup-card-radius', pitchStyles.borderRadius || '0.64rem');
+    // Kamptropp bruker stripe-rader (ikke FIFA-kort synket til pitch-bredde).
 }
 
 function renderMatchDetailSquadList(match) {
@@ -5374,7 +5451,6 @@ function renderMatchDetailSquadList(match) {
     if (!list || !match) return;
     list.innerHTML = buildMatchDetailSquadListHtml(match);
     applyMatchGamePlanSamspillZoneFocus(match);
-    requestAnimationFrame(() => syncMatchDetailSquadCardSizeToPitch());
 }
 
 function getMatchGamePlanRoleLabel(slot) {
@@ -5616,10 +5692,10 @@ function buildMatchGamePlanLineupCardOverlayHtml(match, player) {
     return `
         <span class="match-game-plan-lineup-card-overlays" aria-hidden="true">
             ${buildMatchGamePlanBidragValueHtml(player, match)}
-            ${buildMatchGamePlanFormValueHtml(player, match)}
             <span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-start-benk">
                 <span class="match-game-plan-lineup-card-overlay-start">${starts}</span><span class="match-game-plan-lineup-card-overlay-sep">/</span><span class="match-game-plan-lineup-card-overlay-bench">${bench}</span>
             </span>
+            ${buildMatchGamePlanFormValueHtml(player, match)}
         </span>
     `;
 }
@@ -5657,6 +5733,7 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
             viewOptions.push({
                 id: option.id,
                 label: option.label,
+                icon: option.icon || '',
                 active: Boolean(overlayState[option.id])
             });
         });
@@ -5666,7 +5743,11 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
 
     return `
         <div class="match-game-plan-lineup-view-segment${extraClass ? ` ${extraClass}` : ''}" data-lineup-view-segment data-match-id="${escapeMatchHtml(match.id)}" role="group" aria-label="${escapeMatchHtml(ariaLabel)}">
-            ${viewOptions.map(option => `
+            ${viewOptions.map(option => {
+                const content = option.icon
+                    ? `<i class="fa-solid ${escapeMatchHtml(option.icon)}" aria-hidden="true"></i>`
+                    : escapeMatchHtml(option.label);
+                return `
                 <button
                     type="button"
                     class="match-game-plan-lineup-overlay-btn${buttonClass ? ` ${buttonClass}` : ''}${option.active ? ' is-active' : ''}"
@@ -5674,8 +5755,8 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
                     aria-pressed="${option.active ? 'true' : 'false'}"
                     title="${escapeMatchHtml(option.label)}"
                     aria-label="${escapeMatchHtml(option.label)}"
-                >${escapeMatchHtml(option.label)}</button>
-            `).join('')}
+                >${content}</button>`;
+            }).join('')}
         </div>
     `;
 }
@@ -5685,7 +5766,7 @@ function buildMatchGamePlanSquadOverlaySegmentHtml(match) {
         includePlayerOverlays: true,
         ariaLabel: 'Spillerinfo',
         extraClass: 'match-detail-squad-overlay-segment',
-        buttonClass: 'bsk-btn bsk-btn-chip'
+        buttonClass: 'blknapp is-icon'
     });
 }
 
@@ -6222,6 +6303,9 @@ function resetMatchGamePlanSamspillZoneFocusVisualTarget(element) {
 function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, showStats) {
     const photo = element.querySelector('.match-game-plan-lineup-photo, .match-bench-photo');
     const overlays = element.querySelector('.match-game-plan-lineup-card-overlays');
+    const isBenchStripe = element.classList.contains('match-bench-player')
+        && !element.classList.contains('match-game-plan-lineup-card');
+    const overlaysDisplayOn = isBenchStripe ? 'flex' : 'block';
     const isOnPitchBench = element.classList.contains('match-bench-player') && element.classList.contains('is-on-pitch');
 
     if (!zoneState) {
@@ -6237,7 +6321,7 @@ function applyMatchGamePlanSamspillZoneFocusVisualTarget(element, zoneState, sho
                 node.style.removeProperty('opacity');
             });
         }
-        if (overlays) overlays.style.display = showStats ? 'block' : 'none';
+        if (overlays) overlays.style.display = showStats ? overlaysDisplayOn : 'none';
         return;
     }
 

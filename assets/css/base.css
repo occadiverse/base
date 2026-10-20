@@ -1400,57 +1400,62 @@
             background: transparent;
             border: 0;
             border-radius: 0;
-            display: grid;
-            gap: 0.5rem;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            justify-content: center;
             margin: 0 auto;
             max-width: 100%;
             overflow: visible;
             padding: 0;
-            width: min(100%, 30.5rem);
+            width: auto;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn,
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.bsk-btn,
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.bsk-btn-chip {
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
-            border: 1px solid rgba(245, 197, 66, 0.28);
-            border-radius: 0.8rem;
-            box-shadow: 0 5px 12px rgba(2, 6, 23, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            flex: none;
-            font-size: 0.66rem;
-            font-weight: 900;
-            height: 2.45rem;
-            letter-spacing: 0.05em;
-            max-height: 2.45rem;
-            min-height: 2.45rem;
-            padding: 0.5rem 0.45rem;
-            text-transform: none;
-            width: 100%;
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp {
+            flex: 0 0 2.35rem;
+            height: 2.35rem;
+            max-width: 2.35rem;
+            min-width: 2.35rem;
+            width: 2.35rem;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn:hover:not(.is-active) {
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 100%);
-            border-color: rgba(245, 197, 66, 0.42);
-            color: #ffffff;
-            transform: translateY(-1px);
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active) {
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.45) 0%, rgba(26, 79, 158, 0.45) 100%);
+            border-color: rgba(200, 228, 255, 0.45);
+            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
+            color: rgba(244, 249, 255, 0.78);
+            opacity: 0.85;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.is-active {
-            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
-            border-color: rgba(245, 197, 66, 0.9);
-            box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-            color: #0b2b4c;
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active):hover {
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.62) 0%, rgba(26, 79, 158, 0.62) 100%);
+            border-color: rgba(200, 228, 255, 0.7);
+            color: #f4f9ff;
+            opacity: 1;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.is-active:hover {
-            background: linear-gradient(135deg, #ffe58a 0%, #f0b429 100%);
-            border-color: rgba(245, 197, 66, 0.95);
-            color: #0b2b4c;
-            transform: none;
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 3px 0 #5c2e00;
+            color: #fffdf5;
+            opacity: 1;
+            text-shadow: 0 1px 0 #5c2e00;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn:focus-visible {
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.35);
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active:hover {
+            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
+            border-color: #fff3b0;
+            box-shadow: 0 3px 0 #5c2e00;
+            color: #fffdf5;
+        }
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active:active {
+            box-shadow: 0 1px 0 #3d1e00;
+        }
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp:focus-visible {
             outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 3px 0 #0a2244;
+        }
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 3px 0 #5c2e00;
+        }
+        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp i {
+            font-size: 1rem;
         }
         .match-detail-squad-list {
             padding: 0;
@@ -1923,9 +1928,12 @@
             line-height: 1.25;
         }
         .match-detail-squad-list .match-bench-player.is-suggest-source {
+            border-color: #ffe08a;
             box-shadow:
-                0 10px 20px rgba(2, 6, 23, 0.2),
-                0 0 0 2px rgba(245, 197, 66, 0.85);
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 0 0 3px rgba(245, 197, 66, 0.45),
+                0 8px 16px rgba(2, 6, 23, 0.22);
         }
         .match-game-plan-line-suggest-bar {
             align-items: center;
@@ -12439,123 +12447,199 @@
             gap: 0.55rem;
             min-height: 0;
         }
-        .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card {
-            --lineup-card-radius: 0.64rem;
-            --squad-card-width: 5.5rem;
-            --lineup-pitch-card-width: var(--squad-card-width);
-            --lineup-pitch-card-height: calc(var(--squad-card-width) * 1.42);
-            appearance: none;
-            border-radius: var(--lineup-card-radius);
-            box-sizing: border-box;
-            container-name: squad-card;
-            container-type: size;
-            cursor: pointer;
-            flex: 0 0 auto;
-            font: inherit;
-            height: var(--lineup-pitch-card-height);
-            max-height: var(--lineup-pitch-card-height);
-            min-height: var(--lineup-pitch-card-height);
-            overflow: hidden;
-            padding: 0;
-            position: relative;
-            text-align: center;
-            transform: none;
-            transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
-            width: var(--squad-card-width);
-            z-index: 1;
-        }
-        .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card:hover {
-            border-color: rgba(245, 197, 66, 0.9);
-            box-shadow: 0 12px 24px rgba(2, 6, 23, 0.26), 0 0 0 2px rgba(245, 197, 66, 0.34);
-            transform: translateY(-1px);
-        }
-        .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card:focus-visible {
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.28), 0 12px 24px rgba(2, 6, 23, 0.24);
-            outline: none;
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-visual {
-            border-radius: inherit;
+        .match-detail-squad-list .match-bench-row {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            min-height: 0;
-            overflow: hidden;
+            flex-wrap: nowrap;
+            gap: 0.55rem;
             width: 100%;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area {
-            aspect-ratio: auto;
-            container-name: lineup-card-photo;
-            container-type: size;
-            flex: 1 1 0;
-            height: auto;
-            min-height: 0;
-            position: relative;
+        .match-detail-squad-list .match-bench-group {
+            gap: 0.4rem;
+        }
+        .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
+            align-self: stretch;
+            background: linear-gradient(90deg, transparent 0%, rgba(11, 43, 76, 0.72) 16%, rgba(18, 63, 115, 0.88) 50%, rgba(11, 43, 76, 0.72) 84%, transparent 100%);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.35);
+            border-top: 1px solid rgba(245, 197, 66, 0.28);
+            box-sizing: border-box;
+            color: rgba(255, 224, 138, 0.95);
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            margin: 0;
+            padding: 0.35rem 0.75rem;
+            text-align: center;
+            text-shadow: 0 1px 0 rgba(11, 43, 76, 0.65);
+            text-transform: uppercase;
             width: 100%;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo {
-            border-radius: var(--lineup-card-radius) var(--lineup-card-radius) 0.16rem 0.16rem;
-            border-width: 0;
-            height: 100%;
-            position: relative;
-            width: 100%;
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-visual strong {
-            border-radius: 0 0 calc(var(--lineup-card-radius) - 1px) calc(var(--lineup-card-radius) - 1px);
-            flex: 0 0 clamp(0.72rem, 17.3cqw, 0.95rem);
-            font-size: clamp(0.46rem, 10.9cqw, 0.6rem);
-            line-height: 1.25;
-            overflow: hidden;
-            padding: clamp(0.08rem, 2cqw, 0.12rem) clamp(0.06rem, 1.5cqw, 0.08rem) clamp(0.07rem, 1.6cqw, 0.11rem);
-            width: 100%;
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge {
-            --badge-size: clamp(1.65rem, 42cqw, 2.45rem);
-            z-index: 2;
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-label {
-            font-size: clamp(0.66rem, 17cqw, 0.96rem);
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge-injury {
-            font-size: clamp(0.38rem, 10cqw, 0.55rem);
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-pos-badge.is-injury-only .match-game-plan-lineup-pos-badge-injury {
-            font-size: clamp(0.58rem, 15cqw, 0.82rem);
-        }
-        .match-detail-squad-list .match-bench-player.is-on-pitch {
-            border-color: rgba(245, 197, 66, 0.7);
+        .match-detail-squad-list .match-bench-player {
+            align-items: center;
+            appearance: none;
+            background:
+                linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.48);
+            border-radius: 0.7rem;
             box-shadow:
-                0 12px 24px rgba(2, 6, 23, 0.24),
-                0 0 0 2px rgba(245, 197, 66, 0.26);
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.1);
+            box-sizing: border-box;
+            color: #fffdf5;
+            cursor: pointer;
+            display: flex;
+            font: inherit;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.5rem 0.65rem;
+            text-align: left;
+            transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+            width: 100%;
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge {
-            background: #2fa86d;
+        .match-detail-squad-list .match-bench-player:hover {
+            background:
+                linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 0 0 3px rgba(245, 197, 66, 0.22),
+                0 8px 16px rgba(2, 6, 23, 0.22);
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured {
-            background: #dc2626;
+        .match-detail-squad-list .match-bench-player:focus-visible {
+            border-color: #ffe08a;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                0 0 0 3px rgba(245, 197, 66, 0.35),
+                0 8px 16px rgba(2, 6, 23, 0.22);
+            outline: none;
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-visual .match-game-plan-lineup-pos-badge-label {
-            color: #ffffff;
-            text-shadow: 0 1px 1px rgba(15, 23, 42, 0.35);
+        .match-detail-squad-list .match-bench-stripe-main {
+            align-items: center;
+            display: flex;
+            flex: 1 1 auto;
+            gap: 0.55rem;
+            min-width: 0;
+            width: 100%;
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured .match-game-plan-lineup-pos-badge-label {
-            color: #ffffff;
+        .match-detail-squad-list .match-bench-photo {
+            align-items: center;
+            background: linear-gradient(180deg, #1f3a5f, #123f73);
+            border: 1.5px solid rgba(245, 197, 66, 0.65);
+            border-radius: 0.55rem;
+            color: rgba(255, 253, 245, 0.75);
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.95rem;
+            font-weight: 900;
+            height: 2.55rem;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            width: 2.35rem;
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-game-plan-lineup-pos-badge.is-injured.is-injured-position .match-game-plan-lineup-pos-badge-label {
-            left: 57%;
-            top: 57%;
+        .match-detail-squad-list .match-bench-photo.is-photo {
+            background: linear-gradient(180deg, #1f3a5f, #123f73);
         }
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo img,
-        .match-detail-squad-list .match-bench-player.is-on-pitch .match-bench-photo i {
-            filter: none;
-            opacity: 1;
+        .match-detail-squad-list .match-bench-photo img {
+            border-radius: 0;
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-detail-squad-list .match-bench-photo > i {
+            color: rgba(255, 253, 245, 0.75);
+            font-size: 0.95rem;
+        }
+        .match-detail-squad-list .match-bench-stripe-copy {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 0;
+        }
+        .match-detail-squad-list .match-bench-stripe-name {
+            color: #fffdf5;
+            font-size: 0.92rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            line-height: 1.15;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-detail-squad-list .match-bench-stripe-meta {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.22rem;
+            justify-content: flex-start;
+            min-width: 0;
+        }
+        .match-detail-squad-list .match-bench-stripe-chip {
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 0.28rem;
+            color: #fff;
+            display: inline-flex;
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            max-width: 100%;
+            padding: 0.14rem 0.28rem;
+            text-transform: uppercase;
+        }
+        .match-detail-squad-list .match-bench-stripe-chip.is-pos {
+            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
+            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
+        }
+        .match-detail-squad-list .match-bench-stripe-chip.is-injured {
+            background: linear-gradient(180deg, #f87171, #b91c1c);
+            text-shadow: 0 1px 0 rgba(69, 10, 10, 0.75);
+            text-transform: none;
+        }
+        .match-detail-squad-list .match-bench-stripe-signal {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: transparent;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 1.15rem;
+            font-weight: 950;
+            height: 2.1rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            min-width: 2.4rem;
+            padding: 0 0.1rem;
+            text-transform: uppercase;
+        }
+        .match-detail-squad-list .match-bench-stripe-signal.is-on-pitch {
+            color: #fffdf5;
+            text-shadow: 0 1px 2px rgba(2, 6, 23, 0.55);
+        }
+        .match-detail-squad-list .match-bench-stripe-signal.is-bench {
+            color: rgba(255, 253, 245, 0.55);
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-shadow: none;
         }
         .match-detail-lineup-builder.is-samspill-zone-focus.is-show-bidrag .match-game-plan-lineup-card.is-filled.is-samspill-zone-clear .match-game-plan-lineup-card-overlays,
         .match-detail-lineup-builder.is-samspill-zone-focus.is-show-start-benk .match-game-plan-lineup-card.is-filled.is-samspill-zone-clear .match-game-plan-lineup-card-overlays,
-        .match-detail-lineup-builder.is-samspill-zone-focus.is-show-form .match-game-plan-lineup-card.is-filled.is-samspill-zone-clear .match-game-plan-lineup-card-overlays,
+        .match-detail-lineup-builder.is-samspill-zone-focus.is-show-form .match-game-plan-lineup-card.is-filled.is-samspill-zone-clear .match-game-plan-lineup-card-overlays {
+            display: block !important;
+        }
         .match-detail-squad-section.is-samspill-zone-focus.is-show-bidrag .match-bench-player.is-samspill-zone-clear .match-game-plan-lineup-card-overlays,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-start-benk .match-bench-player.is-samspill-zone-clear .match-game-plan-lineup-card-overlays,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-form .match-bench-player.is-samspill-zone-clear .match-game-plan-lineup-card-overlays {
-            display: block !important;
+            display: flex !important;
         }
         .match-detail-lineup-builder.is-samspill-zone-focus.is-show-bidrag .match-game-plan-lineup-card.is-filled.is-samspill-zone-clear .match-game-plan-lineup-card-overlay-bidrag,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-bidrag .match-bench-player.is-samspill-zone-clear .match-game-plan-lineup-card-overlay-bidrag {
@@ -12572,17 +12656,42 @@
             display: inline-flex !important;
             visibility: visible !important;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays {
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlays {
+            align-items: center;
             display: none;
-            inset: 0;
+            flex-wrap: wrap;
+            gap: 0;
             pointer-events: none;
-            position: absolute;
-            z-index: 2;
+            position: static;
         }
-        .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
-        .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
-        .match-detail-squad-section.is-show-form:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays {
-            display: block;
+        .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-card-overlays,
+        .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-card-overlays,
+        .match-detail-squad-section.is-show-form:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-card-overlays {
+            display: flex;
+        }
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay {
+            align-items: center;
+            background: none;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            color: rgba(255, 253, 245, 0.9);
+            display: none !important;
+            font-size: 0.68rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            justify-content: center;
+            left: auto;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            padding: 0;
+            position: static;
+            text-shadow: none;
+            top: auto;
+            transform: none;
+            visibility: hidden;
+            white-space: nowrap;
+            -webkit-text-stroke: 0;
         }
         .match-detail-squad-section.is-show-bidrag:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-card-overlay-bidrag,
         .match-detail-squad-section.is-show-start-benk:not(.is-samspill-zone-focus) .match-bench-player .match-game-plan-lineup-card-overlay-start-benk,
@@ -12590,77 +12699,52 @@
             display: inline-flex !important;
             visibility: visible;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag {
-            bottom: auto;
-            color: #ffffff;
-            font-size: clamp(0.6rem, 33cqw, 0.95rem);
-            left: clamp(0.1rem, 7cqw, 0.22rem);
-            letter-spacing: -0.04em;
-            position: absolute;
-            right: auto;
-            text-shadow:
-                0 1px 2px rgba(2, 10, 22, 1),
-                0 2px 6px rgba(2, 10, 22, 0.95);
-            top: clamp(0.12rem, 8cqw, 0.26rem);
-            transform: none;
-            z-index: 4;
+        .match-detail-squad-section.is-show-bidrag.is-show-start-benk .match-bench-player .match-game-plan-lineup-card-overlay-start-benk,
+        .match-detail-squad-section.is-show-bidrag.is-show-form .match-bench-player .match-game-plan-lineup-card-overlay-form,
+        .match-detail-squad-section.is-show-start-benk.is-show-form .match-bench-player .match-game-plan-lineup-card-overlay-form {
+            border-left: 1px solid rgba(255, 253, 245, 0.28);
+            margin-left: 0.38rem;
+            padding-left: 0.38rem;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag.is-muted {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: clamp(0.55rem, 30cqw, 0.85rem);
+        .match-detail-squad-section.is-show-bidrag .match-bench-stripe-meta:has(.match-bench-stripe-chip) .match-game-plan-lineup-card-overlays,
+        .match-detail-squad-section.is-show-start-benk .match-bench-stripe-meta:has(.match-bench-stripe-chip) .match-game-plan-lineup-card-overlays,
+        .match-detail-squad-section.is-show-form .match-bench-stripe-meta:has(.match-bench-stripe-chip) .match-game-plan-lineup-card-overlays {
+            border-left: 1px solid rgba(255, 253, 245, 0.28);
+            margin-left: 0.2rem;
+            padding-left: 0.38rem;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start-benk {
-            bottom: clamp(0.12rem, 8cqw, 0.26rem);
-            color: #ffffff;
-            font-size: clamp(0.56rem, 31cqw, 0.88rem);
-            font-weight: 950;
-            gap: 0.08rem;
-            left: clamp(0.1rem, 7cqw, 0.22rem);
-            letter-spacing: 0.01em;
-            line-height: 1;
-            position: absolute;
-            right: auto;
-            text-shadow:
-                0 1px 2px rgba(2, 10, 22, 1),
-                0 2px 6px rgba(2, 10, 22, 0.95);
-            top: auto;
-            transform: none;
-            -webkit-text-stroke: 0.04em rgba(2, 10, 22, 0.35);
-            z-index: 4;
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-bidrag.is-high {
+            color: #6ee7b7;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-start,
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-sep,
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bench {
-            color: #ffffff;
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-bidrag.is-mid {
+            color: #fcd34d;
+        }
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-bidrag.is-low {
+            color: #fca5a5;
+        }
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-bidrag.is-muted,
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-form.is-muted {
+            color: rgba(255, 253, 245, 0.72);
+        }
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-start,
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-sep,
+        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-card-overlay-bench {
+            color: inherit;
             font-weight: 950;
         }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form {
-            bottom: auto;
-            font-size: clamp(0.6rem, 33cqw, 0.95rem);
-            font-weight: 950;
-            left: auto;
-            letter-spacing: -0.04em;
-            position: absolute;
-            right: clamp(0.1rem, 7cqw, 0.22rem);
-            text-shadow:
-                0 1px 2px rgba(2, 10, 22, 1),
-                0 2px 6px rgba(2, 10, 22, 0.95);
-            top: clamp(0.12rem, 8cqw, 0.26rem);
-            transform: none;
-            z-index: 4;
-        }
-        .match-detail-squad-list .match-bench-player .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-form.is-muted {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: clamp(0.55rem, 30cqw, 0.85rem);
-        }
-        @media (min-width: 1024px) {
-            .match-detail-squad-list .match-bench-row {
-                gap: 0.65rem;
+        @media (min-width: 641px) {
+            .match-detail-squad-list .match-bench-player {
+                padding: 0.55rem 0.8rem;
             }
-            .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card {
-                --squad-card-width: 5.5rem;
+            .match-detail-squad-list .match-bench-photo {
+                height: 2.75rem;
+                width: 2.5rem;
+            }
+            .match-detail-squad-list .match-bench-stripe-name {
+                font-size: 0.98rem;
             }
         }
+
         .match-bench-empty {
             align-items: center;
             color: rgba(255, 255, 255, 0.58);
@@ -13328,11 +13412,13 @@
         }
         .match-detail-squad-section.is-samspill-zone-focus.is-show-bidrag .match-game-plan-lineup-card.is-filled[data-samspill-zone-state="in"] .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-start-benk .match-game-plan-lineup-card.is-filled[data-samspill-zone-state="in"] .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
-        .match-detail-squad-section.is-samspill-zone-focus.is-show-form .match-game-plan-lineup-card.is-filled[data-samspill-zone-state="in"] .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays,
+        .match-detail-squad-section.is-samspill-zone-focus.is-show-form .match-game-plan-lineup-card.is-filled[data-samspill-zone-state="in"] .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlays {
+            display: block !important;
+        }
         .match-detail-squad-section.is-samspill-zone-focus.is-show-bidrag .match-bench-player[data-samspill-zone-state="in"] .match-game-plan-lineup-card-overlays,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-start-benk .match-bench-player[data-samspill-zone-state="in"] .match-game-plan-lineup-card-overlays,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-form .match-bench-player[data-samspill-zone-state="in"] .match-game-plan-lineup-card-overlays {
-            display: block !important;
+            display: flex !important;
         }
         .match-detail-squad-section.is-samspill-zone-focus.is-show-bidrag .match-game-plan-lineup-card.is-filled[data-samspill-zone-state="in"] .match-game-plan-lineup-card-overlay-bidrag,
         .match-detail-squad-section.is-samspill-zone-focus.is-show-bidrag .match-bench-player[data-samspill-zone-state="in"] .match-game-plan-lineup-card-overlay-bidrag {
@@ -13362,9 +13448,6 @@
         .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch[data-samspill-zone-state="out"] .match-bench-photo i {
             filter: brightness(0.48) saturate(0.9);
             opacity: 1;
-        }
-        .match-detail-squad-section.is-samspill-zone-focus .match-bench-player.is-on-pitch {
-            border-color: rgba(245, 197, 66, 0.7);
         }
         .match-detail-lineup-pitch-wrap .match-game-plan-lineup-photo-area .match-game-plan-lineup-card-overlay-bidrag {
             bottom: auto;
@@ -19835,9 +19918,6 @@
             .match-detail-squad-body {
                 gap: 0.55rem;
                 padding: 0.85rem 1rem 1rem;
-            }
-            .match-detail-squad-list .match-bench-player.match-game-plan-lineup-card {
-                --squad-card-width: 4.85rem;
             }
             .match-detail-lineup-pitch-wrap .match-game-plan-pitch,
             .match-detail-page .match-game-plan-panel .match-game-plan-pitch {
