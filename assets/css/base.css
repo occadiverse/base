@@ -10553,6 +10553,318 @@
             font-weight: 800;
             padding: 0.55rem 0.7rem;
         }
+        /* Banens beste — Clash Evolutions-panel: lilla ramme, figur ut, footer */
+        .stats-kamp-summary-bb-hero {
+            --bb-frame: #c4b5fd;
+            --bb-ink: #3b0764;
+            --bb-deep: #4c1d95;
+            margin: 0.45rem 0 0.95rem;
+            padding-top: 0.7rem;
+            position: relative;
+        }
+        .stats-kamp-summary-bb-gem {
+            align-items: center;
+            background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 60%, #5b21b6 100%);
+            border: 1.5px solid rgba(250, 245, 255, 0.85);
+            border-radius: 0.45rem;
+            box-shadow:
+                0 0 0 1px rgba(139, 92, 246, 0.55),
+                0 2px 0 #3b0764;
+            color: #f5f3ff;
+            display: inline-flex;
+            font-size: 0.78rem;
+            height: 1.4rem;
+            justify-content: center;
+            left: 50%;
+            position: absolute;
+            top: 0.1rem;
+            transform: translateX(-50%) rotate(-10deg);
+            width: 1.4rem;
+            z-index: 3;
+        }
+        .stats-kamp-summary-bb-shell {
+            background: linear-gradient(180deg, #6d28d9 0%, #5b21b6 58%, #4c1d95 100%);
+            border: 3px solid var(--bb-frame);
+            border-radius: 1rem;
+            box-shadow:
+                0 0 0 1px rgba(109, 40, 217, 0.28),
+                0 6px 14px rgba(46, 16, 101, 0.22),
+                inset 0 1px 0 rgba(250, 245, 255, 0.12);
+            filter: saturate(0.88) brightness(0.96);
+            overflow: visible;
+            position: relative;
+        }
+        .stats-kamp-summary-bb-main {
+            align-items: center;
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            min-height: 5rem;
+            overflow: visible;
+            padding: 0.85rem 0.3rem 0.7rem 0.9rem;
+            position: relative;
+        }
+        .stats-kamp-summary-bb-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            justify-content: center;
+            min-width: 0;
+            z-index: 1;
+        }
+        .stats-kamp-summary-bb-title {
+            color: rgba(255, 255, 255, 0.96);
+            font-size: clamp(1.2rem, 4.4vw, 1.55rem);
+            font-weight: 900;
+            letter-spacing: 0.015em;
+            line-height: 0.98;
+            margin: 0;
+            text-shadow:
+                -1px 0 0 var(--bb-ink),
+                1px 0 0 var(--bb-ink),
+                0 -1px 0 var(--bb-ink),
+                0 1px 0 var(--bb-ink),
+                -1px -1px 0 var(--bb-ink),
+                1px -1px 0 var(--bb-ink),
+                -1px 1px 0 var(--bb-ink),
+                1px 1px 0 var(--bb-ink),
+                0 2px 0 rgba(26, 11, 46, 0.75);
+        }
+        .stats-kamp-summary-bb-name {
+            color: rgba(243, 232, 255, 0.92);
+            font-size: clamp(0.88rem, 2.8vw, 1.02rem);
+            font-weight: 800;
+            letter-spacing: 0.015em;
+            line-height: 1.2;
+            margin: 0;
+            overflow-wrap: anywhere;
+            text-shadow: 0 1px 0 rgba(46, 16, 101, 0.7);
+        }
+        .stats-kamp-summary-bb-figure {
+            align-self: end;
+            height: 5.7rem;
+            margin: -0.85rem -0.2rem -0.1rem 0;
+            position: relative;
+            width: 5rem;
+            z-index: 2;
+        }
+        .stats-kamp-summary-bb-avatar {
+            align-items: center;
+            background: linear-gradient(180deg, #a78bfa 0%, #6d28d9 100%);
+            border: 2px solid rgba(233, 213, 255, 0.9);
+            border-radius: 0.75rem;
+            box-shadow:
+                0 0 0 1px rgba(88, 28, 135, 0.45),
+                0 4px 10px rgba(46, 16, 101, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            overflow: hidden;
+            transform: rotate(2deg);
+            width: 100%;
+        }
+        .stats-kamp-summary-bb-avatar img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .stats-kamp-summary-bb-avatar > i.fa-user {
+            color: rgba(250, 245, 255, 0.88);
+            font-size: 1.75rem;
+        }
+        .stats-kamp-summary-bb-footer {
+            align-items: center;
+            background: linear-gradient(180deg, #c4b5fd 0%, #a78bfa 100%);
+            border-radius: 0 0 0.8rem 0.8rem;
+            display: flex;
+            gap: 0.45rem;
+            justify-content: center;
+            padding: 0.45rem 0.7rem 0.55rem;
+        }
+        .stats-kamp-summary-bb-btn {
+            align-items: center;
+            background: rgba(46, 16, 101, 0.38);
+            border: 1px solid rgba(196, 181, 253, 0.75);
+            border-radius: 0.65rem;
+            box-shadow: none;
+            color: rgba(255, 255, 255, 0.96);
+            display: inline-flex;
+            font-weight: 800;
+            gap: 0.3rem;
+            height: 2.2rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            min-width: 3.6rem;
+            padding: 0 0.75rem;
+            text-align: center;
+            text-shadow: 0 1px 0 rgba(26, 11, 46, 0.55);
+            white-space: nowrap;
+        }
+        .stats-kamp-summary-bb-btn-label {
+            color: rgba(243, 232, 255, 0.72);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .stats-kamp-summary-bb-btn-value {
+            font-size: 0.95rem;
+            font-weight: 900;
+        }
+        .stats-kamp-summary-bb-btn.is-empty {
+            opacity: 0.5;
+        }
+        .stats-kamp-summary-bb-pos .stats-kamp-summary-bb-btn-value {
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-bb-rating .stats-kamp-summary-bb-btn-value {
+            font-size: 1.1rem;
+            font-variant-numeric: tabular-nums;
+        }
+        .stats-kamp-summary-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.2rem;
+            width: 100%;
+        }
+        .stats-kamp-summary-metric-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            padding: 0;
+        }
+        .stats-kamp-summary-metric-heading {
+            align-self: stretch;
+            background: linear-gradient(90deg, transparent 0%, rgba(11, 43, 76, 0.72) 16%, rgba(18, 63, 115, 0.88) 50%, rgba(11, 43, 76, 0.72) 84%, transparent 100%);
+            border-bottom: 1px solid rgba(245, 197, 66, 0.35);
+            border-top: 1px solid rgba(245, 197, 66, 0.28);
+            color: rgba(255, 224, 138, 0.95);
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            margin: 0;
+            padding: 0.35rem 0.75rem;
+            text-align: center;
+            text-shadow: 0 1px 0 rgba(11, 43, 76, 0.65);
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-metric-grid {
+            display: grid;
+            gap: 0.4rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .stats-kamp-summary-metric-card {
+            align-items: center;
+            background: rgba(7, 24, 45, 0.55);
+            border: 1px solid rgba(31, 93, 158, 0.55);
+            border-radius: 0.65rem;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.16rem;
+            justify-content: center;
+            min-width: 0;
+            overflow: hidden;
+            padding: 0.5rem 0.45rem 0.45rem;
+            position: relative;
+            text-align: center;
+        }
+        .stats-kamp-summary-metric-bg-icon {
+            bottom: -0.15rem;
+            color: rgba(245, 197, 66, 0.14);
+            font-size: 2.6rem;
+            line-height: 1;
+            pointer-events: none;
+            position: absolute;
+            right: 0.15rem;
+            z-index: 0;
+        }
+        .stats-kamp-summary-metric-card > :not(.stats-kamp-summary-metric-bg-icon) {
+            position: relative;
+            z-index: 1;
+        }
+        .stats-kamp-summary-metric-card.is-green .stats-kamp-summary-metric-bg-icon {
+            color: rgba(134, 239, 172, 0.18);
+        }
+        .stats-kamp-summary-metric-card.is-amber .stats-kamp-summary-metric-bg-icon {
+            color: rgba(245, 197, 66, 0.2);
+        }
+        .stats-kamp-summary-metric-card.is-red .stats-kamp-summary-metric-bg-icon {
+            color: rgba(252, 165, 165, 0.18);
+        }
+        .stats-kamp-summary-metric-label {
+            color: rgba(245, 197, 66, 0.88);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-metric-value {
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(11, 43, 76, 0.55);
+        }
+        .stats-kamp-summary-metric-compare {
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            line-height: 1.25;
+        }
+        .stats-kamp-summary-metric-compare.is-empty {
+            opacity: 0.35;
+        }
+        .stats-kamp-summary-metric-card.is-green {
+            background: rgba(74, 222, 128, 0.16);
+            border-color: rgba(74, 222, 128, 0.72);
+        }
+        .stats-kamp-summary-metric-card.is-green .stats-kamp-summary-metric-value {
+            color: #4ade80;
+            text-shadow:
+                0 0 10px rgba(74, 222, 128, 0.45),
+                0 1px 0 rgba(11, 43, 76, 0.55);
+        }
+        .stats-kamp-summary-metric-card.is-green .stats-kamp-summary-metric-compare {
+            color: rgba(134, 239, 172, 0.92);
+        }
+        .stats-kamp-summary-metric-card.is-amber {
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.72);
+        }
+        .stats-kamp-summary-metric-card.is-amber .stats-kamp-summary-metric-value {
+            color: #f5c542;
+            text-shadow:
+                0 0 10px rgba(245, 197, 66, 0.45),
+                0 1px 0 rgba(11, 43, 76, 0.55);
+        }
+        .stats-kamp-summary-metric-card.is-amber .stats-kamp-summary-metric-compare {
+            color: rgba(253, 224, 71, 0.92);
+        }
+        .stats-kamp-summary-metric-card.is-red {
+            background: rgba(248, 113, 113, 0.16);
+            border-color: rgba(248, 113, 113, 0.72);
+        }
+        .stats-kamp-summary-metric-card.is-red .stats-kamp-summary-metric-value {
+            color: #f87171;
+            text-shadow:
+                0 0 10px rgba(248, 113, 113, 0.4),
+                0 1px 0 rgba(11, 43, 76, 0.55);
+        }
+        .stats-kamp-summary-metric-card.is-red .stats-kamp-summary-metric-compare {
+            color: rgba(252, 165, 165, 0.92);
+        }
+        @media (min-width: 520px) {
+            .stats-kamp-summary-metric-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
         .stats-kamp-summary-pitch-chips {
             align-items: center;
             display: flex;
@@ -10695,6 +11007,10 @@
             gap: 0.4rem 0.65rem;
             justify-content: flex-start;
         }
+        .stats-kamp-summary-line.is-unlabeled {
+            flex-direction: column;
+            width: 100%;
+        }
         .stats-kamp-summary-line-label {
             color: rgba(255, 255, 255, 0.55);
             flex: 0 0 auto;
@@ -10716,6 +11032,125 @@
             min-width: 1.55rem;
             padding-top: 0.55rem;
             text-transform: none;
+        }
+        .stats-kamp-summary-scorers-wrap {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.4rem;
+            min-width: 0;
+            width: 100%;
+        }
+        .stats-kamp-summary-line.is-unlabeled .stats-kamp-summary-scorers-wrap {
+            width: 100%;
+        }
+        .stats-kamp-summary-scorers {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.28rem;
+            list-style: none;
+            margin: 0;
+            min-width: 0;
+            padding: 0.05rem 0 0;
+        }
+        .stats-kamp-summary-scorer {
+            align-items: center;
+            display: flex;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .stats-kamp-summary-scorer-balls {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            flex: 0 0 auto;
+            gap: 0.22rem;
+            line-height: 1;
+        }
+        .stats-kamp-summary-scorer-ball {
+            font-size: 1.05rem;
+        }
+        .stats-kamp-summary-scorer-name {
+            color: #ffffff;
+            font-size: 0.86rem;
+            font-weight: 800;
+            line-height: 1.25;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .stats-kamp-summary-bors-banner,
+        .stats-kamp-summary-assist-banner,
+        .stats-kamp-summary-goal-banner,
+        .stats-kamp-summary-low-banner {
+            align-items: center;
+            align-self: stretch;
+            background: linear-gradient(90deg, transparent 0%, rgba(11, 43, 76, 0.72) 16%, rgba(18, 63, 115, 0.88) 50%, rgba(11, 43, 76, 0.72) 84%, transparent 100%);
+            border-bottom: 1px solid rgba(184, 115, 51, 0.4);
+            border-top: 1px solid rgba(184, 115, 51, 0.32);
+            display: flex;
+            justify-content: center;
+            margin: 0.45rem 0 0;
+            min-height: 1.35rem;
+            padding: 0.2rem 0.75rem;
+            position: relative;
+        }
+        .stats-kamp-summary-assist-mark,
+        .stats-kamp-summary-goal-mark,
+        .stats-kamp-summary-bors-mark,
+        .stats-kamp-summary-low-mark {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 244, 220, 0.75))
+                drop-shadow(0 3px 0 #5a3010)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            font-size: 1.55rem;
+            height: 2.2rem;
+            justify-content: center;
+            margin: -0.55rem 0;
+            position: relative;
+            transform: rotate(-10deg);
+            transform-origin: 50% 55%;
+            width: 2.2rem;
+            z-index: 2;
+        }
+        .stats-kamp-summary-assist-mark > i,
+        .stats-kamp-summary-goal-mark > i,
+        .stats-kamp-summary-bors-mark > i,
+        .stats-kamp-summary-low-mark > i {
+            line-height: 1;
+            transform: rotate(10deg);
+        }
+        .stats-kamp-summary-bors-mark > i {
+            font-size: 1.7rem;
+        }
+        .stats-kamp-summary-bors-mark-value {
+            color: #1f3a5f;
+            font-size: 0.72rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            left: 50%;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            position: absolute;
+            text-shadow:
+                0 1px 0 rgba(255, 244, 220, 0.55),
+                0 -1px 0 rgba(11, 43, 76, 0.35);
+            top: 50%;
+            transform: translate(-50%, -42%) rotate(10deg);
+            z-index: 1;
+        }
+        .stats-kamp-summary-scorer-count {
+            color: rgba(245, 197, 66, 0.92);
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            line-height: 1;
         }
         .stats-kamp-summary-players {
             align-items: center;
@@ -14433,11 +14868,12 @@
             min-height: 1.2rem;
         }
 
-        /* Clash-spillkort — Trenernotater + Banetid + Motstanderinfo (få lag inni). */
+        /* Clash-spillkort — Trenernotater + Banetid + Spillerbørs + Motstanderinfo + Kampoppsummering. */
         .match-detail-page .match-coach-notes-panel.is-game-card,
         .match-detail-page .match-subs-panel.is-game-card,
         .match-detail-page .match-stats-panel.is-game-card,
-        .match-detail-page .match-opponent-info-panel.is-game-card {
+        .match-detail-page .match-opponent-info-panel.is-game-card,
+        .match-detail-page .match-summary-panel.is-game-card {
             background:
                 radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
                 radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.38), transparent 55%),
@@ -14458,7 +14894,8 @@
         .match-detail-page .match-coach-notes-panel.is-game-card::before,
         .match-detail-page .match-subs-panel.is-game-card::before,
         .match-detail-page .match-stats-panel.is-game-card::before,
-        .match-detail-page .match-opponent-info-panel.is-game-card::before {
+        .match-detail-page .match-opponent-info-panel.is-game-card::before,
+        .match-detail-page .match-summary-panel.is-game-card::before {
             background: linear-gradient(
                 90deg,
                 transparent 0%,
@@ -14480,7 +14917,8 @@
             .match-detail-page .match-coach-notes-panel.is-game-card:hover,
             .match-detail-page .match-subs-panel.is-game-card:hover,
             .match-detail-page .match-stats-panel.is-game-card:hover,
-            .match-detail-page .match-opponent-info-panel.is-game-card:hover {
+            .match-detail-page .match-opponent-info-panel.is-game-card:hover,
+            .match-detail-page .match-summary-panel.is-game-card:hover {
                 border-color: #ffd76a;
                 box-shadow:
                     0 0 0 2px #0a1a30,
@@ -14493,7 +14931,8 @@
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-topline,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-topline {
             align-items: center;
             background: rgba(255, 255, 255, 0.07);
             border-radius: 0.95rem;
@@ -14519,7 +14958,11 @@
         .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline,
         .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline:hover,
         #kampdetaljer-info .match-opponent-info-panel.is-game-card .match-opponent-info-topline,
-        #kampdetaljer-info .match-opponent-info-panel.is-game-card .match-opponent-info-topline:hover {
+        #kampdetaljer-info .match-opponent-info-panel.is-game-card .match-opponent-info-topline:hover,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-topline,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-topline:hover,
+        #kampdetaljer-info .match-summary-panel.is-game-card .match-summary-topline,
+        #kampdetaljer-info .match-summary-panel.is-game-card .match-summary-topline:hover {
             background: transparent;
             border-bottom: 0;
             border-radius: 0;
@@ -14531,7 +14974,8 @@
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline::after,
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline::after,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-topline::after,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline::after {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline::after,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-topline::after {
             left: 0;
             right: 0;
             z-index: 1;
@@ -14539,7 +14983,8 @@
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline::after,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-topline::after,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline::after,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline::after {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline::after,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-topline::after {
             background: linear-gradient(
                 90deg,
                 transparent,
@@ -14559,13 +15004,15 @@
         .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading,
         .match-detail-page .match-subs-panel.is-game-card .match-bench-heading,
         .match-detail-page .match-stats-panel.is-game-card .match-bench-heading,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading,
+        .match-detail-page .match-summary-panel.is-game-card .match-bench-heading {
             gap: 0.65rem;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading h3,
         .match-detail-page .match-subs-panel.is-game-card .match-bench-heading h3,
         .match-detail-page .match-stats-panel.is-game-card .match-bench-heading h3,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading h3 {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading h3,
+        .match-detail-page .match-summary-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;
             font-size: clamp(1.22rem, 3.4vw, 1.45rem);
             font-weight: 950;
@@ -14594,7 +15041,8 @@
         .match-detail-page .is-game-card .match-subs-swap-mark,
         .match-detail-page .is-game-card .match-subs-playing-time-mark,
         .match-detail-page .is-game-card .match-opponent-info-mark,
-        .match-detail-page .is-game-card .match-stats-star-mark {
+        .match-detail-page .is-game-card .match-stats-star-mark,
+        .match-detail-page .is-game-card .match-summary-mark {
             flex: 0 0 auto;
             transform-origin: 50% 60%;
         }
@@ -14704,7 +15152,8 @@
             padding: 0 0.05rem;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar {
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar {
             display: grid;
             gap: 0;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -14713,7 +15162,8 @@
             position: relative;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar::before,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar::before {
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar::before,
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar::before {
             align-self: center;
             background: radial-gradient(circle at 35% 30%, #fff6d6 0%, #f5c542 48%, #b8840f 100%);
             border: 1.5px solid rgba(255, 253, 245, 0.7);
@@ -14730,7 +15180,8 @@
             width: 0.55rem;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-subs-view-heading,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-heading {
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-heading,
+        .match-detail-page .match-summary-panel.is-game-card .match-subs-view-heading {
             align-items: center;
             display: flex;
             flex: none;
@@ -14743,7 +15194,8 @@
             width: 100%;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-subs-view-tabs,
-        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-tabs {
+        .match-detail-page .match-subs-panel.is-game-card .match-subs-view-tabs,
+        .match-detail-page .match-summary-panel.is-game-card .match-subs-view-tabs {
             display: flex;
             flex: none;
             grid-column: 3;
@@ -14898,7 +15350,8 @@
             width: auto;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-bench-heading,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading,
+        .match-detail-page .match-summary-panel.is-game-card .match-bench-heading {
             align-items: center;
             gap: 0.55rem;
             min-height: 2.65rem;
@@ -14975,7 +15428,8 @@
             z-index: 3;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-bench-heading h3,
-        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading h3 {
+        .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading h3,
+        .match-detail-page .match-summary-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;
             font-size: clamp(1.32rem, 3.7vw, 1.58rem);
             letter-spacing: 0.08em;
@@ -14988,6 +15442,24 @@
                 0 3px 0 rgba(122, 86, 8, 0.35),
                 0 0 18px rgba(255, 214, 102, 0.28);
             z-index: 2;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-mark {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none'%3E%3Crect x='3.2' y='14.2' width='5.2' height='10.6' rx='1.2' fill='%23f5c542' stroke='%23fffdf5' stroke-width='1.4'/%3E%3Crect x='11.4' y='8.4' width='5.2' height='16.4' rx='1.2' fill='%23ffe08a' stroke='%23fffdf5' stroke-width='1.4'/%3E%3Crect x='19.6' y='4.2' width='5.2' height='20.6' rx='1.2' fill='%23f5c542' stroke='%23fffdf5' stroke-width='1.4'/%3E%3Cpath d='M3 25.2h22' stroke='%237a5608' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")
+                    center / contain no-repeat;
+            display: inline-block;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            height: 2.85rem;
+            margin: -0.15rem 0 -0.4rem;
+            position: relative;
+            transform: rotate(-8deg);
+            transform-origin: 50% 55%;
+            width: 2.85rem;
+            z-index: 3;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-bench-heading {
             align-items: center;
@@ -15030,9 +15502,17 @@
             z-index: 2;
         }
         .match-detail-page .match-opponent-info-panel.is-game-card .match-collapsible-content,
-        .match-detail-page .match-stats-panel.is-game-card .match-collapsible-content {
+        .match-detail-page .match-stats-panel.is-game-card .match-collapsible-content,
+        .match-detail-page .match-summary-panel.is-game-card .match-collapsible-content {
             position: relative;
             z-index: 1;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-body {
+            position: relative;
+            z-index: 1;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary.is-embedded {
+            color: #f4f7fa;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-save-state {
             margin: 0 0 0.55rem;
@@ -16306,7 +16786,7 @@
         .match-detail-page .match-subs-panel.is-game-card .match-subs-save-state {
             margin: 0.35rem 0 0;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-toolbar {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-toolbar {
             align-items: center;
             display: grid;
             gap: 0;
@@ -16317,7 +16797,7 @@
             min-width: 0;
             position: relative;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-toolbar::before {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-toolbar::before {
             align-self: center;
             background: radial-gradient(circle at 35% 30%, #fff6d6 0%, #f5c542 48%, #b8840f 100%);
             border: 1.5px solid rgba(255, 253, 245, 0.7);
@@ -16333,7 +16813,7 @@
             margin: 0 0.35rem;
             width: 0.55rem;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tabs {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-tabs {
             display: flex;
             flex: none;
             flex-wrap: nowrap;
@@ -16346,7 +16826,7 @@
             padding: 0 0 0 0.75rem;
             width: 100%;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-heading {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-heading {
             align-items: center;
             color: #fff6d6;
             display: flex;
@@ -16369,13 +16849,29 @@
             text-transform: none;
             width: 100%;
         }
-        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-heading span {
+        .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-heading span {
             color: #fff6d6;
             font-size: inherit;
             font-weight: inherit;
             letter-spacing: inherit;
             line-height: 1.1;
             text-shadow: inherit;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary.is-paged {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary-view-panel {
+            min-width: 0;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary-view-panel .stats-kamp-summary-block-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar .match-subs-view-tabs {
+            gap: 0.35rem;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar .match-subs-playing-time-heading {
             background: none;
@@ -16604,14 +17100,14 @@
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn,
             .blknapp,
-            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab {
+            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-tab {
                 transition: none;
             }
             .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus,
             .match-detail-page .match-subs-panel.is-game-card .match-subs-save-icon-btn:active,
             .match-detail-page .match-stats-panel.is-game-card .match-stats-save-btn:active,
             .blknapp:active,
-            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel).is-game-card .match-subs-view-tab:active {
+            .match-detail-page :is(.match-subs-panel, .match-coach-notes-panel, .match-summary-panel).is-game-card .match-subs-view-tab:active {
                 transform: none;
             }
         }
@@ -18946,7 +19442,8 @@
             .match-coach-notes-panel,
             .match-subs-panel,
             .match-stats-panel,
-            .match-opponent-info-panel {
+            .match-opponent-info-panel,
+            .match-summary-panel {
                 padding: 0.75rem;
             }
             .match-bench-action-row {

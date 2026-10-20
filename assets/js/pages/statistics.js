@@ -6006,6 +6006,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? window.calculatePlayerMatchPoints(match, playerObj, true)
                     : { total: 0, onPitch: true };
                 const isKeeper = window.isMatchSummaryKeeperPlayer(match, playerObj);
+                const onPitch = pointsDetails.onPitch !== false;
+                const formationId = typeof window.getMatchGamePlanFormation === 'function'
+                    ? window.getMatchGamePlanFormation(match)
+                    : String(match.formation || match.lineupFormation || '').trim();
+                const posId = onPitch && typeof window.getPlayerMatchPlayedPositionIds === 'function'
+                    ? ((window.getPlayerMatchPlayedPositionIds(match, playerObj) || [])[0] || '')
+                    : (onPitch && typeof window.getPlayerMatchPlayedPositionId === 'function'
+                        ? (window.getPlayerMatchPlayedPositionId(match, playerObj) || '')
+                        : '');
+                const posCode = posId && typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
+                    ? window.getMatchGamePlanPositionBadgeLabel(posId, formationId)
+                    : posId;
 
                 return {
                     id: playerObj.id || '',
@@ -6018,7 +6030,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     minutes,
                     isBbInMatch,
                     isKeeper,
-                    onPitch: pointsDetails.onPitch !== false,
+                    onPitch,
+                    posCode,
                     points: pointsDetails.total || 0
                 };
             });
@@ -6127,11 +6140,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
         function buildStatsSummaryLabeledLineHtml(label, bodyHtml, options = {}) {
             if (!bodyHtml) return '';
             const icon = String(options.icon || '').trim();
-            const labelHtml = icon
-                ? `<span class="stats-kamp-summary-line-label is-icon" title="${escapeStatisticsHtml(label)}" aria-label="${escapeStatisticsHtml(label)}"><i class="fa-solid ${escapeStatisticsHtml(icon)}" aria-hidden="true"></i></span>`
-                : `<span class="stats-kamp-summary-line-label">${escapeStatisticsHtml(label)}</span>`;
+            const hideLabel = Boolean(options.hideLabel);
+            const labelHtml = hideLabel
+                ? ''
+                : (icon
+                    ? `<span class="stats-kamp-summary-line-label is-icon" title="${escapeStatisticsHtml(label)}" aria-label="${escapeStatisticsHtml(label)}"><i class="fa-solid ${escapeStatisticsHtml(icon)}" aria-hidden="true"></i></span>`
+                    : `<span class="stats-kamp-summary-line-label">${escapeStatisticsHtml(label)}</span>`);
             return `
-                <div class="stats-kamp-summary-line">
+                <div class="stats-kamp-summary-line${hideLabel ? ' is-unlabeled' : ''}">
                     ${labelHtml}
                     ${bodyHtml}
                 </div>
@@ -6253,21 +6269,156 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return buildStatsSummaryPlayersHtml(rows, allNames, { valueKey });
         }
 
+        function formatStatsSummaryEventListHtml({ title, rows, valueKey, icon, ariaLabel }) {
+            const key = String(valueKey || '').trim();
+            const iconClass = String(icon || '').trim();
+            const list = (Array.isArray(rows) ? rows : [])
+                .filter((row) => (Number(row?.[key]) || 0) > 0);
+            if (!list.length || !key || !iconClass) return '';
+            const items = list.map((row) => {
+                const count = Math.max(1, Math.min(10, Math.floor(Number(row[key]) || 0)));
+                const name = String(row.name || '').trim() || '–';
+                const marks = Array.from({ length: count }, () => (
+                    `<i class="fa-solid ${escapeStatisticsHtml(iconClass)} stats-kamp-summary-scorer-ball" aria-hidden="true"></i>`
+                )).join('');
+                return `
+                    <li class="stats-kamp-summary-scorer">
+                        <span class="stats-kamp-summary-scorer-name">${escapeStatisticsHtml(name)}</span>
+                        <span class="stats-kamp-summary-scorer-balls" aria-hidden="true">${marks}</span>
+                    </li>
+                `;
+            }).join('');
+            return `
+                <div class="stats-kamp-summary-scorers-wrap">
+                    <h5 class="stats-kamp-summary-metric-heading">${escapeStatisticsHtml(title)}</h5>
+                    <ul class="stats-kamp-summary-scorers" aria-label="${escapeStatisticsHtml(ariaLabel || title)}">${items}</ul>
+                </div>
+            `;
+        }
+
+        function formatStatsSummaryScorersHtml(rows) {
+            const list = (Array.isArray(rows) ? rows : [])
+                .filter((row) => (Number(row?.goals) || 0) > 0);
+            if (!list.length) return '';
+            const items = list.map((row) => {
+                const count = Math.max(1, Math.min(10, Math.floor(Number(row.goals) || 0)));
+                const name = String(row.name || '').trim() || '–';
+                const countHtml = count > 1
+                    ? `<span class="stats-kamp-summary-scorer-count">- ${escapeStatisticsHtml(String(count))}</span>`
+                    : '';
+                return `
+                    <li class="stats-kamp-summary-scorer">
+                        <span class="stats-kamp-summary-scorer-name">${escapeStatisticsHtml(name)}</span>
+                        ${countHtml}
+                    </li>
+                `;
+            }).join('');
+            return `
+                <div class="stats-kamp-summary-scorers-wrap">
+                    <h5 class="stats-kamp-summary-goal-banner" aria-label="Mål">
+                        <span class="stats-kamp-summary-goal-mark" aria-hidden="true">
+                            <i class="fa-solid fa-futbol"></i>
+                        </span>
+                    </h5>
+                    <ul class="stats-kamp-summary-scorers" aria-label="Målscorere">${items}</ul>
+                </div>
+            `;
+        }
+
+        function formatStatsSummaryAssistersHtml(rows) {
+            const list = (Array.isArray(rows) ? rows : [])
+                .filter((row) => (Number(row?.assists) || 0) > 0);
+            if (!list.length) return '';
+            const items = list.map((row) => {
+                const count = Math.max(1, Math.min(10, Math.floor(Number(row.assists) || 0)));
+                const name = String(row.name || '').trim() || '–';
+                const countHtml = count > 1
+                    ? `<span class="stats-kamp-summary-scorer-count">- ${escapeStatisticsHtml(String(count))}</span>`
+                    : '';
+                return `
+                    <li class="stats-kamp-summary-scorer">
+                        <span class="stats-kamp-summary-scorer-name">${escapeStatisticsHtml(name)}</span>
+                        ${countHtml}
+                    </li>
+                `;
+            }).join('');
+            return `
+                <div class="stats-kamp-summary-scorers-wrap">
+                    <h5 class="stats-kamp-summary-assist-banner" aria-label="Assist">
+                        <span class="stats-kamp-summary-assist-mark" aria-hidden="true">
+                            <i class="fa-solid fa-handshake-angle"></i>
+                        </span>
+                    </h5>
+                    <ul class="stats-kamp-summary-scorers" aria-label="Assist">${items}</ul>
+                </div>
+            `;
+        }
+
         function formatStatsSummaryNamedListHtml(rows, allNames, limit = 3) {
             return buildStatsSummaryPlayersHtml(rows, allNames, { limit });
         }
 
-        function formatStatsSummaryRatingLineHtml(rows, allNames, mixedLabel) {
-            const list = Array.isArray(rows) ? rows : [];
+        function formatStatsSummaryHighRatingsHtml(rows, mixedLabel = '8+') {
+            const list = (Array.isArray(rows) ? rows : [])
+                .filter((row) => (Number(row?.rating) || 0) > 0);
             if (!list.length) return '';
             const ratings = list.map((row) => Number(row.rating) || 0);
-            const label = ratings.every((rating) => rating === ratings[0])
-                ? String(ratings[0])
-                : mixedLabel;
-            return buildStatsSummaryLabeledLineHtml(
-                label,
-                formatStatsSummaryNamedListHtml(list, allNames, 3)
-            );
+            const sharedRating = ratings.every((rating) => rating === ratings[0])
+                ? ratings[0]
+                : null;
+            const medalValue = sharedRating != null ? String(sharedRating) : String(mixedLabel);
+            const bannerLabel = `Børs ${medalValue}`;
+            const items = list.map((row) => {
+                const name = String(row.name || '').trim() || '–';
+                return `
+                    <li class="stats-kamp-summary-scorer">
+                        <span class="stats-kamp-summary-scorer-name">${escapeStatisticsHtml(name)}</span>
+                    </li>
+                `;
+            }).join('');
+            return `
+                <div class="stats-kamp-summary-scorers-wrap">
+                    <h5 class="stats-kamp-summary-bors-banner" aria-label="${escapeStatisticsHtml(bannerLabel)}">
+                        <span class="stats-kamp-summary-bors-mark" aria-hidden="true">
+                            <i class="fa-solid fa-star"></i>
+                            <span class="stats-kamp-summary-bors-mark-value">${escapeStatisticsHtml(medalValue)}</span>
+                        </span>
+                    </h5>
+                    <ul class="stats-kamp-summary-scorers" aria-label="${escapeStatisticsHtml(bannerLabel)}">${items}</ul>
+                </div>
+            `;
+        }
+
+        function formatStatsSummaryRatingLineHtml(rows, allNames, mixedLabel) {
+            const body = formatStatsSummaryHighRatingsHtml(rows, mixedLabel);
+            if (!body) return '';
+            return buildStatsSummaryLabeledLineHtml('Børs', body, { hideLabel: true });
+        }
+
+        function formatStatsSummaryLowRatingsHtml(rows) {
+            const list = (Array.isArray(rows) ? rows : [])
+                .filter((row) => (Number(row?.rating) || 0) > 0);
+            if (!list.length) return '';
+            const items = list.map((row) => {
+                const rating = Math.max(1, Math.min(10, Math.floor(Number(row.rating) || 0)));
+                const name = String(row.name || '').trim() || '–';
+                return `
+                    <li class="stats-kamp-summary-scorer">
+                        <span class="stats-kamp-summary-scorer-name">${escapeStatisticsHtml(name)}</span>
+                        <span class="stats-kamp-summary-scorer-count">- ${escapeStatisticsHtml(String(rating))}</span>
+                    </li>
+                `;
+            }).join('');
+            return `
+                <div class="stats-kamp-summary-scorers-wrap">
+                    <h5 class="stats-kamp-summary-low-banner" aria-label="Under pari">
+                        <span class="stats-kamp-summary-low-mark" aria-hidden="true">
+                            <i class="fa-solid fa-arrow-trend-down"></i>
+                        </span>
+                    </h5>
+                    <ul class="stats-kamp-summary-scorers" aria-label="Under pari">${items}</ul>
+                </div>
+            `;
         }
 
         function formatStatsSummaryPlaytimeBits(rows) {
@@ -6341,42 +6492,91 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0) || a.name.localeCompare(b.name, 'nb'));
             const lowRatings = rows
                 .filter(s => s.onPitch !== false && (Number(s.rating) || 0) > 0 && (Number(s.rating) || 0) <= 4)
-                .sort((a, b) => (Number(a.rating) || 0) - (Number(b.rating) || 0) || a.name.localeCompare(b.name, 'nb'));
+                .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0) || a.name.localeCompare(b.name, 'nb'));
 
             const matchLines = [];
             if (scorers.length) {
                 matchLines.push(buildStatsSummaryLabeledLineHtml(
                     'Mål',
-                    formatStatsSummaryNameCountsHtml(scorers, 'goals', allNames),
-                    { icon: 'fa-futbol' }
+                    formatStatsSummaryScorersHtml(scorers),
+                    { hideLabel: true }
                 ));
             }
             if (assisters.length) {
                 matchLines.push(buildStatsSummaryLabeledLineHtml(
                     'Assist',
-                    formatStatsSummaryNameCountsHtml(assisters, 'assists', allNames),
-                    { icon: 'fa-handshake-angle' }
+                    formatStatsSummaryAssistersHtml(assisters),
+                    { hideLabel: true }
                 ));
-            }
-            if (bb) {
-                matchLines.push(`
-                    <div class="stats-kamp-summary-line is-bors">
-                        <span class="stats-kamp-summary-bors-bit">
-                            <span class="stats-kamp-summary-line-label">BB</span>
-                            ${buildStatsSummaryPlayerChipHtml(bb, allNames)}
-                        </span>
-                    </div>
-                `);
             }
             const highLine = formatStatsSummaryRatingLineHtml(highRatings, allNames, '8+');
             const lowLine = lowRatings.length
                 ? buildStatsSummaryLabeledLineHtml(
                     'Under pari',
-                    formatStatsSummaryNamedListHtml(lowRatings, allNames, 3)
+                    formatStatsSummaryLowRatingsHtml(lowRatings),
+                    { hideLabel: true }
                 )
                 : '';
             if (highLine) matchLines.push(highLine);
             if (lowLine) matchLines.push(lowLine);
+
+            const buildBbHeroHtml = (row) => {
+                if (!row) return '';
+                const name = String(row.name || '').trim();
+                const photoUrl = getStatsSummaryPlayerPhotoUrl(row);
+                const rating = Number(row.rating) || 0;
+                let posCode = String(row.posCode || '').trim();
+                if (!posCode && row.onPitch !== false) {
+                    const playerObj = (typeof window.findPlayerByRef === 'function'
+                        ? window.findPlayerByRef(row.id || row.name)
+                        : null) || { id: row.id, navn: row.name };
+                    const formationId = formation
+                        || (typeof window.getMatchGamePlanFormation === 'function'
+                            ? window.getMatchGamePlanFormation(match)
+                            : String(match.formation || match.lineupFormation || '').trim());
+                    const posId = typeof window.getPlayerMatchPlayedPositionIds === 'function'
+                        ? ((window.getPlayerMatchPlayedPositionIds(match, playerObj) || [])[0] || '')
+                        : (typeof window.getPlayerMatchPlayedPositionId === 'function'
+                            ? (window.getPlayerMatchPlayedPositionId(match, playerObj) || '')
+                            : '');
+                    posCode = posId && typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
+                        ? window.getMatchGamePlanPositionBadgeLabel(posId, formationId)
+                        : posId;
+                }
+                const posHtml = posCode
+                    ? `<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-pos"><span class="stats-kamp-summary-bb-btn-label">Posisjon</span><span class="stats-kamp-summary-bb-btn-value">${escapeStatisticsHtml(posCode)}</span></span>`
+                    : '<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-pos is-empty"><span class="stats-kamp-summary-bb-btn-label">Posisjon</span><span class="stats-kamp-summary-bb-btn-value">–</span></span>';
+                const ratingHtml = rating > 0
+                    ? `<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-rating"><span class="stats-kamp-summary-bb-btn-label">Børs</span><span class="stats-kamp-summary-bb-btn-value">${escapeStatisticsHtml(String(rating))}</span></span>`
+                    : '<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-rating is-empty"><span class="stats-kamp-summary-bb-btn-label">Børs</span><span class="stats-kamp-summary-bb-btn-value">–</span></span>';
+                const ariaPos = posCode ? `, ${posCode}` : '';
+                return `
+                    <div class="stats-kamp-summary-bb-hero" aria-label="Banens beste ${escapeStatisticsHtml(name)}${escapeStatisticsHtml(ariaPos)}">
+                        <span class="stats-kamp-summary-bb-gem" aria-hidden="true">
+                            <i class="fa-solid fa-crown"></i>
+                        </span>
+                        <div class="stats-kamp-summary-bb-shell">
+                            <div class="stats-kamp-summary-bb-main">
+                                <div class="stats-kamp-summary-bb-copy">
+                                    <p class="stats-kamp-summary-bb-title">Banens beste</p>
+                                    <p class="stats-kamp-summary-bb-name">${escapeStatisticsHtml(name)}</p>
+                                </div>
+                                <div class="stats-kamp-summary-bb-figure" aria-hidden="true">
+                                    <span class="stats-kamp-summary-bb-avatar">
+                                        ${photoUrl
+                                            ? `<img src="${escapeStatisticsHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
+                                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="stats-kamp-summary-bb-footer">
+                                ${posHtml}
+                                ${ratingHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
 
             const kampplanNotes = typeof window.getMatchGamePlanNotesText === 'function'
                 ? window.getMatchGamePlanNotesText(match)
@@ -6471,31 +6671,86 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const pitchChipsHtml = typeof window.buildMatchSummaryPitchChipsHtml === 'function'
                 ? window.buildMatchSummaryPitchChipsHtml(match, context)
                 : '';
+            const bbHeroHtml = buildBbHeroHtml(bb);
+            const eventsHtml = matchLines.length
+                ? renderLines(matchLines, 'Ikke fylt', { html: true })
+                : '';
             const kampenBody = [
-                pitchChipsHtml,
-                matchLines.length
-                    ? renderLines(matchLines, 'Ikke fylt', { html: true })
-                    : (pitchChipsHtml ? '' : renderLines([], 'Ikke fylt'))
-            ].filter(Boolean).join('');
-            const kampenEmpty = !pitchChipsHtml && !matchLines.length;
+                bbHeroHtml,
+                eventsHtml,
+                pitchChipsHtml
+            ].filter(Boolean).join('') || renderLines([], 'Ikke fylt');
+            const kampenEmpty = !bbHeroHtml && !eventsHtml && !pitchChipsHtml;
+            const planenBody = planEmpty ? renderLines([], 'Ikke fylt') : planHtml;
+            const troppenBody = renderLines(troppLines, 'Ikke fylt', { html: true });
+
+            if (context.embedInPanel) {
+                const activeView = (typeof window.getMatchSummaryPanelView === 'function'
+                    ? window.getMatchSummaryPanelView()
+                    : 'kampen');
+                const views = [
+                    { id: 'kampen', label: 'Kampen', icon: 'fa-futbol', body: kampenBody || renderLines([], 'Ikke fylt'), empty: kampenEmpty },
+                    { id: 'planen', label: 'Planen', icon: 'fa-diagram-project', body: planenBody, empty: planEmpty },
+                    { id: 'troppen', label: 'Troppen', icon: 'fa-users', body: troppenBody, empty: !troppLines.length }
+                ];
+                const active = views.find(view => view.id === activeView) || views[0];
+                const tabsHtml = views.map((view) => {
+                    const isActive = view.id === active.id;
+                    return `
+                        <button
+                            type="button"
+                            class="blknapp match-subs-view-tab is-icon${isActive ? ' is-active' : ''}"
+                            role="tab"
+                            aria-selected="${isActive ? 'true' : 'false'}"
+                            aria-label="${escapeStatisticsHtml(view.label)}"
+                            title="${escapeStatisticsHtml(view.label)}"
+                            data-summary-view-tab="${escapeStatisticsHtml(view.id)}"
+                            onclick="window.setMatchSummaryPanelView('${escapeStatisticsHtml(view.id)}')"
+                        ><i class="fa-solid ${escapeStatisticsHtml(view.icon)}" aria-hidden="true"></i></button>
+                    `;
+                }).join('');
+                const panelsHtml = views.map((view) => {
+                    const isActive = view.id === active.id;
+                    return `
+                        <div
+                            class="match-subs-view-panel stats-kamp-summary-view-panel${view.empty ? ' is-empty' : ''}"
+                            data-summary-view-panel="${escapeStatisticsHtml(view.id)}"
+                            ${isActive ? '' : 'hidden'}
+                        >
+                            <div class="stats-kamp-summary-block-body">${view.body}</div>
+                        </div>
+                    `;
+                }).join('');
+                return `
+                    <section class="stats-kamp-summary is-embedded is-paged" aria-label="Oppsummering" data-summary-view="${escapeStatisticsHtml(active.id)}">
+                        <div class="match-subs-view-toolbar match-summary-view-toolbar">
+                            <div class="match-subs-section-heading match-subs-view-heading">
+                                <span data-summary-view-heading>${escapeStatisticsHtml(active.label)}</span>
+                            </div>
+                            <div class="match-subs-view-tabs" role="tablist" aria-label="Oppsummering">
+                                ${tabsHtml}
+                            </div>
+                        </div>
+                        ${panelsHtml}
+                    </section>
+                `;
+            }
 
             return `
-                <section class="stats-kamp-summary${context.embedInPanel ? ' is-embedded' : ''}" aria-label="Kampoppsummering">
-                    ${context.embedInPanel ? '' : `
+                <section class="stats-kamp-summary" aria-label="Oppsummering">
                     <div class="stats-kamp-summary-header">
                         <div class="min-w-0">
-                            <p class="stats-kamp-summary-kicker">Kampoppsummering</p>
+                            <p class="stats-kamp-summary-kicker">Oppsummering</p>
                             <h3 class="stats-kamp-summary-title">
                                 BSK – ${escapeStatisticsHtml(opponent)}
                                 <span class="stats-kamp-summary-result">${escapeStatisticsHtml(headerResult)}</span>
                             </h3>
                         </div>
                     </div>
-                    `}
                     <div class="stats-kamp-summary-grid">
                         ${buildBlock('spillerbors', 'Kampen', kampenBody || renderLines([], 'Ikke fylt'), kampenEmpty)}
-                        ${buildBlock('kampplan', 'Planen', planEmpty ? renderLines([], 'Ikke fylt') : planHtml, planEmpty)}
-                        ${buildBlock('bytter', 'Troppen', renderLines(troppLines, 'Ikke fylt', { html: true }), !troppLines.length)}
+                        ${buildBlock('kampplan', 'Planen', planenBody, planEmpty)}
+                        ${buildBlock('bytter', 'Troppen', troppenBody, !troppLines.length)}
                     </div>
                 </section>
             `;

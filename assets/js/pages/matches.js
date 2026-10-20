@@ -5085,92 +5085,137 @@ function buildMatchSummaryPitchChipsHtml(match, context = {}) {
 
     if (!hasLineup && !hasAnyMatchStat) return '';
 
-    const leftChips = [
+    const formatMetricNumber = (value, decimals = 0) => {
+        if (value == null || !Number.isFinite(Number(value))) return null;
+        const num = Number(value);
+        return decimals > 0 ? num.toFixed(decimals) : String(Math.round(num));
+    };
+
+    const formatSignedDelta = (matchValue, compareValue, decimals = 0) => {
+        if (matchValue == null || compareValue == null) return '';
+        if (!Number.isFinite(Number(matchValue)) || !Number.isFinite(Number(compareValue))) return '';
+        const delta = Number(matchValue) - Number(compareValue);
+        const factor = 10 ** Math.max(0, decimals);
+        const rounded = Math.round(delta * factor) / factor;
+        if (Object.is(rounded, -0) || rounded === 0) return '±0';
+        const sign = rounded > 0 ? '+' : '';
+        return decimals > 0 ? `${sign}${rounded.toFixed(decimals)}` : `${sign}${Math.round(rounded)}`;
+    };
+
+    const kampnivaaCards = [
         {
             key: 'sesong',
             label: 'Sesong',
             icon: 'fa-ranking-star',
-            value: matchSesong == null ? '-' : String(matchSesong),
+            value: formatMetricNumber(matchSesong),
             tone: getMatchSummaryVsSeasonTone(matchSesong, troppSesong, 5),
-            title: troppSesong != null && matchSesong != null
-                ? `Sesong ${matchSesong} mot kamptropp ${troppSesong}`
-                : 'Sesongsnitt for spillere med børs/poeng i kampen'
+            compare: troppSesong != null && matchSesong != null
+                ? `${formatSignedDelta(matchSesong, troppSesong)} · tropp ${formatMetricNumber(troppSesong)}`
+                : '',
+            title: 'Sesongsnitt for spillere med børs/poeng i kampen'
         },
         {
             key: 'kampbidrag',
             label: 'Kampbidrag',
             icon: 'fa-chart-line',
-            value: kampbidrag == null ? '-' : String(kampbidrag),
+            value: formatMetricNumber(kampbidrag),
             tone: getMatchSummaryVsSeasonTone(kampbidrag, troppKampbidrag, 2),
-            title: troppKampbidrag != null && kampbidrag != null
-                ? `Kampbidrag ${kampbidrag} mot kamptropp ${troppKampbidrag}`
-                : 'Snitt kampbidrag for alle med poeng i kampen'
+            compare: troppKampbidrag != null && kampbidrag != null
+                ? `${formatSignedDelta(kampbidrag, troppKampbidrag)} · tropp ${formatMetricNumber(troppKampbidrag)}`
+                : '',
+            title: 'Snitt kampbidrag for alle med poeng i kampen'
         },
         {
             key: 'form',
             label: 'Form',
             icon: 'fa-heart-pulse',
-            value: matchForm == null ? '-' : String(matchForm),
+            value: formatMetricNumber(matchForm),
             tone: getMatchSummaryVsSeasonTone(matchForm, troppForm, 8),
-            title: troppForm != null && matchForm != null
-                ? `Form ${matchForm} mot kamptropp ${troppForm}`
-                : 'Formsnitt for spillere med børs/poeng i kampen'
+            compare: troppForm != null && matchForm != null
+                ? `${formatSignedDelta(matchForm, troppForm)} · tropp ${formatMetricNumber(troppForm)}`
+                : '',
+            title: 'Formsnitt for spillere med børs/poeng i kampen'
         },
         {
             key: 'snittbors',
             label: 'Snittbørs',
             icon: 'fa-star',
-            value: snittBors == null ? '-' : Number(snittBors).toFixed(1),
+            value: formatMetricNumber(snittBors, 1),
             tone: getMatchSummarySnittBorsTone(snittBors, troppSnittBors),
-            title: troppSnittBors != null && snittBors != null
-                ? `Kampbørs ${Number(snittBors).toFixed(1)} mot kamptropp ${Number(troppSnittBors).toFixed(1)}`
-                : 'Snittbørs for alle som har fått børs i kampen'
+            compare: troppSnittBors != null && snittBors != null
+                ? `${formatSignedDelta(snittBors, troppSnittBors, 1)} · tropp ${formatMetricNumber(troppSnittBors, 1)}`
+                : '',
+            title: 'Snittbørs for alle som har fått børs i kampen'
         }
     ];
 
-    const rightChips = [
-        { id: 'lag', label: 'Lag', shortLabel: null, icon: 'fa-link' },
-        { id: 'angrep', label: 'Angrep', shortLabel: 'A', icon: null },
-        { id: 'midtbane', label: 'Midtbane', shortLabel: 'M', icon: null },
-        { id: 'forsvar', label: 'Forsvar', shortLabel: 'F', icon: null }
-    ].map(({ id, label, shortLabel, icon }) => {
+    const samspillCards = [
+        { id: 'lag', label: 'Lag', icon: 'fa-link' },
+        { id: 'angrep', label: 'Angrep', icon: 'fa-futbol' },
+        { id: 'midtbane', label: 'Midtbane', icon: 'fa-diagram-project' },
+        { id: 'forsvar', label: 'Forsvar', icon: 'fa-shield-halved' }
+    ].map(({ id, label, icon }) => {
         const afterScore = samspillAfter[id];
         const beforeScore = samspillBefore[id];
+        const delta = formatSignedDelta(afterScore, beforeScore);
+        let compare = '';
+        if (afterScore != null && beforeScore != null) {
+            compare = delta && delta !== '±0'
+                ? `${delta} · fra ${formatMetricNumber(beforeScore)}`
+                : `fra ${formatMetricNumber(beforeScore)}`;
+        }
         return {
             key: id,
             label,
-            shortLabel,
             icon,
-            value: afterScore == null ? '-' : String(afterScore),
+            value: formatMetricNumber(afterScore) ?? '-',
             tone: getMatchSummaryVsSeasonTone(afterScore, beforeScore, 5),
-            title: afterScore != null && beforeScore != null
-                ? `${label}-samspill etter kamp ${afterScore} (før kamp ${beforeScore})`
-                : `${label}: samspillsnitt for 11eren etter kampen`
+            compare,
+            title: `${label}: samspillsnitt for 11eren etter kampen`
         };
     });
 
-    const renderChip = (chip) => {
-        const toneClass = chip.tone && chip.tone !== 'muted' ? ` is-${chip.tone}` : '';
-        const leadHtml = chip.icon
-            ? `<i class="fa-solid ${escapeMatchHtml(chip.icon)}" aria-hidden="true"></i>`
-            : `<span class="match-game-plan-pitch-samspill-zones-label">${escapeMatchHtml(chip.shortLabel || chip.label)}</span>`;
+    const renderMetricCard = (card) => {
+        const toneClass = card.tone && card.tone !== 'muted' ? ` is-${card.tone}` : '';
+        const valueText = card.value == null || card.value === '' ? '–' : card.value;
+        const iconHtml = card.icon
+            ? `<i class="fa-solid ${escapeMatchHtml(card.icon)} stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>`
+            : '';
         return `
-            <span
-                class="match-game-plan-pitch-xi-totals-row${toneClass}"
-                title="${escapeMatchHtml(chip.title || chip.label)}"
-                aria-label="${escapeMatchHtml(chip.label)}"
+            <article
+                class="stats-kamp-summary-metric-card${toneClass}"
+                title="${escapeMatchHtml(card.title || card.label)}"
             >
-                ${leadHtml}
-                <span>${escapeMatchHtml(chip.value)}</span>
-            </span>
+                ${iconHtml}
+                <span class="stats-kamp-summary-metric-label">${escapeMatchHtml(card.label)}</span>
+                <strong class="stats-kamp-summary-metric-value">${escapeMatchHtml(valueText)}</strong>
+                ${card.compare
+                    ? `<span class="stats-kamp-summary-metric-compare">${escapeMatchHtml(card.compare)}</span>`
+                    : '<span class="stats-kamp-summary-metric-compare is-empty">–</span>'}
+            </article>
         `;
     };
 
+    const hasKampnivaa = kampnivaaCards.some((card) => card.value != null && card.value !== '-');
+    const hasSamspill = samspillCards.some((card) => card.value != null && card.value !== '-');
+    if (!hasKampnivaa && !hasSamspill) return '';
+
     return `
-        <div class="stats-kamp-summary-pitch-chips" aria-label="Etterkamp-chipper">
-            ${leftChips.map(renderChip).join('')}
-            <span class="stats-kamp-summary-pitch-chips-sep" aria-hidden="true">–</span>
-            ${rightChips.map(renderChip).join('')}
+        <div class="stats-kamp-summary-metrics" aria-label="Kampnivå og samspill">
+            ${hasKampnivaa ? `
+            <section class="stats-kamp-summary-metric-section" aria-label="Kampnivå">
+                <h5 class="stats-kamp-summary-metric-heading">Kampnivå</h5>
+                <div class="stats-kamp-summary-metric-grid">
+                    ${kampnivaaCards.map(renderMetricCard).join('')}
+                </div>
+            </section>` : ''}
+            ${hasSamspill ? `
+            <section class="stats-kamp-summary-metric-section" aria-label="Samspill">
+                <h5 class="stats-kamp-summary-metric-heading">Samspill</h5>
+                <div class="stats-kamp-summary-metric-grid">
+                    ${samspillCards.map(renderMetricCard).join('')}
+                </div>
+            </section>` : ''}
         </div>
     `;
 }
@@ -8649,6 +8694,33 @@ window.closeMatchSummaryMostMinutesPopup = function() {
     modal.classList.remove('flex');
 };
 
+let matchSummaryPanelActiveView = 'kampen';
+
+window.getMatchSummaryPanelView = function() {
+    return matchSummaryPanelActiveView === 'planen' || matchSummaryPanelActiveView === 'troppen'
+        ? matchSummaryPanelActiveView
+        : 'kampen';
+};
+
+window.setMatchSummaryPanelView = function(view) {
+    matchSummaryPanelActiveView = view === 'planen' || view === 'troppen' ? view : 'kampen';
+    const root = document.querySelector('#kampdetaljer-info .match-summary-panel .stats-kamp-summary.is-paged');
+    if (!root) return;
+    root.dataset.summaryView = matchSummaryPanelActiveView;
+    const labels = { kampen: 'Kampen', planen: 'Planen', troppen: 'Troppen' };
+    root.querySelectorAll('[data-summary-view-panel]').forEach((panel) => {
+        const isActive = panel.dataset.summaryViewPanel === matchSummaryPanelActiveView;
+        panel.hidden = !isActive;
+    });
+    root.querySelectorAll('[data-summary-view-tab]').forEach((btn) => {
+        const isActive = btn.dataset.summaryViewTab === matchSummaryPanelActiveView;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    const heading = root.querySelector('[data-summary-view-heading]');
+    if (heading) heading.textContent = labels[matchSummaryPanelActiveView] || 'Kampen';
+};
+
 window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
     if (!match) return '';
 
@@ -8671,17 +8743,27 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
     }
 
     return `
-        <section class="match-summary-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}" data-match-panel="kampoppsummering">
-            <div class="match-bench-action-row match-bench-topline match-summary-topline" onclick="window.onMatchPanelToplineClick(event)">
+        <section class="match-summary-panel match-collapsible-panel is-game-card ${isOpen ? '' : 'is-collapsed'}" data-match-panel="kampoppsummering">
+            <div
+                class="match-bench-action-row match-bench-topline match-summary-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isOpen ? 'true' : 'false'}"
+                aria-label="${isOpen ? 'Skjul oppsummering' : 'Vis oppsummering'}"
+                data-show-label="Vis oppsummering"
+                data-hide-label="Skjul oppsummering"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
                 <div class="match-bench-heading">
-                    <h3>Kampoppsummering</h3>
+                    <span class="match-game-card-icon match-summary-mark" aria-hidden="true"></span>
+                    <h3>Oppsummering</h3>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul kampoppsummering' : 'Vis kampoppsummering'}" data-show-label="Vis kampoppsummering" data-hide-label="Skjul kampoppsummering">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
             </div>
             <div class="match-collapsible-content">
-                ${summaryBody}
+                <div class="match-summary-body">
+                    ${summaryBody}
+                </div>
             </div>
         </section>
     `;
