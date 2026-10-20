@@ -10466,16 +10466,6 @@ function getMatchSubsPlayingTimeRows(match) {
 
 function buildMatchSubsPlayingTimeAvatarHtml(player, name) {
     const photoUrl = player ? getMatchGamePlanPlayerPhotoUrl(player) : '';
-    const initials = player
-        ? getMatchGamePlanPlayerInitials(player)
-        : String(name || '')
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((part) => part[0])
-            .join('')
-            .toUpperCase() || '?';
     if (photoUrl) {
         return `
             <span class="match-subs-playing-time-avatar is-photo" aria-hidden="true">
@@ -10485,7 +10475,7 @@ function buildMatchSubsPlayingTimeAvatarHtml(player, name) {
     }
     return `
         <span class="match-subs-playing-time-avatar" aria-hidden="true">
-            <span>${escapeMatchHtml(initials)}</span>
+            <i class="fa-solid fa-user"></i>
         </span>
     `;
 }
@@ -10539,10 +10529,12 @@ function buildMatchSubsPlayingTimeHtml(match) {
                     <li class="match-subs-playing-time-row is-game-row${hasPositions ? ' has-positions' : ''}${isMulti ? ' is-multi' : ' is-single'}${hasDiff ? ' has-diff' : ''}">
                         <div class="match-subs-playing-time-player">
                             ${buildMatchSubsPlayingTimeAvatarHtml(row.player, row.name)}
-                            <span class="match-subs-playing-time-name">${escapeMatchHtml(row.name)}</span>
-                        </div>
-                        <div class="match-subs-playing-time-badges" aria-label="${escapeMatchHtml(row.positionsLabel || 'Posisjoner')}">
-                            ${badgesHtml}
+                            <span class="match-subs-playing-time-copy">
+                                <span class="match-subs-playing-time-name">${escapeMatchHtml(row.name)}</span>
+                                ${hasPositions
+                                    ? `<span class="match-subs-playing-time-badges" aria-label="${escapeMatchHtml(row.positionsLabel || 'Posisjoner')}">${badgesHtml}</span>`
+                                    : ''}
+                            </span>
                         </div>
                         <div class="match-subs-playing-time-total">
                             ${hasDiff
