@@ -5762,12 +5762,24 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
 }
 
 function buildMatchGamePlanSquadOverlaySegmentHtml(match) {
-    return buildMatchGamePlanLineupViewSegmentHtml(match, {
+    const overlaysHtml = buildMatchGamePlanLineupViewSegmentHtml(match, {
         includePlayerOverlays: true,
         ariaLabel: 'Spillerinfo',
         extraClass: 'match-detail-squad-overlay-segment',
         buttonClass: 'blknapp is-icon'
     });
+    const updateBtnHtml = `
+        <span class="match-detail-squad-overlay-sep" aria-hidden="true"></span>
+        <button
+            type="button"
+            class="blknapp is-icon match-squad-update-btn"
+            data-match-action="attendance"
+            data-match-id="${escapeMatchHtml(match.id)}"
+            title="Oppdater oppmøte"
+            aria-label="Oppdater oppmøte"
+        ><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i></button>
+    `;
+    return `${overlaysHtml}${updateBtnHtml}`;
 }
 
 function syncMatchGamePlanLineupViewSegmentUi(match) {
@@ -9000,19 +9012,23 @@ window.showMatchDetails = function(id) {
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadPanelHtml = `
         <div class="match-detail-squad-section ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
-            <section class="match-bench-panel match-collapsible-panel ${isSquadPanelOpen ? '' : 'is-collapsed'}" data-match-panel="kamptropp">
-                <div class="match-bench-action-row match-bench-topline" onclick="window.onMatchPanelToplineClick(event)">
+            <section class="match-bench-panel match-collapsible-panel is-game-card ${isSquadPanelOpen ? '' : 'is-collapsed'}" data-match-panel="kamptropp">
+                <div
+                    class="match-bench-action-row match-bench-topline"
+                    onclick="window.onMatchPanelToplineClick(event)"
+                    role="button"
+                    tabindex="0"
+                    aria-expanded="${isSquadPanelOpen ? 'true' : 'false'}"
+                    aria-label="${isSquadPanelOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}"
+                    data-show-label="Vis kamptropp"
+                    data-hide-label="Skjul kamptropp"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+                >
                     <div class="match-bench-heading">
+                        <span class="match-game-card-icon match-squad-mark" aria-hidden="true"></span>
                         <h3>Kamptropp</h3>
                         <span class="match-detail-section-badge" aria-label="${squadBadgeCount} ${squadBadgeCount === 1 ? 'spiller' : 'spillere'} møtt opp">${squadBadgeLabel}</span>
                     </div>
-                    <button type="button" class="match-panel-toggle-btn" aria-expanded="${isSquadPanelOpen ? 'true' : 'false'}" aria-label="${isSquadPanelOpen ? 'Skjul kamptropp' : 'Vis kamptropp'}" data-show-label="Vis kamptropp" data-hide-label="Skjul kamptropp">
-                        <i class="fa-solid fa-chevron-up"></i>
-                    </button>
-                    <button type="button" class="training-session-attendance-add-btn" data-match-action="attendance" data-match-id="${escapeMatchHtml(match.id)}" title="Oppdater" aria-label="Oppdater oppmøte">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                        <span>Oppdater</span>
-                    </button>
                 </div>
                 <div class="match-collapsible-content">
                     <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
