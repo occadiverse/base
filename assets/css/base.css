@@ -12512,24 +12512,37 @@
             width: 100%;
         }
         .match-detail-squad-list .match-bench-group {
-            gap: 0.35rem;
+            gap: 0.5rem;
             min-width: 0;
         }
         .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
             align-self: stretch;
-            background: linear-gradient(90deg, transparent 0%, rgba(11, 43, 76, 0.72) 16%, rgba(18, 63, 115, 0.88) 50%, rgba(11, 43, 76, 0.72) 84%, transparent 100%);
-            border-bottom: 1px solid rgba(245, 197, 66, 0.35);
-            border-top: 1px solid rgba(245, 197, 66, 0.28);
+            background:
+                linear-gradient(180deg, rgba(255, 233, 168, 0.28) 0%, transparent 46%),
+                linear-gradient(180deg, #3a84d6 0%, #1a569c 48%, #0d3268 100%);
+            border: 2px solid #f5c542;
+            border-radius: 0.55rem;
+            box-shadow:
+                0 0 0 1.5px #0a1a30,
+                0 3px 0 #071428,
+                inset 0 1px 0 rgba(255, 255, 255, 0.32),
+                inset 0 -5px 12px rgba(0, 0, 0, 0.28);
             box-sizing: border-box;
-            color: rgba(255, 224, 138, 0.95);
+            color: #fff6d6;
             display: block;
-            font-size: 0.7rem;
-            font-weight: 900;
-            letter-spacing: 0.12em;
+            font-size: 0.72rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
             margin: 0;
-            padding: 0.35rem 0.75rem;
+            padding: 0.42rem 0.55rem;
+            position: relative;
             text-align: center;
-            text-shadow: 0 1px 0 rgba(11, 43, 76, 0.65);
+            text-shadow:
+                -1px 0 0 #0a1a30,
+                1px 0 0 #0a1a30,
+                0 -1px 0 #0a1a30,
+                0 1px 0 #0a1a30,
+                0 2px 0 rgba(2, 6, 23, 0.5);
             text-transform: uppercase;
             width: 100%;
         }
@@ -12804,8 +12817,9 @@
         }
         @media (min-width: 700px) {
             .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
+                font-size: 0.66rem;
                 letter-spacing: 0.08em;
-                padding: 0.3rem 0.4rem;
+                padding: 0.36rem 0.35rem;
             }
             .match-detail-squad-list .match-bench-player {
                 padding: 0.45rem 0.5rem;
@@ -15237,22 +15251,31 @@
             z-index: 2;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-squad-mark {
-            background:
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 32' fill='none'%3E%3Crect x='5' y='4.5' width='18' height='23' rx='2.4' fill='%23f5c542'/%3E%3Crect x='5' y='4.5' width='18' height='23' rx='2.4' fill='%23ffe08a' fill-opacity='.35'/%3E%3Crect x='5' y='4.5' width='18' height='23' rx='2.4' stroke='%23fffdf5' stroke-width='1.6'/%3E%3Crect x='9.2' y='2.4' width='9.6' height='4.2' rx='1.2' fill='%23ffe08a' stroke='%23fffdf5' stroke-width='1.3'/%3E%3Ccircle cx='11.2' cy='14.2' r='2.1' fill='%237a5608'/%3E%3Ccircle cx='16.8' cy='14.2' r='2.1' fill='%237a5608'/%3E%3Cpath d='M8.2 20.8c.7-1.7 2-2.6 3-2.6s2.3.9 3 2.6M14.2 20.8c.7-1.7 2-2.6 3-2.6s2.3.9 3 2.6' stroke='%237a5608' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
-                    center / contain no-repeat;
-            display: inline-block;
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
             filter:
                 drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
             height: 2.85rem;
+            justify-content: center;
             margin: -0.15rem 0 -0.4rem;
             position: relative;
             transform: rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 2.55rem;
+            width: 2.85rem;
             z-index: 3;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-squad-mark i {
+            font-size: 1.85rem;
+            line-height: 1;
+            text-shadow:
+                -1px 0 0 #fffdf5,
+                1px 0 0 #fffdf5,
+                0 -1px 0 #fffdf5,
+                0 1px 0 #fffdf5;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;

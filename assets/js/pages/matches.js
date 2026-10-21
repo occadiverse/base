@@ -9027,7 +9027,9 @@ window.showMatchDetails = function(id) {
                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
                 >
                     <div class="match-bench-heading">
-                        <span class="match-game-card-icon match-squad-mark" aria-hidden="true"></span>
+                        <span class="match-game-card-icon match-squad-mark" aria-hidden="true">
+                            <i class="fa-solid fa-users"></i>
+                        </span>
                         <h3>Kamptropp</h3>
                         <span class="match-detail-section-badge" aria-label="${squadBadgeCount} ${squadBadgeCount === 1 ? 'spiller' : 'spillere'} møtt opp">${squadBadgeLabel}</span>
                     </div>
