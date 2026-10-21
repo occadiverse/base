@@ -14597,6 +14597,105 @@
         }
         .match-game-plan-select-modal.is-player-insight #tactical-player-list {
             gap: 0;
+            padding: 0.85rem 0.85rem 1rem !important;
+        }
+        .match-game-plan-select-modal.is-player-insight > div {
+            background:
+                radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.45), transparent 52%),
+                radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
+                linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%) !important;
+            border: 3.5px solid #f5c542;
+            border-radius: 1.25rem;
+            box-shadow:
+                0 0 0 2px #0a1a30,
+                0 0 0 5px rgba(196, 146, 20, 0.55),
+                0 20px 40px rgba(2, 6, 23, 0.42),
+                inset 0 3px 0 rgba(255, 255, 255, 0.22),
+                inset 0 -16px 36px rgba(0, 0, 0, 0.34);
+            max-height: min(78vh, 36rem);
+            overflow: hidden;
+            position: relative;
+        }
+        .match-game-plan-select-modal.is-player-insight > div::before {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 248, 220, 0.2) 18%,
+                #ffe08a 50%,
+                rgba(255, 248, 220, 0.2) 82%,
+                transparent 100%
+            );
+            box-shadow: 0 0 12px rgba(245, 197, 66, 0.45);
+            content: "";
+            height: 3.5px;
+            left: 8%;
+            pointer-events: none;
+            position: absolute;
+            right: 8%;
+            top: 0;
+            z-index: 2;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header {
+            background: transparent !important;
+            border-bottom: 0 !important;
+            margin: 0 0 0.15rem;
+            min-height: 0;
+            padding: 0.95rem 0.85rem 0.7rem !important;
+            position: relative;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0.35rem;
+            position: absolute;
+            right: 0.35rem;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-heading-title {
+            color: #fff6d6;
+            font-size: clamp(1.12rem, 4.2vw, 1.32rem);
+            letter-spacing: 0.02em;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.28),
+                0 2px 0 rgba(10, 26, 48, 0.55),
+                0 3px 0 rgba(122, 86, 8, 0.35);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-heading-subtitle {
+            color: #f5c542;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+            text-transform: uppercase;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header-actions .bsk-btn-icon {
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+            border: 2px solid #fff6d6;
+            border-radius: 0.7rem;
+            box-shadow: 0 3px 0 #6b4a0c;
+            color: #1a1204;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header-actions .bsk-btn-icon i {
+            color: #1a1204;
+            text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header-actions .bsk-btn-icon:hover:not(:disabled),
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header-actions .bsk-btn-icon:focus-visible {
+            background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
+            border-color: #fffdf5;
+            box-shadow: 0 3px 0 #7a5610;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-select-header-actions .bsk-btn-icon:active:not(:disabled) {
+            box-shadow: 0 1px 0 #4a3408;
+            transform: translateY(2px);
         }
         .match-game-plan-player-insight {
             color: #f8fafc;
@@ -14604,6 +14703,10 @@
             flex-direction: column;
             gap: 0.85rem;
             padding: 0.15rem 0.2rem 0.35rem;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-player-insight {
+            gap: 0.95rem;
+            padding: 0.2rem 0.05rem 0.2rem;
         }
         .match-game-plan-insight-prefs {
             display: grid;
@@ -14671,6 +14774,17 @@
             border-radius: 0.9rem;
             overflow-x: auto;
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-table-wrap {
+            background:
+                linear-gradient(180deg, rgba(18, 42, 72, 0.72) 0%, rgba(10, 28, 54, 0.58) 100%);
+            border: 2px solid rgba(245, 197, 66, 0.55);
+            border-radius: 0.85rem;
+            box-shadow:
+                0 0 0 1.5px rgba(10, 26, 48, 0.65),
+                0 4px 0 rgba(7, 20, 40, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            overflow-x: auto;
+        }
         .match-game-plan-insight-table {
             border-collapse: collapse;
             min-width: 100%;
@@ -14691,10 +14805,24 @@
             letter-spacing: 0.05em;
             text-transform: uppercase;
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-table th {
+            background: linear-gradient(180deg, rgba(255, 224, 138, 0.16) 0%, rgba(245, 197, 66, 0.06) 100%);
+            color: #ffe08a;
+            font-size: 0.6rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
         .match-game-plan-insight-table td {
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             color: #ffffff;
             font-weight: 700;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-table td {
+            border-top-color: rgba(245, 197, 66, 0.16);
+            color: #fffdf5;
+            font-weight: 850;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
         }
         .match-game-plan-insight-table th:first-child,
         .match-game-plan-insight-table td:first-child {
@@ -14719,6 +14847,21 @@
             padding: 0.22rem 0.35rem;
             text-align: center;
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-pos-code {
+            background: linear-gradient(180deg, #ffe9a8 0%, #f5c542 52%, #d4a017 100%);
+            border: 1px solid rgba(255, 248, 220, 0.9);
+            border-radius: 0.4rem;
+            box-shadow:
+                0 0 0 1px #8a6408,
+                0 2px 0 #5c4205,
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            color: #1a1204;
+            font-size: 0.7rem;
+            font-weight: 950;
+            min-width: 2rem;
+            padding: 0.24rem 0.38rem;
+            text-shadow: 0 1px 0 rgba(255, 248, 220, 0.4);
+        }
         .match-game-plan-insight-empty-cell {
             color: rgba(248, 250, 252, 0.55) !important;
             font-weight: 700 !important;
@@ -14737,6 +14880,13 @@
             letter-spacing: 0.06em;
             text-transform: uppercase;
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-trainings-label {
+            color: #ffe08a;
+            font-size: 0.66rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
         .match-game-plan-insight-trainings-empty {
             color: rgba(248, 250, 252, 0.55);
             font-size: 0.72rem;
@@ -14746,6 +14896,9 @@
         .match-game-plan-insight-trainings-row {
             display: flex;
             gap: 0.28rem;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-trainings-row {
+            gap: 0.32rem;
         }
         .match-game-plan-insight-training {
             align-items: center;
@@ -14758,6 +14911,13 @@
             min-width: 0;
             padding: 0.32rem 0.12rem 0.28rem;
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training {
+            border-radius: 0.55rem;
+            box-shadow:
+                0 1px 0 rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 0.38rem 0.12rem 0.32rem;
+        }
         .match-game-plan-insight-training.is-attended {
             background: rgba(52, 211, 153, 0.16);
             border: 1px solid rgba(52, 211, 153, 0.38);
@@ -14766,12 +14926,24 @@
             background: rgba(248, 113, 113, 0.12);
             border: 1px solid rgba(248, 113, 113, 0.32);
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-attended {
+            background: linear-gradient(180deg, rgba(52, 211, 153, 0.42) 0%, rgba(6, 95, 70, 0.72) 100%);
+            border: 1px solid rgba(167, 243, 208, 0.4);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-missed {
+            background: linear-gradient(180deg, rgba(248, 113, 113, 0.38) 0%, rgba(127, 29, 29, 0.72) 100%);
+            border: 1px solid rgba(254, 202, 202, 0.32);
+        }
         .match-game-plan-insight-training-date {
             color: rgba(248, 250, 252, 0.72);
             font-size: 0.52rem;
             font-weight: 800;
             letter-spacing: 0.02em;
             line-height: 1;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training-date {
+            color: rgba(255, 253, 245, 0.78);
+            font-weight: 850;
         }
         .match-game-plan-insight-training-mark {
             font-size: 0.78rem;
@@ -14783,6 +14955,14 @@
         }
         .match-game-plan-insight-training.is-missed .match-game-plan-insight-training-mark {
             color: #fca5a5;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-attended .match-game-plan-insight-training-mark {
+            color: #ecfdf5;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-missed .match-game-plan-insight-training-mark {
+            color: #fee2e2;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
         }
         .match-game-plan-insight-training.is-start {
             background: rgba(52, 211, 153, 0.16);
@@ -14796,6 +14976,18 @@
             background: rgba(248, 113, 113, 0.12);
             border: 1px solid rgba(248, 113, 113, 0.32);
         }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-start {
+            background: linear-gradient(180deg, rgba(52, 211, 153, 0.42) 0%, rgba(6, 95, 70, 0.72) 100%);
+            border: 1px solid rgba(167, 243, 208, 0.4);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-bench {
+            background: linear-gradient(180deg, rgba(255, 224, 138, 0.38) 0%, rgba(146, 98, 14, 0.78) 100%);
+            border: 1px solid rgba(254, 243, 199, 0.42);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-out {
+            background: linear-gradient(180deg, rgba(248, 113, 113, 0.38) 0%, rgba(127, 29, 29, 0.72) 100%);
+            border: 1px solid rgba(254, 202, 202, 0.32);
+        }
         .match-game-plan-insight-training.is-start .match-game-plan-insight-training-mark {
             color: #6ee7b7;
         }
@@ -14804,6 +14996,32 @@
         }
         .match-game-plan-insight-training.is-out .match-game-plan-insight-training-mark {
             color: #fca5a5;
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-start .match-game-plan-insight-training-mark {
+            color: #ecfdf5;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-bench .match-game-plan-insight-training-mark {
+            color: #fffbeb;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-training.is-out .match-game-plan-insight-training-mark {
+            color: #fee2e2;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-moment {
+            background:
+                linear-gradient(180deg, rgba(18, 42, 72, 0.72) 0%, rgba(10, 28, 54, 0.58) 100%);
+            border: 2px solid rgba(245, 197, 66, 0.45);
+            border-radius: 0.85rem;
+            box-shadow:
+                0 0 0 1.5px rgba(10, 26, 48, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .match-game-plan-select-modal.is-player-insight .match-game-plan-insight-moment-label {
+            color: #ffe08a;
+            font-weight: 950;
+            letter-spacing: 0.1em;
         }
         .match-game-plan-select-actions {
             background:
@@ -15842,18 +16060,21 @@
             cursor: wait;
             opacity: 0.55;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-btn.blknapp {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-btn.blknapp,
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-squad-mobile-close-btn.blknapp {
             background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
             border-color: #fff6d6;
             box-shadow: 0 3px 0 #6b4a0c;
             color: #1a1204;
             text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-btn.blknapp:hover {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-btn.blknapp:hover,
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-squad-mobile-close-btn.blknapp:hover {
             background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
             box-shadow: 0 3px 0 #7a5610;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-btn.blknapp:active {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-mobile-close-btn.blknapp:active,
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-squad-mobile-close-btn.blknapp:active {
             box-shadow: 0 1px 0 #4a3408;
             transform: translateY(2px);
         }
