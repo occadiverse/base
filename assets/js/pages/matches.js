@@ -12951,9 +12951,24 @@ function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer
     }
 }
 
+function scrollMatchStatsSquadListToTop() {
+    const list = document.getElementById('kampdetaljer-spillerbors');
+    if (!list) return;
+    const reset = () => {
+        list.scrollTop = 0;
+        if (typeof list.scrollTo === 'function') list.scrollTo(0, 0);
+    };
+    reset();
+    requestAnimationFrame(() => {
+        reset();
+        requestAnimationFrame(reset);
+    });
+}
+
 function setMatchStatsSquadFilter(filter) {
     matchStatsSquadFilter = String(filter || 'ALL').toUpperCase();
     applyMatchStatsSquadFilter();
+    scrollMatchStatsSquadListToTop();
 }
 
 function getMatchStatsAccordionPlayerKey(playerObj) {

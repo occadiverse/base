@@ -3549,8 +3549,67 @@
             top: -0.28rem;
         }
         @media (max-width: 767px) {
+            /* Hero som egen fullskjerm-side — samme kant-i-kant som troppkort/fokuspaneler */
+            .match-detail-page > .match-detail-card {
+                --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
+                --focus-pad-y: clamp(0.35rem, 1.4vw, 0.55rem);
+                border-left: 0;
+                border-radius: 0;
+                border-right: 0;
+                border-top: 0;
+                bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                left: 0;
+                margin: 0;
+                max-height: none;
+                overflow: hidden;
+                padding: var(--focus-pad-y) var(--focus-pad-x) 0;
+                position: fixed;
+                right: 0;
+                top: calc(3.5rem + env(safe-area-inset-top, 0px));
+                width: 100%;
+                z-index: 35;
+            }
+            .match-detail-page > .match-detail-card::before {
+                left: 0;
+                right: 0;
+            }
+            .match-detail-page > .match-detail-card .match-detail-card-top {
+                flex: 0 0 auto;
+                margin: 0 calc(-1 * var(--focus-pad-x));
+                padding-left: var(--focus-pad-x);
+                padding-right: var(--focus-pad-x);
+            }
+            .match-detail-page > .match-detail-card .match-detail-card-top::after,
+            .match-detail-page > .match-detail-card .match-detail-footer::before,
+            .match-detail-page > .match-detail-card .match-detail-hero-nav::before {
+                left: 0;
+                right: 0;
+            }
+            .match-detail-page > .match-detail-card .match-detail-main {
+                align-content: center;
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+            .match-detail-page > .match-detail-card .match-detail-footer {
+                flex: 0 0 auto;
+                margin: 0 calc(-1 * var(--focus-pad-x));
+                padding-left: var(--focus-pad-x);
+                padding-right: var(--focus-pad-x);
+            }
             .match-detail-page > .match-detail-card .match-detail-hero-nav {
                 display: grid;
+                flex: 0 0 auto;
+                margin: 0 calc(-1 * var(--focus-pad-x));
+                padding-bottom: 0.95rem;
+                padding-left: var(--focus-pad-x);
+                padding-right: var(--focus-pad-x);
+            }
+            body.is-match-panel-focus .match-detail-page > .match-detail-card {
+                display: none;
             }
             .match-detail-page .match-collapsible-panel.is-collapsed {
                 display: none;
@@ -16784,9 +16843,10 @@
             display: none !important;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar.match-subs-view-toolbar {
-            align-self: start;
+            align-self: stretch;
             margin: 0;
             min-height: 2.15rem;
+            width: 100%;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .match-subs-view-heading {
             justify-content: center;
@@ -17478,10 +17538,7 @@
                 right: calc(-1 * var(--focus-pad-x));
                 z-index: 4;
             }
-            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-body,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-game-plan-body,
-            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-coach-notes-body,
-            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-subs-panel-body,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-opponent-info-body,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-summary-body,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-detail-squad-lineup {
@@ -17494,10 +17551,64 @@
                 padding: 0 0 1.55rem;
                 scrollbar-width: none;
             }
-            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-body::-webkit-scrollbar,
+            /* Banetid + Trenernotater: toolbar fast, innhold scroller under */
+            .match-detail-page .match-subs-panel.is-game-card.is-mobile-focus .match-subs-panel-body,
+            .match-detail-page .match-coach-notes-panel.is-game-card.is-mobile-focus .match-coach-notes-body {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                gap: 0;
+                min-height: 0;
+                overflow: hidden;
+                padding: 0;
+            }
+            .match-detail-page .match-coach-notes-panel.is-game-card.is-mobile-focus .match-coach-notes-fields {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                gap: 0;
+                min-height: 0;
+                overflow: hidden;
+                padding: 0;
+            }
+            .match-detail-page .match-coach-notes-panel.is-game-card.is-mobile-focus .match-coach-notes-fields > .match-subs-view-toolbar,
+            .match-detail-page .match-subs-panel.is-game-card.is-mobile-focus .match-subs-view-toolbar {
+                flex: 0 0 auto;
+                height: auto;
+                margin: 0;
+                min-height: 0;
+                padding-bottom: 0.85rem;
+                padding-top: 0.85rem;
+            }
+            .match-detail-page .match-subs-panel.is-game-card.is-mobile-focus .match-subs-view-panel:not([hidden]),
+            .match-detail-page .match-coach-notes-panel.is-game-card.is-mobile-focus .match-coach-notes-fields > .match-subs-view-panel:not([hidden]) {
+                -webkit-overflow-scrolling: touch;
+                flex: 1 1 auto;
+                min-height: 0;
+                min-width: 0;
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: 1.55rem;
+                padding-top: 0.85rem;
+                scrollbar-width: none;
+            }
+            .match-detail-page .match-subs-panel.is-game-card.is-mobile-focus .match-subs-view-panel:not([hidden])::-webkit-scrollbar,
+            .match-detail-page .match-coach-notes-panel.is-game-card.is-mobile-focus .match-coach-notes-fields > .match-subs-view-panel:not([hidden])::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
+            }
+            .match-detail-page .match-subs-panel.is-game-card.is-mobile-focus .match-subs-playing-time {
+                margin-top: 0;
+                padding-top: 0;
+            }
+            .match-detail-page .match-coach-notes-panel.is-game-card.is-mobile-focus .match-coach-notes-footer {
+                flex: 0 0 auto;
+                margin-top: 0;
+                padding: 0.85rem 0 1.55rem;
+            }
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-game-plan-body::-webkit-scrollbar,
-            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-coach-notes-body::-webkit-scrollbar,
-            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-subs-panel-body::-webkit-scrollbar,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-opponent-info-body::-webkit-scrollbar,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-summary-body::-webkit-scrollbar,
             .match-detail-page .match-collapsible-panel.is-mobile-focus .match-detail-squad-lineup::-webkit-scrollbar {
@@ -17505,15 +17616,53 @@
                 width: 0;
                 height: 0;
             }
+            /* Spillerbørs: resultat + Alle/knapper fast, lista scroller under */
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body {
-                -webkit-overflow-scrolling: touch;
+                display: flex;
                 flex: 1 1 auto;
+                flex-direction: column;
+                gap: 0;
                 min-height: 0;
+                overflow: hidden;
+                padding: 0;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-result-bar {
+                flex: 0 0 auto;
+                margin: 0.4rem 0 0.55rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-state {
+                flex: 0 0 auto;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-squad-toolbar {
+                align-self: stretch;
+                flex: 0 0 auto;
+                margin: 0;
+                max-width: none;
+                min-width: 0;
+                padding-bottom: 0.85rem;
+                padding-top: 0.85rem;
+                width: 100%;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-list {
+                -webkit-overflow-scrolling: touch;
+                align-content: start;
+                flex: 1 1 auto;
+                gap: clamp(0.5rem, 1.8vw, 0.65rem);
+                max-width: 100%;
+                min-height: 0;
+                overflow-anchor: none;
                 overflow-x: hidden;
                 overflow-y: auto;
                 overscroll-behavior: contain;
-                padding: 0;
+                padding-bottom: 1.55rem;
+                padding-top: 0.85rem;
                 scrollbar-width: none;
+                width: 100%;
+            }
+            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-list::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
             }
             .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-detail-squad-body {
                 display: flex;
@@ -17530,22 +17679,6 @@
                 gap: 0;
                 min-height: 0;
                 overflow: hidden;
-            }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-result-bar {
-                margin: 0.4rem 0 0.55rem;
-            }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body::-webkit-scrollbar {
-                display: none;
-                width: 0;
-                height: 0;
-            }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-list {
-                gap: clamp(0.5rem, 1.8vw, 0.65rem);
-                max-width: 100%;
-                /* Litt ekstra så kort kan scrolle under vignettene */
-                padding-bottom: 1.55rem;
-                padding-top: 0.55rem;
-                width: 100%;
             }
             .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-detail-squad-overlay-toolbar {
                 background:
