@@ -11909,12 +11909,6 @@ window.getMatchGamePlanFormationIds = function() {
 window.remapMatchGamePlanSlotIdForFormation = remapMatchGamePlanSlotIdForFormation;
 window.remapMatchGamePlanLineupSlotsForFormation = remapMatchGamePlanLineupSlotsForFormation;
 
-function formatMatchGamePlanPosPreference(value) {
-    const text = String(value || '').trim();
-    if (!text || text === '-') return '—';
-    return text;
-}
-
 function getMatchGamePlanSnittBidrag(row) {
     const matches = Number(row?.matches) || 0;
     if (matches <= 0) return 0;
@@ -12077,15 +12071,9 @@ function buildMatchGamePlanInsightTrainingRowHtml(player) {
 }
 
 function buildMatchGamePlanPlayerInsightHtml(player, match) {
-    const pos1 = formatMatchGamePlanPosPreference(player?.pos1);
-    const pos2 = formatMatchGamePlanPosPreference(player?.pos2);
     const season = getMatchGamePlanPlayerSeasonStat(player);
     const positionRows = [...(buildPlayerPositionMatchStats(player) || [])]
         .sort(compareMatchGamePlanPositionRowsByBidrag);
-    const currentPosId = match ? getMatchGamePlanPlayerPitchPosId(match, player) : '';
-    const currentPosLabel = currentPosId
-        ? getMatchGamePlanPositionLabel(currentPosId)
-        : '';
 
     const tableBody = positionRows.length
         ? positionRows.map((row) => {
@@ -12126,23 +12114,6 @@ function buildMatchGamePlanPlayerInsightHtml(player, match) {
 
     return `
         <div class="match-game-plan-player-insight">
-            <div class="match-game-plan-insight-prefs">
-                <div class="match-game-plan-insight-pref">
-                    <span class="match-game-plan-insight-pref-label">Primær</span>
-                    <strong class="match-game-plan-insight-pref-value">${escapeMatchHtml(pos1)}</strong>
-                </div>
-                <div class="match-game-plan-insight-pref">
-                    <span class="match-game-plan-insight-pref-label">Sekundær</span>
-                    <strong class="match-game-plan-insight-pref-value">${escapeMatchHtml(pos2)}</strong>
-                </div>
-                ${currentPosLabel ? `
-                    <div class="match-game-plan-insight-pref is-current">
-                        <span class="match-game-plan-insight-pref-label">Nå</span>
-                        <strong class="match-game-plan-insight-pref-value">${escapeMatchHtml(currentPosLabel)}</strong>
-                    </div>
-                ` : ''}
-            </div>
-
             <div class="match-game-plan-insight-table-wrap">
                 <table class="match-game-plan-insight-table">
                     <thead>
