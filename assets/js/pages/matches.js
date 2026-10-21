@@ -10445,7 +10445,7 @@ function buildMatchLiveSubsLogHtml(match, options = {}) {
         ? buildMatchDetailSubsLogGameRowsHtml(events)
         : buildMatchLiveSubsLogTextRowsHtml(events);
     const saveHint = variant === 'detail'
-        ? 'Trykk en rad for å redigere. Lagre oppdaterer Live-byttene.'
+        ? 'Trykk en rad for å redigere. Lagre synker bytteloggen med Live.'
         : 'Trykk en rad for å redigere.';
     const ariaLabel = variant === 'detail' ? 'Bytter på kampdetalj' : 'Live bytter';
 
@@ -10459,23 +10459,40 @@ function buildMatchLiveSubsLogHtml(match, options = {}) {
     `;
 }
 
+function buildMatchSubsLogSaveButtonHtml() {
+    return `
+        <button
+            type="button"
+            class="match-subs-save-icon-btn"
+            onclick="window.saveMatchSubsPanel()"
+            title="Lagre bytter"
+            aria-label="Lagre bytter"
+        >
+            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+        </button>
+    `;
+}
+
 function buildMatchSubsLogSaveRowHtml(hintText) {
     return `
         <div class="match-subs-log-actions">
             <div class="match-subs-hint-field">
+                <span class="match-subs-hint-gem" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
                 <p class="match-subs-log-hint">${escapeMatchHtml(hintText)}</p>
             </div>
-            <button
-                type="button"
-                class="match-subs-save-icon-btn"
-                onclick="window.saveMatchSubsPanel()"
-                title="Lagre bytter"
-                aria-label="Lagre bytter"
-            >
-                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-            </button>
+            ${buildMatchSubsLogSaveButtonHtml()}
         </div>
         <p class="match-inline-status match-subs-save-state" data-subs-save-state aria-live="polite" hidden></p>
+    `;
+}
+
+function buildMatchSubsEmptyBoardHtml({ title, copy, actionsHtml = '' }) {
+    return `
+        <div class="match-subs-empty-board">
+            <p class="match-subs-empty-title">${escapeMatchHtml(title)}</p>
+            <p class="match-subs-empty-copy">${escapeMatchHtml(copy)}</p>
+            ${actionsHtml}
+        </div>
     `;
 }
 
@@ -10631,7 +10648,10 @@ function buildMatchSubsPlayingTimeHtml(match) {
     if (!rows.length) {
         return `
             <div class="match-subs-playing-time" aria-label="Spilletid">
-                <p class="match-subs-log-hint">Ingen spilletid registrert ennå.</p>
+                ${buildMatchSubsEmptyBoardHtml({
+                    title: 'Ingen minutter ennå',
+                    copy: 'Minutter fylles inn når kampen kjøres i Live, eller når du lagrer Spillerbørs med spilletid.'
+                })}
             </div>
         `;
     }
@@ -10739,8 +10759,16 @@ function buildMatchSubsPanelBodyHtml(match) {
     const subsHtml = buildMatchLiveSubsLogHtml(match, { variant: 'detail' });
     const bytterPanel = subsHtml || `
         <div class="match-subs-log-empty">
-            <p>Ingen bytter registrert ennå.</p>
-            ${buildMatchSubsLogSaveRowHtml('Live-bytter vises her. Lagre synker Live til denne loggen.')}
+            ${buildMatchSubsEmptyBoardHtml({
+                title: 'Ingen bytter ennå',
+                copy: 'Bytt i Live under kampen — da lander de her. Lagre synker bytteloggen med Live begge veier.',
+                actionsHtml: `
+                    <div class="match-subs-log-actions is-empty">
+                        ${buildMatchSubsLogSaveButtonHtml()}
+                    </div>
+                    <p class="match-inline-status match-subs-save-state" data-subs-save-state aria-live="polite" hidden></p>
+                `
+            })}
         </div>
     `;
     return `
