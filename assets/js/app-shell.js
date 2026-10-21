@@ -89,11 +89,15 @@ function switchTab(tabId, options = {}) {
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
     if (previousTab === 'kampdetaljer' && tabId !== 'kampdetaljer') {
-        if (typeof window.clearSpillerborsMobileFocus === 'function') {
-            window.clearSpillerborsMobileFocus();
-        }
-        if (typeof window.clearKamptroppMobileFocus === 'function') {
-            window.clearKamptroppMobileFocus();
+        if (typeof window.clearAllMatchPanelMobileFocus === 'function') {
+            window.clearAllMatchPanelMobileFocus();
+        } else {
+            if (typeof window.clearSpillerborsMobileFocus === 'function') {
+                window.clearSpillerborsMobileFocus();
+            }
+            if (typeof window.clearKamptroppMobileFocus === 'function') {
+                window.clearKamptroppMobileFocus();
+            }
         }
     }
 

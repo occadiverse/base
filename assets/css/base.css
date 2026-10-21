@@ -3238,6 +3238,330 @@
             flex-direction: column;
             gap: 1rem;
         }
+        /* Clash outer frame for kampdetaljer hero only (not shared .match-detail-card surfaces) */
+        .match-detail-page > .match-detail-card {
+            background:
+                radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.48), transparent 52%),
+                radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
+                radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.1), transparent 32%),
+                linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
+            border: 3.5px solid #f5c542;
+            border-radius: 1.25rem;
+            box-shadow:
+                0 0 0 2px #0a1a30,
+                0 0 0 5px rgba(196, 146, 20, 0.55),
+                0 20px 40px rgba(2, 6, 23, 0.42),
+                inset 0 3px 0 rgba(255, 255, 255, 0.24),
+                inset 0 -16px 36px rgba(0, 0, 0, 0.34);
+            overflow: hidden;
+            position: relative;
+        }
+        .match-detail-page > .match-detail-card::before {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 248, 220, 0.2) 18%,
+                #ffe08a 50%,
+                rgba(255, 248, 220, 0.2) 82%,
+                transparent 100%
+            );
+            box-shadow: 0 0 12px rgba(245, 197, 66, 0.45);
+            content: "";
+            height: 3.5px;
+            left: 8%;
+            pointer-events: none;
+            position: absolute;
+            right: 8%;
+            top: 0;
+            z-index: 2;
+        }
+        .match-detail-page > .match-detail-card .match-detail-card-top {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 0;
+            position: relative;
+        }
+        .match-detail-page > .match-detail-card .match-detail-card-top::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 18%,
+                #f5c542 50%,
+                #ffe08a 82%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 8px rgba(245, 197, 66, 0.28);
+            content: "";
+            height: 2px;
+            left: 0.85rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.85rem;
+        }
+        .match-detail-page > .match-detail-card .match-detail-meta {
+            color: #fffdf5;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .match-detail-page > .match-detail-card .match-detail-meta i {
+            color: #ffe08a;
+            filter: drop-shadow(0 1px 0 rgba(2, 6, 23, 0.35));
+        }
+        .match-detail-page > .match-detail-card .match-detail-top-chips {
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .match-detail-page > .match-detail-card .match-detail-edit-btn.blknapp {
+            flex: 0 0 2.15rem;
+            height: 2.15rem;
+            max-width: 2.15rem;
+            min-width: 2.15rem;
+            width: 2.15rem;
+        }
+        .match-detail-page > .match-detail-card .match-detail-chip.blknapp {
+            background: linear-gradient(180deg, #5eb0ff 0%, #1a4f9e 100%);
+            border: 2.5px solid #c8e4ff;
+            border-radius: 0.7rem;
+            box-shadow: 0 3px 0 #0a2244;
+            color: #f4f9ff;
+            font-size: 0.62rem;
+            font-weight: 950;
+            gap: 0.35rem;
+            height: 2.15rem;
+            letter-spacing: 0.08em;
+            min-width: 0;
+            padding: 0 0.7rem;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+            text-transform: uppercase;
+            width: auto;
+        }
+        .match-detail-page > .match-detail-card .match-detail-chip.blknapp i {
+            color: inherit;
+            font-size: 0.78rem;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+        }
+        .match-detail-page > .match-detail-card .match-detail-crest,
+        .match-detail-page > .match-detail-card .match-detail-crest-opponent,
+        .match-detail-page > .match-detail-card .match-detail-crest-has-logo {
+            background: #ffffff;
+            border: 2px solid #ffe08a !important;
+            border-width: 2px !important;
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.32);
+            outline: 2.5px solid #c49214;
+            outline-offset: 1px;
+            overflow: hidden;
+            padding: 0.12rem;
+        }
+        .match-detail-page > .match-detail-card .match-detail-crest-logo {
+            border-radius: 999px;
+        }
+        .match-detail-page > .match-detail-card .match-detail-team-name {
+            color: #fffdf5;
+            font-size: clamp(0.78rem, 2.8vw, 1.75rem);
+            font-weight: 950;
+            letter-spacing: 0;
+            line-height: 1.15;
+            max-width: 100%;
+            overflow: hidden;
+            overflow-wrap: normal;
+            text-overflow: ellipsis;
+            text-shadow:
+                0 1px 0 #0a1a30,
+                0 2px 0 rgba(2, 6, 23, 0.45);
+            white-space: nowrap;
+            word-break: normal;
+        }
+        .match-detail-page > .match-detail-card .match-detail-main {
+            column-gap: 0.45rem;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        }
+        .match-detail-page > .match-detail-card .match-detail-center {
+            min-width: 3.75rem;
+            padding-inline: 0.15rem;
+        }
+        .match-detail-page > .match-detail-card .match-detail-time {
+            color: #fffdf5;
+            font-weight: 950;
+            text-shadow:
+                -1px 0 0 #0a1a30,
+                1px 0 0 #0a1a30,
+                0 -1px 0 #0a1a30,
+                0 1px 0 #0a1a30,
+                0 3px 0 rgba(2, 6, 23, 0.5);
+        }
+        .match-detail-page > .match-detail-card .match-detail-sub {
+            color: #ffe08a;
+            letter-spacing: 0.14em;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .match-detail-page > .match-detail-card .match-detail-footer {
+            background: rgba(2, 6, 23, 0.22);
+            border-top: 0;
+            position: relative;
+        }
+        .match-detail-page > .match-detail-card .match-detail-footer::before {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 18%,
+                #f5c542 50%,
+                #ffe08a 82%,
+                transparent
+            );
+            box-shadow: 0 0 8px rgba(245, 197, 66, 0.28);
+            content: "";
+            height: 2px;
+            left: 0.85rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.85rem;
+            top: 0;
+        }
+        .match-detail-page > .match-detail-card .match-detail-footer-item {
+            color: #fffdf5;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+        }
+        .match-detail-page > .match-detail-card .match-detail-footer-item i {
+            color: #ffe08a;
+            filter: drop-shadow(0 1px 0 rgba(2, 6, 23, 0.35));
+        }
+        .match-detail-hero-nav {
+            display: none;
+        }
+        .match-detail-page > .match-detail-card .match-detail-hero-nav {
+            background: rgba(2, 6, 23, 0.22);
+            border-top: 0;
+            gap: 0.45rem 0.35rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            padding: 0.85rem 0.7rem 0.95rem;
+            position: relative;
+        }
+        .match-detail-page > .match-detail-card .match-detail-hero-nav::before {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 18%,
+                #f5c542 50%,
+                #ffe08a 82%,
+                transparent
+            );
+            box-shadow: 0 0 8px rgba(245, 197, 66, 0.28);
+            content: "";
+            height: 2px;
+            left: 0.85rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.85rem;
+            top: 0;
+        }
+        .match-detail-hero-nav-btn {
+            -webkit-appearance: none;
+            appearance: none;
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: #fffdf5;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            font: inherit;
+            gap: 0.32rem;
+            justify-content: flex-start;
+            min-width: 0;
+            padding: 0;
+            position: relative;
+        }
+        .match-detail-hero-nav-icon {
+            align-items: center;
+            background: linear-gradient(180deg, #5eb0ff 0%, #1a4f9e 100%);
+            border: 2.5px solid #c8e4ff;
+            border-radius: 0.7rem;
+            box-shadow: 0 3px 0 #0a2244;
+            color: #f4f9ff;
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 2.35rem;
+            justify-content: center;
+            position: relative;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+            transition: box-shadow 120ms ease, background 120ms ease, transform 120ms ease;
+            width: 2.35rem;
+        }
+        .match-detail-hero-nav-icon i {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+        .match-detail-hero-nav-btn:hover .match-detail-hero-nav-icon,
+        .match-detail-hero-nav-btn.is-active .match-detail-hero-nav-icon {
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+            box-shadow: 0 3px 0 #0f2f5c;
+        }
+        .match-detail-hero-nav-btn.is-active .match-detail-hero-nav-icon {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 3px 0 #5c2e00;
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
+        }
+        .match-detail-hero-nav-btn:active .match-detail-hero-nav-icon {
+            box-shadow: 0 1px 0 #07182f;
+            transform: translateY(2px);
+        }
+        .match-detail-hero-nav-btn.is-active:active .match-detail-hero-nav-icon {
+            box-shadow: 0 1px 0 #3d1e00;
+        }
+        .match-detail-hero-nav-label {
+            color: #ffe08a;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            line-height: 1.1;
+            max-width: 100%;
+            overflow: hidden;
+            text-align: center;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+            text-transform: uppercase;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .match-detail-hero-nav-btn.is-active .match-detail-hero-nav-label {
+            color: #fff6d6;
+        }
+        .match-detail-hero-nav-badge {
+            align-items: center;
+            background: linear-gradient(180deg, #ffe9a8 0%, #f5c542 52%, #d4a017 100%);
+            border: 1px solid rgba(255, 248, 220, 0.9);
+            border-radius: 999px;
+            box-shadow: 0 0 0 1px #8a6408, 0 1px 0 #5c4205;
+            color: #1a1204;
+            display: inline-flex;
+            font-size: 0.52rem;
+            font-weight: 950;
+            height: 1rem;
+            justify-content: center;
+            letter-spacing: 0;
+            line-height: 1;
+            min-width: 1rem;
+            padding: 0 0.22rem;
+            position: absolute;
+            right: -0.28rem;
+            text-shadow: none;
+            top: -0.28rem;
+        }
+        @media (max-width: 767px) {
+            .match-detail-page > .match-detail-card .match-detail-hero-nav {
+                display: grid;
+            }
+            .match-detail-page .match-collapsible-panel.is-collapsed {
+                display: none;
+            }
+            .match-detail-page .match-detail-squad-section:not(:has(.match-collapsible-panel:not(.is-collapsed))) {
+                display: none;
+            }
+            .match-detail-page .match-detail-squad-section:has(.match-collapsible-panel:not(.is-collapsed)) {
+                display: flex;
+            }
+        }
         .match-detail-page .match-bench-panel,
         .match-detail-page .match-game-plan-panel,
         .match-detail-page .match-coach-notes-panel,
@@ -17038,10 +17362,13 @@
             display: flex;
         }
         .match-detail-page .match-stats-panel.is-game-card.is-collapsed .match-stats-mobile-close-bar,
-        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"]:not(.is-mobile-focus) .match-squad-mobile-close-bar {
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"]:not(.is-mobile-focus) .match-squad-mobile-close-bar,
+        .match-detail-page .match-collapsible-panel:not(.is-mobile-focus) .match-panel-mobile-close-bar {
             display: none;
         }
         @media (max-width: 767px) {
+            body.is-match-panel-focus,
+            body.is-match-panel-focus .portal-main-shell,
             body.is-spillerbors-focus,
             body.is-spillerbors-focus .portal-main-shell,
             body.is-kamptropp-focus,
@@ -17050,6 +17377,8 @@
                 scrollbar-gutter: auto;
                 scrollbar-width: none;
             }
+            body.is-match-panel-focus::-webkit-scrollbar,
+            body.is-match-panel-focus .portal-main-shell::-webkit-scrollbar,
             body.is-spillerbors-focus::-webkit-scrollbar,
             body.is-spillerbors-focus .portal-main-shell::-webkit-scrollbar,
             body.is-kamptropp-focus::-webkit-scrollbar,
@@ -17058,11 +17387,18 @@
                 width: 0;
                 height: 0;
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus {
+            body.is-match-panel-focus .match-detail-page > .match-detail-card {
+                display: none;
+            }
+            .match-detail-page .match-collapsible-panel.is-mobile-focus {
                 --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
                 --focus-pad-y: clamp(0.35rem, 1.4vw, 0.55rem);
                 --focus-close-bar-height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                background:
+                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
+                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.38), transparent 55%),
+                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
+                    linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
                 border-left: 0;
                 border-radius: 0;
                 border-right: 0;
@@ -17083,19 +17419,14 @@
                 width: 100%;
                 z-index: 45;
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus::before,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus::before {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus::before {
                 display: none;
             }
             /* #kampdetaljer-info har egen topline-margin — må slås av eksplisitt i focus */
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline,
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline:hover,
-            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline,
-            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline:hover,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-topline,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-topline:hover,
-            #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-topline,
-            #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-topline:hover {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-bench-topline,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-bench-topline:hover,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-bench-topline,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-bench-topline:hover {
                 background: transparent;
                 border-bottom: 0;
                 flex: 0 0 auto;
@@ -17106,20 +17437,16 @@
                 z-index: 2;
             }
             /* Gullinje under overskrift: kant-i-kant, samme som nederst på grå bar */
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline::after,
-            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-topline::after,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-topline::after,
-            #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-topline::after {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-bench-topline::after,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-bench-topline::after {
                 bottom: 0;
                 left: calc(-1 * var(--focus-pad-x));
                 right: calc(-1 * var(--focus-pad-x));
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-bench-heading h3,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-bench-heading h3 {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-bench-heading h3 {
                 font-size: clamp(1.05rem, 4.6vw, 1.35rem);
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-collapsible-content {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-collapsible-content {
                 display: flex;
                 flex: 1 1 auto;
                 flex-direction: column;
@@ -17132,8 +17459,7 @@
                 z-index: 1;
             }
             /* Bunnvignett mot LUKK-baren. Ingen toppvignett — den lå over kampresultatet. */
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-collapsible-content::after,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-collapsible-content::after {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-collapsible-content::after {
                 background: linear-gradient(
                     180deg,
                     transparent 0%,
@@ -17151,6 +17477,33 @@
                 position: absolute;
                 right: calc(-1 * var(--focus-pad-x));
                 z-index: 4;
+            }
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-body,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-game-plan-body,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-coach-notes-body,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-subs-panel-body,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-opponent-info-body,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-summary-body,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-detail-squad-lineup {
+                -webkit-overflow-scrolling: touch;
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding: 0 0 1.55rem;
+                scrollbar-width: none;
+            }
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-body::-webkit-scrollbar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-game-plan-body::-webkit-scrollbar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-coach-notes-body::-webkit-scrollbar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-subs-panel-body::-webkit-scrollbar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-opponent-info-body::-webkit-scrollbar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-summary-body::-webkit-scrollbar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-detail-squad-lineup::-webkit-scrollbar {
+                display: none;
+                width: 0;
+                height: 0;
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-body {
                 -webkit-overflow-scrolling: touch;
@@ -17224,10 +17577,12 @@
                 height: 0;
             }
             /* I flow under scroll — opaque metallic bar (ingen alpha-søm) + gold bloom */
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar,
-            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-mobile-close-bar,
-            #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-mobile-close-bar {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-mobile-close-bar,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-stats-mobile-close-bar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-squad-mobile-close-bar,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-squad-mobile-close-bar,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-panel-mobile-close-bar,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-panel-mobile-close-bar {
                 align-items: center;
                 background: linear-gradient(
                     180deg,
@@ -17251,10 +17606,12 @@
                 width: calc(100% + (2 * var(--focus-pad-x)));
                 z-index: 2;
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar::before,
-            #kampdetaljer-info .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-bar::before,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-mobile-close-bar::before,
-            #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-mobile-close-bar::before {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-mobile-close-bar::before,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-stats-mobile-close-bar::before,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-squad-mobile-close-bar::before,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-squad-mobile-close-bar::before,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-panel-mobile-close-bar::before,
+            #kampdetaljer-info .match-collapsible-panel.is-mobile-focus .match-panel-mobile-close-bar::before {
                 background: linear-gradient(
                     90deg,
                     #c4921a 0%,
@@ -17272,8 +17629,9 @@
                 right: 0;
                 top: 0;
             }
-            .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-mobile-close-btn.blknapp,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-mobile-close-btn.blknapp {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-mobile-close-btn.blknapp,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-squad-mobile-close-btn.blknapp,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-panel-mobile-close-btn.blknapp {
                 flex: 0 0 auto;
                 font-size: clamp(0.74rem, 2.2vw, 0.86rem);
                 font-weight: 950;
@@ -17286,17 +17644,28 @@
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-btn.blknapp,
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-close-bar-balance,
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-close-bar-balance {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-squad-close-bar-balance,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-panel-close-bar-balance {
                 height: clamp(2.25rem, 6.2vw, 2.55rem);
                 width: clamp(2.25rem, 6.2vw, 2.55rem);
             }
             .match-detail-page .match-stats-panel.is-game-card.is-mobile-focus .match-stats-save-btn.blknapp {
                 opacity: 1;
             }
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-squad-close-bar-balance {
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-squad-close-bar-balance,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-panel-close-bar-balance {
                 flex: 0 0 auto;
                 pointer-events: none;
                 visibility: hidden;
+            }
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-stats-mobile-close-btn.blknapp,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-squad-mobile-close-btn.blknapp,
+            .match-detail-page .match-collapsible-panel.is-mobile-focus .match-panel-mobile-close-btn.blknapp {
+                background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+                border-color: #fff6d6;
+                box-shadow: 0 3px 0 #6b4a0c;
+                color: #1a1204;
+                text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
             }
         }
         .match-detail-page .match-opponent-info-panel.is-game-card .match-detail-section-badge {
@@ -18470,9 +18839,48 @@
         .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-goals-sep {
             opacity: 0.75;
         }
+        @media (max-width: 767px) {
+            .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-record {
+                margin: 0.85rem 0 1rem;
+            }
+            .match-detail-page .match-opponent-info-panel.is-game-card.is-mobile-focus .match-opponent-info-body {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                overflow: hidden;
+                padding: 0;
+            }
+            .match-detail-page .match-opponent-info-panel.is-game-card.is-mobile-focus .match-opponent-info-record {
+                flex: 0 0 auto;
+                margin: 1rem 0 0;
+                z-index: 2;
+            }
+            .match-detail-page .match-opponent-info-panel.is-game-card.is-mobile-focus .match-opponent-info-list {
+                -webkit-overflow-scrolling: touch;
+                align-content: start;
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: 1.55rem;
+                padding-top: 0.85rem;
+                scrollbar-width: none;
+            }
+            .match-detail-page .match-opponent-info-panel.is-game-card.is-mobile-focus .match-fixture-row {
+                align-self: start;
+                height: auto;
+                min-height: 0;
+            }
+            .match-detail-page .match-opponent-info-panel.is-game-card.is-mobile-focus .match-opponent-info-list::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
+            }
+        }
         @media (max-width: 640px) {
             .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-record {
                 gap: 0.35rem;
+                margin: 0.85rem 0 1rem;
             }
             .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-record-item {
                 border-width: 2.5px;
