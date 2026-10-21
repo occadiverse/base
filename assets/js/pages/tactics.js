@@ -950,6 +950,18 @@
             window.liveLineup[posId] = null;
         }
 
+        function findLiveLineupPosForPlayerRef(playerRef) {
+            if (!playerRef || !window.liveLineup) return '';
+            return Object.keys(window.liveLineup).find((posId) => {
+                const player = window.liveLineup[posId];
+                if (!player) return false;
+                if (typeof window.playerRefMatches === 'function') {
+                    return window.playerRefMatches(playerRef, player);
+                }
+                return getTacticalLivePlayerRef(player) === String(playerRef);
+            }) || '';
+        }
+
         function applyLiveSubToLineupState(sub) {
             if (!sub?.posId || !sub?.inId) return;
             const inPlayer = typeof window.findPlayerByRef === 'function'
@@ -960,8 +972,18 @@
             const resolved = typeof window.resolveLiveSubPositionsForFormation === 'function'
                 ? window.resolveLiveSubPositionsForFormation(getSelectedTacticalMatch(), sub, window.liveLineup)
                 : null;
-            const outPosId = resolved?.posId || sub.posId;
-            const inPosId = resolved?.inPosId || sub.inPosId || outPosId;
+            let outPosId = resolved?.posId || sub.posId;
+            let inPosId = resolved?.inPosId || sub.inPosId || outPosId;
+
+            // After prior røkeringer the out-player may no longer sit on stored posId.
+            const actualOutPos = findLiveLineupPosForPlayerRef(sub.outId);
+            if (actualOutPos) {
+                const isDirectSwap = !sub.fillFromPos
+                    && !(Array.isArray(sub.fillChain) && sub.fillChain.length)
+                    && String(sub.inPosId || sub.posId || '') === String(sub.posId || '');
+                outPosId = actualOutPos;
+                if (isDirectSwap) inPosId = actualOutPos;
+            }
 
             (sub.outRoles || []).forEach((slot) => {
                 window.liveRoles[slot] = getTacticalLivePlayerRef(inPlayer);
@@ -973,6 +995,16 @@
                 if (rawPosId && rawPosId !== outPosId) clearLiveLineupPos(rawPosId);
                 const rawInPosId = String(sub.inPosId || '').trim();
                 if (rawInPosId && rawInPosId !== outPosId) clearLiveLineupPos(rawInPosId);
+                // Ensure out-player is gone even if they were duplicated somehow.
+                Object.keys(window.liveLineup || {}).forEach((posId) => {
+                    if (posId === outPosId) return;
+                    const player = window.liveLineup[posId];
+                    if (!player) return;
+                    const isOut = typeof window.playerRefMatches === 'function'
+                        ? window.playerRefMatches(sub.outId, player)
+                        : getTacticalLivePlayerRef(player) === String(sub.outId);
+                    if (isOut) clearLiveLineupPos(posId);
+                });
                 return;
             }
 
@@ -1350,8 +1382,27 @@
             loadLiveRolesFromMatch(match);
             syncLiveFormationNodes();
 
-            window.tacticalAppliedLiveSubs.forEach((sub) => applyLiveSubToLineupState(sub));
-            window.tacticalAppliedLiveMoves.forEach((move) => applyLiveMoveToLineupState(move));
+            // Replay in clock order (same as computeLivePositionMinutes):
+            // all-subs-then-all-moves wrongly applies e.g. 87' før 82'-rokering.
+            const liveEventTypeOrder = { sub: 0, role: 1, move: 2 };
+            const events = [];
+            window.tacticalAppliedLiveSubs.forEach((sub) => {
+                events.push({ type: 'sub', minute: parseLiveSubMinuteValue(sub.minute), sub });
+            });
+            window.tacticalAppliedLiveRoleChanges.forEach((change) => {
+                events.push({ type: 'role', minute: parseLiveSubMinuteValue(change.minute), change });
+            });
+            window.tacticalAppliedLiveMoves.forEach((move) => {
+                events.push({ type: 'move', minute: parseLiveSubMinuteValue(move.minute), move });
+            });
+            events.sort((a, b) => {
+                if (a.minute !== b.minute) return a.minute - b.minute;
+                return (liveEventTypeOrder[a.type] ?? 9) - (liveEventTypeOrder[b.type] ?? 9);
+            });
+            events.forEach((event) => {
+                if (event.type === 'sub') applyLiveSubToLineupState(event.sub);
+                else if (event.type === 'move') applyLiveMoveToLineupState(event.move);
+            });
             hydrateLiveSlotRolesFromChanges(window.tacticalAppliedLiveRoleChanges);
             syncLiveLineupToTactical();
         }
