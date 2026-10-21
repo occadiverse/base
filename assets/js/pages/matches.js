@@ -975,20 +975,6 @@ window.toggleMatchStatsPenaltyFields = function() {
     if (scores) scores.hidden = !enabled;
 };
 
-function buildMatchStatsResultCrestHtml(teamName) {
-    const logoHtml = typeof window.buildClubLogoImgHtml === 'function'
-        ? window.buildClubLogoImgHtml(teamName, 'match-stats-result-logo')
-        : '';
-    if (logoHtml) {
-        return `<span class="match-stats-result-crest">${logoHtml}</span>`;
-    }
-    return `
-        <span class="match-stats-result-crest is-fallback" aria-hidden="true">
-            <i class="fa-solid fa-shield"></i>
-        </span>
-    `;
-}
-
 function buildMatchStatsResultScorelineHtml({
     homeName,
     awayName,
@@ -1006,7 +992,6 @@ function buildMatchStatsResultScorelineHtml({
     return `
         <div class="match-stats-result-scoreline${compact ? ' is-compact' : ''}">
             <div class="match-stats-result-side is-home">
-                ${buildMatchStatsResultCrestHtml(homeName)}
                 <span class="match-stats-result-team">${homeLabel}</span>
             </div>
             <div class="match-stats-result-center">
@@ -1015,7 +1000,6 @@ function buildMatchStatsResultScorelineHtml({
                 ${awayScoreHtml}
             </div>
             <div class="match-stats-result-side is-away">
-                ${buildMatchStatsResultCrestHtml(awayName)}
                 ${awayTeamTag}
             </div>
         </div>
@@ -1105,7 +1089,7 @@ function buildMatchStatsResultBarHtml(match) {
     return `
         <div class="match-stats-result-bar" aria-label="Kampresultat">
             <div class="match-stats-result-board">
-                <p class="match-stats-result-heading">${regularHeading}</p>
+                <span class="match-stats-result-gem">${escapeMatchHtml(regularHeading)}</span>
                 ${regularScorelineHtml}
                 <p class="match-stats-result-hint">BSK-tall summeres fra spillermål</p>
                 ${penaltySectionHtml}
