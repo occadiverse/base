@@ -88,8 +88,13 @@ function switchTab(tabId, options = {}) {
     currentTab = tabId;
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
-    if (previousTab === 'kampdetaljer' && tabId !== 'kampdetaljer' && typeof window.clearSpillerborsMobileFocus === 'function') {
-        window.clearSpillerborsMobileFocus();
+    if (previousTab === 'kampdetaljer' && tabId !== 'kampdetaljer') {
+        if (typeof window.clearSpillerborsMobileFocus === 'function') {
+            window.clearSpillerborsMobileFocus();
+        }
+        if (typeof window.clearKamptroppMobileFocus === 'function') {
+            window.clearKamptroppMobileFocus();
+        }
     }
 
     ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'spillerprofil', 'oktside'].forEach(id => {

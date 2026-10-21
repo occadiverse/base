@@ -8949,6 +8949,7 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
 
 window.showMatchDetails = function(id) {
     clearSpillerborsMobileFocus();
+    clearKamptroppMobileFocus();
     const stayOnDetails = window.currentTab === 'kampdetaljer';
     const savedScrollTop = stayOnDetails ? (getPortalMainScrollHost()?.scrollTop || 0) : null;
 
@@ -9046,6 +9047,17 @@ window.showMatchDetails = function(id) {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="match-squad-mobile-close-bar">
+                    <span class="match-squad-close-bar-balance" aria-hidden="true"></span>
+                    <button
+                        type="button"
+                        class="blknapp match-squad-mobile-close-btn"
+                        onclick="window.closeKamptroppMobileFocus()"
+                        aria-label="Lukk kamptropp"
+                        hidden
+                    >LUKK</button>
+                    <span class="match-squad-close-bar-balance" aria-hidden="true"></span>
                 </div>
             </section>
             <section class="match-bench-panel match-collapsible-panel ${isLineupPanelOpen ? '' : 'is-collapsed'}" data-match-panel="oppstilling">
@@ -9278,9 +9290,13 @@ window.showMatchDetails = function(id) {
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
     if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
-    if (isStatsOpen && isSpillerborsMobileFocusViewport()) {
+    if (isStatsOpen && isMatchPanelMobileFocusViewport()) {
         const statsPanel = container?.querySelector('.match-stats-panel');
         if (statsPanel) window.enterSpillerborsMobileFocus(statsPanel);
+    }
+    if (isSquadPanelOpen && isMatchPanelMobileFocusViewport()) {
+        const squadPanel = container?.querySelector('[data-match-panel="kamptropp"]');
+        if (squadPanel) window.enterKamptroppMobileFocus(squadPanel);
     }
 
     requestAnimationFrame(() => {
@@ -12366,10 +12382,11 @@ window.onMatchPanelToplineClick = function(event) {
     window.toggleMatchPanel(panel);
 };
 
-function isSpillerborsMobileFocusViewport() {
+function isMatchPanelMobileFocusViewport() {
     return typeof window.matchMedia === 'function'
         && window.matchMedia('(max-width: 767px)').matches;
 }
+const isSpillerborsMobileFocusViewport = isMatchPanelMobileFocusViewport;
 
 function clearSpillerborsMobileFocus() {
     document.body.classList.remove('is-spillerbors-focus');
@@ -12381,11 +12398,22 @@ function clearSpillerborsMobileFocus() {
 }
 window.clearSpillerborsMobileFocus = clearSpillerborsMobileFocus;
 
+function clearKamptroppMobileFocus() {
+    document.body.classList.remove('is-kamptropp-focus');
+    const panel = document.querySelector('#kampdetaljer-info [data-match-panel="kamptropp"]');
+    if (!panel) return;
+    panel.classList.remove('is-mobile-focus');
+    const closeBtn = panel.querySelector('.match-squad-mobile-close-btn');
+    if (closeBtn) closeBtn.hidden = true;
+}
+window.clearKamptroppMobileFocus = clearKamptroppMobileFocus;
+
 window.enterSpillerborsMobileFocus = function(panel) {
     const statsPanel = panel?.classList?.contains('match-stats-panel')
         ? panel
         : document.querySelector('#kampdetaljer-info .match-stats-panel');
-    if (!statsPanel || !isSpillerborsMobileFocusViewport()) return;
+    if (!statsPanel || !isMatchPanelMobileFocusViewport()) return;
+    clearKamptroppMobileFocus();
     if (statsPanel.classList.contains('is-collapsed')) {
         setMatchDetailsPanelCollapsed(statsPanel, false);
         window.activeMatchDetailsOpenPanel = 'spillerbors';
@@ -12396,12 +12424,42 @@ window.enterSpillerborsMobileFocus = function(panel) {
     if (closeBtn) closeBtn.hidden = false;
 };
 
+window.enterKamptroppMobileFocus = function(panel) {
+    const squadPanel = panel?.dataset?.matchPanel === 'kamptropp'
+        ? panel
+        : document.querySelector('#kampdetaljer-info [data-match-panel="kamptropp"]');
+    if (!squadPanel || !isMatchPanelMobileFocusViewport()) return;
+    clearSpillerborsMobileFocus();
+    if (squadPanel.classList.contains('is-collapsed')) {
+        setMatchDetailsPanelCollapsed(squadPanel, false);
+        window.activeMatchDetailsOpenPanel = 'kamptropp';
+        window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
+        window.matchDetailPairPanelState.kamptropp = true;
+    }
+    document.body.classList.add('is-kamptropp-focus');
+    squadPanel.classList.add('is-mobile-focus');
+    const closeBtn = squadPanel.querySelector('.match-squad-mobile-close-btn');
+    if (closeBtn) closeBtn.hidden = false;
+};
+
 window.closeSpillerborsMobileFocus = function() {
     const statsPanel = document.querySelector('#kampdetaljer-info .match-stats-panel');
     clearSpillerborsMobileFocus();
     if (!statsPanel || statsPanel.classList.contains('is-collapsed')) return;
     setMatchDetailsPanelCollapsed(statsPanel, true);
     window.activeMatchDetailsOpenPanel = syncMatchDetailPairPanelsAfterExclusiveClose();
+};
+
+window.closeKamptroppMobileFocus = function() {
+    const squadPanel = document.querySelector('#kampdetaljer-info [data-match-panel="kamptropp"]');
+    clearKamptroppMobileFocus();
+    if (!squadPanel || squadPanel.classList.contains('is-collapsed')) return;
+    setMatchDetailsPanelCollapsed(squadPanel, true);
+    window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
+    window.matchDetailPairPanelState.kamptropp = false;
+    window.activeMatchDetailsOpenPanel = window.matchDetailPairPanelState.oppstilling === true
+        ? 'oppstilling'
+        : '';
 };
 
 window.toggleMatchPanel = function(btnOrPanel) {
@@ -12418,6 +12476,9 @@ window.toggleMatchPanel = function(btnOrPanel) {
     if (panelId !== 'spillerbors' || !shouldOpen) {
         clearSpillerborsMobileFocus();
     }
+    if (panelId !== 'kamptropp' || !shouldOpen) {
+        clearKamptroppMobileFocus();
+    }
 
     if (shouldOpen) {
         document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel').forEach(otherPanel => {
@@ -12430,8 +12491,11 @@ window.toggleMatchPanel = function(btnOrPanel) {
         setMatchDetailsPanelCollapsed(panel, false);
         window.activeMatchDetailsOpenPanel = panelId;
         if (isPairPanel) window.matchDetailPairPanelState[panelId] = true;
-        if (panelId === 'spillerbors' && isSpillerborsMobileFocusViewport()) {
+        if (panelId === 'spillerbors' && isMatchPanelMobileFocusViewport()) {
             window.enterSpillerborsMobileFocus(panel);
+        }
+        if (panelId === 'kamptropp' && isMatchPanelMobileFocusViewport()) {
+            window.enterKamptroppMobileFocus(panel);
         }
     } else {
         setMatchDetailsPanelCollapsed(panel, true);
