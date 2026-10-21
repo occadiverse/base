@@ -1108,11 +1108,202 @@ window.updateMatchStatsResultBar = function() {
     if (bskOutput) bskOutput.textContent = String(bskGoals);
 };
 
+function getMatchKickoffDate(match) {
+    if (!match?.date) return null;
+    const kickoff = new Date(match.date);
+    if (Number.isNaN(kickoff.getTime())) return null;
+    const timeMatch = String(match.time || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (timeMatch) {
+        kickoff.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
+    }
+    return kickoff;
+}
+
+function getMatchBattleCountdown(match) {
+    const kickoff = getMatchKickoffDate(match);
+    if (!kickoff) return null;
+    const diffMs = kickoff.getTime() - Date.now();
+    if (diffMs <= 0) {
+        return {
+            value: match.time || 'Nå',
+            label: 'Kampstart'
+        };
+    }
+    const totalMin = Math.floor(diffMs / 60000);
+    const days = Math.floor(totalMin / (60 * 24));
+    const hours = Math.floor((totalMin % (60 * 24)) / 60);
+    const mins = totalMin % 60;
+    if (days >= 1) {
+        return { value: `${days}d ${hours}t`, label: 'Til kampstart' };
+    }
+    if (hours >= 1) {
+        return { value: `${hours}t ${mins}m`, label: 'Til kampstart' };
+    }
+    return { value: `${Math.max(mins, 1)}m`, label: 'Til kampstart' };
+}
+
+function isMatchBattleFinished(match) {
+    return Boolean(match?.result && String(match.result).includes('-'));
+}
+
+function getMatchBattleCenterPresentation(match, data) {
+    const presentation = data || getMatchCardPresentation(match);
+    const kickoffTime = String(match?.time || '').trim() || '--:--';
+    if (isMatchBattleFinished(match)) {
+        return {
+            finished: true,
+            value: presentation.centerValue,
+            label: match?.penaltyResult ? 'Etter straffespark' : 'Slutt',
+            kickoffTime,
+            countdownLabel: ''
+        };
+    }
+    const countdown = getMatchBattleCountdown(match);
+    const countdownLabel = countdown
+        ? (countdown.label === 'Kampstart'
+            ? 'Kampstart'
+            : `Om ${countdown.value}`)
+        : presentation.centerLabel;
+    return {
+        finished: false,
+        value: kickoffTime,
+        label: countdownLabel,
+        kickoffTime,
+        countdownLabel
+    };
+}
+
+function getMatchBattleInfoChips(match, data) {
+    const presentation = data || getMatchCardPresentation(match);
+    const venue = typeof getMatchVenue === 'function' ? getMatchVenue(match) : (match?.venue || '');
+    const venueLabel = venue === 'Hjemme' ? 'Hjemme' : (venue === 'Borte' ? 'Borte' : '');
+    const presenceStats = typeof window.getAttendancePresenceStats === 'function'
+        ? window.getAttendancePresenceStats(match)
+        : { presentCount: 0, squadSize: 0, isRegistered: false };
+    const troppLabel = presenceStats.isRegistered
+        ? (presenceStats.squadSize > 0
+            ? `${presenceStats.presentCount}/${presenceStats.squadSize} tropp`
+            : `${presenceStats.presentCount} tropp`)
+        : 'Tropp ikke satt';
+    const opponentRecord = typeof getOpponentHistoryRecord === 'function'
+        && typeof getOpponentRecordMatches === 'function'
+        ? getOpponentHistoryRecord(getOpponentRecordMatches(match))
+        : null;
+    const opponentPlayed = opponentRecord
+        ? opponentRecord.wins + opponentRecord.draws + opponentRecord.losses
+        : 0;
+    const chips = [];
+    if (venueLabel) {
+        chips.push({
+            icon: venueLabel === 'Hjemme' ? 'fa-house' : 'fa-bus',
+            text: venueLabel,
+            title: 'Spillested'
+        });
+    }
+    chips.push({
+        icon: 'fa-location-dot',
+        text: match?.pitch || 'Bane ikke satt',
+        title: 'Bane'
+    });
+    chips.push({
+        icon: 'fa-hourglass-half',
+        text: presentation.durationLabel || '90 min',
+        title: 'Spilletid'
+    });
+    chips.push({
+        icon: 'fa-users',
+        text: troppLabel,
+        title: 'Kamptropp'
+    });
+    if (opponentPlayed > 0) {
+        chips.push({
+            icon: 'fa-shield-halved',
+            text: `${opponentRecord.wins}-${opponentRecord.draws}-${opponentRecord.losses}`,
+            title: `Mot ${match?.opponent || 'motstander'}: ${opponentPlayed} kamper`
+        });
+    }
+    if (isMatchBattleFinished(match) && match?.time) {
+        chips.unshift({
+            icon: 'fa-clock',
+            text: `Kl. ${match.time}`,
+            title: 'Kampstart'
+        });
+    }
+    return chips;
+}
+
+function buildMatchDetailBattleCenterHtml(match, data) {
+    const battle = getMatchBattleCenterPresentation(match, data);
+    if (battle.finished) {
+        return `
+            <div class="match-detail-center match-detail-battle-center is-finished">
+                <span class="match-detail-time match-detail-battle-score">${escapeMatchHtml(battle.value)}</span>
+                <span class="match-detail-sub" data-battle-sub>${escapeMatchHtml(battle.label)}</span>
+            </div>
+        `;
+    }
+    return `
+        <div class="match-detail-center match-detail-battle-center is-upcoming">
+            <span class="match-detail-battle-vs" aria-hidden="true">VS</span>
+            <span class="match-detail-time match-detail-battle-clock" data-battle-kickoff>${escapeMatchHtml(battle.value)}</span>
+            <span class="match-detail-sub" data-battle-sub>${escapeMatchHtml(battle.label)}</span>
+        </div>
+    `;
+}
+
+function buildMatchDetailBattleInfoHtml(match, data) {
+    const chips = getMatchBattleInfoChips(match, data);
+    if (!chips.length) return '';
+    return `
+        <div class="match-detail-battle-info" data-battle-info>
+            ${chips.map(chip => `
+                <div class="match-detail-battle-chip" title="${escapeMatchHtml(chip.title || chip.text)}">
+                    <i class="fa-solid ${escapeMatchHtml(chip.icon)}" aria-hidden="true"></i>
+                    <span>${escapeMatchHtml(chip.text)}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
 function syncMatchDetailCardResult(match) {
     const center = document.querySelector('#kampdetaljer-info .match-detail-center');
     if (!center) return;
 
     const data = getMatchCardPresentation(match);
+    if (center.classList.contains('match-detail-battle-center')) {
+        const battle = getMatchBattleCenterPresentation(match, data);
+        center.classList.toggle('is-finished', battle.finished);
+        center.classList.toggle('is-upcoming', !battle.finished);
+        let vsEl = center.querySelector('.match-detail-battle-vs');
+        if (battle.finished) {
+            vsEl?.remove();
+        } else if (!vsEl) {
+            vsEl = document.createElement('span');
+            vsEl.className = 'match-detail-battle-vs';
+            vsEl.setAttribute('aria-hidden', 'true');
+            vsEl.textContent = 'VS';
+            center.prepend(vsEl);
+        }
+        const timeEl = center.querySelector('.match-detail-time');
+        const subEl = center.querySelector('[data-battle-sub], .match-detail-sub');
+        if (timeEl) {
+            timeEl.classList.toggle('match-detail-battle-score', battle.finished);
+            timeEl.classList.toggle('match-detail-battle-clock', !battle.finished);
+            timeEl.textContent = battle.value;
+        }
+        if (subEl) subEl.textContent = battle.label;
+
+        const infoHost = document.querySelector('#kampdetaljer-info [data-battle-info]');
+        if (infoHost) {
+            const next = document.createElement('div');
+            next.innerHTML = buildMatchDetailBattleInfoHtml(match, data);
+            const nextInfo = next.querySelector('[data-battle-info]');
+            if (nextInfo) infoHost.replaceWith(nextInfo);
+        }
+        return;
+    }
+
     const timeEl = center.querySelector('.match-detail-time');
     const subEl = center.querySelector('.match-detail-sub');
     if (timeEl) timeEl.textContent = data.centerValue;
@@ -1209,6 +1400,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
     const cardClasses = [
         'match-detail-card',
         extraClass,
+        showHeroNav ? 'is-battle-hero' : '',
         data.resultTone,
         (clickable || backOnClick) ? 'dashboard-click-card' : ''
     ].filter(Boolean).join(' ');
@@ -1239,6 +1431,42 @@ function buildMatchDetailCardHtml(match, options = {}) {
         : backOnClick
             ? 'data-match-action="go-back" role="button" tabindex="0" title="Tilbake" aria-label="Tilbake til forrige side"'
             : '';
+    const mainHtml = showHeroNav
+        ? `
+            <div class="match-detail-battle relative z-10">
+                <div class="match-detail-main match-detail-battle-arena">
+                    ${renderMatchTeamHtml(sides.left)}
+                    ${buildMatchDetailBattleCenterHtml(match, data)}
+                    ${renderMatchTeamHtml(sides.right)}
+                </div>
+                ${buildMatchDetailBattleInfoHtml(match, data)}
+            </div>
+        `
+        : `
+            <div class="match-detail-main relative z-10">
+                ${renderMatchTeamHtml(sides.left)}
+                <div class="match-detail-center">
+                    <span class="match-detail-time">${escapeMatchHtml(data.centerValue)}</span>
+                    <span class="match-detail-sub">${escapeMatchHtml(data.centerLabel)}</span>
+                </div>
+                ${renderMatchTeamHtml(sides.right)}
+            </div>
+        `;
+    const footerHtml = showHeroNav
+        ? ''
+        : `
+            <div class="match-detail-footer relative z-10">
+                <div class="match-detail-footer-item" title="${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}</span>
+                </div>
+                ${footerAttendanceHtml}
+                <div class="match-detail-footer-item">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>${escapeMatchHtml(data.durationLabel)}</span>
+                </div>
+            </div>
+        `;
     return `
         <article class="${cardClasses}" ${clickAttrs}>
             ${watermarkHtml}
@@ -1266,30 +1494,11 @@ function buildMatchDetailCardHtml(match, options = {}) {
                 </div>
             </div>
 
-            <div class="match-detail-main relative z-10">
-                ${renderMatchTeamHtml(sides.left)}
-
-                <div class="match-detail-center">
-                    <span class="match-detail-time">${escapeMatchHtml(data.centerValue)}</span>
-                    <span class="match-detail-sub">${escapeMatchHtml(data.centerLabel)}</span>
-                </div>
-
-                ${renderMatchTeamHtml(sides.right)}
-            </div>
+            ${mainHtml}
 
             ${bottomContentHtml}
 
-            <div class="match-detail-footer relative z-10">
-                <div class="match-detail-footer-item" title="${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <span>${escapeMatchHtml(match.pitch || 'Ikke fastsatt')}</span>
-                </div>
-                ${footerAttendanceHtml}
-                <div class="match-detail-footer-item">
-                    <i class="fa-regular fa-clock"></i>
-                    <span>${escapeMatchHtml(data.durationLabel)}</span>
-                </div>
-            </div>
+            ${footerHtml}
 
             ${showHeroNav ? buildMatchDetailHeroNavHtml(match) : ''}
         </article>
