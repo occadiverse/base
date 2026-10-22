@@ -3031,8 +3031,8 @@
             const teamName = match.matchGroup;
             const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
-            let teamPlayers = players.filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
-            if (teamPlayers.length === 0) teamPlayers = players.filter(p => p.status !== 'Passiv');
+            let teamPlayers = players.filter(p => p.spillerLag === teamName && window.isPlayerInCurrentSquadPool(p));
+            if (teamPlayers.length === 0) teamPlayers = players.filter(p => window.isPlayerInCurrentSquadPool(p));
             teamPlayers = teamPlayers.filter(p => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, match));
 
             const startingPlayerNames = Object.values(window.tacticalLineup || {}).filter(p => p !== null).map(p => p.navn);
@@ -3510,7 +3510,7 @@
             const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
 
             let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-                if (p.status === 'Passiv') return false;
+                if (!window.isPlayerInCurrentSquadPool(p)) return false;
                 if (currentMatch && typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, currentMatch)) return false;
                 if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
                 return true;
@@ -3767,7 +3767,7 @@ window.updateTacticalBoardStats = function() {
     const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
 
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-        if (p.status === 'Passiv') return false;
+        if (!window.isPlayerInCurrentSquadPool(p)) return false;
         if (currentMatch && typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, currentMatch)) return false;
         if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
         return true;

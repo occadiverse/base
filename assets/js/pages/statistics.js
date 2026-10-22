@@ -276,11 +276,19 @@ window.checkIndividualChemistry = function() {
             return prefix ? Number(prefix[1]) : null;
         };
 
+        window.getStatsActiveSeasonYear = function() {
+            const years = typeof window.getStatsKampYearOptions === 'function'
+                ? window.getStatsKampYearOptions()
+                : [];
+            return years.length ? years[0] : new Date().getFullYear();
+        };
+
         window.getStatsKampYearFilter = function() {
             const years = typeof window.getStatsKampYearOptions === 'function'
                 ? window.getStatsKampYearOptions()
                 : [];
             const current = window.statsKampYearFilter;
+            // Explicit "Alle" stays available on demand; default is always aktiv sesong.
             if (current === 'alle') return 'alle';
             const year = Number(current);
             if (Number.isFinite(year) && years.includes(year)) return year;
@@ -566,15 +574,22 @@ window.checkIndividualChemistry = function() {
             return window.renderStatsFilterMenuHtml({
                 menuId: 'year',
                 ariaLabel: 'Velg sesong',
-                valueLabel: yearLabel,
+                valueLabel: yearFilter === 'alle' ? 'Alle år' : yearLabel,
                 icon: 'fa-calendar',
                 action: 'set-kamp-year',
                 valueAttr: 'year',
-                options: years.map(year => ({
-                    value: String(year),
-                    label: String(year),
-                    selected: yearFilter === year
-                }))
+                options: [
+                    ...years.map(year => ({
+                        value: String(year),
+                        label: String(year),
+                        selected: yearFilter === year
+                    })),
+                    {
+                        value: 'alle',
+                        label: 'Alle år',
+                        selected: yearFilter === 'alle'
+                    }
+                ]
             });
         };
 
@@ -795,13 +810,19 @@ window.checkIndividualChemistry = function() {
                 if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
                 return true;
             });
-            const currentPlayers = players.filter(p => p.status !== 'Passiv');
+            const currentPlayers = players.filter(p => window.isPlayerInCurrentSquadPool(p));
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : (typeof window.getStatsActiveSeasonYear === 'function'
+                    ? window.getStatsActiveSeasonYear()
+                    : new Date().getFullYear());
 
             const matches = (window.activeMatches || [])
                 .filter(m => {
                     if (!m.result || !m.result.includes('-')) return false;
                     if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
                     if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
+                    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return false;
                     return true;
                 })
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -809,6 +830,7 @@ window.checkIndividualChemistry = function() {
                 .filter(e => {
                     if (filterLag && filterLag !== 'Alle' && e.team !== filterLag) return false;
                     if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
+                    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return false;
                     return Boolean(e.attendance);
                 })
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -906,7 +928,7 @@ window.checkIndividualChemistry = function() {
             };
 
             const followUpMap = new Map();
-            activeStats.filter(p => p.status !== 'Passiv').forEach(p => {
+            activeStats.filter(p => window.isPlayerInCurrentSquadPool(p)).forEach(p => {
                 const discipline = getDisciplineForPlayerName(p.name);
                 const hasRedSuspension = Boolean(discipline?.isSuspended && discipline?.cardType === 'red');
                 const hasYellowSuspension = Boolean(discipline?.isSuspended && discipline?.cardType === 'yellow');
@@ -964,7 +986,7 @@ window.checkIndividualChemistry = function() {
             const scoped = Array.isArray(scopedPlayers) ? scopedPlayers : [];
             const current = Array.isArray(activePlayers)
                 ? activePlayers
-                : scoped.filter(p => p.status !== 'Passiv');
+                : scoped.filter(p => window.isPlayerInCurrentSquadPool(p));
             const squadMap = new Map();
             const addPlayer = (player) => {
                 if (!player) return;
@@ -996,7 +1018,7 @@ window.checkIndividualChemistry = function() {
             const teamFilterActive = filterLag && filterLag !== 'Alle';
             const allPlayers = window.activePlayers || [];
             const scopedPlayers = allPlayers.filter(p => !teamFilterActive || p.spillerLag === filterLag);
-            const activePlayers = scopedPlayers.filter(p => p.status !== 'Passiv');
+            const activePlayers = scopedPlayers.filter(p => window.isPlayerInCurrentSquadPool(p));
             const passivePlayers = scopedPlayers.filter(p => p.status === 'Passiv');
             const injuredPlayers = activePlayers.filter(p => {
                 const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
@@ -1023,11 +1045,17 @@ window.checkIndividualChemistry = function() {
                 if (score) conceded += score.opponent;
             });
 
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : (typeof window.getStatsActiveSeasonYear === 'function'
+                    ? window.getStatsActiveSeasonYear()
+                    : new Date().getFullYear());
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             const historicalEvents = allEvents
                 .filter(e => {
                     if (teamFilterActive && e.team !== filterLag) return false;
                     if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
+                    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return false;
                     return Boolean(e.attendance);
                 })
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -1204,7 +1232,51 @@ window.checkIndividualChemistry = function() {
         };
 
         
-        window.renderStatistikkSide = function() {
+        window.scheduleStatsHeavyWork = function(task) {
+            const generation = (window._statsRenderGeneration = (window._statsRenderGeneration || 0) + 1);
+            const run = () => {
+                if (generation !== window._statsRenderGeneration) return;
+                try {
+                    task();
+                } catch (error) {
+                    console.error('Statistikk-render feilet:', error);
+                }
+            };
+            // Double rAF: wait until after the browser has painted the stats shell.
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(() => requestAnimationFrame(run));
+            } else {
+                setTimeout(run, 0);
+            }
+        };
+
+        window.paintStatsOpeningShell = function(tabId = 'lag') {
+            const heroTab = tabId === 'spillere' ? 'spillere' : 'lag';
+            if (typeof window.paintStatsChrome === 'function' && typeof window.renderStatsChromeTabsOnly === 'function') {
+                window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml(heroTab)));
+            }
+            if (typeof window.updateStatsLagSectionVisibility === 'function') {
+                window.updateStatsLagSectionVisibility();
+            }
+
+            // First visit: tiny placeholder so the view isn't empty while heavy work runs.
+            const activeSection = typeof window.getStatsLagSection === 'function'
+                ? window.getStatsLagSection()
+                : 'kampdata';
+            const placeholder = '<div class="stats-panel"><p class="stats-kamp-panel-hint">Laster statistikk…</p></div>';
+            if (activeSection === 'kampdata') {
+                const slot = document.getElementById('stats-kampdata-slot');
+                if (slot && !slot.innerHTML.trim()) slot.innerHTML = placeholder;
+            } else if (activeSection === 'spillerdata') {
+                const slot = document.getElementById('stats-spillerstats-slot');
+                if (slot && !slot.innerHTML.trim()) slot.innerHTML = placeholder;
+            } else if (activeSection === 'treningsdata') {
+                const slot = document.getElementById('stats-oppmote-slot');
+                if (slot && !slot.innerHTML.trim()) slot.innerHTML = placeholder;
+            }
+        };
+
+        window.renderStatistikkSide = function(options = {}) {
             if (typeof window.invalidateStatsSpillerYearOptionsCache === 'function') {
                 window.invalidateStatsSpillerYearOptionsCache();
             }
@@ -1213,10 +1285,7 @@ window.checkIndividualChemistry = function() {
                 if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
                 return true;
             });
-            const teamPlayers = scopedPlayers.filter(p => {
-                if (p.status === 'Passiv') return false;
-                return true;
-            });
+            const teamPlayers = scopedPlayers.filter(p => window.isPlayerInCurrentSquadPool(p));
 
             const filteredMatches = (window.activeMatches || []).filter(m => {
                 if (!m.result || !m.result.includes('-')) return false;
@@ -1244,6 +1313,11 @@ window.checkIndividualChemistry = function() {
             });
 
             const matchCount = filteredMatches.length;
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : (typeof window.getStatsActiveSeasonYear === 'function'
+                    ? window.getStatsActiveSeasonYear()
+                    : new Date().getFullYear());
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             const todayForStats = new Date();
             todayForStats.setHours(0, 0, 0, 0);
@@ -1251,6 +1325,7 @@ window.checkIndividualChemistry = function() {
             let totalEventTicks = 0, totalPossibleTicks = 0;
             allEvents.forEach(e => {
                 if (filterLag && filterLag !== 'Alle' && e.team !== filterLag) return;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return;
                 if (e.date) {
                     const eventDate = new Date(e.date);
                     eventDate.setHours(0, 0, 0, 0);
@@ -1293,8 +1368,23 @@ window.checkIndividualChemistry = function() {
                 ? window.buildTeamReportData(filterLag, window._statsLagData, analysis)
                 : null;
 
-            if (document.querySelector('#stat-tab-lag.is-active') || document.getElementById('stat-view-lag')?.classList.contains('block')) {
-                window.renderStatsTabHero('lag');
+            const activeSection = typeof window.getStatsLagSection === 'function'
+                ? window.getStatsLagSection()
+                : 'kampdata';
+            if (activeSection === 'spillerdata') {
+                if (window._statsSelectedPlayer && typeof window.renderSpillereDetail === 'function') {
+                    window.renderSpillereDetail(window._statsSelectedPlayer);
+                } else if (typeof window.renderSpillereView === 'function') {
+                    window.renderSpillereView();
+                } else if (typeof window.renderStatsLagSummary === 'function') {
+                    window.renderStatsLagSummary();
+                }
+            } else if (document.querySelector('#stat-tab-lag.is-active') || document.getElementById('stat-view-lag')?.classList.contains('block')) {
+                if (options.skipChrome && typeof window.renderStatsLagSummary === 'function') {
+                    window.renderStatsLagSummary();
+                } else if (typeof window.renderStatsTabHero === 'function') {
+                    window.renderStatsTabHero('lag');
+                }
             }
 
             if (typeof window.updateStatsLagSectionVisibility === 'function') {
@@ -1305,7 +1395,14 @@ window.checkIndividualChemistry = function() {
 
 
 window.getPlayerFormComponents = function(playerName, options = {}) {
-    const yearFilter = options.yearFilter === undefined ? 'alle' : options.yearFilter;
+    // Default to active season — full history only when caller passes yearFilter: 'alle'.
+    const yearFilter = options.yearFilter !== undefined
+        ? options.yearFilter
+        : (typeof window.getStatsSpillerYearFilter === 'function'
+            ? window.getStatsSpillerYearFilter()
+            : (typeof window.getStatsActiveSeasonYear === 'function'
+                ? window.getStatsActiveSeasonYear()
+                : new Date().getFullYear()));
     const excludeMatchId = options.excludeMatchId ? String(options.excludeMatchId) : '';
     const asOfDateRaw = options.asOfDate || null;
     const cache = typeof window.getDerivedStatsCache === 'function'
@@ -1469,7 +1566,7 @@ window.getTeamFormMedian = function(teamName) {
     if (cache?.has(cacheKey)) return cache.get(cacheKey);
 
     const scores = (window.activePlayers || [])
-        .filter(p => p.status !== 'Passiv' && (!teamName || p.spillerLag === teamName))
+        .filter(p => window.isPlayerInCurrentSquadPool(p) && (!teamName || p.spillerLag === teamName))
         .map(p => window.calculatePlayerPerformanceChemistry(p.navn))
         .filter(score => score > 0)
         .sort((a, b) => a - b);
@@ -1487,7 +1584,7 @@ window.getTeamMatchSquadPoints = function(match, teamName) {
     if (!match || !teamName || !match.attendance) return [];
 
     const scopedPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName);
-    const activePlayers = scopedPlayers.filter(p => p.status !== 'Passiv');
+    const activePlayers = scopedPlayers.filter(p => window.isPlayerInCurrentSquadPool(p));
     const players = (typeof window.getStatsHistoricalEventSquad === 'function'
         ? window.getStatsHistoricalEventSquad(match, scopedPlayers, activePlayers)
         : activePlayers
@@ -1544,7 +1641,13 @@ window.getPlayerRollingMatchPointsAsOf = function(player, asOfDate, options = {}
     if (Number.isNaN(asOf.getTime())) return null;
     asOf.setHours(23, 59, 59, 999);
 
-    const yearFilter = options.yearFilter === undefined ? 'alle' : options.yearFilter;
+    const yearFilter = options.yearFilter !== undefined
+        ? options.yearFilter
+        : (typeof window.getStatsSpillerYearFilter === 'function'
+            ? window.getStatsSpillerYearFilter()
+            : (typeof window.getStatsActiveSeasonYear === 'function'
+                ? window.getStatsActiveSeasonYear()
+                : new Date().getFullYear()));
     const teamName = player.spillerLag;
     const recentMatches = (window.activeMatches || [])
         .filter(m => {
@@ -1583,7 +1686,7 @@ window.getTeamDevelopmentMedianAsOf = function(teamName, asOfDate, options = {})
     const excludeName = options.excludePlayerName || '';
     const values = (window.activePlayers || [])
         .filter(player => (
-            player.status !== 'Passiv' &&
+            window.isPlayerInCurrentSquadPool(player) &&
             player.spillerLag === teamName &&
             player.navn !== excludeName
         ))
@@ -1759,7 +1862,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? window.getStatsSpillerYearFilter()
                         : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle'))
                     : 'alle');
+            const cache = typeof window.getDerivedStatsCache === 'function'
+                ? window.getDerivedStatsCache('playerStatsData')
+                : null;
+            const cacheKey = `${filterLag}|${yearFilter}`;
+            if (cache?.has(cacheKey)) return cache.get(cacheKey);
+
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
+            const teamKampCountByTeam = new Map();
+            allEvents.forEach(e => {
+                if (e.type !== 'Kamp' || !e.team) return;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return;
+                teamKampCountByTeam.set(e.team, (teamKampCountByTeam.get(e.team) || 0) + 1);
+            });
 
             const statsData = (window.activePlayers || [])
                 .filter(p => filterLag === 'Alle' || p.spillerLag === filterLag)
@@ -1842,12 +1958,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const minutesSharePct = minutesPossible > 0
                         ? Math.min(100, Math.round((minutesTotal / minutesPossible) * 100))
                         : null;
-                    const teamKampCount = allEvents.filter(e => {
-                        if (e.team !== p.spillerLag || e.type !== 'Kamp') return false;
-                        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
-                        if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return false;
-                        return true;
-                    }).length;
+                    const teamKampCount = teamKampCountByTeam.get(p.spillerLag) || 0;
                     const kampSharePct = teamKampCount > 0
                         ? Math.round((kamper / teamKampCount) * 1000) / 10
                         : 0;
@@ -1891,7 +2002,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     };
                 });
 
-            return window.applyPlayerTotalScores(statsData);
+            const scored = window.applyPlayerTotalScores(statsData);
+            if (cache) cache.set(cacheKey, scored);
+            return scored;
         };
 
         window.STATS_SPILLER_POSITION_OPTIONS = [
@@ -3318,7 +3431,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return rows
                 .filter(stat => {
                     const player = playerByName.get(stat.navn);
-                    return stat.attendedMatches > 0 && stat.totalScore > 0 && player?.status !== 'Passiv';
+                    return stat.attendedMatches > 0 && stat.totalScore > 0 && (player && window.isPlayerInCurrentSquadPool(player));
                 })
                 .map(stat => ({
                     name: stat.navn,
@@ -3335,7 +3448,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? window.getStatsSpillerYearFilter()
                 : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle');
             const scopedPlayers = (window.activePlayers || [])
-                .filter(player => player.status !== 'Passiv')
+                .filter(player => window.isPlayerInCurrentSquadPool(player))
                 .filter(player => filterLag === 'Alle' || player.spillerLag === filterLag);
 
             const totalRows = window.buildStatsTotalScoreDiagramData();
@@ -3398,7 +3511,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         && (Number(stat.minutesPossible) || 0) > 0
                         && stat.minutesSharePct != null
                         && (Number(stat.snittBors) || 0) > 0
-                        && player?.status !== 'Passiv';
+                        && (player && window.isPlayerInCurrentSquadPool(player));
                 })
                 .map(stat => {
                     const minutesSharePct = Math.max(0, Math.min(100, Number(stat.minutesSharePct) || 0));
@@ -3419,7 +3532,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? window.getStatsSpillerYearFilter()
                 : (typeof window.getStatsKampYearFilter === 'function' ? window.getStatsKampYearFilter() : 'alle');
             const scopedPlayers = (window.activePlayers || [])
-                .filter(player => player.status !== 'Passiv')
+                .filter(player => window.isPlayerInCurrentSquadPool(player))
                 .filter(player => filterLag === 'Alle' || player.spillerLag === filterLag);
             const seasonByName = new Map(
                 (window.buildStatsTillitTotalDiagramData() || []).map(row => [row.name, row])
@@ -3477,7 +3590,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.getStatsDiagramScopedPlayers = function() {
             const filterLag = window.getStatsTeamFilter ? window.getStatsTeamFilter() : 'Alle';
             return (window.activePlayers || [])
-                .filter(player => player.status !== 'Passiv')
+                .filter(player => window.isPlayerInCurrentSquadPool(player))
                 .filter(player => filterLag === 'Alle' || player.spillerLag === filterLag);
         };
 
@@ -3517,7 +3630,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         && (Number(stat.kamper) || 0) > 0
                         && (Number(stat.minutesPossible) || 0) > 0
                         && stat.minutesSharePct != null
-                        && player?.status !== 'Passiv';
+                        && (player && window.isPlayerInCurrentSquadPool(player));
                 })
                 .map(stat => {
                     const minutesSharePct = Math.max(0, Math.min(100, Number(stat.minutesSharePct) || 0));
@@ -3605,7 +3718,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const player = playerByName.get(stat.navn);
                     return stat.attendedMatches > 0
                         && (Number(stat.oppmotePossible) || 0) > 0
-                        && player?.status !== 'Passiv';
+                        && (player && window.isPlayerInCurrentSquadPool(player));
                 })
                 .map(stat => ({
                     name: stat.navn,
@@ -4405,41 +4518,36 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
 
             container.innerHTML = '';
-            if (kampdataSlot && typeof window.renderStatsKampdataPanelHtml === 'function') {
-                kampdataSlot.innerHTML = window.renderStatsKampdataPanelHtml(data, report);
-            }
-            if (kampForKampSlot && typeof window.renderStatsKampForKampPanelHtml === 'function') {
-                kampForKampSlot.innerHTML = window.renderStatsKampForKampPanelHtml(data);
-            }
-            if (kampstatsSlot && typeof window.renderStatsKampstatsPanelHtml === 'function') {
-                kampstatsSlot.innerHTML = window.renderStatsKampstatsPanelHtml();
-            }
-            if (awardsSlot && typeof window.renderStatsAwardsPanelHtml === 'function') {
-                awardsSlot.innerHTML = window.renderStatsAwardsPanelHtml();
-            }
-            if (spillerstatsSlot && typeof window.renderStatsSpillerstatsPanelHtml === 'function') {
-                spillerstatsSlot.innerHTML = window.renderStatsSpillerstatsPanelHtml();
-                if (typeof window.renderPlayerStatsList === 'function') window.renderPlayerStatsList();
-            }
-            if (utviklingSlot && typeof window.renderStatsUtviklingPanelHtml === 'function') {
-                utviklingSlot.innerHTML = window.renderStatsUtviklingPanelHtml();
-            }
-            if (oppfolgingSlot && typeof window.renderStatsOppfolgingPanelHtml === 'function') {
-                oppfolgingSlot.innerHTML = window.renderStatsOppfolgingPanelHtml();
-            }
-            if (oppmoteSlot && typeof window.renderStatsOppmotePanelHtml === 'function') {
-                oppmoteSlot.innerHTML = window.renderStatsOppmotePanelHtml(data);
-            }
-            if (typeof window.renderMatchStatsView === 'function') {
-                window.renderMatchStatsView();
-            }
-            if (window.getStatsLagSection() === 'spillerdata') {
+            const activeSection = typeof window.getStatsLagSection === 'function'
+                ? window.getStatsLagSection()
+                : 'kampdata';
+
+            // Only build panels for the visible section — avoids ~0.5–1s of hidden work.
+            if (activeSection === 'kampdata') {
+                if (kampdataSlot && typeof window.renderStatsKampdataPanelHtml === 'function') {
+                    kampdataSlot.innerHTML = window.renderStatsKampdataPanelHtml(data, report);
+                }
+                if (kampForKampSlot && typeof window.renderStatsKampForKampPanelHtml === 'function') {
+                    kampForKampSlot.innerHTML = window.renderStatsKampForKampPanelHtml(data);
+                }
+                if (kampstatsSlot && typeof window.renderStatsKampstatsPanelHtml === 'function') {
+                    kampstatsSlot.innerHTML = window.renderStatsKampstatsPanelHtml();
+                }
+                if (typeof window.renderMatchStatsView === 'function') {
+                    window.renderMatchStatsView();
+                }
+            } else if (activeSection === 'spillerdata') {
                 if (window._statsSelectedPlayer && typeof window.renderSpillereDetail === 'function') {
                     window.renderSpillereDetail(window._statsSelectedPlayer);
                 } else if (typeof window.renderSpillereView === 'function') {
                     window.renderSpillereView();
                 }
+            } else if (activeSection === 'treningsdata') {
+                if (oppmoteSlot && typeof window.renderStatsOppmotePanelHtml === 'function') {
+                    oppmoteSlot.innerHTML = window.renderStatsOppmotePanelHtml(data);
+                }
             }
+
             window.updateStatsLagSectionVisibility();
         };
 
@@ -5324,10 +5432,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
             if (tabId === 'spillere') {
                 window.statsLagSection = 'spillerdata';
-                window.renderStatistikkSide();
-                if (window._statsSelectedPlayer) window.renderSpillereDetail(window._statsSelectedPlayer);
-                else window.renderSpillereView();
-                window.updateStatsLagSectionVisibility();
+            }
+
+            // Paint shell immediately so the Statistikk click feels instant.
+            if (typeof window.paintStatsOpeningShell === 'function') {
+                window.paintStatsOpeningShell(tabId);
+            }
+
+            if (typeof window.scheduleStatsHeavyWork === 'function') {
+                window.scheduleStatsHeavyWork(() => {
+                    window.renderStatistikkSide({ skipChrome: true });
+                });
                 return;
             }
             window.renderStatistikkSide();
@@ -5683,7 +5798,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (!container) return;
 
             window.statsLagSection = 'spillerdata';
-            window.renderStatsTabHero('spillere');
+            // Chrome/tabs only — diagrams are rendered once inside utvikling-panelet below.
+            const hero = document.getElementById('stats-tab-hero');
+            if (hero && typeof window.paintStatsChrome === 'function' && typeof window.renderStatsChromeTabsOnly === 'function') {
+                window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml('spillere')));
+            }
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) {
                 awardsSlot.innerHTML = typeof window.renderStatsAwardsPanelHtml === 'function'
@@ -5711,7 +5830,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             container.innerHTML = '';
 
-            window.renderStatsSpillereSummary();
             window.renderPlayerStatsList();
             if (typeof window.updateStatsLagSectionVisibility === 'function') {
                 window.updateStatsLagSectionVisibility();

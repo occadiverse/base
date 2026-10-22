@@ -241,12 +241,50 @@ function finishPlayerInjury(player, tilDato = getTodayDateString()) {
 }
 
 function isPlayerLeftSquad(player) {
+    if (typeof window.isPlayerDeregistered === 'function') {
+        return window.isPlayerDeregistered(player);
+    }
     const leftTo = typeof window.getPlayerLeftToDate === 'function'
         ? window.getPlayerLeftToDate(player)
         : (player?.tilknyttetTil || '');
     if (!leftTo) return false;
     return leftTo < getTodayDateString();
 }
+
+function getPlayerDisplayStatus(player) {
+    if (typeof window.isPlayerDeregistered === 'function' && window.isPlayerDeregistered(player)) {
+        return 'Utregistrert';
+    }
+    return player?.status || '-';
+}
+
+window.syncPlayerStatusWithLeftToDate = function() {
+    const leftToInput = document.getElementById('playerLeftToInput');
+    const statusInput = document.getElementById('playerStatusInput');
+    if (!leftToInput || !statusInput) return;
+    const leftTo = (leftToInput.value || '').trim();
+    if (leftTo) {
+        statusInput.value = 'Utregistrert';
+        return;
+    }
+    if (statusInput.value === 'Utregistrert') {
+        statusInput.value = 'Passiv';
+    }
+};
+
+window.syncPlayerLeftToDateWithStatus = function() {
+    const leftToInput = document.getElementById('playerLeftToInput');
+    const statusInput = document.getElementById('playerStatusInput');
+    if (!leftToInput || !statusInput) return;
+    if (statusInput.value === 'Utregistrert') {
+        if (!(leftToInput.value || '').trim()) {
+            leftToInput.value = getTodayDateString();
+        }
+        return;
+    }
+    // Leaving Utregistrert clears sluttdato so they re-enter current tropp cleanly.
+    leftToInput.value = '';
+};
 
 function getRosterFilteredPlayers() {
     const searchEl = document.getElementById('playerSearchInput');
@@ -261,8 +299,7 @@ function getRosterFilteredPlayers() {
         if (window.rosterStatusFilter === 'skadet' && !injuryInfo.isInjured) return false;
         if (window.rosterStatusFilter !== 'alle' && window.rosterStatusFilter !== 'skadet' && p.status !== window.rosterStatusFilter) return false;
 
-        // Utmeldte (tilknyttet til i fortiden) skjules fra tropplisten,
-        // men forblir søkbare for historikk/profil.
+        // Utregistrert skjules fra tropplisten, men forblir søkbare for historikk/profil.
         if (!searchTerm && isPlayerLeftSquad(p)) return false;
 
         if (!searchTerm) return true;
@@ -307,6 +344,9 @@ function buildRosterStatusBadge(status) {
     }
     if (status === 'Rekrutt') {
         return `<span class="roster-badge roster-badge-recruit">${safeStatus}</span>`;
+    }
+    if (status === 'Utregistrert') {
+        return `<span class="roster-badge roster-badge-muted" title="Ikke lenger tilknyttet troppen">${safeStatus}</span>`;
     }
     return `<span class="roster-badge roster-badge-muted">${safeStatus}</span>`;
 }
@@ -412,10 +452,11 @@ function buildRosterPlayerRow(p, currentYear) {
         ? window.getPlayerInjuryInfo(p)
         : { isInjured: false };
     const captainMark = p.isCaptain ? '<span class="roster-captain" title="Kaptein">⚓</span>' : '';
+    const displayStatus = getPlayerDisplayStatus(p);
     const rowStateClasses = [
-        p.status === 'Aktiv' ? 'is-active-player' : '',
-        p.status === 'Rekrutt' ? 'is-recruit-player' : '',
-        p.status === 'Passiv' ? 'is-passive-player' : '',
+        displayStatus === 'Aktiv' ? 'is-active-player' : '',
+        displayStatus === 'Rekrutt' ? 'is-recruit-player' : '',
+        displayStatus === 'Passiv' || displayStatus === 'Utregistrert' ? 'is-passive-player' : '',
         injuryInfo.isInjured ? 'is-injured-player' : '',
         injuryInfo.type === 'langvarig' ? 'is-long-injury-player' : ''
     ].filter(Boolean).join(' ');
@@ -436,7 +477,7 @@ function buildRosterPlayerRow(p, currentYear) {
             <div class="roster-player-side">
                 <span class="roster-player-age">${age} år</span>
                 <div class="roster-player-badges">
-                    ${buildRosterStatusBadge(p.status)}
+                    ${buildRosterStatusBadge(displayStatus)}
                     ${buildRosterInjuryBadge(injuryInfo)}
                 </div>
             </div>
@@ -706,7 +747,7 @@ function renderPlayerModalProfile(player) {
             <div class="player-profile-hero-main">
                 <h3 class="player-profile-name">${escapeRosterHtml(player.navn)}${captainMark}</h3>
                 <div class="player-profile-badges">
-                    ${buildRosterStatusBadge(player.status)}
+                    ${buildRosterStatusBadge(getPlayerDisplayStatus(player))}
                     ${buildRosterInjuryBadge(injuryInfo)}
                 </div>
                 <p class="player-profile-subtitle">${escapeRosterHtml(posLabel)} · ${escapeRosterHtml(player.spillerLag || window.getPrimaryTeamName())}</p>
@@ -720,7 +761,7 @@ function renderPlayerModalProfile(player) {
                 ${buildPlayerProfileMetricHtml('Lag', player.spillerLag || window.getPrimaryTeamName())}
                 ${buildPlayerProfileMetricHtml('Posisjon', posLabel)}
                 ${buildPlayerProfileMetricHtml('Fot', foot)}
-                ${buildPlayerProfileMetricHtml('Status', player.status || '-')}
+                ${buildPlayerProfileMetricHtml('Status', getPlayerDisplayStatus(player))}
                 ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
                 ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
             </div>
@@ -1109,7 +1150,7 @@ window.renderPlayerProfilePage = function(playerId) {
                     <div class="player-profile-page-hero-meta">
                         <span class="player-profile-page-jersey">#${escapeRosterHtml(jersey)}</span>
                         <div class="player-profile-badges">
-                            ${buildRosterStatusBadge(player.status)}
+                            ${buildRosterStatusBadge(getPlayerDisplayStatus(player))}
                             ${buildRosterInjuryBadge(injuryInfo)}
                         </div>
                     </div>
@@ -1147,7 +1188,7 @@ window.renderPlayerProfilePage = function(playerId) {
                     ${buildPlayerProfileMetricHtml('Lag', player.spillerLag || window.getPrimaryTeamName())}
                     ${buildPlayerProfileMetricHtml('Posisjon', posLabel)}
                     ${buildPlayerProfileMetricHtml('Fot', foot)}
-                    ${buildPlayerProfileMetricHtml('Status', player.status || '-')}
+                    ${buildPlayerProfileMetricHtml('Status', getPlayerDisplayStatus(player))}
                     ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
                     ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
                 </div>
@@ -1381,7 +1422,6 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
             document.getElementById('playerNameInput').value = pObj.navn;
             document.getElementById('playerJerseyInput').value = pObj.draktnummer || '';
             document.getElementById('playerBirthYearInput').value = pObj.fodselsaar;
-            document.getElementById('playerStatusInput').value = pObj.status;
             const joinedFromInput = document.getElementById('playerJoinedFromInput');
             if (joinedFromInput) {
                 joinedFromInput.value = typeof window.getPlayerJoinedFromDate === 'function'
@@ -1394,6 +1434,10 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
                     ? window.getPlayerLeftToDate(pObj)
                     : (pObj.tilknyttetTil || '');
             }
+            // Migrate legacy Passiv + sluttdato into Utregistrert in the form.
+            document.getElementById('playerStatusInput').value = getPlayerDisplayStatus(pObj) === 'Utregistrert'
+                ? 'Utregistrert'
+                : (pObj.status || 'Aktiv');
             document.getElementById('playerTeamInput').value = pObj.spillerLag || window.getPrimaryTeamName();
             document.getElementById('playerPos1Input').value = pObj.pos1;
             document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
@@ -1589,9 +1633,21 @@ window.savePlayer = async function(event) {
     const jerseyRaw = document.getElementById('playerJerseyInput').value.trim();
     const birthYearInput = document.getElementById('playerBirthYearInput');
     const birthYearRaw = birthYearInput ? birthYearInput.value.trim() : '';
-    const status = document.getElementById('playerStatusInput').value;
-    const tilknyttetFra = (document.getElementById('playerJoinedFromInput')?.value || '').trim();
-    const tilknyttetTil = (document.getElementById('playerLeftToInput')?.value || '').trim();
+    let tilknyttetFra = (document.getElementById('playerJoinedFromInput')?.value || '').trim();
+    let tilknyttetTil = (document.getElementById('playerLeftToInput')?.value || '').trim();
+    let status = document.getElementById('playerStatusInput').value;
+    // Utregistrert always requires tilknyttet til. Setting the date forces Utregistrert.
+    if (tilknyttetTil) {
+        status = 'Utregistrert';
+    } else if (status === 'Utregistrert') {
+        tilknyttetTil = getTodayDateString();
+        const leftToInput = document.getElementById('playerLeftToInput');
+        if (leftToInput) leftToInput.value = tilknyttetTil;
+    } else {
+        tilknyttetTil = '';
+    }
+    const statusInput = document.getElementById('playerStatusInput');
+    if (statusInput) statusInput.value = status;
     const pos1 = document.getElementById('playerPos1Input').value.trim();
     const pos2 = document.getElementById('playerPos2Input').value.trim();
     const fot = document.getElementById('playerFootInput').value.trim();

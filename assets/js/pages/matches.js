@@ -1894,7 +1894,7 @@ function getMatchPlayerSelectLineup(match) {
 function getMatchPlayerSelectPlayers(match) {
     if (isMatchPlayerSelectSandbox(match)) {
         return [...(window.activePlayers || [])]
-            .filter(player => player.status !== 'Passiv')
+            .filter(player => window.isPlayerInCurrentSquadPool(player))
             .sort((a, b) => String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' }));
     }
     return getMatchGamePlanSelectablePlayers(match);
@@ -2465,7 +2465,7 @@ function getMatchDetailAttendingPlayers(match) {
             if (typeof window.isPlayerListedForActivity === 'function') {
                 return window.isPlayerListedForActivity(p, match);
             }
-            return p.status !== 'Passiv';
+            return window.isPlayerInCurrentSquadPool(p);
         })
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
@@ -2727,7 +2727,7 @@ function getMatchGamePlanPitchXiReferencePlayers(match) {
     const teamName = match?.matchGroup || '';
     return (window.activePlayers || []).filter(player => (
         player?.navn
-        && player.status !== 'Passiv'
+        && window.isPlayerInCurrentSquadPool(player)
         && (!teamName || player.spillerLag === teamName)
     ));
 }
@@ -9671,7 +9671,7 @@ function getMatchGamePlanSelectablePlayers(match) {
             if (typeof window.isPlayerListedForActivity === 'function') {
                 return window.isPlayerListedForActivity(player, match);
             }
-            return player.status !== 'Passiv';
+            return window.isPlayerInCurrentSquadPool(player);
         });
     const participantRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)

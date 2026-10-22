@@ -160,6 +160,23 @@ window.getPlayerLeftToDate = function(player) {
     return window.normalizeActivityDateKey(player.tilknyttetTil);
 };
 
+// Utregistrert, or legacy Passiv + sluttdato (before status migration is saved).
+window.isPlayerDeregistered = function(player) {
+    if (!player) return false;
+    if (player.status === 'Utregistrert') return true;
+    return player.status === 'Passiv' && Boolean(window.getPlayerLeftToDate(player));
+};
+
+// Current tropp pool: Aktiv/Rekrutt (and any other non-pause/non-left status).
+window.isPlayerInCurrentSquadPool = function(player) {
+    if (!player) return false;
+    if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
+        return false;
+    }
+    if (player.status === 'Passiv' || player.status === 'Utregistrert') return false;
+    return true;
+};
+
 window.isPlayerOnRosterForDate = function(player, dateValue) {
     if (!player) return false;
     if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
@@ -179,16 +196,16 @@ window.isPlayerOnRosterForActivity = function(player, activity) {
 };
 
 // Activity-dated lists (oppmøte, kamptropp, historikk): include players who belonged
-// that day. Passiv without sluttdato stays hidden (pause). Passiv with tilknyttetTil
-// still appears for activities inside their affiliation window.
+// that day. Passiv (pause) stays hidden. Utregistrert still appears inside affiliation window.
 window.isPlayerListedForActivity = function(player, activity) {
     if (!player) return false;
     if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
         return true;
     }
     if (!window.isPlayerOnRosterForActivity(player, activity)) return false;
-    if (player.status !== 'Passiv') return true;
-    return Boolean(window.getPlayerLeftToDate(player));
+    if (window.isPlayerDeregistered(player)) return true;
+    if (player.status === 'Passiv') return false;
+    return true;
 };
 
 window.getMatchSquadEmptyMessage = function(match) {

@@ -151,7 +151,7 @@ window.openAttendanceModal = function(eventId) {
 
     const teamPlayers = typeof window.getAttendanceModalTeamPlayers === 'function'
         ? window.getAttendanceModalTeamPlayers(ev)
-        : (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+        : (window.activePlayers || []).filter(p => window.isPlayerInCurrentSquadPool(p));
     const disciplineStatus = isMatchClick && typeof window.getDisciplineStatusForTeam === 'function'
         ? window.getDisciplineStatusForTeam(ev.matchGroup, ev.date)
         : {};

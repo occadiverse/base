@@ -306,7 +306,7 @@ window.getPositionCategoryFromPos1 = function(pos1) {
 
 window.buildNextSessionAttendanceStats = function(event) {
     const teamName = event?.team || event?.matchGroup;
-    const allActivePlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    const allActivePlayers = (window.activePlayers || []).filter(p => window.isPlayerInCurrentSquadPool(p));
     const scopedPlayers = teamName
         ? allActivePlayers.filter(p => p.spillerLag === teamName)
         : allActivePlayers;

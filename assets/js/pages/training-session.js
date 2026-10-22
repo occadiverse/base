@@ -435,7 +435,7 @@ function getTrainingMatchPlayerRating(match, player) {
 function getTrainingMatchLineRatingAverages(match) {
     const teamName = match?.matchGroup || '';
     const players = (window.activePlayers || []).filter(player => (
-        player.status !== 'Passiv'
+        window.isPlayerInCurrentSquadPool(player)
         && (!teamName || player.spillerLag === teamName)
         && (typeof window.isPlayerAttending !== 'function' || window.isPlayerAttending(match.attendance, player))
         && (typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(match, player))
@@ -638,10 +638,10 @@ function getTrainingTeamPlayers(teamName) {
         if (teamName && player.spillerLag !== teamName) return false;
         if (player.isGuest) return false;
         if (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id)) return false;
-        // Keep utmeldte (Passiv + tilknyttetTil) in season attendance lists for
-        // the period they were affiliated; temporary Passiv without sluttdato stays out.
-        if (player.status !== 'Passiv') return true;
-        return Boolean(typeof window.getPlayerLeftToDate === 'function' && window.getPlayerLeftToDate(player));
+        // Keep Utregistrert in season attendance lists for their affiliation window;
+        // temporary Passiv without sluttdato stays out.
+        if (window.isPlayerInCurrentSquadPool(player)) return true;
+        return typeof window.isPlayerDeregistered === 'function' && window.isPlayerDeregistered(player);
     });
 }
 
