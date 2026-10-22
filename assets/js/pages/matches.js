@@ -9165,28 +9165,11 @@ window.closeMatchSummaryMostMinutesPopup = function() {
 let matchSummaryPanelActiveView = 'kampen';
 
 window.getMatchSummaryPanelView = function() {
-    return matchSummaryPanelActiveView === 'planen' || matchSummaryPanelActiveView === 'troppen'
-        ? matchSummaryPanelActiveView
-        : 'kampen';
+    return 'kampen';
 };
 
-window.setMatchSummaryPanelView = function(view) {
-    matchSummaryPanelActiveView = view === 'planen' || view === 'troppen' ? view : 'kampen';
-    const root = document.querySelector('#kampdetaljer-info .match-summary-panel .stats-kamp-summary.is-paged');
-    if (!root) return;
-    root.dataset.summaryView = matchSummaryPanelActiveView;
-    const labels = { kampen: 'Kampen', planen: 'Planen', troppen: 'Troppen' };
-    root.querySelectorAll('[data-summary-view-panel]').forEach((panel) => {
-        const isActive = panel.dataset.summaryViewPanel === matchSummaryPanelActiveView;
-        panel.hidden = !isActive;
-    });
-    root.querySelectorAll('[data-summary-view-tab]').forEach((btn) => {
-        const isActive = btn.dataset.summaryViewTab === matchSummaryPanelActiveView;
-        btn.classList.toggle('is-active', isActive);
-        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-    const heading = root.querySelector('[data-summary-view-heading]');
-    if (heading) heading.textContent = labels[matchSummaryPanelActiveView] || 'Kampen';
+window.setMatchSummaryPanelView = function() {
+    matchSummaryPanelActiveView = 'kampen';
 };
 
 window.buildMatchSummaryBodyHtml = function(match) {

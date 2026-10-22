@@ -6626,7 +6626,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const bidragScore = typeof window.getPlayerKampbidragSnitt === 'function'
                     ? Math.round(Number(window.getPlayerKampbidragSnitt(playerObj, teamName)) || 0)
                     : 0;
-                const poengHint = bidragScore > 0 ? `snitt ${bidragScore}` : '';
+                const bidragSnittText = bidragScore > 0 ? `snitt ${bidragScore}` : '';
                 const metaBits = [
                     posLabel
                         ? `<span class="stats-kamp-summary-bb-pos-label">${escapeStatisticsHtml(posLabel)}</span>`
@@ -6639,11 +6639,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const empty = Boolean(opts.empty);
                     const tone = opts.tone ? ` is-${opts.tone}` : '';
                     const emptyClass = empty ? ' is-empty' : '';
-                    const hint = opts.hint
-                        ? `<em class="stats-kamp-summary-bb-tile-hint">${escapeStatisticsHtml(opts.hint)}</em>`
-                        : '';
-                    const suffix = opts.suffix
-                        ? `<strong class="stats-kamp-summary-bb-tile-suffix">${escapeStatisticsHtml(String(opts.suffix))}</strong>`
+                    const softSuffix = opts.softSuffix
+                        ? `<em class="stats-kamp-summary-bb-tile-soft">${escapeStatisticsHtml(String(opts.softSuffix))}</em>`
                         : '';
                     const titleAttr = opts.title
                         ? ` title="${escapeStatisticsHtml(opts.title)}"`
@@ -6651,28 +6648,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return `
                         <div class="stats-kamp-summary-bb-tile${tone}${emptyClass}"${titleAttr}>
                             <span class="stats-kamp-summary-bb-tile-value">
-                                <strong>${escapeStatisticsHtml(String(value))}</strong>${suffix}
+                                <strong>${escapeStatisticsHtml(String(value))}</strong>${softSuffix}
                             </span>
                             <span>${escapeStatisticsHtml(label)}</span>
-                            ${hint}
                         </div>
                     `;
                 };
                 const rackTiles = [
                     tile(goals, 'Mål', { empty: goals <= 0, tone: goals > 0 ? 'hot' : '' }),
                     tile(assists, 'Assist', { empty: assists <= 0 }),
-                    tile(points, 'Poeng', {
+                    tile(points, 'Bidrag', {
                         empty: points <= 0,
                         tone: points > 0 ? 'gold' : '',
-                        hint: poengHint,
+                        softSuffix: bidragSnittText,
                         title: points > 0
-                            ? `Spillerbørspoeng i denne kampen${bidragScore > 0 ? ` (sesongsnitt ${bidragScore})` : ''}`
-                            : 'Spillerbørspoeng i denne kampen'
+                            ? `Kampbidrag i denne kampen${bidragScore > 0 ? ` (sesongsnitt ${bidragScore})` : ''}`
+                            : 'Kampbidrag i denne kampen'
                     }),
                     tile(formValue, 'Form', {
                         empty: formEmpty,
                         tone: formToneClass,
-                        suffix: formSuffix,
+                        softSuffix: formSuffix,
                         title: formTitle
                     }),
                     yellow > 0 ? tile(yellow, 'Gult', { tone: 'card' }) : '',
@@ -6781,7 +6777,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!text) return '';
                 return `<p><span class="stats-kamp-summary-note-label">${escapeStatisticsHtml(label)}</span> ${escapeStatisticsHtml(text)}</p>`;
             };
-            const buildKampenNotesInfoHtml = (positiveText, challengeText) => {
+            const buildKampenNotesInfoHtml = (positiveText, challengeText, planText, troppHtml) => {
                 const blocks = [];
                 if (positiveText) {
                     blocks.push(`
@@ -6805,9 +6801,31 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         </div>
                     `);
                 }
+                if (planText) {
+                    blocks.push(`
+                        <div class="stats-kamp-summary-kampen-note is-plan">
+                            <div class="stats-kamp-summary-kampen-note-label">
+                                <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+                                <span>Planen</span>
+                            </div>
+                            <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(planText)}</p>
+                        </div>
+                    `);
+                }
+                if (troppHtml) {
+                    blocks.push(`
+                        <div class="stats-kamp-summary-kampen-note is-tropp">
+                            <div class="stats-kamp-summary-kampen-note-label">
+                                <i class="fa-solid fa-users" aria-hidden="true"></i>
+                                <span>Troppen</span>
+                            </div>
+                            <div class="stats-kamp-summary-kampen-note-text">${troppHtml}</div>
+                        </div>
+                    `);
+                }
                 if (!blocks.length) return '';
                 return `
-                    <aside class="stats-kamp-summary-kampen-notes" aria-label="Trenernotater">
+                    <aside class="stats-kamp-summary-kampen-notes" aria-label="Trenernotater, plan og tropp">
                         ${blocks.join('')}
                     </aside>
                 `;
@@ -6854,7 +6872,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 eventsHtml,
                 pitchChipsHtml
             ].filter(Boolean).join('');
-            const kampenNotesHtml = buildKampenNotesInfoHtml(notesPositiveRaw, notesChallengeRaw);
+            const planNoteParts = [];
+            if (formation) planNoteParts.push(formation);
+            const planNoteBody = String(kampplanNotes || '').trim() || kampplanTemplate;
+            if (planNoteBody) planNoteParts.push(planNoteBody);
+            const planNoteText = planNoteParts.join('\n\n');
+            const troppNoteHtml = troppLines.length ? troppLines.join('') : '';
+            const kampenNotesHtml = buildKampenNotesInfoHtml(
+                notesPositiveRaw,
+                notesChallengeRaw,
+                context.embedInPanel ? planNoteText : '',
+                context.embedInPanel ? troppNoteHtml : ''
+            );
             const kampenLowerHtml = kampenNotesHtml
                 ? `
                     <div class="stats-kamp-summary-kampen-layout${kampenMainHtml ? '' : ' is-notes-only'}">
@@ -6874,53 +6903,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const troppenBody = renderLines(troppLines, 'Ikke fylt', { html: true });
 
             if (context.embedInPanel) {
-                const activeView = (typeof window.getMatchSummaryPanelView === 'function'
-                    ? window.getMatchSummaryPanelView()
-                    : 'kampen');
-                const views = [
-                    { id: 'kampen', label: 'Kampen', icon: 'fa-futbol', body: kampenBody || renderLines([], 'Ikke fylt'), empty: kampenEmpty },
-                    { id: 'planen', label: 'Planen', icon: 'fa-diagram-project', body: planenBody, empty: planEmpty },
-                    { id: 'troppen', label: 'Troppen', icon: 'fa-users', body: troppenBody, empty: !troppLines.length }
-                ];
-                const active = views.find(view => view.id === activeView) || views[0];
-                const tabsHtml = views.map((view) => {
-                    const isActive = view.id === active.id;
-                    return `
-                        <button
-                            type="button"
-                            class="blknapp match-subs-view-tab is-icon${isActive ? ' is-active' : ''}"
-                            role="tab"
-                            aria-selected="${isActive ? 'true' : 'false'}"
-                            aria-label="${escapeStatisticsHtml(view.label)}"
-                            title="${escapeStatisticsHtml(view.label)}"
-                            data-summary-view-tab="${escapeStatisticsHtml(view.id)}"
-                            onclick="window.setMatchSummaryPanelView('${escapeStatisticsHtml(view.id)}')"
-                        ><i class="fa-solid ${escapeStatisticsHtml(view.icon)}" aria-hidden="true"></i></button>
-                    `;
-                }).join('');
-                const panelsHtml = views.map((view) => {
-                    const isActive = view.id === active.id;
-                    return `
-                        <div
-                            class="match-subs-view-panel stats-kamp-summary-view-panel${view.empty ? ' is-empty' : ''}"
-                            data-summary-view-panel="${escapeStatisticsHtml(view.id)}"
-                            ${isActive ? '' : 'hidden'}
-                        >
-                            <div class="stats-kamp-summary-block-body">${view.body}</div>
-                        </div>
-                    `;
-                }).join('');
                 return `
-                    <section class="stats-kamp-summary is-embedded is-paged" aria-label="Oppsummering" data-summary-view="${escapeStatisticsHtml(active.id)}">
-                        <div class="match-subs-view-toolbar match-summary-view-toolbar">
-                            <div class="match-subs-section-heading match-subs-view-heading">
-                                <span data-summary-view-heading>${escapeStatisticsHtml(active.label)}</span>
-                            </div>
-                            <div class="match-subs-view-tabs" role="tablist" aria-label="Oppsummering">
-                                ${tabsHtml}
-                            </div>
-                        </div>
-                        ${panelsHtml}
+                    <section class="stats-kamp-summary is-embedded${kampenEmpty ? ' is-empty' : ''}" aria-label="Oppsummering">
+                        <div class="stats-kamp-summary-block-body">${kampenBody}</div>
                     </section>
                 `;
             }
