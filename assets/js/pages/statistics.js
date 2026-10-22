@@ -6736,28 +6736,67 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const troppCount = presence.isRegistered
                 ? presence.presentCount
                 : squadPlayers.length;
+            const squadSize = Number(presence.squadSize) || 0;
             const subCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
             const minutesTracked = typeof window.matchHasMinutesTracking === 'function'
                 ? window.matchHasMinutesTracking(match)
                 : rows.some(s => s.minutes != null);
             const manyMinutes = rows.filter(s => s.onPitch !== false && s.minutes != null && Number(s.minutes) >= 75);
             const littleMinutes = rows.filter(s => s.onPitch !== false && s.minutes != null && Number(s.minutes) <= 20);
-            const troppHead = joinStatsSummaryBits([
-                troppCount > 0 ? `${troppCount} i troppen` : '',
-                subCount > 0 ? `${subCount} ${subCount === 1 ? 'bytte' : 'bytter'}` : ''
-            ]);
+            const benchOnlyRows = rows.filter(s => s.onPitch === false);
+            const usedOnPitch = rows.filter(s => s.onPitch !== false);
+            const positionMix = squadPlayers.length
+                ? formatStatsSummaryPositionMix(squadPlayers)
+                : '';
+            const formatTroppNames = (list, limit = 4) => {
+                const names = (Array.isArray(list) ? list : [])
+                    .map((row) => String(row?.name || '').trim())
+                    .filter(Boolean);
+                if (!names.length) return '';
+                if (names.length <= limit) {
+                    if (names.length === 1) return names[0];
+                    if (names.length === 2) return `${names[0]} og ${names[1]}`;
+                    return `${names.slice(0, -1).join(', ')} og ${names[names.length - 1]}`;
+                }
+                const shown = names.slice(0, limit);
+                const rest = names.length - limit;
+                return `${shown.join(', ')} og ${rest} ${rest === 1 ? 'til' : 'andre'}`;
+            };
             const troppLines = [];
-            if (troppHead) {
-                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(troppHead)}</p>`);
+            if (troppCount > 0) {
+                let intro = squadSize > troppCount
+                    ? `${troppCount} av ${squadSize} spillere var med i troppen`
+                    : `${troppCount} spillere var med i troppen`;
+                if (subCount === 1) intro += ', og det ble gjort ett bytte underveis';
+                else if (subCount > 1) intro += `, og det ble gjort ${subCount} bytter underveis`;
+                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${intro}.`)}</p>`);
             }
             if (minutesTracked && manyMinutes.length) {
-                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`75+ min: ${manyMinutes.length}`)}</p>`);
+                let longSpell = '';
+                if (manyMinutes.length === 1) {
+                    longSpell = `${manyMinutes[0].name || 'Én spiller'} fikk en lang økt med over 75 minutter`;
+                } else if (manyMinutes.length >= Math.max(6, Math.ceil(usedOnPitch.length * 0.55))) {
+                    longSpell = `${manyMinutes.length} spillere fikk over 75 minutter — troppen ble brukt med god kontinuitet`;
+                } else {
+                    longSpell = `${manyMinutes.length} spillere fikk en lang økt (over 75 minutter)`;
+                }
+                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${longSpell}.`)}</p>`);
             }
             if (minutesTracked && littleMinutes.length) {
-                troppLines.push(buildStatsSummaryLabeledLineHtml(
-                    'Lite',
-                    formatStatsSummaryNamedListHtml(littleMinutes, allNames, 4)
-                ));
+                const shortNames = formatTroppNames(littleMinutes, 4);
+                const shortSpell = littleMinutes.length === 1
+                    ? `${shortNames} fikk under 20 minutter`
+                    : `Kort innsats under 20 minutter: ${shortNames}`;
+                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${shortSpell}.`)}</p>`);
+            }
+            if (benchOnlyRows.length) {
+                const benchSpell = benchOnlyRows.length === 1
+                    ? `${benchOnlyRows[0].name || 'Én spiller'} satt hele kampen på benken`
+                    : `${benchOnlyRows.length} spillere satt hele kampen på benken`;
+                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${benchSpell}.`)}</p>`);
+            }
+            if (positionMix && troppCount > 0) {
+                troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`Linjefordeling i troppen: ${positionMix}.`)}</p>`);
             }
 
             const opponent = match.opponent || 'Motstander';
