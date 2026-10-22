@@ -9189,26 +9189,54 @@ window.setMatchSummaryPanelView = function(view) {
     if (heading) heading.textContent = labels[matchSummaryPanelActiveView] || 'Kampen';
 };
 
-window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
+window.buildMatchSummaryBodyHtml = function(match) {
     if (!match) return '';
-
-    let summaryBody = '';
     if (typeof window.buildMatchSummaryStatsFromMatch === 'function'
         && typeof window.buildKampstatsMatchSummaryHtml === 'function') {
         const summary = window.buildMatchSummaryStatsFromMatch(match);
-        summaryBody = window.buildKampstatsMatchSummaryHtml(match, summary.stats, {
+        const html = window.buildKampstatsMatchSummaryHtml(match, summary.stats, {
             ...summary,
             embedInPanel: true
         });
+        if (html) return html;
     }
+    return `
+        <div class="stats-kamp-summary is-embedded">
+            <p class="stats-kamp-summary-story">Kampen er ferdigspilt. Fyll inn Spillerbørs og spilletid for en rikere oppsummering.</p>
+        </div>
+    `;
+};
 
-    if (!summaryBody) {
-        summaryBody = `
-            <div class="stats-kamp-summary is-embedded">
-                <p class="stats-kamp-summary-story">Kampen er ferdigspilt. Fyll inn Spillerbørs og spilletid for en rikere oppsummering.</p>
-            </div>
+window.ensureMatchSummaryPanelContent = function(panelOrMatchId) {
+    const panel = panelOrMatchId?.classList?.contains?.('match-summary-panel')
+        ? panelOrMatchId
+        : document.querySelector('#kampdetaljer-info [data-match-panel="kampoppsummering"]');
+    if (!panel) return false;
+    const body = panel.querySelector('.match-summary-body');
+    const pending = body?.querySelector('[data-match-summary-pending]');
+    if (!body || !pending) return false;
+
+    const matchId = String(pending.getAttribute('data-match-summary-pending') || panelOrMatchId || '');
+    const match = (window.activeMatches || []).find((item) => String(item.id) === matchId);
+    if (!match || typeof window.buildMatchSummaryBodyHtml !== 'function') return false;
+
+    body.innerHTML = window.buildMatchSummaryBodyHtml(match);
+    return true;
+};
+
+window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
+    if (!match) return '';
+
+    const matchId = String(match.id || '');
+    const summaryBody = isOpen && typeof window.buildMatchSummaryBodyHtml === 'function'
+        ? window.buildMatchSummaryBodyHtml(match)
+        : `
+            <div
+                class="stats-kamp-summary is-embedded"
+                data-match-summary-pending="${escapeMatchHtml(matchId)}"
+                aria-hidden="true"
+            ></div>
         `;
-    }
 
     return `
         <section class="match-summary-panel match-collapsible-panel is-game-card ${isOpen ? '' : 'is-collapsed'}" data-match-panel="kampoppsummering">
@@ -9581,7 +9609,6 @@ window.showMatchDetails = function(id) {
         </div>
     `;
 
-    renderPlayerRowForm(match);
     const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
     switchTab('kampdetaljer', { backTarget });
@@ -9601,18 +9628,26 @@ window.showMatchDetails = function(id) {
         window.initMatchGamePlanScroller();
         window.syncMatchGamePlanScroller();
         removeMatchGamePlanSamspillPanelsDom();
-        syncMatchGamePlanLineupOverlayUi(match);
+        // Pitch overlays are only needed when Lagoppstilling is open.
+        if (isLineupPanelOpen) {
+            syncMatchGamePlanLineupOverlayUi(match);
+            if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
+                window.drawMatchGamePlanChemistryLines(match);
+            }
+        }
         syncMatchDetailSquadCardSizeToPitch();
         window.autosizeMatchCoachNotesFields(container);
-        if (typeof window.drawMatchGamePlanChemistryLines === 'function') {
-            window.drawMatchGamePlanChemistryLines(match);
-        }
         if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
 
-        // Heavy samspill chips after first paint so hero/detail open stays responsive.
+        // Heavy work after first paint so hero/detail open stays responsive.
         window.setTimeout(() => {
             if (window.activeDetailsId !== match.id) return;
-            syncMatchGamePlanPitchSamspillZoneTotals(match);
+            if (typeof window.renderPlayerRowForm === 'function') {
+                window.renderPlayerRowForm(match);
+            }
+            if (isLineupPanelOpen) {
+                syncMatchGamePlanPitchSamspillZoneTotals(match);
+            }
         }, 0);
 
         if (openForAttendanceFeedback) {
@@ -12854,6 +12889,20 @@ window.toggleMatchPanel = function(btnOrPanel) {
 
     if (shouldOpen && panelId === 'trenernotater') {
         requestAnimationFrame(() => window.autosizeMatchCoachNotesFields(panel));
+    }
+
+    if (shouldOpen && panelId === 'kampoppsummering') {
+        if (typeof window.ensureMatchSummaryPanelContent === 'function') {
+            window.ensureMatchSummaryPanelContent(panel);
+        }
+    }
+
+    if (shouldOpen && panelId === 'spillerbors') {
+        const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+        const list = document.getElementById('kampdetaljer-spillerbors');
+        if (match && list && !list.children.length && typeof window.renderPlayerRowForm === 'function') {
+            window.renderPlayerRowForm(match);
+        }
     }
 
     if (shouldOpen && isPairPanel) {

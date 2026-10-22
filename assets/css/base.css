@@ -11445,6 +11445,13 @@
             padding: 0.5rem 0.3rem 0.45rem;
             text-align: center;
         }
+        .stats-kamp-summary-bb-tile-value {
+            align-items: baseline;
+            display: inline-flex;
+            gap: 0.28rem;
+            justify-content: center;
+            line-height: 1;
+        }
         .stats-kamp-summary-bb-tile strong {
             color: #faf5ff;
             font-size: clamp(1.05rem, 2.5vw, 1.4rem);
@@ -11455,7 +11462,10 @@
                 0 1px 0 var(--bb-ink),
                 0 2px 0 rgba(26, 11, 46, 0.4);
         }
-        .stats-kamp-summary-bb-tile span {
+        .stats-kamp-summary-bb-tile-suffix {
+            letter-spacing: -0.02em;
+        }
+        .stats-kamp-summary-bb-tile > span:not(.stats-kamp-summary-bb-tile-value) {
             color: rgba(233, 213, 255, 0.78);
             font-size: 0.6rem;
             font-weight: 850;
