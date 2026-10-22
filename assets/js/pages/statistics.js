@@ -6524,12 +6524,36 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!row) return '';
                 const name = String(row.name || '').trim();
                 const photoUrl = getStatsSummaryPlayerPhotoUrl(row);
+                const playerObj = (typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(row.id || row.name)
+                    : null) || { id: row.id, navn: row.name };
                 const rating = Number(row.rating) || 0;
+                const goals = Number(row.goals) || 0;
+                const assists = Number(row.assists) || 0;
+                const points = Number(row.points) || 0;
+                const minutes = row.minutes == null || row.minutes === ''
+                    ? null
+                    : Math.max(0, Math.floor(Number(row.minutes) || 0));
+                const yellow = Number(row.yellow) || 0;
+                const red = Number(row.red) || 0;
+                const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
+                    ? window.calculatePlayerMatchPoints(match, playerObj, true)
+                    : null;
+                const bbBonus = Number(pointsDetails?.bbBonus) || 0;
+                const startStatusRaw = typeof window.getPlayerMatchStartStatus === 'function'
+                    ? window.getPlayerMatchStartStatus(match, playerObj)
+                    : '';
+                const startLabel = startStatusRaw === 'S'
+                    ? 'Fra start'
+                    : (startStatusRaw === 'B' ? 'Innbytter' : '');
+                const regularScore = typeof window.getMatchRegularScore === 'function'
+                    ? window.getMatchRegularScore(match)
+                    : (typeof window.parseScore === 'function' ? window.parseScore(match.result) : null);
+                const teamGoals = regularScore && Number.isFinite(Number(regularScore.bsk))
+                    ? Math.max(0, Math.floor(Number(regularScore.bsk) || 0))
+                    : null;
                 let posCode = String(row.posCode || '').trim();
                 if (!posCode && row.onPitch !== false) {
-                    const playerObj = (typeof window.findPlayerByRef === 'function'
-                        ? window.findPlayerByRef(row.id || row.name)
-                        : null) || { id: row.id, navn: row.name };
                     const formationId = formation
                         || (typeof window.getMatchGamePlanFormation === 'function'
                             ? window.getMatchGamePlanFormation(match)
@@ -6543,35 +6567,75 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? window.getMatchGamePlanPositionBadgeLabel(posId, formationId)
                         : posId;
                 }
-                const posHtml = posCode
-                    ? `<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-pos"><span class="stats-kamp-summary-bb-btn-label">Posisjon</span><span class="stats-kamp-summary-bb-btn-value">${escapeStatisticsHtml(posCode)}</span></span>`
-                    : '<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-pos is-empty"><span class="stats-kamp-summary-bb-btn-label">Posisjon</span><span class="stats-kamp-summary-bb-btn-value">–</span></span>';
+                const metaBits = [
+                    posCode
+                        ? `<span class="stats-kamp-summary-bb-chip is-pos">${escapeStatisticsHtml(posCode)}</span>`
+                        : '',
+                    startLabel
+                        ? `<span class="stats-kamp-summary-bb-chip">${escapeStatisticsHtml(startLabel)}</span>`
+                        : '',
+                    minutes != null
+                        ? `<span class="stats-kamp-summary-bb-chip">${escapeStatisticsHtml(String(minutes))} min</span>`
+                        : '',
+                    bbBonus > 0
+                        ? `<span class="stats-kamp-summary-bb-chip is-bb">+${escapeStatisticsHtml(String(bbBonus))} BB</span>`
+                        : ''
+                ].filter(Boolean).join('');
+                const tile = (value, label, opts = {}) => {
+                    const empty = Boolean(opts.empty);
+                    const tone = opts.tone ? ` is-${opts.tone}` : '';
+                    const emptyClass = empty ? ' is-empty' : '';
+                    return `
+                        <div class="stats-kamp-summary-bb-tile${tone}${emptyClass}">
+                            <strong>${escapeStatisticsHtml(String(value))}</strong>
+                            <span>${escapeStatisticsHtml(label)}</span>
+                        </div>
+                    `;
+                };
+                const rackTiles = [
+                    tile(goals, 'Mål', { empty: goals <= 0, tone: goals > 0 ? 'hot' : '' }),
+                    tile(assists, 'Assist', { empty: assists <= 0 }),
+                    tile(points, 'Poeng', { empty: points <= 0, tone: points > 0 ? 'gold' : '' }),
+                    teamGoals != null && goals > 0
+                        ? tile(`${goals}/${teamGoals}`, 'Lagets mål', { tone: 'hot' })
+                        : (minutes != null
+                            ? tile(`${minutes}'`, 'Spilletid')
+                            : tile(goals + assists, 'Bidrag', { empty: goals + assists <= 0 })),
+                    yellow > 0 ? tile(yellow, 'Gult', { tone: 'card' }) : '',
+                    red > 0 ? tile(red, 'Rødt', { tone: 'red' }) : ''
+                ].filter(Boolean).slice(0, 4);
                 const ratingHtml = rating > 0
-                    ? `<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-rating"><span class="stats-kamp-summary-bb-btn-label">Børs</span><span class="stats-kamp-summary-bb-btn-value">${escapeStatisticsHtml(String(rating))}</span></span>`
-                    : '<span class="stats-kamp-summary-bb-btn stats-kamp-summary-bb-rating is-empty"><span class="stats-kamp-summary-bb-btn-label">Børs</span><span class="stats-kamp-summary-bb-btn-value">–</span></span>';
+                    ? `<span class="stats-kamp-summary-bb-rating-value">${escapeStatisticsHtml(String(rating))}</span>`
+                    : `<span class="stats-kamp-summary-bb-rating-value is-empty">–</span>`;
                 const ariaPos = posCode ? `, ${posCode}` : '';
                 return `
                     <div class="stats-kamp-summary-bb-hero" aria-label="Banens beste ${escapeStatisticsHtml(name)}${escapeStatisticsHtml(ariaPos)}">
-                        <span class="stats-kamp-summary-bb-gem" aria-hidden="true">
-                            <i class="fa-solid fa-crown"></i>
-                        </span>
-                        <div class="stats-kamp-summary-bb-shell">
-                            <div class="stats-kamp-summary-bb-main">
-                                <div class="stats-kamp-summary-bb-copy">
-                                    <p class="stats-kamp-summary-bb-title">Banens beste</p>
-                                    <p class="stats-kamp-summary-bb-name">${escapeStatisticsHtml(name)}</p>
-                                </div>
-                                <div class="stats-kamp-summary-bb-figure" aria-hidden="true">
-                                    <span class="stats-kamp-summary-bb-avatar">
+                        <div class="stats-kamp-summary-bb-board">
+                            <span class="stats-kamp-summary-bb-gem">Banens beste</span>
+                            <span class="stats-kamp-summary-bb-crown" aria-hidden="true">
+                                <i class="fa-solid fa-crown"></i>
+                            </span>
+                            <div class="stats-kamp-summary-bb-stage">
+                                <div class="stats-kamp-summary-bb-identity">
+                                    <span class="stats-kamp-summary-bb-avatar" aria-hidden="true">
                                         ${photoUrl
                                             ? `<img src="${escapeStatisticsHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
                                             : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
                                     </span>
+                                    <div class="stats-kamp-summary-bb-identity-text">
+                                        <p class="stats-kamp-summary-bb-name">${escapeStatisticsHtml(name)}</p>
+                                        ${metaBits
+                                            ? `<div class="stats-kamp-summary-bb-meta">${metaBits}</div>`
+                                            : ''}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="stats-kamp-summary-bb-footer">
-                                ${posHtml}
-                                ${ratingHtml}
+                                <div class="stats-kamp-summary-bb-rack" aria-label="Kampprestasjon">
+                                    ${rackTiles.join('')}
+                                </div>
+                                <div class="stats-kamp-summary-bb-bors">
+                                    ${ratingHtml}
+                                    <span class="stats-kamp-summary-bb-rating-label">Børs</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -6713,22 +6777,25 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? renderLines(matchLines, 'Ikke fylt', { html: true })
                 : '';
             const kampenMainHtml = [
-                bbHeroHtml,
                 eventsHtml,
                 pitchChipsHtml
             ].filter(Boolean).join('');
             const kampenNotesHtml = buildKampenNotesInfoHtml(notesPositiveRaw, notesChallengeRaw);
-            const kampenBody = kampenNotesHtml
+            const kampenLowerHtml = kampenNotesHtml
                 ? `
                     <div class="stats-kamp-summary-kampen-layout${kampenMainHtml ? '' : ' is-notes-only'}">
                         <div class="stats-kamp-summary-kampen-main">
-                            ${kampenMainHtml || renderLines([], 'Ikke fylt')}
+                            ${kampenMainHtml || ''}
                         </div>
                         ${kampenNotesHtml}
                     </div>
                 `
-                : (kampenMainHtml || renderLines([], 'Ikke fylt'));
-            const kampenEmpty = !kampenMainHtml && !kampenNotesHtml;
+                : kampenMainHtml;
+            const kampenBody = [
+                bbHeroHtml,
+                kampenLowerHtml
+            ].filter(Boolean).join('') || renderLines([], 'Ikke fylt');
+            const kampenEmpty = !bbHeroHtml && !kampenMainHtml && !kampenNotesHtml;
             const planenBody = planEmpty ? renderLines([], 'Ikke fylt') : planHtml;
             const troppenBody = renderLines(troppLines, 'Ikke fylt', { html: true });
 
