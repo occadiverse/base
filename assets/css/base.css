@@ -1397,10 +1397,11 @@
             gap: 0.55rem;
             justify-content: center;
             margin: 0 0 0.15rem;
-            padding: 0.55rem 0.1rem 0.1rem;
+            padding: 0.55rem 0.1rem;
             width: 100%;
         }
         .match-detail-squad-players .match-detail-squad-overlay-segment {
+            align-items: center;
             background: transparent;
             border: 0;
             border-radius: 0;
@@ -16106,10 +16107,24 @@
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-body {
             padding: 0.35rem 0.1rem 0.2rem;
         }
+        /* Kamptropp: knapperad midtstilt mellom heading-gullinje og toolbar-gullinje */
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-bench-topline,
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-bench-topline:hover,
+        #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-bench-topline,
+        #kampdetaljer-info .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-bench-topline:hover {
+            margin-bottom: 0;
+        }
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-detail-squad-body {
+            padding-top: 0;
+        }
+        .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"] .match-attendance-save-state:not([hidden]) {
+            margin-bottom: 0.35rem;
+            margin-top: 0.35rem;
+        }
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar {
+            align-items: center;
             margin-bottom: 0.45rem;
-            padding-bottom: 0.55rem;
-            padding-top: 0.65rem;
+            padding-block: 0.65rem;
             position: relative;
             z-index: 3;
         }
@@ -17964,8 +17979,7 @@
                     linear-gradient(180deg, rgba(4, 14, 28, 0.2) 0%, transparent 100%);
                 flex: 0 0 auto;
                 margin-bottom: 0;
-                padding-bottom: 0.6rem;
-                padding-top: 0.7rem;
+                padding-block: 0.65rem;
             }
             .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-detail-squad-overlay-toolbar::after {
                 left: calc(-1 * var(--focus-pad-x));
